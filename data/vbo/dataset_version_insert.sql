@@ -1,0 +1,1 @@
+INSERT INTO dataset_versions (dataset_id, version_tag, checksum_sha256, record_count, notes) VALUES ('vbo', '09da44412ed4', '09da44412ed43ee271e407a83401275ada85483e2199273203c8404b84c093de', 1575, 'Auto-ingested by ingest_vbo.ts') ON CONFLICT DO NOTHING;

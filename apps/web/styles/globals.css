@@ -1,0 +1,248 @@
+@import './tokens.css';
+@import 'tailwindcss';
+@import '@heroui/react/styles';
+
+/* Limit Tailwind class scanning to source files (Tailwind v4 CSS-first config). */
+@source "../app/**/*.{ts,tsx}";
+@source "../components/**/*.{ts,tsx}";
+
+@theme {
+  --color-emopet-navy: var(--emopet-navy);
+  --color-emopet-orange: var(--emopet-orange);
+  --color-emopet-teal: var(--emopet-teal);
+  --color-emopet-cream: var(--emopet-cream);
+  --color-emopet-gray: var(--emopet-gray);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: var(--lh-normal);
+  font-feature-settings: var(--ff-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body { min-height: 100vh; }
+
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; cursor: pointer; }
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--fg-strong);
+}
+
+/* Semantic type utility classes */
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: var(--text-xxs);
+  font-weight: var(--weight-semi);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+  margin: 0;
+}
+
+.h-display {
+  font-family: var(--font-serif);
+  font-weight: var(--weight-semi);
+  font-size: var(--text-5xl);
+  line-height: var(--lh-tight);
+  letter-spacing: 0;
+  color: var(--fg-strong);
+  margin: 0;
+}
+
+.h1 {
+  font-family: var(--font-serif);
+  font-weight: var(--weight-semi);
+  font-size: var(--text-4xl);
+  line-height: var(--lh-tight);
+  letter-spacing: 0;
+  color: var(--fg-strong);
+  margin: 0;
+}
+
+.h2 {
+  font-family: var(--font-serif);
+  font-weight: var(--weight-semi);
+  font-size: var(--text-3xl);
+  line-height: var(--lh-snug);
+  letter-spacing: 0;
+  color: var(--fg-strong);
+  margin: 0;
+}
+
+.h3 {
+  font-family: var(--font-serif);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-2xl);
+  line-height: var(--lh-snug);
+  color: var(--fg-strong);
+  margin: 0;
+}
+
+.lead {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--text-xl);
+  line-height: var(--lh-snug);
+  color: var(--fg-2);
+  margin: 0;
+}
+
+.p { font-family: var(--font-sans); font-size: var(--text-md); line-height: var(--lh-relaxed); color: var(--fg); margin: 0; }
+.p2 { font-family: var(--font-sans); font-size: var(--text-sm); line-height: var(--lh-relaxed); color: var(--fg-2); margin: 0; }
+.caption { font-family: var(--font-sans); font-size: var(--text-xs); color: var(--fg-muted); margin: 0; }
+.micro { font-family: var(--font-sans); font-size: var(--text-xxs); letter-spacing: 0.06em; color: var(--fg-muted); text-transform: uppercase; font-weight: var(--weight-semi); margin: 0; }
+
+.num, .data {
+  font-feature-settings: var(--ff-tabular);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.data-xl {
+  font-family: var(--font-serif);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-5xl);
+  letter-spacing: 0;
+  color: var(--fg-strong);
+  line-height: 1;
+  font-feature-settings: var(--ff-tabular);
+  font-variant-numeric: tabular-nums lining-nums;
+  margin: 0;
+}
+
+.data-md {
+  font-family: var(--font-serif);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-xl);
+  color: var(--fg-strong);
+  font-feature-settings: var(--ff-tabular);
+  font-variant-numeric: tabular-nums lining-nums;
+  margin: 0;
+}
+
+/* Focus ring — anneau clavier. accent-press (orange foncé #C2350F) = 4.83:1 sur cream,
+   conforme §1.4.11 ; le mix orange 40 % précédent tombait sous 3:1 (peu visible). */
+:focus-visible {
+  outline: 2px solid var(--accent-press);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+.landing-page {
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100vh;
+}
+
+.landing-section {
+  padding: clamp(56px, 8vw, 104px) clamp(20px, 4vw, 64px);
+}
+
+.landing-inner {
+  width: min(100%, 1180px);
+  margin: 0 auto;
+}
+
+.landing-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(360px, 1.05fr);
+  gap: clamp(32px, 5vw, 72px);
+  align-items: center;
+  min-height: calc(100vh - 1px);
+  padding-top: clamp(32px, 6vw, 72px);
+  padding-bottom: clamp(48px, 6vw, 88px);
+}
+
+.landing-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(20px, 3vw, 36px);
+  align-items: center;
+}
+
+.landing-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.landing-media {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 24px 80px rgba(29, 26, 106, 0.16);
+  background: var(--surface);
+}
+
+.landing-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.landing-navy-panel {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  background: var(--emopet-navy);
+  color: var(--fg-on-dark);
+}
+
+.landing-navy-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.landing-product-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.landing-product-copy h2,
+.landing-product-copy p {
+  margin: 0;
+}
+
+.brand-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+@media (max-width: 980px) {
+  .landing-hero,
+  .landing-grid-2,
+  .landing-grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-hero {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .landing-section {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .landing-media,
+  .landing-navy-panel {
+    border-radius: var(--radius-lg);
+  }
+}

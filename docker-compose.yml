@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:16
+    container_name: emopet-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-emopet}
+      POSTGRES_USER: ${DB_USER:-emopet}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in a local env file}
+    ports:
+      - "5432:5432"
+    volumes:
+      - emopet_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-emopet} -d ${DB_NAME:-emopet}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # In Docker network, Postgres host is "db"
+      DATABASE_URL: postgresql+psycopg2://${DB_USER:-emopet}:${DB_PASSWORD:?set DB_PASSWORD in a local env file}@db:5432/${DB_NAME:-emopet}
+      EMOPET_ENV: ${EMOPET_ENV:-dev}
+      EMOPET_LANG_DEFAULT: ${EMOPET_LANG_DEFAULT:-fr}
+      EMOPET_FEATURE_WEATHER: ${EMOPET_FEATURE_WEATHER:-true}
+      EMOPET_FEATURE_JOURNAL: ${EMOPET_FEATURE_JOURNAL:-true}
+      EMOPET_FEATURE_FOOD: ${EMOPET_FEATURE_FOOD:-true}
+      ADMIN_SEED_TOKEN: ${ADMIN_SEED_TOKEN:?set ADMIN_SEED_TOKEN in a local env file}
+      CORS_ALLOW_ORIGINS: "${CORS_ALLOW_ORIGINS:-http://localhost:3100}"
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    command: ["python", "-m", "uvicorn", "src.api.emopet_api:app", "--host", "0.0.0.0", "--port", "8000"]
+
+volumes:
+  emopet_pg:

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">EMOPET app icon placeholder</title>
+  <rect width="256" height="256" rx="52" fill="#1D1A6A"/>
+  <g transform="translate(48 50)">
+    <g fill="#F6EFE7">
+      <ellipse cx="42" cy="36" rx="14" ry="24" transform="rotate(-24 42 36)"/>
+      <ellipse cx="70" cy="25" rx="15" ry="26" transform="rotate(-8 70 25)"/>
+      <ellipse cx="102" cy="25" rx="15" ry="26" transform="rotate(8 102 25)"/>
+      <ellipse cx="130" cy="38" rx="14" ry="24" transform="rotate(24 130 38)"/>
+      <path d="M28 86c0-29 24-51 55-51 32 0 57 21 57 51 0 24-19 39-42 39-10 0-16-4-20-11-9 9-22 13-34 8-10-4-16-17-16-36Z"/>
+    </g>
+    <path d="M82 107c-21 0-35-14-35-32 0-17 13-29 29-29 14 0 25 10 25 23 0 11-9 20-20 20-9 0-16-7-16-15 0-7 5-12 12-12 5 0 9 4 9 9" fill="none" stroke="#1D1A6A" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="86" cy="73" r="7" fill="#FE502D"/>
+  </g>
+</svg>

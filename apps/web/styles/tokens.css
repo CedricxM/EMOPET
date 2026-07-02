@@ -1,0 +1,187 @@
+/* ============================================================
+   EMOPET — Design tokens (web)
+   Ported from emopet-design-system/colors_and_type.css.
+   Keep this file and the mobile theme in sync.
+
+   Les stacks de polices sont définies ici pour éviter une dépendance réseau
+   au build. Sora reste la famille de marque préférée, avec fallbacks système.
+   ============================================================ */
+
+:root {
+  /* Official EMOPET brand aliases */
+  --emopet-navy: #1D1A6A;
+  --emopet-orange: #FE502D;
+  --emopet-teal: #2CB7AB;
+  --emopet-cream: #F6EFE7;
+  --emopet-gray: #6B6F76;
+
+  /* ============================================================
+     Charte emopet 2026 — navy / orange / teal / cream.
+     Les noms d'échelle (granit/terracotta/lichen/cream) sont
+     CONSERVÉS pour ne pas casser les composants ; seules les
+     VALEURS changent → re-skin global instantané.
+       granit  = navy   (#1D1A6A) — marque + texte
+       terracotta = orange (#FE502D) — accent / CTA
+       lichen  = teal   (#2CB7AB) — secondaire
+       cream   = #F6EFE7 — fonds
+       gris neutre #6B6F76 — texte atténué
+     ============================================================ */
+
+  /* Surfaces (cream) */
+  --cream-50:  #FBF7F1;
+  --cream-100: var(--emopet-cream);
+  --cream-200: #EEE5D9;
+  --cream-300: #DCD2C4;
+  --cream-400: #C5BAA8;
+
+  /* Granit → Navy (marque + texte), dégradé vers gris neutre */
+  --granit-900: #14123A;
+  --granit-800: var(--emopet-navy);
+  --granit-700: #2E2B83;
+  --granit-600: #4A4796;
+  --granit-500: var(--emopet-gray);
+  --granit-400: #8E919A;
+  --granit-300: #B7B9BF;
+  --granit-200: #D6D7DB;
+
+  /* Terracotta → Orange (accent / CTA) */
+  --terracotta-700: #C2350F;
+  --terracotta-600: #E03E18;
+  --terracotta-500: var(--emopet-orange);
+  --terracotta-400: #FF6E50;
+  --terracotta-300: #FF9A82;
+  --terracotta-200: #FFC7B9;
+  --terracotta-100: #FFE7E0;
+
+  /* Lichen → Teal (secondaire) */
+  --lichen-700: #1E7E76;
+  --lichen-600: #25998F;
+  --lichen-500: var(--emopet-teal);
+  --lichen-400: #5BC9BF;
+  --lichen-300: #8FDAD3;
+  --lichen-200: #BFE9E5;
+  --lichen-100: #E3F5F2;
+
+  /* ELI reliability gating */
+  --eli-valid: #7A9B7E;
+  --eli-valid-bg: #E8EEE7;
+  --eli-valid-ink: #3F5A43;
+  --eli-degraded: #C9A55A;
+  --eli-degraded-bg: #F6EED9;
+  --eli-degraded-ink: #7A5F1E;
+  --eli-suppressed: #9AA0A6;
+  --eli-suppressed-bg: #ECEDEE;
+  --eli-suppressed-ink: #565B62;
+
+  /* Semantic */
+  --bg: var(--cream-100);
+  --bg-alt: var(--cream-50);
+  --bg-sunk: var(--cream-200);
+  --surface: #FBF8F2;
+  --surface-2: var(--cream-50);
+  --surface-dark: var(--granit-800);
+
+  --fg: var(--granit-800);
+  --fg-strong: var(--granit-900);
+  --fg-2: var(--granit-600);
+  /* Texte atténué décroché de la grise de marque : --granit-500 (#6B6F76) = 4.43:1 sur
+     cream (échec AA) → #61656C (≥4.5 sur cream/surface/sunk). La grise de marque
+     --emopet-gray / --granit-500 reste INCHANGÉE pour les usages non-texte. */
+  --fg-muted: #61656C;
+  --fg-hint: var(--granit-400);
+  --fg-on-dark: var(--cream-50);
+
+  --accent: var(--terracotta-500);
+  --accent-hover: var(--terracotta-600);
+  --accent-press: var(--terracotta-700);
+  --accent-soft: var(--terracotta-100);
+  --accent-soft-border: var(--terracotta-300);
+  /* Encre sur fond accent : navy (AA). Blanc sur orange #FE502D = 3.28:1 (échec) ;
+     navy sur orange = 4.54:1 (conforme), couleurs de marque inchangées. */
+  --accent-ink: var(--emopet-navy);
+
+  --accent-2: var(--lichen-500);
+  --accent-2-ink: var(--emopet-navy); /* navy sur teal = 6.01:1 (blanc = 2.48:1, échec) */
+  --accent-2-soft: var(--lichen-100);
+  --accent-2-soft-border: var(--lichen-200);
+
+  --border: var(--cream-300);
+  --border-strong: var(--cream-400);
+  --divider: rgba(31, 42, 54, 0.08);
+
+  --prudence-bg: #F3ECDF;
+  --prudence-ink: #5C4A2B;
+  --prudence-border: #E1D3B5;
+
+  /* Messages critiques / destructif (rouge), succès, attention — palette brief */
+  --rouge:      #C9302C;
+  --rouge-bg:   #FBEAEA;
+  --vert-ok:    #2D7A3E;
+  --orange-pro: #D4810E;
+
+  /* Police principale = Sora (titres + corps). Mono pour les données. */
+  --emopet-font-sora: 'Sora';
+  --emopet-font-jetbrains: 'JetBrains Mono';
+  --font-serif: var(--emopet-font-sora), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: var(--emopet-font-sora), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: var(--emopet-font-jetbrains), 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+
+  --ff-tabular: 'tnum' 1, 'lnum' 1;
+  --ff-normal: 'kern' 1, 'liga' 1;
+
+  --text-xxs: 11px;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-md: 15px;
+  --text-lg: 17px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 30px;
+  --text-4xl: 38px;
+  --text-5xl: 48px;
+
+  --lh-tight: 1.15;
+  --lh-snug: 1.3;
+  --lh-normal: 1.5;
+  --lh-relaxed: 1.65;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semi: 600;
+  --weight-bold: 700;
+
+  /* Shape */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 56px;
+  --space-16: 80px;
+
+  --shadow-xs: 0 1px 0 rgba(31, 42, 54, 0.04);
+  --shadow-sm: 0 1px 2px rgba(31, 42, 54, 0.05), 0 1px 1px rgba(31, 42, 54, 0.03);
+  --shadow-md: 0 4px 12px rgba(31, 42, 54, 0.06), 0 1px 2px rgba(31, 42, 54, 0.04);
+  --shadow-lg: 0 12px 28px rgba(31, 42, 54, 0.08), 0 2px 6px rgba(31, 42, 54, 0.05);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur-med: 220ms;
+  --dur-slow: 360ms;
+
+  /* Layout */
+  --content-max-reading: 720px;
+  --content-max-app: 1080px;
+  --sidebar-w: 244px;
+}

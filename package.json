@@ -1,0 +1,30 @@
+{
+  "name": "emopet",
+  "version": "1.0.0",
+  "private": true,
+  "description": "EMOPET — Deeptech canine wellness monitoring platform",
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "typecheck": "turbo typecheck",
+    "clean": "turbo clean && rm -rf node_modules",
+    "backend:dev": "pnpm --filter @emopet/api dev",
+    "mobile:dev": "pnpm --filter @emopet/mobile start",
+    "mobile:ios": "pnpm --filter @emopet/mobile ios",
+    "mobile:android": "pnpm --filter @emopet/mobile android",
+    "web:dev": "pnpm --filter @emopet/web dev",
+    "web:build": "pnpm --filter @emopet/web build",
+    "web:start": "pnpm --filter @emopet/web start"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.15",
+    "turbo": "^2.4.0",
+    "typescript": "^5.8.0"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

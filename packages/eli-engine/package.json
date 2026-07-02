@@ -1,0 +1,27 @@
+{
+  "name": "@emopet/eli-engine",
+  "version": "1.0.0",
+  "type": "module",
+  "exports": {
+    ".": { "import": "./dist/index.js", "types": "./dist/index.d.ts" },
+    "./rsm": { "import": "./dist/rsm/index.js", "types": "./dist/rsm/index.d.ts" },
+    "./confidence": { "import": "./dist/confidence/index.js", "types": "./dist/confidence/index.d.ts" },
+    "./baseline": { "import": "./dist/baseline/index.js", "types": "./dist/baseline/index.d.ts" },
+    "./ekf": { "import": "./dist/ekf/index.js", "types": "./dist/ekf/index.d.ts" },
+    "./vetoes": { "import": "./dist/vetoes/index.js", "types": "./dist/vetoes/index.d.ts" },
+    "./dynamics": { "import": "./dist/dynamics/index.js", "types": "./dist/dynamics/index.d.ts" }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@emopet/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0",
+    "vitest": "^2.1.0"
+  }
+}

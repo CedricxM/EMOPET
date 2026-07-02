@@ -1,0 +1,68 @@
+/* Décor vivant du World — animations CSS compositées (transform/opacity).
+   Toute animation est désactivée sous prefers-reduced-motion (version statique). */
+
+.scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: var(--radius-lg);
+}
+
+.celestial {
+  transition: cx 1.4s var(--ease-out), cy 1.4s var(--ease-out), fill 1.4s var(--ease-out), r 1.4s var(--ease-out);
+}
+
+/* Mer : vagues qui glissent doucement */
+.wave {
+  animation: lw-wave 9s ease-in-out infinite alternate;
+}
+.waveSlow {
+  animation: lw-wave 13s ease-in-out infinite alternate-reverse;
+}
+@keyframes lw-wave {
+  from { transform: translateX(-12px); }
+  to { transform: translateX(12px); }
+}
+
+/* Herbes de dune qui ondulent (léger balancement, décalé par brin) */
+.grass line {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: lw-sway 4.5s ease-in-out infinite alternate;
+  animation-delay: calc(var(--g, 0) * -0.8s);
+}
+@keyframes lw-sway {
+  from { transform: rotate(-5deg); }
+  to { transform: rotate(5deg); }
+}
+
+/* Oiseaux qui dérivent en travers du ciel */
+.birds {
+  animation: lw-drift 26s linear infinite;
+}
+@keyframes lw-drift {
+  from { transform: translate(-40px, 6px); opacity: 0; }
+  10% { opacity: 0.5; }
+  90% { opacity: 0.5; }
+  to { transform: translate(300px, -10px); opacity: 0; }
+}
+
+/* Lanternes : halo qui respire le soir */
+.lanterns circle {
+  animation: lw-glow 3.6s ease-in-out infinite alternate;
+}
+@keyframes lw-glow {
+  from { opacity: 0.5; }
+  to { opacity: 0.95; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wave, .waveSlow, .grass line, .birds, .lanterns circle, .celestial {
+    animation: none !important;
+    transition: none !important;
+  }
+  /* Décor statique élégant : on masque les oiseaux (mouvement = leur seul intérêt). */
+  .birds { display: none; }
+}

@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "EMOPET",
+    "slug": "emopet",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "scheme": "emopet",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1A1A2E"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.emopet.app",
+      "infoPlist": {
+        "NSBluetoothAlwaysUsageDescription": "EMOPET needs Bluetooth to connect to your pet's sensors.",
+        "NSLocationWhenInUseUsageDescription": "EMOPET uses location for copresence features."
+      }
+    },
+    "android": {
+      "package": "com.emopet.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1A1A2E"
+      },
+      "permissions": [
+        "BLUETOOTH_SCAN",
+        "BLUETOOTH_CONNECT",
+        "ACCESS_FINE_LOCATION"
+      ]
+    },
+    "plugins": [
+      "expo-router"
+    ]
+  }
+}

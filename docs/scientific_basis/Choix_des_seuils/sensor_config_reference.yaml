@@ -1,0 +1,64 @@
+# EmoPet — Sensor config reference (documentation)
+# -----------------------------------------------
+# Ce fichier est une référence documentaire: il n’est pas consommé par l’application v6.
+#
+# But:
+# - décrire les signaux attendus (unités) et les garde-fous de plausibilité (tech)
+# - éviter toute confusion avec une “norme médicale”
+#
+# Référence code: src/processing/fusion_module.py
+
+version: 1
+timezone: UTC
+
+mat:
+  signals:
+    resp_bpm:
+      unit: bpm
+      plausibility_range_tech: [5, 80]
+    temp_animal_c:
+      unit: celsius
+      plausibility_range_tech: [33.0, 41.5]
+    rest_agitation_idx:
+      unit: ratio_0_1
+      plausibility_range_tech: [0.0, 1.0]
+    posture:
+      unit: enum
+      allowed_values:
+        - lying_lateral
+        - lying_sternal
+        - sitting
+        - standing
+        - lateral
+        - sternal
+        - sit
+        - stand
+        - unknown
+
+gadget:
+  signals:
+    activity_level:
+      unit: ratio_0_1
+      plausibility_range_tech: [0.0, 1.0]
+    ambient_noise_db:
+      unit: db
+      plausibility_range_tech: [0.0, 120.0]
+    ambient_temp_c:
+      unit: celsius
+      plausibility_range_tech: [-5.0, 50.0]
+
+env:
+  signals:
+    ambient_noise_db:
+      unit: db
+      plausibility_range_tech: [0.0, 120.0]
+    ambient_temp_c:
+      unit: celsius
+      plausibility_range_tech: [-5.0, 50.0]
+    humidity:
+      unit: ratio_0_1
+      optional: true
+    light_level:
+      unit: arbitrary
+      optional: true
+

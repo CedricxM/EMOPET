@@ -1,0 +1,106 @@
+/* ============================================================
+   Carte Bretagne — animations CSS (Étape 4)
+   Toutes les animations sont désactivées si l'utilisateur a
+   prefers-reduced-motion: reduce. Aucune dépendance JS hors
+   du composant SunMoon qui lit Date.getHours() à mount.
+   ============================================================ */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* ----- Vagues décoratives en mer (3 lignes ondulent doucement) ----- */
+  .emopet-wave {
+    animation: emopet-wave-drift 6s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .emopet-wave--2 { animation-delay: 1.2s; }
+  .emopet-wave--3 { animation-delay: 2.6s; }
+
+  @keyframes emopet-wave-drift {
+    0%, 100% { transform: translateX(0); }
+    50%      { transform: translateX(3px); }
+  }
+
+  /* ----- Pin chien EMOPET — pulse 3s, halo respire ----- */
+  .emopet-pin__halo {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: emopet-pin-pulse 3s ease-in-out infinite;
+  }
+  .emopet-pin__halo-outer {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: emopet-pin-pulse 3s ease-in-out infinite;
+    animation-delay: 1.5s;
+  }
+  /* Capitaine actif respire un poil plus vite + plus ample */
+  .emopet-pin[data-active] .emopet-pin__halo,
+  .emopet-pin[data-active] .emopet-pin__halo-outer {
+    animation-duration: 2.4s;
+  }
+
+  @keyframes emopet-pin-pulse {
+    0%, 100% { transform: scale(1);    opacity: 0.55; }
+    50%      { transform: scale(1.25); opacity: 0.25; }
+  }
+
+  /* ----- Phares — flash bref toutes les 8s, offsets différents ----- */
+  .emopet-lighthouse {
+    animation: emopet-lighthouse-flash 8s linear infinite;
+  }
+  /* offsets posés via inline style="--lh-delay: ..." */
+  .emopet-lighthouse { animation-delay: var(--lh-delay, 0s); }
+
+  @keyframes emopet-lighthouse-flash {
+    0%, 96.5%, 100% { filter: none; }
+    97%, 99.5%      { filter: drop-shadow(0 0 4px var(--terracotta-500))
+                              drop-shadow(0 0 10px var(--terracotta-300)); }
+  }
+
+  /* ----- Indicateur événement Concarneau — anneaux qui grandissent ----- */
+  .emopet-event__ring {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: emopet-event-pulse 2s ease-out infinite;
+  }
+  .emopet-event__ring--1 { animation-delay: 0s;   }
+  .emopet-event__ring--2 { animation-delay: 0.6s; }
+  .emopet-event__ring--3 { animation-delay: 1.2s; }
+
+  @keyframes emopet-event-pulse {
+    0%   { transform: scale(0.55); opacity: 0.85; }
+    100% { transform: scale(1.45); opacity: 0;    }
+  }
+
+  /* ----- Soleil / Lune — léger souffle de luminosité ----- */
+  .emopet-celestial {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: emopet-celestial-breathe 7s ease-in-out infinite;
+  }
+  @keyframes emopet-celestial-breathe {
+    0%, 100% { opacity: 0.85; }
+    50%      { opacity: 1;    }
+  }
+  .emopet-celestial-rays {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: emopet-rays-rotate 60s linear infinite;
+  }
+  @keyframes emopet-rays-rotate {
+    from { transform: rotate(0deg);   }
+    to   { transform: rotate(360deg); }
+  }
+}
+
+/* Si reduced-motion : on garde un état stable, pas d'animation */
+@media (prefers-reduced-motion: reduce) {
+  .emopet-wave,
+  .emopet-pin__halo,
+  .emopet-pin__halo-outer,
+  .emopet-lighthouse,
+  .emopet-event__ring,
+  .emopet-celestial,
+  .emopet-celestial-rays {
+    animation: none !important;
+  }
+}

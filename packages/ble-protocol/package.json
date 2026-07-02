@@ -1,0 +1,22 @@
+{
+  "name": "@emopet/ble-protocol",
+  "version": "1.0.0",
+  "type": "module",
+  "exports": {
+    ".": { "import": "./dist/index.js", "types": "./dist/index.d.ts" },
+    "./frames": { "import": "./dist/frames/index.js", "types": "./dist/frames/index.d.ts" },
+    "./parser": { "import": "./dist/parser/index.js", "types": "./dist/parser/index.d.ts" },
+    "./commands": { "import": "./dist/commands/index.js", "types": "./dist/commands/index.d.ts" }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@emopet/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0"
+  }
+}

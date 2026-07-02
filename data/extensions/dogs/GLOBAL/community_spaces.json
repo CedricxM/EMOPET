@@ -1,0 +1,17 @@
+[
+  {
+    "space_id": "new_adopter",
+    "title": "Nouvel adoptant",
+    "description": "Routines simples, repères, questions du quotidien."
+  },
+  {
+    "space_id": "urban_routines",
+    "title": "Routines urbaines",
+    "description": "Bruit, horaires, fenêtres calmes, cohabitation."
+  },
+  {
+    "space_id": "senior_dogs",
+    "title": "Chiens seniors",
+    "description": "Confort au quotidien, observation prudente, adaptation douce."
+  }
+]
