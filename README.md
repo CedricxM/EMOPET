@@ -1,91 +1,104 @@
-﻿# EmoPet v6
+# EMOPET
 
-Demo stack:
-- Flutter app: `flutter_app/`
-- API: `src/api/emopet_api.py`
-- DB: PostgreSQL 16 + SQLAlchemy 2 + Alembic
-- FCI ingestion: `scripts/ingest_fci_pdf.py` (local PDFs only)
+> EMOPET produit des observations et des tendances de bien-être canin.
+> Positionnement non médical : aucun diagnostic, aucune constante vitale, aucune étiquette émotionnelle affichée.
+> Ce dépôt ne remplace pas l'avis d'un vétérinaire.
 
-## Official Backend Entry Point
+Monorepo TypeScript du système EMOPET : application mobile propriétaire, site web, API, moteur d'inférence ELI, protocole BLE et amorces de firmware.
 
-- Official backend for local development and `docker compose`: `src.api.emopet_api:app`
-- Legacy compatibility entrypoint: `app.main:app`
-- For new development, always launch the backend via `src.api.emopet_api:app`
+## Statut du dépôt
 
-Non-medical by design:
-- observations and trends only,
-- no diagnosis,
-- privacy-first (no raw audio storage, no automatic media capture).
+| Zone | Technologie réelle | Maturité |
+|---|---|---|
+| `apps/mobile` | React Native / Expo 52, expo-router 4 | avancé |
+| `apps/web` | Next.js 15, React 19, Tailwind 4 | avancé |
+| `backend` | Hono 4, Drizzle ORM, PostgreSQL, `jose` (JWT) | avancé, routes capteurs encore en TODO |
+| `packages/eli-engine` | EKF, RSM de fiabilité, confiance, vetoes (testé Vitest) | solide |
+| `packages/ble-protocol` | trame binaire versionnée, état de fiabilité par capteur | solide |
+| `packages/ai-personality` | gabarits de contenu Bleiz et garde-fous lexicaux | moyen |
+| `packages/shared` | types partagés et validateurs Zod | solide |
+| `firmware/collar`, `firmware/mat` | amorces DSP en C (environ 380 lignes) | embryonnaire |
 
-## Run in 5 Minutes (Windows)
+N'existent pas dans ce dépôt : projet Unity, service temps réel social, connecteurs city-data, service Breiz autonome. Ces éléments appartiennent au plan plateforme cible, pas au code actuel.
 
-### 1) Setup
-```powershell
-cd C:\Users\utilisateur\emopet_v6
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -U pip
-pip install -r requirements.txt
-Copy-Item .env.example .env -Force
+## Prérequis
+
+- Node.js 20 ou supérieur
+- pnpm 10.33.0 (déclaré via `packageManager`)
+- PostgreSQL 16 pour le backend
+
+## Installation
+
+```bash
+pnpm install
+cp .env.example .env   # renseigner les valeurs localement, ne jamais committer .env
 ```
 
-### 2) Start Postgres
-```powershell
-docker compose up -d db
-docker compose ps
+## Commandes racine (Turborepo)
+
+```bash
+pnpm build       # turbo build
+pnpm dev         # turbo dev
+pnpm test        # turbo test
+pnpm typecheck   # turbo typecheck
+pnpm lint        # turbo lint
 ```
 
-### 3) Migrations (always use `python -m alembic`)
-```powershell
-python -m alembic upgrade head
-python -m alembic current -v
+Raccourcis par application :
+
+```bash
+pnpm backend:dev   # API Hono en watch (tsx)
+pnpm web:dev       # Next.js sur le port 3100
+pnpm mobile:dev    # Expo
+pnpm mobile:ios    # Expo iOS
+pnpm mobile:android
 ```
 
-### 4) Import FCI PDFs (local files)
-```powershell
-python scripts\ingest_fci_pdf.py --path data/fci/pdfs --lang fr --limit 5
-# full import
-python scripts\ingest_fci_pdf.py --path data/fci/pdfs --lang fr
-# optional image extraction (1 image max per breed)
-python scripts\ingest_fci_pdf.py --path data/fci/pdfs --extract-images true
+## Tests
+
+Chaque paquet porte son propre exécuteur, il n'y a pas d'exécuteur unique :
+
+```bash
+pnpm --filter @emopet/eli-engine test        # Vitest
+pnpm --filter @emopet/api build && \
+pnpm --filter @emopet/api test               # node:test, importe ./dist (build requis)
+pnpm --filter @emopet/web test               # node:test via tsx sur lib/**/*.test.ts
+pnpm --filter @emopet/ai-personality test    # node:test
 ```
 
-### 5) Run API
-```powershell
-python -m uvicorn src.api.emopet_api:app --reload --host 127.0.0.1 --port 8000
+Le paquet `@emopet/api` compile avant de tester : ses tests importent `dist/`. Un test de contrat (`backend/test/contract-affective-exposure.test.mjs`) fonctionne en analyse statique et ne nécessite ni build ni base de données.
+
+## Base de données
+
+Le backend utilise Drizzle Kit :
+
+```bash
+pnpm --filter @emopet/api db:generate
+pnpm --filter @emopet/api db:migrate
+pnpm --filter @emopet/api db:studio
 ```
 
-### 6) Run Flutter Demo
-```powershell
-cd flutter_app
-flutter pub get
-flutter run -d windows
-```
+## Environnement et secrets
 
-## One-command helpers (PowerShell)
-- `scripts/dev.ps1`
-- `scripts/run_api.ps1`
-- `scripts/import_fci.ps1`
-- `scripts/run_demo_flutter.ps1`
+- `.env.example` contient des valeurs de substitution uniquement.
+- Les `.env` réels sont ignorés par `.gitignore` et ne doivent jamais être committés.
+- Ce dépôt est public : voir `SECURITY_ROTATION_REQUIRED.md` et `SECURITY_CHECKLIST.md` avant toute mise en ligne.
 
-## Main API Endpoints
-- `GET /healthz`
-- `GET /meta`
-- `GET /breeds?query=&limit=&offset=`
-- `POST /dogs`, `GET /dogs/{id}`, `PUT /dogs/{id}`, `DELETE /dogs/{id}`
-- `POST /fci/import`
-- `POST /ingest/mat_session`
-- `POST /ingest/tag_reading`
-- `POST /ingest/garment_reading`
-- `POST /weather/snapshot`
-- `POST /presence/snapshot`
-- `POST /checkin`
-- `GET /journal/{dog_id}`, `POST /journal/{dog_id}`
-- `GET /health/log?dog_id=...`, `POST /health/log?dog_id=...`, `GET /health/log/export?dog_id=...`
-- `POST /insights/{dog_id}/compute`
-- `GET /insights/{dog_id}`
+## Invariants produit
 
-## Notes
-- No web scraping is used for breeds.
-- FCI references come from local PDFs under `data/fci/pdfs`.
-- For Windows shells, prefer `python -m alembic ...` instead of `alembic ...`.
+1. Non médical : aucun diagnostic, aucune terminologie pathologique dans les sorties utilisateur.
+2. Aucune donnée sans son état de fiabilité (VALID, DEGRADED, SUPPRESSED). L'abstention prime sur l'estimation.
+3. Variables affectives latentes (`arousal`, `valence`, `peak_arousal`) jamais exposées à l'utilisateur ni publiquement. Voir `docs/architecture/ADR-0001-variables-affectives-latentes.md`, garde-fou automatisé dans `backend/test/contract-affective-exposure.test.mjs`.
+4. Aucun audio brut stocké ni transmis.
+5. Distinguer toujours observé (capteurs), déclaré (humain) et interprété (EMOPET).
+
+## Documents de référence
+
+- `ARCHITECTURE.md` : architecture logicielle réelle.
+- `AUDIT.md` : audit du code réel.
+- `docs/architecture/` : ADR et vue système.
+- `CLAUDE.md`, `AGENTS.md` : conventions de travail assisté.
+
+## Dérive documentaire connue
+
+`docker-compose.yml` décrit encore un service `api` Python (uvicorn, `src.api.emopet_api:app`) issu de la pile historique v6. Ce service ne correspond plus au backend TypeScript et n'est pas fonctionnel en l'état. Seul le service `db` est utilisable. Correction volontairement hors périmètre du lot documentaire en cours.
