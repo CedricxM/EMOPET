@@ -1,0 +1,35 @@
+name: EMOPET demo/test
+
+on:
+  workflow_dispatch:
+
+env:
+  EMOPET_URL: ${{ secrets.EMOPET_URL || 'https://api.emopet.example.com' }}
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show placeholders
+        run: |
+          echo "EMOPET_URL=$EMOPET_URL"
+          echo "This workflow demonstrates where to place EMOPET secrets and how to run a simple health check."
+
+      - name: Optional health check (public endpoint)
+        if: env.EMOPET_URL != 'https://api.emopet.example.com'
+        run: |
+          echo "Calling $EMOPET_URL/health"
+          curl -fsS "$EMOPET_URL/health" || echo "Health check failed or requires authentication"
+
+      - name: Instructions
+        run: |
+          cat <<'EOF'
+To enable OAuth flows for the ChatGPT plugin you should:
+  1. Register an OAuth client on EMOPET using the Authorization Code flow with PKCE.
+  2. Add the redirect URI you will host for the plugin (see docs/EMOPET_OAuth_checklist.md).
+  3. Add secrets in this repository: EMOPET_CLIENT_ID and optionally EMOPET_CLIENT_SECRET (if not using PKCE).
+  4. Use the ai-plugin.json and openapi.yaml as starting points and update URLs/scopes to match EMOPET.
+EOF

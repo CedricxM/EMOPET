@@ -1,0 +1,60 @@
+openapi: 3.0.3
+info:
+  title: EMOPET API (stub)
+  description: |
+    Spécification OpenAPI minimale pour EMOPET. Remplacez les endpoints et schémas par ceux de votre API.
+  version: '0.1.0'
+servers:
+  - url: "{emopet_url}"
+    variables:
+      emopet_url:
+        default: "https://api.emopet.example.com"
+components:
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: "https://auth.emopet.example.com/oauth/authorize"
+          tokenUrl: "https://auth.emopet.example.com/oauth/token"
+          scopes:
+            openid: "OpenID connect scope"
+            profile: "Profile information"
+            emopet.read: "Lire les données EMOPET"
+            emopet.write: "Écrire des données EMOPET"
+security:
+  - oauth2: ["emopet.read"]
+paths:
+  /health:
+    get:
+      summary: Vérifier l'état du service EMOPET
+      operationId: getHealth
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+  /items:
+    get:
+      summary: Exemple de ressource protégée (liste d'items)
+      operationId: listItems
+      responses:
+        '200':
+          description: Liste
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string

@@ -1,0 +1,30 @@
+name: Validate EMOPET plugin files
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    paths:
+      - 'ai-plugin.json'
+      - 'openapi.yaml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install yamllint
+        run: |
+          python -m pip install --upgrade pip
+          pip install yamllint
+
+      - name: Lint OpenAPI YAML
+        run: |
+          yamllint -d "{extends: default, rules: {line-length: {max: 200}}}" openapi.yaml || true
+
+      - name: Check manifest exists
+        run: |
+          if [ ! -f ai-plugin.json ]; then echo "ai-plugin.json missing" && exit 1; fi
+          echo "ai-plugin.json present"

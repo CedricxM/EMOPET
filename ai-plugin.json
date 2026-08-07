@@ -1,0 +1,22 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "EMOPET",
+  "name_for_model": "emopet",
+  "description_for_human": "Plugin pour permettre à ChatGPT de se connecter à EMOPET via OAuth2 (Authorization Code + PKCE).",
+  "description_for_model": "Permet d'appeler l'API EMOPET après que l'utilisateur ait autorisé l'accès via OAuth2 Authorization Code (PKCE).",
+  "auth": {
+    "type": "oauth",
+    "authorization_url": "https://auth.emopet.example.com/oauth/authorize",
+    "token_url": "https://auth.emopet.example.com/oauth/token",
+    "scopes": ["openid", "profile", "emopet.read", "emopet.write"],
+    "pkce_required": true
+  },
+  "api": {
+    "type": "openapi",
+    "url": "openapi.yaml",
+    "is_user_authenticated": true
+  },
+  "logo_url": "https://your-domain.example.com/logo.png",
+  "contact_email": "maintainer@example.com",
+  "legal_info_url": "https://your-domain.example.com/legal"
+}
