@@ -76,7 +76,7 @@ export default function TimelineScene() {
             >
               {entry.time}
             </span>
-            <span className="w-2 h-2 rounded-full bg-[#C97B5A] shrink-0 relative top-1" />
+            <span className="w-2 h-2 rounded-full bg-[#FE502D] shrink-0 relative top-1" />
             <span
               className="text-[#2E3A48] text-base md:text-lg"
               style={{ fontFamily: 'var(--font-source-sans)' }}

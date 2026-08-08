@@ -60,7 +60,7 @@ export default function EcosystemScene() {
           <div className="flex flex-col items-center gap-2">
             <div className="w-20 h-12 md:w-28 md:h-16 rounded-lg bg-[#E3EAE4] border border-[#A8BCAC] flex items-center justify-center">
               <span
-                className="text-[#4F6E54] text-xs md:text-sm font-semibold"
+                className="text-[#1E9A90] text-xs md:text-sm font-semibold"
                 style={{ fontFamily: 'var(--font-source-sans)' }}
               >
                 MAT

@@ -67,14 +67,14 @@ export default function BreizConversation() {
       <div className="flex items-center gap-2 mb-6">
         <div className="w-8 h-8 rounded-full bg-[#E3EAE4] flex items-center justify-center">
           <span
-            className="text-[#4F6E54] text-xs font-bold"
+            className="text-[#1E9A90] text-xs font-bold"
             style={{ fontFamily: 'var(--font-source-sans)' }}
           >
             B
           </span>
         </div>
         <span
-          className="text-[#4F6E54] text-sm font-semibold"
+          className="text-[#1E9A90] text-sm font-semibold"
           style={{ fontFamily: 'var(--font-source-sans)' }}
         >
           Breiz

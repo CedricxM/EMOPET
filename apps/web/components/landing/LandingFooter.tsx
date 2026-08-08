@@ -71,7 +71,7 @@ export default function LandingFooter() {
                   <li key={link.href}>
                     <a
                       href={link.href}
-                      className="text-sm text-[#6B7684] hover:text-[#C97B5A] transition-colors duration-200"
+                      className="text-sm text-[#6B7684] hover:text-[#FE502D] transition-colors duration-200"
                       style={{ fontFamily: 'var(--font-source-sans)' }}
                     >
                       {link.label}

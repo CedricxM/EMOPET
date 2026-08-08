@@ -74,7 +74,7 @@ export default function PrivacyControls() {
               aria-label={`${control.label}: ${values[control.id] ? 'Activé' : 'Désactivé'}`}
               onClick={() => toggle(control.id)}
               className={`relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 ${
-                values[control.id] ? 'bg-[#6B8E6F]' : 'bg-[#C6BBA4]'
+                values[control.id] ? 'bg-[#2CB7AB]' : 'bg-[#C6BBA4]'
               }`}
             >
               <span

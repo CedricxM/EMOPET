@@ -69,7 +69,7 @@ export default function AppMockup() {
           >
             <p>Nala a passé une nuit plutôt stable.</p>
             <p>Elle s&apos;est réveillée plusieurs fois vers la fin de la nuit.</p>
-            <p className="text-[#6B8E6F] font-medium pt-1">
+            <p className="text-[#2CB7AB] font-medium pt-1">
               Tu veux voir les moments importants ?
             </p>
           </div>
