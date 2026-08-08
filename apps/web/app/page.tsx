@@ -50,7 +50,9 @@ export default function HomePage() {
       <LandingNav />
 
       <div id="main-content">
-        {/* SCENE 01 - HERO */}
+        {/* ═══════════════════════════════════════════════════════════════
+            SCÈNE 01 — HERO
+        ═══════════════════════════════════════════════════════════════ */}
         <section
           ref={heroRef}
           className="relative min-h-screen flex items-center justify-center overflow-hidden"
@@ -143,7 +145,9 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* SCENE 02 - LES MOMENTS MANQUES */}
+        {/* ═══════════════════════════════════════════════════════════════
+            SCÈNE 02 — LES MOMENTS MANQUÉS
+        ═══════════════════════════════════════════════════════════════ */}
         <SceneWrapper
           id="comment-ca-marche"
           className="py-24 md:py-32"
@@ -152,7 +156,9 @@ export default function HomePage() {
           <TimelineScene />
         </SceneWrapper>
 
-        {/* SCENE 03 - UN SEUL ENVIRONNEMENT */}
+        {/* ═══════════════════════════════════════════════════════════════
+            SCÈNE 03 — UN SEUL ENVIRONNEMENT
+        ═══════════════════════════════════════════════════════════════ */}
         <SceneWrapper
           className="py-24 md:py-32 bg-[#F4EFE6]"
           ariaLabel="Un écosystème complet"
@@ -174,7 +180,9 @@ export default function HomePage() {
           <EcosystemScene />
         </SceneWrapper>
 
-        {/* SCENE 04 - MAT */}
+        {/* ═══════════════════════════════════════════════════════════════
+            SCÈNE 04 — MAT
+        ═══════════════════════════════════════════════════════════════ */}
         <SceneWrapper
           className="py-24 md:py-32"
           ariaLabel="Le Mat EMOPET"
@@ -195,6 +203,7 @@ export default function HomePage() {
                 <div className="w-full max-w-md aspect-[16/9] rounded-2xl border-2 border-dashed border-[#A8BCAC]/40" />
               </div>
             </div>
+            <p className="text-center text-[#A8BCAC] text-[10px] tracking-[0.2em] uppercase mt-2" style={{ fontFamily: 'var(--font-source-sans)' }}>CONCEPT VISUAL</p>
 
             <h2
               className="text-2xl md:text-4xl text-[#141C25] mb-4"
@@ -226,7 +235,9 @@ export default function HomePage() {
           </div>
         </SceneWrapper>
 
-        {/* SCENE 05 - TAG */}
+        {/* ═══════════════════════════════════════════════════════════════
+            SCÈNE 05 — TAG
+        ═══════════════════════════════════════════════════════════════ */}
         <SceneWrapper
           className="py-24 md:py-32 bg-[#F4EFE6]"
           ariaLabel="Le Tag EMOPET"
@@ -248,6 +259,7 @@ export default function HomePage() {
               </svg>
             </div>
 
+            <p className="text-center text-[#C6BBA4] text-[10px] tracking-[0.2em] uppercase mb-6" style={{ fontFamily: 'var(--font-source-sans)' }}>CONCEPT VISUAL</p>
             <h2
               className="text-2xl md:text-4xl text-[#141C25] mb-4"
               style={{ fontFamily: 'var(--font-fraunces)' }}
@@ -278,7 +290,9 @@ export default function HomePage() {
           </div>
         </SceneWrapper>
 
-        {/* SCENE 06 - L'APPLICATION */}
+        {/* ═══════════════════════════════════════════════════════════════
+            SCÈNE 06 — L'APPLICATION
+        ═══════════════════════════════════════════════════════════════ */}
         <SceneWrapper
           className="py-24 md:py-32"
           ariaLabel="L'application EMOPET"
@@ -309,7 +323,9 @@ export default function HomePage() {
           </div>
         </SceneWrapper>
 
-        {/* SCENE 07 - BREIZ */}
+        {/* ═══════════════════════════════════════════════════════════════
+            SCÈNE 07 — BREIZ
+        ═══════════════════════════════════════════════════════════════ */}
         <SceneWrapper
           id="notre-approche"
           className="py-24 md:py-32 bg-[#F4EFE6]"
@@ -341,7 +357,9 @@ export default function HomePage() {
           </div>
         </SceneWrapper>
 
-        {/* SCENE 08 - ANCRAGE LOCAL */}
+        {/* ═══════════════════════════════════════════════════════════════
+            SCÈNE 08 — ANCRAGE LOCAL
+        ═══════════════════════════════════════════════════════════════ */}
         <SceneWrapper
           className="py-24 md:py-32"
           ariaLabel="Ancrage local"
@@ -396,7 +414,9 @@ export default function HomePage() {
           </div>
         </SceneWrapper>
 
-        {/* SCENE 09 - CONNEXIONS */}
+        {/* ═══════════════════════════════════════════════════════════════
+            SCÈNE 09 — CONNEXIONS
+        ═══════════════════════════════════════════════════════════════ */}
         <SceneWrapper
           className="py-24 md:py-32 bg-[#F4EFE6]"
           ariaLabel="Connexions locales"
@@ -464,7 +484,9 @@ export default function HomePage() {
           </div>
         </SceneWrapper>
 
-        {/* SCENE 10 - COMMUNAUTE */}
+        {/* ═══════════════════════════════════════════════════════════════
+            SCÈNE 10 — COMMUNAUTÉ
+        ═══════════════════════════════════════════════════════════════ */}
         <SceneWrapper
           className="py-24 md:py-32"
           ariaLabel="Communauté locale"
@@ -528,7 +550,9 @@ export default function HomePage() {
           </div>
         </SceneWrapper>
 
-        {/* SCENE 11 - CONTINUITE VETERINAIRE */}
+        {/* ═══════════════════════════════════════════════════════════════
+            SCÈNE 11 — CONTINUITÉ VÉTÉRINAIRE
+        ═══════════════════════════════════════════════════════════════ */}
         <SceneWrapper
           id="veterinaires"
           className="py-24 md:py-32 bg-[#F4EFE6]"
@@ -630,7 +654,9 @@ export default function HomePage() {
           </div>
         </SceneWrapper>
 
-        {/* SCENE 12 - DONNEES & CONTROLE */}
+        {/* ═══════════════════════════════════════════════════════════════
+            SCÈNE 12 — DONNÉES & CONTRÔLE
+        ═══════════════════════════════════════════════════════════════ */}
         <SceneWrapper
           id="donnees"
           className="py-24 md:py-32"
@@ -655,7 +681,9 @@ export default function HomePage() {
           <PrivacyControls />
         </SceneWrapper>
 
-        {/* SCENE 13 - RETOUR EMOTIONNEL */}
+        {/* ═══════════════════════════════════════════════════════════════
+            SCÈNE 13 — RETOUR ÉMOTIONNEL
+        ═══════════════════════════════════════════════════════════════ */}
         <SceneWrapper
           id="decouvrir"
           className="py-24 md:py-32 bg-[#F4EFE6]"
