@@ -115,10 +115,10 @@ export default function HomePage() {
             {/* Status badge */}
             <div className="mt-12">
               <span
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#E3EAE4] text-[#4F6E54] text-xs font-medium rounded-full"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#E3EAE4] text-[#1E9A90] text-xs font-medium rounded-full"
                 style={{ fontFamily: 'var(--font-source-sans)' }}
               >
-                <span className="w-2 h-2 rounded-full bg-[#6B8E6F] animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-[#2CB7AB] animate-pulse" />
                 Projet en développement · Lorient, Bretagne
               </span>
             </div>
@@ -406,7 +406,7 @@ export default function HomePage() {
             </div>
 
             <span
-              className="inline-block mt-8 px-3 py-1 bg-[#E3EAE4] text-[#4F6E54] text-xs font-medium rounded-full"
+              className="inline-block mt-8 px-3 py-1 bg-[#E3EAE4] text-[#1E9A90] text-xs font-medium rounded-full"
               style={{ fontFamily: 'var(--font-source-sans)' }}
             >
               PRÉVU
@@ -448,7 +448,7 @@ export default function HomePage() {
 
               <div className="flex gap-3">
                 <button
-                  className="flex-1 px-4 py-3 bg-[#6B8E6F] text-white text-sm font-medium rounded-xl hover:bg-[#4F6E54] transition-colors duration-200"
+                  className="flex-1 px-4 py-3 bg-[#2CB7AB] text-white text-sm font-medium rounded-xl hover:bg-[#1E9A90] transition-colors duration-200"
                   style={{ fontFamily: 'var(--font-source-sans)' }}
                   aria-label="Voir la proposition"
                 >
@@ -475,7 +475,7 @@ export default function HomePage() {
 
             <div className="text-center mt-6">
               <span
-                className="inline-block px-3 py-1 bg-[#E3EAE4] text-[#4F6E54] text-xs font-medium rounded-full"
+                className="inline-block px-3 py-1 bg-[#E3EAE4] text-[#1E9A90] text-xs font-medium rounded-full"
                 style={{ fontFamily: 'var(--font-source-sans)' }}
               >
                 PRÉVU
@@ -541,7 +541,7 @@ export default function HomePage() {
 
             <div className="mt-6">
               <span
-                className="inline-block px-3 py-1 bg-[#E3EAE4] text-[#4F6E54] text-xs font-medium rounded-full"
+                className="inline-block px-3 py-1 bg-[#E3EAE4] text-[#1E9A90] text-xs font-medium rounded-full"
                 style={{ fontFamily: 'var(--font-source-sans)' }}
               >
                 PRÉVU
@@ -593,7 +593,7 @@ export default function HomePage() {
                     <div
                       className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 ${
                         item.checked
-                          ? 'bg-[#6B8E6F] border-[#6B8E6F]'
+                          ? 'bg-[#2CB7AB] border-[#2CB7AB]'
                           : 'border-[#DDD4C2]'
                       }`}
                     >
@@ -626,7 +626,7 @@ export default function HomePage() {
               </div>
 
               <button
-                className="w-full mt-6 px-4 py-3 bg-[#6B8E6F] text-white text-sm font-medium rounded-xl hover:bg-[#4F6E54] transition-colors duration-200"
+                className="w-full mt-6 px-4 py-3 bg-[#2CB7AB] text-white text-sm font-medium rounded-xl hover:bg-[#1E9A90] transition-colors duration-200"
                 style={{ fontFamily: 'var(--font-source-sans)' }}
                 aria-label="Partager avec mon vétérinaire"
               >
@@ -635,104 +635,90 @@ export default function HomePage() {
             </div>
 
             <p
-              className="text-center text-[#6B7684] text-xs italic"
+              className="text-center text-[#6B7684] text-xs mt-6"
               style={{ fontFamily: 'var(--font-source-sans)' }}
             >
-              EMOPET ne remplace pas la médecine vétérinaire.
+              EMOPET propose des informations, pas des diagnostics.
               <br />
-              Il aide à préparer les échanges avec votre professionnel.
+              Votre vétérinaire reste la référence.
             </p>
-
-            <div className="text-center mt-6">
-              <span
-                className="inline-block px-3 py-1 bg-[#E3EAE4] text-[#4F6E54] text-xs font-medium rounded-full"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
-              >
-                PRÉVU
-              </span>
-            </div>
           </div>
         </SceneWrapper>
 
         {/* ═══════════════════════════════════════════════════════════════
-            SCÈNE 12 — DONNÉES & CONTRÔLE
+            SCÈNE 12 — PRIVACY
         ═══════════════════════════════════════════════════════════════ */}
         <SceneWrapper
-          id="donnees"
+          id="privacy"
           className="py-24 md:py-32"
-          ariaLabel="Contrôle des données"
+          ariaLabel="Vie privée et contrôle"
         >
-          <div className="text-center mb-10">
+          <div className="text-center mb-12">
             <h2
               className="text-2xl md:text-4xl text-[#141C25] mb-4"
               style={{ fontFamily: 'var(--font-fraunces)' }}
             >
-              Vos données.
-              <br />
-              Vos choix.
+              Vos données restent les vôtres.
             </h2>
             <p
               className="text-[#4A5766] text-base md:text-lg max-w-md mx-auto"
               style={{ fontFamily: 'var(--font-source-sans)' }}
             >
-              Des contrôles réels, pas un mur de texte légal.
+              Pas de revente. Pas de partage non consenti.
+              Vous décidez, toujours.
             </p>
           </div>
           <PrivacyControls />
         </SceneWrapper>
 
         {/* ═══════════════════════════════════════════════════════════════
-            SCÈNE 13 — RETOUR ÉMOTIONNEL
+            SCÈNE 13 — CTA
         ═══════════════════════════════════════════════════════════════ */}
-        <SceneWrapper
+        <section
           id="decouvrir"
           className="py-24 md:py-32 bg-[#F4EFE6]"
-          ariaLabel="Conclusion"
+          aria-label="Rejoindre EMOPET"
         >
-          <div className="max-w-3xl mx-auto px-4 text-center">
-            {/* Emotional return visual */}
-            <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-[#FAF7F1] border-2 border-[#ECE5D7] flex items-center justify-center mx-auto mb-10 shadow-lg">
-              <span className="text-5xl md:text-6xl" role="img" aria-label="Chien et gardien">
-                🐕
-              </span>
-            </div>
-
+          <div className="max-w-md mx-auto px-4 text-center">
             <h2
-              className="text-2xl md:text-4xl text-[#141C25] mb-4 leading-snug"
+              className="text-2xl md:text-4xl text-[#141C25] mb-4"
               style={{ fontFamily: 'var(--font-fraunces)' }}
             >
-              Parce qu&apos;une vie ensemble est faite
-              <br />
-              de milliers de moments.
+              Prenez part.
             </h2>
-
             <p
-              className="text-[#B46A4A] text-xl md:text-2xl mb-12 font-light"
-              style={{ fontFamily: 'var(--font-fraunces)' }}
+              className="text-[#4A5766] text-base md:text-lg max-w-sm mx-auto mb-10 leading-relaxed"
+              style={{ fontFamily: 'var(--font-source-sans)' }}
             >
-              Essayons d&apos;en manquer moins.
+              Rejoignez les premiers gardiens qui testent EMOPET.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a
-                href="#"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-[#B46A4A] text-white text-base font-semibold rounded-full hover:bg-[#9B5A3E] transition-colors duration-200 shadow-lg shadow-[#B46A4A]/20"
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-[#ECE5D7] max-w-sm mx-auto">
+              <form className="space-y-4">
+                <input
+                  type="email"
+                  placeholder="Votre email"
+                  aria-label="Adresse email"
+                  className="w-full px-4 py-3 rounded-xl border border-[#DDD4C2] text-[#2E3A48] placeholder-[#C6BBA4] focus:outline-none focus:ring-2 focus:ring-[#2CB7AB]/50"
+                  style={{ fontFamily: 'var(--font-source-sans)' }}
+                />
+                <button
+                  type="submit"
+                  className="w-full px-4 py-3 bg-[#B46A4A] text-white text-base font-semibold rounded-xl hover:bg-[#9B5A3E] transition-colors duration-200 shadow-lg shadow-[#B46A4A]/20"
+                  style={{ fontFamily: 'var(--font-source-sans)' }}
+                >
+                  Je veux participer
+                </button>
+              </form>
+              <p
+                className="text-[#A8BCAC] text-xs mt-4"
                 style={{ fontFamily: 'var(--font-source-sans)' }}
-                aria-label="Découvrir le projet"
               >
-                Découvrir le projet
-              </a>
-              <a
-                href="#"
-                className="inline-flex items-center gap-2 px-8 py-4 border-2 border-[#DDD4C2] text-[#2E3A48] text-base font-semibold rounded-full hover:bg-white transition-colors duration-200"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
-                aria-label="Suivre EMOPET"
-              >
-                Suivre EMOPET
-              </a>
+                Pas de spam. Juste des nouvelles quand c&apos;est prêt.
+              </p>
             </div>
           </div>
-        </SceneWrapper>
+        </section>
       </div>
 
       <LandingFooter />
