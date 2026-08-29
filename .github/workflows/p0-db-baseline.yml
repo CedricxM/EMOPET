@@ -15,7 +15,7 @@ jobs:
   static-and-postgres:
     name: Static + disposable PostgreSQL QA
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     services:
       postgres:
@@ -112,6 +112,46 @@ jobs:
 
       - name: Repeatability — complete schema dump
         run: diff -u /tmp/schema-a.sql /tmp/schema-b.sql
+
+      - name: Generate isolated Drizzle fresh baseline
+        working-directory: backend
+        run: |
+          rm -rf db/p0-generated-baseline
+          pnpm exec drizzle-kit generate --config=db/drizzle.p0-baseline.config.ts --name=p0_fresh_baseline
+          test -f db/p0-generated-baseline/meta/_journal.json
+          test "$(find db/p0-generated-baseline -maxdepth 1 -type f -name '*.sql' | wc -l)" -eq 1
+          echo '--- generated journal ---'
+          cat db/p0-generated-baseline/meta/_journal.json
+          echo '--- generated SQL ---'
+          cat db/p0-generated-baseline/*.sql
+
+      - name: Check generated Drizzle ledger
+        working-directory: backend
+        run: pnpm exec drizzle-kit check --config=db/drizzle.p0-baseline.config.ts
+
+      - name: Create generated-baseline disposable database
+        run: createdb -h 127.0.0.1 -p 5432 -U emopet_qa emopet_qa_generated
+
+      - name: Apply generated Drizzle baseline with migrate
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+        run: pnpm exec drizzle-kit migrate --config=db/drizzle.p0-baseline.config.ts
+
+      - name: Verify generated table inventory
+        env:
+          GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+        run: |
+          psql "$GENERATED_DATABASE_URL" -Atc "select tablename from pg_tables where schemaname='public' order by tablename" > /tmp/tables-generated.txt
+          diff -u /tmp/tables-a.txt /tmp/tables-generated.txt
+
+      - name: Verify generated snapshot is stable
+        working-directory: backend
+        run: |
+          before="$(find db/p0-generated-baseline -maxdepth 1 -type f -name '*.sql' | wc -l)"
+          pnpm exec drizzle-kit generate --config=db/drizzle.p0-baseline.config.ts --name=p0_second_generation_check
+          after="$(find db/p0-generated-baseline -maxdepth 1 -type f -name '*.sql' | wc -l)"
+          test "$before" -eq "$after"
 
       - name: Build backend dependency closure
         run: pnpm --filter @emopet/api... build
