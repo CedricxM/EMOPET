@@ -4,23 +4,27 @@
 **Branch:** `emopet/p0-db-baseline`  
 **Baseline:** `main` at `ce60239e5d53e1b4b98f1bb12e3bf6cf191fe473`  
 **Status:** `BLOCKED_MIGRATION_BASELINE_AUTHORITY`  
-**Scope:** evidence/reconciliation only — no migration executed, no production/shared database touched
+**Disposable QA:** `PASS` on GitHub Actions run `33275173353` / run #7  
+**Scope:** candidate fresh-database reconstruction validated only on disposable PostgreSQL — no production/shared database touched
 
 ---
 
 ## 1. Purpose
 
-This note records the database state observed in the repository before any new migration baseline is generated.
+This note records the database state observed in the repository before any active migration baseline is promoted.
 
-It does **not** declare the current migration chain valid, does **not** promote the current Drizzle schema to a production database contract, and does **not** authorize destructive upgrade work.
+It does **not** declare the current historical migration chain independently valid, does **not** promote the current Drizzle schema to a production database contract, and does **not** authorize destructive upgrade work.
 
 The immediate objective is to separate three different questions:
 
 1. What does the current TypeScript/Drizzle schema declare?
 2. What do the four checked-in SQL migrations actually create or alter?
-3. Can a safe fresh-database and/or existing-database migration path be established from repository evidence alone?
+3. Can a safe fresh-database and/or existing-database migration path be established from repository evidence?
 
-Current answer to (3): **not yet**.
+Current answer to (3):
+
+- **fresh disposable database path:** candidate sequence validated successfully;
+- **existing persistent database path:** still blocked pending authority/evidence.
 
 ---
 
@@ -47,7 +51,7 @@ For this P0 workstream, `db:push` is **not** an acceptable substitute for a cont
 
 ## 3. Checked-in migration inventory
 
-Only four SQL migrations are present:
+Only four historical SQL migrations are present:
 
 1. `0001_dataset_registry.sql`
 2. `0002_freemium_foundation.sql`
@@ -56,7 +60,7 @@ Only four SQL migrations are present:
 
 No checked-in Drizzle `meta/` journal/snapshot directory was observed alongside them.
 
-This means the repository contains SQL history but does not currently expose the normal complete Drizzle migration metadata needed to treat that directory as a proven generated baseline.
+This means the repository contains historical SQL but does not currently expose the normal complete Drizzle migration metadata needed to treat that directory as a proven generated fresh-database baseline by itself.
 
 ---
 
@@ -170,7 +174,7 @@ These correspond substantially to migrations `0003_architecture_upgrade.sql` and
 
 ## 5. Migration-to-schema reconciliation matrix
 
-| Domain | Current Drizzle tables | Creation present in 0001–0004? | Result |
+| Domain | Current Drizzle tables | Creation present in historical 0001–0004? | Result |
 |---|---|---:|---|
 | Identity | users, subscriptions, achievements | No creation found | `MISSING_CORE_CREATION` |
 | Dogs/devices | dogs, devices, health_entries, breed_sensor_profiles | No creation found | `MISSING_CORE_CREATION` |
@@ -182,11 +186,11 @@ These correspond substantially to migrations `0003_architecture_upgrade.sql` and
 | ELI architecture | user_config, dog_sub_baselines, baseline_drift_monitor, walk_quality, routine_stability | Yes, substantially in 0003 | `PRESENT_WITH_DRIFT` |
 | ELI v6 additions | recovery_events, anticipation_events + baseline extensions | Yes, substantially in 0004 | `PRESENT_WITH_DRIFT` |
 
-The checked-in chain therefore cannot be considered a fresh-database baseline.
+The historical chain by itself cannot be considered a fresh-database baseline.
 
 ---
 
-## 6. Proven hard failures in the current migration ordering
+## 6. Proven hard failures in the historical ordering
 
 ### 6.1 `0001` alters a table that is never created earlier
 
@@ -194,29 +198,27 @@ The checked-in chain therefore cannot be considered a fresh-database baseline.
 
 There is no migration before `0001`, and no creation of `breed_sensor_profiles` earlier in that file.
 
-On a genuinely empty PostgreSQL database, that dependency is unresolved.
-
 ### 6.2 `0003` again assumes `breed_sensor_profiles` already exists
 
 `0003_architecture_upgrade.sql` begins by adding constraints to `breed_sensor_profiles`.
-
-The checked-in migration chain still has no core-table creation migration before this point.
 
 ### 6.3 `0004` assumes `devices` already exists
 
 `0004_v6_additions.sql` alters `devices` to add firmware capability columns.
 
-No checked-in migration in `0001`–`0003` creates `devices`.
+No checked-in historical migration in `0001`–`0003` creates `devices`.
 
 ### Consequence
 
-A clean database cannot safely be bootstrapped by simply running the current migration sequence from `0001` through `0004`.
+A clean database cannot safely be bootstrapped by simply running historical `0001` through `0004` alone.
+
+The candidate P0 reconstruction solves these missing prerequisites in **draft files outside active migration history**, and that candidate sequence has now been validated on disposable PostgreSQL.
 
 ---
 
 ## 7. Schema/migration drift already visible
 
-The problem is not only a missing `0000` migration. The current schema and SQL history have drifted.
+The problem is not only missing pre-0001 creation SQL. The current schema and SQL history have drifted.
 
 ### 7.1 Firmware capability columns
 
@@ -237,7 +239,7 @@ Status: `SCHEMA_MIGRATION_DRIFT`.
 
 `PRIMARY KEY (dog_id, slot)`
 
-The current Drizzle schema uses a normal index named `idx_sub_baselines_dog_slot`, with a comment describing a composite primary key as "emulated via unique index"; the actual declaration shown is not a primary key and is not a unique index.
+The current Drizzle schema uses a normal index named `idx_sub_baselines_dog_slot`; the current declaration is not a primary key and is not a unique index.
 
 Status: `CONSTRAINT_DRIFT`.
 
@@ -247,7 +249,7 @@ Status: `CONSTRAINT_DRIFT`.
 
 `PRIMARY KEY (dog_id, date)`
 
-The current Drizzle schema declares only `idx_routine_stability_dog_date`, not a primary-key constraint.
+The current Drizzle schema declares only `idx_routine_stability_dog_date`.
 
 Status: `CONSTRAINT_DRIFT`.
 
@@ -277,33 +279,57 @@ Status: `TYPE_AND_RELATIONSHIP_RECONCILIATION_REQUIRED`.
 
 `backend/db/seeds` contains substantial reference/content seed data, including breed knowledge, freemium templates and local-directory content.
 
-The seed corpus is **not lost**, but it cannot be treated as executable fresh-install proof until the tables it targets are created by a validated baseline.
+The seed corpus is **not lost**.
 
-No seed execution is authorized in this reconciliation phase.
+Seed execution was not part of the disposable baseline validation and remains a separate controlled gate.
 
 ---
 
-## 9. Fresh database vs existing database — two different problems
+## 9. Candidate fresh-database validation result
+
+The candidate P0 reconstruction consists of SQL files under:
+
+`backend/db/baseline-draft/`
+
+These files remain outside `backend/db/migrations/` and therefore are not promoted active migration history.
+
+GitHub Actions run `33275173353` / run #7 validated the following against PostgreSQL 16:
+
+1. repository-only migration dependency checks;
+2. application of all draft prerequisites;
+3. historical `0001`–`0004` application with `ON_ERROR_STOP=1`;
+4. full table inventory capture;
+5. repeat of the complete sequence against a second empty database;
+6. identical table inventory;
+7. identical normalized full schema dump;
+8. backend dependency-closure build;
+9. backend typecheck;
+10. backend tests.
+
+Result: **PASS** for disposable fresh-database reconstruction at validated head `536f9150b79081cb9e7b02ae75bf5cc73a37b9ae`.
+
+The full evidence record is:
+
+`docs/control/P0_DB_DISPOSABLE_VALIDATION_EVIDENCE.md`
+
+---
+
+## 10. Fresh database vs existing database — two different problems
 
 ### Path A — no persistent database must be preserved
 
-If EMOPET has no existing PostgreSQL instance containing data that must survive this reconciliation, a new controlled baseline can be reconstructed from the current schema plus the historical migrations.
+If EMOPET has no existing PostgreSQL instance containing state that must survive this reconciliation, the candidate disposable reconstruction is technically viable as a basis for the next controlled migration-authority step.
 
-The safe target would be:
+Before promotion into active Drizzle history, remaining work includes:
 
-1. create a complete core baseline in dependency order;
-2. explicitly reconcile the 0001–0004 historical changes into the resulting schema;
-3. generate/restore compatible Drizzle metadata;
-4. validate against a disposable PostgreSQL instance;
-5. verify schema parity;
-6. run backend build/tests;
-7. document rollback/rebuild behavior.
-
-A filename such as `0000_core_baseline.sql` is a candidate implementation detail, not yet authorized by this document.
+1. resolve known schema/migration drift intentionally;
+2. establish the controlled Drizzle migration ledger/metadata strategy;
+3. decide whether candidate draft files become active migration history or are consolidated through a controlled generated baseline;
+4. rerun disposable validation on the promoted form.
 
 ### Path B — an existing database contains data to preserve
 
-If a persistent EMOPET PostgreSQL database already exists, generating a new baseline from source code alone is unsafe.
+If a persistent EMOPET PostgreSQL database already exists, promoting a new baseline from source code alone remains unsafe.
 
 Required evidence before writing upgrade SQL:
 
@@ -320,9 +346,9 @@ Until this is known, the upgrade path remains blocked.
 
 ---
 
-## 10. Current decision gate
+## 11. Current decision gate
 
-The next irreversible design choice depends on one question:
+The next authority choice still depends on:
 
 > **Does an existing EMOPET PostgreSQL database contain data or schema state that must be preserved?**
 
@@ -330,92 +356,83 @@ Possible controlled answers:
 
 ### `NO_EXISTING_DB_TO_PRESERVE`
 
-Authorize construction and disposable validation of a clean baseline from repository authority.
+Authorize reconciliation of known schema drift and preparation of a promotable active migration baseline, followed by another disposable validation pass.
 
 ### `EXISTING_DB_MUST_BE_PRESERVED`
 
-Require schema evidence before any upgrade/baseline SQL is authored.
+Require schema evidence before any upgrade/baseline SQL is promoted.
 
 ### `UNKNOWN`
 
-Remain blocked. Continue only with read-only reconciliation and test harness preparation.
+Remain blocked from migration-authority promotion. Continue only with non-destructive repository preparation.
 
 Current state: `UNKNOWN`.
 
 ---
 
-## 11. Safe work allowed while the gate is open
-
-The following work is allowed without touching production/shared data:
-
-- repository-only schema/migration mapping;
-- static SQL dependency review;
-- disposable PostgreSQL test harness design;
-- tests that fail safely when the historical chain is incomplete;
-- documentation of expected table/constraint parity;
-- branch/PR preparation.
-
-The following work is **not** authorized by this note:
-
-- `drizzle-kit push` against any persistent database;
-- destructive SQL against any existing database;
-- dropping/recreating user data;
-- marking 0001–0004 as validated;
-- deleting historical migrations;
-- silently renumbering history;
-- production deployment.
-
----
-
-## 12. Proposed validation gates for the eventual baseline
-
-A future baseline may only be marked `VERIFIED` after all applicable gates pass.
+## 12. Validation gates
 
 ### DB-G1 — Empty database apply
 
-All controlled migrations apply from an empty PostgreSQL database without manual intervention.
+`PASS` for the current candidate disposable sequence.
 
 ### DB-G2 — Schema parity
 
-The resulting database matches the controlled Drizzle schema for tables, columns, types, defaults, nullability, foreign keys, unique constraints and indexes, with every intentional historical exception documented.
+`PARTIAL / OPEN`.
+
+Current table-name coverage is proven. Known column/type/constraint drift remains intentionally visible and unresolved.
 
 ### DB-G3 — Migration ledger
 
-Drizzle migration metadata/history is deterministic and committed or otherwise explicitly controlled.
+`OPEN`.
+
+Complete controlled Drizzle migration metadata/history has not yet been established.
 
 ### DB-G4 — Repeatability
 
-A second clean database produces the same schema from the same repository revision.
+`PASS` for the current candidate sequence.
+
+A second empty database produced the same table inventory and same normalized full schema dump.
 
 ### DB-G5 — Backend compatibility
 
-Backend build, typecheck and database-relevant tests pass against the disposable database.
+`PASS` for the validated repository revision.
+
+Dependency-closure build, backend typecheck and backend tests completed successfully.
 
 ### DB-G6 — Upgrade compatibility
 
-Required only if an existing database must be preserved. Upgrade is validated from a representative schema snapshot with no unintended data loss.
+`NOT TESTED / BLOCKED` pending existing-database authority.
 
 ### DB-G7 — Rollback/recovery
 
-Recovery procedure is documented. A destructive rollback is not assumed safe merely because comments exist in SQL.
+`OPEN` pending final migration form and existing-database decision.
 
 ---
 
 ## 13. P0 maturity statement
 
-Observed facts support the following status only:
+Observed evidence now supports:
 
 `DATABASE SCHEMA = OBSERVED`
 
-`CHECKED-IN SQL HISTORY = OBSERVED / INCOMPLETE AS FRESH BASELINE`
+`HISTORICAL SQL 0001–0004 = OBSERVED / INCOMPLETE AS STANDALONE FRESH BASELINE`
 
-`FRESH DATABASE BOOTSTRAP = BLOCKED`
+`CANDIDATE DISPOSABLE FRESH-DB RECONSTRUCTION = PASS`
 
-`EXISTING DATABASE UPGRADE = BLOCKED PENDING AUTHORITY/EVIDENCE`
+`REPEATABLE DISPOSABLE SCHEMA = VERIFIED FOR CURRENT CANDIDATE SEQUENCE`
 
-`DRIZZLE MIGRATION BASELINE = BLOCKED_MIGRATION_BASELINE_AUTHORITY`
+`BACKEND BUILD / TYPECHECK / TESTS = PASS FOR VALIDATED RUN`
 
-`PRODUCTION DATABASE READINESS = NOT ESTABLISHED`
+It does not yet support:
+
+`ACTIVE DRIZZLE MIGRATION BASELINE = APPROVED`
+
+`EXISTING DATABASE UPGRADE = VERIFIED`
+
+`PRODUCTION DATABASE READINESS = ESTABLISHED`
+
+`PRODUCTION MIGRATION = AUTHORIZED`
 
 No Product V1, production, security, deployment or manufacturing maturity is promoted by this reconciliation.
 
@@ -423,11 +440,11 @@ No Product V1, production, security, deployment or manufacturing maturity is pro
 
 ## 14. Next controlled action
 
-Before authoring a core migration, establish one of the following:
+Establish one of:
 
 - `NO_EXISTING_DB_TO_PRESERVE`, or
-- `EXISTING_DB_MUST_BE_PRESERVED` + provide schema-only evidence.
+- `EXISTING_DB_MUST_BE_PRESERVED` + schema-only evidence.
 
-Until then, this branch remains a non-destructive reconciliation slice.
+Until then, candidate SQL remains outside active migration history and PR #3 remains draft.
 
-**NO SILENT MIGRATION, ARCHITECTURE OR MATURITY PROMOTION.**
+**DISPOSABLE POSTGRESQL VALIDATION PASSED — NO SILENT MIGRATION, ARCHITECTURE OR MATURITY PROMOTION.**
