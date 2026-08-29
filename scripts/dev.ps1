@@ -14,7 +14,7 @@ docker compose up -d db
 if (-not $env:DATABASE_URL) {
   $dbUser = if ($env:DB_USER) { $env:DB_USER } else { 'emopet' }
   $dbName = if ($env:DB_NAME) { $env:DB_NAME } else { 'emopet' }
-  $env:DATABASE_URL = "postgres://$dbUser:$($env:DB_PASSWORD)@127.0.0.1:5432/$dbName"
+  $env:DATABASE_URL = "postgres://${dbUser}:$($env:DB_PASSWORD)@127.0.0.1:5432/${dbName}"
   Write-Host '[dev] DATABASE_URL derived for this PowerShell session.' -ForegroundColor DarkGray
 }
 
