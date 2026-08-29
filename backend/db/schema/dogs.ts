@@ -1,6 +1,6 @@
 import { pgTable, uuid, varchar, timestamp, real, date, integer, jsonb, text, boolean } from 'drizzle-orm/pg-core';
-import { users } from './users';
-import { breedCanonical } from './datasets';
+import { users } from './users.js';
+import { breedCanonical } from './datasets.js';
 
 export const dogs = pgTable('dogs', {
   id: uuid('id').primaryKey().defaultRandom(),
