@@ -60,12 +60,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client
 
-      - name: Backend build
-        run: pnpm --filter @emopet/api build
-
-      - name: Backend typecheck
-        run: pnpm --filter @emopet/api typecheck
-
       - name: Repository-only migration checks
         working-directory: backend
         run: node --test test/migration-baseline-static.test.mjs
@@ -110,6 +104,12 @@ jobs:
 
       - name: Repeatability — table inventory
         run: diff -u /tmp/tables-a.txt /tmp/tables-b.txt
+
+      - name: Build backend dependency closure
+        run: pnpm --filter @emopet/api... build
+
+      - name: Backend typecheck
+        run: pnpm --filter @emopet/api typecheck
 
       - name: Backend tests
         run: pnpm --filter @emopet/api test
