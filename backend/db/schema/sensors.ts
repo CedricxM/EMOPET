@@ -1,5 +1,5 @@
 import { pgTable, uuid, varchar, timestamp, real, integer, jsonb } from 'drizzle-orm/pg-core';
-import { dogs } from './dogs';
+import { dogs } from './dogs.js';
 
 export const sensorSummaries = pgTable('sensor_summaries', {
   id: uuid('id').primaryKey().defaultRandom(),
