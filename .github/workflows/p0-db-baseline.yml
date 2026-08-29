@@ -113,6 +113,9 @@ jobs:
       - name: Repeatability — complete schema dump
         run: diff -u /tmp/schema-a.sql /tmp/schema-b.sql
 
+      - name: Build backend dependency closure
+        run: pnpm --filter @emopet/api... build
+
       - name: Generate isolated Drizzle fresh baseline
         working-directory: backend
         run: |
@@ -152,9 +155,6 @@ jobs:
           pnpm exec drizzle-kit generate --config=db/drizzle.p0-baseline.config.ts --name=p0_second_generation_check
           after="$(find db/p0-generated-baseline -maxdepth 1 -type f -name '*.sql' | wc -l)"
           test "$before" -eq "$after"
-
-      - name: Build backend dependency closure
-        run: pnpm --filter @emopet/api... build
 
       - name: Backend typecheck
         run: pnpm --filter @emopet/api typecheck
