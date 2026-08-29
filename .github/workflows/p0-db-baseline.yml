@@ -105,6 +105,9 @@ jobs:
       - name: Repeatability — table inventory
         run: diff -u /tmp/tables-a.txt /tmp/tables-b.txt
 
+      - name: Repeatability — complete schema dump
+        run: diff -u /tmp/schema-a.sql /tmp/schema-b.sql
+
       - name: Build backend dependency closure
         run: pnpm --filter @emopet/api... build
 
