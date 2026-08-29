@@ -1,4 +1,5 @@
-import { pgTable, text, timestamp, date, integer, real, serial, jsonb, boolean, index, uniqueIndex } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, date, integer, real, serial, jsonb, boolean, index, uniqueIndex, check } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 // ─── Breed Knowledge Database ──────────────────────────────────────
 
@@ -66,6 +67,21 @@ export const breedKnowledge = pgTable('breed_knowledge', {
   index('idx_breed_size').on(table.sizeClass),
   index('idx_breed_activity').on(table.activityLevel),
   index('idx_breed_brachy').on(table.isBrachycephalic),
+  check('chk_breed_knowledge_size_class', sql`${table.sizeClass} IN ('xs','small','medium','large','giant')`),
+  check('chk_breed_knowledge_fur_length', sql`${table.furLength} IN ('hairless','short','medium','long','wire','curly')`),
+  check('chk_breed_knowledge_fur_density', sql`${table.furDensity} IN ('sparse','moderate','dense','very_dense')`),
+  check('chk_breed_knowledge_fur_contact_class', sql`${table.furContactClass} IN ('FC-1','FC-2','FC-3')`),
+  check('chk_breed_knowledge_shedding_level', sql`${table.sheddingLevel} IN ('none','low','moderate','heavy','seasonal_heavy')`),
+  check('chk_breed_knowledge_activity_level', sql`${table.activityLevel} IN ('low','moderate','high','very_high')`),
+  check('chk_breed_knowledge_separation_anxiety', sql`${table.separationAnxietyTendency} IN ('low','moderate','high')`),
+  check('chk_breed_knowledge_vocalization', sql`${table.vocalizationTendency} IN ('quiet','moderate','vocal','very_vocal')`),
+  check('chk_breed_knowledge_sociability_dogs', sql`${table.sociabilityDogs} IN ('low','moderate','high')`),
+  check('chk_breed_knowledge_sociability_humans', sql`${table.sociabilityHumans} IN ('reserved','moderate','friendly','very_friendly')`),
+  check('chk_breed_knowledge_trainability', sql`${table.trainability} IN ('independent','moderate','eager','very_eager')`),
+  check('chk_breed_knowledge_energy_indoor', sql`${table.energyIndoor} IN ('calm','moderate','active')`),
+  check('chk_breed_knowledge_destructiveness', sql`${table.destructivenessTendency} IN ('low','moderate','high')`),
+  check('chk_breed_knowledge_heat_sensitivity', sql`${table.heatSensitivity} IN ('low','moderate','high','very_high')`),
+  check('chk_breed_knowledge_cold_sensitivity', sql`${table.coldSensitivity} IN ('low','moderate','high')`),
 ]);
 
 // ─── Bleiz Freemium Templates ──────────────────────────────────────
@@ -155,6 +171,7 @@ export const localDirectory = pgTable('local_directory', {
   index('idx_dir_category').on(table.category),
   index('idx_dir_city').on(table.city),
   index('idx_dir_geo').on(table.latitude, table.longitude),
+  check('chk_local_directory_category', sql`${table.category} IN ('veterinaire','educateur','toiletteur','pension','parc_chien','animalerie','promeneur','osteopathe_canin','comportementaliste')`),
 ]);
 
 // ─── Weather Context ───────────────────────────────────────────────
@@ -187,4 +204,6 @@ export const seasonalAlerts = pgTable('seasonal_alerts', {
   activeTo: date('active_to').notNull(),
   source: text('source'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
-});
+}, (table) => [
+  check('chk_seasonal_alerts_severity', sql`${table.severity} IN ('info','attention','urgent')`),
+]);
