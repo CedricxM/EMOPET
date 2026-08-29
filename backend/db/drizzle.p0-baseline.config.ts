@@ -1,7 +1,9 @@
 import { defineConfig } from 'drizzle-kit';
 
 export default defineConfig({
-  schema: './db/schema/index.ts',
+  // Generate from the compiled runtime schema so Node ESM keeps explicit .js
+  // specifiers while drizzle-kit loads the exact code that the backend executes.
+  schema: './dist/db/schema/index.js',
   out: './db/p0-generated-baseline',
   dialect: 'postgresql',
   dbCredentials: {
