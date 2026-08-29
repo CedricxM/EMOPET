@@ -1,6 +1,6 @@
 import { pgTable, uuid, varchar, timestamp, jsonb } from 'drizzle-orm/pg-core';
-import { users } from './users';
-import { dogs } from './dogs';
+import { users } from './users.js';
+import { dogs } from './dogs.js';
 
 export const aiMessages = pgTable('ai_messages', {
   id: uuid('id').primaryKey().defaultRandom(),
