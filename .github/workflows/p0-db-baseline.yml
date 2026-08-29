@@ -105,6 +105,11 @@ jobs:
       - name: Repeatability — table inventory
         run: diff -u /tmp/tables-a.txt /tmp/tables-b.txt
 
+      - name: Normalize pg_dump session guards
+        run: |
+          sed -i '/^\\restrict /d;/^\\unrestrict /d' /tmp/schema-a.sql
+          sed -i '/^\\restrict /d;/^\\unrestrict /d' /tmp/schema-b.sql
+
       - name: Repeatability — complete schema dump
         run: diff -u /tmp/schema-a.sql /tmp/schema-b.sql
 
