@@ -8,7 +8,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const dbDir = join(here, '..', 'db');
 const schemaDir = join(dbDir, 'schema');
 const migrationsDir = join(dbDir, 'migrations');
-const draftBaseline = join(dbDir, 'baseline-draft', '0000_core_baseline.sql');
+const draftDir = join(dbDir, 'baseline-draft');
 
 function read(path) {
   return readFileSync(path, 'utf8');
@@ -40,12 +40,15 @@ function sqlEvents(sql) {
 }
 
 function orderedSqlSources() {
+  const draftFiles = readdirSync(draftDir)
+    .filter((name) => /^\d+.*\.sql$/.test(name))
+    .sort();
   const migrationFiles = readdirSync(migrationsDir)
     .filter((name) => /^\d+.*\.sql$/.test(name))
     .sort();
 
   return [
-    { name: 'DRAFT:0000_core_baseline.sql', path: draftBaseline },
+    ...draftFiles.map((name) => ({ name: `DRAFT:${name}`, path: join(draftDir, name) })),
     ...migrationFiles.map((name) => ({ name, path: join(migrationsDir, name) })),
   ];
 }
@@ -88,7 +91,11 @@ test('every ALTER TABLE target exists earlier in the draft+historical SQL sequen
   assert.deepEqual(violations, [], violations.join('\n'));
 });
 
-test('draft baseline stays outside the active migrations directory', () => {
-  const activeFiles = readdirSync(migrationsDir);
-  assert.equal(activeFiles.includes('0000_core_baseline.sql'), false);
+test('all candidate draft SQL stays outside the active migrations directory', () => {
+  const activeFiles = new Set(readdirSync(migrationsDir));
+  const draftFiles = readdirSync(draftDir).filter((name) => name.endsWith('.sql'));
+
+  for (const file of draftFiles) {
+    assert.equal(activeFiles.has(file), false, `${file} must remain outside db/migrations`);
+  }
 });
