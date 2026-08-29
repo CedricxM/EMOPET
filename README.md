@@ -1,91 +1,132 @@
-﻿# EmoPet v6
+# EMOPET
 
-Demo stack:
-- Flutter app: `flutter_app/`
-- API: `src/api/emopet_api.py`
-- DB: PostgreSQL 16 + SQLAlchemy 2 + Alembic
-- FCI ingestion: `scripts/ingest_fci_pdf.py` (local PDFs only)
+EMOPET is a canine-wellbeing software and firmware monorepo. The repository currently contains a web application, a mobile application, a TypeScript API, shared inference/protocol packages, database schemas and migrations, and partial MAT/TAG firmware code.
 
-## Official Backend Entry Point
+This README describes the code observed on `main`. It does not establish product maturity, deployment readiness, clinical validity, or a frozen Product V1 scope.
 
-- Official backend for local development and `docker compose`: `src.api.emopet_api:app`
-- Legacy compatibility entrypoint: `app.main:app`
-- For new development, always launch the backend via `src.api.emopet_api:app`
+## Repository status
 
-Non-medical by design:
-- observations and trends only,
-- no diagnosis,
-- privacy-first (no raw audio storage, no automatic media capture).
+| Area | Observed implementation | Current status |
+|---|---|---|
+| Web | Next.js 15, React 19, HeroUI 3, Tailwind 4 | `OBSERVED` |
+| Mobile | Expo 52, React 18, React Native 0.76 | `OBSERVED` |
+| API | Hono 4 on Node.js, Zod validation | `OBSERVED`, several routes remain placeholders |
+| Database | Drizzle ORM schemas for PostgreSQL | `OBSERVED`, clean migration application is `BLOCKED` |
+| Shared packages | ELI engine, BLE protocol, AI personality, shared types | `OBSERVED` |
+| Firmware | Partial MAT/TAG C sources | `OBSERVED_PARTIAL` |
+| Authentication | JWT middleware and ownership helper; register/login/refresh are stubs | `OPEN / GATED` |
+| CI and branch protection | No GitHub Actions, CODEOWNERS, or protected `main` observed | `OPEN` |
+| Unity | No Unity project in this repository | `ABSENT_IN_REPOSITORY / GATED` |
+| Nakama | No Nakama integration in this repository | `ABSENT_IN_REPOSITORY / GATED` |
 
-## Run in 5 Minutes (Windows)
+## Monorepo layout
 
-### 1) Setup
-```powershell
-cd C:\Users\utilisateur\emopet_v6
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -U pip
-pip install -r requirements.txt
-Copy-Item .env.example .env -Force
+```text
+apps/
+  web/                  Next.js application and prototype Route Handlers
+  mobile/               Expo/React Native application
+backend/
+  api/                  Hono routes, middleware, and services
+  db/                   Drizzle schemas, migrations, and seeds
+  test/                 Backend node:test suites
+packages/
+  shared/               Shared TypeScript types and Zod validators
+  eli-engine/           ELI inference, confidence, baseline, and veto logic
+  ble-protocol/         MAT/TAG binary frame parsing and commands
+  ai-personality/       Breiz templates and content safeguards
+firmware/               Partial MAT/TAG embedded implementations
+docs/, data/, scripts/  Documentation, reference data, and utilities
 ```
 
-### 2) Start Postgres
-```powershell
-docker compose up -d db
-docker compose ps
+The workspace is declared in `pnpm-workspace.yaml` and orchestrated with Turbo.
+
+## Prerequisites
+
+- Node.js 20 or newer
+- pnpm 10.33.0
+- PostgreSQL for database-backed API work
+
+## Manifest-declared commands
+
+These commands are defined by the committed manifests. Their presence is not evidence that the current branch passes them in every environment.
+
+```bash
+pnpm install --frozen-lockfile
+pnpm build
+pnpm lint
+pnpm typecheck
+pnpm test
 ```
 
-### 3) Migrations (always use `python -m alembic`)
-```powershell
-python -m alembic upgrade head
-python -m alembic current -v
+Application shortcuts:
+
+```bash
+pnpm web:dev
+pnpm backend:dev
+pnpm mobile:dev
+pnpm mobile:ios
+pnpm mobile:android
 ```
 
-### 4) Import FCI PDFs (local files)
-```powershell
-python scripts\ingest_fci_pdf.py --path data/fci/pdfs --lang fr --limit 5
-# full import
-python scripts\ingest_fci_pdf.py --path data/fci/pdfs --lang fr
-# optional image extraction (1 image max per breed)
-python scripts\ingest_fci_pdf.py --path data/fci/pdfs --extract-images true
+Package-focused validation:
+
+```bash
+pnpm --filter @emopet/web lint
+pnpm --filter @emopet/web typecheck
+pnpm --filter @emopet/web test
+pnpm --filter @emopet/web build
+
+pnpm --filter @emopet/api typecheck
+pnpm --filter @emopet/api build
+pnpm --filter @emopet/api test
+
+pnpm --filter @emopet/eli-engine typecheck
+pnpm --filter @emopet/eli-engine test
+pnpm --filter @emopet/ai-personality test
 ```
 
-### 5) Run API
-```powershell
-python -m uvicorn src.api.emopet_api:app --reload --host 127.0.0.1 --port 8000
-```
+Backend tests import compiled files from `backend/dist`, so build the backend before running its test command.
 
-### 6) Run Flutter Demo
-```powershell
-cd flutter_app
-flutter pub get
-flutter run -d windows
-```
+## Runtime and data boundaries
 
-## One-command helpers (PowerShell)
-- `scripts/dev.ps1`
-- `scripts/run_api.ps1`
-- `scripts/import_fci.ps1`
-- `scripts/run_demo_flutter.ps1`
+The intended backend direction in the current handoff is Hono + TypeScript with PostgreSQL as durable authority and server-side authorization as policy authority. The repository does not yet implement that boundary consistently.
 
-## Main API Endpoints
-- `GET /healthz`
-- `GET /meta`
-- `GET /breeds?query=&limit=&offset=`
-- `POST /dogs`, `GET /dogs/{id}`, `PUT /dogs/{id}`, `DELETE /dogs/{id}`
-- `POST /fci/import`
-- `POST /ingest/mat_session`
-- `POST /ingest/tag_reading`
-- `POST /ingest/garment_reading`
-- `POST /weather/snapshot`
-- `POST /presence/snapshot`
-- `POST /checkin`
-- `GET /journal/{dog_id}`, `POST /journal/{dog_id}`
-- `GET /health/log?dog_id=...`, `POST /health/log?dog_id=...`, `GET /health/log/export?dog_id=...`
-- `POST /insights/{dog_id}/compute`
-- `GET /insights/{dog_id}`
+Observed data paths include:
 
-## Notes
-- No web scraping is used for breeds.
-- FCI references come from local PDFs under `data/fci/pdfs`.
-- For Windows shells, prefer `python -m alembic ...` instead of `alembic ...`.
+- Drizzle/PostgreSQL schemas under `backend/db`;
+- in-memory stores in backend prototype services;
+- JSON-file persistence under `apps/web/.data/` through Next.js Route Handlers;
+- localStorage/sessionStorage fallbacks and prototype owner tokens in web clients.
+
+Treat the JSON, in-memory, and browser stores as prototype paths, not production or governance authority. Migration to one versioned backend contract remains open.
+
+## Database warning
+
+Do not treat `pnpm --filter @emopet/api db:migrate` as clean-database proof yet.
+
+The committed migrations alter base tables such as `breed_sensor_profiles` and `devices` without a checked-in migration that creates every required base table, and Drizzle migration metadata is absent. Repair and validation of the migration baseline require a separate approved change with clean-database and upgrade-path evidence.
+
+## Docker warning
+
+`docker-compose.yml`, `scripts/init_db.sh`, and several helper documents still reference the historical Python/FastAPI/Alembic stack. The Compose API service also references a missing root `Dockerfile`. These files are retained for provenance but are not valid instructions for the active Hono backend.
+
+## Safety and privacy constraints
+
+- Backend authorization must enforce Guardian-to-dog access for protected resources.
+- Clients, Unity, and any future realtime subsystem are untrusted inputs, not policy authorities.
+- Raw audio must not be stored or transmitted; current data contracts use derived vocal counts/energy, but end-to-end negative tests remain required.
+- Sensitive location/telemetry requires explicit purpose, consent, minimization, retention, and deletion rules.
+- Outputs must remain non-diagnostic and avoid unsupported emotional labels or anthropomorphism.
+- Product, scientific, brand, and maturity claims require their controlling source; code existence is not approval.
+
+## Known documentation drift
+
+Historical FastAPI, Uvicorn, psycopg2, Flutter, Python backend, NestJS, and web React 18 references remain in parts of the repository. They are cleanup candidates, not evidence of active implementations. Do not delete or promote them without an approved retention disposition.
+
+## Further reading
+
+- `ARCHITECTURE.md` — evidence-based repository topology and boundaries
+- `AGENTS.md` / `CLAUDE.md` — project working constraints
+- `SECURITY_AUDIT_REPORT.md` — historical security-pass evidence; reverify before relying on results
+- `SECURITY_ROTATION_REQUIRED.md` — credential names requiring rotation review, without values
+- `docs/APP_OVERVIEW.md` — detailed web application description; some product/status claims require reconciliation
