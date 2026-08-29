@@ -1,5 +1,5 @@
 import { pgTable, uuid, varchar, timestamp, real, integer, jsonb } from 'drizzle-orm/pg-core';
-import { users } from './users';
+import { users } from './users.js';
 
 export const communities = pgTable('communities', {
   id: uuid('id').primaryKey().defaultRandom(),
