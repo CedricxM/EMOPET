@@ -70,8 +70,12 @@ jobs:
         working-directory: backend
         run: node --test test/migration-baseline-static.test.mjs
 
-      - name: Apply draft core baseline
-        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/baseline-draft/0000_core_baseline.sql
+      - name: Apply all draft prerequisites in order
+        run: |
+          for file in $(find backend/db/baseline-draft -maxdepth 1 -type f -name '*.sql' | sort); do
+            echo "Applying $file"
+            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$file"
+          done
 
       - name: Apply historical migrations in order
         run: |
@@ -93,7 +97,10 @@ jobs:
         env:
           REPEAT_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_repeat
         run: |
-          psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/baseline-draft/0000_core_baseline.sql
+          for file in $(find backend/db/baseline-draft -maxdepth 1 -type f -name '*.sql' | sort); do
+            echo "Applying $file"
+            psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f "$file"
+          done
           psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0001_dataset_registry.sql
           psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0002_freemium_foundation.sql
           psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0003_architecture_upgrade.sql
