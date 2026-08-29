@@ -1,0 +1,114 @@
+name: P0 DB baseline validation
+
+on:
+  pull_request:
+    paths:
+      - 'backend/db/**'
+      - 'backend/test/migration-baseline-static.test.mjs'
+      - '.github/workflows/p0-db-baseline.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-and-postgres:
+    name: Static + disposable PostgreSQL QA
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: emopet_qa
+          POSTGRES_PASSWORD: emopet_qa_only
+          POSTGRES_DB: emopet_qa
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U emopet_qa -d emopet_qa"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+      PGPASSWORD: emopet_qa_only
+      NODE_ENV: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup pnpm
+        run: corepack prepare pnpm@10.33.0 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Backend build
+        run: pnpm --filter @emopet/api build
+
+      - name: Backend typecheck
+        run: pnpm --filter @emopet/api typecheck
+
+      - name: Repository-only migration checks
+        working-directory: backend
+        run: node --test test/migration-baseline-static.test.mjs
+
+      - name: Apply draft core baseline
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/baseline-draft/0000_core_baseline.sql
+
+      - name: Apply historical migrations in order
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0001_dataset_registry.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0002_freemium_foundation.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0003_architecture_upgrade.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0004_v6_additions.sql
+
+      - name: Capture first schema
+        run: |
+          pg_dump --schema-only --no-owner --no-privileges "$DATABASE_URL" > /tmp/schema-a.sql
+          psql "$DATABASE_URL" -Atc "select tablename from pg_tables where schemaname='public' order by tablename" > /tmp/tables-a.txt
+          cat /tmp/tables-a.txt
+
+      - name: Create second disposable database
+        run: createdb -h 127.0.0.1 -p 5432 -U emopet_qa emopet_qa_repeat
+
+      - name: Repeat complete apply on second database
+        env:
+          REPEAT_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_repeat
+        run: |
+          psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/baseline-draft/0000_core_baseline.sql
+          psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0001_dataset_registry.sql
+          psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0002_freemium_foundation.sql
+          psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0003_architecture_upgrade.sql
+          psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0004_v6_additions.sql
+          pg_dump --schema-only --no-owner --no-privileges "$REPEAT_DATABASE_URL" > /tmp/schema-b.sql
+          psql "$REPEAT_DATABASE_URL" -Atc "select tablename from pg_tables where schemaname='public' order by tablename" > /tmp/tables-b.txt
+
+      - name: Repeatability — table inventory
+        run: diff -u /tmp/tables-a.txt /tmp/tables-b.txt
+
+      - name: Backend tests
+        run: pnpm --filter @emopet/api test
+
+      - name: Maturity boundary
+        if: always()
+        run: |
+          echo 'This workflow validates only disposable P0 database behavior.'
+          echo 'It does not authorize production migration, deployment, or release.'
