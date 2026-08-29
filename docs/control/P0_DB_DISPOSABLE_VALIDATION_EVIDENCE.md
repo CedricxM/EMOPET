@@ -2,127 +2,137 @@
 
 **Workstream:** P0 database baseline  
 **Branch:** `emopet/p0-db-baseline`  
-**Validated head:** `536f9150b79081cb9e7b02ae75bf5cc73a37b9ae`  
-**GitHub Actions run:** `33275173353`  
-**Run number:** 7  
-**Result:** `SUCCESS`  
-**Environment:** GitHub-hosted Ubuntu runner + disposable PostgreSQL 16 service container
+**Validated candidate head:** `536f9150b79081cb9e7b02ae75bf5cc73a37b9ae`  
+**GitHub Actions run:** `33275173353` / run #7  
+**Candidate result:** `SUCCESS`  
+**Environment:** GitHub-hosted Ubuntu runner + disposable PostgreSQL 16 service container  
+**Authority decision:** `NO_EXISTING_DB_TO_PRESERVE`
 
 ---
 
-## 1. Scope of this evidence
+## 1. Scope
 
-This record documents successful disposable validation of the candidate P0 database bootstrap path currently stored outside the active Drizzle migration directory.
+This record documents successful disposable validation of the candidate compatibility bootstrap path and the subsequent authority decision selecting a fresh-database baseline path.
 
-It does **not** establish that any existing persistent EMOPET database is safe to upgrade, does **not** authorize production migration, and does **not** promote the candidate draft SQL into active migration history.
-
----
-
-## 2. Validated sequence
-
-The successful workflow performed the following sequence on an empty disposable PostgreSQL database:
-
-1. install repository dependencies from the committed pnpm lockfile;
-2. run repository-only migration dependency checks;
-3. apply all SQL files under `backend/db/baseline-draft/` in lexical order;
-4. apply historical migrations `0001` through `0004` in order;
-5. capture table inventory and full schema dump;
-6. create a second empty disposable database;
-7. repeat the entire draft + historical migration sequence;
-8. compare table inventories;
-9. normalize only PostgreSQL `pg_dump` per-session `\\restrict` / `\\unrestrict` guard tokens;
-10. compare the complete normalized schema dumps;
-11. build the complete backend dependency closure;
-12. run backend typecheck;
-13. run backend tests.
-
-All workflow steps completed successfully.
+No persistent, shared or production database was touched.
 
 ---
 
-## 3. Evidence summary
+## 2. Candidate sequence validated in run #7
+
+The workflow:
+
+1. installed repository dependencies from the committed pnpm lockfile;
+2. ran repository-only migration dependency checks;
+3. applied all SQL under `backend/db/baseline-draft/` in lexical order;
+4. applied historical migrations `0001` through `0004`;
+5. captured table inventory and full schema dump;
+6. created a second empty disposable database;
+7. repeated the complete sequence;
+8. compared table inventories;
+9. normalized only PostgreSQL per-dump `\\restrict` / `\\unrestrict` session tokens;
+10. compared complete normalized schema dumps;
+11. built the backend dependency closure;
+12. ran backend typecheck;
+13. ran backend tests.
+
+All steps completed successfully.
+
+---
+
+## 3. Candidate validation gates
 
 ### DB-G1 — Empty database apply
 
-**PASS for the candidate disposable path.**
+`PASS`
 
-The draft prerequisites followed by `0001`–`0004` applied successfully to PostgreSQL 16 with `ON_ERROR_STOP=1`.
+### DB-G2 — Candidate repeatability
 
-### DB-G2 — Current-schema coverage
+`PASS`
 
-**PARTIAL / CONTROLLED.**
+A second independent empty PostgreSQL database produced the same table inventory and normalized complete schema dump.
 
-The static repository test confirms that every current Drizzle `pgTable(...)` table name has a `CREATE TABLE` in the combined draft + historical SQL set and that every `ALTER TABLE` target exists earlier in the ordered sequence.
+### DB-G3 — Backend compatibility
 
-This does not by itself prove that every column/type/constraint exactly matches the current Drizzle declaration. Known historical schema drift remains documented in `backend/db/MIGRATION_BASELINE_RECONCILIATION.md`.
+`PASS` at the validated candidate revision.
 
-### DB-G3 — Migration ledger
+Dependency-closure build, backend typecheck and backend tests completed successfully.
 
-**OPEN.**
+### DB-G4 — Active Drizzle ledger
 
-The active `backend/db/migrations/` directory still lacks a controlled complete Drizzle metadata/journal history for this reconstructed baseline. Candidate SQL remains deliberately outside active migration history.
+`OPEN`
 
-### DB-G4 — Repeatability
-
-**PASS for disposable reconstruction.**
-
-A second empty database produced the same table inventory and the same normalized full `pg_dump --schema-only` output.
-
-The only non-schema difference initially observed was PostgreSQL's random per-dump `\\restrict` / `\\unrestrict` session guard token. Those session-only lines are normalized before comparison; no schema DDL difference remained.
-
-### DB-G5 — Backend compatibility
-
-**PASS at this repository revision.**
-
-The workflow successfully completed:
-
-- backend dependency-closure build;
-- backend typecheck;
-- backend test suite.
-
-### DB-G6 — Existing-database upgrade compatibility
-
-**NOT TESTED / BLOCKED.**
-
-No persistent or production-like database was touched.
-
-### DB-G7 — Recovery / rollback
-
-**OPEN.**
-
-A production-safe recovery/upgrade procedure cannot be finalized until the existing-database authority gate is resolved.
+The compatibility candidate is not automatically the final active Drizzle ledger.
 
 ---
 
-## 4. Important correction discovered during validation
+## 4. Authority gate resolution
 
-An earlier workflow attempt built `@emopet/api` directly and failed because workspace dependency `@emopet/shared` had not yet emitted its `dist` artifacts.
+The project authority selected:
 
-This was a CI orchestration defect, not a PostgreSQL defect.
+`NO_EXISTING_DB_TO_PRESERVE`
 
-The corrected workflow builds the backend dependency closure with:
+This means no existing EMOPET PostgreSQL state must survive the P0 baseline reconciliation.
 
-`pnpm --filter @emopet/api... build`
+The previous upgrade-preservation blocker is therefore closed for this workstream.
 
-The corrected build, typecheck and tests all passed in run 7.
+Decision record:
+
+`docs/control/P0_DB_AUTHORITY_DECISION_NO_EXISTING_DB.md`
+
+This does not authorize a production migration.
 
 ---
 
-## 5. Current maturity state
+## 5. Source/history drift reconciliation after run #7
 
-The successful disposable run supports these statements:
+The database slice then reconciled repository-supported drift before clean baseline generation:
 
-`CANDIDATE FRESH-DB RECONSTRUCTION = DISPOSABLE_QA_PASS`
+- firmware capability columns from historical migration `0004` were added to the current Drizzle `devices` declaration;
+- composite primary keys from historical migration `0003` were represented in current Drizzle source for `dog_sub_baselines`, `routine_stability` and `user_config`;
+- historical morphology compatibility columns used only to replay `0003` were explicitly **not** promoted into the current `breed_sensor_profiles` source model;
+- the ELI `TEXT` identifier versus core UUID relationship remains an open architecture relationship issue and was not silently rewritten.
 
-`REPEATABLE DISPOSABLE SCHEMA = VERIFIED FOR CURRENT CANDIDATE SEQUENCE`
+Record:
 
-`BACKEND BUILD / TYPECHECK / TESTS = PASS ON VALIDATED RUN`
+`docs/control/P0_DB_SCHEMA_DRIFT_RECONCILIATION.md`
 
-It does **not** support these statements:
+---
+
+## 6. Follow-on clean Drizzle baseline QA
+
+An isolated config now generates from current reconciled source schema into:
+
+`backend/db/p0-generated-baseline/`
+
+The extended workflow tests:
+
+1. `drizzle-kit generate` from the current schema;
+2. generated ledger integrity;
+3. `drizzle-kit migrate` against another disposable PostgreSQL database;
+4. table-inventory parity with the already validated compatibility reconstruction;
+5. second-generation stability;
+6. backend dependency-closure build;
+7. backend typecheck;
+8. backend tests.
+
+Generated output remains QA material until the run passes and the exact SQL/metadata are reviewed and intentionally promoted.
+
+---
+
+## 7. Maturity
+
+Supported:
+
+`CANDIDATE FRESH-DB COMPATIBILITY RECONSTRUCTION = DISPOSABLE_QA_PASS`
+
+`CANDIDATE REPEATABILITY = VERIFIED`
+
+`NO_EXISTING_DB_TO_PRESERVE = CONTROLLED DECISION`
+
+Not yet supported:
 
 `ACTIVE DRIZZLE BASELINE = APPROVED`
-
-`EXISTING DATABASE UPGRADE = VERIFIED`
 
 `PRODUCTION DATABASE READY = TRUE`
 
@@ -130,15 +140,4 @@ It does **not** support these statements:
 
 ---
 
-## 6. Remaining authority gate
-
-Before candidate SQL can move into active migration history, establish exactly one of:
-
-- `NO_EXISTING_DB_TO_PRESERVE`; or
-- `EXISTING_DB_MUST_BE_PRESERVED` plus schema-only evidence and an upgrade-safe reconciliation plan.
-
-Until that decision is controlled, PR #3 must remain draft and the candidate SQL must remain outside `backend/db/migrations/`.
-
----
-
-`DISPOSABLE POSTGRESQL VALIDATION PASSED — NO PRODUCTION OR MIGRATION-AUTHORITY PROMOTION APPLIED.`
+`DISPOSABLE POSTGRESQL CANDIDATE VALIDATION PASSED — FRESH-DB PATH SELECTED — NO PRODUCTION PROMOTION APPLIED.`
