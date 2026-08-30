@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, timestamp, real, date, integer, jsonb, text } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, timestamp, real, date, integer, jsonb, text, boolean } from 'drizzle-orm/pg-core';
 import { users } from './users.js';
 import { breedCanonical } from './datasets.js';
 
@@ -23,6 +23,12 @@ export const devices = pgTable('devices', {
   type: varchar('type', { length: 5 }).notNull(), // MAT, TAG
   macAddress: varchar('mac_address', { length: 17 }).notNull().unique(),
   firmwareVersion: varchar('firmware_version', { length: 20 }),
+  // v6 capability fields are part of the historical SQL contract in migration 0004.
+  // They are declared here so runtime Drizzle metadata no longer drifts from that contract.
+  firmwareMajor: integer('firmware_major'),
+  firmwareMinor: integer('firmware_minor'),
+  firmwarePatch: integer('firmware_patch'),
+  supportsV6Features: boolean('supports_v6_features').default(false),
   lastSeenAt: timestamp('last_seen_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });

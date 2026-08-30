@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, date, integer, real, boolean, jsonb, serial, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, date, integer, real, boolean, jsonb, serial, index, primaryKey } from 'drizzle-orm/pg-core';
 
 // ─── Dog Sub-Baselines ────────────────────────────────────────────
 
@@ -25,8 +25,7 @@ export const dogSubBaselines = pgTable('dog_sub_baselines', {
   confidence: real('confidence').default(0),
   lastUpdated: timestamp('last_updated', { withTimezone: true }),
 }, (table) => [
-  // Composite primary key emulated via unique index
-  index('idx_sub_baselines_dog_slot').on(table.dogId, table.slot),
+  primaryKey({ columns: [table.dogId, table.slot] }),
 ]);
 
 // ─── Recovery Events (v6 — migration 0004) ────────────────────────
@@ -111,7 +110,7 @@ export const routineStability = pgTable('routine_stability', {
   rsiTrend: text('rsi_trend'), // stable, declining, improving
   routineBreakDetected: boolean('routine_break_detected').default(false),
 }, (table) => [
-  index('idx_routine_stability_dog_date').on(table.dogId, table.date),
+  primaryKey({ columns: [table.dogId, table.date] }),
 ]);
 
 // ─── User Config ──────────────────────────────────────────────────
@@ -123,4 +122,6 @@ export const userConfig = pgTable('user_config', {
   configValue: jsonb('config_value').notNull(),
   source: text('source'), // system, breed, learned, user
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
-});
+}, (table) => [
+  primaryKey({ columns: [table.userId, table.dogId, table.configKey] }),
+]);
