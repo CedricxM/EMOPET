@@ -1,0 +1,4 @@
+# External research/open-data payloads must not be committed to Git.
+# Keep only small provenance receipts/manifests under data/registry/.
+*
+!.gitignore
