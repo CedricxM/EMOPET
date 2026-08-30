@@ -42,7 +42,7 @@ export default function BreizConversation() {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry?.isIntersecting) {
           conversation.forEach((_, index) => {
             setTimeout(() => {
               setVisibleMessages((prev) => [...prev, index]);

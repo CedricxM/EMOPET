@@ -7,6 +7,9 @@
     "types": [
       "react"
     ],
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
     "paths": {
       "@/*": [
         "./src/*"

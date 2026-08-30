@@ -34,7 +34,7 @@ export default function TimelineScene() {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry?.isIntersecting) {
           entries.forEach((_, index) => {
             setTimeout(() => {
               setVisibleItems((prev) => [...prev, index]);

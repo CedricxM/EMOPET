@@ -18,7 +18,7 @@ export default function EcosystemScene() {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry?.isIntersecting) {
           setTimeout(() => setPhase(1), 200);
           setTimeout(() => setPhase(2), 700);
           setTimeout(() => setPhase(3), 1200);
