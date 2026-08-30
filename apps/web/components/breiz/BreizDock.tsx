@@ -1,22 +1,37 @@
 'use client';
 
 /**
- * BreizDock — accès global à Breiz (Phase 3 : compagnon, pas destination).
+ * BreizDock — accès global à Breiz.
  *
- * Bouton flottant discret (charte emopet) ouvrant un panneau de conversation
- * compact depuis n'importe quelle page applicative (jamais la landing — géré
- * par AppFrame). Réutilise `useBreizChat` → mêmes garde-fous que la page /breiz.
+ * Toutes les surfaces Breiz doivent identifier explicitement l'assistant comme IA
+ * et afficher le niveau d'évidence lorsqu'il est connu. Cette UI ne transforme
+ * jamais un niveau d'évidence en diagnostic.
  */
 
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '../ui';
-import { useBreizChat } from '../../lib/breiz-rag/useBreizChat';
+import { useBreizChat, type BreizEvidenceLevel } from '../../lib/breiz-rag/useBreizChat';
 
 const GREETING = {
   id: 'dock-greeting',
   from: 'bleiz' as const,
   tone: 'calm' as const,
-  text: 'Bonjour — je peux t’aider sur le comportement, les balades, les races ou la lecture de tes indicateurs. Que veux-tu observer ?',
+  text: 'Bonjour — je suis Breiz, l’assistant IA d’EMOPET. Je peux contextualiser des observations et des sources locales, sans formuler de diagnostic vétérinaire. Que veux-tu observer ?',
+  transparency: {
+    aiSystem: true,
+    responseMode: 'retrieval' as const,
+    evidenceLevel: 'external_context' as const,
+    medicalStatus: 'non_diagnostic' as const,
+  },
+};
+
+const EVIDENCE_LABELS: Record<BreizEvidenceLevel, string> = {
+  measured: 'Mesuré',
+  preprocessed: 'Prétraité',
+  inferred: 'Inféré',
+  mixed_or_inferred: 'Mixte / inféré',
+  external_context: 'Contexte externe',
+  unknown: 'Niveau inconnu',
 };
 
 export function BreizDock() {
@@ -39,11 +54,10 @@ export function BreizDock() {
 
   return (
     <>
-      {/* Bouton flottant */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label={open ? 'Fermer Breiz' : 'Ouvrir Breiz'}
+        aria-label={open ? 'Fermer Breiz' : 'Ouvrir Breiz, assistant IA'}
         aria-expanded={open}
         style={{
           position: 'fixed', right: 20, bottom: 20, zIndex: 50,
@@ -59,7 +73,7 @@ export function BreizDock() {
       {open && (
         <div
           role="dialog"
-          aria-label="Breiz"
+          aria-label="Breiz, assistant IA EMOPET"
           style={{
             position: 'fixed', right: 20, bottom: 84, zIndex: 50,
             width: 'min(360px, calc(100vw - 40px))', maxHeight: 'min(540px, calc(100vh - 120px))',
@@ -68,28 +82,43 @@ export function BreizDock() {
             borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', overflow: 'hidden',
           }}
         >
-          {/* En-tête */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderBottom: '1px solid var(--divider)' }}>
             <div style={{ width: 30, height: 30, borderRadius: 'var(--radius-pill)', background: 'var(--accent-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-press)' }}>
               <Icon name="wave" size={16} />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 'var(--weight-semi)', fontSize: 'var(--text-md)', color: 'var(--fg-strong)' }}>Breiz</span>
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 'var(--text-xxs)', color: 'var(--lichen-700)', fontWeight: 'var(--weight-semi)' }}>Observations non-médicales</span>
+              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 'var(--text-xxs)', color: 'var(--lichen-700)', fontWeight: 'var(--weight-semi)' }}>Assistant IA · contexte et observations non médicales</span>
             </div>
           </div>
 
-          {/* Messages */}
           <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
             {messages.map((m) =>
               m.from === 'bleiz' ? (
                 <div key={m.id} style={{ display: 'flex', flexDirection: 'column', gap: 4, maxWidth: '92%' }}>
-                  {m.eli && (
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     <span style={{ alignSelf: 'flex-start', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--fg-muted)', background: 'var(--bg-sunk)', padding: '2px 7px', borderRadius: 'var(--radius-pill)', border: '1px solid var(--border)' }}>
-                      ⊙ donnée ELI · ton verrouillé
+                      IA
                     </span>
-                  )}
+                    {m.transparency?.evidenceLevel && (
+                      <span style={{ alignSelf: 'flex-start', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg-muted)', background: 'var(--bg-sunk)', padding: '2px 7px', borderRadius: 'var(--radius-pill)', border: '1px solid var(--border)' }}>
+                        {EVIDENCE_LABELS[m.transparency.evidenceLevel]}
+                      </span>
+                    )}
+                    {m.eli && (
+                      <span style={{ alignSelf: 'flex-start', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--fg-muted)', background: 'var(--bg-sunk)', padding: '2px 7px', borderRadius: 'var(--radius-pill)', border: '1px solid var(--border)' }}>
+                        donnée ELI · ton verrouillé
+                      </span>
+                    )}
+                  </div>
                   <p style={{ margin: 0, fontFamily: 'var(--font-sans)', fontSize: 'var(--text-sm)', color: 'var(--fg)', lineHeight: 'var(--lh-normal)' }}>{m.text}</p>
+                  {!!m.sources?.length && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {m.sources.map((source) => (
+                        <span key={source} style={{ fontFamily: 'var(--font-sans)', fontSize: 'var(--text-xxs)', color: 'var(--fg-muted)' }}>Source : {source}</span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div key={m.id} style={{ alignSelf: 'flex-end', maxWidth: '85%', padding: '8px 12px', background: 'var(--accent-soft)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--accent-soft-border)' }}>
@@ -98,11 +127,10 @@ export function BreizDock() {
               ),
             )}
             {thinking && (
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 'var(--text-xs)', color: 'var(--fg-muted)', fontStyle: 'italic' }}>Breiz consulte ses fiches…</span>
+              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 'var(--text-xs)', color: 'var(--fg-muted)', fontStyle: 'italic' }}>Breiz consulte ses sources…</span>
             )}
           </div>
 
-          {/* Saisie */}
           <form onSubmit={submit} style={{ display: 'flex', gap: 8, padding: 12, borderTop: '1px solid var(--divider)', background: 'var(--surface-2)' }}>
             <input
               value={draft}
@@ -117,7 +145,7 @@ export function BreizDock() {
           </form>
 
           <p style={{ margin: 0, padding: '8px 14px', fontFamily: 'var(--font-sans)', fontSize: 'var(--text-xxs)', color: 'var(--fg-muted)', textAlign: 'center', borderTop: '1px solid var(--divider)' }}>
-            Breiz ne formule pas d’évaluation vétérinaire.
+            Breiz est une IA. Ses réponses peuvent combiner sources externes et données dérivées ; elles ne remplacent pas un vétérinaire.
           </p>
         </div>
       )}
