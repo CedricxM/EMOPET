@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "emopet-privacy-inventory-v1",
+  "status": "P0_CONTROLLED_DRAFT_NOT_LEGAL_SIGNOFF",
+  "categories": [
+    {
+      "id": "account",
+      "data": ["user_id", "email", "password_hash", "gdpr_consent", "created_at", "updated_at"],
+      "purpose": "account access, authentication and account administration",
+      "legalBasis": "TO_CONFIRM_BEFORE_PRODUCTION",
+      "retention": "TO_CONFIRM_BEFORE_PRODUCTION",
+      "thirdParties": [],
+      "internationalTransfer": "NONE_BY_DEFAULT",
+      "exportable": true,
+      "erasure": "DELETE_OR_ANONYMIZE_SUBJECT_TO_LEGAL_OBLIGATIONS"
+    },
+    {
+      "id": "dog_profile",
+      "data": ["dog_id", "name", "breed", "birth_date", "sex", "weight", "fur_class", "photo_url"],
+      "purpose": "provide the user's dog profile and contextualise EMOPET measurements",
+      "legalBasis": "TO_CONFIRM_BEFORE_PRODUCTION",
+      "retention": "ACCOUNT_OR_DOG_PROFILE_LIFETIME_CANDIDATE_TO_CONFIRM",
+      "thirdParties": [],
+      "internationalTransfer": "NONE_BY_DEFAULT",
+      "exportable": true,
+      "erasure": "DELETE_WITH_DOG_PROFILE_UNLESS_RETENTION_REQUIRED"
+    },
+    {
+      "id": "device_metadata",
+      "data": ["device_id", "dog_id", "device_type", "mac_address", "firmware_version", "last_seen_at"],
+      "purpose": "device binding, support, security, firmware provenance and diagnostics",
+      "legalBasis": "TO_CONFIRM_BEFORE_PRODUCTION",
+      "retention": "DEVICE_BINDING_PLUS_SECURITY_RETENTION_TO_CONFIRM",
+      "thirdParties": [],
+      "internationalTransfer": "NONE_BY_DEFAULT",
+      "exportable": true,
+      "erasure": "UNBIND_AND_DELETE_OR_PSEUDONYMIZE_SECURITY_RECORDS_AS_REQUIRED"
+    },
+    {
+      "id": "sensor_preprocessed",
+      "data": ["MAT/TAG source", "timestamp", "activity", "distance", "mat presence", "respiratory summary", "posture distribution", "temperature", "humidity", "quality/confidence"],
+      "purpose": "provide longitudinal product observations and quality-gated features",
+      "legalBasis": "TO_CONFIRM_BEFORE_PRODUCTION",
+      "retention": "PRODUCT_HISTORY_WINDOW_TO_CONFIRM",
+      "thirdParties": [],
+      "internationalTransfer": "NONE_BY_DEFAULT",
+      "exportable": true,
+      "erasure": "DELETE_WITH_DOG_SUBJECT_TO_BACKUP_DELETION_SCHEDULE"
+    },
+    {
+      "id": "sensor_raw",
+      "data": ["future high-rate MAT/TAG samples if production ingestion is authorised"],
+      "purpose": "engineering/product processing only if a controlled raw-data pipeline is approved",
+      "legalBasis": "NOT_YET_COLLECTED_BY_CURRENT_BACKEND_SCHEMA",
+      "retention": "NO_POLICY_BECAUSE_CURRENT_BACKEND_DOES_NOT_PERSIST_RAW_STREAMS",
+      "thirdParties": [],
+      "internationalTransfer": "NONE_BY_DEFAULT",
+      "exportable": true,
+      "erasure": "DEFINE_BEFORE_COLLECTION"
+    },
+    {
+      "id": "eli_inferred",
+      "data": ["timestamp", "arousal", "valence", "load", "confidence", "gate_status", "sensor_reliability"],
+      "purpose": "non-diagnostic derived product indicators under confidence gates",
+      "legalBasis": "TO_CONFIRM_BEFORE_PRODUCTION",
+      "retention": "PRODUCT_HISTORY_WINDOW_TO_CONFIRM",
+      "thirdParties": [],
+      "internationalTransfer": "NONE_BY_DEFAULT",
+      "exportable": true,
+      "erasure": "DELETE_WITH_DOG_SUBJECT_TO_BACKUP_DELETION_SCHEDULE"
+    },
+    {
+      "id": "health_records",
+      "data": ["dog_id", "entry_type", "date", "title", "details", "value", "next_due_date"],
+      "purpose": "user-managed veterinary/health record keeping",
+      "legalBasis": "TO_CONFIRM_BEFORE_PRODUCTION",
+      "retention": "USER_CONTROLLED_OR_ACCOUNT_LIFETIME_CANDIDATE_TO_CONFIRM",
+      "thirdParties": [],
+      "internationalTransfer": "NONE_BY_DEFAULT",
+      "exportable": true,
+      "erasure": "USER_DELETE_AND_ACCOUNT_ERASURE"
+    },
+    {
+      "id": "location",
+      "data": ["voluntary address/geocoding input", "map coordinates", "future TAG location if approved"],
+      "purpose": "location features, nearby services, maps and territorial context",
+      "legalBasis": "TO_CONFIRM_WITH_EXPLICIT_PRODUCT_FLOW",
+      "retention": "MINIMISE_EXACT_LOCATION_RETENTION_TO_CONFIRM",
+      "thirdParties": ["geocoding/map/weather providers only where necessary and enabled"],
+      "internationalTransfer": "PROVIDER_SPECIFIC_REVIEW_REQUIRED",
+      "exportable": true,
+      "erasure": "DELETE_OR_COARSEN_WHERE_PERSISTED"
+    },
+    {
+      "id": "community",
+      "data": ["posts", "replies", "events", "map spots", "comments", "display names", "moderation state"],
+      "purpose": "Veute/community features and moderation",
+      "legalBasis": "TO_CONFIRM_BEFORE_PRODUCTION",
+      "retention": "COMMUNITY_CONTENT_POLICY_TO_CONFIRM",
+      "thirdParties": [],
+      "internationalTransfer": "NONE_BY_DEFAULT",
+      "exportable": true,
+      "erasure": "DELETE_OR_ANONYMIZE_SUBJECT_TO_MODERATION_LEGAL_NEEDS"
+    },
+    {
+      "id": "support_contact",
+      "data": ["contact/support requests", "request history"],
+      "purpose": "respond to user requests and support",
+      "legalBasis": "TO_CONFIRM_BEFORE_PRODUCTION",
+      "retention": "SUPPORT_RETENTION_TO_CONFIRM",
+      "thirdParties": [],
+      "internationalTransfer": "NONE_BY_DEFAULT",
+      "exportable": true,
+      "erasure": "DELETE_AFTER_RETENTION_WINDOW_OR_ON_VALID_REQUEST"
+    },
+    {
+      "id": "security_logs",
+      "data": ["security events", "authentication failures", "incident evidence", "request metadata after minimisation"],
+      "purpose": "security, abuse prevention, incident response and compliance evidence",
+      "legalBasis": "LEGITIMATE_INTEREST_CANDIDATE_TO_CONFIRM",
+      "retention": "SECURITY_RETENTION_WINDOW_TO_CONFIRM",
+      "thirdParties": ["monitoring/security providers only if approved"],
+      "internationalTransfer": "PROVIDER_SPECIFIC_REVIEW_REQUIRED",
+      "exportable": "CASE_BY_CASE",
+      "erasure": "SUBJECT_TO_SECURITY_AND_LEGAL_RETENTION"
+    }
+  ]
+}
