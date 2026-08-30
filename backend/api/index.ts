@@ -10,6 +10,7 @@ import { community } from './routes/community.js';
 import { featureProgress } from './routes/feature-progress.js';
 import { health } from './routes/health.js';
 import { directory } from './routes/directory.js';
+import { dataExport } from './routes/data-export.js';
 import { authMiddleware } from './middleware/auth.js';
 import { rateLimitMiddleware } from './middleware/rate-limit.js';
 
@@ -51,6 +52,7 @@ app.route('/api/community', community);
 app.route('/api/feature-progress', featureProgress);
 app.route('/api/health', health);
 app.route('/api/directory', directory);
+app.route('/api/data-export', dataExport);
 
 // ── Start Server ────────────────────────────────────────────────
 
