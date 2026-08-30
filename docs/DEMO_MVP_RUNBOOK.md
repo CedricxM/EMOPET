@@ -8,12 +8,13 @@ This runbook is for a controlled software demonstration. It is not a Product V1 
 
 Tell the EMOPET idea as a living world, not as a list of software modules.
 
-The audience should leave with four ideas:
+The audience should leave with five ideas:
 
 1. EMOPET starts from the dog's daily rhythms and context, not from a generic health score.
 2. The affective model is described through a cautious Valence–Arousal space plus uncertainty / capture quality, with abstention when evidence is insufficient.
 3. Breiz explains observations and provenance without turning correlation into diagnosis or unsupported emotional labels.
-4. MAT + TAG are the sensing architecture beneath the experience; the demo does not pretend final hardware, CE, tooling or Product V1 are frozen.
+4. Breiz has a curated language dictionary: richer vocabulary is allowed only when it is more precise, never to manufacture certainty.
+5. MAT + TAG are the sensing architecture beneath the experience; the demo does not pretend final hardware, CE, tooling or Product V1 are frozen.
 
 Primary demo URL: `/demo`.
 
@@ -57,19 +58,27 @@ Allowed language: activation descriptive, valence descriptive, confidence, uncer
 
 Avoid language implying direct emotional mind-reading or diagnosis.
 
-### 5:00–7:00 — Breiz: explain and explore
+### 5:00–7:30 — Breiz: explain, speak precisely, explore
 
 Open **Explorer avec contexte**.
 
-Read the scripted example. Show the provenance chips and the proposed next exploration.
+Read the scripted example and point out words such as **récurrence**, **fenêtre**, **concordance**, **motif** and **piste**. Show the provenance chips and the proposed next exploration.
+
+Then open several entries in the **Dictionnaire vivant**.
 
 Core message:
 
-> Breiz connects observations, guardian-provided context and provenance. It explains what the system can support and makes uncertainty visible.
+> Breiz does not use richer words to sound clever. Each curated term has a definition and a condition of use. The vocabulary can evolve by controlled curation, but it never raises the evidence level.
+
+Important distinction:
+
+- the model path receives this dictionary as a controlled system-prompt layer;
+- the deterministic RAG fallback does not “learn” from conversations;
+- no conversation silently creates a new authoritative term.
 
 If the full `/breiz` conversational surface is not explicitly QA-cleared for the meeting, remain on the self-contained demo scene.
 
-### 7:00–9:00 — Le labo: reveal the sensing layer
+### 7:30–9:00 — Le labo: reveal the sensing layer
 
 Open **Voir l'invisible**.
 
@@ -97,6 +106,7 @@ Design principles:
 - preserve Fraunces for emotional / narrative hierarchy and Source Sans 3 for interface copy;
 - favor large product-story statements, full visual scenes and deliberate whitespace;
 - use the existing isometric living-world language as the navigation metaphor;
+- make the dictionary feel explorable rather than like documentation pasted into the UI;
 - use motion only to communicate life, confidence or system state; respect `prefers-reduced-motion`;
 - avoid nested-card density, generic dashboard composition and decorative gradients with no semantic role;
 - do not use any visual treatment that makes a descriptive state look like a clinical score.
@@ -108,6 +118,7 @@ Design principles:
 - `non-medical canine wellbeing observations`
 - `Valence–Arousal descriptive representation with uncertainty`
 - `confidence / quality gating and abstention logic`
+- `curated Breiz language dictionary`
 - `Breiz non-diagnostic explanation layer`
 - `MAT + TAG target architecture`
 - `owner-scoped backend data export exists in the codebase`
@@ -116,6 +127,7 @@ Design principles:
 ## Claims prohibited in the demo
 
 - a generic `health score` or a numerical score represented as health;
+- claims that Breiz autonomously trains itself on user conversations;
 - live MAT/TAG readings unless a separately validated live integration is actually connected;
 - medical, diagnostic or unsupported emotional-state conclusions;
 - CE conformity;
@@ -139,6 +151,7 @@ Design principles:
 - Open the preview deployment from `demo/mvp-freeze`.
 - Confirm `/demo` loads without authentication.
 - Enter all four world locations.
+- Open every dictionary term shown in the demo and confirm the definition changes correctly.
 - Confirm no visible component says `health score` or implies a clinical score.
 - Confirm the Valence–Arousal state includes a visible uncertainty region.
 - Check desktop viewport and one mobile-sized viewport.
