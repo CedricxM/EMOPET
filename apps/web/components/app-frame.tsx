@@ -9,10 +9,20 @@ import { DemoBanner } from './demo-banner';
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isLanding = pathname === '/';
+  const isDemo = pathname === '/demo' || pathname.startsWith('/demo/');
 
   if (isLanding) {
     return (
       <main style={{ minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+        {children}
+      </main>
+    );
+  }
+
+  if (isDemo) {
+    return (
+      <main style={{ minWidth: 0, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <DemoBanner />
         {children}
       </main>
     );
