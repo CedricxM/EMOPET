@@ -7,12 +7,26 @@ Status: `P0 SOFTWARE CONTROLS IMPLEMENTED / FIRMWARE SIGNING GATED`
 P0 adds:
 
 - Dependabot for npm/pnpm manifests and GitHub Actions;
-- dependency audit in CI;
-- CodeQL JavaScript/TypeScript analysis;
+- dependency audit in CI with the complete JSON report retained as a workflow artifact;
+- Semgrep security SAST as the repository-independent blocking static-analysis gate;
+- CodeQL JavaScript/TypeScript as a best-effort secondary scanner when GitHub Code Security / Advanced Security is available for the private repository;
 - CycloneDX and SPDX SBOM generation as build artifacts;
-- an informational secret scan until a repository-level required scanner is validated.
+- Gitleaks secret scanning with pull-request read permission and full-history checkout.
 
-A green workflow is evidence for that commit only; it is not a general production-security claim.
+A green workflow is evidence for that commit only; it is not a general production-security claim. A best-effort CodeQL result must never be represented as passing if GitHub refuses analysis/upload because the private repository does not have the required Code Security entitlement enabled; Semgrep remains the blocking SAST control in that case.
+
+## Dependency vulnerability gate
+
+The CI gate fails on high or critical advisories reported by `pnpm audit`. The machine-readable `pnpm-audit.json` artifact is retained even when the gate fails so remediation can be tied to exact package, advisory, dependency path and commit SHA instead of relying on screenshots or console summaries.
+
+Dependency overrides are permitted only when all of the following are true:
+
+1. the patched version is compatible with every affected dependency range or has been explicitly compatibility-tested;
+2. the lockfile is regenerated reproducibly rather than hand-edited;
+3. application build/typecheck/tests remain green;
+4. the audit report for the exact candidate commit is green, or any remaining advisory has a documented risk disposition.
+
+Do not silence a production-relevant advisory by changing the audit command to omit the affected dependency class.
 
 ## Release signing
 
