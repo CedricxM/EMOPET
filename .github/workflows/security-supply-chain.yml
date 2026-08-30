@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
   security-events: write
 
 jobs:
@@ -23,12 +24,45 @@ jobs:
           node-version: '20'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Audit dependencies
-        run: pnpm audit --audit-level=high
+      - name: Audit dependencies and preserve machine-readable evidence
+        id: audit
+        shell: bash
+        run: |
+          set +e
+          pnpm audit --audit-level=high --json > pnpm-audit.json
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          set -e
+          node -e "const fs=require('fs'); const p='pnpm-audit.json'; const r=JSON.parse(fs.readFileSync(p,'utf8')); console.log(JSON.stringify(r.metadata ?? {}, null, 2));"
+      - name: Upload dependency audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pnpm-audit-report
+          path: pnpm-audit.json
+          if-no-files-found: error
+      - name: Enforce high/critical dependency gate
+        if: always()
+        run: test "${{ steps.audit.outputs.exit_code }}" -eq 0
+
+  semgrep-sast:
+    name: Semgrep SAST
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install pinned Semgrep
+        run: python -m pip install --disable-pip-version-check 'semgrep==1.175.0'
+      - name: Run security static analysis
+        run: semgrep scan --config p/ci --error --metrics=off .
 
   codeql:
-    name: CodeQL JavaScript/TypeScript
+    name: CodeQL JavaScript/TypeScript (best effort)
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: github/codeql-action/init@v3
@@ -41,13 +75,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Generate SBOMs with Syft
+      - name: Generate CycloneDX SBOM with Syft
         uses: anchore/sbom-action@v0
         with:
           path: .
           format: cyclonedx-json
           output-file: sbom.cdx.json
-      - name: Generate SPDX SBOM
+      - name: Generate SPDX SBOM with Syft
         uses: anchore/sbom-action@v0
         with:
           path: .
@@ -64,12 +98,11 @@ jobs:
   secret-scan:
     name: Secret scan
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Gitleaks (informational until repository policy enables a required scanner)
+      - name: Gitleaks
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
