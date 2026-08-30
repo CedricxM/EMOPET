@@ -1,294 +1,359 @@
 'use client';
 
 import { useState } from 'react';
-import { ContentShell } from '../../components/content-shell';
-import {
-  Button,
-  Card,
-  DataXL,
-  Eyebrow,
-  H1,
-  H2,
-  Icon,
-  Lead,
-  Meter,
-  P,
-  P2,
-  Pill,
-} from '../../components/ui';
-import { MOCK_DOG, MOCK_ELI, MOCK_REPOS, MOCK_SENSORS, MOCK_TREND_14D } from '../../lib/mock-data';
+import { BrandLogo, WavePattern } from '../../components/brand';
+import { Icon, Pill } from '../../components/ui';
+import { WorldScene } from '../../components/world/WorldScene';
+import { MOCK_REPOS, MOCK_SENSORS } from '../../lib/mock-data';
+import styles from './demo.module.css';
 
-type DemoStep = 'overview' | 'eli' | 'breiz' | 'hardware';
+type PlaceId = 'home' | 'observatory' | 'breiz' | 'lab';
 
-const STEPS: { id: DemoStep; label: string; icon: 'signal' | 'info' | 'wave' | 'compass' }[] = [
-  { id: 'overview', label: '1 · Observatoire', icon: 'signal' },
-  { id: 'eli', label: '2 · ELI & confiance', icon: 'info' },
-  { id: 'breiz', label: '3 · Breiz', icon: 'wave' },
-  { id: 'hardware', label: '4 · MAT + TAG', icon: 'compass' },
+const PLACES: Array<{
+  id: PlaceId;
+  kicker: string;
+  title: string;
+  detail: string;
+  icon: 'home' | 'signal' | 'compass' | 'mat';
+}> = [
+  {
+    id: 'home',
+    kicker: '01 · La maison',
+    title: 'Comprendre le rythme',
+    detail: 'Le quotidien devient une histoire lisible, sans transformer une observation en diagnostic.',
+    icon: 'home',
+  },
+  {
+    id: 'observatory',
+    kicker: '02 · L’observatoire',
+    title: 'Voir la dynamique',
+    detail: 'Activation, valence descriptive et incertitude remplacent le faux “score de santé”.',
+    icon: 'signal',
+  },
+  {
+    id: 'breiz',
+    kicker: '03 · Breiz',
+    title: 'Explorer avec contexte',
+    detail: 'Le compagnon explique ce qui est observé, cite la provenance et propose une prochaine exploration.',
+    icon: 'compass',
+  },
+  {
+    id: 'lab',
+    kicker: '04 · Le labo',
+    title: 'Voir l’invisible',
+    detail: 'MAT + TAG alimentent une chaîne de signaux prudente, sans prétendre que le hardware final est gelé.',
+    icon: 'mat',
+  },
 ];
 
 export default function DemoPage() {
-  const [step, setStep] = useState<DemoStep>('overview');
+  const [place, setPlace] = useState<PlaceId>('home');
+  const current = PLACES.find((item) => item.id === place) ?? PLACES[0];
 
   return (
-    <ContentShell>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 48 }}>
-        <header style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 900 }}>
-          <Eyebrow>Démonstration MVP · jeu de données contrôlé</Eyebrow>
-          <H1>EMOPET — observer sans surinterpréter</H1>
-          <Lead>
-            Cette surface de démonstration raconte le cœur du produit avec des données simulées et clairement identifiées.
-            Elle ne prétend ni à une mesure clinique, ni à une connexion hardware live, ni à une release Product V1.
-          </Lead>
-        </header>
-
-        <nav
-          aria-label="Parcours de démonstration"
-          style={{ display: 'flex', flexWrap: 'wrap', gap: 8, paddingBottom: 4 }}
-        >
-          {STEPS.map((item) => (
-            <Button
-              key={item.id}
-              kind={step === item.id ? 'primary' : 'secondary'}
-              size="sm"
-              leading={<Icon name={item.icon} size={14} />}
-              onClick={() => setStep(item.id)}
-            >
-              {item.label}
-            </Button>
-          ))}
-        </nav>
-
-        {step === 'overview' && <OverviewStep />}
-        {step === 'eli' && <EliStep />}
-        {step === 'breiz' && <BreizStep />}
-        {step === 'hardware' && <HardwareStep />}
-
-        <Card>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-            <Icon name="info" size={18} color="var(--emopet-teal)" />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <Eyebrow>Cadre de démonstration</Eyebrow>
-              <P2>
-                Les chiffres affichés sur cette page sont des fixtures de démonstration. Les garde-fous, les états de confiance,
-                la logique non diagnostique et les frontières MAT/TAG illustrent le comportement attendu du MVP logiciel.
-              </P2>
-            </div>
-          </div>
-        </Card>
-      </div>
-    </ContentShell>
-  );
-}
-
-function OverviewStep() {
-  const recent = MOCK_TREND_14D.slice(-7);
-  return (
-    <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
-        <Card>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-              <div>
-                <Eyebrow>Profil observé</Eyebrow>
-                <H2>{MOCK_DOG.name} · {MOCK_DOG.breed}</H2>
-              </div>
-              <Pill state="valid" label="Démo contrôlée" showDot />
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16 }}>
-              <Metric label="ELI" value={String(MOCK_ELI.value)} detail="indice de démonstration" />
-              <Metric label="Capture" value={`${MOCK_ELI.captureMinutes} min`} detail="fenêtre exploitable" />
-              <Metric label="Repos" value={`${MOCK_REPOS.durationMinutes} min`} detail={`${MOCK_REPOS.confidence}% de confiance`} />
-            </div>
-            <P>
-              EMOPET ne montre pas seulement une valeur : il montre aussi si la donnée est suffisamment fiable pour être interprétée.
-            </P>
-          </div>
-        </Card>
-
-        <Card>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <Eyebrow>État actuel</Eyebrow>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
-              <DataXL>{MOCK_ELI.value}</DataXL>
-              <span style={{ color: 'var(--lichen-700)', fontWeight: 'var(--weight-semi)', fontFamily: 'var(--font-sans)' }}>
-                +{MOCK_ELI.delta} / semaine
-              </span>
-            </div>
-            <Meter value={MOCK_ELI.value} />
-            <P2>Indicateur de démonstration, non médical et conditionné par la qualité de capture.</P2>
-          </div>
-        </Card>
-      </div>
-
-      <Card>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div>
-            <Eyebrow>Tendance 7 jours</Eyebrow>
-            <H2 style={{ fontSize: 'var(--text-xl)' }}>Variation de l’ELI de démonstration</H2>
-          </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: 150, overflowX: 'auto', paddingBottom: 4 }}>
-            {recent.map((point) => {
-              const height = 42 + Math.max(0, Math.min(90, point.eli));
-              return (
-                <div key={point.day} style={{ flex: '1 0 46px', display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
-                  <div
-                    title={`Jour ${point.day} · ELI ${point.eli}`}
-                    style={{
-                      width: '100%',
-                      maxWidth: 54,
-                      height,
-                      borderRadius: 'var(--radius-sm)',
-                      background: point.state === 'valid' ? 'var(--accent-2)' : 'var(--eli-degraded)',
-                    }}
-                  />
-                  <P2>J{point.day}</P2>
-                </div>
-              );
-            })}
+    <div className={styles.page}>
+      <section className={styles.hero}>
+        <WavePattern tone="dark" opacity={0.5} className={styles.heroPattern} />
+        <div className={styles.topbar}>
+          <BrandLogo variant="white" mode="lockup" width={154} priority />
+          <div className={styles.modeBadge}>
+            <span className={styles.modeDot} />
+            Démonstration contrôlée
           </div>
         </div>
-      </Card>
-    </section>
-  );
-}
 
-function EliStep() {
-  return (
-    <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
-      <Card>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <Eyebrow>Ce que l’ELI sait dire</Eyebrow>
-          <H2>Une observation + son niveau de confiance</H2>
-          <P>
-            Sur la fixture actuelle, le rythme observé est stable et la capture est suffisamment longue pour afficher un indicateur.
-          </P>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <Evidence label="Capture exploitable" value={`${MOCK_ELI.captureMinutes} min`} state="valid" />
-            <Evidence label="Repos" value={`${MOCK_REPOS.confidence}% de confiance`} state="degraded" />
-            <Evidence label="Conclusion émotionnelle" value="Non autorisée" state="degraded" />
-          </div>
+        <div className={styles.heroCopy}>
+          <p className={styles.eyebrow}>EMOPET · living companion system</p>
+          <h1>Un monde vivant autour de votre chien.</h1>
+          <p className={styles.heroLead}>
+            EMOPET ne résume pas un compagnon à une note. Il relie ses rythmes, son environnement et les signaux disponibles
+            dans un univers que l’on explore — avec de la nuance, de l’incertitude et des frontières claires.
+          </p>
         </div>
-      </Card>
 
-      <Card>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <Eyebrow>Frontière produit</Eyebrow>
-          <H2>Pas de diagnostic déguisé</H2>
-          <P>
-            Le MVP est conçu pour distinguer ce qui est observé, ce qui est déclaré par le gardien et ce qui serait une interprétation.
-          </P>
-          <P2>
-            Exemple : « une phase d’éveil se répète avant le départ » est une observation. « Gus est anxieux » serait une conclusion
-            émotionnelle non justifiée et ne doit pas être produite automatiquement.
-          </P2>
-          <Pill state="valid" label="Garde-fou actif" showDot />
+        <div className={styles.heroStatement}>
+          <span>Observer.</span>
+          <span>Contextualiser.</span>
+          <span>Explorer.</span>
         </div>
-      </Card>
-    </section>
-  );
-}
+      </section>
 
-function BreizStep() {
-  return (
-    <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
-      <Card>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <Eyebrow>Breiz</Eyebrow>
-          <H2>Assistant d’observation</H2>
-          <P>
-            Breiz reformule les données disponibles, cite leur provenance et refuse de transformer une corrélation en diagnostic.
-          </P>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <Evidence label="Mode" value="Observation" state="valid" />
-            <Evidence label="ELI" value="Valide sur la fixture" state="valid" />
-            <Evidence label="Diagnostic" value="Interdit" state="degraded" />
-          </div>
-        </div>
-      </Card>
-
-      <Card>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ alignSelf: 'flex-end', maxWidth: '78%', padding: '12px 16px', background: 'var(--accent-soft)', borderRadius: 'var(--radius-lg)' }}>
-            <P>Pourquoi Gus se réveille-t-il avant que je parte ?</P>
-          </div>
-          <div style={{ display: 'flex', gap: 10, maxWidth: '88%' }}>
-            <div style={{ width: 30, height: 30, borderRadius: 999, background: 'var(--accent-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Icon name="wave" size={14} />
+      <main className={styles.experience}>
+        <section className={styles.worldSection} aria-labelledby="world-title">
+          <div className={styles.worldIntro}>
+            <div>
+              <p className={styles.eyebrowDark}>La démo commence ici</p>
+              <h2 id="world-title">Explore le monde de Gus</h2>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <P>
-                Sur les six derniers matins de la fixture, une courte phase d’éveil apparaît juste avant l’horaire habituel de départ.
-                C’est une répétition de rythme observée, pas une évaluation vétérinaire ni une attribution émotionnelle.
-              </P>
-              <P2>Sources · MAT, fenêtre matinale · ELI valide · données de démonstration</P2>
+            <p>
+              Chaque lieu raconte une partie de l’idée. Pas de menu de fonctionnalités à réciter : on entre dans son quotidien,
+              puis on découvre progressivement ce qu’EMOPET sait observer — et ce qu’il refuse d’inventer.
+            </p>
+          </div>
+
+          <div className={styles.worldFrame}>
+            <WorldScene
+              builtItems={[]}
+              placingCell={null}
+              selectedItem={null}
+              hoveredCell={null}
+              onTileHover={() => undefined}
+              onTileLeave={() => undefined}
+              onTileBuild={() => undefined}
+            />
+
+            <div className={styles.worldHud} aria-label="Lieux à explorer">
+              {PLACES.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`${styles.placeButton} ${place === item.id ? styles.placeButtonActive : ''}`}
+                  onClick={() => setPlace(item.id)}
+                  aria-pressed={place === item.id}
+                >
+                  <Icon name={item.icon} size={16} />
+                  <span>{item.title}</span>
+                </button>
+              ))}
             </div>
           </div>
+        </section>
+
+        <section className={styles.storySection} aria-live="polite">
+          <div className={styles.storyHeader}>
+            <p className={styles.eyebrowDark}>{current.kicker}</p>
+            <h2>{current.title}</h2>
+            <p>{current.detail}</p>
+          </div>
+
+          {place === 'home' && <HomeStory onNext={() => setPlace('observatory')} />}
+          {place === 'observatory' && <ObservatoryStory onNext={() => setPlace('breiz')} />}
+          {place === 'breiz' && <BreizStory onNext={() => setPlace('lab')} />}
+          {place === 'lab' && <LabStory onRestart={() => setPlace('home')} />}
+        </section>
+      </main>
+
+      <section className={styles.manifesto}>
+        <div>
+          <p className={styles.eyebrow}>Ce que la démo affirme</p>
+          <h2>Une interface peut être émotionnelle sans prétendre lire les émotions.</h2>
         </div>
-      </Card>
-    </section>
-  );
-}
-
-function HardwareStep() {
-  return (
-    <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Card>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <Eyebrow>Architecture de démonstration</Eyebrow>
-          <H2>MAT + TAG → signaux → ELI → Breiz</H2>
-          <P>
-            La démo logicielle illustre cette chaîne sans prétendre que le hardware final, son tooling ou son Product V1 sont gelés.
-          </P>
+        <div className={styles.manifestoRules}>
+          <span>Pas de “health score”.</span>
+          <span>Pas de diagnostic déguisé.</span>
+          <span>Pas de certitude sans qualité de capture.</span>
+          <span>Pas de hardware final prétendument validé.</span>
         </div>
-      </Card>
+      </section>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
-        {MOCK_SENSORS.map((sensor) => (
-          <Card key={sensor.id}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                <div>
-                  <Eyebrow>{sensor.id.toUpperCase()}</Eyebrow>
-                  <H2 style={{ fontSize: 'var(--text-xl)' }}>{sensor.label}</H2>
-                </div>
-                <Pill state={sensor.state} showDot />
-              </div>
-              <Meter value={sensor.coverage} />
-              <P2>Couverture simulée : {sensor.coverage}% · firmware de fixture {sensor.firmware}</P2>
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      <Card>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-          <Icon name="info" size={18} color="var(--emopet-teal)" />
-          <P2>
-            Pour une présentation fournisseur, cette étape sert à expliquer l’architecture et les états de maturité. Elle ne doit pas être
-            présentée comme une preuve de validation mécanique, électronique, CE ou industrielle.
-          </P2>
-        </div>
-      </Card>
-    </section>
-  );
-}
-
-function Metric({ label, value, detail }: { label: string; value: string; detail: string }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <Eyebrow>{label}</Eyebrow>
-      <span style={{ fontFamily: 'var(--font-serif)', fontSize: 'var(--text-2xl)', color: 'var(--fg-strong)' }}>{value}</span>
-      <P2>{detail}</P2>
+      <footer className={styles.footer}>
+        <BrandLogo variant="navy" mode="mark" width={38} />
+        <p>Données de démonstration simulées · non clinique · non Product V1 · hardware live non revendiqué.</p>
+      </footer>
     </div>
   );
 }
 
-function Evidence({ label, value, state }: { label: string; value: string; state: 'valid' | 'degraded' }) {
+function HomeStory({ onNext }: { onNext: () => void }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--divider)', flexWrap: 'wrap' }}>
-      <P2>{label}</P2>
-      <Pill state={state} label={value} showDot />
+    <div className={styles.sceneGrid}>
+      <div className={styles.timelinePanel}>
+        <div className={styles.timelineTop}>
+          <span className={styles.time}>07:42</span>
+          <Pill state="valid" label="Capture exploitable" showDot />
+        </div>
+        <h3>Le matin commence avant le départ.</h3>
+        <p>
+          Sur la fixture, Gus passe du repos à une phase d’éveil courte puis revient vers un niveau d’activation plus bas.
+          EMOPET conserve la séquence. Il ne conclut pas automatiquement “anxiété”, “joie” ou “stress”.
+        </p>
+        <div className={styles.rhythmLine} aria-label="Séquence simulée de repos et activation">
+          <span className={styles.rhythmRest} />
+          <span className={styles.rhythmWake} />
+          <span className={styles.rhythmRestShort} />
+          <span className={styles.rhythmWakeSoft} />
+        </div>
+        <div className={styles.microMeta}>
+          <span>Repos simulé · {MOCK_REPOS.durationMinutes} min</span>
+          <span>Confiance fixture · {MOCK_REPOS.confidence}%</span>
+        </div>
+      </div>
+
+      <aside className={styles.narrativeAside}>
+        <p className={styles.eyebrowDark}>Le principe</p>
+        <blockquote>“Une répétition de rythme observée n’est pas encore une émotion nommée.”</blockquote>
+        <button className={styles.nextButton} type="button" onClick={onNext}>
+          Ouvrir l’observatoire <span aria-hidden>→</span>
+        </button>
+      </aside>
+    </div>
+  );
+}
+
+function ObservatoryStory({ onNext }: { onNext: () => void }) {
+  return (
+    <div className={styles.sceneGridObservatory}>
+      <div className={styles.vaPanel}>
+        <div className={styles.vaHeader}>
+          <div>
+            <p className={styles.eyebrowDark}>Espace Valence–Arousal</p>
+            <h3>Une position, pas une note.</h3>
+          </div>
+          <Pill state="valid" label="Fixture · confiance élevée" showDot />
+        </div>
+
+        <div className={styles.vaMap} role="img" aria-label="Carte Valence–Arousal de démonstration avec zone d’incertitude">
+          <span className={styles.axisVertical} />
+          <span className={styles.axisHorizontal} />
+          <span className={`${styles.axisLabel} ${styles.axisTop}`}>Activation élevée</span>
+          <span className={`${styles.axisLabel} ${styles.axisBottom}`}>Activation faible</span>
+          <span className={`${styles.axisLabel} ${styles.axisLeft}`}>Valence −</span>
+          <span className={`${styles.axisLabel} ${styles.axisRight}`}>Valence +</span>
+          <span className={styles.vaHalo} />
+          <span className={styles.vaPoint} />
+          <span className={styles.vaPointLabel}>état observé · fixture</span>
+        </div>
+
+        <div className={styles.vaReadout}>
+          <div>
+            <span>Activation descriptive</span>
+            <strong>modérée</strong>
+          </div>
+          <div>
+            <span>Valence descriptive</span>
+            <strong>légèrement positive</strong>
+          </div>
+          <div>
+            <span>Incertitude</span>
+            <strong>visible autour du point</strong>
+          </div>
+        </div>
+      </div>
+
+      <aside className={styles.narrativeAsideDark}>
+        <p className={styles.eyebrowLight}>Pourquoi c’est important</p>
+        <h3>Le système peut aussi s’abstenir.</h3>
+        <p>
+          Si la qualité de capture est insuffisante, la bonne sortie n’est pas un chiffre “quand même”. C’est : donnée insuffisante,
+          contexte manquant ou observation non autorisée.
+        </p>
+        <button className={styles.nextButtonLight} type="button" onClick={onNext}>
+          Demander à Breiz <span aria-hidden>→</span>
+        </button>
+      </aside>
+    </div>
+  );
+}
+
+function BreizStory({ onNext }: { onNext: () => void }) {
+  return (
+    <div className={styles.breizScene}>
+      <div className={styles.breizIdentity}>
+        <div className={styles.breizOrb} aria-hidden>
+          <span />
+          <span />
+          <span />
+        </div>
+        <div>
+          <p className={styles.eyebrowDark}>Breiz · compagnon d’observation</p>
+          <h3>Il relie les indices. Il ne fabrique pas une certitude.</h3>
+        </div>
+      </div>
+
+      <div className={styles.chatStage}>
+        <div className={styles.userBubble}>Pourquoi Gus se réveille-t-il avant que je parte ?</div>
+        <div className={styles.breizBubble}>
+          <div className={styles.breizMiniMark}>B</div>
+          <div>
+            <p>
+              Sur six matinées de la fixture, une courte phase d’éveil apparaît près de l’horaire habituel de départ. La répétition est
+              observable. Je n’ai pas assez d’éléments pour lui attribuer une émotion précise.
+            </p>
+            <div className={styles.sourceStrip}>
+              <span>MAT · fenêtre matinale</span>
+              <span>capture exploitable</span>
+              <span>contexte déclaré : départ</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.discoveryRail}>
+        <div>
+          <span className={styles.discoveryIcon}><Icon name="compass" size={18} /></span>
+          <div>
+            <strong>Prochaine exploration</strong>
+            <span>Comparer le rythme après une promenade calme.</span>
+          </div>
+        </div>
+        <button className={styles.nextButton} type="button" onClick={onNext}>
+          Voir la couche technique <span aria-hidden>→</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function LabStory({ onRestart }: { onRestart: () => void }) {
+  return (
+    <div className={styles.labScene}>
+      <div className={styles.signalFlow} aria-label="Chaîne de signal de démonstration MAT TAG vers observations">
+        <SignalNode label="MAT" detail="micro-mouvements · présence" tone="teal" />
+        <SignalLink label="signaux" />
+        <SignalNode label="TAG" detail="mouvement · température locale" tone="orange" />
+        <SignalLink label="qualité" />
+        <SignalNode label="ELI" detail="fusion prudente · abstention" tone="navy" />
+        <SignalLink label="contexte" />
+        <SignalNode label="Breiz" detail="explication · provenance" tone="cream" />
+      </div>
+
+      <div className={styles.sensorGrid}>
+        {MOCK_SENSORS.map((sensor) => (
+          <article key={sensor.id} className={styles.sensorItem}>
+            <div>
+              <span className={styles.sensorId}>{sensor.id.toUpperCase()}</span>
+              <strong>{sensor.label}</strong>
+            </div>
+            <Pill state={sensor.state} showDot />
+            <p>Couverture simulée : {sensor.coverage}% · fixture firmware {sensor.firmware}</p>
+          </article>
+        ))}
+      </div>
+
+      <div className={styles.labBoundary}>
+        <div>
+          <p className={styles.eyebrowDark}>Frontière de la démo</p>
+          <h3>L’architecture est racontée. La validation industrielle n’est pas simulée.</h3>
+        </div>
+        <button className={styles.nextButton} type="button" onClick={onRestart}>
+          Revenir au monde <span aria-hidden>↺</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SignalNode({ label, detail, tone }: { label: string; detail: string; tone: 'teal' | 'orange' | 'navy' | 'cream' }) {
+  const toneClass = {
+    teal: styles.signalTeal,
+    orange: styles.signalOrange,
+    navy: styles.signalNavy,
+    cream: styles.signalCream,
+  }[tone];
+
+  return (
+    <div className={`${styles.signalNode} ${toneClass}`}>
+      <span>{label}</span>
+      <small>{detail}</small>
+    </div>
+  );
+}
+
+function SignalLink({ label }: { label: string }) {
+  return (
+    <div className={styles.signalLink} aria-hidden>
+      <span>{label}</span>
+      <i />
     </div>
   );
 }
