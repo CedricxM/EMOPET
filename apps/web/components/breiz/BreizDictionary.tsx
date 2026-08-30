@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import { BREIZ_DEMO_LEXICON } from '../../lib/breiz-language/lexicon';
 import styles from './breiz-dictionary.module.css';
 
@@ -9,31 +12,59 @@ const DOMAIN_LABELS = {
 } as const;
 
 export function BreizDictionary() {
+  const [activeTerm, setActiveTerm] = useState(BREIZ_DEMO_LEXICON[0]?.term ?? 'cadence');
+  const active = BREIZ_DEMO_LEXICON.find((entry) => entry.term === activeTerm) ?? BREIZ_DEMO_LEXICON[0];
+
+  if (!active) return null;
+
   return (
     <section className={styles.shell} aria-labelledby="breiz-dictionary-title">
       <div className={styles.intro}>
         <div>
           <p className={styles.eyebrow}>Dictionnaire vivant · contrôlé</p>
-          <h4 id="breiz-dictionary-title">Les mots de Breiz ont une fonction.</h4>
+          <h4 id="breiz-dictionary-title">Breiz choisit ses mots comme il choisit ses conclusions.</h4>
         </div>
         <p>
-          Breiz ne pioche pas dans un thésaurus pour paraître intelligent. Ce lexique lui donne une langue plus précise et plus riche,
-          avec une condition d’emploi pour chaque mot. Le vocabulaire peut évoluer par curation ; il n’augmente jamais la certitude des données.
+          Pas pour faire savant. Pour être plus exact. Chaque terme possède une définition et une condition d’emploi ; le lexique enrichit
+          la voix de Breiz sans jamais augmenter la certitude des données.
         </p>
       </div>
 
-      <div className={styles.words}>
-        {BREIZ_DEMO_LEXICON.map((entry) => (
-          <article key={entry.term} className={styles.word}>
-            <span className={styles.domain}>{DOMAIN_LABELS[entry.domain]}</span>
-            <strong>{entry.term}</strong>
-            <p>{entry.meaning}</p>
-          </article>
-        ))}
+      <div className={styles.lexiconStage}>
+        <nav className={styles.wordRail} aria-label="Mots du dictionnaire de Breiz">
+          {BREIZ_DEMO_LEXICON.map((entry) => (
+            <button
+              key={entry.term}
+              type="button"
+              className={`${styles.wordButton} ${active.term === entry.term ? styles.wordButtonActive : ''}`}
+              onClick={() => setActiveTerm(entry.term)}
+              aria-pressed={active.term === entry.term}
+            >
+              <span>{DOMAIN_LABELS[entry.domain]}</span>
+              <strong>{entry.term}</strong>
+            </button>
+          ))}
+        </nav>
+
+        <article className={styles.definition} aria-live="polite">
+          <span className={styles.domain}>{DOMAIN_LABELS[active.domain]}</span>
+          <h5>{active.term}</h5>
+          <p className={styles.meaning}>{active.meaning}</p>
+          <div className={styles.usage}>
+            <span>Breiz l’emploie quand</span>
+            <p>{active.useWhen}</p>
+          </div>
+          {active.avoidWhen ? (
+            <div className={styles.avoid}>
+              <span>Pas quand</span>
+              <p>{active.avoidWhen}</p>
+            </div>
+          ) : null}
+        </article>
       </div>
 
       <p className={styles.rule}>
-        Règle de voix : un ou deux termes distinctifs bien choisis valent mieux qu’une réponse saturée de jargon.
+        Curation, pas auto-apprentissage silencieux : les conversations ne créent pas toutes seules de nouveaux mots d’autorité.
       </p>
     </section>
   );
