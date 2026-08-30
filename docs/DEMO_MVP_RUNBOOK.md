@@ -6,13 +6,14 @@ This runbook is for a controlled software demonstration. It is not a Product V1 
 
 ## Demo objective
 
-Show the core EMOPET product story in 8–10 minutes:
+Tell the EMOPET idea as a living world, not as a list of software modules.
 
-1. MAT/TAG provide observable signals.
-2. ELI exposes an index together with data quality / confidence state.
-3. EMOPET distinguishes observation from interpretation.
-4. Breiz explains evidence without turning it into a diagnosis or emotional label.
-5. The software architecture is ready to be connected progressively to validated hardware and authenticated user flows.
+The audience should leave with four ideas:
+
+1. EMOPET starts from the dog's daily rhythms and context, not from a generic health score.
+2. The affective model is described through a cautious Valence–Arousal space plus uncertainty / capture quality, with abstention when evidence is insufficient.
+3. Breiz explains observations and provenance without turning correlation into diagnosis or unsupported emotional labels.
+4. MAT + TAG are the sensing architecture beneath the experience; the demo does not pretend final hardware, CE, tooling or Product V1 are frozen.
 
 Primary demo URL: `/demo`.
 
@@ -20,59 +21,61 @@ The `/demo` surface uses explicit controlled fixtures. Do not describe its value
 
 ## Presenter script
 
-### 0:00–1:00 — Positioning
+### 0:00–1:30 — Enter the world
 
-Open `/demo` on **1 · Observatoire**.
+Open `/demo` at the hero and scroll to **Explore le monde de Gus**.
 
 Say:
 
-> EMOPET is a canine-wellbeing observation system. The demo uses controlled data so we can show the product logic without pretending the hardware or Product V1 is frozen.
+> EMOPET is designed as a living companion system. Instead of opening a dashboard full of scores, you enter the dog's world and explore what the system has actually observed.
 
-Point out the persistent demo banner.
+Point out the persistent demo banner and the four places in the world: **La maison**, **L'observatoire**, **Breiz**, **Le labo**.
 
-### 1:00–3:00 — Observatoire
+### 1:30–3:00 — La maison: understand the rhythm
 
-Show Gus, the ELI value, capture duration, rest confidence and the 7-day trend.
+Open **Comprendre le rythme**.
 
-Core message:
-
-> The number alone is not the product. EMOPET also carries the confidence and capture state needed to decide whether the number should be shown at all.
-
-Do not claim that the values are medically meaningful or live.
-
-### 3:00–5:00 — ELI & confidence
-
-Open **2 · ELI & confiance**.
-
-Explain the distinction:
-
-- observation: a repeated phase of wakefulness before a routine event;
-- user declaration: context supplied by the guardian;
-- prohibited automatic conclusion: an unsupported emotional or veterinary diagnosis.
+Show the simulated morning sequence: rest → short wake phase → lower activation.
 
 Core message:
 
-> EMOPET is designed to fail closed when the evidence is not strong enough.
+> A repeated rhythm is an observation. It is not automatically “anxiety”, “joy” or “stress”. EMOPET preserves the sequence and its confidence before interpretation.
 
-### 5:00–7:00 — Breiz
+Do not call the fixture a medical measurement.
 
-Open **3 · Breiz**.
+### 3:00–5:00 — L'observatoire: Valence–Arousal, not a health score
 
-Read the scripted example. Emphasize that Breiz cites the evidence boundary and refuses to translate correlation into diagnosis.
+Open **Voir la dynamique**.
+
+Show the Valence–Arousal map, the uncertainty halo and the descriptive readout.
 
 Core message:
 
-> Breiz explains what EMOPET observed and what it cannot justify.
+> We deliberately do not display a health score. The demo shows a descriptive position in a Valence–Arousal space, together with uncertainty. If capture quality is insufficient, the system can abstain rather than manufacture a number.
+
+Allowed language: activation descriptive, valence descriptive, confidence, uncertainty, observation.
+
+Avoid language implying direct emotional mind-reading or diagnosis.
+
+### 5:00–7:00 — Breiz: explain and explore
+
+Open **Explorer avec contexte**.
+
+Read the scripted example. Show the provenance chips and the proposed next exploration.
+
+Core message:
+
+> Breiz connects observations, guardian-provided context and provenance. It explains what the system can support and makes uncertainty visible.
 
 If the full `/breiz` conversational surface is not explicitly QA-cleared for the meeting, remain on the self-contained demo scene.
 
-### 7:00–9:00 — MAT + TAG
+### 7:00–9:00 — Le labo: reveal the sensing layer
 
-Open **4 · MAT + TAG**.
+Open **Voir l'invisible**.
 
 Explain the chain:
 
-`MAT + TAG → derived signals → ELI + confidence → Breiz / user-facing explanation`
+`MAT + TAG → signal quality → cautious inference / abstention → Breiz explanation`
 
 State explicitly that sensor coverage and firmware values on the demo page are fixtures.
 
@@ -82,14 +85,29 @@ For MOKO / engineering audiences, separate software architecture maturity from m
 
 Close with:
 
-> The MVP demonstrates the software contract and safety boundaries. The next step is progressive integration with validated hardware, authenticated accounts and controlled field data — not a silent jump to Product V1.
+> The MVP demonstrates the product idea, the software contract and the safety boundaries. The next step is progressive integration with validated hardware, authenticated accounts and controlled field data — not a silent jump to Product V1.
+
+## Design intent for this demo
+
+The demo should feel closer to a small explorable companion world than to a SaaS admin dashboard.
+
+Design principles:
+
+- use the official EMOPET navy / orange / teal / cream palette and existing logo authority;
+- preserve Fraunces for emotional / narrative hierarchy and Source Sans 3 for interface copy;
+- favor large product-story statements, full visual scenes and deliberate whitespace;
+- use the existing isometric living-world language as the navigation metaphor;
+- use motion only to communicate life, confidence or system state; respect `prefers-reduced-motion`;
+- avoid nested-card density, generic dashboard composition and decorative gradients with no semantic role;
+- do not use any visual treatment that makes a descriptive state look like a clinical score.
 
 ## Claims allowed in the demo
 
 - `MVP software demonstration`
 - `controlled / simulated demo data`
 - `non-medical canine wellbeing observations`
-- `ELI confidence / gating logic`
+- `Valence–Arousal descriptive representation with uncertainty`
+- `confidence / quality gating and abstention logic`
 - `Breiz non-diagnostic explanation layer`
 - `MAT + TAG target architecture`
 - `owner-scoped backend data export exists in the codebase`
@@ -97,8 +115,9 @@ Close with:
 
 ## Claims prohibited in the demo
 
+- a generic `health score` or a numerical score represented as health;
 - live MAT/TAG readings unless a separately validated live integration is actually connected;
-- medical, diagnostic or emotional-state conclusions;
+- medical, diagnostic or unsupported emotional-state conclusions;
 - CE conformity;
 - Product V1 freeze;
 - manufacturing release;
@@ -119,7 +138,9 @@ Close with:
 
 - Open the preview deployment from `demo/mvp-freeze`.
 - Confirm `/demo` loads without authentication.
-- Click all four demo steps.
+- Enter all four world locations.
+- Confirm no visible component says `health score` or implies a clinical score.
+- Confirm the Valence–Arousal state includes a visible uncertainty region.
 - Check desktop viewport and one mobile-sized viewport.
 - Confirm no mojibake / broken accents on `/demo`.
 - Confirm the banner says controlled/simulated data and non-clinical.
