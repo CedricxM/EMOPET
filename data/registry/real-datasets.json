@@ -1,0 +1,73 @@
+{
+  "registryVersion": "2026-08-30-p0",
+  "datasets": [
+    {
+      "datasetId": "dog-movement-vxhx934tbn-v4",
+      "name": "Movement Sensor Dataset for Dog Behavior Classification",
+      "owner": "Vehkaoja et al. / Tampere University / University of Helsinki",
+      "versionTag": "4",
+      "doi": "10.17632/vxhx934tbn.4",
+      "sourceUrl": "https://data.mendeley.com/datasets/vxhx934tbn/4",
+      "metadataApiUrl": "https://api.data.mendeley.com/datasets/vxhx934tbn?version=4",
+      "licenseId": "CC-BY-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionText": "Vehkaoja et al., Movement Sensor Dataset for Dog Behavior Classification, Mendeley Data, V4, DOI 10.17632/vxhx934tbn.4",
+      "refreshPolicy": "versioned_static",
+      "ingestionMode": "manual_or_mendeley_api",
+      "expectedUse": ["R&D", "IMU feature validation", "activity/posture discrimination research"],
+      "prohibitedShortcut": "Do not convert research-dataset labels directly into claims about an EMOPET dog's internal state.",
+      "checksumSha256": null
+    },
+    {
+      "datasetId": "dog-posture-mpph6bmn7g-v1",
+      "name": "Inertial sensor dataset for Dog Posture Recognition",
+      "owner": "Marcato et al. / Tyndall National Institute / University College Cork",
+      "versionTag": "1",
+      "doi": "10.17632/mpph6bmn7g.1",
+      "sourceUrl": "https://data.mendeley.com/datasets/mpph6bmn7g/1",
+      "metadataApiUrl": "https://api.data.mendeley.com/datasets/mpph6bmn7g?version=1",
+      "licenseId": "CC-BY-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionText": "Marcato et al., Inertial sensor dataset for Dog Posture Recognition, Mendeley Data, V1, DOI 10.17632/mpph6bmn7g.1",
+      "refreshPolicy": "versioned_static",
+      "ingestionMode": "manual_or_mendeley_api",
+      "expectedUse": ["R&D", "posture recognition research", "IMU preprocessing validation"],
+      "prohibitedShortcut": "Do not copy code from the associated GitHub repository unless its code licence is explicitly established.",
+      "checksumSha256": null
+    },
+    {
+      "datasetId": "vbo-ontology",
+      "name": "Vertebrate Breed Ontology",
+      "owner": "Monarch Initiative / VBO community",
+      "versionTag": "controlled-at-retrieval",
+      "doi": null,
+      "sourceUrl": "https://monarchinitiative.org/ontologies/vbo",
+      "metadataApiUrl": "http://purl.obolibrary.org/obo/vbo.owl",
+      "licenseId": "CC-BY-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionText": "Vertebrate Breed Ontology (VBO), CC BY 4.0",
+      "refreshPolicy": "monthly_version_check",
+      "ingestionMode": "direct_download",
+      "expectedUse": ["canonical breed identifiers", "synonyms", "cross-references"],
+      "prohibitedShortcut": "Breed metadata is context/taxonomy, not a proxy for an individual dog's state.",
+      "checksumSha256": null
+    },
+    {
+      "datasetId": "anmv-veterinary-medicines-fr",
+      "name": "Base de données publique des médicaments vétérinaires autorisés en France",
+      "owner": "ANMV / Anses",
+      "versionTag": "v2-current-at-retrieval",
+      "doi": null,
+      "sourceUrl": "https://www.data.gouv.fr/datasets/base-de-donnees-publique-des-medicaments-veterinaires-autorises-en-france-1",
+      "metadataApiUrl": "https://www.data.gouv.fr/api/1/datasets/",
+      "licenseId": "CC-BY",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionText": "Agence nationale du médicament vétérinaire (ANMV/Anses) — base publique des médicaments vétérinaires autorisés en France",
+      "refreshPolicy": "weekly",
+      "ingestionMode": "data_gouv_resource_resolution",
+      "expectedUse": ["medication reference", "official product identifiers", "veterinary record normalisation"],
+      "prohibitedShortcut": "Reference data must not be used to recommend, prescribe, diagnose or alter treatment without a veterinarian.",
+      "checksumSha256": null
+    }
+  ]
+}
