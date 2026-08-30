@@ -16,28 +16,13 @@ services:
       timeout: 3s
       retries: 20
 
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      # In Docker network, Postgres host is "db"
-      DATABASE_URL: postgresql+psycopg2://${DB_USER:-emopet}:${DB_PASSWORD:?set DB_PASSWORD in a local env file}@db:5432/${DB_NAME:-emopet}
-      EMOPET_ENV: ${EMOPET_ENV:-dev}
-      EMOPET_LANG_DEFAULT: ${EMOPET_LANG_DEFAULT:-fr}
-      EMOPET_FEATURE_WEATHER: ${EMOPET_FEATURE_WEATHER:-true}
-      EMOPET_FEATURE_JOURNAL: ${EMOPET_FEATURE_JOURNAL:-true}
-      EMOPET_FEATURE_FOOD: ${EMOPET_FEATURE_FOOD:-true}
-      ADMIN_SEED_TOKEN: ${ADMIN_SEED_TOKEN:?set ADMIN_SEED_TOKEN in a local env file}
-      CORS_ALLOW_ORIGINS: "${CORS_ALLOW_ORIGINS:-http://localhost:3100}"
-    ports:
-      - "8000:8000"
-    volumes:
-      - .:/app
-    command: ["python", "-m", "uvicorn", "src.api.emopet_api:app", "--host", "0.0.0.0", "--port", "8000"]
+# P0 runtime reconciliation:
+# - Compose currently provides local PostgreSQL infrastructure only.
+# - The active API runtime is the TypeScript/Hono workspace under backend/.
+# - No API container is declared until a reviewed Node/Hono Dockerfile and
+#   deployment contract are added in a separate controlled change.
+# - Database migrations are intentionally not run by Compose because the
+#   checked-in Drizzle migration baseline is still an OPEN/BLOCKED gate.
 
 volumes:
   emopet_pg:

@@ -1,27 +1,36 @@
-﻿param(
-  [string]$FciPath = 'data/fci/pdfs',
-  [int]$FciLimit = 0,
-  [ValidateSet('true','false')]
-  [string]$ExtractImages = 'false',
-  [switch]$SkipIngest
+param(
+  [switch]$Web
 )
 
 $ErrorActionPreference = 'Stop'
 
-Write-Host '[dev] Docker compose up (db)...' -ForegroundColor Cyan
-docker compose up -d db
-
-Write-Host '[dev] Alembic upgrade head...' -ForegroundColor Cyan
-python -m alembic upgrade head
-
-if (-not $SkipIngest) {
-  $args = @('scripts/ingest_fci_pdf.py', '--path', $FciPath, '--lang', 'fr', '--extract-images', $ExtractImages)
-  if ($FciLimit -gt 0) {
-    $args += @('--limit', "$FciLimit")
-  }
-  Write-Host "[dev] python $($args -join ' ')" -ForegroundColor Cyan
-  python @args
+if ([string]::IsNullOrWhiteSpace($env:DB_PASSWORD)) {
+  throw 'DB_PASSWORD must be set in the local environment before starting PostgreSQL.'
 }
 
-Write-Host '[dev] Start API...' -ForegroundColor Green
-python -m uvicorn src.api.emopet_api:app --reload --host 127.0.0.1 --port 8000
+if ([string]::IsNullOrWhiteSpace($env:JWT_SECRET)) {
+  throw 'JWT_SECRET must be set in the local environment before starting the Hono API.'
+}
+
+Write-Host '[dev] Starting local PostgreSQL...' -ForegroundColor Cyan
+docker compose up -d db
+
+if (-not $env:DATABASE_URL) {
+  $dbUser = if ($env:DB_USER) { $env:DB_USER } else { 'emopet' }
+  $dbName = if ($env:DB_NAME) { $env:DB_NAME } else { 'emopet' }
+  $encodedDbUser = [Uri]::EscapeDataString($dbUser)
+  $encodedDbPassword = [Uri]::EscapeDataString($env:DB_PASSWORD)
+  $encodedDbName = [Uri]::EscapeDataString($dbName)
+  $env:DATABASE_URL = "postgres://${encodedDbUser}:${encodedDbPassword}@127.0.0.1:5432/${encodedDbName}"
+  Write-Host '[dev] DATABASE_URL derived for this PowerShell session.' -ForegroundColor DarkGray
+}
+
+Write-Warning 'Drizzle migrations are NOT run automatically. The migration baseline remains a controlled OPEN/BLOCKED gate.'
+
+if ($Web) {
+  Write-Host '[dev] Starting monorepo dev tasks (backend + web + other workspace dev tasks)...' -ForegroundColor Green
+  corepack pnpm dev
+} else {
+  Write-Host '[dev] Starting Hono API workspace...' -ForegroundColor Green
+  corepack pnpm backend:dev
+}
