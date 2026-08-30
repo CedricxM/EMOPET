@@ -5,6 +5,25 @@ import type { CategoryId, LevelId } from './data';
 const ACTIVE_DOG_STORAGE_KEY = 'emopet-active-dog-id';
 const ACCESS_TOKEN_STORAGE_KEY = 'emopet-access-token';
 
+export interface DataPreviewRow {
+  date: string;
+  cat: string;
+  value: string;
+  level: string;
+}
+
+/**
+ * Legacy compatibility for the existing "Voir mes données" modal.
+ *
+ * The old implementation generated synthetic measurements and presented them as if
+ * they were user data. Data Act P0 deliberately removes that behaviour. Until the
+ * modal is wired to the authenticated backend export payload, it must fail closed
+ * and render no fabricated rows.
+ */
+export function buildMockRows(): DataPreviewRow[] {
+  return [];
+}
+
 function getRuntimeExportContext(): { dogId: string; token: string } {
   const dogId = window.localStorage.getItem(ACTIVE_DOG_STORAGE_KEY)?.trim();
   const token = window.localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)?.trim();
