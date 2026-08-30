@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "emopet-hardware-compliance-decisions-v1",
+  "status": "P0_CONTROLLED_REGISTER_NOT_RELEASE_AUTHORITY",
+  "decisions": [
+    {
+      "id": "HC-DEC-001",
+      "topic": "TAG battery removability and serviceability",
+      "product": "TAG",
+      "framework": "Regulation (EU) 2023/1542 Article 11",
+      "status": "OPEN",
+      "owner": "EMOPET product/hardware authority",
+      "evidenceRequired": ["exact cell/pack MPN", "final enclosure/service design", "safety/ingress analysis", "legal basis for any derogation"],
+      "decisionEffect": "Blocks final battery/enclosure release and battery-repairability claim",
+      "dueGate": "Before TAG Product V1 mechanical freeze",
+      "lastReviewed": "2026-08-30"
+    },
+    {
+      "id": "HC-DEC-002",
+      "topic": "MAT final radio architecture",
+      "product": "MAT",
+      "framework": "Directive 2014/53/EU",
+      "status": "OPEN",
+      "owner": "EMOPET RF/firmware authority",
+      "evidenceRequired": ["radio MPN", "bands", "power", "antenna", "connectivity role"],
+      "decisionEffect": "Determines RED scope, standards and test programme",
+      "dueGate": "Before compliance lab booking",
+      "lastReviewed": "2026-08-30"
+    },
+    {
+      "id": "HC-DEC-003",
+      "topic": "TAG final radio/positioning architecture",
+      "product": "TAG",
+      "framework": "Directive 2014/53/EU",
+      "status": "OPEN",
+      "owner": "EMOPET RF/firmware authority",
+      "evidenceRequired": ["BLE MPN", "positioning MPN/technology", "bands", "power", "antenna/keep-out", "coexistence evidence"],
+      "decisionEffect": "Determines RED/RF/EMC test scope and fit-check constraints",
+      "dueGate": "Before TAG PCB/enclosure freeze",
+      "lastReviewed": "2026-08-30"
+    },
+    {
+      "id": "HC-DEC-004",
+      "topic": "Cybersecurity support period",
+      "product": "BOTH",
+      "framework": "Regulation (EU) 2024/2847",
+      "status": "OPEN",
+      "owner": "EMOPET product/security authority",
+      "evidenceRequired": ["expected product lifetime", "update architecture", "component support commitments", "support operating model"],
+      "decisionEffect": "Controls vulnerability handling and security-update commitments",
+      "dueGate": "Before commercial launch documentation",
+      "lastReviewed": "2026-08-30"
+    },
+    {
+      "id": "HC-DEC-005",
+      "topic": "Secure boot and firmware signing architecture",
+      "product": "BOTH",
+      "framework": "CRA / RED cybersecurity / internal security policy",
+      "status": "BLOCKED",
+      "owner": "EMOPET firmware/security authority",
+      "evidenceRequired": ["MCU selection", "bootloader selection", "key storage", "signing infrastructure", "factory provisioning flow", "recovery/anti-rollback design"],
+      "decisionEffect": "Blocks claim of signed/secure update implementation",
+      "dueGate": "Before production firmware architecture freeze",
+      "lastReviewed": "2026-08-30"
+    },
+    {
+      "id": "HC-DEC-006",
+      "topic": "RoHS BOM evidence model",
+      "product": "BOTH",
+      "framework": "Directive 2011/65/EU",
+      "status": "OPEN",
+      "owner": "EMOPET sourcing/compliance authority",
+      "evidenceRequired": ["supplier declarations", "component material declarations", "exemption register", "BOM revision traceability"],
+      "decisionEffect": "Blocks RoHS technical-file closure",
+      "dueGate": "Before manufacturing release",
+      "lastReviewed": "2026-08-30"
+    },
+    {
+      "id": "HC-DEC-007",
+      "topic": "WEEE/EPR market registration plan",
+      "product": "BOTH",
+      "framework": "Directive 2012/19/EU and national implementation",
+      "status": "OPEN",
+      "owner": "EMOPET legal/operations authority",
+      "evidenceRequired": ["launch countries", "producer responsibility entities", "marking plan", "take-back/reporting process"],
+      "decisionEffect": "Blocks lawful market launch operations where applicable",
+      "dueGate": "Before first commercial placement on market",
+      "lastReviewed": "2026-08-30"
+    },
+    {
+      "id": "HC-DEC-008",
+      "topic": "Compliance laboratory and final standards list",
+      "product": "BOTH",
+      "framework": "RED / EMC / safety / EN 18031 / applicable harmonised standards",
+      "status": "OPEN",
+      "owner": "EMOPET compliance authority",
+      "evidenceRequired": ["final product architecture", "intended markets", "lab scope proposal", "current Official Journal harmonised-standard references"],
+      "decisionEffect": "Blocks final conformity test plan and CE technical file",
+      "dueGate": "Before formal pre-compliance campaign",
+      "lastReviewed": "2026-08-30"
+    }
+  ]
+}
