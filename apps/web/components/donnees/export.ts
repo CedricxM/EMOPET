@@ -1,92 +1,83 @@
 'use client';
 
-import { CATEGORIES } from './data';
 import type { CategoryId, LevelId } from './data';
 
-/**
- * Utilitaires d'export et génération de mock data.
- * Dans un fichier dédié pour rester importable sans charger les
- * composants Modal (eux sont lazy-loadés via next/dynamic).
- */
+const ACTIVE_DOG_STORAGE_KEY = 'emopet-active-dog-id';
+const ACCESS_TOKEN_STORAGE_KEY = 'emopet-access-token';
 
-/**
- * ⚠ DEMO MOCK — Génère des mesures fictives pour la table "Voir mes données"
- * et l'export CSV/JSON. À remplacer par un appel vers l'API
- * `/api/v6/measurements?since=...` quand le backend sera branché.
- */
-export function buildMockRows(): Array<{ date: string; cat: string; value: string; level: string }> {
-  const rows: Array<{ date: string; cat: string; value: string; level: string }> = [];
-  const today = new Date();
-  const sampleValues: Record<string, string> = {
-    sommeil: '7h28 — 4 cycles',
-    activite: '12.4 km · 3h08',
-    agitation: '2 phases · 14 min',
-    environnement: '21.4°C · 58% HR',
-    profil: 'Labrador · 4 ans · M · 32 kg',
-  };
-  for (let i = 0; i < 30; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    const isoDate = d.toISOString().slice(0, 10);
-    Object.entries(sampleValues).forEach(([catId, val]) => {
-      rows.push({
-        date: isoDate,
-        cat: CATEGORIES.find((c) => c.id === catId)?.name ?? catId,
-        value: val,
-        level: 'anonymise',
-      });
-    });
-  }
-  return rows;
+export interface DataPreviewRow {
+  date: string;
+  cat: string;
+  value: string;
+  level: string;
 }
 
 /**
- * Échappe un champ pour CSV conforme RFC 4180 :
- *   - champs contenant `,` `"` `\n` ou `\r` entourés de guillemets
- *   - guillemets internes doublés.
+ * Legacy compatibility for the existing "Voir mes données" modal.
+ *
+ * The old implementation generated synthetic measurements and presented them as if
+ * they were user data. Data Act P0 deliberately removes that behaviour. Until the
+ * modal is wired to the authenticated backend export payload, it must fail closed
+ * and render no fabricated rows.
  */
-function csvField(v: string | number): string {
-  const s = String(v);
-  if (/[",\r\n]/.test(s)) {
-    return `"${s.replace(/"/g, '""')}"`;
-  }
-  return s;
+export function buildMockRows(): DataPreviewRow[] {
+  return [];
 }
 
-export function exportData(
+function getRuntimeExportContext(): { dogId: string; token: string } {
+  const dogId = window.localStorage.getItem(ACTIVE_DOG_STORAGE_KEY)?.trim();
+  const token = window.localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)?.trim();
+  if (!dogId || !token) {
+    throw new Error(
+      'Export indisponible : la session backend et le chien actif doivent être connectés. Aucune donnée fictive ne sera générée.',
+    );
+  }
+  return { dogId, token };
+}
+
+function filenameFromDisposition(disposition: string | null, fallback: string): string {
+  const match = disposition?.match(/filename="?([^";]+)"?/i);
+  return match?.[1] ?? fallback;
+}
+
+/**
+ * Exporte les données réellement disponibles dans le backend EMOPET.
+ *
+ * Le paramètre `categoryState` est conservé temporairement pour compatibilité UI,
+ * mais la portée réglementaire de l'export ne doit pas être réduite par des toggles
+ * de présentation. Le backend reste l'autorité sur les données exportables.
+ */
+export async function exportData(
   format: 'csv' | 'json',
-  categoryState: Record<CategoryId, { on: boolean; level: LevelId }>,
-) {
-  const allRows = buildMockRows().filter((r) => {
-    const cat = CATEGORIES.find((c) => c.name === r.cat);
-    if (!cat) return true;
-    return categoryState[cat.id]?.on;
+  _categoryState: Record<CategoryId, { on: boolean; level: LevelId }>,
+): Promise<void> {
+  const { dogId, token } = getRuntimeExportContext();
+  const base = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/$/, '');
+  const url = `${base}/api/data-export?dog_id=${encodeURIComponent(dogId)}&format=${format}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: format === 'csv' ? 'text/csv' : 'application/json',
+    },
+    cache: 'no-store',
   });
 
-  let blob: Blob;
-  let filename: string;
-
-  if (format === 'csv') {
-    const header = 'date,categorie,valeur,niveau';
-    const body = allRows
-      .map((r) => [r.date, r.cat, r.value, r.level].map(csvField).join(','))
-      .join('\r\n');
-    // RFC 4180 : header + CRLF + lignes data, BOM UTF-8 pour Excel FR
-    blob = new Blob(['﻿', `${header}\r\n${body}\r\n`], { type: 'text/csv;charset=utf-8' });
-    filename = `emopet-export-${new Date().toISOString().slice(0, 10)}.csv`;
-  } else {
-    blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), rows: allRows }, null, 2)], {
-      type: 'application/json',
-    });
-    filename = `emopet-export-${new Date().toISOString().slice(0, 10)}.json`;
+  if (!response.ok) {
+    const detail = await response.text().catch(() => '');
+    throw new Error(`Échec export EMOPET (${response.status})${detail ? `: ${detail}` : ''}`);
   }
 
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  const blob = await response.blob();
+  const fallback = `emopet-data-export-${new Date().toISOString().slice(0, 10)}.${format}`;
+  const filename = filenameFromDisposition(response.headers.get('content-disposition'), fallback);
+  const objectUrl = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = objectUrl;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
 }
