@@ -1,37 +1,44 @@
 .shell {
   margin: 34px 0 10px;
-  padding: 28px;
-  border-radius: 26px;
+  padding: clamp(22px, 3vw, 34px);
+  border-radius: 28px;
   border: 1px solid rgba(29, 26, 106, 0.1);
   background:
-    radial-gradient(circle at 90% 0%, rgba(44, 183, 171, 0.11), transparent 30%),
-    rgba(246, 239, 231, 0.72);
+    radial-gradient(circle at 88% 4%, rgba(44, 183, 171, 0.13), transparent 29%),
+    radial-gradient(circle at 16% 100%, rgba(254, 80, 45, 0.08), transparent 24%),
+    rgba(246, 239, 231, 0.74);
 }
 
 .intro {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(280px, 1.1fr);
-  gap: 34px;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.9fr);
+  gap: clamp(28px, 5vw, 68px);
   align-items: end;
 }
 
-.eyebrow {
-  margin: 0 0 8px;
+.eyebrow,
+.domain,
+.usage > span,
+.avoid > span {
   font-family: var(--font-sans);
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+.eyebrow {
+  margin: 0 0 9px;
   color: var(--emopet-orange);
 }
 
 .intro h4 {
   margin: 0;
-  max-width: 540px;
+  max-width: 650px;
   font-family: var(--font-serif);
-  font-size: clamp(30px, 3.5vw, 48px);
-  line-height: 1.02;
-  letter-spacing: -0.03em;
+  font-size: clamp(32px, 3.8vw, 54px);
+  line-height: 1;
+  letter-spacing: -0.035em;
   color: var(--emopet-navy);
 }
 
@@ -39,85 +46,185 @@
   margin: 0;
   font-family: var(--font-sans);
   font-size: 14px;
-  line-height: 1.7;
+  line-height: 1.72;
   color: var(--fg-2);
 }
 
-.words {
-  margin-top: 28px;
+.lexiconStage {
+  margin-top: 32px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: minmax(210px, 0.42fr) minmax(0, 1fr);
+  gap: 10px;
 }
 
-.word {
-  min-height: 164px;
-  padding: 18px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.68);
+.wordRail {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wordButton {
+  width: 100%;
+  min-height: 62px;
+  padding: 11px 14px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: transparent;
+  color: var(--emopet-navy);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: background 160ms ease, transform 160ms ease, border-color 160ms ease;
+}
+
+.wordButton:hover {
+  transform: translateX(3px);
+  background: rgba(255, 255, 255, 0.54);
+}
+
+.wordButton:focus-visible {
+  outline: 3px solid var(--emopet-orange);
+  outline-offset: 2px;
+}
+
+.wordButton > span {
+  font-family: var(--font-sans);
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
+.wordButton strong {
+  font-family: var(--font-serif);
+  font-size: 23px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.wordButtonActive {
+  background: var(--emopet-navy);
+  color: var(--cream-50);
+  border-color: var(--emopet-navy);
+  box-shadow: 0 12px 28px rgba(29, 26, 106, 0.13);
+}
+
+.wordButtonActive > span {
+  color: rgba(246, 239, 231, 0.62);
+}
+
+.definition {
+  min-height: 410px;
+  padding: clamp(26px, 4vw, 48px);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(29, 26, 106, 0.08);
   display: flex;
   flex-direction: column;
 }
 
 .domain {
-  font-family: var(--font-sans);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: var(--emopet-teal);
 }
 
-.word strong {
-  margin-top: 16px;
+.definition h5 {
+  margin: 18px 0 12px;
   font-family: var(--font-serif);
-  font-size: 28px;
+  font-size: clamp(44px, 6vw, 76px);
   font-weight: 600;
-  line-height: 1;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
   color: var(--emopet-navy);
 }
 
-.word p {
-  margin: auto 0 0;
-  padding-top: 16px;
+.meaning {
+  max-width: 720px;
+  margin: 0;
   font-family: var(--font-sans);
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: clamp(17px, 1.8vw, 22px);
+  line-height: 1.55;
+  color: var(--fg-2);
+}
+
+.usage,
+.avoid {
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid rgba(29, 26, 106, 0.1);
+}
+
+.avoid {
+  margin-top: 16px;
+}
+
+.usage > span {
+  color: var(--emopet-teal);
+}
+
+.avoid > span {
+  color: var(--emopet-orange);
+}
+
+.usage p,
+.avoid p {
+  margin: 7px 0 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.55;
   color: var(--fg-muted);
 }
 
 .rule {
-  margin: 20px 0 0;
+  margin: 22px 0 0;
   padding-top: 18px;
   border-top: 1px solid rgba(29, 26, 106, 0.1);
   font-family: var(--font-sans);
   font-size: 12px;
+  line-height: 1.55;
   color: var(--fg-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wordButton {
+    transition: none;
+  }
 }
 
 @media (max-width: 900px) {
   .intro,
-  .words {
+  .lexiconStage {
     grid-template-columns: 1fr;
   }
 
-  .words {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .wordRail {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .definition {
+    min-height: 360px;
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 620px) {
   .shell {
     padding: 20px;
     border-radius: 22px;
   }
 
-  .words {
-    grid-template-columns: 1fr;
+  .wordRail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .word {
-    min-height: 138px;
+  .wordButton {
+    min-height: 56px;
+  }
+
+  .definition {
+    min-height: 350px;
+    padding: 24px 20px;
   }
 }
