@@ -7,6 +7,9 @@ allowBuilds:
   esbuild: true
   sharp: true
   unrs-resolver: true
+minimumReleaseAge: 10080
+blockExoticSubdeps: true
+trustPolicy: no-downgrade
 minimumReleaseAgeExclude:
   - js-yaml@4.3.1
 overrides:
