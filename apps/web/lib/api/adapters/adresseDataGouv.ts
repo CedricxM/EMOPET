@@ -1,7 +1,12 @@
 /**
- * Adaptateur adresse.data.gouv.fr (BAN — géocodage FR). Catégorie `geocoding`, `active`.
- * Open data, sans clé. Sert l'onboarding/localisation à partir d'une saisie VOLONTAIRE
- * (jamais de géoloc IP). Repli international : `geoapify` (scaffold).
+ * Adaptateur de géocodage BAN via le service Géoplateforme de l'IGN.
+ *
+ * NOTE DE COMPATIBILITÉ : l'identifiant interne `adresse-data-gouv` est conservé
+ * temporairement pour ne pas casser les consumers existants. Le trafic réseau ne
+ * doit plus utiliser api-adresse.data.gouv.fr, décommissionné en janvier 2026.
+ *
+ * Source officielle : https://data.geopf.fr/geocodage
+ * Données : Base Adresse Nationale (BAN), sans géolocalisation IP.
  */
 
 import { fetchWithTimeout } from '../fetchWithTimeout';
@@ -12,7 +17,14 @@ import { buildSignal, clamp01, nowIso } from './_shared';
 
 const PROVIDER = 'adresse-data-gouv';
 export const descriptor: ProviderDescriptor = mustGetProvider(PROVIDER);
-const BASE = descriptor.baseUrl;
+
+/**
+ * Runtime authority for BAN geocoding. Do not derive this value from the legacy
+ * provider registry entry until that generated registry/matrix is migrated in a
+ * dedicated reconciliation pass.
+ */
+export const GEOPLATEFORME_GEOCODING_BASE = 'https://data.geopf.fr/geocodage';
+const BASE = GEOPLATEFORME_GEOCODING_BASE;
 
 interface FetchOpts {
   signal?: AbortSignal;
@@ -34,12 +46,12 @@ interface BanFeature {
   properties?: { label?: string; city?: string; postcode?: string; citycode?: string; score?: number };
 }
 
-/** Pur : normalise une feature BAN en résultat de géocodage. Testable sans réseau. */
+/** Pur : normalise une feature GeoJSON BAN/Géoplateforme. */
 export function normalizeFeature(f: BanFeature): GeoResult {
   const coords = f.geometry?.coordinates;
   const p = f.properties;
   if (!coords || coords.length < 2 || !p?.label) {
-    throw new ProviderInvalidResponseError(PROVIDER, 'Feature BAN invalide.');
+    throw new ProviderInvalidResponseError(PROVIDER, 'Feature BAN/Géoplateforme invalide.');
   }
   const [lon, lat] = coords;
   return { label: p.label, lat, lon, city: p.city, postcode: p.postcode, citycode: p.citycode, score: p.score };
@@ -57,7 +69,11 @@ function geoSignal(g: GeoResult, precision: LocationPrecision): ContextSignal<Ge
 }
 
 async function firstFeature(url: string, opts: FetchOpts): Promise<BanFeature> {
-  const res = await fetchWithTimeout(url, { provider: PROVIDER, signal: opts.signal ?? null, timeoutMs: opts.timeoutMs ?? 8000 });
+  const res = await fetchWithTimeout(url, {
+    provider: PROVIDER,
+    signal: opts.signal ?? null,
+    timeoutMs: opts.timeoutMs ?? 8000,
+  });
   if (!res.ok) throw new ProviderInvalidResponseError(PROVIDER, `HTTP ${res.status}`);
   const json = (await res.json()) as { features?: BanFeature[] };
   const f = json.features?.[0];
@@ -65,23 +81,48 @@ async function firstFeature(url: string, opts: FetchOpts): Promise<BanFeature> {
   return f;
 }
 
+export function buildGeocodeUrl(address: string): string {
+  return `${BASE}/search?q=${encodeURIComponent(address)}&limit=1`;
+}
+
+export function buildReverseGeocodeUrl(lat: number, lon: number): string {
+  return `${BASE}/reverse?lon=${encodeURIComponent(String(lon))}&lat=${encodeURIComponent(String(lat))}&limit=1`;
+}
+
 export async function geocodeAddress(address: string, opts: FetchOpts = {}): Promise<ContextSignal<GeoResult>> {
-  const f = await firstFeature(`${BASE}/search/?q=${encodeURIComponent(address)}&limit=1`, opts);
+  const f = await firstFeature(buildGeocodeUrl(address), opts);
   return geoSignal(normalizeFeature(f), 'exact');
 }
 
 export async function reverseGeocode(lat: number, lon: number, opts: FetchOpts = {}): Promise<ContextSignal<GeoResult>> {
-  const f = await firstFeature(`${BASE}/reverse/?lon=${lon}&lat=${lat}`, opts);
+  const f = await firstFeature(buildReverseGeocodeUrl(lat, lon), opts);
   return geoSignal(normalizeFeature(f), 'city');
 }
 
 export async function healthCheck(signal?: AbortSignal): Promise<ProviderHealthResult> {
   const start = Date.now();
   try {
-    const res = await fetchWithTimeout(`${BASE}/search/?q=lorient&limit=1`, { provider: PROVIDER, signal: signal ?? null, timeoutMs: 6000 });
-    return { provider: PROVIDER, ok: res.ok, status: descriptor.status, latencyMs: Date.now() - start, checkedAt: nowIso() };
+    const res = await fetchWithTimeout(buildGeocodeUrl('Lorient'), {
+      provider: PROVIDER,
+      signal: signal ?? null,
+      timeoutMs: 6000,
+    });
+    return {
+      provider: PROVIDER,
+      ok: res.ok,
+      status: descriptor.status,
+      latencyMs: Date.now() - start,
+      checkedAt: nowIso(),
+    };
   } catch (e) {
-    return { provider: PROVIDER, ok: false, status: descriptor.status, latencyMs: Date.now() - start, checkedAt: nowIso(), error: e instanceof Error ? e.message : String(e) };
+    return {
+      provider: PROVIDER,
+      ok: false,
+      status: descriptor.status,
+      latencyMs: Date.now() - start,
+      checkedAt: nowIso(),
+      error: e instanceof Error ? e.message : String(e),
+    };
   }
 }
 
