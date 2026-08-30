@@ -8,7 +8,7 @@
     "start": "next start --port 3100",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "test": "node --test-concurrency=1 --import tsx --test \"lib/**/*.test.ts\"",
+    "test": "node scripts/run-tests.mjs",
     "vocab": "node scripts/vocab-audit.mjs",
     "smoke": "node scripts/smoke.mjs",
     "check": "node scripts/verify.mjs --no-build",
