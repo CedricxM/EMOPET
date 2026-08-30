@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { BrandLogo, WavePattern } from '../../components/brand';
+import { BreizDictionary } from '../../components/breiz/BreizDictionary';
 import { Icon, Pill } from '../../components/ui';
 import { WorldScene } from '../../components/world/WorldScene';
 import { MOCK_REPOS, MOCK_SENSORS } from '../../lib/mock-data';
@@ -181,7 +182,7 @@ function HomeStory({ onNext }: { onNext: () => void }) {
 
       <aside className={styles.narrativeAside}>
         <p className={styles.eyebrowDark}>Le principe</p>
-        <blockquote>“Une répétition de rythme observée n’est pas encore une émotion nommée.”</blockquote>
+        <blockquote>“Une récurrence dans le rythme n’est pas encore une émotion nommée.”</blockquote>
         <button className={styles.nextButton} type="button" onClick={onNext}>
           Ouvrir l’observatoire <span aria-hidden>→</span>
         </button>
@@ -234,8 +235,8 @@ function ObservatoryStory({ onNext }: { onNext: () => void }) {
         <p className={styles.eyebrowLight}>Pourquoi c’est important</p>
         <h3>Le système peut aussi s’abstenir.</h3>
         <p>
-          Si la qualité de capture est insuffisante, la bonne sortie n’est pas un chiffre “quand même”. C’est : donnée insuffisante,
-          contexte manquant ou observation non autorisée.
+          Si la qualité de capture est insuffisante, la bonne sortie n’est pas un chiffre “quand même”. C’est une abstention :
+          donnée insuffisante, contexte manquant ou lecture non autorisée.
         </p>
         <button className={styles.nextButtonLight} type="button" onClick={onNext}>
           Demander à Breiz <span aria-hidden>→</span>
@@ -266,24 +267,27 @@ function BreizStory({ onNext }: { onNext: () => void }) {
           <div className={styles.breizMiniMark}>B</div>
           <div>
             <p>
-              Sur six matinées de la fixture, une courte phase d’éveil apparaît près de l’horaire habituel de départ. La répétition est
-              observable. Je n’ai pas assez d’éléments pour lui attribuer une émotion précise.
+              Je vois une récurrence assez nette dans la fixture : sur six matinées, la phase d’éveil se glisse dans la même fenêtre,
+              juste avant le départ habituel. C’est une concordance temporelle intéressante, pas une émotion détectée. Pour tester cette
+              piste, je comparerais ce motif avec des matinées sans départ ou après une promenade calme.
             </p>
             <div className={styles.sourceStrip}>
               <span>MAT · fenêtre matinale</span>
               <span>capture exploitable</span>
-              <span>contexte déclaré : départ</span>
+              <span>contexte déclaré · départ</span>
             </div>
           </div>
         </div>
       </div>
+
+      <BreizDictionary />
 
       <div className={styles.discoveryRail}>
         <div>
           <span className={styles.discoveryIcon}><Icon name="compass" size={18} /></span>
           <div>
             <strong>Prochaine exploration</strong>
-            <span>Comparer le rythme après une promenade calme.</span>
+            <span>Comparer la cadence des matinées avec et sans départ.</span>
           </div>
         </div>
         <button className={styles.nextButton} type="button" onClick={onNext}>
