@@ -4,6 +4,12 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "moduleResolution": "bundler",
+    "types": [
+      "react"
+    ],
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
     "paths": {
       "@/*": [
         "./src/*"

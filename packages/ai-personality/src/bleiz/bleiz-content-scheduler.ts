@@ -59,6 +59,7 @@ const CATEGORY_PRIORITY: Record<BleizCategory, number> = {
   health_seasonal: 500,
   health_breed: 480,
   behavior: 400,
+  behavior_education: 400,
   nutrition: 340,
   activity: 300,
   environment: 260,
@@ -623,13 +624,13 @@ export function scheduleBleizContent(options: SchedulerOptions): ContentJob[] {
         CATEGORY_PRIORITY[left.template.category] +
         left.template.priority +
         noveltyBonus(history, left.template, now) +
-        (personaProfile.favoredCategories.includes(left.template.category) ? 25 : 0) +
+        (personaProfile.favoredCategories.includes(left.template.category === 'behavior_education' ? 'behavior' : left.template.category) ? 25 : 0) +
         (left.gate === 'PUBLISH' ? 10 : -15);
       const rightScore =
         CATEGORY_PRIORITY[right.template.category] +
         right.template.priority +
         noveltyBonus(history, right.template, now) +
-        (personaProfile.favoredCategories.includes(right.template.category) ? 25 : 0) +
+        (personaProfile.favoredCategories.includes(right.template.category === 'behavior_education' ? 'behavior' : right.template.category) ? 25 : 0) +
         (right.gate === 'PUBLISH' ? 10 : -15);
       return rightScore - leftScore;
     });
