@@ -85,17 +85,17 @@ function OverviewStep() {
   const recent = MOCK_TREND_14D.slice(-7);
   return (
     <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(260px, 0.6fr)', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
         <Card>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
               <div>
                 <Eyebrow>Profil observé</Eyebrow>
                 <H2>{MOCK_DOG.name} · {MOCK_DOG.breed}</H2>
               </div>
               <Pill state="valid" label="Démo contrôlée" showDot />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16 }}>
               <Metric label="ELI" value={String(MOCK_ELI.value)} detail="indice de démonstration" />
               <Metric label="Capture" value={`${MOCK_ELI.captureMinutes} min`} detail="fenêtre exploitable" />
               <Metric label="Repos" value={`${MOCK_REPOS.durationMinutes} min`} detail={`${MOCK_REPOS.confidence}% de confiance`} />
@@ -109,7 +109,7 @@ function OverviewStep() {
         <Card>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <Eyebrow>État actuel</Eyebrow>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
               <DataXL>{MOCK_ELI.value}</DataXL>
               <span style={{ color: 'var(--lichen-700)', fontWeight: 'var(--weight-semi)', fontFamily: 'var(--font-sans)' }}>
                 +{MOCK_ELI.delta} / semaine
@@ -127,11 +127,11 @@ function OverviewStep() {
             <Eyebrow>Tendance 7 jours</Eyebrow>
             <H2 style={{ fontSize: 'var(--text-xl)' }}>Variation de l’ELI de démonstration</H2>
           </div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', height: 150 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: 150, overflowX: 'auto', paddingBottom: 4 }}>
             {recent.map((point) => {
               const height = 42 + Math.max(0, Math.min(90, point.eli));
               return (
-                <div key={point.day} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
+                <div key={point.day} style={{ flex: '1 0 46px', display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
                   <div
                     title={`Jour ${point.day} · ELI ${point.eli}`}
                     style={{
@@ -155,7 +155,7 @@ function OverviewStep() {
 
 function EliStep() {
   return (
-    <section style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 16 }}>
+    <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
       <Card>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <Eyebrow>Ce que l’ELI sait dire</Eyebrow>
@@ -191,7 +191,7 @@ function EliStep() {
 
 function BreizStep() {
   return (
-    <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 0.7fr) minmax(0, 1.3fr)', gap: 16 }}>
+    <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
       <Card>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <Eyebrow>Breiz</Eyebrow>
@@ -243,11 +243,11 @@ function HardwareStep() {
         </div>
       </Card>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
         {MOCK_SENSORS.map((sensor) => (
           <Card key={sensor.id}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                 <div>
                   <Eyebrow>{sensor.id.toUpperCase()}</Eyebrow>
                   <H2 style={{ fontSize: 'var(--text-xl)' }}>{sensor.label}</H2>
@@ -286,7 +286,7 @@ function Metric({ label, value, detail }: { label: string; value: string; detail
 
 function Evidence({ label, value, state }: { label: string; value: string; state: 'valid' | 'degraded' }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--divider)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--divider)', flexWrap: 'wrap' }}>
       <P2>{label}</P2>
       <Pill state={state} label={value} showDot />
     </div>
