@@ -35,6 +35,17 @@ interface BreizRequest {
   eliConfidence?: 'VALID' | 'DEGRADED' | 'SUPPRESSED';
 }
 
+function transparencyMetadata(context: ConversationContext, responseMode: 'model' | 'retrieval') {
+  return {
+    aiSystem: true,
+    assistantRole: 'regional_context_and_knowledge_assistant',
+    responseMode,
+    evidenceLevel: context.touchesEliData ? 'mixed_or_inferred' : 'external_context',
+    medicalStatus: 'non_diagnostic',
+    provenanceRequired: true,
+  } as const;
+}
+
 export async function POST(req: Request) {
   const limited = enforceRateLimit(req, breizRateLimiter, 'breiz:post');
   if (limited) return limited;
@@ -60,8 +71,8 @@ export async function POST(req: Request) {
 
   const apiKey = process.env['ANTHROPIC_API_KEY'];
 
-  // Pas de clé → repli RAG côté client. On renvoie quand même l'identité régionale
-  // et des métadonnées (transparence + démonstration que le moteur a tourné).
+  // Pas de clé → repli RAG côté client. La réponse reste explicitement identifiée
+  // comme une interaction avec l'assistant IA, mais le mode de réponse est retrieval.
   if (!apiKey) {
     return NextResponse.json({
       via: 'fallback',
@@ -71,6 +82,7 @@ export async function POST(req: Request) {
       invitation: region.invitation ?? null,
       touchesEliData: context.touchesEliData,
       knowledgeTokens: built.knowledgeTokens,
+      transparency: transparencyMetadata(context, 'retrieval'),
     });
   }
 
@@ -92,7 +104,15 @@ export async function POST(req: Request) {
       }),
     });
     if (!res.ok) {
-      return NextResponse.json({ via: 'fallback', assistantName: region.profile.assistantName, regionId: region.profile.regionId, isDefaultRegion: region.isDefault, touchesEliData: context.touchesEliData, error: `anthropic_${res.status}` });
+      return NextResponse.json({
+        via: 'fallback',
+        assistantName: region.profile.assistantName,
+        regionId: region.profile.regionId,
+        isDefaultRegion: region.isDefault,
+        touchesEliData: context.touchesEliData,
+        transparency: transparencyMetadata(context, 'retrieval'),
+        error: `anthropic_${res.status}`,
+      });
     }
     const data = (await res.json()) as { content?: Array<{ type: string; text?: string }> };
     const text = (data.content ?? []).filter((b) => b.type === 'text').map((b) => b.text).join('\n').trim();
@@ -104,8 +124,20 @@ export async function POST(req: Request) {
       touchesEliData: context.touchesEliData,
       text,
       sources: [`${region.profile.assistantName} · ancrage ${region.profile.regionId}`],
+      transparency: {
+        ...transparencyMetadata(context, 'model'),
+        modelProvider: 'Anthropic',
+        modelId: model,
+      },
     });
   } catch {
-    return NextResponse.json({ via: 'fallback', assistantName: region.profile.assistantName, regionId: region.profile.regionId, isDefaultRegion: region.isDefault, touchesEliData: context.touchesEliData });
+    return NextResponse.json({
+      via: 'fallback',
+      assistantName: region.profile.assistantName,
+      regionId: region.profile.regionId,
+      isDefaultRegion: region.isDefault,
+      touchesEliData: context.touchesEliData,
+      transparency: transparencyMetadata(context, 'retrieval'),
+    });
   }
 }
