@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function LandingNav() {
   const [scrolled, setScrolled] = useState(false);
@@ -34,7 +35,7 @@ export default function LandingNav() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <a href="/" aria-label="EMOPET - Retour à l'accueil" className="flex items-center gap-2">
+          <Link href="/" aria-label="EMOPET - Retour à l'accueil" className="flex items-center gap-2">
             <Image
               src="/assets/brand/emopet-logo-mark.svg"
               alt=""
@@ -50,7 +51,7 @@ export default function LandingNav() {
             >
               EMOPET
             </span>
-          </a>
+          </Link>
 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-8">

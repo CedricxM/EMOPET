@@ -28,7 +28,7 @@ export default function AppMockup() {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry?.isIntersecting) {
           setIsVisible(true);
           setTimeout(() => setShowCards(true), 800);
           observer.disconnect();

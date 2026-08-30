@@ -4,6 +4,9 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "moduleResolution": "bundler",
+    "types": [
+      "react"
+    ],
     "paths": {
       "@/*": [
         "./src/*"
