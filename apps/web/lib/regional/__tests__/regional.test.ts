@@ -22,6 +22,18 @@ test('buildAssistantSystemPrompt injecte le nom régional', () => {
   assert.match(built.prompt, /bretagne/);
 });
 
+test('le dictionnaire contrôlé enrichit la voix sans augmenter la certitude', () => {
+  const built = buildAssistantSystemPrompt(BRETAGNE_PROFILE, BRETAGNE_KNOWLEDGE, {
+    userMessage: 'je remarque le même réveil plusieurs matins', touchesEliData: false,
+  });
+  assert.match(built.prompt, /Dictionnaire contrôlé de Breiz/);
+  assert.match(built.prompt, /cadence/);
+  assert.match(built.prompt, /récurrence/);
+  assert.match(built.prompt, /concordance/);
+  assert.match(built.prompt, /abstention/);
+  assert.match(built.prompt, /n'augmente jamais le niveau de certitude/i);
+});
+
 test('le filtrage exclut les entrées PENDING_VERIFIED_CONTENT', () => {
   const filtered = filterRelevantKnowledge('lieux balade à vérifier traditions', BRETAGNE_KNOWLEDGE, { maxEntries: 6 });
   const all = [...filtered.geography, ...filtered.culture];
@@ -50,13 +62,16 @@ test('détection région : défaut Bretagne si rien', () => {
   assert.ok(r.invitation);
 });
 
-test('garde-fou médical : touchesEliData → chemin verrouillé', () => {
+test('garde-fou ELI : chemin verrouillé + Valence–Arousal + aucun score de santé', () => {
   const locked = buildAssistantSystemPrompt(BRETAGNE_PROFILE, BRETAGNE_KNOWLEDGE, {
-    userMessage: 'quel est le score ELI de repos ?', touchesEliData: true,
+    userMessage: 'que dit la valence et le niveau d activation ?', touchesEliData: true,
   });
   assert.match(locked.prompt, /VERROUILLÉ/);
-  assert.match(locked.prompt, /strictement factuel/);
-  // Jamais d'autorisation de moduler le ton sur la donnée.
+  assert.match(locked.prompt, /factuel, mesuré/);
+  assert.match(locked.prompt, /Valence–Arousal/);
+  assert.match(locked.prompt, /N'utilise jamais un score de santé/);
+  assert.match(locked.prompt, /SUPPRESSED/);
+  // Jamais d'autorisation de moduler le ton pour accroître la certitude de la donnée.
   assert.doesNotMatch(locked.prompt, /module[rs]? ton ton sur la donnée/i);
 });
 
