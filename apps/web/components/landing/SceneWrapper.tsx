@@ -32,7 +32,7 @@ export default function SceneWrapper({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry?.isIntersecting) {
           if (delay > 0) {
             setTimeout(() => setIsVisible(true), delay);
           } else {
