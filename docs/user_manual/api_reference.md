@@ -1,146 +1,122 @@
-# EmoPet v6 — API reference (FastAPI)
+# EMOPET — Référence de l'API Hono observée
 
-> EmoPet fournit des observations et tendances. Il ne s’agit pas d’un diagnostic et cela ne remplace pas l’avis d’un vétérinaire.
+Cette référence décrit les routes montées par `backend/api/index.ts` au 2026-08-29. Elle n'est ni un contrat OpenAPI versionné ni une preuve de disponibilité en production.
 
-Base URL (local): `http://127.0.0.1:8000`
+L'ancienne référence FastAPI (`/predict`, `/insights`, rapports CSV et extensions Python) ne correspond pas au serveur actif. Elle reste consultable dans l'historique Git.
 
-## 1) Auth (optionnelle)
-Si `EMOPET_API_KEY` est défini, envoyer le header `X-API-Key`.
+## 1. Adresse locale et format
 
-## 2) Encodage
-Les réponses JSON utilisent `application/json; charset=utf-8`.
+- adresse par défaut : `http://127.0.0.1:3000` ;
+- surcharge du port : variable `PORT` ;
+- corps et réponses applicatives : JSON, sauf le rapport vétérinaire PDF.
 
-## 3) Endpoints core
+## 2. Authentification et autorisation
 
-### `GET /health` / `GET /healthz`
-But: probe technique.
+`GET /health` et le groupe `/api/auth` sont publics. Toutes les autres routes `/api/*` passent par le middleware JWT.
 
-Réponse:
-```json
-{"status":"ok"}
+Pour une route protégée :
+
+```http
+Authorization: Bearer <token>
 ```
 
-### `GET /meta`
-But: métadonnées runtime (démo/bêta technique).
+Limites importantes :
 
-Réponse (exemple de structure):
-```json
-{
-  "version": "6.x",
-  "date": "YYYY-MM-DDTHH:MM:SSZ",
-  "env": {"timezone":"UTC","python":"3.x","platform":"Windows","platform_release":"..."}
-}
-```
+- `JWT_SECRET` est obligatoire hors `NODE_ENV=test` ;
+- le helper `signToken` émet des jetons HS256 à sept jours ; le middleware vérifie leur signature et toute expiration présente ;
+- `register`, `login` et `refresh` sont des stubs et ne fournissent pas encore de cycle d'identité utilisable ;
+- plusieurs routes chien/capteur appliquent `requireDogOwnership`, mais la couverture négative de toutes les routes n'est pas démontrée ;
+- un `share_token` signé peut donner un accès temporaire au PDF vétérinaire sans Bearer token ;
+- l'identité, la récupération, la révocation, la rotation et la suppression restent `OPEN / GATED`.
 
-### `POST /predict`
-But: prédiction prudente “brute” (sans couche produit), loggée en CSV.
+## 3. Routes publiques
 
-Query params:
-- `dog_id` (optionnel)
+| Méthode | Chemin | État observé |
+|---|---|---|
+| GET | `/health` | Probe `{ status, version }` |
+| POST | `/api/auth/register` | Validation d'entrée, inscription non implémentée |
+| POST | `/api/auth/login` | Validation d'entrée, vérification/émission JWT non implémentée |
+| POST | `/api/auth/refresh` | Renouvellement non implémenté |
 
-Body (structure):
-```json
-{
-  "timestamp": "YYYY-MM-DDTHH:MM:SS",
-  "mat": {"resp_bpm": 22, "temp_animal_c": 38.6, "posture": "lying_sternal", "rest_agitation_idx": 0.12},
-  "gadget": {"activity_level": 0.2, "ambient_noise_db": 45, "ambient_temp_c": 21},
-  "env": {"ambient_temp_c": 21, "ambient_noise_db": 45, "humidity": null, "light_level": null}
-}
-```
+## 4. Routes protégées
 
-Réponse (champs principaux):
-- `timestamp`, `mode`, `is_on_mat`
-- `prediction` (valence/arousal/label/confidence)
-- `features`, `quality`, `inputs`
+### Chiens
 
-### `POST /insights`
-But: `predict` + couche produit (scores prudents, alert flags) + état latent (anti‑yo‑yo), loggée en CSV.
+| Méthode | Chemin | État observé |
+|---|---|---|
+| GET, POST | `/api/dogs` | Liste/création placeholder |
+| GET, PATCH, DELETE | `/api/dogs/:id` | Contrôle propriétaire, réponse encore partielle |
+| GET | `/api/dogs/:id/absence-comparison` | Comparaison présence/absence avec données DB ou fallback |
+| GET | `/api/dogs/:id/vet-report-link` | Création d'un lien temporaire signé |
+| GET | `/api/dogs/:id/vet-report` | PDF, via propriétaire ou `share_token` valide |
 
-Query params:
-- `dog_id` (optionnel)
+### Capteurs et ELI
 
-Body: même structure que `/predict`.
+| Méthode | Chemin | État observé |
+|---|---|---|
+| POST | `/api/sensors/summaries` | Validation + contrôle propriétaire, persistance TODO |
+| GET | `/api/sensors/summaries/:dogId` | Résultats placeholder |
+| GET | `/api/sensors/eli/:dogId` | État ELI placeholder |
+| GET | `/api/sensors/eli/:dogId/history` | Historique placeholder |
+| GET | `/api/sensors/baseline/:dogId` | Baseline placeholder |
+| POST, GET | `/api/sensors/presence/:dogId/events` | Événements conservés en mémoire du processus |
 
-Réponse: mêmes champs que `/predict`, plus:
-- `insights` (`wellbeing_score`, `rest_quality_score`, `alert_flags`, `notes`)
-- `latent` (`latent_state`, `state_confidence`, `state_reason`)
+### Communauté
 
-### `GET /daily_summary`
-But: résumé 24h + comparaison baseline.
+| Méthode | Chemin | État observé |
+|---|---|---|
+| GET | `/api/community` | Liste placeholder |
+| GET | `/api/community/:id` | Détail minimal |
+| GET | `/api/community/:id/feed` | Feed placeholder |
+| POST | `/api/community/rules/accept` | Acceptation conservée en mémoire |
+| POST | `/api/community/reports` | Signalement conservé en mémoire |
+| POST | `/api/community/blocks` | Blocage conservé en mémoire |
+| POST | `/api/community/posts` | Validation/règles/filtre, sans stockage durable observé |
+| POST | `/api/community/comments` | Validation/règles/filtre, sans stockage durable observé |
+| GET | `/api/community/:id/events` | Liste placeholder |
+| POST | `/api/community/events` | Validation/règles/filtre, sans stockage durable observé |
+| GET | `/api/community/copresence/:dogId` | Contrôle propriétaire, résultats placeholder |
 
-Query params:
-- `dog_id` (optionnel)
+### Progression, consentements et waitlist
 
-Réponse: résumé agrégé (date, counts, moyennes prudentes, narrative).
+| Méthode | Chemin | État observé |
+|---|---|---|
+| GET | `/api/feature-progress` | État calculé depuis les stores mémoire |
+| GET, POST | `/api/feature-progress/consents` | Consentements en mémoire |
+| POST | `/api/feature-progress/waitlist` | Waitlist en mémoire |
 
-### `GET /night_report`
-But: rapport d’une “nuit logique” (fenêtre configurable).
+### Journal dit « health »
 
-Query params:
-- `start_hour` (défaut 22)
-- `end_hour` (défaut 7)
-- `date` (optionnel) : `YYYY-MM-DD` (date de fin de nuit)
-- `dog_id` (optionnel)
+| Méthode | Chemin | État observé |
+|---|---|---|
+| GET | `/api/health/:dogId` | Contrôle propriétaire, entrées placeholder |
+| POST | `/api/health` | Validation + contrôle propriétaire, persistance non démontrée |
+| GET | `/api/health/:dogId/reminders` | Contrôle propriétaire, rappels placeholder |
 
-Réponse: `window`, `counts`, `averages`, `weekly_baseline`, `alert_flags`, `narrative`.
+Ces routes portent un nom historique `health`, mais leurs sorties ne doivent pas être présentées comme un diagnostic.
 
-### `GET /alerts`
-But: signaux faibles multi‑nuits (non médicaux).
+### Annuaire
 
-Query params:
-- `start_hour`, `end_hour`
-- `date` (optionnel) : `YYYY-MM-DD`
-- `lookback_nights` (défaut 7)
-- `dog_id` (optionnel)
+| Méthode | Chemin | État observé |
+|---|---|---|
+| GET | `/api/directory/search` | Recherche PostgreSQL, rayon borné à 50 km |
+| GET | `/api/directory/categories` | Catégories et comptes PostgreSQL |
+| GET | `/api/directory/:id` | Entrée PostgreSQL par identifiant |
 
-Réponse: `date`, `nights_checked`, `alerts`, `narrative`.
+## 5. Plan API web distinct
 
-### `GET /recommendations`
-But: recommandations actionnables (non médicales) basées sur night_report + alerts.
+`apps/web/app/api/**` contient des Route Handlers Next.js pour Breiz, contact, journal, communauté, carte, races, contexte et administration. Ils ne sont pas montés dans l'application Hono et ne partagent pas automatiquement son middleware JWT/ownership.
 
-Query params:
-- `date` (obligatoire) : `YYYY-MM-DD`
-- `start_hour`, `end_hour`, `lookback_nights`
-- `dog_id` (optionnel)
+Certains de ces handlers écrivent dans `apps/web/.data` ou utilisent des replis navigateur. Ils constituent un plan prototype séparé, décrit dans `docs/APP_OVERVIEW.md`, pas l'autorité durable du backend.
 
-Réponse: `date`, `narrative`, `actions`.
+## 6. Source du contrat
 
-### `GET /weekly_report`
-But: tendances hebdomadaires (lecture produit).
+En l'absence d'OpenAPI versionné, les sources observées sont :
 
-Query params:
-- `end_date` (obligatoire) : `YYYY-MM-DD`
-- `start_hour`, `end_hour`
-- `nights_count` (défaut 7)
-- `days_count` (défaut 7)
-- `dog_id` (optionnel)
+- `backend/api/index.ts` pour le montage et les middlewares ;
+- `backend/api/routes/*` pour les routes ;
+- `backend/api/middleware/*` pour l'authentification et l'autorisation ;
+- `packages/shared/src` pour les schémas Zod partagés ;
+- `backend/test` pour la couverture disponible.
 
-Réponse: `end_date`, `badge`, `top_factors`, `premium_story`, `metrics`, `flags`, `nights`, `days`, `narrative`.
-
-### `GET /push_preview`
-But: prévisualiser une notification (démo).
-
-Query params:
-- `date` (obligatoire) : `YYYY-MM-DD`
-- `lookback_nights` (défaut 7)
-- `dog_id` (optionnel)
-
-Réponse: `date`, `push` (title/body/cta/severity), `context`.
-
-### `GET /daily_coach`
-But: coaching quotidien prudent (question “dois‑je m’inquiéter ?” + explication courte + objectif).
-
-Query params:
-- `date` (optionnel) : `YYYY-MM-DD`
-- `lookback_nights` (défaut 7)
-- `dog_id` (optionnel)
-
-Réponse: `date`, `worry_level`, `simple_explanation`, `today_goal`, `micro_actions`, `streak`, `context`.
-
-### `GET /dogs` / `POST /dogs/{dog_id}`
-But: gestion simple d’un registre “chiens” (démo multi‑chien).
-
-## 4) Endpoints d’extensions (optionnels)
-Les endpoints d’extensions (`/food/*`, `/daily/*`, `/community/*`, `/local/*`, `/ecosystem/*`) ne sont disponibles que si les feature flags sont activés.  
-Référence: `docs/EXTENSIONS.md`.
-
+Toute stabilisation du contrat nécessite un changement séparé avec tests de compatibilité et d'isolation.

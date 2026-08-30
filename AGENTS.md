@@ -5,18 +5,19 @@ Il contient les règles non négociables et la charte graphique du projet.
 
 ---
 
-## ⚠ Addendum stack réel (2026-05-20)
+## ⚠ Addendum stack observée (2026-08-29)
 
-Le brief `PROMPT_PROTOTYPE_BRETAGNE.md` décrit une stack théorique (Vite + HeroUI v3 beta + Tailwind v4 + tab bar 4 onglets DEMAT/PEMDEZ/KI/VEUTE). **La base réelle est différente :**
+Le brief `PROMPT_PROTOTYPE_BRETAGNE.md` décrit une proposition historique. Les manifests et points d'entrée actuels font foi pour l'état d'implémentation, sans transformer cet état en décision produit :
 
-- Monorepo pnpm + Turbo. App web cible : **`apps/web`** (Next.js 15 + React 18, port 3100).
-- **Pas de tab bar 4 onglets** — navigation par **sidebar gauche** (`components/sidebar.tsx`) avec routes `/dashboard /breiz /journal /local /rapport /profil`.
-- **Design system maison** : `apps/web/styles/tokens.css` (palette EMOPET v2 complète, déjà conforme) + primitives `apps/web/components/ui/{button,card,eyebrow,icon,meter,pill,typography,disclaimer}.tsx`.
-- **HeroUI v3 + Tailwind v4** ont été ajoutés a posteriori (`@heroui/react@^3`, `tailwindcss@^4`) pour les écrans Bretagne+RGPD. **Cohabitent avec les primitives maison** — préférer les primitives maison pour la cohérence visuelle, HeroUI pour les composants riches non couverts (RadioGroup, Switch, Modal, Drawer, Tooltip).
-- App mobile native dans `apps/mobile` (React Native, séparé).
-- Mapping navigation brief → routes réelles :
-  - "Veute / Carte Bretagne" → **`/local`** (intégré dans la page Local)
-  - "Données / RGPD" → **`/donnees`** (route nouvelle)
+- Monorepo pnpm 10 + Turbo. App web : **`apps/web`** (Next.js 15 + React 19, port 3100).
+- App mobile : **`apps/mobile`** (Expo 52 + React 18 + React Native 0.76).
+- Backend : **`backend`** (Hono 4 + TypeScript + Drizzle/PostgreSQL). Ce n'est pas NestJS. L'inscription, la connexion et le renouvellement de jeton restent des stubs `TODO`.
+- Le web contient aussi des Route Handlers Next.js avec stockage JSON `.data/` et replis localStorage. Ce plan prototype n'est pas l'autorité durable et reste à réconcilier avec le backend/PostgreSQL.
+- Navigation sidebar observée : `/dashboard`, `/journal`, `/quartier`, `/world`, `/breiz`, `/profil`. Des routes hors sidebar existent, notamment `/rapport`, `/contact` et `/admin`.
+- Design system maison : `apps/web/styles/tokens.css` et primitives `apps/web/components/ui/*`. HeroUI 3 et Tailwind 4 sont également installés.
+- Aucun projet Unity et aucune intégration Nakama ne sont présents sur les branches distantes observées. Ces workstreams restent `GATED / NOT PRODUCTION AUTHORITY`.
+- Les commandes documentées dans les manifests sont des surfaces disponibles, pas une preuve de build, de CI ou de production.
+- Conflit d'autorité à préserver : le code contient une gamification centrée propriétaire, tandis que la règle plus bas interdit toute gamification. Ne pas étendre, supprimer ou déclarer conforme ce comportement avant une décision contrôlée.
 
 ---
 
@@ -129,14 +130,16 @@ Synonymes brief → tokens réels :
 
 ---
 
-## Stack technique réelle
+## Stack technique observée
 
-- **Monorepo pnpm + Turbo** (racine `pnpm-workspace.yaml`)
-- App web : **Next.js 15 + React 18** (`apps/web`)
-- App mobile : **React Native Expo** (`apps/mobile`)
-- Backend : `backend/` (NestJS, voir `package.json`)
-- Firmware : `firmware/` (C++ embedded)
+- **Monorepo pnpm 10 + Turbo** (racine `pnpm-workspace.yaml`)
+- App web : **Next.js 15 + React 19** (`apps/web`)
+- App mobile : **Expo 52 + React 18 / React Native 0.76** (`apps/mobile`)
+- Backend : **Hono 4 + TypeScript + Drizzle/PostgreSQL** (`backend`)
+- Firmware : sources partielles MAT/TAG en C (`firmware`), sans build firmware complet observé
 - Packages partagés : `packages/{shared, eli-engine, ai-personality, ble-protocol}`
+- Persistance actuelle : schémas PostgreSQL, stores mémoire backend, store JSON Next.js et replis navigateur ; l'unification reste `OPEN`
+- Migration propre : `BLOCKED` tant que la baseline Drizzle et le chemin d'upgrade ne sont pas réparés et validés
 
 ### UI (web)
 
