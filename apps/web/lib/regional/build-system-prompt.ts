@@ -1,10 +1,10 @@
 /**
  * Assemblage du prompt système (Section 5 + PATCH 1/2).
- * Moteur commun (constant) + identité régionale (profil) + connaissance
- * régionale filtrée par pertinence (jamais toute la base, jamais d'entrée
- * non vérifiée, sous MAX_KNOWLEDGE_TOKENS).
+ * Moteur commun (constant) + dictionnaire Breiz + identité régionale (profil)
+ * + connaissance régionale filtrée par pertinence.
  */
 
+import { buildBreizLanguagePromptBlock } from '../breiz-language/lexicon';
 import { COMMON_ENGINE_BLOCKS, ELI_LOCKED_BLOCK } from './engine';
 import { MAX_KNOWLEDGE_TOKENS, estimateTokens, filterRelevantKnowledge } from './filter-knowledge';
 import type { CultureEntry, GeographyEntry, RegionalKnowledgeBase } from './knowledge-types';
@@ -35,7 +35,7 @@ export function buildAssistantSystemPrompt(
   context: ConversationContext,
   options: { userDepartment?: string; maxEntries?: number } = {},
 ): BuiltPrompt {
-  const blocks: string[] = [...COMMON_ENGINE_BLOCKS];
+  const blocks: string[] = [...COMMON_ENGINE_BLOCKS, buildBreizLanguagePromptBlock()];
 
   // Chemin verrouillé si la réponse touche une donnée ELI.
   if (context.touchesEliData) blocks.push(ELI_LOCKED_BLOCK);
