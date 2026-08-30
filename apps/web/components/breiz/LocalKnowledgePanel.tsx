@@ -25,11 +25,11 @@ export function LocalKnowledgePanel() {
         style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <Eyebrow tone="accent2">Sources locales</Eyebrow>
-          <H2 style={{ fontSize: 'var(--text-xl)' }}>Connaissance Breiz sourcee</H2>
+          <Eyebrow tone="accent2">Sources locales · assistant IA</Eyebrow>
+          <H2 style={{ fontSize: 'var(--text-xl)' }}>Connaissance Breiz sourcée</H2>
           <P2>
-            Breiz peut consulter des documents locaux mockes. Les reponses doivent rester ancrees
-            dans les sources affichees et signaler les manques d information.
+            Breiz est une IA qui consulte ici un corpus de contexte local. Les réponses doivent rester ancrées
+            dans les sources affichées, distinguer le contexte externe des données EMOPET et signaler les manques d'information.
           </P2>
         </div>
 
@@ -37,7 +37,7 @@ export function LocalKnowledgePanel() {
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Rechercher un territoire, une source, un theme..."
+            placeholder="Rechercher un territoire, une source, un thème..."
             aria-label="Rechercher dans les sources locales Breiz"
             style={{
               flex: 1,
@@ -57,7 +57,7 @@ export function LocalKnowledgePanel() {
 
         {retrieval.status === 'not_enough_information' ? (
           <P2 style={{ color: 'var(--fg-muted)' }}>
-            Je n ai pas encore assez d informations sourcees sur ce point.
+            Je n'ai pas encore assez d'informations sourcées sur ce point.
           </P2>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -77,7 +77,7 @@ export function LocalKnowledgePanel() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
                   <Eyebrow>{chunk.metadata.source_name}</Eyebrow>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--fg-muted)', textTransform: 'uppercase' }}>
-                    {chunk.metadata.territory} - {chunk.metadata.theme}
+                    Contexte externe · {chunk.metadata.territory} · {chunk.metadata.theme}
                   </span>
                 </div>
                 <P2 style={{ color: 'var(--fg-2)' }}>{chunk.content}</P2>
