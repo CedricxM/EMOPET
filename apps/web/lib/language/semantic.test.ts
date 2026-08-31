@@ -34,6 +34,15 @@ test('UNKNOWN never receives a reassuring normality phrase from the default qual
   assert.doesNotMatch(qualification, /tout va bien|normal/i);
 });
 
+test('DECLARED Guardian context always enters the semantic lock', () => {
+  const value = envelope({
+    truthClass: 'DECLARED',
+    evidenceLevel: 'unknown',
+    publicationGate: 'VALID',
+  });
+  assert.equal(isEvidenceRestricted(value), true);
+});
+
 test('external context with VALID gate is not automatically treated as dog-state evidence', () => {
   const value = envelope({
     truthClass: 'EXTERNAL_CONTEXT',
