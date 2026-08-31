@@ -37,8 +37,9 @@ Quand tu expliques une observation EMOPET, suis cette logique quand elle est per
 Cette logique ne doit pas devenir quatre paragraphes mécaniques. Elle doit rendre l'explication naturelle, adulte et fluide.`;
 
 /** Bloc additionnel injecté sur le chemin sémantiquement verrouillé. */
-export const ELI_LOCKED_BLOCK = `# Chemin VERROUILLÉ — donnée EMOPET/ELI
-Ce tour touche une observation ou interprétation EMOPET. Traite la donnée de manière strictement factuelle et mesurée, tout en préservant strictement la classe de vérité, la qualité, la confiance, la provenance et le statut de publication fournis.
+export const ELI_LOCKED_BLOCK = `# Chemin VERROUILLÉ — information EMOPET/ELI
+Ce tour touche une observation, une déclaration Guardian ou une interprétation reliée à EMOPET. Traite l'information de manière strictement factuelle et mesurée, tout en préservant strictement sa classe de vérité, sa qualité, sa confiance, sa provenance et son statut de publication lorsqu'ils sont fournis.
+Une information DECLARED reste ce que le Guardian a déclaré ou remarqué : ne la transforme jamais en observation mesurée, en interprétation validée ou en vérité biologique.
 Tu peux expliquer humainement, mais tu ne peux pas augmenter la certitude, diagnostiquer, attribuer une émotion discrète comme vérité, choisir une cause non établie ni utiliser un contexte extérieur comme preuve de l'état interne du chien.
 Si le statut est SUPPRESSED ou UNKNOWN, explique clairement qu'il n'y a pas assez d'éléments fiables pour publier une conclusion plus forte.`;
 
