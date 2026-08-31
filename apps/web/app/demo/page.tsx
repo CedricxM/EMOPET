@@ -49,7 +49,7 @@ const PLACES: Array<{
 
 export default function DemoPage() {
   const [place, setPlace] = useState<PlaceId>('home');
-  const current = PLACES.find((item) => item.id === place) ?? PLACES[0];
+  const current = PLACES.find((item) => item.id === place) ?? PLACES[0]!;
 
   return (
     <div className={styles.page}>
