@@ -32,10 +32,20 @@ export interface SemanticEvidenceEnvelope {
   semanticVersions: SemanticVersions;
 }
 
+/**
+ * Determines whether the turn must enter the stricter semantic path.
+ *
+ * OBSERVED, DECLARED and INTERPRETED all require truth-class preservation.
+ * A Guardian declaration must never be allowed to drift into an observed or
+ * interpreted biological fact merely because it did not match a keyword regex.
+ * Pure VALID external context can remain on the ordinary regional path, while
+ * any non-VALID publication gate remains restricted.
+ */
 export function isEvidenceRestricted(envelope?: SemanticEvidenceEnvelope): boolean {
   if (!envelope) return false;
   return (
     envelope.truthClass === 'OBSERVED' ||
+    envelope.truthClass === 'DECLARED' ||
     envelope.truthClass === 'INTERPRETED' ||
     envelope.publicationGate !== 'VALID'
   );
