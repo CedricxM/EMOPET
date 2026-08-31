@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { BrandLogo, WavePattern } from '../../components/brand';
 import { BreizDictionary } from '../../components/breiz/BreizDictionary';
+import { BreizDiscoveryScenes } from '../../components/breiz/BreizDiscoveryScenes';
 import { Icon, Pill } from '../../components/ui';
 import { WorldScene } from '../../components/world/WorldScene';
 import { MOCK_REPOS, MOCK_SENSORS } from '../../lib/mock-data';
@@ -35,7 +36,7 @@ const PLACES: Array<{
     id: 'breiz',
     kicker: '03 · Breiz',
     title: 'Explorer avec contexte',
-    detail: 'Le compagnon explique ce qui est observé, cite la provenance et propose une prochaine exploration.',
+    detail: 'Le compagnon explique ce qui est observé, cite la provenance et transforme aussi le territoire en découvertes à explorer.',
     icon: 'compass',
   },
   {
@@ -256,8 +257,8 @@ function BreizStory({ onNext }: { onNext: () => void }) {
           <span />
         </div>
         <div>
-          <p className={styles.eyebrowDark}>Breiz · compagnon d’observation</p>
-          <h3>Il relie les indices. Il ne fabrique pas une certitude.</h3>
+          <p className={styles.eyebrowDark}>Breiz · compagnon d’observation et d’exploration</p>
+          <h3>Il relie les indices — et ouvre le monde autour de vous.</h3>
         </div>
       </div>
 
@@ -281,13 +282,14 @@ function BreizStory({ onNext }: { onNext: () => void }) {
       </div>
 
       <BreizDictionary />
+      <BreizDiscoveryScenes />
 
       <div className={styles.discoveryRail}>
         <div>
           <span className={styles.discoveryIcon}><Icon name="compass" size={18} /></span>
           <div>
-            <strong>Prochaine exploration</strong>
-            <span>Comparer la cadence des matinées avec et sans départ.</span>
+            <strong>Deux formes d’exploration</strong>
+            <span>Comparer les rythmes de Gus et découvrir le territoire sans confondre les deux couches.</span>
           </div>
         </div>
         <button className={styles.nextButton} type="button" onClick={onNext}>
