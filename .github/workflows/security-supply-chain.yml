@@ -140,16 +140,11 @@ jobs:
           SEMGREP_EXIT: ${{ steps.semgrep.outputs.exit_code }}
         run: test "$SEMGREP_EXIT" -eq 0
 
-  codeql:
-    name: CodeQL JavaScript/TypeScript (best effort)
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: github/codeql-action/init@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
-        with:
-          languages: javascript-typescript
-      - uses: github/codeql-action/analyze@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
+  # CodeQL is intentionally not invoked from this advanced workflow.
+  # Repository CodeQL Default setup is the active CodeQL authority.
+  # GitHub rejects advanced CodeQL analysis while Default setup is enabled.
+  # If EMOPET later adopts an advanced CodeQL configuration, disable Default
+  # setup first under controlled security governance, then add the job back.
 
   sbom:
     name: Generate CycloneDX/SPDX SBOM

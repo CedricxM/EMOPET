@@ -10,6 +10,8 @@
  * vérifié est marqué `PENDING_VERIFIED_CONTENT` (remplissage éditorial humain).
  */
 
+import type { SemanticEvidenceEnvelope } from '../language/types';
+
 export type RegionStatus = 'TEMOIN_DEMO' | 'IN_PROGRESS' | 'PRODUCTION_READY';
 
 export interface RegionalProfile {
@@ -32,10 +34,12 @@ export interface RegionalProfile {
 /** Contexte d'un tour de conversation passé au moteur. */
 export interface ConversationContext {
   userMessage: string;
-  /** Si true → chemin VERROUILLÉ (garde-fou médical 4.3), ton factuel. */
+  /** Défense secondaire basée sur la requête ; l'enveloppe sémantique fait autorité lorsqu'elle existe. */
   touchesEliData: boolean;
-  /** Niveau de confiance de la donnée ELI évoquée, si applicable. */
-  eliConfidence?: 'VALID' | 'DEGRADED' | 'SUPPRESSED';
+  /** Niveau de publication historique, conservé pour compatibilité. */
+  eliConfidence?: 'VALID' | 'DEGRADED' | 'SUPPRESSED' | 'UNKNOWN';
+  /** Enveloppe structurée de vérité/qualité/provenance transmise par le produit. */
+  semanticEnvelope?: SemanticEvidenceEnvelope;
   /** Pour l'usage « Initier ». */
   timeOfDay?: string;
   recentActivity?: string;

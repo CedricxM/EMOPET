@@ -1,15 +1,16 @@
 /**
  * Route serveur de l'assistant régional (Breiz).
  *
- * Assemble le prompt système via le MOTEUR régional (commun + profil + savoir
+ * Assemble le prompt système via le moteur régional (commun + profil + savoir
  * filtré) et appelle l'API Anthropic SI `ANTHROPIC_API_KEY` est défini. Sinon,
- * renvoie un signal de repli : le client utilise la base RAG locale (R4).
+ * renvoie un signal de repli : le client utilise la base RAG locale.
  *
- * La clé reste côté serveur (jamais exposée au client). Prompt caching activé
- * sur le prompt système (cache_control ephemeral).
+ * IMPORTANT : les claims autorisés/interdits ne sont jamais acceptés depuis le
+ * client. L'enveloppe sémantique de compatibilité est construite côté serveur.
  */
 
 import { NextResponse } from 'next/server';
+import type { SemanticEvidenceEnvelope } from '../../../lib/language/types';
 import { buildAssistantSystemPrompt } from '../../../lib/regional/build-system-prompt';
 import { detectRegion } from '../../../lib/regional/detect-region';
 import type { ConversationContext } from '../../../lib/regional/types';
@@ -32,17 +33,48 @@ interface BreizRequest {
   userMessage?: string;
   declaredRegionId?: string;
   department?: string;
-  eliConfidence?: 'VALID' | 'DEGRADED' | 'SUPPRESSED';
+  /** Compatibilité historique. Un futur pipeline serveur fournira l'enveloppe complète. */
+  eliConfidence?: 'VALID' | 'DEGRADED' | 'SUPPRESSED' | 'UNKNOWN';
+}
+
+const LANGUAGE_VERSIONS = {
+  els: 'current-controlled-seed',
+  motspet: 'v0.1-seed',
+  claimGuard: 'current-controlled',
+  persona: 'breiz-v0.1-proposed',
+} as const;
+
+function compatibilityEnvelope(body: BreizRequest): SemanticEvidenceEnvelope | undefined {
+  if (!body.eliConfidence) return undefined;
+
+  return {
+    truthClass: 'INTERPRETED',
+    evidenceLevel: 'mixed_or_inferred',
+    publicationGate: body.eliConfidence,
+    semanticVersions: LANGUAGE_VERSIONS,
+    blockedClaims: [
+      'diagnosis',
+      'disease_detection',
+      'pain_detection',
+      'discrete_emotion_certainty',
+      'unsupported_causality',
+      'certainty_inflation',
+    ],
+  };
 }
 
 function transparencyMetadata(context: ConversationContext, responseMode: 'model' | 'retrieval') {
+  const envelope = context.semanticEnvelope;
   return {
     aiSystem: true,
     assistantRole: 'regional_context_and_knowledge_assistant',
     responseMode,
-    evidenceLevel: context.touchesEliData ? 'mixed_or_inferred' : 'external_context',
+    evidenceLevel: envelope?.evidenceLevel ?? (context.touchesEliData ? 'mixed_or_inferred' : 'external_context'),
+    publicationGate: envelope?.publicationGate ?? null,
+    truthClass: envelope?.truthClass ?? (context.touchesEliData ? 'INTERPRETED' : 'EXTERNAL_CONTEXT'),
     medicalStatus: 'non_diagnostic',
     provenanceRequired: true,
+    semanticVersions: envelope?.semanticVersions ?? LANGUAGE_VERSIONS,
   } as const;
 }
 
@@ -59,10 +91,13 @@ export async function POST(req: Request) {
   if (userMessage.length > BREIZ_MAX_MESSAGE_LENGTH) return NextResponse.json({ error: 'message_too_long' }, { status: 413 });
 
   const region = detectRegion({ declaredRegionId: body.declaredRegionId, department: body.department });
+  const semanticEnvelope = compatibilityEnvelope(body);
   const context: ConversationContext = {
     userMessage,
-    touchesEliData: ELI_TERMS.test(userMessage),
+    // Défense secondaire : le verrouillage ne dépend plus uniquement de ce regex.
+    touchesEliData: Boolean(semanticEnvelope) || ELI_TERMS.test(userMessage),
     eliConfidence: body.eliConfidence,
+    semanticEnvelope,
   };
 
   const built = buildAssistantSystemPrompt(region.profile, region.knowledge, context, {
@@ -71,8 +106,6 @@ export async function POST(req: Request) {
 
   const apiKey = process.env['ANTHROPIC_API_KEY'];
 
-  // Pas de clé → repli RAG côté client. La réponse reste explicitement identifiée
-  // comme une interaction avec l'assistant IA, mais le mode de réponse est retrieval.
   if (!apiKey) {
     return NextResponse.json({
       via: 'fallback',
@@ -81,12 +114,12 @@ export async function POST(req: Request) {
       isDefaultRegion: region.isDefault,
       invitation: region.invitation ?? null,
       touchesEliData: context.touchesEliData,
+      semanticLock: built.semanticLock,
       knowledgeTokens: built.knowledgeTokens,
       transparency: transparencyMetadata(context, 'retrieval'),
     });
   }
 
-  // Chemin modèle réel : API Anthropic, prompt système caché.
   try {
     const model = process.env['ANTHROPIC_MODEL'] ?? 'claude-3-5-haiku-latest';
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -110,6 +143,7 @@ export async function POST(req: Request) {
         regionId: region.profile.regionId,
         isDefaultRegion: region.isDefault,
         touchesEliData: context.touchesEliData,
+        semanticLock: built.semanticLock,
         transparency: transparencyMetadata(context, 'retrieval'),
         error: `anthropic_${res.status}`,
       });
@@ -122,6 +156,7 @@ export async function POST(req: Request) {
       regionId: region.profile.regionId,
       isDefaultRegion: region.isDefault,
       touchesEliData: context.touchesEliData,
+      semanticLock: built.semanticLock,
       text,
       sources: [`${region.profile.assistantName} · ancrage ${region.profile.regionId}`],
       transparency: {
@@ -137,6 +172,7 @@ export async function POST(req: Request) {
       regionId: region.profile.regionId,
       isDefaultRegion: region.isDefault,
       touchesEliData: context.touchesEliData,
+      semanticLock: built.semanticLock,
       transparency: transparencyMetadata(context, 'retrieval'),
     });
   }
