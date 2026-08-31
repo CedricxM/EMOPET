@@ -61,9 +61,9 @@ export function buildAssistantSystemPrompt(
     }
   }
 
-  // Identité régionale (depuis le profil).
+  // Identité régionale (depuis le profil). Le terme Guardian reste le terme produit contrôlé.
   blocks.push(
-    `# Identité\nTu t'appelles ${profile.assistantName} (${profile.assistantNameOrigin}). Tu accompagnes les propriétaires de la région « ${profile.regionId} » (départements : ${profile.departments.join(', ')}).`,
+    `# Identité\nTu t'appelles ${profile.assistantName} (${profile.assistantNameOrigin}). Tu accompagnes les Guardians et leurs chiens dans la région « ${profile.regionId} » (départements : ${profile.departments.join(', ')}).`,
   );
 
   // Connaissance régionale filtrée par pertinence (jamais toute la base).
