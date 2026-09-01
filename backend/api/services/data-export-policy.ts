@@ -29,6 +29,30 @@ export interface GuardianEliExportRow {
   };
 }
 
+export interface PersistedBaselineExportRow {
+  id: string;
+  dogId: string;
+  startedAt: Date;
+  validHours: number;
+  established: number;
+  metrics: unknown;
+  updatedAt: Date | null;
+}
+
+export interface GuardianBaselineExportRow {
+  id: string;
+  dogId: string;
+  startedAt: Date;
+  validHours: number;
+  established: number;
+  updatedAt: Date | null;
+  metricsStatus: 'WITHHELD_PENDING_DISCLOSURE_AUTHORITY';
+  provenance: {
+    level: 'baseline_metadata';
+    warning: string;
+  };
+}
+
 /**
  * Serialize one persisted ELI state for a Guardian-facing export.
  *
@@ -67,6 +91,33 @@ export function serializeEliForGuardianExport(row: PersistedEliExportRow): Guard
     ...common,
     arousal: row.arousal,
     load: row.load,
+  };
+}
+
+/**
+ * Serialize persisted baseline lifecycle metadata without leaking the opaque
+ * `metrics` persistence payload.
+ *
+ * Baseline existence/age/establishment can be described mechanically, but the
+ * current DATA-01 authority does not yet define which derived baseline metric
+ * fields are Guardian-disclosable. Persistence therefore does not act as an
+ * implicit disclosure policy.
+ */
+export function serializeBaselineForGuardianExport(
+  row: PersistedBaselineExportRow,
+): GuardianBaselineExportRow {
+  return {
+    id: row.id,
+    dogId: row.dogId,
+    startedAt: row.startedAt,
+    validHours: row.validHours,
+    established: row.established,
+    updatedAt: row.updatedAt,
+    metricsStatus: 'WITHHELD_PENDING_DISCLOSURE_AUTHORITY',
+    provenance: {
+      level: 'baseline_metadata',
+      warning: 'Baseline metric payload withheld pending an explicit Guardian disclosure authority; persistence alone does not authorize publication.',
+    },
   };
 }
 
