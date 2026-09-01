@@ -50,14 +50,22 @@ test('AUTH-01 routes persist credentials, rotate refresh sessions, and revoke se
   await sql`DELETE FROM auth_refresh_sessions WHERE user_id IN (SELECT id FROM users WHERE email = ${email})`;
   await sql`DELETE FROM users WHERE email = ${email}`;
 
-  const registerResponse = await jsonRequest('/register', {
-    email: 'ROUTE-AUTH@emopet.invalid',
+  const blankNameResponse = await jsonRequest('/register', {
+    email: 'blank-name@emopet.invalid',
     password,
-    name: 'Route Auth',
+    name: '   ',
+  });
+  assert.equal(blankNameResponse.status, 400);
+
+  const registerResponse = await jsonRequest('/register', {
+    email: '  ROUTE-AUTH@emopet.invalid  ',
+    password,
+    name: ' Route Auth ',
   });
   assert.equal(registerResponse.status, 201);
   const registered = await registerResponse.json();
   assert.equal(registered.user.email, email);
+  assert.equal(registered.user.name, 'Route Auth');
   assert.match(registered.user.id, /^[0-9a-f-]{36}$/i);
   assert.equal(typeof registered.accessToken, 'string');
   assert.match(registered.refreshToken, /^emopet_rt_/);
