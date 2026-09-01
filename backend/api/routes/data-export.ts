@@ -6,6 +6,7 @@ import { dogs, devices } from '../../db/schema/dogs.js';
 import { baselines, eliStates, sensorSummaries } from '../../db/schema/sensors.js';
 import {
   exportEnvelopeToCsv,
+  serializeBaselineForGuardianExport,
   serializeEliForGuardianExport,
 } from '../services/data-export-policy.js';
 
@@ -16,7 +17,7 @@ interface Variables {
 interface ExportProvenance {
   source: 'EMOPET_BACKEND';
   generatedAt: string;
-  schemaVersion: 'p0-data-act-v2';
+  schemaVersion: 'p0-data-act-v3';
   notes: string[];
 }
 
@@ -40,6 +41,10 @@ function parseDate(value: string | undefined): Date | null {
  * serializer enforces the current scientific publication boundary independently of the
  * database schema so internal/gated model variables cannot leak merely because they are
  * persisted.
+ *
+ * Baseline persistence is likewise not treated as automatic disclosure authority. The
+ * export currently exposes lifecycle/establishment metadata but withholds the opaque
+ * baseline `metrics` payload until a controlled Guardian disclosure policy exists.
  */
 dataExport.get('/', async (c) => {
   const userId = c.get('userId');
@@ -73,18 +78,19 @@ dataExport.get('/', async (c) => {
   const provenance: ExportProvenance = {
     source: 'EMOPET_BACKEND',
     generatedAt: new Date().toISOString(),
-    schemaVersion: 'p0-data-act-v2',
+    schemaVersion: 'p0-data-act-v3',
     notes: [
       'This export contains only records currently persisted by the EMOPET backend.',
       'Raw high-rate MAT/TAG streams are not persisted by the current backend schema and are therefore not fabricated.',
       'ELI states are inferred/derived data and are separated from preprocessed sensor summaries.',
       'Valence is an internal V1 model variable and is intentionally excluded from Guardian exports under the current scientific publication authority.',
       'Arousal/load values are exported only for ELI states whose publication gate is PUBLISH; other rows retain quality/gate metadata without latent values.',
+      'Baseline lifecycle metadata may be exported voluntarily, but the opaque baseline metrics payload is withheld pending explicit Guardian disclosure authority.',
     ],
   };
 
   const envelope = {
-    exportVersion: 'p0-data-act-v2',
+    exportVersion: 'p0-data-act-v3',
     generatedAt: provenance.generatedAt,
     subject: {
       userId,
@@ -125,7 +131,7 @@ dataExport.get('/', async (c) => {
       },
     })),
     inferred: eliRows.map(serializeEliForGuardianExport),
-    baselines: baselineRows,
+    baselines: baselineRows.map(serializeBaselineForGuardianExport),
     devices: deviceRows.map((row) => ({
       id: row.id,
       dogId: row.dogId,
@@ -155,11 +161,12 @@ dataExport.get('/', async (c) => {
  * users can already obtain a JSON/CSV package without that dependency.
  */
 dataExport.get('/capabilities', (c) => c.json({
-  exportVersion: 'p0-data-act-v2',
+  exportVersion: 'p0-data-act-v3',
   formats: ['json', 'csv'],
   filters: ['dog_id', 'from', 'to'],
   directThirdPartyDelegation: 'GATED_AUTH_BASELINE_REQUIRED',
   rawHighRateStreams: 'NOT_PERSISTED_BY_CURRENT_BACKEND_SCHEMA',
   inferredDisclosurePolicy: 'GUARDIAN_V1_PUBLICATION_GATED',
-  availableLevels: ['preprocessed', 'inferred', 'device_metadata', 'baseline'],
+  baselineMetricDisclosurePolicy: 'WITHHELD_PENDING_DISCLOSURE_AUTHORITY',
+  availableLevels: ['preprocessed', 'inferred', 'device_metadata', 'baseline_metadata'],
 }));
