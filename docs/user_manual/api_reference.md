@@ -44,11 +44,16 @@ Limites importantes :
 
 | Méthode | Chemin | État observé |
 |---|---|---|
-| GET, POST | `/api/dogs` | Liste/création placeholder |
-| GET, PATCH, DELETE | `/api/dogs/:id` | Contrôle propriétaire, réponse encore partielle |
+| GET | `/api/dogs` | Liste placeholder |
+| POST | `/api/dogs` | Validation d'entrée ; `501 dog_creation_not_implemented` tant qu'aucune création durable n'est implémentée |
+| GET | `/api/dogs/:id` | Contrôle propriétaire, réponse encore partielle |
+| PATCH | `/api/dogs/:id` | Validation + contrôle propriétaire ; `501 dog_update_not_implemented` tant qu'aucune mise à jour durable n'est implémentée |
+| DELETE | `/api/dogs/:id` | Contrôle propriétaire ; `501 dog_deletion_not_implemented` tant qu'aucune suppression durable n'est implémentée |
 | GET | `/api/dogs/:id/absence-comparison` | Comparaison présence/absence avec données DB ou fallback |
 | GET | `/api/dogs/:id/vet-report-link` | Création d'un lien temporaire signé |
 | GET | `/api/dogs/:id/vet-report` | PDF, via propriétaire ou `share_token` valide |
+
+Les mutations CRUD chien n'accusent volontairement aucun changement durable tant que le contrat de persistance, d'ownership et de suppression des données liées n'est pas implémenté. La validation d'une requête ou un contrôle d'accès réussi ne constituent pas une création, une mise à jour ou une suppression.
 
 ### Capteurs et ELI
 
