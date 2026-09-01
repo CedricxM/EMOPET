@@ -29,8 +29,27 @@ function readRefreshToken(body: unknown): string | null {
   return trimmed.length >= 32 && trimmed.length <= 512 ? trimmed : null;
 }
 
+function hasDatabaseErrorCode(error: unknown, expectedCode: string): boolean {
+  let current: unknown = error;
+  const seen = new Set<object>();
+
+  for (let depth = 0; depth < 8; depth += 1) {
+    if (typeof current !== 'object' || current === null) return false;
+    if (seen.has(current)) return false;
+    seen.add(current);
+
+    if ('code' in current && (current as { code?: unknown }).code === expectedCode) {
+      return true;
+    }
+
+    current = 'cause' in current ? (current as { cause?: unknown }).cause : null;
+  }
+
+  return false;
+}
+
 function isUniqueViolation(error: unknown): boolean {
-  return typeof error === 'object' && error !== null && 'code' in error && (error as { code?: unknown }).code === '23505';
+  return hasDatabaseErrorCode(error, '23505');
 }
 
 function tokenResponse(accessToken: string, refreshToken: string, refreshTokenExpiresAt: Date) {
