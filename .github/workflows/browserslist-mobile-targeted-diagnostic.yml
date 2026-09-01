@@ -1,0 +1,50 @@
+name: One-shot browserslist mobile resolution diagnostic
+
+on:
+  push:
+    branches:
+      - fix/security-browserslist-4-28-7
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-resolution-diagnostic:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout remediation branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: fix/security-browserslist-4-28-7
+
+      - name: Setup Node 20
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '20'
+
+      - name: Enable exact pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.33.0 --activate
+          test "$(pnpm --version)" = "10.33.0"
+
+      - name: Resolve only apps/mobile under unchanged trust policy
+        run: |
+          cp pnpm-workspace.yaml /tmp/pnpm-workspace.yaml.controlled
+          cp pnpm-lock.yaml /tmp/pnpm-lock.yaml.controlled
+          trap 'cp /tmp/pnpm-workspace.yaml.controlled pnpm-workspace.yaml; cp /tmp/pnpm-lock.yaml.controlled pnpm-lock.yaml' EXIT
+          cat >> pnpm-workspace.yaml <<'EOF'
+          recursiveInstall: false
+          EOF
+          cd apps/mobile
+          pnpm install --lockfile-only
+
+      - name: Report proposed lock scope if resolution succeeds
+        run: |
+          git diff --stat -- pnpm-lock.yaml
+          git diff --name-only -- pnpm-lock.yaml
+          grep -q "browserslist@4.28.7" pnpm-lock.yaml
+          echo "Mobile-only resolution reached patched browserslist without changing repository trust policy."
