@@ -10,9 +10,9 @@
 
 | Check | Result |
 |---|---:|
-| Exact source records selected | 3 |
-| Exact record hashes matched to R2 manifest | 3 / 3 |
-| Repository-generated control records | 4 |
+| Exact source records selected | 5 |
+| Exact record hashes matched to R2 manifest | 5 / 5 |
+| Repository-generated control records | 6 |
 | Binary files | 0 |
 | ZIP or third-party payloads | 0 |
 | Absolute workspace paths | 0 |
@@ -30,6 +30,7 @@
 | Verbatim R2 verification record | HOLD | Contains a historical visual-authority statement |
 | R2 package scope and release notes | HOLD | Refer to held guide/workbook artifacts |
 | Archives, source payloads and third-party originals | EXCLUDE | Not required for repository control traceability |
+| Four R2 gates with active count `NO` | MAP | Each closure is promoted only within its stated scope |
 
 ## Governance QA
 
@@ -41,4 +42,4 @@
 
 ## Disposition
 
-The seven-file documentation-only set may be submitted for pull-request review. Merge remains subject to repository review and checks. The held R2 guide/workbook family requires a new reconciled controlled revision before any future promotion.
+The eleven-file documentation-only set may be submitted for pull-request review. Merge remains subject to repository review and checks. The held R2 guide/workbook family requires a new reconciled controlled revision before any future promotion.

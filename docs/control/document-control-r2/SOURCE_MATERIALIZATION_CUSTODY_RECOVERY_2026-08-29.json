@@ -1,0 +1,38 @@
+{
+  "document_id": "QA-CUSTODY-RECOVERY-003",
+  "revision": "1.0",
+  "date": "2026-08-29",
+  "status": "PASS_WITH_NOTES — NEW ISOLATED MATERIALIZATION 430/430 VERIFIED",
+  "source_zip": "upload/EMOPET_GLOBAL_CURRENT_2026-08-25(1).zip",
+  "source_zip_sha256": "f464f15959e2010e77302289d8622129673af613d3350bb863b85173b270b376",
+  "canonical_materialization": "EMOPET_DOCUMENT_CONTROL_2026/00_INVENTORY/CONTROLLED_MATERIALIZATIONS/EMOPET_GLOBAL_CURRENT_2026-08-25_EXACT_FROM_ZIP_2026-08-29/EMOPET_GLOBAL_CURRENT_2026-08-25",
+  "canonical_result": {
+    "archive_files": 430,
+    "local_files": 430,
+    "byte_identical": 430,
+    "missing": [],
+    "extra": [],
+    "mismatches": [],
+    "result": "PASS"
+  },
+  "legacy_snapshot": "EMOPET_DOCUMENT_CONTROL_2026/00_INVENTORY/SOURCE_SNAPSHOT/EMOPET_GLOBAL_CURRENT_2026-08-25",
+  "legacy_result": {
+    "archive_files": 430,
+    "local_files": 430,
+    "byte_identical": 429,
+    "missing": [],
+    "extra": [],
+    "mismatches": [
+      {
+        "path": "01_BASELINE_THROUGH_2026-08-24_1938Z/EMOPET_BASELINE_v3.0_CONTROLLED/06_BRAND_AND_PUBLIC/institutional_presentation/BRD-PUB-001_EMOPET_Institutional_Presentation_FR_r1.0.pdf",
+        "archive_bytes": 2212912,
+        "local_bytes": 1879040,
+        "archive_sha256": "b6ba7cdc8b8d24095acaee7f2c314248050a092b341c98eddc5856b607b3c47b",
+        "local_sha256": "32e7809c6a33a3c3332effa7034601ede5852e9abd1ef87ffd6370acd16f5288"
+      }
+    ],
+    "result": "FAIL"
+  },
+  "root_cause_disposition": "Observed legacy BRD-PUB-001 byte divergence is confirmed; the mechanism of post-materialization truncation or mutation is not evidenced. Operational custody is recovered by a new isolated 430/430 exact materialization. The legacy snapshot remains preserved and non-canonical.",
+  "governance_boundary": "This custody recovery does not repair or amend the immutable ZIP's historical release-control anomaly recorded under OPEN-DOC-002."
+}

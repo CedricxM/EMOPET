@@ -30,7 +30,7 @@ The controlled R2 verification record reports:
 | Nested ZIP payloads | 0 |
 | Exact materialization | 430 / 430 |
 
-This repository promotion independently recalculated the archive hash, reran the ZIP compressed-data test and matched all three copied source records against the R2 manifest.
+This repository promotion independently recalculated the archive hash, reran the ZIP compressed-data test and matched all five copied source records against the R2 manifest.
 
 ## Repository authority reconciliation
 
@@ -44,4 +44,5 @@ This is a repository-context reconciliation only. It does not modify the byte-fr
 - No product, scientific, legal, component-selection, transmission, manufacturing or publication gate is closed.
 - MOKO release candidates and third-party originals are not included.
 - The global guide and workbook are not promoted until their authority conflict is reconciled under a new controlled revision.
+- The four R2 gates whose active count is `NO` are mapped in `CLOSED_GATE_PROMOTION_REGISTER.csv`; every closure remains limited to its stated scope.
 - Promotion is limited to a review branch and pull request; `main` is unchanged until normal review and merge.

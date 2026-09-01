@@ -21,14 +21,18 @@ The source R2 checkpoint remains immutable. This repository promotion does not a
 | Record | Source SHA-256 | Role |
 |---|---|---|
 | [`CONTROLLED_ARCHIVE_CUSTODY_RECOVERY_2026-08-29.md`](CONTROLLED_ARCHIVE_CUSTODY_RECOVERY_2026-08-29.md) | `897a1dbdb015d76f4d9be072bce2f49fbd1ebb200bc2a7a2979c991b223999e3` | Controlled archive custody evidence |
+| [`CONTROLLED_ARCHIVE_CUSTODY_RECOVERY_2026-08-29.json`](CONTROLLED_ARCHIVE_CUSTODY_RECOVERY_2026-08-29.json) | `2e8ce52a6e7c1691b5471ee9852f6a8ff83aa555059b905d43b5029da6b75e5e` | Machine-readable controlled archive custody evidence |
 | [`GLOBAL_METADATA_NORMALIZATION_QA_2026-08-29.md`](GLOBAL_METADATA_NORMALIZATION_QA_2026-08-29.md) | `4e96a95fa37c8cbcfa4cbb23dc798c03318799476a007a5c262e29b65bb7d93e` | Non-inferential metadata QA evidence |
 | [`SOURCE_MATERIALIZATION_CUSTODY_RECOVERY_2026-08-29.md`](SOURCE_MATERIALIZATION_CUSTODY_RECOVERY_2026-08-29.md) | `be5839fdf3f46e161e0ae6c8969d42225c1426962a10982c28fe6eda286dcb9f` | Immutable source materialization evidence |
+| [`SOURCE_MATERIALIZATION_CUSTODY_RECOVERY_2026-08-29.json`](SOURCE_MATERIALIZATION_CUSTODY_RECOVERY_2026-08-29.json) | `e5a9b737c4b30b6a55a7199445513c619c4a876c9a0059cae39a18b05cacb5da` | Machine-readable immutable source materialization evidence |
 
-These three files are byte-identical to their members in the R2 checkpoint and match its manifest.
+These five files are byte-identical to their members in the R2 checkpoint and match its manifest.
 
 ## Repository-generated controls
 
 - [`R2_CHECKPOINT_INTEGRITY_RECORD.md`](R2_CHECKPOINT_INTEGRITY_RECORD.md) records the local re-verification and the repository-authority boundary.
+- [`BRAND_AUTHORITY_REPOSITORY_DISPOSITION.md`](BRAND_AUTHORITY_REPOSITORY_DISPOSITION.md) records the current repository authority without rewriting R2 history.
+- [`CLOSED_GATE_PROMOTION_REGISTER.csv`](CLOSED_GATE_PROMOTION_REGISTER.csv) records the four R2 gates whose active count is `NO` and their bounded repository treatment.
 - [`PROMOTION_MANIFEST.csv`](PROMOTION_MANIFEST.csv) records every promoted or generated file and the selection decision.
 - [`PROMOTION_QA.md`](PROMOTION_QA.md) records the repository promotion checks.
 
