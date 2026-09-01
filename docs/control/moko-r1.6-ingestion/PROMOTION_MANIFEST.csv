@@ -1,0 +1,8 @@
+repo_path,record_type,source_checkpoint_member,source_sha256,status,promotion_decision,notes
+docs/control/moko-r1.6-ingestion/MOKO_R1.6_PAYLOAD_VERIFICATION_REGISTER.csv,EXACT_R2_RECORD,06_MOKO_RELEASE/MOKO_R1.6_PAYLOAD_VERIFICATION_REGISTER.csv,e2a346bdf07f5577e0221afecd92d3df46f0d00db4cae6d005679059e227eea2,PASS,PROMOTE,46-row byte-identical verification register; no payload binaries
+docs/control/moko-r1.6-ingestion/MOKO_RELEASE_LINEAGE_REGISTER.csv,EXACT_R2_RECORD,06_MOKO_RELEASE/MOKO_RELEASE_LINEAGE_REGISTER.csv,b3e68d92a91d4523622fd8540a81cc2f1b1a06acf66f9d3a108e679f40a0eb40,PASS_WITH_NOTES,PROMOTE,Byte-identical r1.4-r1.6 lineage register
+docs/control/moko-r1.6-ingestion/MOKO_R1.6_RECONCILIATION_REGISTER_INPUT_QA_REPORT_2026-08-26.md,EXACT_R2_RECORD,05_QA/MOKO_R1.6_RECONCILIATION_REGISTER_INPUT_QA_REPORT_2026-08-26.md,4785f61a3bee721fb689f588b529d4bfe3cb615e17d529a2f60b1fb91e245a8a,PASS_WITH_NOTES,PROMOTE,Byte-identical input-register QA evidence
+docs/control/moko-r1.6-ingestion/README.md,REPOSITORY_CONTROL,N/A,GENERATED_AT_PROMOTION,INTERNAL_CONTROLLED,PROMOTE,Scope and exclusion index
+docs/control/moko-r1.6-ingestion/MOKO_R1_6_INGESTION_GATE_DISPOSITION.md,REPOSITORY_CONTROL,N/A,GENERATED_AT_PROMOTION,CLOSED_SCOPE_ONLY,PROMOTE,Current repository disposition for ingestion-only closure
+docs/control/moko-r1.6-ingestion/PROMOTION_MANIFEST.csv,REPOSITORY_CONTROL,N/A,SELF_REFERENTIAL,INTERNAL_CONTROLLED,PROMOTE,Selection and lineage manifest
+docs/control/moko-r1.6-ingestion/PROMOTION_QA.md,REPOSITORY_CONTROL,N/A,GENERATED_AT_PROMOTION,PASS_WITH_NOTES,PROMOTE,Repository promotion QA
