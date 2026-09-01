@@ -4,7 +4,7 @@ import { zValidator } from '@hono/zod-validator';
 import { DogCreateSchema, DogUpdateSchema } from '@emopet/shared';
 
 import { db } from '../../db/index.js';
-import { sensorSummaries } from '../../db/schema/index.js';
+import { dogs as dogTable, sensorSummaries, users } from '../../db/schema/index.js';
 import {
   computePresenceComparison,
   getPresenceEventsForDog,
@@ -16,9 +16,32 @@ import {
   loadVetReportSummary,
   verifyVetReportShareToken,
 } from '../services/vet-report.js';
-import { requireDogOwnership } from '../middleware/authorization.js';
+import { getCurrentUserId, requireDogOwnership } from '../middleware/authorization.js';
 
 const dogs = new Hono();
+
+type DogRow = typeof dogTable.$inferSelect;
+
+function toDateOnly(value: Date): string {
+  return value.toISOString().slice(0, 10);
+}
+
+function serializeDog(row: DogRow) {
+  return {
+    id: row.id,
+    ownerId: row.ownerId,
+    name: row.name,
+    breed: row.breed,
+    breedFciNumber: row.breedFciNumber,
+    birthDate: row.birthDate,
+    sex: row.sex,
+    weight: row.weight,
+    furClass: row.furClass,
+    photo: row.photoUrl,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
 
 function buildFallbackPresenceEvents(): PresenceEventInput[] {
   const now = new Date();
@@ -107,8 +130,39 @@ dogs.get('/', async (c) => {
 });
 
 dogs.post('/', zValidator('json', DogCreateSchema), async (c) => {
+  const ownerId = getCurrentUserId(c);
+  if (!ownerId) return c.json({ error: 'unauthorized' }, 401);
+
   const body = c.req.valid('json');
-  return c.json({ message: 'created', name: body.name }, 201);
+  const created = await db.transaction(async (tx) => {
+    const [guardian] = await tx
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.id, ownerId))
+      .limit(1);
+
+    if (!guardian) return null;
+
+    const [row] = await tx
+      .insert(dogTable)
+      .values({
+        ownerId,
+        name: body.name,
+        breed: body.breed,
+        breedFciNumber: body.breedFciNumber ?? null,
+        birthDate: toDateOnly(body.birthDate),
+        sex: body.sex,
+        weight: body.weight,
+        furClass: body.furClass,
+        photoUrl: body.photo ?? null,
+      })
+      .returning();
+
+    return row ?? null;
+  });
+
+  if (!created) return c.json({ error: 'unauthorized' }, 401);
+  return c.json({ dog: serializeDog(created) }, 201);
 });
 
 dogs.get('/:id', async (c) => {
@@ -219,14 +273,46 @@ dogs.patch('/:id', zValidator('json', DogUpdateSchema), async (c) => {
   const id = c.req.param('id');
   const denied = await requireDogOwnership(c, id);
   if (denied) return denied;
-  return c.json({ id, message: 'updated' });
+
+  const ownerId = getCurrentUserId(c);
+  if (!ownerId) return c.json({ error: 'unauthorized' }, 401);
+
+  const body = c.req.valid('json');
+  const updates: Partial<typeof dogTable.$inferInsert> = {};
+  let hasChanges = false;
+
+  if (body.name !== undefined) { updates.name = body.name; hasChanges = true; }
+  if (body.breed !== undefined) { updates.breed = body.breed; hasChanges = true; }
+  if (body.breedFciNumber !== undefined) { updates.breedFciNumber = body.breedFciNumber; hasChanges = true; }
+  if (body.birthDate !== undefined) { updates.birthDate = toDateOnly(body.birthDate); hasChanges = true; }
+  if (body.sex !== undefined) { updates.sex = body.sex; hasChanges = true; }
+  if (body.weight !== undefined) { updates.weight = body.weight; hasChanges = true; }
+  if (body.furClass !== undefined) { updates.furClass = body.furClass; hasChanges = true; }
+  if (body.photo !== undefined) { updates.photoUrl = body.photo; hasChanges = true; }
+
+  if (!hasChanges) return c.json({ error: 'no_updates' }, 400);
+  updates.updatedAt = new Date();
+
+  const [updated] = await db
+    .update(dogTable)
+    .set(updates)
+    .where(and(eq(dogTable.id, id), eq(dogTable.ownerId, ownerId)))
+    .returning();
+
+  if (!updated) return c.json({ error: 'not_found' }, 404);
+  return c.json({ dog: serializeDog(updated) });
 });
 
 dogs.delete('/:id', async (c) => {
   const id = c.req.param('id');
   const denied = await requireDogOwnership(c, id);
   if (denied) return denied;
-  return c.json({ id, message: 'deleted' });
+
+  // PRIV-01 (#69) must define the erasure graph before any destructive dog delete.
+  return c.json({
+    error: 'erasure_policy_pending',
+    gate: 'PRIV-01',
+  }, 501);
 });
 
 export { dogs };
