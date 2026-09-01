@@ -40,7 +40,7 @@ export interface IssuedRefreshCredential {
 export function issueRefreshCredential(
   userId: string,
   now = new Date(),
-  familyId = randomUUID(),
+  familyId: string = randomUUID(),
 ): IssuedRefreshCredential {
   const rawToken = generateRefreshToken();
   return {
