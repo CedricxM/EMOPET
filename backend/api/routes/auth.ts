@@ -1,4 +1,4 @@
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { RegisterSchema, LoginSchema } from '@emopet/shared';
@@ -140,6 +140,11 @@ auth.post('/refresh', async (c) => {
           .where(eq(authRefreshSessions.tokenHash, tokenHash))
           .limit(1);
         return row ?? null;
+      },
+      async lockFamily(familyId) {
+        // One transaction-scoped lock per refresh family. Hash collisions can
+        // only over-serialize unrelated families; they cannot weaken safety.
+        await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${familyId}, 0))`);
       },
       async revokeIfActive(id, reason, at) {
         const rows = await tx
