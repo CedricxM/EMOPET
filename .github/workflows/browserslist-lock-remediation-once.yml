@@ -42,6 +42,7 @@ jobs:
           trustPolicyExclude:
             - undici-types@6.21.0
             - eslint-import-resolver-typescript@3.10.1
+            - ua-parser-js@1.0.41
           EOF
           pnpm install --lockfile-only
 
@@ -52,6 +53,8 @@ jobs:
           grep -q "sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==" pnpm-lock.yaml
           grep -q "eslint-import-resolver-typescript@3.10.1:" pnpm-lock.yaml
           grep -q "sha512-A1rHYb06zjMGAxdLSkN2fXPBwuSaQ0iO5M/hdyS0Ajj1VBaRp0sPD3dn1FhME3c/JluGFbwSxyCfqdSbtQLAHQ==" pnpm-lock.yaml
+          grep -q "ua-parser-js@1.0.41:" pnpm-lock.yaml
+          grep -q "sha512-LbBDqdIC5s8iROCUjMbW1f5dJQTEFB1+KO9ogbvlb3nm9n4YHa5p4KTvFPWvh2Hs8gZMBuiB1/8+pdfe/tDPug==" pnpm-lock.yaml
 
       - name: Verify patched resolution under normal repository policy
         run: |
