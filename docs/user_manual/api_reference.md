@@ -90,8 +90,10 @@ Limites importantes :
 | Méthode | Chemin | État observé |
 |---|---|---|
 | GET | `/api/health/:dogId` | Contrôle propriétaire, entrées placeholder |
-| POST | `/api/health` | Validation + contrôle propriétaire, persistance non démontrée |
+| POST | `/api/health` | Validation + contrôle propriétaire ; `501 health_entry_persistence_not_implemented` tant qu'aucun writer durable n'est implémenté |
 | GET | `/api/health/:dogId/reminders` | Contrôle propriétaire, rappels placeholder |
+
+Le `POST /api/health` n'accuse volontairement aucune création tant qu'une entrée n'est pas écrite dans le store `health_entries` autoritatif. La présence de la table seule ne constitue pas une preuve de persistance runtime.
 
 Ces routes portent un nom historique `health`, mais leurs sorties ne doivent pas être présentées comme un diagnostic.
 
