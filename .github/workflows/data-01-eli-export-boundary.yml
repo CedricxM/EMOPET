@@ -43,7 +43,11 @@ jobs:
 
       - name: Run DATA-01 export policy regression
         working-directory: backend
-        run: node --test test/data-export-policy-regression.test.mjs
+        run: >-
+          node --test
+          test/data-export-policy.test.mjs
+          test/data-export-policy-sensitive-values.test.mjs
+          test/data-export-route-policy-static.test.mjs
 
       - name: Backend typecheck
         run: pnpm --filter @emopet/api typecheck
