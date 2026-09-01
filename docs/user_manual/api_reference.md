@@ -46,9 +46,11 @@ Limites importantes :
 |---|---|---|
 | GET, POST | `/api/dogs` | Liste/création placeholder |
 | GET, PATCH, DELETE | `/api/dogs/:id` | Contrôle propriétaire, réponse encore partielle |
-| GET | `/api/dogs/:id/absence-comparison` | Comparaison présence/absence avec données DB ou fallback |
+| GET | `/api/dogs/:id/absence-comparison` | Comparaison présence/absence depuis les données réelles disponibles ; `REJECT` si elles sont insuffisantes, sans fallback physiologique synthétique côté serveur |
 | GET | `/api/dogs/:id/vet-report-link` | Création d'un lien temporaire signé |
 | GET | `/api/dogs/:id/vet-report` | PDF, via propriétaire ou `share_token` valide |
+
+Le mode démo sans token de l'application mobile peut construire une comparaison locale explicitement étiquetée comme telle ; il ne constitue pas une source de données backend et ne doit pas être confondu avec une mesure du chien.
 
 ### Capteurs et ELI
 
