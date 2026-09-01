@@ -140,6 +140,42 @@ test('AUTH-01 routes persist credentials, rotate refresh sessions, and revoke se
   });
   assert.equal(postReuseResponse.status, 401);
 
+  // Race proof: replay a rotated token while its successor is refreshing.
+  // The family lock allows either request to win the lock first, but after both
+  // complete there must be no active refresh session left in that family.
+  const raceLoginResponse = await jsonRequest('/login', { email, password });
+  assert.equal(raceLoginResponse.status, 200);
+  const raceInitial = await raceLoginResponse.json();
+
+  const raceRotateResponse = await jsonRequest('/refresh', {
+    refreshToken: raceInitial.refreshToken,
+  });
+  assert.equal(raceRotateResponse.status, 200);
+  const raceCurrent = await raceRotateResponse.json();
+  const raceInitialHash = hashRefreshToken(raceInitial.refreshToken);
+
+  const [currentRaceResponse, replayRaceResponse] = await Promise.all([
+    jsonRequest('/refresh', { refreshToken: raceCurrent.refreshToken }),
+    jsonRequest('/refresh', { refreshToken: raceInitial.refreshToken }),
+  ]);
+  assert.ok([200, 401].includes(currentRaceResponse.status));
+  assert.equal(replayRaceResponse.status, 401);
+
+  const [raceFamilyState] = await sql`
+    SELECT
+      count(*) FILTER (WHERE revoked_at IS NULL)::int AS active_count,
+      count(*) FILTER (WHERE revoke_reason = 'reuse_detected')::int AS reuse_count
+    FROM auth_refresh_sessions
+    WHERE family_id = (
+      SELECT family_id
+      FROM auth_refresh_sessions
+      WHERE token_hash = ${raceInitialHash}
+      LIMIT 1
+    )
+  `;
+  assert.equal(raceFamilyState.active_count, 0);
+  assert.ok(raceFamilyState.reuse_count >= 1);
+
   const secondLoginResponse = await jsonRequest('/login', { email, password });
   assert.equal(secondLoginResponse.status, 200);
   const secondLogin = await secondLoginResponse.json();
