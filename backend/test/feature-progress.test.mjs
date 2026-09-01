@@ -11,6 +11,7 @@ import {
 import { community } from '../dist/api/routes/community.js';
 
 const COMMUNITY_ID = '11111111-1111-4111-8111-111111111111';
+const POST_ID = '22222222-2222-4222-8222-222222222222';
 
 test('feature-progress returns a stable visible-but-locked snapshot', () => {
   const payload = buildFeatureProgress('u_feature_progress');
@@ -37,7 +38,7 @@ test('recordConsent stores purpose and context for contextual prompts', () => {
   assert.equal(records.at(-1)?.status, 'accepted');
 });
 
-test('community UGC creation is blocked until rules are accepted', async () => {
+test('community UGC permission does not imply persistence success', async () => {
   const app = new Hono();
   app.use('*', async (c, next) => {
     c.set('userId', 'u_rules');
@@ -70,7 +71,7 @@ test('community UGC creation is blocked until rules are accepted', async () => {
 
   assert.equal(acceptedResponse.status, 201);
 
-  const allowedResponse = await app.request('/api/community/posts', {
+  const postResponse = await app.request('/api/community/posts', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -83,5 +84,43 @@ test('community UGC creation is blocked until rules are accepted', async () => {
     }),
   });
 
-  assert.equal(allowedResponse.status, 201);
+  assert.equal(postResponse.status, 501);
+  assert.deepEqual(await postResponse.json(), {
+    error: 'community_post_persistence_not_implemented',
+  });
+
+  const commentResponse = await app.request('/api/community/comments', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      postId: POST_ID,
+      content: 'Une reponse valide',
+    }),
+  });
+
+  assert.equal(commentResponse.status, 501);
+  assert.deepEqual(await commentResponse.json(), {
+    error: 'community_comment_persistence_not_implemented',
+  });
+
+  const eventResponse = await app.request('/api/community/events', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      communityId: COMMUNITY_ID,
+      title: 'Balade du dimanche',
+      description: 'Rendez-vous au parc',
+      location: 'Parc central',
+      startsAt: '2026-09-06T10:00:00.000Z',
+    }),
+  });
+
+  assert.equal(eventResponse.status, 501);
+  assert.deepEqual(await eventResponse.json(), {
+    error: 'community_event_persistence_not_implemented',
+  });
 });
