@@ -86,7 +86,7 @@ community.post('/posts', zValidator('json', PostCreateSchema), async (c) => {
   if (containsObjectionableContent(body.content)) {
     return c.json({ error: 'Content rejected by community safety filter.' }, 422);
   }
-  return c.json({ message: 'posted', communityId: body.communityId }, 201);
+  return c.json({ error: 'community_post_persistence_not_implemented' }, 501);
 });
 
 community.post('/comments', zValidator('json', CommentCreateSchema), async (c) => {
@@ -98,7 +98,7 @@ community.post('/comments', zValidator('json', CommentCreateSchema), async (c) =
   if (containsObjectionableContent(body.content)) {
     return c.json({ error: 'Content rejected by community safety filter.' }, 422);
   }
-  return c.json({ message: 'commented', postId: body.postId }, 201);
+  return c.json({ error: 'community_comment_persistence_not_implemented' }, 501);
 });
 
 // ── Events ──────────────────────────────────────────────────────
@@ -117,7 +117,7 @@ community.post('/events', zValidator('json', EventCreateSchema), async (c) => {
   if (containsObjectionableContent(`${body.title} ${body.description}`)) {
     return c.json({ error: 'Content rejected by community safety filter.' }, 422);
   }
-  return c.json({ message: 'event_created', communityId: body.communityId }, 201);
+  return c.json({ error: 'community_event_persistence_not_implemented' }, 501);
 });
 
 // ── Copresence ──────────────────────────────────────────────────
