@@ -107,8 +107,7 @@ dogs.get('/', async (c) => {
 });
 
 dogs.post('/', zValidator('json', DogCreateSchema), async (c) => {
-  const body = c.req.valid('json');
-  return c.json({ message: 'created', name: body.name }, 201);
+  return c.json({ error: 'dog_creation_not_implemented' }, 501);
 });
 
 dogs.get('/:id', async (c) => {
@@ -219,14 +218,14 @@ dogs.patch('/:id', zValidator('json', DogUpdateSchema), async (c) => {
   const id = c.req.param('id');
   const denied = await requireDogOwnership(c, id);
   if (denied) return denied;
-  return c.json({ id, message: 'updated' });
+  return c.json({ id, error: 'dog_update_not_implemented' }, 501);
 });
 
 dogs.delete('/:id', async (c) => {
   const id = c.req.param('id');
   const denied = await requireDogOwnership(c, id);
   if (denied) return denied;
-  return c.json({ id, message: 'deleted' });
+  return c.json({ id, error: 'dog_deletion_not_implemented' }, 501);
 });
 
 export { dogs };
