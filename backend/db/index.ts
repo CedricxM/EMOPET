@@ -7,3 +7,7 @@ const connectionString = process.env['DATABASE_URL'] ?? 'postgres://localhost:54
 const client = postgres(connectionString);
 export const db = drizzle(client, { schema });
 export type Database = typeof db;
+
+export async function closeDatabase(): Promise<void> {
+  await client.end({ timeout: 5 });
+}
