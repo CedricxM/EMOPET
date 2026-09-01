@@ -1,0 +1,8 @@
+repo_path,record_type,source_checkpoint_member,source_sha256,status,promotion_decision,notes
+docs/control/document-control-r2/CONTROLLED_ARCHIVE_CUSTODY_RECOVERY_2026-08-29.md,EXACT_R2_RECORD,05_QA/CONTROLLED_ARCHIVE_CUSTODY_RECOVERY_2026-08-29.md,897a1dbdb015d76f4d9be072bce2f49fbd1ebb200bc2a7a2979c991b223999e3,PASS_WITH_NOTES,PROMOTE,Byte-identical custody evidence
+docs/control/document-control-r2/GLOBAL_METADATA_NORMALIZATION_QA_2026-08-29.md,EXACT_R2_RECORD,05_QA/GLOBAL_METADATA_NORMALIZATION_QA_2026-08-29.md,4e96a95fa37c8cbcfa4cbb23dc798c03318799476a007a5c262e29b65bb7d93e,PASS_WITH_NOTES,PROMOTE,Byte-identical non-inferential metadata QA
+docs/control/document-control-r2/SOURCE_MATERIALIZATION_CUSTODY_RECOVERY_2026-08-29.md,EXACT_R2_RECORD,05_QA/SOURCE_MATERIALIZATION_CUSTODY_RECOVERY_2026-08-29.md,be5839fdf3f46e161e0ae6c8969d42225c1426962a10982c28fe6eda286dcb9f,PASS_WITH_NOTES,PROMOTE,Byte-identical immutable-source custody evidence
+docs/control/document-control-r2/README.md,REPOSITORY_CONTROL,N/A,GENERATED_AT_PROMOTION,INTERNAL_CONTROLLED,PROMOTE,Scope authority and exclusion index
+docs/control/document-control-r2/R2_CHECKPOINT_INTEGRITY_RECORD.md,REPOSITORY_CONTROL,N/A,GENERATED_AT_PROMOTION,PASS_WITH_NOTES,PROMOTE,Local integrity and authority-boundary record
+docs/control/document-control-r2/PROMOTION_MANIFEST.csv,REPOSITORY_CONTROL,N/A,SELF_REFERENTIAL,INTERNAL_CONTROLLED,PROMOTE,Selection and lineage manifest
+docs/control/document-control-r2/PROMOTION_QA.md,REPOSITORY_CONTROL,N/A,GENERATED_AT_PROMOTION,PASS_WITH_NOTES,PROMOTE,Repository promotion QA
