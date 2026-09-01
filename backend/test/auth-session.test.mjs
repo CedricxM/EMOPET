@@ -25,13 +25,23 @@ const TEST_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 function makeRepository() {
   const rows = new Map();
+  const locks = [];
+  let reads = 0;
   let sequence = 0;
 
   return {
     rows,
+    locks,
+    get reads() {
+      return reads;
+    },
     repository: {
       async findByTokenHash(tokenHash) {
+        reads += 1;
         return [...rows.values()].find((row) => row.tokenHash === tokenHash) ?? null;
+      },
+      async lockFamily(familyId) {
+        locks.push(familyId);
       },
       async revokeIfActive(id, reason, at) {
         const row = rows.get(id);
@@ -119,6 +129,22 @@ test('access JWT enforces canonical UUID subject and controlled claims', async (
     .setExpirationTime('15m')
     .sign(TEST_SECRET);
   await assert.rejects(() => verifyAccessToken(wrongAudience));
+});
+
+test('refresh rotation locks the family and re-reads state after the lock', async () => {
+  const state = makeRepository();
+  const initial = issueRefreshCredential(USER_ID, new Date('2026-09-01T10:00:00Z'));
+  await state.repository.insert(initial.session);
+
+  const result = await rotateRefreshCredential(
+    state.repository,
+    initial.rawToken,
+    new Date('2026-09-01T10:01:00Z'),
+  );
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(state.locks, [initial.session.familyId]);
+  assert.equal(state.reads, 2);
 });
 
 test('refresh rotation consumes once and reuse revokes the active token family', async () => {
