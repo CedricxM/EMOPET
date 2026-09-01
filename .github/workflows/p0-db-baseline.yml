@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - 'backend/db/**'
+      - 'backend/api/routes/dogs.ts'
+      - 'backend/api/middleware/authorization.ts'
+      - 'backend/test/dog-persistence-postgres.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:
@@ -116,6 +119,12 @@ jobs:
       - name: Build backend dependency closure
         run: pnpm --filter @emopet/api... build
 
+      - name: BACKEND-01 dog persistence on draft baseline
+        working-directory: backend
+        env:
+          DOG_DB_INTEGRATION: '1'
+        run: node --test test/dog-persistence-postgres.test.mjs
+
       - name: Generate isolated Drizzle fresh baseline
         working-directory: backend
         run: |
@@ -147,6 +156,13 @@ jobs:
         run: |
           psql "$GENERATED_DATABASE_URL" -Atc "select tablename from pg_tables where schemaname='public' order by tablename" > /tmp/tables-generated.txt
           diff -u /tmp/tables-a.txt /tmp/tables-generated.txt
+
+      - name: BACKEND-01 dog persistence on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          DOG_DB_INTEGRATION: '1'
+        run: node --test test/dog-persistence-postgres.test.mjs
 
       - name: Verify generated snapshot is stable
         working-directory: backend
