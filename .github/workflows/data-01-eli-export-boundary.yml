@@ -1,0 +1,58 @@
+name: DATA-01 ELI export boundary
+
+on:
+  pull_request:
+    paths:
+      - 'backend/api/routes/data-export.ts'
+      - 'backend/api/services/data-export-policy.ts'
+      - 'backend/test/data-export-policy*.test.mjs'
+      - 'backend/test/data-export-route-policy-static.test.mjs'
+      - '.github/workflows/data-01-eli-export-boundary.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guardian-export-boundary:
+    name: Guardian ELI export boundary
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '20'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup pnpm
+        run: corepack prepare pnpm@10.33.0 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build backend dependency closure
+        run: pnpm --filter @emopet/api... build
+
+      - name: Run DATA-01 export policy regression
+        working-directory: backend
+        run: >-
+          node --test
+          test/data-export-policy.test.mjs
+          test/data-export-policy-sensitive-values.test.mjs
+          test/data-export-route-policy-static.test.mjs
+
+      - name: Backend typecheck
+        run: pnpm --filter @emopet/api typecheck
+
+      - name: Maturity boundary
+        if: always()
+        run: |
+          echo 'This workflow validates the Guardian-facing ELI export boundary only.'
+          echo 'It does not close the complete Data Act product-data gate or authorize broader internal-derived-data disclosure.'
