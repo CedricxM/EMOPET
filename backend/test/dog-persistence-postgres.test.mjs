@@ -89,8 +89,8 @@ test('BACKEND-01 persists owner-scoped CREATE/PATCH and keeps DELETE blocked', {
 
   const dogAId = createdPayload.dog.id;
   const [persistedCreate] = await sql`
-    SELECT id, owner_id, name, breed, breed_fci_number, birth_date, sex, weight,
-           fur_class, photo_url, created_at, updated_at
+    SELECT id, owner_id, name, breed, breed_fci_number, birth_date::text AS birth_date,
+           sex, weight, fur_class, photo_url, created_at, updated_at
     FROM dogs
     WHERE id = ${dogAId}
   `;
