@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 import {
   buildPresenceSegments,
@@ -36,4 +37,22 @@ test('computePresenceComparison rejects output when coverage is still too thin',
   assert.equal(comparison.gate, 'REJECT');
   assert.equal(comparison.present_vocal_events_per_hour, 1);
   assert.equal(comparison.absent_vocal_events_per_hour, 4);
+});
+
+test('computePresenceComparison fails closed when no real evidence exists', () => {
+  const comparison = computePresenceComparison([], []);
+
+  assert.equal(comparison.gate, 'REJECT');
+  assert.equal(comparison.confidence, 0);
+  assert.equal(comparison.effect_size, 0);
+  assert.equal(comparison.valid_presence_hours, 0);
+  assert.equal(comparison.valid_absence_hours, 0);
+  assert.deepEqual(comparison.segments, []);
+});
+
+test('authenticated absence-comparison route cannot reintroduce synthetic sensor fallbacks', () => {
+  const routeSource = readFileSync(new URL('../api/routes/dogs.ts', import.meta.url), 'utf8');
+
+  assert.doesNotMatch(routeSource, /buildFallback(?:Summaries|PresenceEvents)/);
+  assert.doesNotMatch(routeSource, /fallback-[123]/);
 });
