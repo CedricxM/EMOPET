@@ -1,3 +1,2 @@
-import './data-export-policy.test.mjs';
-import './data-export-policy-sensitive-values.test.mjs';
-import './data-export-route-policy-static.test.mjs';
+// DATA-01 regression marker.
+// Individual node:test files are executed explicitly by the dedicated workflow.
