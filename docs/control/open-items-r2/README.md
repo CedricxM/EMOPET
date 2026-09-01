@@ -25,7 +25,8 @@ must not be treated as current repository brand authority.
 - exact R2 source, evidence, supersession and coverage registers;
 - exact Batch 0-9 authority reports/registers and open-evidence registers available in R2;
 - a 444-row source-payload reference index;
-- a promotion manifest and QA report.
+- a promotion manifest and QA report;
+- a 430-file global source-corpus QA snapshot under `qa-global-2026-09-01/`.
 
 ## Excluded by control
 
@@ -46,7 +47,8 @@ restyled or rehashed.
 - `gates/` — 63 category-grouped gate cards;
 - `registers/` — exact and derived R2 registers;
 - `batches/` — exact R2 Batch control records;
-- `indexes/SOURCE_PAYLOAD_REFERENCE_INDEX.csv` — source coverage and exclusion rationale.
+- `indexes/SOURCE_PAYLOAD_REFERENCE_INDEX.csv` — source coverage and exclusion rationale;
+- `qa-global-2026-09-01/` — 430-file QA snapshot, findings and improvement guide.
 
 Large text registers are stored as lossless newline-boundary parts. Concatenating their parts
 in numeric order reproduces the recorded original size and SHA-256 in
