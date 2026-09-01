@@ -5,13 +5,20 @@ const enabled = process.env.AUTH_DB_INTEGRATION === '1';
 
 let auth = null;
 let sql = null;
+let hashRefreshToken = null;
 
 if (enabled) {
-  const [{ auth: authRouter }, { default: postgres }] = await Promise.all([
+  const [
+    { auth: authRouter },
+    { hashRefreshToken: hashToken },
+    { default: postgres },
+  ] = await Promise.all([
     import('../dist/api/routes/auth.js'),
+    import('../dist/api/services/auth-security.js'),
     import('postgres'),
   ]);
   auth = authRouter;
+  hashRefreshToken = hashToken;
   sql = postgres(process.env.DATABASE_URL, { max: 1 });
 }
 
@@ -66,6 +73,7 @@ test('AUTH-01 routes persist credentials, rotate refresh sessions, and revoke se
     WHERE user_id = ${storedUser.id}
   `;
   assert.equal(initialRefreshHashRows.length, 1);
+  assert.equal(initialRefreshHashRows[0].token_hash, hashRefreshToken(registered.refreshToken));
   assert.notEqual(initialRefreshHashRows[0].token_hash, registered.refreshToken);
   assert.equal(initialRefreshHashRows[0].revoked_at, null);
 
@@ -96,10 +104,11 @@ test('AUTH-01 routes persist credentials, rotate refresh sessions, and revoke se
   assert.match(rotated.refreshToken, /^emopet_rt_/);
   assert.notEqual(rotated.refreshToken, registered.refreshToken);
 
+  const registeredHash = hashRefreshToken(registered.refreshToken);
   const consumedRows = await sql`
     SELECT revoke_reason
     FROM auth_refresh_sessions
-    WHERE token_hash = encode(digest(${registered.refreshToken}, 'sha256'), 'hex')
+    WHERE token_hash = ${registeredHash}
   `;
   assert.equal(consumedRows[0]?.revoke_reason, 'rotated');
 
@@ -115,7 +124,7 @@ test('AUTH-01 routes persist credentials, rotate refresh sessions, and revoke se
       AND family_id = (
         SELECT family_id
         FROM auth_refresh_sessions
-        WHERE token_hash = encode(digest(${registered.refreshToken}, 'sha256'), 'hex')
+        WHERE token_hash = ${registeredHash}
         LIMIT 1
       )
   `;
@@ -140,8 +149,12 @@ test('AUTH-01 routes persist credentials, rotate refresh sessions, and revoke se
   });
   assert.equal(loggedOutRefresh.status, 401);
 
-  const thirdLogin = await (await jsonRequest('/login', { email, password })).json();
-  const fourthLogin = await (await jsonRequest('/login', { email, password })).json();
+  const thirdLoginResponse = await jsonRequest('/login', { email, password });
+  const fourthLoginResponse = await jsonRequest('/login', { email, password });
+  assert.equal(thirdLoginResponse.status, 200);
+  assert.equal(fourthLoginResponse.status, 200);
+  const thirdLogin = await thirdLoginResponse.json();
+  const fourthLogin = await fourthLoginResponse.json();
 
   const logoutAllResponse = await jsonRequest(
     '/logout-all',
