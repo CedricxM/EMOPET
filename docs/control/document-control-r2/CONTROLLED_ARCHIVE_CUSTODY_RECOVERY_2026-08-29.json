@@ -1,0 +1,77 @@
+{
+  "document_id": "QA-CUSTODY-RECOVERY-002",
+  "revision": "1.0",
+  "date": "2026-08-29",
+  "status": "PASS_WITH_NOTES — EXACT CONTROLLED ARCHIVES RESTORED / NOT RELEASED",
+  "batch3": {
+    "zip_test": "PASS",
+    "bad_member": null,
+    "actual_files": 78,
+    "archive_sha256": "a457008037a5b14e47ae3c248728c375b3c4e5c4bf40bdf2b3e685c70f293aac",
+    "expected_sha256": "a457008037a5b14e47ae3c248728c375b3c4e5c4bf40bdf2b3e685c70f293aac",
+    "sidecar": "a457008037a5b14e47ae3c248728c375b3c4e5c4bf40bdf2b3e685c70f293aac  EMOPET_BATCH3_SCIENCE_CHECKPOINT_2026-08-27_NOT_RELEASED.zip",
+    "result": "PASS"
+  },
+  "preserved_corrupt_local_files": [
+    {
+      "original_path": "EMOPET_DOCUMENT_CONTROL_2026/10_RELEASE_CONTROL/.EMOPET_BATCH3_SCIENCE_CHECKPOINT_2026-08-27_NOT_RELEASED.zip.tT3To1",
+      "quarantine_path": "EMOPET_DOCUMENT_CONTROL_2026/10_RELEASE_CONTROL/QUARANTINE/BATCH3_CUSTODY_2026-08-29/.EMOPET_BATCH3_SCIENCE_CHECKPOINT_2026-08-27_NOT_RELEASED.zip.tT3To1.CORRUPT_PRESERVED_e45c754f680aa64e",
+      "bytes": 4194304,
+      "sha256": "e45c754f680aa64ecbdcfbb85e4fb0b460b9330076f5ac32e2d744e2d3c2452c",
+      "zip_test": "FAIL"
+    },
+    {
+      "original_path": "EMOPET_DOCUMENT_CONTROL_2026/10_RELEASE_CONTROL/EMOPET_BATCH3_SCIENCE_CHECKPOINT_2026-08-27_NOT_RELEASED.zip",
+      "quarantine_path": "EMOPET_DOCUMENT_CONTROL_2026/10_RELEASE_CONTROL/QUARANTINE/BATCH3_CUSTODY_2026-08-29/EMOPET_BATCH3_SCIENCE_CHECKPOINT_2026-08-27_NOT_RELEASED.zip.CORRUPT_PRESERVED_17ca68e17eb64d97",
+      "bytes": 35151360,
+      "sha256": "17ca68e17eb64d97e98d1735e3dd78740874e64807939226307aac9c042aebed",
+      "zip_test": "FAIL"
+    }
+  ],
+  "moko": [
+    {
+      "revision": "r1.5",
+      "archive_sha256": "1e4d71af213cf34f84ad808b415d86c9f034bf08beec7b7b83374fdd37bc9cb4",
+      "zip_test": "PASS",
+      "bad_member": null,
+      "actual_files": 48,
+      "payload_rows": 46,
+      "actual_payloads": 46,
+      "release_control_files": 2,
+      "manifest_failures": [],
+      "manifest_missing": [],
+      "manifest_unlisted": [],
+      "sha256sums_rows": 47,
+      "sha256sums_failures": [],
+      "manifest_covered_by_sha256sums": true,
+      "result": "PASS",
+      "local_path": "EMOPET_DOCUMENT_CONTROL_2026/06_MOKO_RELEASE/CONTROLLED_ARCHIVES/SUP-MOKO-004_EMOPET_Engineering_Review_Package_2026-08_r1.5_PREPARED_NOT_SENT.zip",
+      "status": "SUPERSEDED / PREPARED_NOT_SENT"
+    },
+    {
+      "revision": "r1.6",
+      "archive_sha256": "ca08ef8f81154a17cf1862884c19df6ff5d3a9a68163aded0fb587365794066c",
+      "zip_test": "PASS",
+      "bad_member": null,
+      "actual_files": 48,
+      "payload_rows": 46,
+      "actual_payloads": 46,
+      "release_control_files": 2,
+      "manifest_failures": [],
+      "manifest_missing": [],
+      "manifest_unlisted": [],
+      "sha256sums_rows": 47,
+      "sha256sums_failures": [],
+      "manifest_covered_by_sha256sums": true,
+      "result": "PASS",
+      "local_path": "EMOPET_DOCUMENT_CONTROL_2026/06_MOKO_RELEASE/CONTROLLED_ARCHIVES/SUP-MOKO-004_EMOPET_Engineering_Review_Package_2026-08_r1.6_PREPARED_NOT_SENT.zip",
+      "status": "ACTIVE CURRENT CANDIDATE / PREPARED_NOT_SENT / NOT RELEASED"
+    }
+  ],
+  "governance_boundaries": [
+    "No recovered archive was rebuilt or modified internally.",
+    "MOKO r1.5 remains superseded and PREPARED_NOT_SENT.",
+    "MOKO r1.6 remains the active current candidate, PREPARED_NOT_SENT and NOT RELEASED.",
+    "No transmission, manufacturing release, component selection or final typography publication is inferred."
+  ]
+}
