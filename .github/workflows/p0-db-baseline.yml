@@ -4,6 +4,10 @@ on:
   pull_request:
     paths:
       - 'backend/db/**'
+      - 'backend/api/routes/auth.ts'
+      - 'backend/api/middleware/auth.ts'
+      - 'backend/api/services/auth-*.ts'
+      - 'backend/test/auth-routes-postgres.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:
@@ -166,6 +170,12 @@ jobs:
       - name: Build backend dependency closure
         run: pnpm --filter @emopet/api... build
 
+      - name: AUTH-01 route integration on draft baseline
+        working-directory: backend
+        env:
+          AUTH_DB_INTEGRATION: '1'
+        run: node --test test/auth-routes-postgres.test.mjs
+
       - name: Generate isolated Drizzle fresh baseline
         working-directory: backend
         run: |
@@ -249,6 +259,13 @@ jobs:
             echo 'AUTH-01 generated token_hash uniqueness negative test unexpectedly succeeded'
             exit 1
           fi
+
+      - name: AUTH-01 route integration on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          AUTH_DB_INTEGRATION: '1'
+        run: node --test test/auth-routes-postgres.test.mjs
 
       - name: Verify generated snapshot is stable
         working-directory: backend
