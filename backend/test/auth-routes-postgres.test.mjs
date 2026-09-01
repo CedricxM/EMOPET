@@ -6,24 +6,29 @@ const enabled = process.env.AUTH_DB_INTEGRATION === '1';
 let auth = null;
 let sql = null;
 let hashRefreshToken = null;
+let closeDatabase = null;
 
 if (enabled) {
   const [
     { auth: authRouter },
     { hashRefreshToken: hashToken },
+    { closeDatabase: closeSharedDatabase },
     { default: postgres },
   ] = await Promise.all([
     import('../dist/api/routes/auth.js'),
     import('../dist/api/services/auth-security.js'),
+    import('../dist/db/index.js'),
     import('postgres'),
   ]);
   auth = authRouter;
   hashRefreshToken = hashToken;
+  closeDatabase = closeSharedDatabase;
   sql = postgres(process.env.DATABASE_URL, { max: 1 });
 }
 
 after(async () => {
-  if (sql) await sql.end();
+  if (sql) await sql.end({ timeout: 5 });
+  if (closeDatabase) await closeDatabase();
 });
 
 async function jsonRequest(path, body, authorization) {
