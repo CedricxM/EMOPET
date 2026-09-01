@@ -34,21 +34,24 @@ jobs:
           corepack prepare pnpm@10.33.0 --activate
           test "$(pnpm --version)" = "10.33.0"
 
-      - name: Regenerate lockfile with exact temporary trust exclusion
+      - name: Regenerate lockfile with exact temporary trust exclusions
         run: |
           cp pnpm-workspace.yaml /tmp/pnpm-workspace.yaml.controlled
           trap 'cp /tmp/pnpm-workspace.yaml.controlled pnpm-workspace.yaml' EXIT
           cat >> pnpm-workspace.yaml <<'EOF'
           trustPolicyExclude:
             - undici-types@6.21.0
+            - eslint-import-resolver-typescript@3.10.1
           EOF
           pnpm install --lockfile-only
 
-      - name: Verify policy restoration and unchanged pre-existing trust package
+      - name: Verify policy restoration and unchanged pre-existing trust packages
         run: |
           git diff --exit-code -- pnpm-workspace.yaml
           grep -q "undici-types@6.21.0:" pnpm-lock.yaml
           grep -q "sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==" pnpm-lock.yaml
+          grep -q "eslint-import-resolver-typescript@3.10.1:" pnpm-lock.yaml
+          grep -q "sha512-A1rHYb06zjMGAxdLSkN2fXPBwuSaQ0iO5M/hdyS0Ajj1VBaRp0sPD3dn1FhME3c/JluGFbwSxyCfqdSbtQLAHQ==" pnpm-lock.yaml
 
       - name: Verify patched resolution under normal repository policy
         run: |
