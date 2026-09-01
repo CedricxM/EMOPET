@@ -1,4 +1,4 @@
-name: DATA-01 ELI export boundary
+name: DATA-01 Guardian export boundary
 
 on:
   pull_request:
@@ -6,6 +6,7 @@ on:
       - 'backend/api/routes/data-export.ts'
       - 'backend/api/services/data-export-policy.ts'
       - 'backend/test/data-export-policy*.test.mjs'
+      - 'backend/test/data-export-baseline-policy.test.mjs'
       - 'backend/test/data-export-route-policy-static.test.mjs'
       - '.github/workflows/data-01-eli-export-boundary.yml'
   workflow_dispatch:
@@ -15,7 +16,7 @@ permissions:
 
 jobs:
   guardian-export-boundary:
-    name: Guardian ELI export boundary
+    name: Guardian export disclosure boundary
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -46,6 +47,7 @@ jobs:
           node --test
           test/data-export-policy.test.mjs
           test/data-export-policy-sensitive-values.test.mjs
+          test/data-export-baseline-policy.test.mjs
           test/data-export-route-policy-static.test.mjs
 
       - name: Backend typecheck
@@ -54,5 +56,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates the Guardian-facing ELI export boundary only.'
+          echo 'This workflow validates the Guardian-facing ELI and baseline export disclosure boundaries only.'
           echo 'It does not close the complete Data Act product-data gate or authorize broader internal-derived-data disclosure.'
