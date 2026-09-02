@@ -37,7 +37,7 @@ test('recordConsent stores purpose and context for contextual prompts', () => {
   assert.equal(records.at(-1)?.status, 'accepted');
 });
 
-test('community UGC creation is blocked until rules are accepted', async () => {
+test('community rules gate is lifted before the separate persistence boundary', async () => {
   const app = new Hono();
   app.use('*', async (c, next) => {
     c.set('userId', 'u_rules');
@@ -83,5 +83,6 @@ test('community UGC creation is blocked until rules are accepted', async () => {
     }),
   });
 
-  assert.equal(allowedResponse.status, 201);
+  assert.equal(allowedResponse.status, 501);
+  assert.equal((await allowedResponse.json()).error, 'community_post_persistence_not_implemented');
 });
