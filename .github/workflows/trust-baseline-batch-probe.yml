@@ -20,11 +20,12 @@ jobs:
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: '20'
+          node-version: '22.13'
 
       - name: Pin diagnostic pnpm verifier executable
         shell: bash
         run: |
+          node --version | tee node-probe-version.txt
           npx --yes pnpm@11.24.0 --version | tee pnpm-probe-version.txt
           grep -Fx '11.24.0' pnpm-probe-version.txt
 
@@ -58,6 +59,7 @@ jobs:
         with:
           name: pnpm-trust-baseline-batch-probe
           path: |
+            node-probe-version.txt
             pnpm-probe-version.txt
             trust-probe-exit.txt
             trust-probe.log
