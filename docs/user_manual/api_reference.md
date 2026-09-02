@@ -89,11 +89,11 @@ Limites importantes :
 
 | Méthode | Chemin | État observé |
 |---|---|---|
-| GET | `/api/health/:dogId` | Contrôle propriétaire, entrées placeholder |
+| GET | `/api/health/:dogId` | Contrôle propriétaire puis `501 health_entry_read_not_implemented` tant qu'aucun lecteur de route autoritatif n'est câblé |
 | POST | `/api/health` | Validation + contrôle propriétaire ; `501 health_entry_persistence_not_implemented` tant qu'aucun writer durable n'est implémenté |
-| GET | `/api/health/:dogId/reminders` | Contrôle propriétaire, rappels placeholder |
+| GET | `/api/health/:dogId/reminders` | Contrôle propriétaire puis `501 health_reminder_read_not_implemented` tant que sélection/scheduling des rappels n'est pas implémenté |
 
-Le `POST /api/health` n'accuse volontairement aucune création tant qu'une entrée n'est pas écrite dans le store `health_entries` autoritatif. La présence de la table seule ne constitue pas une preuve de persistance runtime.
+Le `POST /api/health` n'accuse volontairement aucune création tant qu'une entrée n'est pas écrite dans le store `health_entries` autoritatif. Les deux lectures ne répondent plus par un tableau vide comme si une requête autoritative avait réussi : `NOT_IMPLEMENTED` reste distinct d'un futur `NONE_FOUND`. La présence de `next_due_date` dans le schéma ne définit pas à elle seule le comportement produit des rappels.
 
 Ces routes portent un nom historique `health`, mais leurs sorties ne doivent pas être présentées comme un diagnostic.
 
