@@ -44,11 +44,16 @@ Limites importantes :
 
 | Méthode | Chemin | État observé |
 |---|---|---|
-| GET, POST | `/api/dogs` | Liste/création placeholder |
-| GET, PATCH, DELETE | `/api/dogs/:id` | Contrôle propriétaire, réponse encore partielle |
+| GET | `/api/dogs` | Liste PostgreSQL limitée au `owner_id` du Guardian authentifié |
+| POST | `/api/dogs` | Création PostgreSQL owner-scoped sur le candidat BACKEND-01 |
+| GET | `/api/dogs/:id` | Contrôle propriétaire + relecture de l'entité PostgreSQL persistée |
+| PATCH | `/api/dogs/:id` | UPDATE owner-scoped sur le candidat BACKEND-01 |
+| DELETE | `/api/dogs/:id` | `501 erasure_policy_pending` tant que PRIV-01 reste ouvert |
 | GET | `/api/dogs/:id/absence-comparison` | Comparaison présence/absence avec données DB ou fallback |
 | GET | `/api/dogs/:id/vet-report-link` | Création d'un lien temporaire signé |
 | GET | `/api/dogs/:id/vet-report` | PDF, via propriétaire ou `share_token` valide |
+
+Les lectures `GET /api/dogs` et `GET /api/dogs/:id` utilisent le même modèle PostgreSQL et le même serializer que les écritures BACKEND-01. La liste ne renvoie que les chiens du Guardian canonique courant ; le détail conserve la frontière owner-scoped et ne transforme pas un chien d'un autre Guardian en ressource lisible.
 
 ### Capteurs et ELI
 
