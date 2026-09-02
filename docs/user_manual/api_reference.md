@@ -60,9 +60,11 @@ Limites importantes :
 | GET | `/api/sensors/eli/:dogId/history` | Historique placeholder |
 | GET | `/api/sensors/baseline/:dogId` | Contrôle propriétaire puis `501 baseline_read_not_implemented` tant que lecture et projection Guardian ne sont pas définies |
 | POST | `/api/sensors/presence/:dogId/events` | Écrit réellement dans le store mémoire courant ; réponse `storageClass=VOLATILE_PROCESS`, `durable=false`, `survivesRestart=false` |
-| GET | `/api/sensors/presence/:dogId/events` | Lit le même store mémoire courant et expose la même classe de stockage non durable |
+| GET | `/api/sensors/presence/:dogId/events` | Lit le même store mémoire courant ; `days` omis vaut 14, sinon un entier décimal positif sûr est requis (`400 invalid_presence_window`) ; expose toujours la classe non durable |
 
 Le `POST /api/sensors/summaries` n'accuse volontairement aucune ingestion tant qu'aucun stockage ou mécanisme durable n'existe. De même, les lectures `summaries` et `baseline` ne retournent plus un tableau vide ou `null` comme si une requête autoritative avait réussi : `NOT_IMPLEMENTED` reste distinct d'un futur `NONE_FOUND`.
+
+Le paramètre `days` de lecture des événements est validé après le contrôle propriétaire et avant l'accès au store. Une valeur vide, nulle, négative, fractionnaire, non numérique, non sûre ou non représentable comme date renvoie `400 { error: "invalid_presence_window", parameter: "days" }` au lieu d'un faux tableau vide. Aucun plafond métier n'est choisi par ce candidat.
 
 Les événements de présence constituent une classe différente : le prototype effectue bien une création dans un `Map` du processus, mais cette création ne survit ni au redémarrage ni au redéploiement. Le `201` signifie uniquement qu'un événement a été ajouté au store volatile courant ; il ne constitue pas une preuve de persistance durable, d'enqueue ou d'historique de compte. La durabilité, l'idempotency, la chronologie event/receive time et le lifecycle restent ouverts sous `DATA-PRES-01`.
 
