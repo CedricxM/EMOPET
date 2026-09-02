@@ -4,6 +4,7 @@ import { PresenceEventCreateSchema, SensorSummaryCreateSchema } from '@emopet/sh
 
 import { requireDogOwnership } from '../middleware/authorization.js';
 import { appendPresenceEvents, getPresenceEventsForDog } from '../services/presence.js';
+import { parseLookbackWindow } from '../utils/temporal-window.js';
 
 const sensors = new Hono();
 
@@ -100,9 +101,12 @@ sensors.get('/presence/:dogId/events', async (c) => {
   const denied = await requireDogOwnership(c, dogId);
   if (denied) return denied;
 
-  const days = Number(c.req.query('days') ?? '14');
-  const since = new Date();
-  since.setDate(since.getDate() - days);
+  const window = parseLookbackWindow(c.req.query('days'));
+  if (!window) {
+    return c.json({ error: 'invalid_presence_window', parameter: 'days' }, 400);
+  }
+  const { since } = window;
+
   return c.json({
     dogId,
     events: getPresenceEventsForDog(dogId, since),
