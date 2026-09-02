@@ -30,8 +30,10 @@ sensors.get('/eli/:dogId', async (c) => {
   const denied = await requireDogOwnership(c, dogId);
   if (denied) return denied;
 
-  // TODO: return latest ELI state for dog
-  return c.json({ dogId, eli: null });
+  // No authoritative ELI producer/read path exists yet. A normal 200/null
+  // response would be indistinguishable from an authoritative query that
+  // succeeded and found no result.
+  return c.json({ error: 'eli_runtime_not_implemented', dogId }, 501);
 });
 
 sensors.get('/eli/:dogId/history', async (c) => {
@@ -39,9 +41,9 @@ sensors.get('/eli/:dogId/history', async (c) => {
   const denied = await requireDogOwnership(c, dogId);
   if (denied) return denied;
 
-  const range = c.req.query('range') ?? '7d';
-  // TODO: return ELI history
-  return c.json({ dogId, range, history: [] });
+  // Keep availability truth explicit until a real producer + persistence
+  // contract can distinguish NOT_IMPLEMENTED, UNAVAILABLE and NONE_FOUND.
+  return c.json({ error: 'eli_runtime_not_implemented', dogId }, 501);
 });
 
 sensors.get('/baseline/:dogId', async (c) => {
