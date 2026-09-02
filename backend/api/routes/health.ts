@@ -20,7 +20,12 @@ health.post('/', zValidator('json', HealthEntryCreateSchema), async (c) => {
   const denied = await requireDogOwnership(c, body.dogId);
   if (denied) return denied;
 
-  return c.json({ message: 'entry_created', dogId: body.dogId }, 201);
+  // Durable health-journal persistence is not implemented yet. Do not
+  // acknowledge creation, persistence or enqueue success until a real writer exists.
+  return c.json({
+    error: 'health_entry_persistence_not_implemented',
+    dogId: body.dogId,
+  }, 501);
 });
 
 health.get('/:dogId/reminders', async (c) => {
