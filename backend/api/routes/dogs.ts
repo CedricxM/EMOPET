@@ -217,6 +217,7 @@ dogs.get('/:id/vet-report', async (c) => {
     });
   } catch (error) {
     if (error instanceof VetReportDataUnavailableError) {
+      c.header('Cache-Control', 'private, max-age=0, no-store');
       return c.json(
         {
           error: error.code,

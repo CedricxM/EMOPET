@@ -94,5 +94,8 @@ test('vet-report route preserves authorization, 503 and private no-store boundar
   assert.match(routeSource, /Invalid or expired share token/);
   assert.match(routeSource, /error: 'vet_report_data_unavailable'/);
   assert.match(routeSource, /503/);
-  assert.match(routeSource, /'Cache-Control': 'private, max-age=0, no-store'/);
+  const noStoreDirectives = routeSource.match(
+    /private, max-age=0, no-store/g,
+  ) ?? [];
+  assert.equal(noStoreDirectives.length, 2);
 });
