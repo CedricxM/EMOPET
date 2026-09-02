@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 const activeSectionUrl = new URL('../app/profil/DonneesSection.tsx', import.meta.url);
 const safeModalsUrl = new URL('../components/donnees/ErasureSimulationModals.tsx', import.meta.url);
 const legacyModalsUrl = new URL('../components/donnees/modals.tsx', import.meta.url);
+const smokeChecklistUrl = new URL('../SMOKE.md', import.meta.url);
 
 test('PRIV-UI-01: active erasure flow imports only the explicit simulation modals', async () => {
   const source = await readFile(activeSectionUrl, 'utf8');
@@ -30,4 +31,15 @@ test('PRIV-UI-01: stale legacy deletion modals cannot be re-imported from generi
   assert.doesNotMatch(source, /export function DeletedToastModal/);
   assert.doesNotMatch(source, /sous\s+30\s+jours/i);
   assert.doesNotMatch(source, /supprime dÃ©finitivement/i);
+});
+
+test('PRIV-UI-01: manual QA cannot instruct or claim real deletion', async () => {
+  const source = await readFile(smokeChecklistUrl, 'utf8');
+
+  assert.match(source, /Simulation d’effacement/);
+  assert.match(source, /Continuer la simulation/);
+  assert.match(source, /Simuler la confirmation/);
+  assert.match(source, /aucune donnée n’a été supprimée/i);
+  assert.doesNotMatch(source, /Supprimer définitivement/i);
+  assert.doesNotMatch(source, /Une fois supprimé/i);
 });
