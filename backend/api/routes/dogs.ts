@@ -103,6 +103,14 @@ function getUserId(c: unknown): string | undefined {
   return (c as { get: (key: string) => unknown }).get('userId') as string | undefined;
 }
 
+function parseVetReportDays(rawValue: string | undefined): number | null {
+  if (rawValue === undefined) return 14;
+  const normalized = rawValue.trim();
+  if (!/^\d+$/.test(normalized)) return null;
+  const days = Number(normalized);
+  return Number.isSafeInteger(days) && days > 0 ? days : null;
+}
+
 dogs.get('/', async (c) => {
   return c.json({ dogs: [] });
 });
@@ -170,7 +178,9 @@ dogs.get('/:id/vet-report-link', async (c) => {
   const denied = await requireDogOwnership(c, id);
   if (denied) return denied;
 
-  const days = Number(c.req.query('days') ?? '14');
+  const days = parseVetReportDays(c.req.query('days'));
+  if (days === null) return c.json({ error: 'invalid_report_period' }, 400);
+
   const userId = String(getUserId(c) ?? '');
   const token = await createVetReportShareToken(userId, id, days);
   const url = new URL(c.req.url);
@@ -189,7 +199,9 @@ dogs.get('/:id/vet-report-link', async (c) => {
 
 dogs.get('/:id/vet-report', async (c) => {
   const id = c.req.param('id');
-  const days = Number(c.req.query('days') ?? '14');
+  const days = parseVetReportDays(c.req.query('days'));
+  if (days === null) return c.json({ error: 'invalid_report_period' }, 400);
+
   const shareToken = c.req.query('share_token');
   const isShareAccess = typeof shareToken === 'string' && shareToken.length > 0;
 
