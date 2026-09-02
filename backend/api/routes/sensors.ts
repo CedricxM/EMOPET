@@ -7,6 +7,12 @@ import { appendPresenceEvents, getPresenceEventsForDog } from '../services/prese
 
 const sensors = new Hono();
 
+const PRESENCE_EVENT_STORAGE = {
+  storageClass: 'VOLATILE_PROCESS' as const,
+  durable: false,
+  survivesRestart: false,
+};
+
 sensors.post('/summaries', zValidator('json', SensorSummaryCreateSchema), async (c) => {
   const body = c.req.valid('json');
   const denied = await requireDogOwnership(c, body.dogId);
@@ -82,7 +88,11 @@ sensors.post('/presence/:dogId/events', zValidator('json', PresenceEventCreateSc
     rssi: body.rssi,
     source: body.source,
   }]);
-  return c.json({ message: 'presence_event_recorded', dogId }, 201);
+  return c.json({
+    message: 'presence_event_recorded_in_volatile_store',
+    dogId,
+    storage: PRESENCE_EVENT_STORAGE,
+  }, 201);
 });
 
 sensors.get('/presence/:dogId/events', async (c) => {
@@ -93,7 +103,11 @@ sensors.get('/presence/:dogId/events', async (c) => {
   const days = Number(c.req.query('days') ?? '14');
   const since = new Date();
   since.setDate(since.getDate() - days);
-  return c.json({ dogId, events: getPresenceEventsForDog(dogId, since) });
+  return c.json({
+    dogId,
+    events: getPresenceEventsForDog(dogId, since),
+    storage: PRESENCE_EVENT_STORAGE,
+  });
 });
 
 export { sensors };
