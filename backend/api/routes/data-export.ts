@@ -21,12 +21,19 @@ interface ExportProvenance {
   notes: string[];
 }
 
+interface ParsedOptionalDate {
+  value: Date | null;
+  valid: boolean;
+}
+
 export const dataExport = new Hono<{ Variables: Variables }>();
 
-function parseDate(value: string | undefined): Date | null {
-  if (!value) return null;
+function parseOptionalDate(value: string | undefined): ParsedOptionalDate {
+  if (value === undefined) return { value: null, valid: true };
   const date = new Date(value);
-  return Number.isFinite(date.getTime()) ? date : null;
+  return Number.isFinite(date.getTime())
+    ? { value: date, valid: true }
+    : { value: null, valid: false };
 }
 
 /**
@@ -50,10 +57,18 @@ dataExport.get('/', async (c) => {
   const userId = c.get('userId');
   const dogId = c.req.query('dog_id');
   const format = c.req.query('format') === 'csv' ? 'csv' : 'json';
-  const from = parseDate(c.req.query('from'));
-  const to = parseDate(c.req.query('to'));
+  const parsedFrom = parseOptionalDate(c.req.query('from'));
+  const parsedTo = parseOptionalDate(c.req.query('to'));
 
   if (!dogId) return c.json({ error: 'dog_id is required' }, 400);
+  if (!parsedFrom.valid) return c.json({ error: 'invalid_from' }, 400);
+  if (!parsedTo.valid) return c.json({ error: 'invalid_to' }, 400);
+
+  const from = parsedFrom.value;
+  const to = parsedTo.value;
+  if (from && to && from.getTime() > to.getTime()) {
+    return c.json({ error: 'invalid_interval', reason: 'from_after_to' }, 400);
+  }
 
   const ownedDog = await db.query.dogs.findFirst({
     where: and(eq(dogs.id, dogId), eq(dogs.ownerId, userId)),
