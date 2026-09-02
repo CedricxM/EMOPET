@@ -3,7 +3,14 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 import { Hono } from 'hono';
-import { dogs } from '../dist/api/routes/dogs.js';
+
+// The vet-report service intentionally fails closed outside test when no signing
+// secret is configured. Configure the test boundary before dynamically importing
+// the dog routes so this contract test does not trip the production secret guard.
+process.env.NODE_ENV = 'test';
+process.env.REPORT_SHARE_SECRET = 'test-only-vet-report-period-contract-secret';
+
+const { dogs } = await import('../dist/api/routes/dogs.js');
 
 const DOG_ID = '11111111-1111-4111-8111-111111111111';
 
