@@ -14,6 +14,7 @@ import {
   buildVetReportPdf,
   createVetReportShareToken,
   loadVetReportSummary,
+  VetReportDataUnavailableError,
   verifyVetReportShareToken,
 } from '../services/vet-report.js';
 import { requireDogOwnership } from '../middleware/authorization.js';
@@ -204,15 +205,29 @@ dogs.get('/:id/vet-report', async (c) => {
     if (denied) return denied;
   }
 
-  const summary = await loadVetReportSummary(id, days);
-  const pdf = buildVetReportPdf(summary);
-  return new Response(pdf, {
-    headers: {
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `inline; filename="emopet-vet-report-${id}.pdf"`,
-      'Cache-Control': 'private, max-age=0, no-store',
-    },
-  });
+  try {
+    const summary = await loadVetReportSummary(id, days);
+    const pdf = buildVetReportPdf(summary);
+    return new Response(pdf, {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `inline; filename="emopet-vet-report-${id}.pdf"`,
+        'Cache-Control': 'private, max-age=0, no-store',
+      },
+    });
+  } catch (error) {
+    if (error instanceof VetReportDataUnavailableError) {
+      c.header('Cache-Control', 'private, max-age=0, no-store');
+      return c.json(
+        {
+          error: error.code,
+          message: 'Vet report data is temporarily unavailable.',
+        },
+        503,
+      );
+    }
+    throw error;
+  }
 });
 
 dogs.patch('/:id', zValidator('json', DogUpdateSchema), async (c) => {

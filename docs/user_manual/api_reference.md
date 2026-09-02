@@ -48,7 +48,7 @@ Limites importantes :
 | GET, PATCH, DELETE | `/api/dogs/:id` | Contrôle propriétaire, réponse encore partielle |
 | GET | `/api/dogs/:id/absence-comparison` | Comparaison présence/absence avec données DB ou fallback |
 | GET | `/api/dogs/:id/vet-report-link` | Création d'un lien temporaire signé |
-| GET | `/api/dogs/:id/vet-report` | PDF, via propriétaire ou `share_token` valide |
+| GET | `/api/dogs/:id/vet-report` | PDF via propriétaire ou `share_token` valide ; `503 vet_report_data_unavailable` si les sources autoritatives sont illisibles |
 
 ### Capteurs et ELI
 
