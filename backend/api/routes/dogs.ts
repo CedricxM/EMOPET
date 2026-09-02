@@ -126,7 +126,16 @@ function getUserId(c: unknown): string | undefined {
 }
 
 dogs.get('/', async (c) => {
-  return c.json({ dogs: [] });
+  const ownerId = getCurrentUserId(c);
+  if (!ownerId) return c.json({ error: 'unauthorized' }, 401);
+
+  const rows = await db
+    .select()
+    .from(dogTable)
+    .where(eq(dogTable.ownerId, ownerId))
+    .orderBy(dogTable.createdAt);
+
+  return c.json({ dogs: rows.map(serializeDog) });
 });
 
 dogs.post('/', zValidator('json', DogCreateSchema), async (c) => {
@@ -169,7 +178,18 @@ dogs.get('/:id', async (c) => {
   const id = c.req.param('id');
   const denied = await requireDogOwnership(c, id);
   if (denied) return denied;
-  return c.json({ id });
+
+  const ownerId = getCurrentUserId(c);
+  if (!ownerId) return c.json({ error: 'unauthorized' }, 401);
+
+  const [row] = await db
+    .select()
+    .from(dogTable)
+    .where(and(eq(dogTable.id, id), eq(dogTable.ownerId, ownerId)))
+    .limit(1);
+
+  if (!row) return c.json({ error: 'not_found' }, 404);
+  return c.json({ dog: serializeDog(row) });
 });
 
 dogs.get('/:id/absence-comparison', async (c) => {
