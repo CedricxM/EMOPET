@@ -40,6 +40,29 @@ export interface VetReportSummary {
   ownerNotes: string[];
 }
 
+type SensorSummaryRow = typeof sensorSummaries.$inferSelect;
+type HealthEntryRow = typeof healthEntries.$inferSelect;
+
+export interface VetReportDataReader {
+  findDogName(dogId: string): Promise<string | null>;
+  listSensorSummaries(dogId: string, since: Date): Promise<SensorSummaryRow[]>;
+  listHealthEntries(dogId: string, since: Date, limit: number): Promise<HealthEntryRow[]>;
+}
+
+export type VetReportSummaryLoader = (
+  dogId: string,
+  days: number,
+) => Promise<VetReportSummary>;
+
+export class VetReportDataUnavailableError extends Error {
+  readonly code = 'vet_report_data_unavailable';
+
+  constructor(cause: unknown) {
+    super('Vet report source data is unavailable.', { cause });
+    this.name = 'VetReportDataUnavailableError';
+  }
+}
+
 type MaybeNumber = number | null | undefined;
 
 function round(value: number): number {
@@ -138,86 +161,108 @@ function formatMetricLine(
   };
 }
 
-export async function loadVetReportSummary(
-  dogId: string,
-  days: number,
-): Promise<VetReportSummary> {
-  const since = new Date();
-  since.setDate(since.getDate() - days);
-
-  let dogName = 'Votre chien';
-  let summaries: Array<typeof sensorSummaries.$inferSelect> = [];
-  let notes: Array<typeof healthEntries.$inferSelect> = [];
-
-  try {
+const databaseVetReportDataReader: VetReportDataReader = {
+  async findDogName(dogId) {
     const dogRows = await db.select().from(dogs).where(eq(dogs.id, dogId)).limit(1);
-    dogName = dogRows[0]?.name ?? dogName;
-
-    summaries = await db
+    return dogRows[0]?.name ?? null;
+  },
+  async listSensorSummaries(dogId, since) {
+    return db
       .select()
       .from(sensorSummaries)
       .where(and(eq(sensorSummaries.dogId, dogId), gte(sensorSummaries.timestamp, since)))
       .orderBy(sensorSummaries.timestamp);
-
-    notes = await db
+  },
+  async listHealthEntries(dogId, since, limit) {
+    return db
       .select()
       .from(healthEntries)
       .where(and(eq(healthEntries.dogId, dogId), gte(healthEntries.createdAt, since)))
       .orderBy(desc(healthEntries.createdAt))
-      .limit(5);
-  } catch {
-    summaries = [];
-    notes = [];
-  }
+      .limit(limit);
+  },
+};
 
-  const coverage: VetReportCoverage = {
-    validDays: distinctDays(summaries.map((item) => item.timestamp)),
-    totalDays: days,
-    coverageRatio: days === 0 ? 0 : round(distinctDays(summaries.map((item) => item.timestamp)) / days),
+export function createVetReportSummaryLoader(
+  reader: VetReportDataReader,
+): VetReportSummaryLoader {
+  return async (dogId, days) => {
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+
+    let dogName = 'Votre chien';
+    let summaries: SensorSummaryRow[];
+    let notes: HealthEntryRow[];
+
+    try {
+      dogName = (await reader.findDogName(dogId)) ?? dogName;
+      summaries = await reader.listSensorSummaries(dogId, since);
+      notes = await reader.listHealthEntries(dogId, since, 5);
+    } catch (cause) {
+      throw new VetReportDataUnavailableError(cause);
+    }
+
+    const validDays = distinctDays(summaries.map((item) => item.timestamp));
+    const coverage: VetReportCoverage = {
+      validDays,
+      totalDays: days,
+      coverageRatio: days === 0 ? 0 : round(validDays / days),
+    };
+
+    const trends: VetTrendLine[] = [
+      formatMetricLine(
+        'Activite',
+        summaries.map((item) => item.distanceKm ?? 0).filter((value) => value > 0),
+        ' km',
+      ),
+      formatMetricLine(
+        'Repos mat',
+        summaries.map((item) => item.matPresenceMinutes ?? 0).filter((value) => value > 0),
+        ' min',
+      ),
+      formatMetricLine(
+        'Vocalisations',
+        summaries.map((item) => item.vocalEvents ?? 0),
+        ' evt',
+      ),
+      formatMetricLine(
+        'Poids',
+        summaries.map((item) => item.weightKg ?? 0).filter((value) => value > 0),
+        ' kg',
+      ),
+    ];
+
+    const rrValues = summaries
+      .filter((item) => (item.respiratoryRateConfidence ?? 0) >= 0.7)
+      .map((item) => item.respiratoryRateMean ?? 0)
+      .filter((value) => value > 0);
+    trends.push(formatMetricLine('Respiration au repos', rrValues, ' rpm'));
+
+    const ownerNotes = notes.length > 0
+      ? notes.map((entry) => `${entry.date}: ${entry.title}${entry.details ? ` - ${entry.details}` : ''}`)
+      : ['Aucune note proprietaire recente.'];
+
+    return {
+      dogId,
+      dogName,
+      days,
+      generatedAt: new Date(),
+      coverage,
+      trends,
+      ownerNotes,
+    };
   };
+}
 
-  const trends: VetTrendLine[] = [
-    formatMetricLine(
-      'Activite',
-      summaries.map((item) => item.distanceKm ?? 0).filter((value) => value > 0),
-      ' km',
-    ),
-    formatMetricLine(
-      'Repos mat',
-      summaries.map((item) => item.matPresenceMinutes ?? 0).filter((value) => value > 0),
-      ' min',
-    ),
-    formatMetricLine(
-      'Vocalisations',
-      summaries.map((item) => item.vocalEvents ?? 0),
-      ' evt',
-    ),
-    formatMetricLine(
-      'Poids',
-      summaries.map((item) => item.weightKg ?? 0).filter((value) => value > 0),
-      ' kg',
-    ),
-  ];
+const loadVetReportSummaryFromDatabase = createVetReportSummaryLoader(
+  databaseVetReportDataReader,
+);
 
-  const rrValues = summaries
-    .filter((item) => (item.respiratoryRateConfidence ?? 0) >= 0.7)
-    .map((item) => item.respiratoryRateMean ?? 0)
-    .filter((value) => value > 0);
-  trends.push(formatMetricLine('Respiration au repos', rrValues, ' rpm'));
-
-  const ownerNotes = notes.length > 0
-    ? notes.map((entry) => `${entry.date}: ${entry.title}${entry.details ? ` - ${entry.details}` : ''}`)
-    : ['Aucune note proprietaire recente.'];
-
-  return {
-    dogId,
-    dogName,
-    days,
-    generatedAt: new Date(),
-    coverage,
-    trends,
-    ownerNotes,
-  };
+export async function loadVetReportSummary(
+  dogId: string,
+  days: number,
+): Promise<VetReportSummary> {
+  return loadVetReportSummaryFromDatabase(dogId, days);
 }
 
 export function buildVetReportPdf(summary: VetReportSummary): Buffer {
