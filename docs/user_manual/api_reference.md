@@ -46,9 +46,11 @@ Limites importantes :
 |---|---|---|
 | GET, POST | `/api/dogs` | Liste/création placeholder |
 | GET, PATCH, DELETE | `/api/dogs/:id` | Contrôle propriétaire, réponse encore partielle |
-| GET | `/api/dogs/:id/absence-comparison` | Comparaison présence/absence depuis les données réelles disponibles ; `REJECT` si elles sont insuffisantes, sans fallback physiologique synthétique côté serveur |
+| GET | `/api/dogs/:id/absence-comparison` | Calcul prototype depuis les données réelles disponibles ; sortie explicitement `publishable: false` sous `SCI-PRES-01`, même si le gate algorithmique interne vaut `PUBLISH` |
 | GET | `/api/dogs/:id/vet-report-link` | Création d'un lien temporaire signé |
 | GET | `/api/dogs/:id/vet-report` | PDF, via propriétaire ou `share_token` valide |
+
+Le chemin authentifié de comparaison présence/absence n'utilise plus de fallback physiologique synthétique sur ce candidat. Cependant, ses sémantiques horaires et MAT/TAG restent ouvertes sous `SCI-PRES-01` : la réponse porte `authority.status = PROTOTYPE_SEMANTICS_UNVALIDATED`, `authority.publishable = false`, `authority.controllingGate = SCI-PRES-01` et `authority.syntheticFallback = false`. Le gate `PUBLISH | DEGRADE | REJECT` calculé par le service reste disponible pour QA mais ne constitue pas une autorisation de publication produit.
 
 Le mode démo sans token de l'application mobile peut construire une comparaison locale explicitement étiquetée comme telle ; il ne constitue pas une source de données backend et ne doit pas être confondu avec une mesure du chien.
 
