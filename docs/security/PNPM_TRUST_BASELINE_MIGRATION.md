@@ -2,7 +2,7 @@
 
 ## Status
 
-**PHASE A CANDIDATE COMPLETE / PHASE B NOT AUTHORIZED**
+**PHASE A CANDIDATE COMPLETE / PHASE B DECISION PACKAGE PREPARED / NOT AUTHORIZED**
 
 Gate: `G-PNPM-HISTORICAL-TRUST-MIGRATION-01 = OPEN`.
 
@@ -103,20 +103,103 @@ Phase A is not the same thing as exception authorization. The finite inventory m
 
 ### Phase B — one controlled migration run
 
-**NOT AUTHORIZED by this document.**
+**DECISION PACKAGE PREPARED / NOT AUTHORIZED by this document.**
 
-A future reviewed migration mechanism may use the five-selector set only as a finite, migration-scoped candidate manifest. If an exact-selector trust exception is ultimately approved, it must be:
+If explicitly approved, one bounded migration experiment may use the five-selector set only as a finite, migration-scoped exception manifest. The experiment must keep the normal repository policy strict and may not persist the exception manifest into the final repository state.
 
-- finite before the run begins;
-- exact-selector scoped;
-- tied to the already locked version **and** integrity;
-- used only in the controlled migration environment;
-- absent from normal repository trust policy after generation;
-- verified after generation to prove that every historical exception package retained its exact baseline version and integrity.
+The proposed target change is deliberately narrow:
+
+- add the #101 remediation forcing `browserslist` to exact `4.28.7` for the first controlled attempt;
+- regenerate the shared lock using the repository toolchain pnpm `10.33.0`;
+- permit only the five pre-reviewed historical selectors to pass the trust-downgrade check during that one generation attempt;
+- require those five historical entries to remain byte-equivalent in version + integrity;
+- reject all unreviewed package movement before any commit.
 
 The migration experiment must STOP if pnpm 10.33.0 reports a trust downgrade outside the pre-reviewed five-selector manifest. Such a result would disprove the current Phase-A sufficiency for fresh resolution and must return to #106 for review rather than expanding exclusions dynamically.
 
-## 6. Lock-diff acceptance controls
+## 6. Phase-B decision contract
+
+This section is a **review package**, not an approval record. Until an authorized reviewer records a positive decision, every field below remains proposed only and `migrationAuthorized=false` remains authoritative.
+
+### 6.1 Decision requested
+
+Choose exactly one disposition:
+
+- **APPROVE_BOUNDED_EXPERIMENT** — authorize one controlled pnpm 10.33.0 lock-regeneration experiment using exactly the five Phase-A historical selectors as temporary generation-only trust exceptions and exact `browserslist@4.28.7` as the only intended dependency movement; or
+- **HOLD** — perform no fresh lock resolution and keep #101 blocking release candidates while the migration design is reconsidered.
+
+No third option silently authorizes broad trust relaxation, persistent exclusions, manual lock edits, or an audit waiver.
+
+### 6.2 Preconditions for an approved experiment
+
+All must be rechecked at experiment start:
+
+1. baseline commit and lock/workspace blob SHAs still match the controlled values in section 1, or a new baseline reconciliation is performed before proceeding;
+2. the Phase-A manifest still contains exactly five selectors and all five exact version/integrity pairs match the starting lock;
+3. no `trustPolicyExclude`, `trustLockfile`, or `trustPolicyIgnoreAfter` migration bypass exists in the committed starting policy;
+4. the only requested remediation target is `browserslist@4.28.7` for #101;
+5. working tree is clean before temporary migration controls are introduced;
+6. scripts are disabled during lock generation.
+
+### 6.3 Generation-only exception handling
+
+If `APPROVE_BOUNDED_EXPERIMENT` is recorded, the five selectors may be introduced as **temporary working-tree migration controls only** for the generation step. They must not be committed as persistent repository trust policy.
+
+Before any candidate commit is created:
+
+- remove every migration-only trust exception from the working tree;
+- assert that normal committed policy is back to strict `trustPolicy: no-downgrade`;
+- stage only the intentionally approved dependency-policy change required for `browserslist@4.28.7`, the correctly generated lockfile, and any separately approved evidence files;
+- reject the candidate if the temporary exception mechanism cannot be removed cleanly before normal CI.
+
+### 6.4 Hard STOP conditions
+
+The experiment terminates without a migration commit if **any** of the following occurs:
+
+- a trust downgrade is reported for a selector outside the five-item manifest;
+- any of the five historical selectors changes version or integrity;
+- `browserslist` does not resolve to `4.28.7` or another separately approved patched target;
+- unrelated package movement occurs and cannot be mechanically isolated and reviewed before commit;
+- a migration-only trust bypass remains in committed policy;
+- fresh strict frozen install fails after temporary controls are removed;
+- HIGH/CRITICAL audit remains blocking for #101;
+- typecheck, tests, or web build regress;
+- the generated lock cannot be reproduced from the reviewed procedure.
+
+A STOP is evidence, not permission to broaden the exception set.
+
+### 6.5 Mandatory evidence from the experiment
+
+A Phase-B candidate may be reviewed only if it preserves:
+
+- exact start commit and lock/workspace blob SHAs;
+- exact pnpm and Node versions used;
+- the pre-reviewed five-selector manifest digest/content;
+- raw generation log;
+- before/after package+integrity comparison for all five historical selectors;
+- complete lock movement inventory, not only a textual diff excerpt;
+- `pnpm why browserslist` or equivalent dependency-path evidence after generation;
+- machine-readable HIGH/CRITICAL audit result;
+- strict post-generation frozen-install result with no migration-only trust bypass;
+- workspace typecheck/tests and web build result;
+- final `git diff` proving temporary migration trust controls are absent.
+
+### 6.6 Approval record fields
+
+An approval must identify a real reviewer and record all fields explicitly; blank or placeholder values are not approval:
+
+- `decision`: `APPROVE_BOUNDED_EXPERIMENT` or `HOLD`;
+- `reviewer`: named human reviewer;
+- `reviewedAt`: timestamp;
+- `baselineCommit`: controlled baseline accepted for the run;
+- `manifestCount`: must be `5` for the current proposal;
+- `browserslistTarget`: `4.28.7` unless separately revised;
+- `authorizationScope`: one experiment only;
+- `notes`: optional constraints.
+
+This document deliberately does **not** populate those approval fields.
+
+## 7. Lock-diff acceptance controls
 
 No generated migration lock may be committed until machine-readable comparison proves all of the following:
 
@@ -127,7 +210,7 @@ No generated migration lock may be committed until machine-readable comparison p
 5. normal repository configuration returns to strict `trustPolicy: no-downgrade` with no broad persistent migration bypass;
 6. `pnpm install --frozen-lockfile`, HIGH/CRITICAL dependency audit, workspace typecheck, workspace tests, and web build all pass from the committed result.
 
-## 7. Candidate evidence package for a future migration PR
+## 8. Candidate evidence package for a future migration PR
 
 A migration PR should provide, at minimum:
 
@@ -140,10 +223,10 @@ A migration PR should provide, at minimum:
 - complete regression CI evidence;
 - confirmation that migration-only trust controls are absent from normal repository configuration after generation.
 
-## 8. Current decision
+## 9. Current decision
 
 `G-PNPM-HISTORICAL-TRUST-MIGRATION-01` remains **OPEN**.
 
-The original Phase-A finite-inventory engineering question is now resolved by bounded, read-only evidence. The project has a five-selector candidate inventory complete for the controlled baseline lock under the pinned pnpm 11.24.0 verifier and corroborated by pnpm 10.33.0 observations.
+The original Phase-A finite-inventory engineering question is resolved by bounded, read-only evidence. The project has a five-selector candidate inventory complete for the controlled baseline lock under the pinned pnpm 11.24.0 verifier and corroborated by pnpm 10.33.0 observations.
 
-No migration exception or lock regeneration is authorized yet. The next gate is review and construction of a one-time Phase-B migration mechanism with exact-selector/integrity assertions and a hard STOP on any unreviewed trust downgrade or unrelated lock movement. #101 remains blocked until that migration can produce a strict-CI-clean patched lock; #74 CodeQL remains unrelated and separate.
+The Phase-B decision contract is now prepared, but **no human approval is recorded and no migration exception or lock regeneration is authorized**. The next state change must be an explicit `APPROVE_BOUNDED_EXPERIMENT` or `HOLD` decision against the controlled baseline and five-selector manifest. #101 remains blocking until an authorized migration can produce a strict-CI-clean patched lock; #74 CodeQL remains unrelated and separate.
