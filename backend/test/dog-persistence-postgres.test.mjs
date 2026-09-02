@@ -54,7 +54,7 @@ async function request(method, path, userId, body) {
   });
 }
 
-test('BACKEND-01 persists owner-scoped CREATE/PATCH and keeps DELETE blocked', {
+test('BACKEND-01 persists owner-scoped CREATE/PATCH, reads owner data, and keeps DELETE blocked', {
   skip: !enabled,
 }, async () => {
   await sql`DELETE FROM dogs WHERE owner_id IN (${USER_A}, ${USER_B})`;
@@ -126,6 +126,38 @@ test('BACKEND-01 persists owner-scoped CREATE/PATCH and keeps DELETE blocked', {
   assert.equal(createDogB.status, 201);
   const dogB = await createDogB.json();
 
+  const unauthorizedList = await request('GET', '/dogs', null);
+  assert.equal(unauthorizedList.status, 401);
+
+  const listA = await request('GET', '/dogs', USER_A);
+  assert.equal(listA.status, 200);
+  const listAPayload = await listA.json();
+  assert.equal(listAPayload.dogs.length, 1);
+  assert.equal(listAPayload.dogs[0].id, dogAId);
+  assert.equal(listAPayload.dogs[0].ownerId, USER_A);
+  assert.equal(listAPayload.dogs[0].name, 'Moka');
+  assert.equal(listAPayload.dogs.some((dog) => dog.id === dogB.dog.id), false);
+
+  const listB = await request('GET', '/dogs', USER_B);
+  assert.equal(listB.status, 200);
+  const listBPayload = await listB.json();
+  assert.equal(listBPayload.dogs.length, 1);
+  assert.equal(listBPayload.dogs[0].id, dogB.dog.id);
+  assert.equal(listBPayload.dogs[0].ownerId, USER_B);
+
+  const detailA = await request('GET', `/dogs/${dogAId}`, USER_A);
+  assert.equal(detailA.status, 200);
+  const detailAPayload = await detailA.json();
+  assert.equal(detailAPayload.dog.id, dogAId);
+  assert.equal(detailAPayload.dog.ownerId, USER_A);
+  assert.equal(detailAPayload.dog.photo, 'https://example.com/moka.jpg');
+
+  const crossOwnerDetail = await request('GET', `/dogs/${dogB.dog.id}`, USER_A);
+  assert.equal(crossOwnerDetail.status, 404);
+
+  const missingDetail = await request('GET', `/dogs/${MISSING_DOG}`, USER_A);
+  assert.equal(missingDetail.status, 404);
+
   const crossOwnerPatch = await request('PATCH', `/dogs/${dogB.dog.id}`, USER_A, {
     name: 'Hijacked',
   });
@@ -153,6 +185,13 @@ test('BACKEND-01 persists owner-scoped CREATE/PATCH and keeps DELETE blocked', {
   assert.equal(patchedPayload.dog.weight, 25.75);
   assert.equal(patchedPayload.dog.photo, 'https://example.com/moka-updated.jpg');
   assert.equal('message' in patchedPayload, false);
+
+  const rereadAfterPatch = await request('GET', `/dogs/${dogAId}`, USER_A);
+  assert.equal(rereadAfterPatch.status, 200);
+  const rereadPayload = await rereadAfterPatch.json();
+  assert.equal(rereadPayload.dog.name, 'Moka Updated');
+  assert.equal(rereadPayload.dog.weight, 25.75);
+  assert.equal(rereadPayload.dog.photo, 'https://example.com/moka-updated.jpg');
 
   const [persistedPatch] = await sql`
     SELECT name, weight, photo_url, updated_at
