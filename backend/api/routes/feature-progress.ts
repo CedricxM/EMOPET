@@ -11,29 +11,41 @@ import {
 
 const featureProgress = new Hono();
 
-function getUserId(c: unknown): string {
-  return String((c as { get: (key: string) => unknown }).get('userId') ?? 'demo-user');
+function getUserId(c: unknown): string | null {
+  const userId = (c as { get: (key: string) => unknown }).get('userId');
+  return typeof userId === 'string' && userId.trim() ? userId : null;
 }
 
 featureProgress.get('/', async (c) => {
-  return c.json(buildFeatureProgress(getUserId(c)));
+  const userId = getUserId(c);
+  if (!userId) return c.json({ error: 'unauthorized' }, 401);
+  return c.json(buildFeatureProgress(userId));
 });
 
 featureProgress.get('/consents', async (c) => {
+  const userId = getUserId(c);
+  if (!userId) return c.json({ error: 'unauthorized' }, 401);
+
   return c.json({
-    userId: getUserId(c),
-    consents: getConsentRecordsForUser(getUserId(c)),
+    userId,
+    consents: getConsentRecordsForUser(userId),
   });
 });
 
 featureProgress.post('/consents', zValidator('json', ConsentCreateSchema), async (c) => {
+  const userId = getUserId(c);
+  if (!userId) return c.json({ error: 'unauthorized' }, 401);
+
   const body = c.req.valid('json');
-  return c.json(recordConsent(getUserId(c), body), 201);
+  return c.json(recordConsent(userId, body), 201);
 });
 
 featureProgress.post('/waitlist', zValidator('json', WaitlistJoinSchema), async (c) => {
+  const userId = getUserId(c);
+  if (!userId) return c.json({ error: 'unauthorized' }, 401);
+
   const body = c.req.valid('json');
-  return c.json(joinFeatureWaitlist(getUserId(c), body), 201);
+  return c.json(joinFeatureWaitlist(userId, body), 201);
 });
 
 export { featureProgress };
