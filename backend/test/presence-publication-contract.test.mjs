@@ -20,3 +20,17 @@ test('quarantine does not rewrite current presence formulas or gate thresholds',
   assert.match(serviceSource, /const agitation = summary\.agitationEvents \?\? 0/);
   assert.match(serviceSource, /const rest = summary\.matPresenceMinutes \?\? 0/);
 });
+
+test('absence comparison validates days after ownership and before evidence access', () => {
+  const routeStart = routeSource.indexOf("dogs.get('/:id/absence-comparison'");
+  const routeEnd = routeSource.indexOf("dogs.get('/:id/vet-report-link'", routeStart);
+  const route = routeSource.slice(routeStart, routeEnd);
+
+  assert.ok(routeStart >= 0 && routeEnd > routeStart);
+  assert.match(route, /parseLookbackWindow\(c\.req\.query\('days'\)\)/);
+  assert.match(route, /invalid_presence_window/);
+  assert.match(route, /parameter:\s*'days'/);
+  assert.doesNotMatch(route, /Number\(c\.req\.query\('days'\)/);
+  assert.ok(route.indexOf('if (denied) return denied;') < route.indexOf('parseLookbackWindow'));
+  assert.ok(route.indexOf('parseLookbackWindow') < route.indexOf('let summaries'));
+});
