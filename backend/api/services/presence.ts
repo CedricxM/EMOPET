@@ -34,6 +34,29 @@ export interface PresenceComparison {
   valid_presence_hours: number;
 }
 
+export class PresenceComparisonDataUnavailableError extends Error {
+  readonly code = 'presence_comparison_data_unavailable';
+
+  constructor(readonly sourceCause: unknown) {
+    super('Presence comparison data source is unavailable.');
+    this.name = 'PresenceComparisonDataUnavailableError';
+  }
+}
+
+/**
+ * Preserve a successful empty authoritative read while classifying thrown source
+ * failures separately. Callers must not convert this error into empty evidence.
+ */
+export async function readPresenceComparisonSource<T>(
+  reader: () => Promise<T[]>,
+): Promise<T[]> {
+  try {
+    return await reader();
+  } catch (error) {
+    throw new PresenceComparisonDataUnavailableError(error);
+  }
+}
+
 const presenceEventStore = new Map<string, PresenceEventInput[]>();
 
 function toDate(value: Date | string): Date {

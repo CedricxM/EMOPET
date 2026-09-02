@@ -5,6 +5,8 @@ import { readFileSync } from 'node:fs';
 import {
   buildPresenceSegments,
   computePresenceComparison,
+  PresenceComparisonDataUnavailableError,
+  readPresenceComparisonSource,
 } from '../dist/api/services/presence.js';
 
 test('buildPresenceSegments aggregates phone events into present/absence spans', () => {
@@ -50,9 +52,37 @@ test('computePresenceComparison fails closed when no real evidence exists', () =
   assert.deepEqual(comparison.segments, []);
 });
 
-test('authenticated absence-comparison route cannot reintroduce synthetic sensor fallbacks', () => {
+test('presence source boundary preserves a successful authoritative empty read', async () => {
+  const summaries = await readPresenceComparisonSource(async () => []);
+
+  assert.deepEqual(summaries, []);
+});
+
+test('presence source boundary classifies a thrown reader without exposing it as no-data', async () => {
+  const sourceFailure = new Error('test-only database detail');
+
+  await assert.rejects(
+    () => readPresenceComparisonSource(async () => {
+      throw sourceFailure;
+    }),
+    (error) => {
+      assert.ok(error instanceof PresenceComparisonDataUnavailableError);
+      assert.equal(error.code, 'presence_comparison_data_unavailable');
+      assert.equal(error.sourceCause, sourceFailure);
+      assert.doesNotMatch(error.message, /database detail/);
+      return true;
+    },
+  );
+});
+
+test('authenticated absence-comparison route cannot reintroduce synthetic or unavailable-as-empty fallbacks', () => {
   const routeSource = readFileSync(new URL('../api/routes/dogs.ts', import.meta.url), 'utf8');
 
   assert.doesNotMatch(routeSource, /buildFallback(?:Summaries|PresenceEvents)/);
   assert.doesNotMatch(routeSource, /fallback-[123]/);
+  assert.doesNotMatch(routeSource, /catch\s*\{\s*summaries\s*=\s*\[\]/);
+  assert.match(routeSource, /PresenceComparisonDataUnavailableError/);
+  assert.match(routeSource, /error:\s*error\.code/);
+  assert.match(routeSource, /private, max-age=0, no-store/);
+  assert.match(routeSource, /503/);
 });
