@@ -56,10 +56,14 @@ Limites importantes :
 |---|---|---|
 | POST | `/api/sensors/summaries` | Validation + contrôle propriétaire, persistance TODO |
 | GET | `/api/sensors/summaries/:dogId` | Résultats placeholder |
-| GET | `/api/sensors/eli/:dogId` | État ELI placeholder |
-| GET | `/api/sensors/eli/:dogId/history` | Historique placeholder |
+| GET | `/api/sensors/eli/:dogId` | Contrôle propriétaire puis `501 eli_runtime_not_implemented` : aucun producteur ELI autoritatif n'est câblé |
+| GET | `/api/sensors/eli/:dogId/history` | Contrôle propriétaire puis `501 eli_runtime_not_implemented` : aucun historique ELI autoritatif n'est disponible |
 | GET | `/api/sensors/baseline/:dogId` | Baseline placeholder |
 | POST, GET | `/api/sensors/presence/:dogId/events` | Événements conservés en mémoire du processus |
+
+Aucun endpoint `/api/eli/latest` n'est implémenté ou sélectionné comme contrat futur. Le hook mobile v6 reste explicitement `UNWIRED / NON_AUTHORITATIVE` jusqu'à décision du contrat sous `ELI-API-01` (#124). Les réponses `501` ci-dessus signifient qu'aucun runtime ELI autoritatif n'existe encore ; elles ne doivent pas être interprétées comme « aucune donnée trouvée ».
+
+Le `POST /api/sensors/summaries` reste, sur `main`, le faux ACK suivi séparément sous #94 et sa PR candidate #95. Cette branche ELI n'en duplique pas la correction.
 
 ### Communauté
 
