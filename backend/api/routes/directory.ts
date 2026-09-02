@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 
 export const directory = new Hono();
 
@@ -10,7 +10,7 @@ const DIRECTORY_VERIFICATION_HOLD = {
   reason: 'row_level_provenance_and_verification_not_established',
 };
 
-function holdDirectory(c: Parameters<Parameters<typeof directory.get>[1]>[0]) {
+function holdDirectory(c: Context) {
   return c.json(DIRECTORY_VERIFICATION_HOLD, 503);
 }
 
