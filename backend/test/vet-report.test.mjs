@@ -2,7 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
+const TEST_REPORT_SECRET = 'test-vet-report-secret';
+
 process.env.NODE_ENV = 'test';
+process.env.REPORT_SHARE_SECRET = TEST_REPORT_SECRET;
+
+const { SignJWT } = await import('jose');
 
 const {
   buildVetReportPdf,
@@ -74,6 +79,19 @@ test('vet-report share token remains dog, period and scope bound', async () => {
   assert.equal(await verifyVetReportShareToken(token, OTHER_DOG_ID, 14), false);
   assert.equal(await verifyVetReportShareToken(token, DOG_ID, 7), false);
   assert.equal(await verifyVetReportShareToken(`${token}tampered`, DOG_ID, 14), false);
+
+  const expiredToken = await new SignJWT({
+    dogId: DOG_ID,
+    days: 14,
+    scope: 'vet-report',
+  })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setSubject('guardian-a')
+    .setIssuedAt()
+    .setExpirationTime(Math.floor(Date.now() / 1000) - 60)
+    .sign(new TextEncoder().encode(TEST_REPORT_SECRET));
+
+  assert.equal(await verifyVetReportShareToken(expiredToken, DOG_ID, 14), false);
 });
 
 test('vet-report route preserves authorization, 503 and private no-store boundaries', async () => {
