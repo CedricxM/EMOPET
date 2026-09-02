@@ -1,0 +1,66 @@
+name: Trust baseline batch inventory probe
+
+on:
+  push:
+    branches:
+      - sec/trust-baseline-batch-inventory-probe
+
+permissions:
+  contents: read
+
+env:
+  TURBO_TELEMETRY_DISABLED: '1'
+  NEXT_TELEMETRY_DISABLED: '1'
+
+jobs:
+  trust-baseline-batch-probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '20'
+
+      - name: Activate diagnostic pnpm verifier
+        shell: bash
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.24.0 --activate
+          pnpm --version | tee pnpm-probe-version.txt
+
+      - name: Verify existing lock under trust policy without mutation
+        id: probe
+        shell: bash
+        run: |
+          set +e
+          pnpm install --frozen-lockfile --lockfile-only --ignore-scripts > trust-probe.log 2>&1
+          code=$?
+          set -e
+          printf '%s\n' "$code" | tee trust-probe-exit.txt
+          cat trust-probe.log
+
+      - name: Extract trust downgrade evidence
+        if: always()
+        shell: bash
+        run: |
+          grep -E 'ERR_PNPM_TRUST_DOWNGRADE|High-risk trust downgrade|lockfile entries failed verification' trust-probe.log > trust-downgrade-summary.txt || true
+          cat trust-downgrade-summary.txt || true
+
+      - name: Assert dependency and policy files are unchanged
+        if: always()
+        shell: bash
+        run: |
+          git diff --exit-code -- pnpm-lock.yaml pnpm-workspace.yaml package.json apps packages backend tools
+
+      - name: Upload probe evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: pnpm-trust-baseline-batch-probe
+          path: |
+            pnpm-probe-version.txt
+            trust-probe-exit.txt
+            trust-probe.log
+            trust-downgrade-summary.txt
+          if-no-files-found: error
