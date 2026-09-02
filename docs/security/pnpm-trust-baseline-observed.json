@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 2,
-  "status": "phase_a_candidate_complete",
+  "schemaVersion": 3,
+  "status": "phase_b_decision_package_prepared_not_authorized",
   "inventoryComplete": true,
   "completenessScope": "controlled baseline lock: 1427 entries verified under pinned pnpm 11.24.0 lockfile verifier",
   "freshResolutionEquivalenceProven": false,
@@ -83,10 +83,46 @@
       "migrationExceptionApproved": false
     }
   ],
+  "phaseBDecisionPackage": {
+    "decisionState": "UNDECIDED",
+    "allowedDecisions": [
+      "APPROVE_BOUNDED_EXPERIMENT",
+      "HOLD"
+    ],
+    "proposedAuthorizationScope": "one controlled pnpm 10.33.0 lock-regeneration experiment only",
+    "proposedManifestCount": 5,
+    "proposedBrowserslistTarget": "4.28.7",
+    "temporaryExceptionPersistenceAllowed": false,
+    "persistentTrustPolicyRelaxationAllowed": false,
+    "manualLockEditingAllowed": false,
+    "auditWaiverAllowed": false,
+    "hardStopConditions": [
+      "trust downgrade outside the five-selector manifest",
+      "version or integrity movement for any historical manifest selector",
+      "browserslist does not resolve to the approved patched target",
+      "unreviewed unrelated lock movement",
+      "migration-only trust bypass remains in committed policy",
+      "strict post-generation frozen install fails",
+      "HIGH/CRITICAL audit remains blocking",
+      "workspace typecheck, tests, or web build regress",
+      "generated lock is not reproducible from the reviewed procedure"
+    ],
+    "approvalRecord": {
+      "decision": null,
+      "reviewer": null,
+      "reviewedAt": null,
+      "baselineCommit": null,
+      "manifestCount": null,
+      "browserslistTarget": null,
+      "authorizationScope": null,
+      "notes": null
+    }
+  },
   "notes": [
     "The five-selector inventory is complete only for the 1427 entries of the controlled baseline lock under the pinned pnpm 11.24.0 verifier.",
     "All five selectors were independently observed during bounded pnpm 10.33.0 diagnostics before the #105 STOP condition.",
     "Fresh-resolution equivalence under pnpm 10.33.0 is not proven by this inventory.",
+    "The Phase-B decision package is a proposal only; no approval record is populated.",
     "This manifest must not be copied into persistent trustPolicyExclude or treated as an approved migration exception list.",
     "No lockfile or trust-policy mutation is authorized by this file."
   ]
