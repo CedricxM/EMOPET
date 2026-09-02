@@ -76,9 +76,9 @@ Ouvre `http://localhost:3100/` et fais les vérifications dans l'ordre.
 - [ ] Click **CSV** → fichier `emopet-export-YYYY-MM-DD.csv` se télécharge. Ouvre dans Excel/Numbers — caractères accentués corrects (BOM UTF-8).
 - [ ] Click **JSON** → fichier `.json` se télécharge.
 - [ ] Click **"VOIR LES UTILISATIONS"** → modal Études INRAE Bretagne / ENVA Nantes.
-- [ ] Click **"SUPPRIMER MES DONNÉES"** → modal étape 1 (avertissement) → Continuer → étape 2 (taper `SUPPRIMER`).
-- [ ] Bouton "Supprimer définitivement" désactivé tant que `SUPPRIMER` pas tapé.
-- [ ] Une fois supprimé → toast "Suppression simulée — maquette uniquement".
+- [ ] Click **"SUPPRIMER MES DONNÉES"** → modal "Simulation d’effacement" indiquant avant confirmation que la maquette est non destructive et qu’aucune donnée ne sera supprimée.
+- [ ] Click **"Continuer la simulation"** → étape 2 (taper `SUPPRIMER`) ; bouton **"Simuler la confirmation"** désactivé tant que le mot exact n’est pas saisi.
+- [ ] La confirmation ouvre **"Simulation terminée"** et rappelle qu’aucune donnée n’a été supprimée, qu’aucun délai n’est annoncé et qu’aucun endpoint destructif n’a été appelé.
 
 ### Accessibilité
 
