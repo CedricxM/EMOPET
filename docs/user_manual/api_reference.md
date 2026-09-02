@@ -47,8 +47,10 @@ Limites importantes :
 | GET, POST | `/api/dogs` | Liste/création placeholder |
 | GET, PATCH, DELETE | `/api/dogs/:id` | Contrôle propriétaire, réponse encore partielle |
 | GET | `/api/dogs/:id/absence-comparison` | Comparaison présence/absence avec données DB ou fallback |
-| GET | `/api/dogs/:id/vet-report-link` | Création d'un lien temporaire signé |
-| GET | `/api/dogs/:id/vet-report` | PDF via propriétaire ou `share_token` valide ; `503 vet_report_data_unavailable` si les sources autoritatives sont illisibles |
+| GET | `/api/dogs/:id/vet-report-link` | Création d'un lien temporaire signé ; `days` doit être un entier positif sûr, défaut 14, sinon `400 invalid_report_period` |
+| GET | `/api/dogs/:id/vet-report` | PDF via propriétaire ou `share_token` valide ; même période validée ; `503 vet_report_data_unavailable` si les sources autoritatives sont illisibles |
+
+Les deux routes vétérinaires partagent le même parseur de période. Une valeur `days` invalide, nulle, négative, fractionnaire ou non numérique n'est ni signée dans un token ni utilisée pour calculer le rapport. Ce candidat ne choisit pas de durée maximale métier ; cette décision reste ouverte sous `VET-REPORT-02`.
 
 ### Capteurs et ELI
 
