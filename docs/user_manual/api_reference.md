@@ -90,8 +90,10 @@ Limites importantes :
 | Méthode | Chemin | État observé |
 |---|---|---|
 | GET | `/api/health/:dogId` | Contrôle propriétaire, entrées placeholder |
-| POST | `/api/health` | Validation + contrôle propriétaire, persistance non démontrée |
+| POST | `/api/health` | Validation + contrôle propriétaire ; `501 health_entry_persistence_not_implemented` tant qu'aucun writer durable n'est implémenté |
 | GET | `/api/health/:dogId/reminders` | Contrôle propriétaire, rappels placeholder |
+
+Le `POST /api/health` n'accuse volontairement aucune création tant qu'aucun writer durable n'existe. Un succès de validation et d'autorisation ne doit pas être confondu avec la création, la persistance ou la mise en file d'une entrée de journal.
 
 Ces routes portent un nom historique `health`, mais leurs sorties ne doivent pas être présentées comme un diagnostic.
 
