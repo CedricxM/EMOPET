@@ -26,7 +26,7 @@ jobs:
         shell: bash
         run: |
           node --version | tee node-probe-version.txt
-          npx --yes pnpm@11.24.0 --version | tee pnpm-probe-version.txt
+          npx --yes pnpm@11.24.0 --pm-on-fail=ignore --version | tee pnpm-probe-version.txt
           grep -Fx '11.24.0' pnpm-probe-version.txt
 
       - name: Verify existing lock under trust policy without mutation
@@ -34,7 +34,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          npx --yes pnpm@11.24.0 install --frozen-lockfile --lockfile-only --ignore-scripts > trust-probe.log 2>&1
+          npx --yes pnpm@11.24.0 --pm-on-fail=ignore install --frozen-lockfile --lockfile-only --ignore-scripts > trust-probe.log 2>&1
           code=$?
           set -e
           printf '%s\n' "$code" | tee trust-probe-exit.txt
