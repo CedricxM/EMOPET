@@ -59,9 +59,12 @@ Limites importantes :
 | GET | `/api/sensors/eli/:dogId` | État ELI placeholder |
 | GET | `/api/sensors/eli/:dogId/history` | Historique placeholder |
 | GET | `/api/sensors/baseline/:dogId` | Contrôle propriétaire puis `501 baseline_read_not_implemented` tant que lecture et projection Guardian ne sont pas définies |
-| POST, GET | `/api/sensors/presence/:dogId/events` | Événements conservés en mémoire du processus |
+| POST | `/api/sensors/presence/:dogId/events` | Écrit réellement dans le store mémoire courant ; réponse `storageClass=VOLATILE_PROCESS`, `durable=false`, `survivesRestart=false` |
+| GET | `/api/sensors/presence/:dogId/events` | Lit le même store mémoire courant et expose la même classe de stockage non durable |
 
 Le `POST /api/sensors/summaries` n'accuse volontairement aucune ingestion tant qu'aucun stockage ou mécanisme durable n'existe. De même, les lectures `summaries` et `baseline` ne retournent plus un tableau vide ou `null` comme si une requête autoritative avait réussi : `NOT_IMPLEMENTED` reste distinct d'un futur `NONE_FOUND`.
+
+Les événements de présence constituent une classe différente : le prototype effectue bien une création dans un `Map` du processus, mais cette création ne survit ni au redémarrage ni au redéploiement. Le `201` signifie uniquement qu'un événement a été ajouté au store volatile courant ; il ne constitue pas une preuve de persistance durable, d'enqueue ou d'historique de compte. La durabilité, l'idempotency, la chronologie event/receive time et le lifecycle restent ouverts sous `DATA-PRES-01`.
 
 ### Communauté
 
