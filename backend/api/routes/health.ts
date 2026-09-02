@@ -11,8 +11,12 @@ health.get('/:dogId', async (c) => {
   const denied = await requireDogOwnership(c, dogId);
   if (denied) return denied;
 
-  // TODO: return health journal entries for dog
-  return c.json({ dogId, entries: [] });
+  // No authoritative route reader is wired yet. Do not represent an
+  // unimplemented read as a successful query that happened to find no entries.
+  return c.json({
+    error: 'health_entry_read_not_implemented',
+    dogId,
+  }, 501);
 });
 
 health.post('/', zValidator('json', HealthEntryCreateSchema), async (c) => {
@@ -33,8 +37,12 @@ health.get('/:dogId/reminders', async (c) => {
   const denied = await requireDogOwnership(c, dogId);
   if (denied) return denied;
 
-  // TODO: return upcoming health reminders (nextDueDate)
-  return c.json({ dogId, reminders: [] });
+  // The schema exposes nextDueDate, but reminder selection/scheduling semantics
+  // are not implemented by this route. Do not turn that into an empty result.
+  return c.json({
+    error: 'health_reminder_read_not_implemented',
+    dogId,
+  }, 501);
 });
 
 export { health };
