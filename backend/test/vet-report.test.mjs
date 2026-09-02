@@ -110,7 +110,7 @@ test('vet-report route preserves authorization, 503 and private no-store boundar
   assert.ok(ownerCheck > tokenCheck);
   assert.ok(reportLoad > ownerCheck);
   assert.match(routeSource, /Invalid or expired share token/);
-  assert.match(routeSource, /error: 'vet_report_data_unavailable'/);
+  assert.match(routeSource, /error: error\.code/);
   assert.match(routeSource, /503/);
   const noStoreDirectives = routeSource.match(
     /private, max-age=0, no-store/g,
