@@ -26,8 +26,13 @@ sensors.get('/summaries/:dogId', async (c) => {
   if (denied) return denied;
 
   const range = c.req.query('range') ?? '24h';
-  // TODO: return sensor summaries for dog within time range
-  return c.json({ dogId, range, summaries: [] });
+  // No authoritative route reader is implemented yet. Do not turn that state
+  // into a successful empty query result.
+  return c.json({
+    error: 'sensor_summary_read_not_implemented',
+    dogId,
+    range,
+  }, 501);
 });
 
 sensors.get('/eli/:dogId', async (c) => {
@@ -54,8 +59,12 @@ sensors.get('/baseline/:dogId', async (c) => {
   const denied = await requireDogOwnership(c, dogId);
   if (denied) return denied;
 
-  // TODO: return baseline state / progress
-  return c.json({ dogId, baseline: null });
+  // Baseline persistence/projection exists elsewhere, but this route has no
+  // authoritative reader and Guardian disclosure remains controlled separately.
+  return c.json({
+    error: 'baseline_read_not_implemented',
+    dogId,
+  }, 501);
 });
 
 sensors.post('/presence/:dogId/events', zValidator('json', PresenceEventCreateSchema), async (c) => {
