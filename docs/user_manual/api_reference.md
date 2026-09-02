@@ -46,9 +46,11 @@ Limites importantes :
 |---|---|---|
 | GET, POST | `/api/dogs` | Liste/création placeholder |
 | GET, PATCH, DELETE | `/api/dogs/:id` | Contrôle propriétaire, réponse encore partielle |
-| GET | `/api/dogs/:id/absence-comparison` | Calcul prototype depuis les données réelles disponibles ; sortie explicitement `publishable: false` sous `SCI-PRES-01`, même si le gate algorithmique interne vaut `PUBLISH` |
+| GET | `/api/dogs/:id/absence-comparison` | Calcul prototype depuis les données réelles disponibles ; `days` omis vaut 14, sinon un entier décimal positif sûr est requis (`400 invalid_presence_window`) ; sortie toujours `publishable: false` sous `SCI-PRES-01` |
 | GET | `/api/dogs/:id/vet-report-link` | Création d'un lien temporaire signé |
 | GET | `/api/dogs/:id/vet-report` | PDF, via propriétaire ou `share_token` valide |
+
+Le paramètre `days` de la comparaison présence/absence est validé après le contrôle propriétaire et avant tout accès aux observations. Une valeur vide, nulle, négative, fractionnaire, non numérique, non sûre ou non représentable comme date renvoie `400 { error: "invalid_presence_window", parameter: "days" }` au lieu d'être présentée comme une absence de données. Aucun plafond métier n'est choisi par ce candidat.
 
 Le chemin authentifié de comparaison présence/absence n'utilise plus de fallback physiologique synthétique sur ce candidat. Cependant, ses sémantiques horaires et MAT/TAG restent ouvertes sous `SCI-PRES-01` : la réponse porte `authority.status = PROTOTYPE_SEMANTICS_UNVALIDATED`, `authority.publishable = false`, `authority.controllingGate = SCI-PRES-01` et `authority.syntheticFallback = false`. Le gate `PUBLISH | DEGRADE | REJECT` calculé par le service reste disponible pour QA mais ne constitue pas une autorisation de publication produit.
 

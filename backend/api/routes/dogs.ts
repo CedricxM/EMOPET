@@ -16,6 +16,7 @@ import {
   verifyVetReportShareToken,
 } from '../services/vet-report.js';
 import { requireDogOwnership } from '../middleware/authorization.js';
+import { parseLookbackWindow } from '../utils/temporal-window.js';
 
 const dogs = new Hono();
 
@@ -51,9 +52,11 @@ dogs.get('/:id/absence-comparison', async (c) => {
   const denied = await requireDogOwnership(c, id);
   if (denied) return denied;
 
-  const days = Number(c.req.query('days') ?? '14');
-  const since = new Date();
-  since.setDate(since.getDate() - days);
+  const window = parseLookbackWindow(c.req.query('days'));
+  if (!window) {
+    return c.json({ error: 'invalid_presence_window', parameter: 'days' }, 400);
+  }
+  const { days, since } = window;
 
   let summaries: Array<typeof sensorSummaries.$inferSelect> = [];
   try {
