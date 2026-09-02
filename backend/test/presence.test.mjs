@@ -82,7 +82,7 @@ test('authenticated absence-comparison route cannot reintroduce synthetic or una
   assert.doesNotMatch(routeSource, /fallback-[123]/);
   assert.doesNotMatch(routeSource, /catch\s*\{\s*summaries\s*=\s*\[\]/);
   assert.match(routeSource, /PresenceComparisonDataUnavailableError/);
-  assert.match(routeSource, /error:\\s*error\\.code/);
+  assert.match(routeSource, /error:\s*error\.code/);
   assert.match(routeSource, /private, max-age=0, no-store/);
   assert.match(routeSource, /503/);
 });
