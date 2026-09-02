@@ -22,19 +22,18 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Activate diagnostic pnpm verifier
+      - name: Pin diagnostic pnpm verifier executable
         shell: bash
         run: |
-          corepack enable
-          corepack prepare pnpm@11.24.0 --activate
-          pnpm --version | tee pnpm-probe-version.txt
+          npx --yes pnpm@11.24.0 --version | tee pnpm-probe-version.txt
+          grep -Fx '11.24.0' pnpm-probe-version.txt
 
       - name: Verify existing lock under trust policy without mutation
         id: probe
         shell: bash
         run: |
           set +e
-          pnpm install --frozen-lockfile --lockfile-only --ignore-scripts > trust-probe.log 2>&1
+          npx --yes pnpm@11.24.0 install --frozen-lockfile --lockfile-only --ignore-scripts > trust-probe.log 2>&1
           code=$?
           set -e
           printf '%s\n' "$code" | tee trust-probe-exit.txt
