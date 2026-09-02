@@ -99,9 +99,11 @@ Ces routes portent un nom historique `health`, mais leurs sorties ne doivent pas
 
 | Méthode | Chemin | État observé |
 |---|---|---|
-| GET | `/api/directory/search` | Recherche PostgreSQL, rayon borné à 50 km |
-| GET | `/api/directory/categories` | Catégories et comptes PostgreSQL |
-| GET | `/api/directory/:id` | Entrée PostgreSQL par identifiant |
+| GET | `/api/directory/search` | `503 directory_verification_hold` tant que DATA-LIC-G3 reste HOLD |
+| GET | `/api/directory/categories` | `503 directory_verification_hold` tant que DATA-LIC-G3 reste HOLD |
+| GET | `/api/directory/:id` | `503 directory_verification_hold` tant que DATA-LIC-G3 reste HOLD |
+
+Le seed Lorient n'est plus servi par le backend candidat comme un annuaire produit vérifié. La réponse fail-closed porte `status=HOLD`, `gate=DATA-LIC-G3`, `authoritative=false` et `reason=row_level_provenance_and_verification_not_established`. Le correctif ne supprime ni ne réécrit les lignes : il aligne uniquement le runtime avec le HOLD de provenance/licence déjà enregistré sous #116/#117. La réactivation nécessite une décision séparée après revue ligne-par-ligne et des champs `rating`/`verified`/contacts/coordonnées concernés.
 
 ## 5. Plan API web distinct
 

@@ -5,6 +5,21 @@ import { localDirectory } from '../../db/schema/index.js';
 
 export const directory = new Hono();
 
+const DIRECTORY_VERIFICATION_HOLD = {
+  error: 'directory_verification_hold',
+  status: 'HOLD' as const,
+  gate: 'DATA-LIC-G3' as const,
+  authoritative: false,
+  reason: 'row_level_provenance_and_verification_not_established',
+};
+
+/**
+ * DATA-LIC-G3 runtime enforcement.
+ * Preserve the implementation below for later reviewed remediation, but fail
+ * closed before any row-level data, rating, verification flag or count is read.
+ */
+directory.use('*', async (c) => c.json(DIRECTORY_VERIFICATION_HOLD, 503));
+
 /**
  * GET /api/directory/search
  *
@@ -135,8 +150,7 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((lat1 * Math.PI) / 180) *
       Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
