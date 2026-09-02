@@ -71,11 +71,13 @@ Limites importantes :
 | POST | `/api/community/rules/accept` | Acceptation conservée en mémoire |
 | POST | `/api/community/reports` | Signalement conservé en mémoire |
 | POST | `/api/community/blocks` | Blocage conservé en mémoire |
-| POST | `/api/community/posts` | Validation/règles/filtre, sans stockage durable observé |
-| POST | `/api/community/comments` | Validation/règles/filtre, sans stockage durable observé |
+| POST | `/api/community/posts` | Validation/règles/filtre ; `501 community_post_persistence_not_implemented` tant qu'aucun writer Hono n'est implémenté |
+| POST | `/api/community/comments` | Validation/règles/filtre ; `501 community_comment_persistence_not_implemented` tant qu'aucun writer Hono n'est implémenté |
 | GET | `/api/community/:id/events` | Liste placeholder |
-| POST | `/api/community/events` | Validation/règles/filtre, sans stockage durable observé |
+| POST | `/api/community/events` | Validation/règles/filtre ; `501 community_event_persistence_not_implemented` tant qu'aucun writer Hono n'est implémenté |
 | GET | `/api/community/copresence/:dogId` | Contrôle propriétaire, résultats placeholder |
+
+Les trois créations de contenu Hono (`posts`, `comments`, `events`) n'accusent volontairement aucune création après validation et modération tant qu'aucun stockage ou mécanisme durable n'est relié à ces routes. Les Route Handlers Next.js sous `apps/web/app/api/community/**` constituent un plan API distinct et ne prouvent pas la persistance de ces routes Hono.
 
 ### Progression, consentements et waitlist
 
