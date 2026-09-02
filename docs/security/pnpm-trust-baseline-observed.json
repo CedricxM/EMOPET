@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "status": "observed_non_exhaustive",
+  "inventoryComplete": false,
+  "exceptionAuthorization": false,
+  "baseline": {
+    "repositoryCommit": "c099581ff8aed1e619f72ab38898fc05833b7c66",
+    "lockBlobSha": "1c5392596508047eea6d64f861abd648ed9a7666",
+    "workspaceConfigBlobSha": "d43c2b9ba214f3237a027ac136a81d6b3c923eec",
+    "lockfileVersion": "9.0",
+    "trustPolicy": "no-downgrade"
+  },
+  "observedTrustDowngrades": [
+    {
+      "selector": "undici-types@6.21.0",
+      "lockedVersion": "6.21.0",
+      "lockedIntegrity": "sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==",
+      "integrityStatus": "verified_from_baseline_lock",
+      "migrationExceptionApproved": false
+    },
+    {
+      "selector": "eslint-import-resolver-typescript@3.10.1",
+      "lockedVersion": "3.10.1",
+      "lockedIntegrity": "sha512-A1rHYb06zjMGAxdLSkN2fXPBwuSaQ0iO5M/hdyS0Ajj1VBaRp0sPD3dn1FhME3c/JluGFbwSxyCfqdSbtQLAHQ==",
+      "integrityStatus": "verified_from_baseline_lock",
+      "migrationExceptionApproved": false
+    },
+    {
+      "selector": "ua-parser-js@1.0.41",
+      "lockedVersion": "1.0.41",
+      "lockedIntegrity": "sha512-LbBDqdIC5s8iROCUjMbW1f5dJQTEFB1+KO9ogbvlb3nm9n4YHa5p4KTvFPWvh2Hs8gZMBuiB1/8+pdfe/tDPug==",
+      "integrityStatus": "verified_from_baseline_lock",
+      "migrationExceptionApproved": false
+    },
+    {
+      "selector": "semver@6.3.1",
+      "lockedVersion": "6.3.1",
+      "lockedIntegrity": "sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==",
+      "integrityStatus": "verified_from_baseline_lock",
+      "migrationExceptionApproved": false
+    },
+    {
+      "selector": "semver@5.7.2",
+      "lockedVersion": "5.7.2",
+      "lockedIntegrity": "sha512-cBznnQ9KjJqU67B52RMC65CMarK2600WFnbkcaiwWq3xy/5haFJlshgnpjovMVJ+Hff49d8GEn0b87C5pDQ10g==",
+      "integrityStatus": "verified_from_baseline_lock",
+      "migrationExceptionApproved": false
+    }
+  ],
+  "notes": [
+    "This manifest records only selectors observed before the bounded #105 STOP condition.",
+    "It is not a complete downgrade inventory.",
+    "It must not be copied into trustPolicyExclude or treated as an approved migration exception list.",
+    "No lockfile or trust-policy mutation is authorized by this file."
+  ]
+}
