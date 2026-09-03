@@ -20,12 +20,28 @@ import { requireDogOwnership } from '../middleware/authorization.js';
 
 const community = new Hono();
 
-function getUserId(c: unknown): string {
-  return String((c as { get: (key: string) => unknown }).get('userId') ?? 'demo-user');
+function readUserId(c: unknown): string | null {
+  const userId = (c as { get: (key: string) => unknown }).get('userId');
+  return typeof userId === 'string' && userId.trim() ? userId : null;
 }
 
+function getRequiredUserId(c: unknown): string {
+  const userId = readUserId(c);
+  if (!userId) {
+    throw new Error('Community identity middleware invariant violated.');
+  }
+  return userId;
+}
+
+community.use('*', async (c, next) => {
+  if (!readUserId(c)) {
+    return c.json({ error: 'unauthorized' }, 401);
+  }
+  await next();
+});
+
 function requireCommunityRules(c: { json: (value: unknown, status?: number) => Response }): Response | null {
-  const userId = getUserId(c);
+  const userId = getRequiredUserId(c);
   if (canCreateCommunityContent(userId)) {
     return null;
   }
@@ -62,17 +78,17 @@ community.get('/:id/feed', async (c) => {
 
 community.post('/rules/accept', zValidator('json', CommunityRulesAcceptSchema), async (c) => {
   const body = c.req.valid('json');
-  return c.json(acceptCommunityRules(getUserId(c), body), 201);
+  return c.json(acceptCommunityRules(getRequiredUserId(c), body), 201);
 });
 
 community.post('/reports', zValidator('json', UgcReportCreateSchema), async (c) => {
   const body = c.req.valid('json');
-  return c.json(createUgcReport(getUserId(c), body), 201);
+  return c.json(createUgcReport(getRequiredUserId(c), body), 201);
 });
 
 community.post('/blocks', zValidator('json', UserBlockCreateSchema), async (c) => {
   const body = c.req.valid('json');
-  return c.json(createUserBlock(getUserId(c), body), 201);
+  return c.json(createUserBlock(getRequiredUserId(c), body), 201);
 });
 
 // ── Posts ────────────────────────────────────────────────────────
