@@ -77,14 +77,16 @@ export const authMiddleware = createMiddleware<{
   }
 
   const token = header.slice(7);
+  let auth: AuthPayload;
   try {
-    const auth = await verifyAccessToken(token);
-    c.set('userId', auth.sub);
-    c.set('authPayload', auth);
-    await next();
+    auth = await verifyAccessToken(token);
   } catch {
     return c.json({ error: 'Invalid or expired token' }, 401);
   }
+
+  c.set('userId', auth.sub);
+  c.set('authPayload', auth);
+  await next();
 });
 
 /**

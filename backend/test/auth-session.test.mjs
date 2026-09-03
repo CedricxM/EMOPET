@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { Hono } from 'hono';
 import { SignJWT } from 'jose';
 
 process.env.NODE_ENV = 'test';
@@ -15,6 +16,7 @@ const {
   rotateRefreshCredential,
 } = await import('../dist/api/services/auth-sessions.js');
 const {
+  authMiddleware,
   signAccessToken,
   verifyAccessToken,
 } = await import('../dist/api/middleware/auth.js');
@@ -129,6 +131,31 @@ test('access JWT enforces canonical UUID subject and controlled claims', async (
     .setExpirationTime('15m')
     .sign(TEST_SECRET);
   await assert.rejects(() => verifyAccessToken(wrongAudience));
+});
+
+test('auth middleware keeps token failures separate from downstream failures', async () => {
+  const app = new Hono();
+
+  app.onError((_error, c) => c.json({ error: 'internal_server_error' }, 500));
+  app.use('/api/*', authMiddleware);
+  app.get('/api/downstream-failure', () => {
+    throw new Error('test-only downstream detail');
+  });
+
+  const validToken = await signAccessToken(USER_ID);
+  const downstreamFailure = await app.request('/api/downstream-failure', {
+    headers: { Authorization: `Bearer ${validToken}` },
+  });
+
+  assert.equal(downstreamFailure.status, 500);
+  assert.deepEqual(await downstreamFailure.json(), { error: 'internal_server_error' });
+
+  const invalidToken = await app.request('/api/downstream-failure', {
+    headers: { Authorization: 'Bearer invalid-token' },
+  });
+
+  assert.equal(invalidToken.status, 401);
+  assert.deepEqual(await invalidToken.json(), { error: 'Invalid or expired token' });
 });
 
 test('refresh rotation locks the family and re-reads state after the lock', async () => {
