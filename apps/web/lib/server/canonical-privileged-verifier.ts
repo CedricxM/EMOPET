@@ -6,6 +6,8 @@ import {
 
 import type { PrivilegedAuthorizationVerifier } from './privileged-request';
 
+type PrivilegedAuthorizationInput = Parameters<PrivilegedAuthorizationVerifier['authorize']>[0];
+
 export interface CanonicalPrivilegedVerifierOptions {
   keyProvider: () => PrivilegedTokenKeyConfig;
   now?: () => Date;
@@ -15,7 +17,7 @@ export function createCanonicalPrivilegedAuthorizationVerifier(
   options: CanonicalPrivilegedVerifierOptions,
 ): PrivilegedAuthorizationVerifier {
   return Object.freeze({
-    async authorize({ token, action }) {
+    async authorize({ token, action }: PrivilegedAuthorizationInput) {
       const key = options.keyProvider();
       assertPrivilegedTokenKeyConfig(key);
 
