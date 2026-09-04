@@ -7,13 +7,21 @@ import { useAuthStore, useDogStore, usePreferencesStore } from '../../src/store'
 
 export default function HealthVetScreen() {
   const token = useAuthStore((state) => state.token);
-  const selectedDogId = useDogStore((state) => state.selectedDogId) ?? 'demo-dog';
+  const selectedDogId = useDogStore((state) => state.selectedDogId);
   const vetExportOptIn = usePreferencesStore((state) => state.consents.vet_export_opt_in);
   const setConsent = usePreferencesStore((state) => state.setConsent);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   async function handleExport(): Promise<void> {
+    if (!token?.trim()) {
+      setFeedback('Connectez-vous pour creer un lien de partage veterinaire.');
+      return;
+    }
+    if (!selectedDogId?.trim()) {
+      setFeedback('Selectionnez un chien avant de creer le rapport veterinaire.');
+      return;
+    }
     if (!vetExportOptIn) {
       setFeedback('Activez d abord l opt-in export veterinaire.');
       return;
