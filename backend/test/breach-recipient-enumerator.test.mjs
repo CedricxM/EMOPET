@@ -156,6 +156,23 @@ test('opaque person references can represent non-account natural persons without
   });
 });
 
+test('unknown but well-formed surfaces become explicit unsupported coverage gaps', async () => {
+  const resolver = resolverFromMap([
+    ['user:account-1', { status: 'RESOLVED', personRefs: [USER_A] }],
+  ]);
+
+  assert.deepEqual(await enumerateBreachRecipients([
+    { surface: 'new_future_surface', ref: 'object-9' },
+    { surface: 'user', ref: 'account-1' },
+  ], resolver), {
+    status: 'INCOMPLETE',
+    recipients: [USER_A],
+    gaps: [
+      { objectKey: 'unsupported:new_future_surface:object-9', reason: 'unsupported_surface' },
+    ],
+  });
+});
+
 test('invalid affected-object input never produces a completeness claim', async () => {
   const resolver = resolverFromMap([]);
 
@@ -166,7 +183,7 @@ test('invalid affected-object input never produces a completeness claim', async 
   });
 
   assert.deepEqual(await enumerateBreachRecipients([
-    { surface: 'unknown_surface', ref: 'x' },
+    { surface: 'user', ref: 'person@example.invalid' },
   ], resolver), {
     status: 'INVALID_INPUT',
     recipients: [],
@@ -174,7 +191,7 @@ test('invalid affected-object input never produces a completeness claim', async 
   });
 
   assert.deepEqual(await enumerateBreachRecipients([
-    { surface: 'user', ref: 'person@example.invalid' },
+    { surface: '', ref: 'x' },
   ], resolver), {
     status: 'INVALID_INPUT',
     recipients: [],
