@@ -5,6 +5,7 @@ import { resolveContactReadAuthority } from '../contact-read-authority';
 import type { PrivilegedAuthorizationVerifier } from '../privileged-request';
 
 const ADMIN_ID = '11111111-1111-4111-8111-111111111111';
+const SUPPORT_ID = '22222222-2222-4222-8222-222222222222';
 const TOKEN = 'privileged-contact-token-value-1234567890';
 const ACTION = 'contact.request.read' as const;
 
@@ -13,7 +14,7 @@ test('contact read preserves owner scope only when Authorization is absent', asy
   const verifier: PrivilegedAuthorizationVerifier = {
     async authorize() {
       calls += 1;
-      return { status: 'AUTHORIZED', subject: ADMIN_ID, action: ACTION };
+      return { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'admin', action: ACTION };
     },
   };
 
@@ -35,7 +36,7 @@ test('contact read requests exactly contact.request.read for a privileged bearer
   const verifier: PrivilegedAuthorizationVerifier = {
     async authorize(input) {
       assert.deepEqual(input, { token: TOKEN, action: ACTION });
-      return { status: 'AUTHORIZED', subject: ADMIN_ID, action: ACTION };
+      return { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'admin', action: ACTION };
     },
   };
 
@@ -46,8 +47,37 @@ test('contact read requests exactly contact.request.read for a privileged bearer
       }),
       verifier,
     ),
-    { status: 'AUTHORIZED', subject: ADMIN_ID, action: ACTION },
+    { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'admin', action: ACTION },
   );
+});
+
+test('authenticated contact RBAC denial retains actor identity without owner fallback', async () => {
+  const decision = await resolveContactReadAuthority(
+    new Request('https://example.test/api/contact', {
+      headers: {
+        authorization: `Bearer ${TOKEN}`,
+        'x-contact-owner-token': 'valid-owner-token-for-existing-path',
+      },
+    }),
+    {
+      async authorize() {
+        return {
+          status: 'DENIED',
+          subject: SUPPORT_ID,
+          role: 'support',
+          action: ACTION,
+        };
+      },
+    },
+  );
+
+  assert.deepEqual(decision, {
+    status: 'DENIED',
+    reason: 'not_authorized',
+    subject: SUPPORT_ID,
+    role: 'support',
+    action: ACTION,
+  });
 });
 
 test('denied or malformed privileged attempts never fall through to owner scope', async () => {
