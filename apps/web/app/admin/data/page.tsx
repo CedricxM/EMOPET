@@ -4,7 +4,9 @@ import { ContentShell } from '../../../components/content-shell';
 import { Button, Card, Eyebrow, H1, H2, Lead, P2 } from '../../../components/ui';
 import { MOCK_SCORED_BRITTANY_TERRITORIES } from '../../../lib/data/territory/mockTerritories';
 import { DEFAULT_TERRITORY_SCORING_WEIGHTS } from '../../../lib/data/territory/territoryScoring';
-import { ADMIN_TOKEN_COOKIE, isAdminTokenValue } from '../../../lib/server/admin';
+import { canonicalPrivilegedAuthorizationVerifier } from '../../../lib/server/canonical-privileged-verifier';
+import { authorizePrivilegedSessionToken } from '../../../lib/server/privileged-request';
+import { PRIVILEGED_SESSION_COOKIE } from '../../../lib/server/privileged-session';
 
 const BREAKDOWN_LABELS = [
   ['population_density_potential', 'Population / densite'],
@@ -50,18 +52,32 @@ function formatWeight(value: number): string {
 
 export default async function AdminDataPage() {
   const cookieStore = await cookies();
-  const isAuthorized = isAdminTokenValue(cookieStore.get(ADMIN_TOKEN_COOKIE)?.value);
-  if (!isAuthorized) {
+  const decision = await authorizePrivilegedSessionToken(
+    cookieStore.get(PRIVILEGED_SESSION_COOKIE)?.value,
+    'admin.data.read',
+    canonicalPrivilegedAuthorizationVerifier,
+  );
+
+  if (decision.status !== 'AUTHORIZED') {
+    const unavailable = decision.status === 'UNAVAILABLE';
     return (
       <ContentShell>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 720 }}>
           <header style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <Eyebrow tone="accent">Equipe EMOPET - data interne</Eyebrow>
-            <H1>Acces interne requis</H1>
-            <Lead>Cette page affiche des donnees de pilotage et reste fermee sans token admin valide.</Lead>
+            <H1>{unavailable ? 'Acces interne indisponible' : 'Acces interne requis'}</H1>
+            <Lead>
+              {unavailable
+                ? 'La verification de la session privilegiee est indisponible. Cette page reste fermee.'
+                : 'Cette page affiche des donnees de pilotage et reste fermee sans session privilegiee valide.'}
+            </Lead>
           </header>
           <Card>
-            <P2>Chargez le token depuis la file de moderation avant d'ouvrir le scoring territorial.</P2>
+            <P2>
+              {unavailable
+                ? 'Reessayez uniquement lorsque le service d autorisation privilegiee est disponible.'
+                : 'Une session privilegiee server-side valide est requise pour ouvrir le scoring territorial.'}
+            </P2>
             <div style={{ marginTop: 12 }}>
               <Link href="/admin" style={{ textDecoration: 'none' }}>
                 <Button kind="secondary" size="sm">Ouvrir la moderation</Button>
