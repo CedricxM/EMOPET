@@ -27,16 +27,18 @@ export const PRIVILEGED_ACTIONS = [
 ] as const;
 export type PrivilegedAction = (typeof PRIVILEGED_ACTIONS)[number];
 
+const SUPPORT_ACTIONS: readonly PrivilegedAction[] = Object.freeze([
+  'account.read_limited',
+  'support.case.read_limited',
+]);
+const OPERATOR_ACTIONS: readonly PrivilegedAction[] = Object.freeze([
+  'security.incident.read',
+  'security.incident.coordinate',
+]);
 const ROLE_ACTIONS: Readonly<Record<PrivilegedRole, readonly PrivilegedAction[]>> = Object.freeze({
-  admin: Object.freeze([...PRIVILEGED_ACTIONS]),
-  support: Object.freeze([
-    'account.read_limited',
-    'support.case.read_limited',
-  ]),
-  operator: Object.freeze([
-    'security.incident.read',
-    'security.incident.coordinate',
-  ]),
+  admin: PRIVILEGED_ACTIONS,
+  support: SUPPORT_ACTIONS,
+  operator: OPERATOR_ACTIONS,
 });
 
 export interface PrivilegedTokenKeyConfig {
