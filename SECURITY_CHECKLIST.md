@@ -3,7 +3,8 @@
 - [ ] Real `.env` files are not committed.
 - [ ] `.env.example` contains placeholders only.
 - [ ] Secrets listed in `SECURITY_ROTATION_REQUIRED.md` were rotated if any old values were real.
-- [ ] `ADMIN_TOKEN`, `JWT_SECRET`, `REPORT_SHARE_SECRET` and `CORS_ORIGIN` are configured in production.
+- [ ] `PRIVILEGED_JWT_SECRET`, `JWT_SECRET`, `REPORT_SHARE_SECRET` and `CORS_ORIGIN` are configured in production.
+- [ ] `PRIVILEGED_JWT_SECRET` is distinct from the ordinary `JWT_SECRET`.
 - [ ] Rate limiting uses a durable store in production.
 - [ ] User-owned resources enforce ownership checks.
 - [ ] Admin/internal routes enforce staff/admin permissions.
