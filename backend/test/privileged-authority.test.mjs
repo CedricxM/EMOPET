@@ -13,6 +13,7 @@ const OPERATOR_ID = '33333333-3333-4333-8333-333333333333';
 const WEB_ADMIN_ACTIONS = [
   'moderation.queue.read',
   'moderation.post.manage',
+  'contact.request.read',
   'contact.request.manage',
   'admin.data.read',
 ];
