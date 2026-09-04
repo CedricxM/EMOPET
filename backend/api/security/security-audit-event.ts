@@ -167,12 +167,22 @@ function parseTarget(value: unknown): SecurityAuditTarget | null {
   return { scope, ref: value.ref };
 }
 
+function reasonMatchesOutcome(outcome: SecurityAuditOutcome, reason: SecurityAuditReasonCode): boolean {
+  if (outcome === 'allowed') return reason === 'allowed';
+  if (outcome === 'error') return reason === 'internal_error';
+  return reason !== 'allowed' && reason !== 'internal_error';
+}
+
 export function parseSecurityAuditEvent(input: unknown): SecurityAuditEvent | null {
   if (!isRecord(input) || !hasOnlyKeys(input, TOP_LEVEL_KEYS)) return null;
   if (!includesString(SECURITY_AUDIT_EVENT_TYPES, input.eventType)) return null;
   if (!includesString(PRIVILEGED_ACTIONS, input.action)) return null;
   if (!includesString(SECURITY_AUDIT_OUTCOMES, input.outcome)) return null;
   if (!includesString(SECURITY_AUDIT_REASON_CODES, input.reason)) return null;
+
+  const outcome = input.outcome as SecurityAuditOutcome;
+  const reason = input.reason as SecurityAuditReasonCode;
+  if (!reasonMatchesOutcome(outcome, reason)) return null;
 
   const occurredAt = canonicalUtcTimestamp(input.occurredAt);
   const actor = parseActor(input.actor);
@@ -186,7 +196,7 @@ export function parseSecurityAuditEvent(input: unknown): SecurityAuditEvent | nu
     actor,
     action: input.action as PrivilegedAction,
     target,
-    outcome: input.outcome as SecurityAuditOutcome,
-    reason: input.reason as SecurityAuditReasonCode,
+    outcome,
+    reason,
   };
 }
