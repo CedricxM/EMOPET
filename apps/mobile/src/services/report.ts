@@ -1,4 +1,4 @@
-import { apiRequest, getApiBaseUrl } from './api';
+import { apiRequest } from './api';
 
 export interface AbsenceComparisonPayload {
   dogId: string;
@@ -22,6 +22,17 @@ export interface VetReportLinkPayload {
   days: number;
   expiresInMinutes: number;
   url: string;
+}
+
+export type VetReportSharePrerequisiteCode =
+  | 'vet_report_authentication_required'
+  | 'vet_report_dog_selection_required';
+
+export class VetReportSharePrerequisiteError extends Error {
+  constructor(readonly code: VetReportSharePrerequisiteCode) {
+    super(code);
+    this.name = 'VetReportSharePrerequisiteError';
+  }
 }
 
 export async function fetchAbsenceComparison(
@@ -56,16 +67,18 @@ export async function createVetReportShareLink(
   dogId: string,
   token?: string | null,
 ): Promise<VetReportLinkPayload> {
-  if (!token) {
-    return {
-      dogId,
-      days: 14,
-      expiresInMinutes: 30,
-      url: `${getApiBaseUrl()}/api/dogs/${dogId}/vet-report?days=14`,
-    };
+  const normalizedToken = token?.trim();
+  if (!normalizedToken) {
+    throw new VetReportSharePrerequisiteError('vet_report_authentication_required');
   }
 
-  return apiRequest<VetReportLinkPayload>(`/api/dogs/${dogId}/vet-report-link?days=14`, {
-    token,
-  });
+  const normalizedDogId = dogId.trim();
+  if (!normalizedDogId) {
+    throw new VetReportSharePrerequisiteError('vet_report_dog_selection_required');
+  }
+
+  return apiRequest<VetReportLinkPayload>(
+    `/api/dogs/${normalizedDogId}/vet-report-link?days=14`,
+    { token: normalizedToken },
+  );
 }
