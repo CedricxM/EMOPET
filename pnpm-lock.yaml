@@ -146,6 +146,9 @@ importers:
       '@emopet/eli-engine':
         specifier: workspace:*
         version: link:../../packages/eli-engine
+      '@emopet/privileged-auth':
+        specifier: workspace:*
+        version: link:../../packages/privileged-auth
       '@emopet/shared':
         specifier: workspace:*
         version: link:../../packages/shared
