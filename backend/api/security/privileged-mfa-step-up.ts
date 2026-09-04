@@ -1,18 +1,25 @@
-import * as jose from 'jose';
+import {
+  PRIVILEGED_MFA_METHODS,
+  PRIVILEGED_ROLES,
+  isCanonicalPrivilegedSubject,
+  isPrivilegedMfaMethod,
+  isPrivilegedRole,
+  signPrivilegedAccessToken as signCanonicalPrivilegedAccessToken,
+  verifyPrivilegedAccessToken as verifyCanonicalPrivilegedAccessToken,
+  type PrivilegedMfaMethod,
+  type PrivilegedRole,
+  type PrivilegedTokenKeyConfig,
+} from '@emopet/privileged-auth';
 
-import { isCanonicalUserId } from '../services/auth-security.js';
 import { verifyAccessToken } from '../middleware/auth.js';
 
-const PRIVILEGED_JWT_ISSUER = 'emopet-api';
-const PRIVILEGED_JWT_AUDIENCE = 'emopet-privileged';
 const MAX_POLICY_SECONDS = 60 * 60;
 const SAFE_ASSURANCE_REF_RE = /^[a-zA-Z0-9:._-]{1,128}$/;
 
-export const PRIVILEGED_MFA_ROLES = ['admin', 'support', 'operator'] as const;
-export type PrivilegedMfaRole = (typeof PRIVILEGED_MFA_ROLES)[number];
-
-export const PRIVILEGED_MFA_METHODS = ['webauthn', 'totp', 'idp_mfa'] as const;
-export type PrivilegedMfaMethod = (typeof PRIVILEGED_MFA_METHODS)[number];
+export const PRIVILEGED_MFA_ROLES = PRIVILEGED_ROLES;
+export { PRIVILEGED_MFA_METHODS };
+export type PrivilegedMfaRole = PrivilegedRole;
+export type { PrivilegedMfaMethod };
 
 export interface PrivilegedStepUpPolicy {
   allowedMethods: readonly PrivilegedMfaMethod[];
@@ -99,10 +106,6 @@ function hasOnlyKeys(value: Record<string, unknown>, allowed: readonly string[])
   return Object.keys(value).every((key) => allowed.includes(key));
 }
 
-function includesString(values: readonly string[], value: unknown): value is string {
-  return typeof value === 'string' && values.includes(value);
-}
-
 function isSafePositiveInteger(value: unknown): value is number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
 }
@@ -126,8 +129,8 @@ function parsePolicy(value: unknown): PrivilegedStepUpPolicy | null {
 
   const methods: PrivilegedMfaMethod[] = [];
   for (const method of value.allowedMethods) {
-    if (!includesString(PRIVILEGED_MFA_METHODS, method)) return null;
-    if (!methods.includes(method as PrivilegedMfaMethod)) methods.push(method as PrivilegedMfaMethod);
+    if (!isPrivilegedMfaMethod(method)) return null;
+    if (!methods.includes(method)) methods.push(method);
   }
 
   return {
@@ -139,12 +142,12 @@ function parsePolicy(value: unknown): PrivilegedStepUpPolicy | null {
 
 function parseDirectoryRecord(value: unknown): PrivilegedDirectoryRecord | null {
   if (!isRecord(value) || !hasOnlyKeys(value, DIRECTORY_KEYS)) return null;
-  if (!isCanonicalUserId(value.subject)) return null;
-  if (!includesString(PRIVILEGED_MFA_ROLES, value.role)) return null;
+  if (!isCanonicalPrivilegedSubject(value.subject)) return null;
+  if (!isPrivilegedRole(value.role)) return null;
   if (typeof value.active !== 'boolean') return null;
   return {
     subject: value.subject,
-    role: value.role as PrivilegedMfaRole,
+    role: value.role,
     active: value.active,
   };
 }
@@ -157,8 +160,8 @@ function parseMfaVerification(value: unknown): PrivilegedMfaVerification | null 
   }
 
   if (value.status !== 'VERIFIED' || !hasOnlyKeys(value, VERIFIED_KEYS)) return null;
-  if (!isCanonicalUserId(value.subject)) return null;
-  if (!includesString(PRIVILEGED_MFA_METHODS, value.method)) return null;
+  if (!isCanonicalPrivilegedSubject(value.subject)) return null;
+  if (!isPrivilegedMfaMethod(value.method)) return null;
   const verifiedAt = canonicalUtcTimestamp(value.verifiedAt);
   if (!verifiedAt) return null;
   if (typeof value.assuranceRef !== 'string' || !SAFE_ASSURANCE_REF_RE.test(value.assuranceRef)) return null;
@@ -166,57 +169,23 @@ function parseMfaVerification(value: unknown): PrivilegedMfaVerification | null 
   return {
     status: 'VERIFIED',
     subject: value.subject,
-    method: value.method as PrivilegedMfaMethod,
+    method: value.method,
     verifiedAt,
     assuranceRef: value.assuranceRef,
   };
 }
 
-function resolvePrivilegedJwtSecret(): Uint8Array {
-  const secret = process.env['PRIVILEGED_JWT_SECRET']?.trim();
-  const ordinaryJwtSecret = process.env['JWT_SECRET']?.trim();
+function resolvePrivilegedTokenKey(): PrivilegedTokenKeyConfig {
+  const configured = process.env['PRIVILEGED_JWT_SECRET']?.trim();
   const isTest = process.env['NODE_ENV'] === 'test';
+  const secret = isTest && !configured
+    ? 'emopet-test-only-privileged-secret-not-for-production'
+    : configured ?? '';
 
-  if (isTest && !secret) {
-    return new TextEncoder().encode('emopet-test-only-privileged-secret-not-for-production');
-  }
-
-  if (!secret || secret.length < 32) {
-    throw new Error('PRIVILEGED_JWT_SECRET must be configured with at least 32 characters');
-  }
-  if (ordinaryJwtSecret && secret === ordinaryJwtSecret) {
-    throw new Error('PRIVILEGED_JWT_SECRET must be distinct from JWT_SECRET');
-  }
-
-  return new TextEncoder().encode(secret);
-}
-
-async function signPrivilegedAccessToken(
-  subject: string,
-  role: PrivilegedMfaRole,
-  method: PrivilegedMfaMethod,
-  verifiedAt: string,
-  policy: PrivilegedStepUpPolicy,
-  now: Date,
-): Promise<string> {
-  const issuedAt = Math.floor(now.getTime() / 1_000);
-  const expiresAt = issuedAt + policy.tokenTtlSeconds;
-  const mfaAt = Math.floor(Date.parse(verifiedAt) / 1_000);
-
-  return new jose.SignJWT({
-    token_use: 'privileged',
-    role,
-    mfa_method: method,
-    mfa_at: mfaAt,
-    amr: ['mfa', method],
-  })
-    .setProtectedHeader({ alg: 'HS256' })
-    .setSubject(subject)
-    .setIssuer(PRIVILEGED_JWT_ISSUER)
-    .setAudience(PRIVILEGED_JWT_AUDIENCE)
-    .setIssuedAt(issuedAt)
-    .setExpirationTime(expiresAt)
-    .sign(resolvePrivilegedJwtSecret());
+  return {
+    secret,
+    ordinaryJwtSecret: process.env['JWT_SECRET']?.trim() ?? null,
+  };
 }
 
 export async function completePrivilegedMfaStepUp(input: {
@@ -283,14 +252,15 @@ export async function completePrivilegedMfaStepUp(input: {
   }
 
   try {
-    const accessToken = await signPrivilegedAccessToken(
+    const accessToken = await signCanonicalPrivilegedAccessToken({
       subject,
-      privilegedIdentity.role,
-      verification.method,
-      verification.verifiedAt,
-      policy,
+      role: privilegedIdentity.role,
+      mfaMethod: verification.method,
+      mfaVerifiedAt: new Date(verification.verifiedAt),
+      tokenTtlSeconds: policy.tokenTtlSeconds,
+      key: resolvePrivilegedTokenKey(),
       now,
-    );
+    });
 
     return {
       status: 'GRANTED',
@@ -310,36 +280,17 @@ export async function verifyPrivilegedAccessToken(
   token: string,
   now = new Date(),
 ): Promise<PrivilegedAccessPayload> {
-  const { payload } = await jose.jwtVerify(token, resolvePrivilegedJwtSecret(), {
-    algorithms: ['HS256'],
-    issuer: PRIVILEGED_JWT_ISSUER,
-    audience: PRIVILEGED_JWT_AUDIENCE,
-    currentDate: now,
-  });
-
-  if (!isCanonicalUserId(payload.sub)) throw new Error('Invalid privileged subject');
-  if (payload['token_use'] !== 'privileged') throw new Error('Invalid privileged token use');
-  if (!includesString(PRIVILEGED_MFA_ROLES, payload['role'])) throw new Error('Invalid privileged role');
-  if (!includesString(PRIVILEGED_MFA_METHODS, payload['mfa_method'])) throw new Error('Invalid MFA method');
-
-  const mfaAt = payload['mfa_at'];
-  const issuedAt = payload.iat;
-  const amr = payload['amr'];
-  if (typeof mfaAt !== 'number' || !Number.isSafeInteger(mfaAt) || mfaAt <= 0) {
-    throw new Error('Invalid MFA timestamp');
-  }
-  if (typeof issuedAt !== 'number' || !Number.isSafeInteger(issuedAt) || mfaAt > issuedAt) {
-    throw new Error('Invalid privileged token chronology');
-  }
-  if (!Array.isArray(amr) || amr.length !== 2 || amr[0] !== 'mfa' || amr[1] !== payload['mfa_method']) {
-    throw new Error('Invalid MFA assurance claims');
-  }
+  const payload = await verifyCanonicalPrivilegedAccessToken(
+    token,
+    resolvePrivilegedTokenKey(),
+    now,
+  );
 
   return {
     sub: payload.sub,
-    role: payload['role'] as PrivilegedMfaRole,
-    tokenUse: 'privileged',
-    mfaMethod: payload['mfa_method'] as PrivilegedMfaMethod,
-    mfaAt,
+    role: payload.role,
+    tokenUse: payload.tokenUse,
+    mfaMethod: payload.mfaMethod,
+    mfaAt: payload.mfaAt,
   };
 }
