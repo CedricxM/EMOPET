@@ -9,6 +9,11 @@ export const PRIVILEGED_ACTIONS = [
   'support.case.read_limited',
   'security.incident.read',
   'security.incident.coordinate',
+  'moderation.queue.read',
+  'moderation.post.manage',
+  'contact.request.read',
+  'contact.request.manage',
+  'admin.data.read',
 ] as const;
 export type PrivilegedAction = (typeof PRIVILEGED_ACTIONS)[number];
 
@@ -44,6 +49,11 @@ const ROLE_ACTIONS: Readonly<Record<PrivilegedHumanRole, readonly PrivilegedActi
     'support.case.read_limited',
     'security.incident.read',
     'security.incident.coordinate',
+    'moderation.queue.read',
+    'moderation.post.manage',
+    'contact.request.read',
+    'contact.request.manage',
+    'admin.data.read',
   ]),
   support: Object.freeze([
     'account.read_limited',
