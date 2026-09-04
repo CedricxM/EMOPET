@@ -136,6 +136,91 @@ test('missing or inactive privileged directory identity fails closed', async () 
   assert.deepEqual(inactive, { status: 'DENIED', reason: 'privileged_identity_inactive' });
 });
 
+test('provider directory records must be exact canonical records before MFA is consulted', async () => {
+  const baseToken = await baseAccessToken();
+  let verifierCalls = 0;
+  const verifier = {
+    async verify() {
+      verifierCalls += 1;
+      return { status: 'REJECTED' };
+    },
+  };
+
+  const directories = [
+    {
+      async findBySubject() {
+        throw new Error('directory unavailable');
+      },
+    },
+    {
+      async findBySubject() {
+        return { subject: OTHER_USER_ID, role: 'admin', active: true };
+      },
+    },
+    {
+      async findBySubject(subject) {
+        return { subject, role: 'owner', active: true };
+      },
+    },
+    {
+      async findBySubject(subject) {
+        return { subject, role: 'admin', active: true, providerGroup: 'global-admins' };
+      },
+    },
+  ];
+
+  for (const directory of directories) {
+    const result = await completePrivilegedMfaStepUp({
+      baseAccessToken: baseToken,
+      assertion: {},
+      policy: POLICY,
+      directory,
+      verifier,
+      now: NOW,
+    });
+    assert.deepEqual(result, { status: 'DENIED', reason: 'privileged_identity_not_found' });
+  }
+
+  assert.equal(verifierCalls, 0);
+});
+
+test('provider verifier receives the canonical subject, original opaque assertion and exact request timestamp', async () => {
+  const baseToken = await baseAccessToken();
+  const assertion = Object.freeze({
+    transaction: 'provider-owned-opaque-transaction',
+    nested: Object.freeze({ challenge: 'opaque' }),
+  });
+  let observed;
+
+  const result = await completePrivilegedMfaStepUp({
+    baseAccessToken: baseToken,
+    assertion,
+    policy: POLICY,
+    directory: activeDirectory(),
+    verifier: {
+      async verify(input) {
+        observed = input;
+        return {
+          status: 'VERIFIED',
+          subject: input.subject,
+          method: 'webauthn',
+          verifiedAt: '2026-09-04T09:19:30.000Z',
+          assuranceRef: 'provider:challenge_42',
+        };
+      },
+    },
+    now: NOW,
+  });
+
+  assert.equal(result.status, 'GRANTED');
+  assert.equal(observed.assertion, assertion);
+  assert.deepEqual(observed, {
+    subject: USER_ID,
+    assertion,
+    requestedAt: NOW.toISOString(),
+  });
+});
+
 test('MFA rejection, verifier failure and subject mismatch cannot mint privileged authority', async () => {
   const baseToken = await baseAccessToken();
 
@@ -168,6 +253,34 @@ test('MFA rejection, verifier failure and subject mismatch cannot mint privilege
     now: NOW,
   });
   assert.deepEqual(mismatch, { status: 'DENIED', reason: 'mfa_subject_mismatch' });
+});
+
+test('provider MFA results reject malformed timestamps, assurance references and free-form metadata', async () => {
+  const baseToken = await baseAccessToken();
+  const malformedResults = [
+    verifiedMfa({ verifiedAt: '2026-09-04T09:19:30+00:00' }),
+    verifiedMfa({ verifiedAt: 'not-a-timestamp' }),
+    verifiedMfa({ assuranceRef: 'provider assertion with spaces' }),
+    verifiedMfa({ assuranceRef: 'a'.repeat(129) }),
+    verifiedMfa({ providerAccessToken: 'must-never-cross-the-boundary' }),
+    {
+      async verify() {
+        return { status: 'REJECTED', providerReason: 'free-form-provider-detail' };
+      },
+    },
+  ];
+
+  for (const verifier of malformedResults) {
+    const result = await completePrivilegedMfaStepUp({
+      baseAccessToken: baseToken,
+      assertion: {},
+      policy: POLICY,
+      directory: activeDirectory(),
+      verifier,
+      now: NOW,
+    });
+    assert.deepEqual(result, { status: 'DENIED', reason: 'mfa_verification_failed' });
+  }
 });
 
 test('stale, future and disallowed MFA assurance fail closed', async () => {
@@ -224,7 +337,9 @@ test('invalid or extra-field policy input cannot produce a privileged token', as
 
   for (const policy of [
     { ...POLICY, maxAssertionAgeSeconds: 0 },
+    { ...POLICY, maxAssertionAgeSeconds: 3601 },
     { ...POLICY, tokenTtlSeconds: -1 },
+    { ...POLICY, tokenTtlSeconds: 3601 },
     { ...POLICY, allowedMethods: [] },
     { ...POLICY, allowedMethods: ['sms'] },
     { ...POLICY, hiddenBypass: true },
