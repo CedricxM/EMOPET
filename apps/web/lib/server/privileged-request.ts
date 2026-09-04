@@ -54,7 +54,7 @@ function hasOnlyKeys(value: Record<string, unknown>, allowed: readonly string[])
 
 function readBearer(req: Request): { ok: true; token: string } | { ok: false; reason: 'missing_bearer' | 'invalid_bearer' } {
   const header = req.headers.get('authorization');
-  if (!header) return { ok: false, reason: 'missing_bearer' };
+  if (header === null) return { ok: false, reason: 'missing_bearer' };
   if (!header.startsWith('Bearer ')) return { ok: false, reason: 'invalid_bearer' };
 
   const token = header.slice(7).trim();
@@ -155,6 +155,25 @@ export async function authorizePrivilegedSessionToken(
   if (!token) return { status: 'DENIED', reason: 'invalid_session' };
 
   return authorizePrivilegedToken(token, action, verifier);
+}
+
+/**
+ * Compose explicit Bearer traffic with browser-session traffic without fallback.
+ * The mere presence of Authorization makes the Bearer path terminal, even when
+ * malformed or denied. Only requests with no Authorization header may use the
+ * separately supplied HttpOnly session value.
+ */
+export async function authorizePrivilegedRequestOrSession(
+  req: Request,
+  sessionTokenValue: unknown,
+  action: PrivilegedWebAction,
+  verifier: PrivilegedAuthorizationVerifier,
+): Promise<PrivilegedRequestDecision> {
+  if (req.headers.has('authorization')) {
+    return authorizePrivilegedRequest(req, action, verifier);
+  }
+
+  return authorizePrivilegedSessionToken(sessionTokenValue, action, verifier);
 }
 
 /**
