@@ -2,15 +2,18 @@
  * File de modération privilégiée — lecture seule.
  * GET /api/admin/moderation → demandes de contact + posts signalés.
  *
- * The route requests one finite action from the canonical privileged authority.
- * Legacy static-token authority remains disabled for this surface.
+ * Explicit Bearer traffic is terminal. When Authorization is absent, the route
+ * may use the hardened HttpOnly privileged session cookie. Both transports ask
+ * the same finite action from the same canonical authority.
  */
 
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import type { ContactRequest } from '../../../../lib/contact';
 import type { CirclePost } from '../../../../lib/community';
 import { canonicalPrivilegedAuthorizationVerifier } from '../../../../lib/server/canonical-privileged-verifier';
-import { authorizePrivilegedRequest } from '../../../../lib/server/privileged-request';
+import { authorizePrivilegedRequestOrSession } from '../../../../lib/server/privileged-request';
+import { PRIVILEGED_SESSION_COOKIE } from '../../../../lib/server/privileged-session';
 import { collection } from '../../../../lib/server/store';
 import { createFixedWindowRateLimiter } from '../../../../lib/server/rate-limit';
 import { enforceRateLimit } from '../../../../lib/server/request-security';
@@ -23,8 +26,13 @@ export async function GET(req: Request) {
   const limited = enforceRateLimit(req, adminLimiter, 'admin:moderation:get');
   if (limited) return limited;
 
-  const authorization = await authorizePrivilegedRequest(
+  const sessionTokenValue = req.headers.has('authorization')
+    ? undefined
+    : (await cookies()).get(PRIVILEGED_SESSION_COOKIE)?.value;
+
+  const authorization = await authorizePrivilegedRequestOrSession(
     req,
+    sessionTokenValue,
     'moderation.queue.read',
     canonicalPrivilegedAuthorizationVerifier,
   );
