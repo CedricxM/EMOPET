@@ -9,33 +9,15 @@
 import { NextResponse } from 'next/server';
 import { buildContext } from '../../../lib/context-engine/orchestrator';
 import { createFixedWindowRateLimiter } from '../../../lib/server/rate-limit';
+import { enforceRateLimit } from '../../../lib/server/request-security';
 
 export const runtime = 'nodejs';
 
 const limiter = createFixedWindowRateLimiter({ limit: 30, windowMs: 60_000 });
 
-function clientKey(req: Request): string {
-  const forwardedFor = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
-  const ip = req.headers.get('cf-connecting-ip')?.trim() || req.headers.get('x-real-ip')?.trim() || forwardedFor || 'local';
-  return `context:${ip}`;
-}
-
 export async function GET(req: Request) {
-  const rate = limiter.check(clientKey(req));
-  if (!rate.ok) {
-    return NextResponse.json(
-      { ok: false, error: 'rate_limited' },
-      {
-        status: 429,
-        headers: {
-          'retry-after': String(Math.max(1, Math.ceil((rate.resetAt - Date.now()) / 1000))),
-          'x-ratelimit-limit': String(rate.limit),
-          'x-ratelimit-remaining': String(rate.remaining),
-          'x-ratelimit-reset': String(Math.ceil(rate.resetAt / 1000)),
-        },
-      },
-    );
-  }
+  const limited = enforceRateLimit(req, limiter, 'context');
+  if (limited) return limited;
 
   const url = new URL(req.url);
   const lat = Number(url.searchParams.get('lat'));
