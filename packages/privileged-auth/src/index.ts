@@ -129,6 +129,10 @@ function resolveKey(config: PrivilegedTokenKeyConfig, requireOrdinarySeparation:
   return new TextEncoder().encode(secret);
 }
 
+export function assertPrivilegedTokenKeyConfig(config: PrivilegedTokenKeyConfig): void {
+  resolveKey(config, true);
+}
+
 export function getAllowedPrivilegedActions(role: PrivilegedRole): readonly PrivilegedAction[] {
   return ROLE_ACTIONS[role];
 }
