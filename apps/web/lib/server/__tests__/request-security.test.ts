@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { afterEach, test } from 'node:test';
 
-import { cleanDisplayName, readLimitedJson, requestClientKey } from '../request-security';
+import { createFixedWindowRateLimiter } from '../rate-limit';
+import { cleanDisplayName, enforceRateLimit, readLimitedJson, requestClientKey } from '../request-security';
 
 const originalTrustProxy = process.env['EMOPET_TRUST_PROXY_HEADERS'];
 
@@ -26,6 +27,28 @@ test('requestClientKey uses forwarding headers only when trusted proxy mode is e
   });
 
   assert.equal(requestClientKey(req, 'breiz'), 'breiz:203.0.113.10');
+});
+
+test('spoofed forwarding headers cannot split rate-limit buckets when proxy trust is disabled', () => {
+  delete process.env['EMOPET_TRUST_PROXY_HEADERS'];
+  const limiter = createFixedWindowRateLimiter({ limit: 1, windowMs: 60_000 });
+  const first = new Request('https://example.test/api', { headers: { 'x-forwarded-for': '203.0.113.10' } });
+  const second = new Request('https://example.test/api', { headers: { 'x-forwarded-for': '198.51.100.22' } });
+
+  assert.equal(enforceRateLimit(first, limiter, 'context'), null);
+  const denied = enforceRateLimit(second, limiter, 'context');
+  assert.notEqual(denied, null);
+  assert.equal(denied?.status, 429);
+});
+
+test('explicit trusted proxy mode can distinguish rate-limit buckets by trusted forwarding identity', () => {
+  process.env['EMOPET_TRUST_PROXY_HEADERS'] = 'true';
+  const limiter = createFixedWindowRateLimiter({ limit: 1, windowMs: 60_000 });
+  const first = new Request('https://example.test/api', { headers: { 'x-forwarded-for': '203.0.113.10' } });
+  const second = new Request('https://example.test/api', { headers: { 'x-forwarded-for': '198.51.100.22' } });
+
+  assert.equal(enforceRateLimit(first, limiter, 'context'), null);
+  assert.equal(enforceRateLimit(second, limiter, 'context'), null);
 });
 
 test('readLimitedJson rejects oversized payloads before JSON processing', async () => {
