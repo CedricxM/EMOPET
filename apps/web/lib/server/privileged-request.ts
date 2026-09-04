@@ -2,7 +2,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
 const MIN_BEARER_LENGTH = 16;
 const MAX_BEARER_LENGTH = 8_192;
 
-export type PrivilegedWebAction = 'moderation.queue.read';
+export type PrivilegedWebAction = 'moderation.queue.read' | 'contact.request.read';
 
 export interface PrivilegedAuthorizationVerifier {
   authorize(input: {
