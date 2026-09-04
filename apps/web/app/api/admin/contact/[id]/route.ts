@@ -8,7 +8,8 @@
 
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import type { ContactRequest, ContactStatus, TimeSlot } from '../../../../../lib/contact';
+import type { ContactRequest } from '../../../../../lib/contact';
+import { parseAdminContactPatch } from '../../../../../lib/server/admin-contact-patch';
 import { canonicalPrivilegedAuthorizationVerifier } from '../../../../../lib/server/canonical-privileged-verifier';
 import { evaluatePrivilegedMutationOrigin } from '../../../../../lib/server/privileged-mutation-origin';
 import { authorizePrivilegedSessionToken } from '../../../../../lib/server/privileged-request';
@@ -16,13 +17,12 @@ import { PRIVILEGED_SESSION_COOKIE } from '../../../../../lib/server/privileged-
 import { resolvePrivilegedWebOrigin } from '../../../../../lib/server/privileged-web-origin-config';
 import { collection } from '../../../../../lib/server/store';
 import { createFixedWindowRateLimiter } from '../../../../../lib/server/rate-limit';
-import { enforceRateLimit } from '../../../../../lib/server/request-security';
+import { enforceRateLimit, readLimitedJson } from '../../../../../lib/server/request-security';
 
 export const runtime = 'nodejs';
 const adminLimiter = createFixedWindowRateLimiter({ limit: 30, windowMs: 60_000 });
 const PRIVATE_NO_STORE = { 'Cache-Control': 'private, no-store' };
-
-const VALID_STATUS: ContactStatus[] = ['pending', 'scheduled', 'completed', 'cancelled'];
+const MAX_ADMIN_CONTACT_PATCH_BYTES = 8 * 1024;
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const limited = enforceRateLimit(req, adminLimiter, 'admin:contact:patch');
@@ -77,26 +77,26 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   }
 
   const { id } = await ctx.params;
-  let body: { status?: ContactStatus; scheduledSlot?: TimeSlot; teamNotes?: string };
-  try {
-    body = (await req.json()) as typeof body;
-  } catch {
+  const body = await readLimitedJson<unknown>(req, MAX_ADMIN_CONTACT_PATCH_BYTES);
+  if (!body.ok) {
+    return NextResponse.json(
+      { ok: false, errors: [body.status === 413 ? 'Requête trop volumineuse.' : 'Requête invalide.'] },
+      { status: body.status, headers: PRIVATE_NO_STORE },
+    );
+  }
+
+  const parsed = parseAdminContactPatch(body.data);
+  if (!parsed) {
     return NextResponse.json(
       { ok: false, errors: ['Requête invalide.'] },
       { status: 400, headers: PRIVATE_NO_STORE },
     );
   }
-  if (body.status && !VALID_STATUS.includes(body.status)) {
-    return NextResponse.json(
-      { ok: false, errors: ['Statut invalide.'] },
-      { status: 400, headers: PRIVATE_NO_STORE },
-    );
-  }
 
   const patch: Partial<ContactRequest> = {};
-  if (body.status) patch.status = body.status;
-  if (body.scheduledSlot) patch.scheduledSlot = body.scheduledSlot;
-  if (typeof body.teamNotes === 'string') patch.teamNotes = body.teamNotes;
+  if (parsed.status !== undefined) patch.status = parsed.status;
+  if (parsed.scheduledSlot !== undefined) patch.scheduledSlot = parsed.scheduledSlot;
+  if (parsed.teamNotes !== undefined) patch.teamNotes = parsed.teamNotes;
 
   const updated = collection<ContactRequest>('contact-requests').update(id, patch);
   if (!updated) {

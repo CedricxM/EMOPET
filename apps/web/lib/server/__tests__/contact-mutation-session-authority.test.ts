@@ -11,7 +11,7 @@ const ADMIN_ID = '11111111-1111-4111-8111-111111111111';
 const TOKEN = 'privileged-session-token-value-1234567890';
 const ACTION = 'contact.request.manage' as const;
 
-test('contact PATCH composes origin guard, session-only authority and exact action before mutation', async () => {
+test('contact PATCH composes origin guard, session-only authority and bounded body parsing before mutation', async () => {
   const routeUrl = new URL('../../../app/api/admin/contact/[id]/route.ts', import.meta.url);
   const source = await readFile(routeUrl, 'utf8');
   const patchStart = source.indexOf('export async function PATCH');
@@ -25,6 +25,7 @@ test('contact PATCH composes origin guard, session-only authority and exact acti
   assert.equal(patchSource.includes('ADMIN_TOKEN'), false);
   assert.equal(patchSource.includes('authorizePrivilegedRequestOrSession'), false);
   assert.equal(patchSource.includes('authorizePrivilegedRequest('), false);
+  assert.equal(patchSource.includes('await req.json()'), false);
 
   assert.equal(patchSource.includes('resolvePrivilegedWebOrigin()'), true);
   assert.equal(patchSource.includes('evaluatePrivilegedMutationOrigin'), true);
@@ -34,6 +35,9 @@ test('contact PATCH composes origin guard, session-only authority and exact acti
   assert.equal(patchSource.includes('canonicalPrivilegedAuthorizationVerifier'), true);
   assert.equal(patchSource.includes("'contact.request.manage'"), true);
   assert.equal(patchSource.includes('PRIVATE_NO_STORE'), true);
+  assert.equal(patchSource.includes('MAX_ADMIN_CONTACT_PATCH_BYTES = 8 * 1024'), true);
+  assert.equal(patchSource.includes('readLimitedJson<unknown>(req, MAX_ADMIN_CONTACT_PATCH_BYTES)'), true);
+  assert.equal(patchSource.includes('parseAdminContactPatch(body.data)'), true);
 
   const rateLimit = patchSource.indexOf('enforceRateLimit');
   const originConfig = patchSource.indexOf('resolvePrivilegedWebOrigin()');
@@ -42,7 +46,8 @@ test('contact PATCH composes origin guard, session-only authority and exact acti
   const cookieRead = patchSource.indexOf('await cookies()');
   const authorization = patchSource.indexOf('authorizePrivilegedSessionToken');
   const paramsRead = patchSource.indexOf('await ctx.params');
-  const bodyRead = patchSource.indexOf('await req.json()');
+  const bodyRead = patchSource.indexOf('readLimitedJson<unknown>(req, MAX_ADMIN_CONTACT_PATCH_BYTES)');
+  const bodyParse = patchSource.indexOf('parseAdminContactPatch(body.data)');
   const mutation = patchSource.indexOf("collection<ContactRequest>('contact-requests').update");
 
   for (const position of [
@@ -54,6 +59,7 @@ test('contact PATCH composes origin guard, session-only authority and exact acti
     authorization,
     paramsRead,
     bodyRead,
+    bodyParse,
     mutation,
   ]) {
     assert.notEqual(position, -1);
@@ -66,7 +72,8 @@ test('contact PATCH composes origin guard, session-only authority and exact acti
   assert.ok(cookieRead < authorization);
   assert.ok(authorization < paramsRead);
   assert.ok(paramsRead < bodyRead);
-  assert.ok(bodyRead < mutation);
+  assert.ok(bodyRead < bodyParse);
+  assert.ok(bodyParse < mutation);
 });
 
 test('contact mutation session authority asks the canonical verifier for contact.request.manage', async () => {
