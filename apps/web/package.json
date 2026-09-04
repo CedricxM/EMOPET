@@ -17,6 +17,7 @@
   "dependencies": {
     "@emopet/ai-personality": "workspace:*",
     "@emopet/eli-engine": "workspace:*",
+    "@emopet/privileged-auth": "workspace:*",
     "@emopet/shared": "workspace:*",
     "@heroui/react": "^3.0.5",
     "animejs": "^3.2.2",
