@@ -11,8 +11,8 @@
 
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { MAX_ACTIVE_REQUESTS, buildRequest, validateContactInput } from '../../../lib/contact';
-import type { ContactRequest, NewContactInput } from '../../../lib/contact';
+import { MAX_ACTIVE_REQUESTS, buildRequest, parseNewContactInput, validateContactInput } from '../../../lib/contact';
+import type { ContactRequest } from '../../../lib/contact';
 import { canonicalPrivilegedAuthorizationVerifier } from '../../../lib/server/canonical-privileged-verifier';
 import { resolveContactReadAuthority } from '../../../lib/server/contact-read-authority';
 import { evaluatePrivilegedMutationOrigin } from '../../../lib/server/privileged-mutation-origin';
@@ -20,7 +20,7 @@ import { authorizePrivilegedSessionToken } from '../../../lib/server/privileged-
 import { PRIVILEGED_SESSION_COOKIE } from '../../../lib/server/privileged-session';
 import { resolvePrivilegedWebOrigin } from '../../../lib/server/privileged-web-origin-config';
 import { createFixedWindowRateLimiter } from '../../../lib/server/rate-limit';
-import { enforceRateLimit } from '../../../lib/server/request-security';
+import { enforceRateLimit, readLimitedJson } from '../../../lib/server/request-security';
 import { collection } from '../../../lib/server/store';
 import { notifyTeamOfContactRequest } from '../../../lib/server/notify';
 
@@ -28,6 +28,7 @@ export const runtime = 'nodejs';
 
 const requests = collection<ContactRequest>('contact-requests');
 const OWNER_HEADER = 'x-contact-owner-token';
+const MAX_CONTACT_POST_BYTES = 8 * 1024;
 const contactReadLimiter = createFixedWindowRateLimiter({ limit: 60, windowMs: 60_000 });
 const contactWriteLimiter = createFixedWindowRateLimiter({ limit: 10, windowMs: 60_000 });
 const PRIVATE_NO_STORE = { 'Cache-Control': 'private, no-store' };
@@ -71,10 +72,16 @@ export async function POST(req: Request) {
   const limited = enforceRateLimit(req, contactWriteLimiter, 'contact:post');
   if (limited) return limited;
 
-  let input: NewContactInput;
-  try {
-    input = (await req.json()) as NewContactInput;
-  } catch {
+  const body = await readLimitedJson<unknown>(req, MAX_CONTACT_POST_BYTES);
+  if (!body.ok) {
+    return NextResponse.json(
+      { ok: false, errors: [body.status === 413 ? 'Requête trop volumineuse.' : 'Requête invalide.'] },
+      { status: body.status },
+    );
+  }
+
+  const input = parseNewContactInput(body.data);
+  if (!input) {
     return NextResponse.json({ ok: false, errors: ['Requête invalide.'] }, { status: 400 });
   }
 
