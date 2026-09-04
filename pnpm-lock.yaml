@@ -210,6 +210,9 @@ importers:
       '@emopet/eli-engine':
         specifier: workspace:*
         version: link:../packages/eli-engine
+      '@emopet/privileged-auth':
+        specifier: workspace:*
+        version: link:../packages/privileged-auth
       '@emopet/shared':
         specifier: workspace:*
         version: link:../packages/shared
@@ -280,6 +283,16 @@ importers:
       vitest:
         specifier: ^3.2.6
         version: 3.2.7(@types/node@22.19.15)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.46.1)(tsx@4.21.0)
+
+  packages/privileged-auth:
+    dependencies:
+      jose:
+        specifier: ^6.0.0
+        version: 6.2.2
+    devDependencies:
+      typescript:
+        specifier: ^5.8.0
+        version: 5.9.3
 
   packages/shared:
     dependencies:
