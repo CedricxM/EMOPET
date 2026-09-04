@@ -1,12 +1,12 @@
 /**
  * Tests contact — validation : consentement obligatoire, motif vétérinaire absent,
- * créneaux futurs, format coordonnée selon canal.
+ * créneaux futurs, format coordonnée selon canal, et structure runtime hostile.
  */
 
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { REASON_LABELS, buildRequest, validateContactInput } from '../contact';
+import { REASON_LABELS, buildRequest, parseNewContactInput, validateContactInput } from '../contact';
 import type { NewContactInput } from '../contact';
 
 const future = new Date(Date.now() + 86_400_000).toISOString();
@@ -18,6 +18,60 @@ function base(): NewContactInput {
 
 test('valide : demande téléphone correcte', () => {
   assert.deepEqual(validateContactInput(base()), []);
+});
+
+test('parser runtime accepte un payload bien formé et ne conserve que les champs connus', () => {
+  assert.deepEqual(
+    parseNewContactInput({ ...base(), extra: 'ignored' }),
+    base(),
+  );
+});
+
+test('parser runtime rejette null, tableaux, primitives et objets incomplets', () => {
+  for (const payload of [
+    null,
+    [],
+    'contact',
+    42,
+    true,
+    {},
+    { ...base(), contactValue: undefined },
+    { ...base(), proposedSlots: undefined },
+    { ...base(), consentGiven: 'true' },
+  ]) {
+    assert.equal(parseNewContactInput(payload), null);
+  }
+});
+
+test('parser runtime rejette vocabulaire, types et créneaux structurellement invalides', () => {
+  const malformed = [
+    { ...base(), channel: 'sms' },
+    { ...base(), reason: 'sante_chien' },
+    { ...base(), proposedSlots: [null] },
+    { ...base(), proposedSlots: [{ start: future }] },
+    { ...base(), proposedSlots: [{ start: 123, end: futureEnd }] },
+    { ...base(), proposedSlots: Array.from({ length: 6 }, () => ({ start: future, end: futureEnd })) },
+  ];
+
+  for (const payload of malformed) {
+    assert.equal(parseNewContactInput(payload), null);
+  }
+});
+
+test('parser runtime borne les champs texte avant validation métier', () => {
+  assert.equal(parseNewContactInput({ ...base(), contactValue: 'a'.repeat(255) }), null);
+  assert.equal(parseNewContactInput({ ...base(), message: 'm'.repeat(501) }), null);
+  assert.equal(parseNewContactInput({ ...base(), ownerToken: 'o'.repeat(129) }), null);
+  assert.equal(
+    parseNewContactInput({ ...base(), proposedSlots: [{ start: 's'.repeat(65), end: futureEnd }] }),
+    null,
+  );
+});
+
+test('parser structurel laisse la règle 1 à 5 créneaux à la validation métier', () => {
+  const parsed = parseNewContactInput({ ...base(), proposedSlots: [] });
+  assert.notEqual(parsed, null);
+  assert.ok(validateContactInput(parsed!).some((e) => /1 à 5/.test(e)));
 });
 
 test('consentement obligatoire', () => {
