@@ -68,7 +68,7 @@ function hasOnlyKeys(value: Record<string, unknown>, keys: readonly string[]): b
 }
 
 function isSafePositiveInteger(value: unknown): value is number {
-  return Number.isSafeInteger(value) && typeof value === 'number' && value > 0;
+  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
 }
 
 function isSafeWindowSeconds(value: unknown): value is number {
