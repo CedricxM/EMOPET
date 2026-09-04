@@ -103,6 +103,14 @@ function parseAffectedObject(value: unknown): BreachAffectedObject | null {
   };
 }
 
+function parseUnsupportedObject(value: unknown): { surface: string; ref: string } | null {
+  if (!isRecord(value) || !hasOnlyKeys(value, OBJECT_KEYS)) return null;
+  if (typeof value.surface !== 'string' || value.surface.length === 0) return null;
+  if (includesString(BREACH_AFFECTED_SURFACES, value.surface)) return null;
+  if (typeof value.ref !== 'string' || !SAFE_REF_RE.test(value.ref)) return null;
+  return { surface: value.surface, ref: value.ref };
+}
+
 function isSafePersonRef(value: unknown): value is string {
   if (typeof value !== 'string') return false;
   if (value.startsWith('user:')) {
@@ -162,16 +170,30 @@ export async function enumerateBreachRecipients(
   }
 
   const affectedObjects: BreachAffectedObject[] = [];
+  const gaps: BreachRecipientGap[] = [];
+
   for (const input of affectedObjectsInput) {
     const parsed = parseAffectedObject(input);
-    if (!parsed) return { status: 'INVALID_INPUT', recipients: [], gaps: [] };
-    affectedObjects.push(parsed);
+    if (parsed) {
+      affectedObjects.push(parsed);
+      continue;
+    }
+
+    const unsupported = parseUnsupportedObject(input);
+    if (unsupported) {
+      gaps.push({
+        objectKey: `unsupported:${unsupported.surface}:${unsupported.ref}`,
+        reason: 'unsupported_surface',
+      });
+      continue;
+    }
+
+    return { status: 'INVALID_INPUT', recipients: [], gaps: [] };
   }
 
   affectedObjects.sort((left, right) => objectKey(left).localeCompare(objectKey(right)));
 
   const recipients = new Set<string>();
-  const gaps: BreachRecipientGap[] = [];
 
   for (const object of affectedObjects) {
     let rawResolution: unknown;
