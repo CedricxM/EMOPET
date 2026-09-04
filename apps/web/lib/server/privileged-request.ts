@@ -1,8 +1,18 @@
+import type { PrivilegedAction } from '@emopet/privileged-auth';
+
+import { readPrivilegedSessionToken } from './privileged-session';
+
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MIN_BEARER_LENGTH = 16;
 const MAX_BEARER_LENGTH = 8_192;
 
-export type PrivilegedWebAction = 'moderation.queue.read' | 'contact.request.read';
+export const PRIVILEGED_WEB_ACTIONS = [
+  'moderation.queue.read',
+  'contact.request.read',
+  'admin.data.read',
+] as const satisfies readonly PrivilegedAction[];
+
+export type PrivilegedWebAction = (typeof PRIVILEGED_WEB_ACTIONS)[number];
 
 export interface PrivilegedAuthorizationVerifier {
   authorize(input: {
@@ -19,7 +29,12 @@ export type PrivilegedRequestDecision =
     }
   | {
       status: 'DENIED';
-      reason: 'missing_bearer' | 'invalid_bearer' | 'not_authorized';
+      reason:
+        | 'missing_bearer'
+        | 'invalid_bearer'
+        | 'missing_session'
+        | 'invalid_session'
+        | 'not_authorized';
     }
   | {
       status: 'UNAVAILABLE';
@@ -95,6 +110,21 @@ function parseVerifierDecision(
   };
 }
 
+async function authorizePrivilegedToken(
+  token: string,
+  action: PrivilegedWebAction,
+  verifier: PrivilegedAuthorizationVerifier,
+): Promise<PrivilegedRequestDecision> {
+  let rawDecision: unknown;
+  try {
+    rawDecision = await verifier.authorize({ token, action });
+  } catch {
+    return { status: 'UNAVAILABLE', reason: 'verifier_unavailable' };
+  }
+
+  return parseVerifierDecision(rawDecision, action);
+}
+
 export async function authorizePrivilegedRequest(
   req: Request,
   action: PrivilegedWebAction,
@@ -103,14 +133,28 @@ export async function authorizePrivilegedRequest(
   const bearer = readBearer(req);
   if (!bearer.ok) return { status: 'DENIED', reason: bearer.reason };
 
-  let rawDecision: unknown;
-  try {
-    rawDecision = await verifier.authorize({ token: bearer.token, action });
-  } catch {
-    return { status: 'UNAVAILABLE', reason: 'verifier_unavailable' };
+  return authorizePrivilegedToken(bearer.token, action, verifier);
+}
+
+/**
+ * Server-only authorization path for an already-read HttpOnly privileged session
+ * cookie value. Cookie extraction remains the caller's responsibility so Next.js
+ * server components/routes can use their native cookie API without duplicating
+ * JWT verification or parsing request Cookie headers here.
+ */
+export async function authorizePrivilegedSessionToken(
+  sessionTokenValue: unknown,
+  action: PrivilegedWebAction,
+  verifier: PrivilegedAuthorizationVerifier,
+): Promise<PrivilegedRequestDecision> {
+  if (sessionTokenValue === null || sessionTokenValue === undefined) {
+    return { status: 'DENIED', reason: 'missing_session' };
   }
 
-  return parseVerifierDecision(rawDecision, action);
+  const token = readPrivilegedSessionToken(sessionTokenValue);
+  if (!token) return { status: 'DENIED', reason: 'invalid_session' };
+
+  return authorizePrivilegedToken(token, action, verifier);
 }
 
 /**
