@@ -323,11 +323,12 @@ export async function verifyPrivilegedAccessToken(
   if (!includesString(PRIVILEGED_MFA_METHODS, payload['mfa_method'])) throw new Error('Invalid MFA method');
 
   const mfaAt = payload['mfa_at'];
+  const issuedAt = payload.iat;
   const amr = payload['amr'];
-  if (!Number.isSafeInteger(mfaAt) || typeof mfaAt !== 'number' || mfaAt <= 0) {
+  if (typeof mfaAt !== 'number' || !Number.isSafeInteger(mfaAt) || mfaAt <= 0) {
     throw new Error('Invalid MFA timestamp');
   }
-  if (!Number.isSafeInteger(payload.iat) || typeof payload.iat !== 'number' || mfaAt > payload.iat) {
+  if (typeof issuedAt !== 'number' || !Number.isSafeInteger(issuedAt) || mfaAt > issuedAt) {
     throw new Error('Invalid privileged token chronology');
   }
   if (!Array.isArray(amr) || amr.length !== 2 || amr[0] !== 'mfa' || amr[1] !== payload['mfa_method']) {
