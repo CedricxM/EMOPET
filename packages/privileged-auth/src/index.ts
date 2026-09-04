@@ -81,7 +81,14 @@ export type PrivilegedTokenAuthorizationResult =
     }
   | {
       status: 'DENIED';
-      reason: 'invalid_token' | 'invalid_action' | 'action_not_allowed';
+      reason: 'invalid_token' | 'invalid_action';
+    }
+  | {
+      status: 'DENIED';
+      reason: 'action_not_allowed';
+      subject: string;
+      role: PrivilegedRole;
+      action: PrivilegedAction;
     };
 
 function includesString(values: readonly string[], value: unknown): value is string {
@@ -272,7 +279,13 @@ export async function authorizePrivilegedAccessToken(input: {
 
   const decision = evaluatePrivilegedAuthority(payload.role, input.action);
   if (!decision.allowed) {
-    return { status: 'DENIED', reason: 'action_not_allowed' };
+    return {
+      status: 'DENIED',
+      reason: 'action_not_allowed',
+      subject: payload.sub,
+      role: payload.role,
+      action: input.action,
+    };
   }
 
   return {
