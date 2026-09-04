@@ -11,6 +11,7 @@ export const PRIVILEGED_ACTIONS = [
   'security.incident.coordinate',
   'moderation.queue.read',
   'moderation.post.manage',
+  'contact.request.read',
   'contact.request.manage',
   'admin.data.read',
 ] as const;
@@ -50,6 +51,7 @@ const ROLE_ACTIONS: Readonly<Record<PrivilegedHumanRole, readonly PrivilegedActi
     'security.incident.coordinate',
     'moderation.queue.read',
     'moderation.post.manage',
+    'contact.request.read',
     'contact.request.manage',
     'admin.data.read',
   ]),
