@@ -73,6 +73,16 @@ test('audit event rejects unknown actions, outcomes, reasons and event types', (
   assert.equal(parseSecurityAuditEvent({ ...validEvent(), eventType: 'anything' }), null);
 });
 
+test('audit event rejects semantically incoherent outcome and reason pairs', () => {
+  assert.equal(parseSecurityAuditEvent({ ...validEvent(), outcome: 'allowed', reason: 'mfa_required' }), null);
+  assert.equal(parseSecurityAuditEvent({ ...validEvent(), outcome: 'denied', reason: 'allowed' }), null);
+  assert.equal(parseSecurityAuditEvent({ ...validEvent(), outcome: 'error', reason: 'action_not_allowed' }), null);
+  assert.equal(parseSecurityAuditEvent({ ...validEvent(), outcome: 'denied', reason: 'internal_error' }), null);
+
+  assert.notEqual(parseSecurityAuditEvent({ ...validEvent(), outcome: 'error', reason: 'internal_error' }), null);
+  assert.notEqual(parseSecurityAuditEvent({ ...validEvent(), outcome: 'denied', reason: 'mfa_required' }), null);
+});
+
 test('audit event rejects malformed actors and role substitution', () => {
   assert.equal(parseSecurityAuditEvent({
     ...validEvent(),
