@@ -15,7 +15,7 @@ export type PrivilegedMutationOriginDecision =
         | 'fetch_site_mismatch';
     };
 
-function canonicalOrigin(value: unknown): string | null {
+export function parsePrivilegedWebOrigin(value: unknown): string | null {
   if (typeof value !== 'string' || value.length === 0 || value.length > 512) return null;
 
   let url: URL;
@@ -34,7 +34,7 @@ function canonicalOrigin(value: unknown): string | null {
 
 function exactRequestOrigin(value: string | null): string | null {
   if (!value || value === 'null') return null;
-  const origin = canonicalOrigin(value);
+  const origin = parsePrivilegedWebOrigin(value);
   if (!origin) return null;
 
   // Browser Origin headers are serialized as an origin without a trailing slash.
@@ -52,7 +52,7 @@ export function evaluatePrivilegedMutationOrigin(input: {
   request: Request;
   expectedOrigin: string;
 }): PrivilegedMutationOriginDecision {
-  const expectedOrigin = canonicalOrigin(input.expectedOrigin);
+  const expectedOrigin = parsePrivilegedWebOrigin(input.expectedOrigin);
   if (!expectedOrigin) {
     return { status: 'DENIED', reason: 'invalid_expected_origin' };
   }
