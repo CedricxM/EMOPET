@@ -11,6 +11,7 @@ export const PRIVILEGED_WEB_ACTIONS = [
   'contact.request.read',
   'admin.data.read',
   'contact.request.manage',
+  'moderation.post.manage',
 ] as const satisfies readonly PrivilegedAction[];
 
 export type PrivilegedWebAction = (typeof PRIVILEGED_WEB_ACTIONS)[number];
