@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-test('contact GET uses canonical read authority while POST and DELETE remain outside this tranche', async () => {
+test('contact GET uses canonical read authority while POST remains outside privileged composition', async () => {
   const routeUrl = new URL('../../../app/api/contact/route.ts', import.meta.url);
   const source = await readFile(routeUrl, 'utf8');
 
@@ -26,7 +26,8 @@ test('contact GET uses canonical read authority while POST and DELETE remain out
 
   assert.equal(postSource.includes('resolveContactReadAuthority'), false);
   assert.equal(deleteSource.includes('resolveContactReadAuthority'), false);
-  assert.equal(deleteSource.includes('isAdmin('), true);
+  assert.equal(deleteSource.includes('isAdmin('), false);
+  assert.equal(deleteSource.includes("'contact.request.manage'"), true);
 });
 
 test('contact read helper requests exactly the canonical contact.request.read action', async () => {
