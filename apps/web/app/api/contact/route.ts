@@ -2,7 +2,7 @@
  * Demandes de contact — persistance SERVEUR (R3, première tranche réelle).
  *
  * POST   /api/contact      crée une demande (validation, rate-limit, notif équipe)
- * GET    /api/contact      liste les demandes (démo : toutes ; auth utilisateur différée)
+ * GET    /api/contact      liste les demandes (owner scope ou lecture privilégiée canonique)
  * DELETE /api/contact?id=  supprime une demande (droit à l'effacement RGPD)
  *
  * Store fichier JSON (lib/server/store) — remplaçable par Drizzle/Postgres.
@@ -13,6 +13,8 @@ import { NextResponse } from 'next/server';
 import { MAX_ACTIVE_REQUESTS, buildRequest, validateContactInput } from '../../../lib/contact';
 import type { ContactRequest, NewContactInput } from '../../../lib/contact';
 import { isAdmin } from '../../../lib/server/admin';
+import { canonicalPrivilegedAuthorizationVerifier } from '../../../lib/server/canonical-privileged-verifier';
+import { resolveContactReadAuthority } from '../../../lib/server/contact-read-authority';
 import { createFixedWindowRateLimiter } from '../../../lib/server/rate-limit';
 import { enforceRateLimit } from '../../../lib/server/request-security';
 import { collection } from '../../../lib/server/store';
@@ -37,7 +39,22 @@ function ownerTokenFromRequest(req: Request): string | null {
 export async function GET(req: Request) {
   const limited = enforceRateLimit(req, contactReadLimiter, 'contact:get');
   if (limited) return limited;
-  if (isAdmin(req)) return NextResponse.json({ requests: requests.list() });
+
+  const authority = await resolveContactReadAuthority(
+    req,
+    canonicalPrivilegedAuthorizationVerifier,
+  );
+
+  if (authority.status === 'UNAVAILABLE') {
+    return NextResponse.json({ ok: false, errors: ['Service indisponible.'] }, { status: 503 });
+  }
+  if (authority.status === 'DENIED') {
+    return NextResponse.json({ ok: false, errors: ['Non autorisé.'] }, { status: 401 });
+  }
+  if (authority.status === 'AUTHORIZED') {
+    return NextResponse.json({ requests: requests.list() });
+  }
+
   const ownerToken = ownerTokenFromRequest(req);
   if (!ownerToken) {
     return NextResponse.json({ ok: false, errors: ['Non autorisé.'] }, { status: 401 });

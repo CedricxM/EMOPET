@@ -11,6 +11,7 @@ import { authorizePrivilegedRequest } from '../privileged-request';
 const ADMIN_ID = '11111111-1111-4111-8111-111111111111';
 const SUPPORT_ID = '22222222-2222-4222-8222-222222222222';
 const ACTION = 'moderation.queue.read' as const;
+const CONTACT_ACTION = 'contact.request.read' as const;
 const NOW = new Date('2026-09-04T10:00:00.000Z');
 const MFA_AT = new Date('2026-09-04T09:58:00.000Z');
 const KEY = {
@@ -61,6 +62,36 @@ test('canonical adapter maps a valid but unauthorized role to bounded denial', a
 
   assert.deepEqual(
     await authorizePrivilegedRequest(requestWith(token), ACTION, verifierFor()),
+    { status: 'DENIED', reason: 'not_authorized' },
+  );
+});
+
+test('canonical adapter enforces contact.request.read through the same package authority', async () => {
+  const adminToken = await signPrivilegedAccessToken({
+    subject: ADMIN_ID,
+    role: 'admin',
+    mfaMethod: 'webauthn',
+    mfaVerifiedAt: MFA_AT,
+    tokenTtlSeconds: 600,
+    key: KEY,
+    now: NOW,
+  });
+  const supportToken = await signPrivilegedAccessToken({
+    subject: SUPPORT_ID,
+    role: 'support',
+    mfaMethod: 'idp_mfa',
+    mfaVerifiedAt: MFA_AT,
+    tokenTtlSeconds: 600,
+    key: KEY,
+    now: NOW,
+  });
+
+  assert.deepEqual(
+    await authorizePrivilegedRequest(requestWith(adminToken), CONTACT_ACTION, verifierFor()),
+    { status: 'AUTHORIZED', subject: ADMIN_ID, action: CONTACT_ACTION },
+  );
+  assert.deepEqual(
+    await authorizePrivilegedRequest(requestWith(supportToken), CONTACT_ACTION, verifierFor()),
     { status: 'DENIED', reason: 'not_authorized' },
   );
 });
