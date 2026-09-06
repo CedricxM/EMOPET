@@ -39,6 +39,8 @@ const FORBIDDEN_ID_PATTERNS = [
   /ANXIETY/i,
   /DISTANCE_RECORD/i,
   /MAT_STREAK/i,
+  /REL_MEMORY/i,
+  /WALK_QUALITY/i,
 ];
 
 const FORBIDDEN_TRIGGER_FIELD_PATTERNS = [
@@ -46,6 +48,15 @@ const FORBIDDEN_TRIGGER_FIELD_PATTERNS = [
   /personal_best/i,
   /weekly_distance_goal/i,
   /weekly_distance_last/i,
+  /sensor\.wqi/i,
+];
+
+const FORBIDDEN_RELATIONSHIP_DERIVATION_FIELDS = [
+  /^sensor\./i,
+  /^computed\./i,
+  /^event\.walk/i,
+  /^user\.total_km$/i,
+  /^user\.total_insights$/i,
 ];
 
 function allTemplateFields(template: BleizTemplate): string[] {
@@ -55,12 +66,19 @@ function allTemplateFields(template: BleizTemplate): string[] {
   ];
 }
 
+function usesSensorOrComputedEvidence(template: BleizTemplate): boolean {
+  return allTemplateFields(template).some(
+    (field) => field.startsWith('sensor.') || field.startsWith('computed.'),
+  );
+}
+
 export function releaseTemplateBlockReason(template: BleizTemplate): string | null {
   if (FORBIDDEN_ID_PATTERNS.some((pattern) => pattern.test(template.id))) {
     return `legacy semantic/reward identifier: ${template.id}`;
   }
 
-  const offendingField = allTemplateFields(template).find((field) =>
+  const fields = allTemplateFields(template);
+  const offendingField = fields.find((field) =>
     FORBIDDEN_TRIGGER_FIELD_PATTERNS.some((pattern) => pattern.test(field)),
   );
   if (offendingField) {
@@ -71,9 +89,21 @@ export function releaseTemplateBlockReason(template: BleizTemplate): string | nu
   // sensor observation belongs to Care; it must not silently become a reward.
   if (
     template.category === 'milestone' &&
-    allTemplateFields(template).some((field) => field.startsWith('sensor.'))
+    fields.some((field) => field.startsWith('sensor.'))
   ) {
     return 'sensor-driven milestone is not release-authorized';
+  }
+
+  // Relationship quality, bond strength or emotional balance may not be derived
+  // from MAT/TAG/ELI/computed evidence. Those signals can support an observation
+  // in Care, but they cannot become a relationship truth in Breiz.
+  if (template.category === 'relationship') {
+    const relationshipField = fields.find((field) =>
+      FORBIDDEN_RELATIONSHIP_DERIVATION_FIELDS.some((pattern) => pattern.test(field)),
+    );
+    if (relationshipField) {
+      return `sensor/computed relationship narrative is not release-authorized: ${relationshipField}`;
+    }
   }
 
   return null;
@@ -95,6 +125,18 @@ function releaseRoleFor(template: BleizTemplate): Pick<BleizReleaseTemplate, 're
         releaseClass: 'OBSERVATION_EXPLANATION',
         semanticAuthority: 'OBSERVATION_ONLY',
       };
+    case 'health_breed':
+    case 'nutrition':
+      if (usesSensorOrComputedEvidence(template)) {
+        return {
+          releaseClass: 'OBSERVATION_EXPLANATION',
+          semanticAuthority: 'OBSERVATION_ONLY',
+        };
+      }
+      return {
+        releaseClass: 'GENERAL_EDUCATION',
+        semanticAuthority: 'EDUCATION_ONLY',
+      };
     case 'health_seasonal':
     case 'environment':
       return {
@@ -112,9 +154,7 @@ function releaseRoleFor(template: BleizTemplate): Pick<BleizReleaseTemplate, 're
         semanticAuthority: 'SUGGESTION_ONLY',
       };
     case 'behavior_education':
-    case 'health_breed':
     case 'education':
-    case 'nutrition':
     case 'milestone':
     default:
       return {
