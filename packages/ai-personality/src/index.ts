@@ -1,8 +1,6 @@
 export * from './tone/index.js';
 export * from './templates/index.js';
 export * from './insights/index.js';
-export * from './content-templates.js';
-export * from './content-scheduler.js';
 
 // Breiz historical catalog: types remain public for compatibility, but executable
 // catalog values are deliberately exposed only under LEGACY_* names. Release
@@ -29,9 +27,11 @@ export {
   BLEIZ_TEMPLATE_STATS as LEGACY_BLEIZ_TEMPLATE_STATS,
 } from './bleiz/bleiz-content-templates.js';
 
+// Canonical Breiz release surface.
 export * from './bleiz/bleiz-release-templates.js';
 export * from './bleiz/bleiz-release-scheduler.js';
 export * from './bleiz/bleiz-release-output.js';
+
 export * from './bleiz/bleiz-v6-templates.js';
 export * from './bleiz/breed-normalizer.js';
 export * from './bleiz/breed-resolver.js';
