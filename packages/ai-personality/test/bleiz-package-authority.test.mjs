@@ -3,13 +3,15 @@ import assert from 'node:assert/strict';
 
 import * as pkg from '../dist/index.js';
 
-test('package root does not expose pre-doctrine insight/template bypass APIs', () => {
+test('package root does not expose pre-doctrine content bypass APIs', () => {
   for (const forbidden of [
     'TEMPLATES',
     'getTemplates',
     'generateDailyInsight',
     'generateMorningGreeting',
     'generateRecordAnnouncement',
+    'scheduleFreemiumContent',
+    'simulateSchedule',
     'V6_BLEIZ_TEMPLATES',
     'SEP_ANTICIPATION_DETECTED',
     'ALLO_RECOVERY_SLOWING',
