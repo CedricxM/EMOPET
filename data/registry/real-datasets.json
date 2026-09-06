@@ -1,5 +1,5 @@
 {
-  "registryVersion": "2026-08-30-p0",
+  "registryVersion": "2026-09-06-rights-evidence-v1",
   "datasets": [
     {
       "datasetId": "dog-movement-vxhx934tbn-v4",
@@ -16,6 +16,8 @@
       "ingestionMode": "manual_or_mendeley_api",
       "expectedUse": ["R&D", "IMU feature validation", "activity/posture discrimination research"],
       "prohibitedShortcut": "Do not convert research-dataset labels directly into claims about an EMOPET dog's internal state.",
+      "evidenceState": "RECEIPT_MISSING",
+      "receiptPath": null,
       "checksumSha256": null
     },
     {
@@ -33,6 +35,8 @@
       "ingestionMode": "manual_or_mendeley_api",
       "expectedUse": ["R&D", "posture recognition research", "IMU preprocessing validation"],
       "prohibitedShortcut": "Do not copy code from the associated GitHub repository unless its code licence is explicitly established.",
+      "evidenceState": "RECEIPT_MISSING",
+      "receiptPath": null,
       "checksumSha256": null
     },
     {
@@ -50,6 +54,8 @@
       "ingestionMode": "direct_download",
       "expectedUse": ["canonical breed identifiers", "synonyms", "cross-references"],
       "prohibitedShortcut": "Breed metadata is context/taxonomy, not a proxy for an individual dog's state.",
+      "evidenceState": "RECEIPT_MISSING_VERSION_NOT_IMMUTABLE",
+      "receiptPath": null,
       "checksumSha256": null
     },
     {
@@ -67,6 +73,8 @@
       "ingestionMode": "data_gouv_resource_resolution",
       "expectedUse": ["medication reference", "official product identifiers", "veterinary record normalisation"],
       "prohibitedShortcut": "Reference data must not be used to recommend, prescribe, diagnose or alter treatment without a veterinarian.",
+      "evidenceState": "RECEIPT_MISSING_VERSION_NOT_IMMUTABLE",
+      "receiptPath": null,
       "checksumSha256": null
     }
   ]
