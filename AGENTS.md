@@ -17,7 +17,7 @@ Le brief `PROMPT_PROTOTYPE_BRETAGNE.md` décrit une proposition historique. Les 
 - Design system maison : `apps/web/styles/tokens.css` et primitives `apps/web/components/ui/*`. HeroUI 3 et Tailwind 4 sont également installés.
 - Aucun projet Unity et aucune intégration Nakama ne sont présents sur les branches distantes observées. Ces workstreams restent `GATED / NOT PRODUCTION AUTHORITY`.
 - Les commandes documentées dans les manifests sont des surfaces disponibles, pas une preuve de build, de CI ou de production.
-- Conflit d'autorité à préserver : le code contient une gamification centrée propriétaire, tandis que la règle plus bas interdit toute gamification. Ne pas étendre, supprimer ou déclarer conforme ce comportement avant une décision contrôlée.
+- La règle produit n'interdit plus tout système ludique en bloc : elle interdit **strictement** la gamification de la santé/bien-être canin, de l'émotion inférée, de la qualité de relation, du risque vétérinaire et de la performance réelle du chien. Les systèmes ludiques optionnels de World restent séparément gouvernés, gated, non approuvés par leur seule présence dans le code, et ne doivent jamais transformer MAT/TAG/ELI, pas, sommeil, activité ou repos en XP, score, rang, streak ou récompense.
 
 ---
 
@@ -53,6 +53,16 @@ EMOPET n'est pas un dispositif médical et ne pose aucun diagnostic.
 
 - ❌ Interdit : "détection problème cardiaque", "risque d'obésité", "anomalie respiratoire", "alerte santé"
 - ✅ Autorisé : "tendance baisse d'activité sur 7 jours", "à discuter avec votre vétérinaire", "variation observée"
+
+### 4. PAS de gamification du chien réel
+
+La ludification ne doit jamais transformer les données du chien ou la relation Guardian–dog en performance.
+
+- ❌ Interdit : points/XP/niveaux/streaks/leaderboards/récompenses dérivés de MAT/TAG/ELI, des pas, de la distance, du sommeil, du repos, de l'activité, du bien-être, d'une émotion inférée, d'un risque vétérinaire ou d'un score de relation.
+- ❌ Interdit : score de « bon Guardian », score de bonheur/santé du chien, classement public des chiens, progression conditionnée par la performance réelle du chien.
+- ✅ Potentiellement autorisé sous gates World/Community séparés : activités coopératives, décoration d'espace, keepsakes symboliques, découverte non compétitive, interactions sociales prédéfinies, à condition qu'elles restent indépendantes de la performance/bien-être du chien et puissent fonctionner sans nouveau signal MAT/TAG/ELI.
+
+La présence actuelle de mécaniques ludiques dans le prototype ne constitue pas une autorisation de release. Voir `docs/product/EMOPET_EXPERIENCE_DOCTRINE_v0.1.md` et les gates World/Community.
 
 ### Procédure de vérification
 
@@ -155,4 +165,4 @@ Synonymes brief → tokens réels :
 2. **Demander confirmation** avant d'écraser ou supprimer un fichier
 3. **Petites étapes incrémentales** : un écran à la fois, validation visuelle entre chaque
 4. **Vérification finale** : aucun terme interdit (cf. règles absolues) dans le code ou les textes UI
-5. **Pas de gamification** : pas de jauges "santé", pas d'avatar de chien animé, pas de système de points/niveaux
+5. **Ludification sous autorité séparée** : aucune mécanique ne peut gamifier santé/bien-être, émotion inférée, relation, risque vétérinaire ou performance réelle du chien. Les mécaniques World/Community purement ludiques restent optionnelles, gated et indépendantes de MAT/TAG/ELI.
