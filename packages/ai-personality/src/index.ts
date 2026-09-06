@@ -27,12 +27,13 @@ export {
   BLEIZ_TEMPLATE_STATS as LEGACY_BLEIZ_TEMPLATE_STATS,
 } from './bleiz/bleiz-content-templates.js';
 
-// Canonical Breiz release surface.
+// Canonical Breiz release surface. Raw V6 templates are intentionally not exported
+// separately; approved V6 content enters BLEIZ_RELEASE_TEMPLATES with SANITIZED_V6
+// source authority and the same semantic ceilings as every other release template.
 export * from './bleiz/bleiz-release-templates.js';
 export * from './bleiz/bleiz-release-scheduler.js';
 export * from './bleiz/bleiz-release-output.js';
 
-export * from './bleiz/bleiz-v6-templates.js';
 export * from './bleiz/breed-normalizer.js';
 export * from './bleiz/breed-resolver.js';
 export * from './bleiz/freemium-scheduler.js';
