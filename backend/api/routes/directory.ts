@@ -5,20 +5,56 @@ import { localDirectory } from '../../db/schema/index.js';
 
 export const directory = new Hono();
 
+type DirectoryRuntimeMode = 'RELEASE_GO' | 'UNVERIFIED_DEMO' | 'HOLD';
+
+function getDirectoryRuntimeMode(): DirectoryRuntimeMode {
+  if (process.env['EMOPET_LOCAL_DIRECTORY_RELEASE_GATE'] === 'GO') {
+    return 'RELEASE_GO';
+  }
+
+  if (
+    process.env['NODE_ENV'] !== 'production' &&
+    process.env['EMOPET_LOCAL_DIRECTORY_DEMO'] === '1'
+  ) {
+    return 'UNVERIFIED_DEMO';
+  }
+
+  return 'HOLD';
+}
+
+function unavailablePayload() {
+  return {
+    error: 'Local directory unavailable',
+    code: 'DATA_RIGHTS_GATE_HOLD',
+    dataStatus: 'HOLD',
+    message: 'Directory publication is disabled until row-level provenance and rights review are complete.',
+  } as const;
+}
+
+function sanitizeDemoEntry<T extends Record<string, unknown>>(entry: T) {
+  return {
+    ...entry,
+    ratingAvg: null,
+    ratingCount: 0,
+    verified: false,
+    source: 'demo_unverified',
+    sourceId: null,
+    dataStatus: 'UNVERIFIED_DEMO' as const,
+  };
+}
+
 /**
  * GET /api/directory/search
  *
- * Query params:
- *   category: string (veterinaire, educateur, toiletteur, pension, parc_chien, animalerie, etc.)
- *   lat: number
- *   lng: number
- *   radius_km: number (default 10)
- *   q: string (text search on name)
- *   emergency: boolean (filter accepts_emergencies)
- *
- * Returns: entries sorted by distance from (lat, lng) with rating info
+ * The historical Lorient directory is under #116 HOLD. Runtime access therefore
+ * fails closed unless either:
+ * - EMOPET_LOCAL_DIRECTORY_RELEASE_GATE=GO, after controlled review; or
+ * - an explicit non-production demo gate is enabled.
  */
 directory.get('/search', async (c) => {
+  const runtimeMode = getDirectoryRuntimeMode();
+  if (runtimeMode === 'HOLD') return c.json(unavailablePayload(), 503);
+
   const category = c.req.query('category');
   const lat = c.req.query('lat') ? parseFloat(c.req.query('lat')!) : null;
   const lng = c.req.query('lng') ? parseFloat(c.req.query('lng')!) : null;
@@ -33,13 +69,8 @@ directory.get('/search', async (c) => {
 
   const conditions = [];
 
-  if (category) {
-    conditions.push(eq(localDirectory.category, category));
-  }
-
-  if (emergency) {
-    conditions.push(eq(localDirectory.acceptsEmergencies, true));
-  }
+  if (category) conditions.push(eq(localDirectory.category, category));
+  if (emergency) conditions.push(eq(localDirectory.acceptsEmergencies, true));
 
   if (q) {
     conditions.push(
@@ -50,9 +81,8 @@ directory.get('/search', async (c) => {
     );
   }
 
-  // Geo bounding box filter (rough filter before distance calc)
   if (lat != null && lng != null) {
-    const latDelta = radiusKm / 111.0; // ~111 km per degree latitude
+    const latDelta = radiusKm / 111.0;
     const lngDelta = radiusKm / (111.0 * Math.cos((lat * Math.PI) / 180));
 
     conditions.push(gte(localDirectory.latitude, lat - latDelta));
@@ -69,7 +99,6 @@ directory.get('/search', async (c) => {
     .where(where)
     .limit(50);
 
-  // Calculate distance and sort
   let results = entries.map((entry) => {
     let distanceKm: number | null = null;
     if (lat != null && lng != null && entry.latitude != null && entry.longitude != null) {
@@ -78,23 +107,31 @@ directory.get('/search', async (c) => {
     return { ...entry, distanceKm };
   });
 
-  // Sort by distance if geo search, otherwise by rating
   if (lat != null && lng != null) {
     results.sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
-    // Filter by actual radius (bounding box was approximate)
     results = results.filter((r) => r.distanceKm == null || r.distanceKm <= radiusKm);
-  } else {
+  } else if (runtimeMode === 'RELEASE_GO') {
     results.sort((a, b) => (b.ratingAvg ?? 0) - (a.ratingAvg ?? 0));
+  } else {
+    results.sort((a, b) => a.name.localeCompare(b.name, 'fr'));
   }
 
-  return c.json({ entries: results, count: results.length });
+  const output = runtimeMode === 'UNVERIFIED_DEMO'
+    ? results.map((entry) => sanitizeDemoEntry(entry))
+    : results;
+
+  return c.json({
+    entries: output,
+    count: output.length,
+    dataStatus: runtimeMode,
+  });
 });
 
-/**
- * GET /api/directory/categories
- * Returns available categories with counts.
- */
+/** GET /api/directory/categories */
 directory.get('/categories', async (c) => {
+  const runtimeMode = getDirectoryRuntimeMode();
+  if (runtimeMode === 'HOLD') return c.json(unavailablePayload(), 503);
+
   const counts = await db
     .select({
       category: localDirectory.category,
@@ -103,14 +140,14 @@ directory.get('/categories', async (c) => {
     .from(localDirectory)
     .groupBy(localDirectory.category);
 
-  return c.json({ categories: counts });
+  return c.json({ categories: counts, dataStatus: runtimeMode });
 });
 
-/**
- * GET /api/directory/:id
- * Returns a single directory entry.
- */
+/** GET /api/directory/:id */
 directory.get('/:id', async (c) => {
+  const runtimeMode = getDirectoryRuntimeMode();
+  if (runtimeMode === 'HOLD') return c.json(unavailablePayload(), 503);
+
   const id = parseInt(c.req.param('id'), 10);
   if (isNaN(id)) return c.json({ error: 'Invalid id' }, 400);
 
@@ -122,10 +159,10 @@ directory.get('/:id', async (c) => {
 
   if (!entry) return c.json({ error: 'Not found' }, 404);
 
-  return c.json(entry);
+  return c.json(runtimeMode === 'UNVERIFIED_DEMO'
+    ? sanitizeDemoEntry(entry)
+    : { ...entry, dataStatus: runtimeMode });
 });
-
-// ─── Haversine distance ─────────────────────────────────────────────
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;
@@ -135,8 +172,7 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((lat1 * Math.PI) / 180) *
       Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
