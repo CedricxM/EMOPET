@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 
 import {
   BHV_ELEVATED_ACTIVITY_LOW_REST_VOCAL_PATTERN,
+  BLEIZ_RELEASE_BLOCKED_LEGACY,
+  BLEIZ_RELEASE_COLLISIONS,
   BLEIZ_RELEASE_TEMPLATES,
   BLEIZ_RELEASE_TEMPLATE_STATS,
   LEGACY_BLEIZ_TEMPLATES,
@@ -16,6 +18,10 @@ const blockedIds = [
   'ACT_DISTANCE_RECORD',
   'MIL_DISTANCE_RECORD',
   'MIL_MAT_STREAK',
+  'REL_MEMORY_6M',
+  'ACT_WALK_QUALITY',
+  'REL_ROUTINE_STABLE',
+  'REL_PRESENCE_CALM',
 ];
 
 const releaseClasses = new Set([
@@ -31,6 +37,7 @@ const forbiddenReleaseFields = [
   /personal_best/i,
   /weekly_distance_goal/i,
   /weekly_distance_last/i,
+  /sensor\.wqi/i,
 ];
 
 function commonContexts() {
@@ -47,17 +54,32 @@ function commonContexts() {
   };
 }
 
-test('release catalog excludes legacy anxiety and performance/adherence templates', () => {
+test('release catalog excludes latent-state, performance, relationship-inference and auto-memory templates', () => {
   for (const id of blockedIds) {
-    const legacy = LEGACY_BLEIZ_TEMPLATES.find((template) => template.id === id);
-    if (!legacy) continue;
-    assert.ok(releaseTemplateBlockReason(legacy), `${id} should have a release block reason`);
+    const matches = LEGACY_BLEIZ_TEMPLATES.filter((template) => template.id === id);
+    if (matches.length === 0) continue;
+
+    for (const legacy of matches) {
+      assert.ok(releaseTemplateBlockReason(legacy), `${id} should have a release block reason`);
+    }
     assert.equal(
       BLEIZ_RELEASE_TEMPLATES.some((template) => template.id === id),
       false,
       `${id} leaked into release catalog`,
     );
   }
+});
+
+test('blocked legacy audit is populated and contains an explicit reason for each quarantined item', () => {
+  assert.ok(BLEIZ_RELEASE_BLOCKED_LEGACY.length > 0);
+  for (const item of BLEIZ_RELEASE_BLOCKED_LEGACY) {
+    assert.ok(item.id.length > 0);
+    assert.ok(item.reason.length > 0);
+  }
+  assert.equal(
+    BLEIZ_RELEASE_TEMPLATE_STATS.blockedLegacy,
+    BLEIZ_RELEASE_BLOCKED_LEGACY.length,
+  );
 });
 
 test('every release template carries a machine-readable class and semantic ceiling', () => {
@@ -80,6 +102,20 @@ test('every release template carries a machine-readable class and semantic ceili
         `${template.id} leaked forbidden release field ${field}`,
       );
     }
+  }
+});
+
+test('release catalog contains no duplicate IDs and quarantines legacy collisions', () => {
+  const ids = BLEIZ_RELEASE_TEMPLATES.map((template) => template.id);
+  assert.equal(new Set(ids).size, ids.length, 'release IDs must be globally unique');
+  assert.equal(BLEIZ_RELEASE_TEMPLATE_STATS.collisions, BLEIZ_RELEASE_COLLISIONS.length);
+
+  for (const id of BLEIZ_RELEASE_COLLISIONS) {
+    assert.equal(
+      BLEIZ_RELEASE_TEMPLATES.some((template) => template.id === id),
+      false,
+      `colliding legacy ID ${id} must fail closed`,
+    );
   }
 });
 
@@ -120,6 +156,35 @@ test('release filter rejects distance/MAT goal fields even if a new template use
     prompt: 'hello',
   };
 
+  assert.deepEqual(filterReleaseTemplates([candidate]), []);
+});
+
+test('relationship category cannot turn sensor/computed evidence into relationship truth', () => {
+  const candidate = {
+    id: 'REL_SOFTLY_NAMED_BUT_SENSOR_DERIVED',
+    category: 'relationship',
+    channel: 'home_insight',
+    priority: 1,
+    cooldownHours: 1,
+    weeklyBudget: 1,
+    required_fields: ['dog.name', 'sensor.data_days'],
+    triggers: [{
+      type: 'computed',
+      field: 'computed.relationship_pattern',
+      operator: 'exists',
+      description: 'Synthetic relationship pattern',
+    }],
+    targeting: {},
+    never_say: [],
+    safety: { requireNonMedical: true },
+    tone: 'warm',
+    prompt: 'Say the relationship is stronger.',
+  };
+
+  assert.match(
+    releaseTemplateBlockReason(candidate) ?? '',
+    /relationship narrative/i,
+  );
   assert.deepEqual(filterReleaseTemplates([candidate]), []);
 });
 
