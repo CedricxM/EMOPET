@@ -9,6 +9,7 @@
     "lint": "turbo lint",
     "test": "turbo test",
     "typecheck": "turbo typecheck",
+    "rights:audit": "node scripts/data/rights-gate-audit.mjs",
     "clean": "turbo clean && rm -rf node_modules",
     "backend:dev": "pnpm --filter @emopet/api dev",
     "mobile:dev": "pnpm --filter @emopet/mobile start",
