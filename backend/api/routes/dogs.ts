@@ -20,6 +20,16 @@ import { requireDogOwnership } from '../middleware/authorization.js';
 
 const dogs = new Hono();
 
+function legacyGenericVetShareAllowed(): boolean {
+  return process.env['NODE_ENV'] !== 'production' &&
+    process.env['EMOPET_ALLOW_LEGACY_GENERIC_VET_SHARE'] === '1';
+}
+
+function parseReportDays(value: string | undefined): number | null {
+  const parsed = Number(value ?? '14');
+  return Number.isInteger(parsed) && parsed >= 1 && parsed <= 30 ? parsed : null;
+}
+
 function buildFallbackPresenceEvents(): PresenceEventInput[] {
   const now = new Date();
   return [
@@ -164,12 +174,30 @@ dogs.get('/:id/absence-comparison', async (c) => {
   });
 });
 
+/**
+ * Legacy generic share-link endpoint.
+ *
+ * HOLD for release under #64: this token is not recipient-bound and has no
+ * durable revocation entity. It remains available only for explicit non-production
+ * compatibility testing while the scoped professional-grant backend is built.
+ */
 dogs.get('/:id/vet-report-link', async (c) => {
   const id = c.req.param('id');
   const denied = await requireDogOwnership(c, id);
   if (denied) return denied;
 
-  const days = Number(c.req.query('days') ?? '14');
+  if (!legacyGenericVetShareAllowed()) {
+    return c.json({
+      error: 'Generic professional sharing is disabled',
+      code: 'RECIPIENT_BOUND_GRANT_REQUIRED',
+      gate: 'G-GUARDIAN-PROFESSIONAL-SHARE-01',
+      message: 'Create a recipient-bound, scoped, expiring professional grant instead.',
+    }, 409);
+  }
+
+  const days = parseReportDays(c.req.query('days'));
+  if (days == null) return c.json({ error: 'days must be an integer between 1 and 30' }, 400);
+
   const userId = String(getUserId(c) ?? '');
   const token = await createVetReportShareToken(userId, id, days);
   const url = new URL(c.req.url);
@@ -182,17 +210,28 @@ dogs.get('/:id/vet-report-link', async (c) => {
     dogId: id,
     days,
     expiresInMinutes: 30,
+    authority: 'LEGACY_NON_PRODUCTION_ONLY',
     url: url.toString(),
   });
 });
 
 dogs.get('/:id/vet-report', async (c) => {
   const id = c.req.param('id');
-  const days = Number(c.req.query('days') ?? '14');
+  const days = parseReportDays(c.req.query('days'));
+  if (days == null) return c.json({ error: 'days must be an integer between 1 and 30' }, 400);
+
   const shareToken = c.req.query('share_token');
   const isShareAccess = typeof shareToken === 'string' && shareToken.length > 0;
 
   if (isShareAccess) {
+    if (!legacyGenericVetShareAllowed()) {
+      return c.json({
+        error: 'Legacy generic share access is disabled',
+        code: 'RECIPIENT_BOUND_GRANT_REQUIRED',
+        gate: 'G-GUARDIAN-PROFESSIONAL-SHARE-01',
+      }, 401);
+    }
+
     const isValid = await verifyVetReportShareToken(shareToken, id, days);
     if (!isValid) {
       return c.json({ error: 'Invalid or expired share token' }, 401);
@@ -211,6 +250,8 @@ dogs.get('/:id/vet-report', async (c) => {
       'Content-Type': 'application/pdf',
       'Content-Disposition': `inline; filename="emopet-vet-report-${id}.pdf"`,
       'Cache-Control': 'private, max-age=0, no-store',
+      'X-Content-Type-Options': 'nosniff',
+      'Referrer-Policy': 'no-referrer',
     },
   });
 });
