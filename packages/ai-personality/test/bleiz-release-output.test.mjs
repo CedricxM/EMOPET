@@ -108,7 +108,7 @@ test('community-only output cannot present community copy as ELI scientific trut
 });
 
 test('education-only output cannot diagnose an individual dog', () => {
-  const template = requireTemplate('EDU_HOME_SAFETY');
+  const template = requireTemplate('EDU_PUPPY_PLAY');
   assert.equal(template.semanticAuthority, 'EDUCATION_ONLY');
 
   const result = guardReleaseGeneratedText(
