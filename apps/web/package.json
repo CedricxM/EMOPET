@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "test": "node scripts/run-tests.mjs",
     "vocab": "node scripts/vocab-audit.mjs",
+    "doctrine": "node scripts/doctrine-audit.mjs",
     "smoke": "node scripts/smoke.mjs",
     "check": "node scripts/verify.mjs --no-build",
     "verify": "node scripts/verify.mjs"
