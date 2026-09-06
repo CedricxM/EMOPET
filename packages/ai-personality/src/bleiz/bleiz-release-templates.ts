@@ -1,15 +1,15 @@
 import { BLEIZ_TEMPLATES } from './bleiz-content-templates.js';
 import type { BleizTemplate } from './bleiz-content-templates.js';
+import { V6_BLEIZ_TEMPLATES } from './bleiz-v6-templates.js';
 
 /**
- * Release-time semantic firewall for legacy Breiz content.
+ * Release-time semantic firewall for Breiz content.
  *
- * The historical template catalog is retained for migration/audit purposes, but
- * release scheduling must not activate templates whose semantic identity or
- * trigger source conflicts with the 2026-09-06 Experience Doctrine.
+ * Historical and pre-registry template catalogs are retained for migration/audit
+ * purposes, but release scheduling must not activate content whose semantic
+ * identity or trigger source conflicts with the 2026-09-06 Experience Doctrine.
  *
- * IMPORTANT: release authority lives in this file, not in the historical
- * `BLEIZ_TEMPLATES` catalog.
+ * IMPORTANT: release authority lives in this file, not in the historical catalogs.
  */
 
 export type BleizReleaseClass =
@@ -26,13 +26,18 @@ export type BleizSemanticAuthority =
   | 'SUGGESTION_ONLY'
   | 'COMMUNITY_ONLY';
 
+export type BleizSourceAuthority =
+  | 'RELEASE_NATIVE'
+  | 'SANITIZED_LEGACY'
+  | 'SANITIZED_V6';
+
 export type BleizReleaseTemplate = BleizTemplate & {
   /** Machine-readable product role. It is not a scientific or clinical label. */
   releaseClass: BleizReleaseClass;
   /** Hard ceiling on what the generated content is allowed to claim. */
   semanticAuthority: BleizSemanticAuthority;
-  /** Stable source marker used during the legacy-catalog migration. */
-  sourceAuthority: 'RELEASE_NATIVE' | 'SANITIZED_LEGACY';
+  /** Stable source marker used during catalog migration. */
+  sourceAuthority: BleizSourceAuthority;
 };
 
 export interface BlockedLegacyTemplate {
@@ -126,6 +131,10 @@ export const BLEIZ_RELEASE_BLOCKED_LEGACY: BlockedLegacyTemplate[] = BLEIZ_TEMPL
   .map((template) => ({ id: template.id, reason: releaseTemplateBlockReason(template) }))
   .filter((item): item is BlockedLegacyTemplate => item.reason !== null);
 
+export const BLEIZ_RELEASE_BLOCKED_V6: BlockedLegacyTemplate[] = V6_BLEIZ_TEMPLATES
+  .map((template) => ({ id: template.id, reason: releaseTemplateBlockReason(template) }))
+  .filter((item): item is BlockedLegacyTemplate => item.reason !== null);
+
 function releaseRoleFor(template: BleizTemplate): Pick<BleizReleaseTemplate, 'releaseClass' | 'semanticAuthority'> {
   switch (template.category) {
     case 'behavior':
@@ -133,6 +142,17 @@ function releaseRoleFor(template: BleizTemplate): Pick<BleizReleaseTemplate, 're
       return {
         releaseClass: 'OBSERVATION_EXPLANATION',
         semanticAuthority: 'OBSERVATION_ONLY',
+      };
+    case 'behavior_education':
+      if (usesSensorOrComputedEvidence(template)) {
+        return {
+          releaseClass: 'OBSERVATION_EXPLANATION',
+          semanticAuthority: 'OBSERVATION_ONLY',
+        };
+      }
+      return {
+        releaseClass: 'GENERAL_EDUCATION',
+        semanticAuthority: 'EDUCATION_ONLY',
       };
     case 'health_breed':
     case 'nutrition':
@@ -162,7 +182,6 @@ function releaseRoleFor(template: BleizTemplate): Pick<BleizReleaseTemplate, 're
         releaseClass: 'SUGGESTION',
         semanticAuthority: 'SUGGESTION_ONLY',
       };
-    case 'behavior_education':
     case 'education':
     case 'milestone':
     default:
@@ -173,11 +192,14 @@ function releaseRoleFor(template: BleizTemplate): Pick<BleizReleaseTemplate, 're
   }
 }
 
-function toSanitizedLegacy(template: BleizTemplate): BleizReleaseTemplate {
+function toReleaseTemplate(
+  template: BleizTemplate,
+  sourceAuthority: BleizSourceAuthority,
+): BleizReleaseTemplate {
   return {
     ...template,
     ...releaseRoleFor(template),
-    sourceAuthority: 'SANITIZED_LEGACY',
+    sourceAuthority,
   };
 }
 
@@ -233,17 +255,12 @@ export const BHV_ELEVATED_ACTIVITY_LOW_REST_VOCAL_PATTERN: BleizReleaseTemplate 
       }
     : null;
 
-const SANITIZED_LEGACY_CANDIDATES = filterReleaseTemplates(BLEIZ_TEMPLATES).map(toSanitizedLegacy);
+const LEGACY_RELEASE_CANDIDATES = filterReleaseTemplates(BLEIZ_TEMPLATES).map((template) =>
+  toReleaseTemplate(template, 'SANITIZED_LEGACY'),
+);
 
-/**
- * Duplicate legacy IDs are ambiguous authority. Release fails closed by dropping
- * every candidate with a colliding ID rather than silently taking first/last.
- */
-export const BLEIZ_RELEASE_COLLISIONS = duplicateIds(SANITIZED_LEGACY_CANDIDATES);
-const COLLIDING_IDS = new Set(BLEIZ_RELEASE_COLLISIONS);
-
-const SANITIZED_LEGACY_RELEASE_TEMPLATES = SANITIZED_LEGACY_CANDIDATES.filter(
-  (template) => !COLLIDING_IDS.has(template.id),
+const V6_RELEASE_CANDIDATES = filterReleaseTemplates(V6_BLEIZ_TEMPLATES).map((template) =>
+  toReleaseTemplate(template, 'SANITIZED_V6'),
 );
 
 const RELEASE_NATIVE_REPLACEMENTS: BleizReleaseTemplate[] = [
@@ -252,21 +269,34 @@ const RELEASE_NATIVE_REPLACEMENTS: BleizReleaseTemplate[] = [
     : []),
 ];
 
+const ALL_RELEASE_CANDIDATES: BleizReleaseTemplate[] = [
+  ...LEGACY_RELEASE_CANDIDATES,
+  ...V6_RELEASE_CANDIDATES,
+  ...RELEASE_NATIVE_REPLACEMENTS,
+];
+
+/**
+ * Duplicate IDs are ambiguous authority. Release fails closed by dropping every
+ * candidate with a colliding ID rather than silently taking first/last.
+ */
+export const BLEIZ_RELEASE_COLLISIONS = duplicateIds(ALL_RELEASE_CANDIDATES);
+const COLLIDING_IDS = new Set(BLEIZ_RELEASE_COLLISIONS);
+
 /**
  * Canonical release catalog.
  *
- * Blocked legacy templates stay out. A safe replacement may be introduced under
- * a new observable-pattern identity, but never by silently re-authorizing the old
- * latent-state identifier. Duplicate legacy IDs are quarantined entirely.
+ * Blocked templates stay out. A safe replacement may be introduced under a new
+ * observable-pattern identity, but never by silently re-authorizing the old
+ * latent-state identifier. Duplicate IDs are quarantined entirely.
  */
-export const BLEIZ_RELEASE_TEMPLATES: BleizReleaseTemplate[] = [
-  ...SANITIZED_LEGACY_RELEASE_TEMPLATES,
-  ...RELEASE_NATIVE_REPLACEMENTS,
-];
+export const BLEIZ_RELEASE_TEMPLATES: BleizReleaseTemplate[] = ALL_RELEASE_CANDIDATES.filter(
+  (template) => !COLLIDING_IDS.has(template.id),
+);
 
 export const BLEIZ_RELEASE_TEMPLATE_STATS = {
   total: BLEIZ_RELEASE_TEMPLATES.length,
   blockedLegacy: BLEIZ_RELEASE_BLOCKED_LEGACY.length,
+  blockedV6: BLEIZ_RELEASE_BLOCKED_V6.length,
   collisions: BLEIZ_RELEASE_COLLISIONS.length,
   byClass: BLEIZ_RELEASE_TEMPLATES.reduce<Record<BleizReleaseClass, number>>(
     (acc, template) => {
