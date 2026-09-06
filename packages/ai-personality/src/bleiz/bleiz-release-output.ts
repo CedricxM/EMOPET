@@ -16,7 +16,7 @@ export interface ReleaseOutputGuardResult {
   decision: ReleaseOutputDecision;
   /** Present only when the candidate passes the semantic ceiling. */
   text: string | null;
-  /** Terms removed by the existing lexical safety filter. */
+  /** Terms detected/removed by the existing lexical safety filter. */
   blockedTerms: string[];
   /** Semantic-ceiling violations. The raw rejected candidate is deliberately not returned. */
   violations: ReleaseOutputViolation[];
@@ -131,25 +131,33 @@ function patternsFor(authority: BleizSemanticAuthority): SemanticPattern[] {
 }
 
 /**
- * Applies the historical lexical safety filter first, then enforces the canonical
- * semantic ceiling. A semantic violation rejects the entire candidate rather than
- * attempting to paraphrase a claim into apparent compliance.
+ * Enforces the semantic ceiling on the raw candidate BEFORE lexical rewriting,
+ * then applies the historical lexical safety filter and checks the filtered text
+ * again. This prevents a forbidden claim from being cosmetically rewritten into
+ * apparent compliance.
+ *
+ * Any semantic violation rejects the entire candidate. Rejected raw text is not
+ * returned to callers.
  */
 export function guardReleaseGeneratedText(
   template: BleizReleaseTemplate,
   candidate: string,
 ): ReleaseOutputGuardResult {
-  const lexical = filterGeneratedText(template, candidate);
   const patterns = [...UNIVERSAL_PATTERNS, ...patternsFor(template.semanticAuthority)];
+  const lexical = filterGeneratedText(template, candidate);
 
-  const violations = patterns
-    .filter((rule) => rule.pattern.test(lexical.text))
-    .map<ReleaseOutputViolation>((rule) => ({
-      id: rule.id,
-      semanticAuthority: template.semanticAuthority,
-      description: rule.description,
-    }));
+  const violationsById = new Map<string, ReleaseOutputViolation>();
+  for (const rule of patterns) {
+    if (rule.pattern.test(candidate) || rule.pattern.test(lexical.text)) {
+      violationsById.set(rule.id, {
+        id: rule.id,
+        semanticAuthority: template.semanticAuthority,
+        description: rule.description,
+      });
+    }
+  }
 
+  const violations = [...violationsById.values()];
   if (violations.length > 0) {
     return {
       decision: 'REJECT',
