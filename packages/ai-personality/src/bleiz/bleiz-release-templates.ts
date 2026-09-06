@@ -35,6 +35,11 @@ export type BleizReleaseTemplate = BleizTemplate & {
   sourceAuthority: 'RELEASE_NATIVE' | 'SANITIZED_LEGACY';
 };
 
+export interface BlockedLegacyTemplate {
+  id: string;
+  reason: string;
+}
+
 const FORBIDDEN_ID_PATTERNS = [
   /ANXIETY/i,
   /DISTANCE_RECORD/i,
@@ -117,6 +122,10 @@ export function filterReleaseTemplates(templates: BleizTemplate[]): BleizTemplat
   return templates.filter(isReleaseTemplateAuthorized);
 }
 
+export const BLEIZ_RELEASE_BLOCKED_LEGACY: BlockedLegacyTemplate[] = BLEIZ_TEMPLATES
+  .map((template) => ({ id: template.id, reason: releaseTemplateBlockReason(template) }))
+  .filter((item): item is BlockedLegacyTemplate => item.reason !== null);
+
 function releaseRoleFor(template: BleizTemplate): Pick<BleizReleaseTemplate, 'releaseClass' | 'semanticAuthority'> {
   switch (template.category) {
     case 'behavior':
@@ -172,6 +181,17 @@ function toSanitizedLegacy(template: BleizTemplate): BleizReleaseTemplate {
   };
 }
 
+function duplicateIds(templates: BleizReleaseTemplate[]): string[] {
+  const counts = new Map<string, number>();
+  for (const template of templates) {
+    counts.set(template.id, (counts.get(template.id) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .filter(([, count]) => count > 1)
+    .map(([id]) => id)
+    .sort();
+}
+
 /**
  * Replacement for the historical `BHV_ANXIETY_PATTERN` semantic identity.
  *
@@ -213,7 +233,18 @@ export const BHV_ELEVATED_ACTIVITY_LOW_REST_VOCAL_PATTERN: BleizReleaseTemplate 
       }
     : null;
 
-const SANITIZED_LEGACY_RELEASE_TEMPLATES = filterReleaseTemplates(BLEIZ_TEMPLATES).map(toSanitizedLegacy);
+const SANITIZED_LEGACY_CANDIDATES = filterReleaseTemplates(BLEIZ_TEMPLATES).map(toSanitizedLegacy);
+
+/**
+ * Duplicate legacy IDs are ambiguous authority. Release fails closed by dropping
+ * every candidate with a colliding ID rather than silently taking first/last.
+ */
+export const BLEIZ_RELEASE_COLLISIONS = duplicateIds(SANITIZED_LEGACY_CANDIDATES);
+const COLLIDING_IDS = new Set(BLEIZ_RELEASE_COLLISIONS);
+
+const SANITIZED_LEGACY_RELEASE_TEMPLATES = SANITIZED_LEGACY_CANDIDATES.filter(
+  (template) => !COLLIDING_IDS.has(template.id),
+);
 
 const RELEASE_NATIVE_REPLACEMENTS: BleizReleaseTemplate[] = [
   ...(BHV_ELEVATED_ACTIVITY_LOW_REST_VOCAL_PATTERN
@@ -226,7 +257,7 @@ const RELEASE_NATIVE_REPLACEMENTS: BleizReleaseTemplate[] = [
  *
  * Blocked legacy templates stay out. A safe replacement may be introduced under
  * a new observable-pattern identity, but never by silently re-authorizing the old
- * latent-state identifier.
+ * latent-state identifier. Duplicate legacy IDs are quarantined entirely.
  */
 export const BLEIZ_RELEASE_TEMPLATES: BleizReleaseTemplate[] = [
   ...SANITIZED_LEGACY_RELEASE_TEMPLATES,
@@ -235,6 +266,8 @@ export const BLEIZ_RELEASE_TEMPLATES: BleizReleaseTemplate[] = [
 
 export const BLEIZ_RELEASE_TEMPLATE_STATS = {
   total: BLEIZ_RELEASE_TEMPLATES.length,
+  blockedLegacy: BLEIZ_RELEASE_BLOCKED_LEGACY.length,
+  collisions: BLEIZ_RELEASE_COLLISIONS.length,
   byClass: BLEIZ_RELEASE_TEMPLATES.reduce<Record<BleizReleaseClass, number>>(
     (acc, template) => {
       acc[template.releaseClass] += 1;
