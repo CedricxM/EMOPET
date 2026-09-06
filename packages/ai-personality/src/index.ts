@@ -31,6 +31,7 @@ export {
 
 export * from './bleiz/bleiz-release-templates.js';
 export * from './bleiz/bleiz-release-scheduler.js';
+export * from './bleiz/bleiz-release-output.js';
 export * from './bleiz/bleiz-v6-templates.js';
 export * from './bleiz/breed-normalizer.js';
 export * from './bleiz/breed-resolver.js';
