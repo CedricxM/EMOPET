@@ -1,12 +1,15 @@
 /**
- * Détection des jalons du carnet (Sprint 02).
+ * LEGACY / HOLD — automatic milestone detector from the earlier prototype.
  *
- * Un jalon récompense un cap atteint — le sujet est TOUJOURS le propriétaire
- * (invariant 4 : gamification du propriétaire, jamais du chien). Côté prod, la
- * détection tournerait après chaque insert + un cron quotidien (backend).
+ * Experience-hardening decision 2026-09-06:
+ * - the journal no longer calls this module;
+ * - automatic count/activity milestones are not release authority;
+ * - Memories/relationship history requires deliberate Guardian authorship or
+ *   confirmation under #228 and the Experience Doctrine;
+ * - historical entries may remain readable, but this module must not be wired
+ *   back into launch flows without a new controlled review.
  *
- * Seuils réels conservés : en démo, seuls les jalons réellement atteints
- * apparaissent (les autres sont fournis dans les données mock).
+ * Tracked by #223 / #233.
  */
 
 import type { JournalEntry, MilestoneEntry } from './journal';
@@ -24,8 +27,10 @@ function isSameDayMonth(iso: string, ref: Date): boolean {
 }
 
 /**
- * Évalue les jalons éligibles à partir de l'état actuel du carnet.
- * Renvoie uniquement ceux qui ne sont pas déjà présents (par `milestoneKind`).
+ * @deprecated Legacy prototype behavior. Do not use in launch flows.
+ *
+ * Evaluates historical auto-milestone rules retained only so old prototype data
+ * and tests can be understood during migration.
  */
 export function detectMilestones(entries: JournalEntry[], now: Date = new Date()): MilestoneCandidate[] {
   const existingKinds = new Set(
@@ -33,7 +38,7 @@ export function detectMilestones(entries: JournalEntry[], now: Date = new Date()
   );
   const candidates: MilestoneCandidate[] = [];
 
-  // Première entrée du carnet
+  // Legacy: first journal entry.
   if (entries.length === 1 && !existingKinds.has('first_entry')) {
     candidates.push({
       milestoneKind: 'first_entry',
@@ -42,7 +47,7 @@ export function detectMilestones(entries: JournalEntry[], now: Date = new Date()
     });
   }
 
-  // 100 balades enregistrées
+  // Legacy: activity-volume milestone. Not release-authorized under #233.
   const walks = entries.filter((e) => e.type === 'walk_recorded').length;
   if (walks >= 100 && !existingKinds.has('walks_100')) {
     candidates.push({
@@ -52,7 +57,8 @@ export function detectMilestones(entries: JournalEntry[], now: Date = new Date()
     });
   }
 
-  // Anniversaire du chien
+  // Legacy automatic calendar milestone. Future Memories flow requires explicit
+  // Guardian confirmation before durable relationship-history creation.
   if (DOG.birthDate && isSameDayMonth(DOG.birthDate, now) && !existingKinds.has(`birthday_${now.getFullYear()}`)) {
     const age = now.getFullYear() - new Date(DOG.birthDate).getFullYear();
     candidates.push({
@@ -62,7 +68,7 @@ export function detectMilestones(entries: JournalEntry[], now: Date = new Date()
     });
   }
 
-  // Anniversaire d'adoption
+  // Legacy automatic calendar milestone. Same confirmation rule as above.
   if (DOG.adoptionDate && isSameDayMonth(DOG.adoptionDate, now) && !existingKinds.has(`adoption_${now.getFullYear()}`)) {
     const years = now.getFullYear() - new Date(DOG.adoptionDate).getFullYear();
     candidates.push({
@@ -75,7 +81,7 @@ export function detectMilestones(entries: JournalEntry[], now: Date = new Date()
   return candidates;
 }
 
-/** Construit une entrée de carnet à partir d'un jalon détecté. */
+/** @deprecated Legacy auto-generated milestone conversion. Do not use in launch flows. */
 export function milestoneToEntry(candidate: MilestoneCandidate, occurredAt: string = new Date().toISOString()): MilestoneEntry {
   return {
     id: `milestone-${candidate.milestoneKind}-${Date.now()}`,
