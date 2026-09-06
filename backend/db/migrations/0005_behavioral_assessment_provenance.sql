@@ -7,6 +7,7 @@
 --
 -- Important: progressive/adaptive administration is NOT assumed scientifically
 -- equivalent to the standard instrument. scientific_use_status is the gate.
+-- Missing / skipped / not-applicable responses are preserved explicitly.
 
 BEGIN;
 
@@ -17,6 +18,8 @@ CREATE TABLE IF NOT EXISTS behavioral_assessments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   dog_id UUID NOT NULL REFERENCES dogs(id),
   respondent_user_id UUID REFERENCES users(id),
+  respondent_role VARCHAR(30) NOT NULL DEFAULT 'owner'
+    CHECK (respondent_role IN ('owner','caregiver','trainer','veterinarian','researcher','other')),
 
   instrument_code VARCHAR(50) NOT NULL,
   instrument_version VARCHAR(100),
@@ -57,18 +60,27 @@ CREATE TABLE IF NOT EXISTS behavioral_responses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   assessment_id UUID NOT NULL REFERENCES behavioral_assessments(id) ON DELETE CASCADE,
   item_key VARCHAR(100) NOT NULL,
-  response_value INTEGER NOT NULL,
+  response_status VARCHAR(30) NOT NULL DEFAULT 'answered'
+    CHECK (response_status IN ('answered','not_applicable','skipped','missing')),
+  response_value INTEGER,
   scale_min INTEGER NOT NULL DEFAULT 0,
   scale_max INTEGER NOT NULL DEFAULT 4,
   presented_at TIMESTAMPTZ,
-  answered_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  answered_at TIMESTAMPTZ,
   presentation_context JSONB DEFAULT '{}'::jsonb,
   provenance JSONB DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
   CONSTRAINT chk_behavioral_response_scale CHECK (
     scale_min <= scale_max
-    AND response_value BETWEEN scale_min AND scale_max
+    AND (
+      (response_status = 'answered'
+        AND response_value IS NOT NULL
+        AND response_value BETWEEN scale_min AND scale_max)
+      OR
+      (response_status IN ('not_applicable','skipped','missing')
+        AND response_value IS NULL)
+    )
   )
 );
 
