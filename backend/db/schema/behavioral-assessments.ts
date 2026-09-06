@@ -26,12 +26,15 @@ import { users } from './users.js';
  *   classes and must remain distinguishable in provenance.
  * - A progressive/adaptive administration mode must never be assumed equivalent
  *   to the validated/standard administration. `scientificUseStatus` is the gate.
+ * - Missing / skipped / not-applicable responses are preserved explicitly rather
+ *   than silently imputed.
  */
 
 export const behavioralAssessments = pgTable('behavioral_assessments', {
   id: uuid('id').primaryKey().defaultRandom(),
   dogId: uuid('dog_id').notNull().references(() => dogs.id),
   respondentUserId: uuid('respondent_user_id').references(() => users.id),
+  respondentRole: varchar('respondent_role', { length: 30 }).notNull().default('owner'),
 
   instrumentCode: varchar('instrument_code', { length: 50 }).notNull(),
   instrumentVersion: varchar('instrument_version', { length: 100 }),
@@ -56,6 +59,10 @@ export const behavioralAssessments = pgTable('behavioral_assessments', {
 }, (table) => [
   index('idx_behavioral_assessment_dog').on(table.dogId),
   index('idx_behavioral_assessment_instrument').on(table.instrumentCode),
+  check(
+    'chk_behavioral_assessment_respondent_role',
+    sql`${table.respondentRole} IN ('owner','caregiver','trainer','veterinarian','researcher','other')`,
+  ),
   check(
     'chk_behavioral_assessment_mode',
     sql`${table.administrationMode} IN ('standardized','progressive','research','unknown')`,
@@ -82,12 +89,13 @@ export const behavioralResponses = pgTable('behavioral_responses', {
 
   // Opaque item identifier only. Never persist licensed item wording here.
   itemKey: varchar('item_key', { length: 100 }).notNull(),
-  responseValue: integer('response_value').notNull(),
+  responseStatus: varchar('response_status', { length: 30 }).notNull().default('answered'),
+  responseValue: integer('response_value'),
   scaleMin: integer('scale_min').notNull().default(0),
   scaleMax: integer('scale_max').notNull().default(4),
 
   presentedAt: timestamp('presented_at', { withTimezone: true }),
-  answeredAt: timestamp('answered_at', { withTimezone: true }).defaultNow().notNull(),
+  answeredAt: timestamp('answered_at', { withTimezone: true }),
 
   // Context is provenance, not a substitute for the instrument response.
   presentationContext: jsonb('presentation_context').default({}),
@@ -97,8 +105,16 @@ export const behavioralResponses = pgTable('behavioral_responses', {
   uniqueIndex('uq_behavioral_response_assessment_item').on(table.assessmentId, table.itemKey),
   index('idx_behavioral_response_assessment').on(table.assessmentId),
   check(
+    'chk_behavioral_response_status',
+    sql`${table.responseStatus} IN ('answered','not_applicable','skipped','missing')`,
+  ),
+  check(
     'chk_behavioral_response_scale',
-    sql`${table.scaleMin} <= ${table.scaleMax} AND ${table.responseValue} BETWEEN ${table.scaleMin} AND ${table.scaleMax}`,
+    sql`${table.scaleMin} <= ${table.scaleMax} AND (
+      (${table.responseStatus} = 'answered' AND ${table.responseValue} IS NOT NULL AND ${table.responseValue} BETWEEN ${table.scaleMin} AND ${table.scaleMax})
+      OR
+      (${table.responseStatus} IN ('not_applicable','skipped','missing') AND ${table.responseValue} IS NULL)
+    )`,
   ),
 ]);
 
