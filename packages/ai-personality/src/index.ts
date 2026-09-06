@@ -1,9 +1,9 @@
 export * from './tone/index.js';
 
-// Legacy `templates/*` and `insights/*` generators are intentionally NOT exported
-// from the package root. They include pre-doctrine record/challenge/memory paths and
-// bypass the canonical Breiz release registry/output guard. They remain internal
-// migration code until explicitly redesigned or removed.
+// Legacy `templates/*`, `insights/*` and the standalone freemium scheduler are
+// intentionally NOT exported from the package root. They contain pre-doctrine
+// content paths and can bypass the canonical Breiz release registry/output guard.
+// They remain internal migration code until explicitly redesigned or removed.
 
 // Breiz historical catalog: types remain public for compatibility, but executable
 // catalog values are deliberately exposed only under LEGACY_* names. Release
@@ -39,4 +39,3 @@ export * from './bleiz/bleiz-release-output.js';
 
 export * from './bleiz/breed-normalizer.js';
 export * from './bleiz/breed-resolver.js';
-export * from './bleiz/freemium-scheduler.js';
