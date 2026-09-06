@@ -13,7 +13,7 @@ Release authority is:
 - `releaseTemplateBlockReason()` / `filterReleaseTemplates()`
 - machine-readable `releaseClass` + `semanticAuthority`
 
-`BLEIZ_TEMPLATES` is retained as a legacy catalog only. New production behavior must not bypass the release scheduler or treat the historical catalog as an approved product surface.
+The historical catalog is exposed from the package root only as `LEGACY_BLEIZ_TEMPLATES` / `LEGACY_BLEIZ_TEMPLATE_STATS`. New production behavior must not bypass the release scheduler or treat the historical catalog as an approved product surface.
 
 ## Release classes
 
@@ -48,9 +48,10 @@ The class describes the product role. It is **not** a clinical or scientific con
 - `filterGeneratedText()`
 - `getAiPersona()`
 
-Legacy/migration export:
+Legacy/migration exports:
 
-- `BLEIZ_TEMPLATES` — historical catalog, **not release authority**
+- `LEGACY_BLEIZ_TEMPLATES` — historical catalog, **not release authority**
+- `LEGACY_BLEIZ_TEMPLATE_STATS` — historical regression counts only
 
 ## Invariants
 
@@ -103,6 +104,7 @@ The replacement can describe the same observable combination while explicitly le
 - `GLOBAL_BLACKLIST` is enforced on prompts and generated text.
 - Template `never_say` terms are applied in addition to the global blacklist.
 - Release filtering happens **before** scheduling, including when a caller explicitly supplies a template list.
+- The release scheduler also rejects ad-hoc templates that are not present in the canonical release registry.
 - Morning greeting injection is only done for `chat_message` jobs in the morning when the chat budget is still available.
 
 ## Build and test
