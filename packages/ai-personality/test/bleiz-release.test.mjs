@@ -5,7 +5,7 @@ import {
   BHV_ELEVATED_ACTIVITY_LOW_REST_VOCAL_PATTERN,
   BLEIZ_RELEASE_TEMPLATES,
   BLEIZ_RELEASE_TEMPLATE_STATS,
-  BLEIZ_TEMPLATES,
+  LEGACY_BLEIZ_TEMPLATES,
   filterReleaseTemplates,
   releaseTemplateBlockReason,
   scheduleBleizContent,
@@ -49,7 +49,7 @@ function commonContexts() {
 
 test('release catalog excludes legacy anxiety and performance/adherence templates', () => {
   for (const id of blockedIds) {
-    const legacy = BLEIZ_TEMPLATES.find((template) => template.id === id);
+    const legacy = LEGACY_BLEIZ_TEMPLATES.find((template) => template.id === id);
     if (!legacy) continue;
     assert.ok(releaseTemplateBlockReason(legacy), `${id} should have a release block reason`);
     assert.equal(
@@ -124,7 +124,7 @@ test('release filter rejects distance/MAT goal fields even if a new template use
 });
 
 test('package-root scheduler cannot be bypassed with an explicitly supplied blocked template', () => {
-  const blocked = BLEIZ_TEMPLATES.find((template) => template.id === 'BHV_ANXIETY_PATTERN');
+  const blocked = LEGACY_BLEIZ_TEMPLATES.find((template) => template.id === 'BHV_ANXIETY_PATTERN');
   assert.ok(blocked);
 
   const jobs = scheduleBleizContent({
