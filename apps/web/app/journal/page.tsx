@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import { ContentShell } from '../../components/content-shell';
@@ -15,7 +15,6 @@ import {
   monthSummary,
 } from '../../lib/journal';
 import type { JournalEntry } from '../../lib/journal';
-import { detectMilestones, milestoneToEntry } from '../../lib/milestones';
 import { useI18n } from '../../lib/i18n';
 import type { Locale } from '../../lib/i18n';
 import styles from '../../styles/living-pages.module.css';
@@ -77,7 +76,7 @@ export default function JournalPage() {
           }
         }
       } catch {
-        /* hors-ligne â†’ on conserve le baseline local */
+        /* hors-ligne → on conserve le baseline local */
       }
     })();
   }, []);
@@ -93,38 +92,33 @@ export default function JournalPage() {
 
   function persistUserEntries(all: JournalEntry[]) {
     try {
+      // Existing historical milestone entries remain readable, but this page no longer
+      // auto-generates new milestones. New Memories/repères require deliberate Guardian action.
       const userEntries = all.filter((e) => e.id.startsWith('user-') || e.id.startsWith('milestone-'));
       localStorage.setItem(STORAGE_ENTRIES, JSON.stringify(userEntries));
     } catch {
-      /* quota / indisponible â€” on ignore */
+      /* quota / indisponible — on ignore */
     }
   }
 
   function handleCreate(entry: JournalEntry) {
-    // Jalons Ã©ventuels (sujet : le propriÃ©taire).
-    const candidates = detectMilestones([entry, ...entries]);
-    const milestoneEntries = candidates.map((c) => milestoneToEntry(c));
-    const created = [...milestoneEntries, entry];
-
+    // Experience hardening: a journal action creates only the entry the Guardian chose.
+    // Automatic milestones derived from counts/activity are legacy and HOLD under #233.
     setEntries((prev) => {
-      const next = [...created, ...prev];
+      const next = [entry, ...prev];
       persistUserEntries(next); // repli local (offline)
       return next;
     });
-    setFlash(candidates.length > 0 ? `${t('journal', 'milestoneUnlocked')} ${candidates[0]!.title}` : t('journal', 'entryAdded'));
-    setTimeout(() => setFlash(null), candidates.length > 0 ? 4500 : 3000);
+    setFlash(t('journal', 'entryAdded'));
+    setTimeout(() => setFlash(null), 3000);
     setMonth(monthKey(entry.occurredAt));
 
     // R3 : persistance serveur (best-effort ; le serveur prime au prochain chargement).
-    void Promise.all(
-      created.map((e) =>
-        fetch('/api/journal', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json', [JOURNAL_OWNER_HEADER]: getJournalOwnerToken() },
-          body: JSON.stringify(e),
-        }).catch(() => undefined),
-      ),
-    );
+    void fetch('/api/journal', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', [JOURNAL_OWNER_HEADER]: getJournalOwnerToken() },
+      body: JSON.stringify(entry),
+    }).catch(() => undefined);
   }
 
   return (
@@ -161,7 +155,7 @@ export default function JournalPage() {
           </div>
         )}
 
-        {/* Navigation mensuelle + rÃ©sumÃ© */}
+        {/* Navigation mensuelle + résumé */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
             <button
@@ -195,15 +189,15 @@ export default function JournalPage() {
           </div>
         </div>
 
-
         <div className={styles.memoryNote}>
           <P2>Les entrees gardent le ton carnet : moments notes, sorties, lieux et fenetres observees restent separes des interpretations.</P2>
         </div>
+
         {/* Timeline */}
         {byDay.length === 0 ? (
           <Card tone="sunk">
             <div style={{ textAlign: 'center', padding: '32px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <span aria-hidden style={{ fontSize: 32, color: 'var(--terracotta-400)' }}>âŠ™</span>
+              <span aria-hidden style={{ fontSize: 32, color: 'var(--terracotta-400)' }}>⊙</span>
               <P2>{t('journal', 'empty')}</P2>
             </div>
           </Card>
@@ -282,4 +276,3 @@ function SummaryStat({ label, value }: { label: string; value: number }) {
     </div>
   );
 }
-
