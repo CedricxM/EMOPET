@@ -1,6 +1,9 @@
 export * from './tone/index.js';
-export * from './templates/index.js';
-export * from './insights/index.js';
+
+// Legacy `templates/*` and `insights/*` generators are intentionally NOT exported
+// from the package root. They include pre-doctrine record/challenge/memory paths and
+// bypass the canonical Breiz release registry/output guard. They remain internal
+// migration code until explicitly redesigned or removed.
 
 // Breiz historical catalog: types remain public for compatibility, but executable
 // catalog values are deliberately exposed only under LEGACY_* names. Release
