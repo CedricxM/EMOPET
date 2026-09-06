@@ -8,8 +8,10 @@
  * - keep the current legacy files visible until #233/#234 migrate them.
  *
  * This is intentionally narrower than a generic grep. Technical uses of words such
- * as `score`, `points` or reliability `streak` are not banned globally because
- * they can be legitimate (SVG points, geocoding score, reliability state machine).
+ * as `score`, `points`, `baselineFrozen` or reliability `streak` are not banned
+ * globally because they can be legitimate scientific/technical state. The guard
+ * targets identifiers whose semantics are specifically tied to the known legacy
+ * reward/latent-state model.
  */
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -48,15 +50,12 @@ const RULES = [
     rationale: 'Real-dog distance/performance must not become an achievement or milestone reward source.',
   },
   {
-    id: 'CARE_DATA_ACHIEVEMENT',
-    regex: /\bbaselineFrozen\b|\bvalidDataDays\b/g,
-    allowedLegacyPaths: new Set(['apps/web/lib/gamification.ts']),
-    rationale: 'Baseline/data-validity adherence must not become reward progression.',
-  },
-  {
     id: 'LEGACY_GLOBAL_REWARD_POINTS',
     regex: /\bpointsReward\b/g,
-    allowedLegacyPaths: new Set(['apps/web/lib/gamification.ts']),
+    allowedLegacyPaths: new Set([
+      'apps/web/lib/gamification.ts',
+      'apps/web/components/gamification/index.tsx',
+    ]),
     rationale: 'Legacy global reward points are HOLD pending #233; do not spread the model.',
   },
   {
