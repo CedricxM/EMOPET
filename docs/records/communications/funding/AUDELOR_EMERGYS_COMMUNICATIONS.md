@@ -1,14 +1,84 @@
 # EMOPET — AudéLor / Emergys Communications
 
 **Control date:** 2026-09-07  
-**Primary Gmail thread:** `1a066f10e65068ef`  
+**Primary current Gmail thread:** `1a066f10e65068ef`  
+**Historical AudéLor thread:** `19d824d47721e25c`  
 **Primary contact:** Lucie Marchand / AudéLor  
 **Status:** `DISCUSSION / MEETING PREPARATION`  
 **Not proven:** Emergys eligibility, eligible expenditure base, funding award, intervention rate applicable to EMOPET.
 
-## Evidence identified
+## Historical relationship — May to July 2026
 
-Incoming correspondence from Lucie Marchand (`lucie.marchand@audelor.com`) is recorded on 2026-09-03 with subject:
+The current September workstream is the continuation of a materially older AudéLor dialogue, not a new first contact.
+
+### 15 May — business-model feedback
+
+Lucie Marchand confirmed that the value proposition was already well established but asked EMOPET to clarify:
+
+- key resources;
+- cost structure;
+- target customer segments/personas;
+- acquisition/community-management approach;
+- market size;
+- sales-volume assumptions needed to cover development, industrialisation and launch costs.
+
+This feedback directly influenced the subsequent pricing, market, community and channel work.
+
+### 29 May / 2 June — early commercial thesis documented
+
+EMOPET sent a detailed commercial response covering:
+
+- historical `€5.99/month` subscription target;
+- early market-size/segment hypotheses;
+- Breiz and local community as adoption/retention mechanisms;
+- veterinarians/animal professionals as prescribers rather than primary customers;
+- field + digital acquisition;
+- Brittany-first, then region-by-region rollout;
+- initial privacy/data-commercialisation thinking;
+- early IP thinking around the instrumented resting surface.
+
+Historical pricing/data/veterinary details are preserved separately because several were later superseded.
+
+See: `docs/records/memory/EARLY_COMMERCIAL_MODEL_LINEAGE_MAY_JUNE_2026.md`.
+
+### 9–15 June — scientific/materials/funding routing
+
+EMOPET forwarded the first detailed feedback from the University of Zaragoza 20-Factors authors. Lucie then advised that time and founder funds should drive the choice between immediate technical/materials work and longer academic collaboration.
+
+She suggested/confirmed exploration of:
+
+- Pierre Fulbert / Bpifrance Lorient;
+- Institut Carnot MICA;
+- IFTH as a later/more focused textile-expertise route;
+- Pépite Bretagne;
+- Info Jeunes Lorient.
+
+This is the historical origin of several regional-support workstreams later formalised in the project roadmap.
+
+### 17 June — EMOPET sequencing response
+
+EMOPET stated the priority was to move from design toward physical proof, then described a sequence around:
+
+- FabLab / La Fabrique du Loch for prototype/bench capability;
+- Carnot MICA before committing to a more expensive IFTH engagement;
+- continued academic/scientific dialogue;
+- Bpifrance / Pépite exploration;
+- Breton ESAT exploration;
+- component/supplier sourcing.
+
+This is important historical evidence that **prototype proof + regional ecosystem integration** was already a combined strategy by June 2026.
+
+### 22 June — Bpifrance route clarification
+
+Lucie relayed feedback from Pierre Fulbert concerning the constraints/timing of the then-discussed Bpifrance aid route. This should be treated as historical financing guidance, not current Emergys eligibility evidence.
+
+### 7 July — continued regional accompaniment
+
+The thread shows continued AudéLor discussion during the summer, including the possibility of continuing EMOPET progress discussions at distance and an emphasis on regional opportunities.
+
+## Evidence identified — September 2026
+
+Incoming correspondence from Lucie Marchand is recorded on 2026-09-03 with subject:
 
 `Re: projet Emopet-incubation`
 
