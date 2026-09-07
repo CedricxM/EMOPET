@@ -10,12 +10,14 @@ This folder preserves historical project lineage, supersessions and retrospectiv
 - `CHAT_MEMORY_AUDIT_2026-09-07.md` — deep ChatGPT/Library/GitHub institutional-memory audit.
 - `MEMORY_AUDIT_P0_CLOSURE_UPDATE_2026-09-07.md` — status after targeted Gmail + ClickUp archaeology.
 - `MAY_JUNE_2026_RETROSPECTIVE_LINEAGE_v0.1.md` — first incomplete May/June reconstruction; retained as historical audit snapshot.
+- `MAY_JUNE_2026_RETROSPECTIVE_LINEAGE_v0.2.md` — closes most May/June provenance gates and redirects remaining work toward current implementation, validation and evidence.
 
 ## Reconstructed decision lineage
 
 - `PVDF_TO_COAXIAL_PIVOT_LINEAGE_2026-09-07.md` — closes the missing historical rationale for the MAT sensing pivot using ClickUp + contemporaneous Gmail attachments.
 - `EARLY_COMMERCIAL_MODEL_LINEAGE_MAY_JUNE_2026.md` — provenance of €5.99, early free/Premium structure, veterinary channel, data-commercialisation and Brittany-first commercial thinking.
 - `SUPPLIER_CHAIN_LINEAGE_JUNE_JULY_2026.md` — historical Landztop / Yz-Link / ESAT hybrid-chain model and its limits before the active MOKO workstream.
+- `SUPPLIER_SOURCING_LINEAGE_JUNE_SEPT_2026.md` — reconciles historical supplier/sample/listing prices with current quote applicability and the active MOKO Phase 0 review.
 - `BRAND_AND_PUBLIC_COPY_LINEAGE_MAY_AUG_2026.md` — reconstructs the May→August brand sequence and records current repository drift against the controlled August brand authority.
 - `CURRENT_REPO_HARDWARE_TERMINOLOGY_DRIFT_AUDIT_2026-09-07.md` — distinguishes valid current coaxial-PVDF modality naming from stale MAT topology/maturity assumptions in code and documentation.
 - `CURRENT_UI_ELI_PRODUCT_DRIFT_AUDIT_2026-09-07.md` — records where the current web prototype's global ELI/wellbeing/WQI/RSI score semantics conflict with later founder/product doctrine.
