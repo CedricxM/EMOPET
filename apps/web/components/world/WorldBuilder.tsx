@@ -61,7 +61,7 @@ export function WorldBuilder() {
   const [resources, setResources] = useState<ResourceBalance>(() => computeResourceBalance());
   const [builtIds, setBuiltIds] = useState<string[]>(INITIAL_WORLD_ITEM_IDS);
   const [communityOptIn, setCommunityOptIn] = useState(false);
-  const [feedback, setFeedback] = useState(copy.feedbackInitial);
+  const [feedback, setFeedback] = useState<string>(copy.feedbackInitial);
   const [placingCell, setPlacingCell] = useState<number | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(() => WORLD_BUILD_ITEMS.find((item) => !INITIAL_WORLD_ITEM_IDS.includes(item.id))?.id ?? null);
   const [hoveredCell, setHoveredCell] = useState<number | null>(null);
