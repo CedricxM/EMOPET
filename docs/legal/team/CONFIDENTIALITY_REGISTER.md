@@ -11,11 +11,13 @@ This register tracks the confidentiality agreements prepared for the active EMOP
 
 ## Current status
 
-| Person | Current location | Instrument | Language | Repo source | Status |
-|---|---|---|---|---|---|
-| Tetiana Fedotova | Germany | Mutual Non-Disclosure Agreement | English | `docs/legal/team/nda/TETIANA_FEDOTOVA_MUTUAL_NDA.md` | `SENT_FOR_SIGNATURE` |
-| Camara Mohamed | Canada | Mutual Non-Disclosure Agreement | English | `docs/legal/team/nda/CAMARA_MOHAMED_MUTUAL_NDA.md` | `SENT_FOR_SIGNATURE` |
-| Nisrine Semlal | France | Accord mutuel de confidentialité | French | `docs/legal/team/nda/NISRINE_SEMLAL_ACCORD_CONFIDENTIALITE.md` | `SENT_FOR_SIGNATURE` |
+| Person | Current location | Instrument | Language | Repo source | Distribution evidence | Controlled source SHA-256 | Status |
+|---|---|---|---|---|---|---|---|
+| Tetiana Fedotova | Germany | Mutual Non-Disclosure Agreement | English | `docs/legal/team/nda/TETIANA_FEDOTOVA_MUTUAL_NDA.md` | WhatsApp group, visible 2026-09-07 ~13:52 Europe/Paris | `7a1eaae8849eaeec15c8262f0981fbaebe760ceedad82bdc5e136fd3becec0b0` | `SENT_FOR_SIGNATURE` |
+| Camara Mohamed | Canada | Mutual Non-Disclosure Agreement | English | `docs/legal/team/nda/CAMARA_MOHAMED_MUTUAL_NDA.md` | WhatsApp group, visible 2026-09-07 ~13:53 Europe/Paris | `15a0e9fe21f0d70dc1e0ca52781ea8119e1b2e3e59a5c6b19c9a1477f47e54e0` | `SENT_FOR_SIGNATURE` |
+| Nisrine Semlal | France | Accord mutuel de confidentialité | French | `docs/legal/team/nda/NISRINE_SEMLAL_ACCORD_CONFIDENTIALITE.md` | WhatsApp group, visible 2026-09-07 ~14:11 Europe/Paris | `ada4c968d0bced1337c62b5efc4b01d2d7ddf1c565ad9db6c4ee1263e6449188` | `SENT_FOR_SIGNATURE` |
+
+Detailed distribution record: `docs/records/communications/team/TEAM_LEGAL_DISTRIBUTION_2026-09-07.md`.
 
 ## Status vocabulary
 
