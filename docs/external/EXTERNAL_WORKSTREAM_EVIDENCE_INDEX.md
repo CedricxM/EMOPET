@@ -10,6 +10,7 @@ GitHub is now the canonical project-memory/index layer for these workstreams. Se
 - `CONTACT_INITIATED`: an approach/contact exists; no partnership implied.
 - `DISCUSSION`: substantive exchange exists; no formal collaboration implied.
 - `MEETING_SCHEDULED`: a dated meeting/calendar exchange is evidenced; content/outcome not implied.
+- `SCHEDULED_NOT_SENT`: Gmail scheduling evidence exists for a future send; transmission has not yet occurred.
 - `PREPARED_NOT_SENT`: material prepared but no transmission evidence.
 - `SENT`: transmission evidenced.
 - `ACKNOWLEDGED`: recipient acknowledgement evidenced.
@@ -32,17 +33,19 @@ GitHub is now the canonical project-memory/index layer for these workstreams. Se
 
 ## Scientific — Professor James Serpell / University of Pennsylvania
 
-Substantive methodological/scientific correspondence is now indexed in the repository.
+Historical methodological/scientific correspondence is indexed and proves substantive discussion. Two new follow-ups are scheduled for **8 September 2026 at 15:00 Europe/Paris**, but are not yet sent at this control point.
 
 | Item | Current status | Repo evidence |
 |---|---|---|
-| Scientific / methodological contact with Professor James Serpell | `DISCUSSION` | `docs/records/communications/science/SERPELL_UPENN_COMMUNICATIONS.md` |
-| Recent controlled research material sent | `SENT` | same record + attachment register |
-| C-BARQ commercial licence | `NOT_PROVEN` | licensing enquiry exists; no licence grant recorded |
+| Historical scientific / methodological exchange with Professor James Serpell | `DISCUSSION` | `docs/records/communications/science/SERPELL_UPENN_COMMUNICATIONS.md` |
+| 08/09 follow-up to Professor Serpell | `SCHEDULED_NOT_SENT` | Gmail message `1a0811a9de2fe45c`; `label:scheduled` |
+| 08/09 C-BARQ licensing enquiry to UPenn contact, cc Serpell | `SCHEDULED_NOT_SENT` | Gmail message `1a0811a9c1fa0ba0`; `label:scheduled`; no matching `in:sent` result at 2026-09-07 control point |
+| Exact files previously claimed as sent for scientific review | `TRANSMISSION_NOT_PROVEN` | exact Gmail filename searches returned no result on 2026-09-07; corrected in Serpell record and attachment register |
+| C-BARQ commercial licence | `NOT_PROVEN` | enquiry is scheduled, not yet transmitted at this control point |
 | UPenn institutional partnership | `NOT_PROVEN` | no formal partnership evidence |
 | Validation of ELI by Professor Serpell | `NOT_PROVEN` | no validation evidence |
 
-Do not describe the exchange as endorsement, validation, partnership with UPenn, or commercial licence unless later evidence establishes those states.
+Do not describe the exchange as endorsement, validation, partnership with UPenn, an active licensing discussion, or commercial licence unless later evidence establishes those states.
 
 ## Scientific — Oniris VetAgroBio
 
@@ -107,7 +110,7 @@ No agreement is classified `SIGNED` merely because it was sent through a messagi
 
 1. Signed team NDAs and contribution/IP instruments: verify originals, archive privately, record hashes/status.
 2. MOKO: receipt acknowledgement, quotation and controlled CAD/R3 addendum.
-3. Serpell/UPenn: licensing response and any new scientific-methodology decision.
+3. Serpell/UPenn: after **08/09 15:00**, verify the scheduled messages actually moved to `SENT`, then capture responses/licensing status.
 4. Oniris: any reply that defines concrete collaboration scope.
 5. AudéLor: **15/09/2026** meeting note with recommended regional route, any explicit Emergys guidance, eligibility answers and next actions.
 6. Bpifrance CII: any filed dossier or official rescrit outcome.
