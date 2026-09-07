@@ -1,6 +1,7 @@
 # EMOPET — C-BARQ / Flint 2017 Project Impact Assessment
 
 **Date:** 2026-09-06  
+**Reconciled:** 2026-09-07 against connected Gmail correspondence  
 **Status:** Scientific architecture review  
 **Scope:** C-BARQ integration, ELI priors, behavioural data model, claims, research governance
 
@@ -17,6 +18,21 @@ The largest impact is on the layer between the user, the behavioural instrument 
 - future longitudinal validation;
 - scientific/research governance.
 
+### Critical attribution correction
+
+Professor James Serpell did **not** simply instruct EMOPET to use the complete C-BARQ in all circumstances.
+
+His 2 July 2026 feedback established that:
+
+1. owner judgements of behavioural extremity can be unreliable;
+2. changing validated C-BARQ wording risks invalidation;
+3. specific items can be eliminated when they do not load strongly on their factor/subscale, with Flint et al. cited for factor-loading examples;
+4. commercial use is likely to require UPenn licensing.
+
+EMOPET subsequently chose a **more conservative project direction**: seek the appropriate licence and investigate use of the complete item set, while asking whether progressive administration can preserve validity.
+
+That is an EMOPET design decision triggered by the feedback, **not a direct Serpell requirement to always use the full instrument**.
+
 ### Impact level by subsystem
 
 | Subsystem | Impact | Decision |
@@ -25,29 +41,35 @@ The largest impact is on the layer between the user, the behavioural instrument 
 | TAG hardware | Low | No immediate change |
 | ELI 3D EKF core | Medium | Preserve core; review how questionnaire priors enter it |
 | ELI confidence gating | Positive alignment | Keep and strengthen provenance-aware gating |
-| Behavioural onboarding / app UX | High | Redesign around complete licensed instrument, subject to scientific review |
+| Behavioural onboarding / app UX | High | Redesign around a licensed, instrument-aware model; current EMOPET direction is complete-item use subject to scientific review |
 | Database / behavioural schema | High | Add instrument-aware response model; remove misleading C-BARQ shorthand |
 | Scientific claims / copy | High | Association ≠ cause; reported behaviour ≠ measured ground truth |
 | Research data governance | High | Build explicit consent, provenance and research-export boundaries |
 
 ---
 
-## 1. The prior 20-item C-BARQ selection is superseded
+## 1. The prior 20-item EMOPET selection is superseded as current Product direction
 
-The historical EMOPET proposal selected roughly twenty items across separation-related behaviour, excitability and non-social fear to initialise ELI priors.
+The historical EMOPET proposal selected roughly twenty items/constructs to reduce questionnaire burden and initialise behavioural context.
 
-The current direction is different: **seek licensing for the complete validated C-BARQ instrument** and work with Prof. Serpell / Penn and other scientific partners on the conditions under which it can be integrated into the product experience.
+The current EMOPET direction is different: **seek licensing and investigate integration of the complete C-BARQ item set**, with qualified scientific/instrument-owner review of the administration conditions.
 
 Therefore:
 
-- the 20-item proposal must remain archived as design history only;
-- its illustrative EMOPET-written items must not become production questions;
-- no developer should implement the old subset because it appears in the repository;
-- progressive administration by the AI remains a hypothesis until scientific review confirms that timing, sequencing and context do not invalidate interpretation.
+- the old 20-item proposal remains archived as design history;
+- its illustrative EMOPET-written items must not become production C-BARQ questions;
+- no developer should implement the old subset merely because it appears in the repository;
+- progressive administration by the AI remains a hypothesis until scientific review confirms acceptable timing, sequencing and completion rules.
+
+### Important nuance
+
+The fact that the old proposal is superseded does **not** mean scientific item reduction is categorically invalid.
+
+Serpell explicitly noted that item elimination may be acceptable where item factor loadings justify it. If EMOPET ever revisits a shortened form, that would need a new scientifically controlled design, licensing review and validation plan rather than resurrection of the old UX-driven subset.
 
 ## 2. C-BARQ should become a first-class data source, not a handful of profile fields
 
-A validated behavioural instrument needs its own domain model.
+A licensed behavioural instrument or scientifically governed derivative needs its own domain model.
 
 Recommended future entities / concepts:
 
@@ -63,7 +85,7 @@ Recommended future entities / concepts:
 - `respondent_role`
 - `source_provenance = owner_report`
 - `licence / display restrictions`
-- derived factor/subscale scores only where permitted by the licensed scoring method
+- derived factor/subscale scores only where permitted by the licensed/scientifically controlled scoring method
 
 This prevents questionnaire answers from becoming indistinguishable from sensor outputs or model conclusions.
 
@@ -81,9 +103,9 @@ with coarse fields such as separation-anxiety tendency, sociability and trainabi
 
 The same semantics also appear in the corresponding migration.
 
-This is now scientifically and semantically risky.
+This is scientifically and semantically risky.
 
-Those values are **breed knowledge / heuristic profile metadata**, not results from a dog's validated C-BARQ administration. They should not carry the C-BARQ name.
+Those values are **breed knowledge / heuristic profile metadata**, not results from a dog's C-BARQ administration. They should not carry the C-BARQ name.
 
 ### Recommended action
 
@@ -105,7 +127,7 @@ Current ELI documentation uses a 3D state:
 
 It also includes anticipation tracking and explicit confidence gating.
 
-Nothing in Flint et al. requires replacing that mathematical structure.
+Nothing in the cited behavioural material requires replacing that mathematical structure.
 
 However, the previous plan to use selected behavioural subscales as direct priors should be replaced by a controlled **evidence-adapter layer**.
 
@@ -125,20 +147,19 @@ It may eventually inform prior distributions or disambiguation, but only if:
 
 ## 5. Flint 2017 strengthens EMOPET's uncertainty philosophy
 
-The paper shows several reasons not to collapse behavioural evidence into deterministic rules:
+The paper gives several reasons not to collapse behavioural evidence into deterministic rules:
 
 - C-BARQ is owner-reported;
 - participant/household effects are meaningful;
-- stranger fear is associated with aggression but causality is not established;
-- non-social fear relationships are not simple or monotonic;
-- breed associations can reflect genetics, environment, selection, management or perception;
-- the cross-sectional design explicitly cannot establish causal direction.
+- associations do not establish causal direction;
+- breed associations can reflect multiple genetic/environmental/management/perception pathways;
+- cross-sectional evidence cannot establish temporal causality.
 
-This is strongly aligned with EMOPET's existing rule that insufficient information should not be promoted into a conclusion.
+This aligns with EMOPET's existing rule that insufficient information should not be promoted into a conclusion.
 
 ### Product rule
 
-Never implement rules of the form:
+Never implement deterministic rules such as:
 
 - `fear score -> aggression`
 - `breed -> behavioural risk`
@@ -149,9 +170,7 @@ without dedicated longitudinal validation and approved scientific interpretation
 
 ## 6. Owner report must stay separate from measured observation
 
-Flint et al. explicitly discuss uncertainty in owner perception.
-
-That is not a reason to discard owner reports. It is a reason to preserve provenance.
+Uncertainty in owner perception is not a reason to discard owner reports. It is a reason to preserve provenance.
 
 EMOPET should model at least four evidence classes separately:
 
@@ -166,9 +185,9 @@ A fifth class may later be useful:
 
 ## 7. EMOPET's longitudinal model becomes more scientifically interesting
 
-A key limitation of Flint et al. is the cross-sectional design. The authors explicitly state that their associations can generate hypotheses for future longitudinal studies but cannot prove causality.
+Cross-sectional behavioural research can generate longitudinal hypotheses without proving causality.
 
-EMOPET's architecture could eventually provide precisely the type of repeated domestic observation needed to study temporal relationships, provided that:
+EMOPET's architecture could eventually contribute repeated domestic observation, provided that:
 
 - data quality is characterised;
 - missingness is preserved;
@@ -180,48 +199,45 @@ EMOPET's architecture could eventually provide precisely the type of repeated do
 
 This is a **research opportunity**, not a validation claim.
 
-## 8. Household context should be taken more seriously in the research schema
+## 8. Household context should be taken seriously in the research schema
 
-Flint et al. found meaningful participant-level clustering and discuss possible owner, household, management and perception effects.
+Future research exports may need context such as:
 
-Future research exports should therefore consider metadata such as:
-
-- household identifier under privacy-preserving governance;
+- privacy-preserving household identifier;
 - number of dogs / multi-dog household;
 - major changes in household composition;
 - owner-declared routines and absences;
 - acquisition history where scientifically justified;
 - relevant context changes over time.
 
-These should be treated as context variables, not simplistic behavioural causes.
+These remain context variables, not simplistic behavioural causes.
 
 ## 9. Breed-aware code is not directly invalidated, but behavioural breed priors need a firewall
 
-Current `breed-aware-interpretation.ts` is relatively safe because it uses morphology/environmental context (fur type, size, temperature, humidity) and explicitly does not alter measured values or confidence.
+Current `breed-aware-interpretation.ts` is relatively safe when it uses morphology/environmental context and does not alter measured values or confidence.
 
-That pattern should remain.
-
-Behavioural breed heuristics should **not** be expanded into aggression/fear inference merely because Flint et al. found breed-group associations.
+Behavioural breed heuristics should **not** be expanded into aggression/fear inference merely because literature reports breed-group associations.
 
 ## 10. Scientific-review questions to take to Serpell / Penn / Oniris
 
 1. Can the complete C-BARQ be administered progressively without changing its psychometric interpretation?
 2. If yes, what sequencing, time window and completion rules are acceptable?
-3. Can individual factor scores be used as priors for a longitudinal inference engine, and under what calibration protocol?
-4. How should repeat administrations be handled over months/years?
-5. Which constructs are stable-trait references versus potentially time-varying measures?
-6. What should EMOPET do when questionnaire and sensor-derived evidence disagree?
-7. What claims should be explicitly prohibited before prospective validation?
-8. What research data structure would be genuinely useful to canine-behaviour researchers?
-9. What independent observation protocol would be appropriate for validating owner reports and model outputs?
+3. If a scientifically justified shorter form is ever considered, what factor-loading / validation / scoring rules are required?
+4. Can individual factor scores be used as priors for a longitudinal inference engine, and under what calibration protocol?
+5. How should repeat administrations be handled over months/years?
+6. Which constructs are stable-trait references versus potentially time-varying measures?
+7. What should EMOPET do when questionnaire and sensor-derived evidence disagree?
+8. What claims should be explicitly prohibited before prospective validation?
+9. What research data structure would be genuinely useful to canine-behaviour researchers?
+10. What independent observation protocol would be appropriate for validating owner reports and model outputs?
 
 ## Immediate repository actions
 
 ### Do now
 
-- Keep the historical 20-item proposal archived and clearly marked superseded.
-- Store Flint et al. as a research reference note.
-- Treat full licensed C-BARQ as the current scientific direction.
+- Keep the historical 20-item proposal archived and clearly marked superseded as the current Product direction.
+- Keep the exact July Serpell feedback separately attributable.
+- Treat complete licensed C-BARQ as **EMOPET's current conservative direction**, not an external mandate.
 - Create a dedicated instrument-aware schema before implementing questionnaire UX.
 - Rename/remove `C-BARQ simplified` from breed heuristic fields.
 - Preserve existing non-medical and confidence-gating rules.
@@ -233,11 +249,12 @@ Behavioural breed heuristics should **not** be expanded into aggression/fear inf
 - Do not generate aggression-risk labels from Flint et al.
 - Do not turn breed group, sex, neuter status or acquisition source into causal rules.
 - Do not claim longitudinal validation before a study exists.
+- Do not say `Serpell requires the full C-BARQ` unless a later explicit message actually says that.
 
 ## Bottom line
 
-The documents do not break EMOPET. They **force a cleaner scientific architecture**.
+The behavioural work does not break EMOPET. It **forces a cleaner scientific architecture and cleaner attribution**.
 
-The strongest change is conceptual: C-BARQ should no longer be treated as onboarding metadata that helps the model guess better. It should be treated as a validated, licensed evidence source with its own administration rules, provenance, uncertainty and scientific governance.
+C-BARQ should not be treated as casual onboarding metadata. EMOPET currently chooses the conservative route of a licensed, instrument-aware integration while keeping open the scientific question of administration format.
 
-That change makes the project more defensible and makes the future longitudinal dataset more valuable, provided EMOPET keeps owner report, sensor observation and model inference distinct.
+That distinction matters: **external feedback constrains the problem; EMOPET still owns its Product decision.**
