@@ -2,10 +2,36 @@
 
 **Control date:** 2026-09-07  
 **Primary Gmail thread:** `19cf199a8234f2fc`  
-**Status:** `DISCUSSION` — methodological/scientific exchange.  
+**Status:** `DISCUSSION / FUTURE FOLLOW-UP SCHEDULED` — methodological/scientific exchange.  
 **Explicitly not proven:** UPenn partnership, endorsement, ELI validation, C-BARQ commercial licence.
 
-## Scope of the exchange
+## Evidence correction — 7 September 2026
+
+A connected-Gmail re-check identified an important status error in the earlier repository record.
+
+Two messages exist with **future timestamp 2026-09-08 15:00 Europe/Paris** and are returned by Gmail under `label:scheduled`:
+
+1. `Re: Research collaboration on canine behavioral monitoring`
+   - to Professor James Serpell;
+   - Gmail message ID `1a0811a9de2fe45c`;
+   - scheduled for 2026-09-08 15:00 Europe/Paris.
+
+2. `C-BARQ commercial licensing enquiry — referred by Professor James Serpell`
+   - to `neetusa@upenn.edu`, cc Professor Serpell;
+   - Gmail message ID `1a0811a9c1fa0ba0`;
+   - scheduled for 2026-09-08 15:00 Europe/Paris.
+
+A direct `in:sent` search for the licensing enquiry returned no result at this control point.
+
+### Control rule
+
+Until the scheduled time has passed and Gmail shows transmission evidence, these messages are:
+
+`SCHEDULED_NOT_SENT`
+
+They must not be described as sent, received, acknowledged or under active licensing review.
+
+## Scope of the historical exchange
 
 EMOPET has exchanged substantive correspondence with Professor James Serpell concerning canine behavioural monitoring methodology and the appropriate use/positioning of C-BARQ material in relation to the EMOPET project.
 
@@ -23,9 +49,11 @@ Only the methodological/scientific-exchange category is evidenced here at this c
 
 ## Important methodological direction recorded from the exchange
 
-Project correspondence records that Professor Serpell recommended using the full C-BARQ rather than treating a shortened subset as a substitute for the validated instrument, and identified the need for commercial licensing for commercial use. The project has therefore treated the licensing route as a separate legal/commercial workstream.
+Project correspondence records that Professor Serpell recommended using the full C-BARQ rather than treating a shortened subset as a substitute for the validated instrument, and identified the need for commercial licensing for commercial use.
 
-This record must not be paraphrased as "Serpell validated EMOPET" or "UPenn partnered with EMOPET".
+The project has therefore treated the licensing route as a separate legal/commercial workstream.
+
+This record must not be paraphrased as `Serpell validated EMOPET` or `UPenn partnered with EMOPET`.
 
 ## Scientific-framework memory
 
@@ -45,7 +73,7 @@ For each framework, the repository must preserve:
 - what implementation consequence followed;
 - whether an earlier framework became `SUPERSEDED`.
 
-This attribution boundary is mandatory. A later deck, AI assistant or team member must be able to distinguish "EMOPET proposed X to Serpell" from "Serpell recommended X" and from "X is scientifically validated".
+This attribution boundary is mandatory. A later deck, AI assistant or team member must be able to distinguish `EMOPET proposed X to Serpell` from `Serpell recommended X` and from `X is scientifically validated`.
 
 ## Known framework evolution currently recorded
 
@@ -68,54 +96,71 @@ Current project direction following the methodological exchange:
 - treat commercial licensing as a separate evidence/legal gate;
 - adapt product UX around scientific validity rather than silently changing the instrument for convenience.
 
-### ELI research frameworks sent for review
+## Scheduled 8 September follow-up to Professor Serpell
 
-The following recent EMOPET research materials were sent to Prof. Serpell and therefore belong to the scientific-framework memory:
+The scheduled message to Professor Serpell explains that EMOPET stepped back after his July feedback, reconsidered the proposed questionnaire reduction and seeks further critical discussion on where system observation should stop and veterinary/human interpretation should take over.
 
-- `C-BARQ — contexts relevant to EMOPET ELI behavioral state interpretation.pdf`
-- `Controlled Research Brief — ELI Co-Pilot Training Proposal.pdf`
+The scheduled message contains an attachment named:
 
-Current status of these frameworks: `EMOPET_PROPOSAL / SENT_FOR_SCIENTIFIC_REVIEW`.
+- `EMOPET.pdf` — 2,180,028 bytes according to connected Gmail metadata.
 
-Their transmission does **not** establish approval, endorsement or validation. Future feedback must be recorded against the exact document/version before changing those statuses.
+**Status at 2026-09-07 control point:** `SCHEDULED_NOT_SENT`.
 
-## Material sent in the recent research follow-up
+Do not mark the attachment `SENT` until post-send Gmail evidence exists.
 
-A recent outbound message in the thread included:
+## Scheduled C-BARQ licensing enquiry
 
-- `C-BARQ — contexts relevant to EMOPET ELI behavioral state interpretation.pdf` — 116909 bytes
-- `Controlled Research Brief — ELI Co-Pilot Training Proposal.pdf` — 181260 bytes
-
-**Status:** `SENT`.
-
-## C-BARQ licensing contact
-
-A separate commercial-licensing enquiry was sent to the University of Pennsylvania contact identified for licensing, with subject:
+A separate message is scheduled to the University of Pennsylvania licensing contact identified by Professor Serpell:
 
 `C-BARQ commercial licensing enquiry — referred by Professor James Serpell`
 
-Current repository status for the commercial licence: `NOT_PROVEN / PENDING RESPONSE OR CONTROLLED IMPORT`.
+It is scheduled for **2026-09-08 15:00 Europe/Paris**, cc Professor Serpell, and also contains `EMOPET.pdf` according to connected Gmail metadata.
+
+Current licence status:
+
+`NOT_PROVEN / SCHEDULED ENQUIRY NOT YET SENT`
+
+No licensing discussion, grant, fee, permission or commercial-use right should be inferred before transmission and response evidence.
+
+## Correction concerning previously indexed research attachments
+
+The earlier version of this record claimed that the following exact files had already been sent to Professor Serpell:
+
+- `C-BARQ — contexts relevant to EMOPET ELI behavioral state interpretation.pdf`;
+- `Controlled Research Brief — ELI Co-Pilot Training Proposal.pdf`.
+
+During the 2026-09-07 connected-Gmail re-check, filename searches for these exact attachments returned **no Gmail result**.
+
+Therefore their transmission status is corrected to:
+
+`NOT_PROVEN`
+
+They may still exist elsewhere in project storage, but existence/preparation is not transmission evidence.
 
 ## Communication language for external decks
 
-Safe/current formulations:
+Safe/current formulations on 2026-09-07:
 
-- "Scientific/methodological exchanges with Professor James Serpell."
-- "C-BARQ commercial licensing route being investigated with the University of Pennsylvania."
-- "EMOPET research frameworks have been submitted to Professor Serpell for scientific/methodological review" only when referring to the exact sent materials above.
+- `Scientific/methodological exchanges with Professor James Serpell.`
+- `A follow-up with Professor Serpell and a separate C-BARQ licensing enquiry are scheduled for 8 September 2026.`
+- `EMOPET is preparing the appropriate commercial-licensing route for C-BARQ.`
 
 Do not state without new evidence:
 
-- "scientific partnership with UPenn";
-- "ELI validated by James Serpell";
-- "C-BARQ licensed";
-- "UPenn endorsement";
-- "framework approved by James Serpell" unless an explicit written response supports that precise claim.
+- `scientific partnership with UPenn`;
+- `ELI validated by James Serpell`;
+- `C-BARQ licensed`;
+- `licensing discussion underway` before the scheduled enquiry is actually sent/answered;
+- `UPenn endorsement`;
+- `framework approved by James Serpell` unless an explicit written response supports that precise claim.
 
 ## Next evidence gate
 
-- import exact date/message metadata for the licensing enquiry when needed;
-- record any written response from the licensing contact;
-- record future Serpell feedback against the exact framework/document/version concerned;
-- update to `ACKNOWLEDGED`, `LICENSING_DISCUSSION`, `EXTERNAL_FEEDBACK`, `SCIENTIFIC_RECOMMENDATION`, or another controlled status only when evidenced;
+After 2026-09-08 15:00 Europe/Paris:
+
+- verify that both scheduled messages actually moved to `SENT`;
+- record the exact send timestamps;
+- record the exact attachment filenames/bytes evidenced in each sent message;
+- record any written response from Professor Serpell or the licensing contact;
+- update to `SENT`, `ACKNOWLEDGED`, `LICENSING_DISCUSSION`, `EXTERNAL_FEEDBACK`, `SCIENTIFIC_RECOMMENDATION`, or another controlled status only when evidenced;
 - preserve future scientific attachments in the attachment register with hashes where exact bytes are available.
