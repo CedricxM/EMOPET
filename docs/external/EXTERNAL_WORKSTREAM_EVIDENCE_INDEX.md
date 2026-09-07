@@ -17,6 +17,7 @@ GitHub is now the canonical project-memory/index layer for these workstreams. Se
 - `ACKNOWLEDGED`: recipient acknowledgement evidenced.
 - `SIGNED`: signatures evidenced.
 - `FULLY_EXECUTED`: all required signatures/execution evidence present.
+- `SOURCE_MISMATCH`: an earlier project record cited the wrong source for a claim.
 - `PENDING_IMPORT`: source evidence exists outside the repository and still needs controlled import.
 - `NOT_PROVEN`: not currently evidenced.
 
@@ -77,14 +78,28 @@ The word `Emergys` in an internal presentation filename is not evidence of progr
 
 All amounts, intervention rates and eligibility assumptions must remain explicitly qualified until confirmed by the relevant program contact.
 
-## Funding / tax innovation — Bpifrance CII
+## Funding / innovation support — Bpifrance / Pierre Fulbert
 
 | Item | Current status | Repo evidence |
 |---|---|---|
-| CII / rescrit enquiry response | `RECEIVED` | `docs/records/communications/funding/BPIFRANCE_CII_COMMUNICATIONS.md` |
-| Form and notice supplied by Bpifrance | `RECEIVED` | attachment register |
-| Rescrit submitted | `NOT_PROVEN` | no final submission evidence indexed |
+| Direct Bpifrance innovation-support contact | `DISCUSSION` | Gmail thread `19ed5423c6f9bfac`; `docs/records/communications/funding/BPIFRANCE_INNOVATION_COMMUNICATIONS.md` |
+| June phone exchange scheduling with Pierre Fulbert | `EVIDENCED` | direct email sequence 19–25 June 2026 |
+| Call actually occurred | `FOUNDER_REPORTED / DIRECT CALL RECORD NOT FOUND` | 7 July email to AudéLor says Cédric had exchanged with Mr Fulbert |
+| Founder-reported immediate direction after call | `REGIONAL OPPORTUNITIES FIRST` | 7 July founder email to AudéLor; not a verbatim written Bpifrance decision |
+| Bourse French Tech Émergence eligibility | `NOT_PROVEN` | raised as a question by EMOPET, no eligibility decision in Gmail |
+| Deeptech/innovation recognition by Bpifrance | `NOT_PROVEN` | no written recognition decision |
+| Funding award | `NOT_PROVEN` | none evidenced |
+
+## Funding / tax innovation — alleged Bpifrance CII/rescrit record
+
+| Item | Current status | Repo evidence |
+|---|---|---|
+| Earlier claimed 21 Aug CII/rescrit response | `SOURCE_MISMATCH / NOT_PROVEN` | `docs/records/communications/funding/BPIFRANCE_CII_COMMUNICATIONS.md` correction notice |
+| Earlier claimed CII form + notice attachments | `RECEIPT_NOT_PROVEN` | attachment register; source message not found in connected Gmail |
+| Rescrit submitted | `NOT_PROVEN` | no transmission evidence indexed |
 | Favourable CII position | `NOT_PROVEN` | no decision evidence indexed |
+
+The thread previously cited as CII evidence, `1a038a72ec7cacf9`, is actually unrelated correspondence with Lisa De Rammelaere. Connected-Gmail searches for the alleged Bpifrance fiscal sender, CII subject and `rescrit` returned no match on 2026-09-07.
 
 ## Legal — Cabinet Derammelaere
 
@@ -116,5 +131,5 @@ No agreement is classified `SIGNED` merely because it was sent through a messagi
 3. Serpell/UPenn: after **08/09 15:00**, verify the scheduled messages actually moved to `SENT`, then capture responses/licensing status.
 4. Oniris: any reply from Audrey Lafragette or another named contact that establishes review/discussion scope.
 5. AudéLor: **15/09/2026** meeting note with recommended regional route, any explicit Emergys guidance, eligibility answers and next actions.
-6. Bpifrance CII: any filed dossier or official rescrit outcome.
+6. Bpifrance: recover any contemporaneous note of the June call if available; do not treat the unsupported CII record as evidence.
 7. Legal: accepted engagement letter or scoped legal opinion if/when executed.
