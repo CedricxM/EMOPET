@@ -1,11 +1,23 @@
 # AGENTS.md — Contexte permanent EMOPET
 
 Ce fichier est lu automatiquement par Codex à chaque session.
-Il contient les règles non négociables et la charte graphique du projet.
+Il résume les garde-fous de travail. En cas de conflit, les autorités contrôlées citées ci-dessous priment sur ce résumé.
 
 ---
 
-## ⚠ Addendum stack observée (2026-08-29)
+## Autorités à lire avant une décision de fond
+
+- Stratégie fondateur : `docs/strategy/FOUNDER_STRATEGIC_LOCKS_2026-09-07.md`
+- Care / observation produit : `docs/product/EMOPET_CARE_PRODUCT_MASTER_v0.1.md`
+- Marque actuelle : `docs/brand/BRAND-AUTHORITY-001_EMOPET_Current_Visual_Authority_2026-08-25.md`
+- Terminologie capteurs : `docs/architecture/SENSOR_MODALITY_GLOSSARY_2026-09-07.md`
+- Mémoire / supersessions : `docs/records/memory/INDEX.md`
+
+Une implémentation existante, un ancien deck ou un ancien BOM ne devient pas une autorité simplement parce qu'il est plus détaillé ou déjà codé.
+
+---
+
+## Stack observée
 
 Le brief `PROMPT_PROTOTYPE_BRETAGNE.md` décrit une proposition historique. Les manifests et points d'entrée actuels font foi pour l'état d'implémentation, sans transformer cet état en décision produit :
 
@@ -17,142 +29,148 @@ Le brief `PROMPT_PROTOTYPE_BRETAGNE.md` décrit une proposition historique. Les 
 - Design system maison : `apps/web/styles/tokens.css` et primitives `apps/web/components/ui/*`. HeroUI 3 et Tailwind 4 sont également installés.
 - Aucun projet Unity et aucune intégration Nakama ne sont présents sur les branches distantes observées. Ces workstreams restent `GATED / NOT PRODUCTION AUTHORITY`.
 - Les commandes documentées dans les manifests sont des surfaces disponibles, pas une preuve de build, de CI ou de production.
-- Conflit d'autorité à préserver : le code contient une gamification centrée propriétaire, tandis que la règle plus bas interdit toute gamification. Ne pas étendre, supprimer ou déclarer conforme ce comportement avant une décision contrôlée.
+- Le code contient encore des surfaces historiques de gamification et de score global. Ne pas les étendre ni les traiter comme décisions produit sans revue contre les autorités actuelles.
 
 ---
 
 ## Projet
 
-**EMOPET** est une startup deeptech française basée à Lorient (Bretagne) qui développe un dispositif de monitoring du bien-être canin **non médical**. Le kit comprend un tapis instrumenté (MAT) avec capteurs PVDF, IMU, cellules de charge, BME280 — et un collier wearable (TAG) avec IMU, microphone, piezo, NTC. L'algorithme ELI v6 (Extended Kalman Filter avec confidence gating) traite les signaux. L'application companion s'appelle Breiz AI.
+**EMOPET** est un projet deeptech français basé à Lorient (Bretagne), centré sur l'observation longitudinale non médicale du bien-être canin.
 
-Fondateur : Cédric Mian (CEO). Cofondateur : Mohamed (CTO).
+Architecture stratégique actuelle :
 
----
+- **MAT + TAG + application** ;
+- MAT = surface de repos instrumentée et contexte de référence qualifié ;
+- TAG = continuité mobile et contextuelle ;
+- l'application compare principalement le chien à ses propres références contextuelles ;
+- ELI = architecture d'interprétation sous incertitude, avec qualité, provenance, gating et abstention ;
+- Breiz = compagnon contextuel borné, jamais source d'autorité scientifique.
 
-## Règles absolues — NON NEGOCIABLES
+### MAT Phase 0 : résumé technique actuel
 
-Ces règles sont **le positionnement stratégique d'EMOPET** et différencient le projet de concurrents qui revendiquent du quasi-médical (Invoxia notamment). Toute violation casse la cohérence du produit.
+Ne plus résumer le MAT par `PVDF + IMU + cellules de charge + BME280` comme si tous ces éléments étaient figés.
 
-### 1. PAS d'anthropomorphisation
+Chaînes actuellement contrôlées :
 
-Le chien n'est PAS un personnage qui ressent des émotions humaines.
+1. **Respiratoire** : quatre canaux de câble piézoélectrique **PVDF coaxial blindé**, front-end analogique indépendant par canal, acquisition synchrone ; fusion seulement entre canaux piézo lorsque les gates l'autorisent.
+2. **Cellules de charge** : présence, poids, répartition, mouvement grossier, stabilité et eligibility/gating. Elles ne sont pas fusionnées dans l'estimation respiratoire ou cardiaque.
+3. **Référence vibration environnementale** : canal candidat bas/châssis pour contamination/confiance/veto/analyse ; le choix exact du capteur reste à figer par preuve.
 
-- ❌ Interdit : "Capitaine a fait un bon rêve", "il s'ennuie", "il est triste de ton absence"
-- ✅ Autorisé : "sommeil profond 7h28", "phase de repos prolongée", "activité réduite observée"
+PCB de production, Gerbers finaux, seuils, fusion finale et stack définitif restent **non figés** tant que la faisabilité n'est pas démontrée.
 
-### 2. PAS de labels émotionnels
+Dans le code, `pvdf` peut rester un alias de modalité pour les canaux coaxiaux PVDF actuels. Il ne signifie pas `film plat`, `LDT0-028K`, `six zones` ou `chest strap`.
 
-Les émotions ne sont pas mesurables par des capteurs. EMOPET observe des comportements, pas des sentiments.
-
-- ❌ Interdit : "anxiété", "stress", "dépression", "joie", "peur"
-- ✅ Autorisé : "agitation observée", "activité élevée", "phase d'éveil intense", "interaction sociale détectée"
-
-### 3. PAS de claims diagnostiques
-
-EMOPET n'est pas un dispositif médical et ne pose aucun diagnostic.
-
-- ❌ Interdit : "détection problème cardiaque", "risque d'obésité", "anomalie respiratoire", "alerte santé"
-- ✅ Autorisé : "tendance baisse d'activité sur 7 jours", "à discuter avec votre vétérinaire", "variation observée"
-
-### Procédure de vérification
-
-Avant tout commit/livraison, faire une recherche dans le code et les textes UI pour :
-- `anxiété`, `stress`, `dépression`, `triste`, `heureux`, `joie`, `peur`
-- `santé`, `maladie`, `diagnostic`, `risque`, `alerte`, `anomalie`
-- `ressent`, `a fait un rêve`, `s'ennuie`, `est content`
-
-Si l'un de ces termes apparaît, le remplacer immédiatement.
+Fondateur : Cédric Mian (CEO). Cofondateur indiqué dans le contexte projet : Mohamed (CTO).
 
 ---
 
-## ⚠ Charte visuelle emopet 2026 (REBRAND — supersède la v2 ci-dessous)
+## Règles produit et scientifiques
 
-Cédric a fourni le 2026-05-30 une nouvelle charte de marque officielle. Elle **remplace** la palette/typo « EMOPET v2 » historique. Les valeurs ont été remappées dans `apps/web/styles/tokens.css` **en conservant les noms d'échelle** (`granit/terracotta/lichen/cream`) pour ne rien casser — seules les valeurs changent.
+### 1. Pas d'anthropomorphisation non étayée
 
-- **Marque** : `emopet` (minuscules). Tagline : « Soins intelligents. Lien fort. » / « Un cœur breton. Une care intelligente. »
-- **Logo** : patte navy + spirale orange (vagues bretonnes / lien infini). Voir `PawSpiralMark` dans `components/sidebar.tsx`.
-- **Palette** :
-  - Navy `#1D1A6A` → `--granit-800` (marque + texte)
-  - Orange `#FE502D` → `--terracotta-500` (accent / CTA)
-  - Teal `#2CB7AB` → `--lichen-500` (secondaire)
-  - Cream `#F6EFE7` → `--cream-100` (fond)
-  - Gris `#6B6F76` → `--granit-500` (texte atténué)
-- **Typographie** : **Sora** (police principale, titres + corps, `--font-sans`/`--font-serif`). JetBrains Mono conservé pour données tabulaires + kickers. *(Fraunces/Source Sans retirés.)*
-- Les patterns ⊙ aperture, kickers mono caps, notch boxes restent valides (couleurs remappées automatiquement).
+Ne pas transformer des signaux en récit émotionnel humain.
 
----
+- Interdit comme conclusion capteur : `il est triste`, `il s'ennuie`, `il a peur`, `il a fait un bon rêve`.
+- Préférer des observations : `activité réduite observée`, `repos plus fragmenté`, `interaction détectée`, avec contexte, référence, source et limites.
 
-## Charte graphique EMOPET v2 (historique — conservée pour référence)
+### 2. Pas de labels émotionnels certains
 
-### Tokens CSS — référence canonique : `apps/web/styles/tokens.css`
+ELI n'est pas un classifieur d'émotions discrètes. Une architecture dimensionnelle peut exister en interne, mais la publication utilisateur est plus étroite que l'ancien prototype.
 
-Synonymes brief → tokens réels :
-- `--granit` → `--granit-800` (texte principal), `--granit-900` (titres)
-- `--granit-c` → `--granit-700` (texte courant)
-- `--ardoise` → `--granit-500` (texte secondaire)
-- `--terre` → `--terracotta-500` (accent chaud)
-- `--terre-dark` → `--terracotta-700` (hover/press)
-- `--lichen` → `--lichen-500` (validation/équilibre)
-- `--pierre` → `--cream-300`/`--cream-400` (séparateurs)
-- `--sable-cl` → `--cream-100` (fond principal beige clair)
-- `--sable-pr` → `--cream-200` (fond cartes)
-- `--prudence` → `--prudence-bg` (fond notch info)
+Sous l'autorité Care actuelle, l'arousal/activation est le seul latent actuellement autorisé pour publication utilisateur sous la V1 citée ; la valence reste interne/gated.
 
-### Typographie (déjà chargée dans `tokens.css`)
+### 3. Pas de claims diagnostiques
 
-- **Fraunces** (display) : titres, italiques éditoriaux, opsz 9..144
-- **Source Sans 3** (body) : corps de texte
-- **JetBrains Mono** (mono) : kickers, données, captions tracking-caps
+EMOPET n'est pas un dispositif médical et ne pose pas de diagnostic.
 
-### Patterns visuels signatures
+Ne pas convertir `variation`, `proxy`, `pattern` ou `absence de signal` en maladie, diagnostic ou alerte clinique.
 
-- **Aperture mark** : symbole `⊙` utilisé en signature partout (header, sections, séparateurs)
-- **Kicker mono caps tracked** : style mono 11-12px, letter-spacing 0.18-0.22em, couleur `--terracotta-700`
-- **Italic Fraunces lead** : citations et phrases d'ambiance en Fraunces italic 19-22px, couleur `--granit-700`
-- **Notch boxes** : fond `--prudence-bg` + barre gauche `--terracotta-500` 8-10px
-- **Numérotation sections** : 01, 02, 03 en Fraunces italic grande taille couleur `--terracotta-500`
+### 4. Pas de score global nu
 
-### Vocabulaire breton intégré (ponctuel)
+La stratégie est **relationship-first**, pas metric-first.
 
-- **Demat** = Bonjour
-- **Ar Pemdez** = Le quotidien
-- **Ki** = Chien
-- **Veute** / **Ar Veute** = Meute / Communauté
-- **Breizh** = Bretagne
+Le dashboard historique contient encore des surfaces `ELI 72`, jauges globales, WQI/RSI et autres composites. Leur présence dans le code ne prouve pas leur autorisation produit.
+
+Care impose : observation + contexte + fenêtre temporelle + référence + provenance + qualité/confiance + limites + modèle/version + état de publication.
+
+**No naked number.**
+
+### 5. Abstention = comportement produit valide
+
+Quand l'évidence est insuffisante, afficher explicitement l'absence d'observation fiable plutôt qu'un score faible ou une pseudo-conclusion.
 
 ---
 
-## Cibles utilisateurs
+## Marque actuelle
 
-- **Camille & Antoine** (35-42 ans, CSP+, Bretagne, Labrador) — 60% du CA an 3
-- **Marie** (55-65 ans, retraitée active, CSP+, Border Collie) — 25%
-- **Julien** (28-38 ans, ingénieur télétravail, Husky/Border) — 15% (persona prescripteur tech)
+L'autorité actuelle est **BRAND-AUTHORITY-001**, datée du 25 août 2026.
+
+### Système actif
+
+- Display / titres / wordmark : **Fraunces**
+- Corps : **Instrument Sans**
+- Technique / données / métadonnées : **JetBrains Mono**
+- Marque principale : **aperture mark + wordmark EMOPET**
+- Identité principale : species-agnostic
+- Palette : sable / granit / ardoise / pierre / terre cuite / lichen
+
+Valeurs contrôlées principales :
+
+- Sable `#F4EFE6`
+- Sable clair `#FAF6EE`
+- Sable profond `#EAE2D3`
+- Granit `#1F2A36`
+- Granit clair `#2E3B47`
+- Ardoise `#5A6570`
+- Pierre `#D8D0C2`
+- Pierre claire `#E4DDD0`
+- Terre cuite `#C97B5A`
+- Terre cuite sombre `#A65E3F`
+- Lichen `#6B8E6F`
+- Lichen sombre `#4F6F53`
+
+Reliability states :
+
+- VALID `#7A9B7E`
+- DEGRADED `#C9A55A`
+- SUPPRESSED `#9AA0A6`
+
+Les anciens profils Playfair/Montserrat puis Sora + navy/orange/teal + paw/spiral sont **historiques/superseded**. Le code web contient encore une partie de cette ancienne identité. Ne pas traiter cette implémentation comme l'autorité actuelle et ne pas faire de migration visuelle massive sans pilote + QA.
+
+Le statut de la tagline historique `Smart care. Strong bond.` / `Soins intelligents. Lien fort.` reste à confirmer séparément. Ne pas inventer une nouvelle tagline.
 
 ---
 
-## Stack technique observée
+## Maturité et preuves
 
-- **Monorepo pnpm 10 + Turbo** (racine `pnpm-workspace.yaml`)
-- App web : **Next.js 15 + React 19** (`apps/web`)
-- App mobile : **Expo 52 + React 18 / React Native 0.76** (`apps/mobile`)
-- Backend : **Hono 4 + TypeScript + Drizzle/PostgreSQL** (`backend`)
-- Firmware : sources partielles MAT/TAG en C (`firmware`), sans build firmware complet observé
-- Packages partagés : `packages/{shared, eli-engine, ai-personality, ble-protocol}`
-- Persistance actuelle : schémas PostgreSQL, stores mémoire backend, store JSON Next.js et replis navigateur ; l'unification reste `OPEN`
-- Migration propre : `BLOCKED` tant que la baseline Drizzle et le chemin d'upgrade ne sont pas réparés et validés
+Toujours distinguer :
 
-### UI (web)
+- décidé ;
+- implémenté ;
+- testé ;
+- validé ;
+- proposé/candidat ;
+- ouvert ;
+- bloqué ;
+- historique/superseded.
 
-- Primitives maison `apps/web/components/ui/*` — **par défaut**
-- `@heroui/react@^3` + Tailwind v4 — pour Modal/Drawer/Switch/RadioGroup/Tooltip et toute interaction riche
-- Animations CSS only (keyframes + transitions, respect `prefers-reduced-motion`). `animejs` disponible mais préférer CSS.
+Rappels :
+
+- code présent ≠ preuve physique ;
+- test synthétique ≠ validation bench ;
+- bench ≠ validation animale ;
+- supplier candidate ≠ fournisseur sélectionné ;
+- RFQ envoyée ≠ engagement contractuel ;
+- beau document ≠ maturité technique.
 
 ---
 
 ## Workflow attendu
 
-1. **Lire la base existante** avant tout changement (`ls apps/web/app/`, lire `package.json`, comprendre les routes)
-2. **Demander confirmation** avant d'écraser ou supprimer un fichier
-3. **Petites étapes incrémentales** : un écran à la fois, validation visuelle entre chaque
-4. **Vérification finale** : aucun terme interdit (cf. règles absolues) dans le code ou les textes UI
-5. **Pas de gamification** : pas de jauges "santé", pas d'avatar de chien animé, pas de système de points/niveaux
+1. Lire la base existante et les autorités pertinentes avant changement.
+2. Ne pas écraser/supprimer un artefact contrôlé ou historique sans décision explicite ; préférer une nouvelle révision ou un record de supersession.
+3. Faire des étapes incrémentales et auditables.
+4. Pour un changement UI, vérifier la cohérence avec Care, Founder Strategic Locks et Brand Authority avant de suivre le prototype existant.
+5. Pour un changement capteur/protocole, vérifier le `SENSOR_MODALITY_GLOSSARY_2026-09-07.md` et ne pas renommer des champs contractuels à l'aveugle.
+6. Pour une claim scientifique, indiquer la maturité, la provenance, les limites et les gates.
+7. Ne pas réintroduire une décision historique depuis un ancien BOM/deck sans vérifier la source actuelle.
