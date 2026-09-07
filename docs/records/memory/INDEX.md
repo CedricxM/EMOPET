@@ -17,6 +17,7 @@ This folder preserves historical project lineage, supersessions and retrospectiv
 - `EARLY_COMMERCIAL_MODEL_LINEAGE_MAY_JUNE_2026.md` — provenance of €5.99, early free/Premium structure, veterinary channel, data-commercialisation and Brittany-first commercial thinking.
 - `SUPPLIER_CHAIN_LINEAGE_JUNE_JULY_2026.md` — historical Landztop / Yz-Link / ESAT hybrid-chain model and its limits before the active MOKO workstream.
 - `BRAND_AND_PUBLIC_COPY_LINEAGE_MAY_AUG_2026.md` — reconstructs the May→August brand sequence and records current repository drift against the controlled August brand authority.
+- `CURRENT_REPO_HARDWARE_TERMINOLOGY_DRIFT_AUDIT_2026-09-07.md` — distinguishes valid current coaxial-PVDF modality naming from stale MAT topology/maturity assumptions in code and documentation.
 - `HISTORICAL_STRATEGY_SUPERSESSIONS_2026-09-07.md` — high-risk historical concepts that must not silently re-enter current authority.
 
 ## Scientific communication lineage
