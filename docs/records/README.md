@@ -50,6 +50,8 @@ Strategy, market and scientific-framework memory must not be forced into communi
 - `WORKING_ASSUMPTION` — assumption currently used for planning and subject to revision.
 - `WORKING_STRATEGY` — current strategic direction, not an irreversible commitment.
 - `PROJECT_DECISION` — explicit internal decision that should govern downstream work until changed.
+- `PROPOSED PRE-PRODUCTION AUTHORITY` — detailed design/product authority candidate that remains gated and is not implementation proof.
+- `FOUNDER PRINCIPLE / GOVERNANCE DIRECTION` — strategic principle adopted internally but not necessarily formalised institutionally or contractually.
 - `EXTERNAL_FEEDBACK` — feedback received from an external expert/counterparty; not automatically adopted.
 - `SCIENTIFIC_RECOMMENDATION` — scientific recommendation attributed to its source and scope.
 - `SOURCE_VERIFIED` — factual statement supported by a dated controlled source.
@@ -143,7 +145,20 @@ Market intelligence must record source, geography, period, segment, methodology 
 
 Canonical index: `docs/market/MARKET_INTELLIGENCE_REGISTER.md`.
 
-## 8. Canonical planning calendar
+## 8. Product-memory layer
+
+Important product doctrines and gated design authorities belong in `docs/product/` rather than remaining only in chat/Library artifacts.
+
+When imported:
+
+- preserve original date/status/gate;
+- record the GitHub import date separately where useful;
+- do not convert `PROPOSED`, `NOT IMPLEMENTED`, `NOT RELEASED`, `FOUNDER REVIEW REQUIRED` or similar states into current product claims;
+- link founder-level strategic locks separately where a design authority implements a broader doctrine.
+
+Examples now tracked include Guardian Authority, Care, Home/Today, Together/Relationship Engine, Memories, Guardian Continuity, Humane Social Architecture and World.
+
+## 9. Canonical planning calendar
 
 Current planning authority: `docs/strategy/PROJECT_TIMELINE_2026_2027.md`.
 
@@ -154,7 +169,7 @@ The current internal decision is:
 
 Exact commercial-launch month, scale and sequencing remain separate decisions unless a later controlled record fixes them.
 
-## 9. Privacy / secret boundary
+## 10. Privacy / secret boundary
 
 Do **not** commit automatically:
 
@@ -169,20 +184,42 @@ Do **not** commit automatically:
 
 For such evidence, GitHub stores status + hash + archive/source reference.
 
-## 10. Important project-memory categories
+## 11. Important project-memory categories
 
 - `docs/records/communications/` — material communications and chronology
 - `docs/records/attachments/` — important sent/received attachment ledger
+- `docs/records/memory/` — retrospective memory audits, supersessions and lineage
 - `docs/external/` — external workstream status index
+- `docs/product/` — controlled product doctrines/design authorities with real maturity status
 - `docs/industrial/` — supplier/industrial records
 - `docs/legal/` — controlled legal source/status records
 - `docs/research/` — scientific frameworks, literature and research evolution
 - `docs/strategy/` — strategy, competitive landscape, channels and planning decisions
 - `docs/market/` — market intelligence, segmentation, sizing evidence and market hypotheses
+- `docs/brand/` — current visual authority and controlled brand lineage
+- `docs/language/` — semantic/language/cultural intelligence decisions
 - funding/regional-support communication records
 
-## 11. Operating rule
+## 12. Retroactive semantic-archeology rule
 
-Whenever EMOPET sends or receives a material email, signs/sends a material document, receives a supplier/scientific/funding response, makes a strategic or scientific decision, changes a framework, updates a major competitor assessment, or adopts/rejects a market assumption, the relevant register should be updated in the same work cycle.
+A current-state snapshot is **not** a complete institutional memory.
+
+Before rewriting or replacing an important product, engineering, commercial or brand doctrine, search older project sources and prior chat decisions for lineage that may still matter.
+
+For recovered historical knowledge:
+
+1. identify the original date/source;
+2. determine whether it is `CURRENT`, `HISTORICAL`, `SUPERSEDED`, `OPEN` or `CONFLICTING`;
+3. preserve the valid knowledge even if the implementation changed;
+4. record the superseding authority rather than deleting the old state;
+5. never resurrect an old polished claim merely because the current master omitted its supersession history.
+
+Highest-risk retrospective period identified by prior coherence review: **May–June 2026**, when several foundational sensing, supplier, sourcing, subscription and visual-identity choices were made before the later August control system became rigorous.
+
+This period requires deliberate retrospective reconstruction, not casual copying.
+
+## 13. Operating rule
+
+Whenever EMOPET sends or receives a material email, signs/sends a material document, receives a supplier/scientific/funding response, makes a strategic or scientific decision, changes a framework, updates a major competitor assessment, adopts/rejects a market assumption, or discovers a significant earlier decision that was missing from the repository, the relevant register should be updated in the same work cycle.
 
 This repository policy is intended to prevent the evidence asymmetry identified during the 2026-09-07 AudéLor/Emergys deck audit: software/compliance evidence was deeply versioned while several industrial, scientific, strategic and funding workstreams existed mainly outside GitHub.
