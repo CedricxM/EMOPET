@@ -1,15 +1,37 @@
 # EMOPET — AudéLor / Emergys Communications
 
 **Control date:** 2026-09-07  
-**Primary current Gmail thread:** `1a066f10e65068ef`  
-**Historical AudéLor thread:** `19d824d47721e25c`  
+**Current AudéLor Gmail thread:** `19d824d47721e25c`  
+**Current calendar message:** `1a0668b8ac67c006` (`Emopet - Suivi`)  
 **Primary contact:** Lucie Marchand / AudéLor  
-**Status:** `DISCUSSION / MEETING PREPARATION`  
-**Not proven:** Emergys eligibility, eligible expenditure base, funding award, intervention rate applicable to EMOPET.
+**Status:** `ACTIVE AUDELOR FOLLOW-UP / MEETING SCHEDULED`  
+**Not proven:** explicit Emergys recommendation by AudéLor in the September email thread, Emergys eligibility, eligible expenditure base, funding award, intervention rate applicable to EMOPET.
+
+## Evidence correction — 7 September 2026
+
+A Gmail re-check found that the earlier version of this record contained two unsupported September references:
+
+- a supposed incoming subject `Re: projet Emopet-incubation`;
+- a supposed preparation message for an `08/09` meeting.
+
+Those messages were **not found** in the connected Gmail corpus during the 2026-09-07 control pass.
+
+The evidence actually found is:
+
+- 2026-09-03 — Lucie Marchand replied in the long-running AudéLor thread and proposed **Tuesday 15 September 2026 at 16:00**;
+- 2026-09-03 — AudéLor sent the calendar invitation `Emopet - Suivi`;
+- 2026-09-03 — Cédric accepted the proposed 15/09 16:00 slot;
+- 2026-09-07 — a self-forward/internal email contains files named `EMOPET_Presentation_Lucie_AudeLor_Emergys_20260907.pdf` / `.pptx`, which proves preparation material exists but **does not prove AudéLor has recommended, validated or granted Emergys**.
+
+### Control rule
+
+The meeting date is therefore **15/09/2026 at 16:00**, unless a later calendar/email update changes it.
+
+The label `Emergys` in internal presentation filenames is preparation context only. Do not turn it into external evidence of eligibility or AudéLor endorsement.
 
 ## Historical relationship — May to July 2026
 
-The current September workstream is the continuation of a materially older AudéLor dialogue, not a new first contact.
+The September workstream is the continuation of a materially older AudéLor dialogue, not a new first contact.
 
 ### 15 May — business-model feedback
 
@@ -78,32 +100,33 @@ The thread shows continued AudéLor discussion during the summer, including the 
 
 ## Evidence identified — September 2026
 
-Incoming correspondence from Lucie Marchand is recorded on 2026-09-03 with subject:
+On 2026-09-03 Lucie Marchand wrote that she was pleased to see the project had advanced and proposed a follow-up meeting for **Tuesday 15/09 at 16:00**. Cédric accepted the slot the same day.
 
-`Re: projet Emopet-incubation`
+This proves active AudéLor follow-up. It does **not** by itself prove:
 
-EMOPET subsequently sent a preparation message with subject:
-
-`Re: Préparation de notre RDV du 08/09 - Constitution de l'équipe EMOPET`
-
-This proves an active discussion and meeting preparation with AudéLor. It does not prove acceptance into Emergys or any funding decision.
+- acceptance into Emergys;
+- an Emergys application;
+- any funding decision;
+- MOKO expenditure eligibility;
+- a confirmed intervention rate.
 
 ## Current meeting-preparation package
 
-The current presentation prepared for Lucie is:
+An internal/self-forward email dated 2026-09-07 evidences preparation files named:
 
-- `EMOPET_Presentation_Lucie_AudeLor_Emergys_v3_2026-09-07.pptx`
-  - SHA-256: `a94c77752ae415a07d04c03ad053d53d5c801875d40d5d78cb85fb4ac35aa782`
-- `EMOPET_Presentation_Lucie_AudeLor_Emergys_v3_2026-09-07.pdf`
-  - SHA-256: `95b08a7c4880e931aeeba065e8959575f7f6b18ceb5f8081ab6bed2957c70550`
+- `EMOPET_Presentation_Lucie_AudeLor_Emergys_20260907.pdf`;
+- `EMOPET_Presentation_Lucie_AudeLor_Emergys_20260907.pptx`.
 
-**Current transmission status:** `PREPARED_NOT_SENT` at this control point. No send evidence has yet been recorded for v3.
+The connected Gmail result does not establish that these files were sent to Lucie Marchand.
 
-## Current objectives for the 08/09 discussion
+**Current transmission status:** `PREPARED / SEND TO AUDELOR NOT EVIDENCED IN GMAIL AT THIS CONTROL POINT`.
+
+## Current objectives for the 15/09 discussion
 
 Use the meeting to resolve or structure, not assume:
 
-- whether EMOPET is eligible for Emergys at its current pre-incorporation/maturity stage;
+- which regional incubation/financing route AudéLor recommends at EMOPET's current maturity and pre-incorporation stage;
+- whether Emergys is relevant and, if so, the eligibility conditions;
 - the exact eligibility date for expenditure;
 - treatment of pre-incorporation expenditure;
 - eligibility of non-EU external engineering/prototyping expenditure, particularly MOKO;
@@ -115,20 +138,32 @@ Use the meeting to resolve or structure, not assume:
 
 ## External wording discipline
 
-Use:
+Safe wording before written confirmation:
 
-- "EMOPET is in discussion with AudéLor and preparing the Emergys route."
-- "Emergys eligibility and expenditure scope are to be confirmed with AudéLor."
+- `EMOPET is actively followed by AudéLor and has a project follow-up meeting scheduled for 15 September 2026.`
+- `EMOPET is preparing questions around regional incubation and financing routes, including the potential relevance of Emergys.`
 
 Do not use:
 
-- "Emergys granted";
-- "25 k€ secured";
-- "80% funding confirmed";
-- "MOKO costs are eligible";
+- `AudéLor recommended Emergys`;
+- `Emergys application accepted`;
+- `Emergys granted`;
+- `25 k€ secured`;
+- `80% funding confirmed`;
+- `MOKO costs are eligible`;
 
-unless a later controlled written source proves those claims.
+unless a later controlled written source proves the relevant claim.
 
 ## Next evidence gate
 
-After the 08/09 meeting, create a dated meeting note covering answers, decisions, requested documents, deadlines and the next financing gate. Update this record and the external evidence index in the same work cycle.
+After the **15/09/2026 16:00** meeting, create a dated meeting note covering:
+
+- AudéLor's recommended route;
+- any explicit Emergys guidance;
+- eligibility/expenditure answers;
+- requested documents;
+- deadlines;
+- introductions;
+- next financing gate.
+
+Update this record and the external evidence index in the same work cycle.
