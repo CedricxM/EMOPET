@@ -9,6 +9,7 @@ GitHub is now the canonical project-memory/index layer for these workstreams. Se
 
 - `CONTACT_INITIATED`: an approach/contact exists; no partnership implied.
 - `DISCUSSION`: substantive exchange exists; no formal collaboration implied.
+- `MEETING_SCHEDULED`: a dated meeting/calendar exchange is evidenced; content/outcome not implied.
 - `PREPARED_NOT_SENT`: material prepared but no transmission evidence.
 - `SENT`: transmission evidenced.
 - `ACKNOWLEDGED`: recipient acknowledgement evidenced.
@@ -54,15 +55,19 @@ Do not describe the exchange as endorsement, validation, partnership with UPenn,
 
 Do not use the wording “Oniris partner” until a formal instrument or explicit collaboration evidence exists.
 
-## Funding / regional support — AudéLor / Emergys Bretagne
+## Funding / regional support — AudéLor / potential Emergys route
 
 | Item | Current status | Repo evidence |
 |---|---|---|
-| AudéLor discussion / 08 Sep meeting preparation | `DISCUSSION` | `docs/records/communications/funding/AUDELOR_EMERGYS_COMMUNICATIONS.md` |
-| Current Lucie deck v3 | `PREPARED_NOT_SENT` | same record + attachment register |
-| Emergys eligibility confirmed | `NOT_PROVEN` | to resolve with AudéLor |
+| AudéLor project follow-up | `DISCUSSION` | `docs/records/communications/funding/AUDELOR_EMERGYS_COMMUNICATIONS.md` |
+| Follow-up meeting | `MEETING_SCHEDULED` for **15 Sep 2026 at 16:00** | Gmail thread `19d824d47721e25c` + calendar message `1a0668b8ac67c006`; indexed in the detailed record |
+| Lucie/AudéLor presentation package named with `Emergys` internally | `PREPARED / SEND TO AUDELOR NOT PROVEN` | internal/self-forward evidence on 2026-09-07; detailed record |
+| AudéLor explicitly recommended Emergys | `NOT_PROVEN` | no such September Gmail statement found in the 2026-09-07 control pass |
+| Emergys eligibility confirmed | `NOT_PROVEN` | to resolve only if/when AudéLor confirms the route is relevant |
 | Emergys funding awarded | `NOT_PROVEN` | no award evidence |
 | Eligible expenditure base confirmed | `NOT_PROVEN` | no confirmation evidence |
+
+The word `Emergys` in an internal presentation filename is not evidence of program eligibility, AudéLor endorsement or an application decision.
 
 All amounts, intervention rates and eligibility assumptions must remain explicitly qualified until confirmed by the relevant program contact.
 
@@ -104,6 +109,6 @@ No agreement is classified `SIGNED` merely because it was sent through a messagi
 2. MOKO: receipt acknowledgement, quotation and controlled CAD/R3 addendum.
 3. Serpell/UPenn: licensing response and any new scientific-methodology decision.
 4. Oniris: any reply that defines concrete collaboration scope.
-5. AudéLor/Emergys: 08/09 meeting note with exact eligibility answers and next actions.
+5. AudéLor: **15/09/2026** meeting note with recommended regional route, any explicit Emergys guidance, eligibility answers and next actions.
 6. Bpifrance CII: any filed dossier or official rescrit outcome.
 7. Legal: accepted engagement letter or scoped legal opinion if/when executed.
