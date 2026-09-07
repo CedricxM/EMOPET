@@ -1,28 +1,23 @@
-import { useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { useState } from 'react';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import {
-  Button,
-  Card,
-  Caption,
-  DataXL,
-  Disclaimer,
-  Eyebrow,
-  H1,
-  Micro,
-  P2,
-  Pill,
-  ScreenContainer,
-} from '../../src/components/ui';
 import { AnticipationCard } from '../../src/components/anticipation-card';
-import { RecoveryTooltip } from '../../src/components/recovery-tooltip';
-import {
-  shouldShowAnticipationCard,
-  shouldShowRecoveryTooltip,
-  useV6Insights,
-} from '../../src/hooks/use-v6-insights';
+import { Disclaimer, ScreenContainer } from '../../src/components/ui';
+import { shouldShowAnticipationCard, useV6Insights } from '../../src/hooks/use-v6-insights';
 import { useDogStore, usePreferencesStore } from '../../src/store';
-import { colors, fontFamily, fontSize, radius, spacing } from '../../src/theme';
+import { fontFamily } from '../../src/theme';
+
+const visual = {
+  bg: '#F5EEE7',
+  ink: '#221E72',
+  muted: '#787786',
+  surface: 'rgba(255,255,255,0.90)',
+  surfaceBorder: 'rgba(34,30,114,0.06)',
+  teal: '#35BEB2',
+  tealSoft: '#DDF4F1',
+  tealInk: '#137C74',
+} as const;
 
 export default function HomeScreen() {
   const dogs = useDogStore((s) => s.dogs);
@@ -31,82 +26,73 @@ export default function HomeScreen() {
   const insights = useV6Insights();
   const [anticipationDismissedAt, setAnticipationDismissedAt] = useState<Date | null>(null);
 
-  const dogName = dogs[0]?.name ?? insights.dogName ?? 'Gwen';
+  const dog = dogs[0];
+  const dogName = dog?.name ?? insights.dogName ?? 'Nala';
+  const dogPhoto = dog?.photo?.trim();
+  const heroSource = dogPhoto ? { uri: dogPhoto } : require('../../assets/v2/nala-hero.jpg');
+
   const freeWithoutKit = subscriptionTier === 'free' && !hardwareLinked;
   const showAnticipation = shouldShowAnticipationCard(insights, anticipationDismissedAt);
-  const showRecoveryTooltip = shouldShowRecoveryTooltip(insights);
-
-  const greeting = useMemo(() => greetingFor(new Date()), []);
+  const observation =
+    showAnticipation && insights.anticipation
+      ? 'Une variation mérite un peu de contexte.'
+      : 'Rien de particulier à signaler pour le moment.';
 
   return (
-    <ScreenContainer scroll>
-      <View style={styles.header}>
-        <Micro>{greeting}</Micro>
-        <H1 style={styles.title}>{dogName}, ce matin</H1>
+    <ScreenContainer
+      scroll
+      horizontalPadding={18}
+      topPadding={10}
+      bottomPadding={112}
+      contentStyle={styles.screen}
+    >
+      <View style={styles.kickerRow}>
+        <Text style={styles.kicker}>ACCUEIL · ESPACE DE {dogName.toLocaleUpperCase('fr-FR')}</Text>
+        <Text style={styles.today}>Aujourd’hui</Text>
       </View>
 
-      {/* ELI card */}
-      <Card style={styles.card}>
-        <View style={styles.pillRow}>
-          <Pill state={freeWithoutKit ? 'suppressed' : 'valid'} />
-          <Caption style={styles.windowText}>
-            {freeWithoutKit ? 'En attente de capteurs' : 'Fenêtre · 22:14 → 06:03'}
-          </Caption>
-        </View>
-        <Eyebrow>Charge sur 24 h</Eyebrow>
-        <View style={styles.valueRow}>
-          <DataXL>{freeWithoutKit ? '—' : '0,42'}</DataXL>
-          <Text style={styles.valueUnit}>ELI</Text>
-        </View>
-        <View style={styles.meter}>
-          <View
-            style={[
-              styles.meterFill,
-              {
-                width: freeWithoutKit ? '0%' : '42%',
-                backgroundColor: freeWithoutKit ? colors.eli.suppressed : colors.eli.valid,
-              },
-            ]}
-          />
-        </View>
-        <P2 style={styles.cardBody}>
-          {freeWithoutKit
-            ? 'Le mode sans capteur affiche uniquement des repères généraux — aucune interprétation n’est produite.'
-            : 'Estimation basée sur 6 h 12 de signal valide. Tendance stable sur 3 jours.'}
-        </P2>
+      <Text style={styles.name}>{dogName}</Text>
 
-        {showRecoveryTooltip && insights.recoverySpeed && (
-          <RecoveryTooltip
-            dogName={dogName}
-            recoverySpeed={insights.recoverySpeed}
-            baselineMinutes={insights.recoveryBaselineMinutes}
-          />
-        )}
-      </Card>
+      <Image
+        source={heroSource}
+        style={styles.hero}
+        resizeMode="cover"
+        accessibilityLabel={`Portrait de ${dogName}`}
+      />
 
-      {/* Repos */}
-      <Card style={styles.card}>
-        <View style={styles.pillRow}>
-          <Pill state="degraded" />
-          <Caption style={styles.windowText}>2 nuits observées</Caption>
-        </View>
-        <Eyebrow>Repos cette nuit</Eyebrow>
-        <Text style={styles.restTitle}>Repos fragmenté</Text>
-        <View style={styles.grid}>
-          {([
-            ['Interruptions', '4'],
-            ['Durée', '6 h 12'],
-            ['Confiance', '62 %'],
-          ] as const).map(([k, v]) => (
-            <View key={k} style={styles.gridCell}>
-              <Text style={styles.gridKey}>{k}</Text>
-              <Text style={styles.gridValue}>{v}</Text>
-            </View>
-          ))}
-        </View>
-      </Card>
+      <View style={styles.grid}>
+        <StatusCard label="Repos" title={freeWithoutKit ? 'À observer' : 'Une nuit observée'} />
+        <StatusCard
+          label="Activité"
+          title={freeWithoutKit ? 'Contexte manuel' : 'Repères disponibles'}
+        />
+        <StatusCard
+          label="MAT"
+          title={hardwareLinked ? 'Disponible' : 'À associer'}
+          badge={hardwareLinked ? 'Au repos' : undefined}
+          onPress={() => router.push('/devices')}
+        />
+        <StatusCard
+          label="TAG"
+          title={hardwareLinked ? 'Connecté' : 'À associer'}
+          badge={hardwareLinked ? 'Porté' : undefined}
+          onPress={() => router.push('/devices')}
+        />
+      </View>
 
-      {/* Anticipation observation */}
+      <View style={styles.observationCard}>
+        <Text style={styles.cardLabel}>Dernière observation</Text>
+        <Text style={styles.observation}>{observation}</Text>
+      </View>
+
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionKicker}>CONTEXTE</Text>
+        <Text style={styles.sectionTitle}>Un regard posé</Text>
+        <Text style={styles.sectionBody}>
+          EMOPET sépare ce qui est observé de ce qui doit encore être confirmé.
+        </Text>
+      </View>
+
       {showAnticipation && insights.anticipation ? (
         <AnticipationCard
           dogName={dogName}
@@ -115,21 +101,15 @@ export default function HomeScreen() {
           onDismiss={() => setAnticipationDismissedAt(new Date())}
         />
       ) : (
-        <Card style={styles.card} tone="accentSoft">
-          <Eyebrow tone="accent">Observation · déclarée + observée</Eyebrow>
-          <Text style={styles.observationTitle}>{dogName} anticipe vos départs le matin.</Text>
-          <P2 style={styles.observationBody}>
-            Détecté 3 fois ce mois-ci · à confirmer sur plusieurs semaines.
-          </P2>
-          <View style={styles.buttonRow}>
-            <Button kind="primary" small>
-              En savoir plus
-            </Button>
-            <Button kind="ghost" small onPress={() => setAnticipationDismissedAt(new Date())}>
-              Masquer
-            </Button>
-          </View>
-        </Card>
+        <View style={styles.quietCard}>
+          <Text style={styles.cardLabel}>Observation</Text>
+          <Text style={styles.quietTitle}>
+            Pas assez d’informations fiables pour interpréter davantage.
+          </Text>
+          <Text style={styles.quietBody}>
+            Les repères disponibles restent visibles sans transformer une donnée partielle en certitude.
+          </Text>
+        </View>
       )}
 
       <Disclaimer />
@@ -137,107 +117,198 @@ export default function HomeScreen() {
   );
 }
 
-function greetingFor(d: Date) {
-  const h = d.getHours();
-  if (h < 6) return 'Bonne nuit';
-  if (h < 12) return 'Bonjour';
-  if (h < 18) return 'Bon après-midi';
-  return 'Bonsoir';
+interface StatusCardProps {
+  label: string;
+  title: string;
+  badge?: string;
+  onPress?: () => void;
+}
+
+function StatusCard({ label, title, badge, onPress }: StatusCardProps) {
+  return (
+    <Pressable
+      disabled={!onPress}
+      onPress={onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
+      style={({ pressed }) => [
+        styles.statusCard,
+        pressed && onPress ? styles.statusPressed : null,
+      ]}
+    >
+      <Text style={styles.cardLabel}>{label}</Text>
+      <Text style={styles.statusTitle}>{title}</Text>
+      {badge ? (
+        <View style={styles.badge}>
+          <View style={styles.badgeDot} />
+          <Text style={styles.badgeText}>{badge}</Text>
+        </View>
+      ) : null}
+    </Pressable>
+  );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    marginBottom: spacing.s5,
+  screen: {
+    backgroundColor: visual.bg,
   },
-  title: {
-    marginTop: spacing.s1,
-  },
-  card: {
-    marginBottom: spacing.s4,
-  },
-  pillRow: {
+  kickerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.s4,
+    gap: 12,
   },
-  windowText: {
-    fontVariant: ['tabular-nums'],
-    letterSpacing: 0.2,
+  kicker: {
+    flex: 1,
+    color: visual.muted,
+    fontFamily: fontFamily.sansSemi,
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 1.25,
   },
-  valueRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 10,
-    marginTop: 2,
+  today: {
+    color: visual.muted,
+    fontFamily: fontFamily.sansSemi,
+    fontSize: 11,
+    fontWeight: '600',
   },
-  valueUnit: {
-    fontFamily: fontFamily.sans,
-    fontSize: fontSize.sm + 1,
-    color: colors.fgMuted,
-    letterSpacing: 0.4,
-    marginBottom: 6,
-  },
-  meter: {
-    height: 4,
-    backgroundColor: colors.border,
-    borderRadius: 2,
-    marginTop: spacing.s4,
-    overflow: 'hidden',
-  },
-  meterFill: {
-    height: '100%',
-    borderRadius: 2,
-  },
-  cardBody: {
-    marginTop: spacing.s3,
-  },
-  restTitle: {
+  name: {
+    marginTop: 8,
+    marginBottom: 12,
+    color: visual.ink,
     fontFamily: fontFamily.serif,
-    fontSize: 22,
+    fontSize: 34,
     fontWeight: '500',
-    color: colors.fgStrong,
-    marginTop: 4,
-    marginBottom: spacing.s3,
+    letterSpacing: -0.8,
+  },
+  hero: {
+    width: '100%',
+    aspectRatio: 1.5,
+    borderRadius: 28,
+    backgroundColor: '#12253A',
   },
   grid: {
     flexDirection: 'row',
-    gap: spacing.s3,
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: 12,
+    marginTop: -8,
   },
-  gridCell: {
-    flex: 1,
+  statusCard: {
+    width: '48.4%',
+    minHeight: 88,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 22,
+    backgroundColor: visual.surface,
+    borderWidth: 1,
+    borderColor: visual.surfaceBorder,
   },
-  gridKey: {
-    fontFamily: fontFamily.sansBold,
+  statusPressed: {
+    opacity: 0.84,
+    transform: [{ scale: 0.985 }],
+  },
+  cardLabel: {
+    color: visual.muted,
+    fontFamily: fontFamily.sansSemi,
     fontSize: 10,
-    color: colors.fgMuted,
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
     fontWeight: '700',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
-  gridValue: {
-    fontFamily: fontFamily.serif,
-    fontSize: 20,
-    fontWeight: '500',
-    color: colors.fgStrong,
-    fontVariant: ['tabular-nums'],
-    marginTop: 2,
+  statusTitle: {
+    marginTop: 4,
+    color: visual.ink,
+    fontFamily: fontFamily.sansSemi,
+    fontSize: 15,
+    fontWeight: '700',
+    lineHeight: 19,
   },
-  observationTitle: {
-    fontFamily: fontFamily.serif,
-    fontSize: 17,
-    fontWeight: '500',
-    color: colors.fgStrong,
-    marginTop: 2,
-    lineHeight: 22,
-  },
-  observationBody: {
-    marginTop: spacing.s2,
-  },
-  buttonRow: {
+  badge: {
+    alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.s2,
-    marginTop: spacing.s4,
+    gap: 5,
+    marginTop: 8,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: visual.tealSoft,
+  },
+  badgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: visual.teal,
+  },
+  badgeText: {
+    color: visual.tealInk,
+    fontFamily: fontFamily.sansSemi,
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  observationCard: {
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderRadius: 22,
+    backgroundColor: visual.surface,
+    borderWidth: 1,
+    borderColor: visual.surfaceBorder,
+  },
+  observation: {
+    marginTop: 5,
+    color: visual.ink,
+    fontFamily: fontFamily.sansSemi,
+    fontSize: 14,
+    fontWeight: '700',
+    lineHeight: 19,
+  },
+  sectionHeader: {
+    marginTop: 30,
+    marginBottom: 12,
+  },
+  sectionKicker: {
+    color: visual.muted,
+    fontFamily: fontFamily.sansSemi,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+  },
+  sectionTitle: {
+    marginTop: 4,
+    color: visual.ink,
+    fontFamily: fontFamily.serif,
+    fontSize: 24,
+    fontWeight: '500',
+  },
+  sectionBody: {
+    marginTop: 6,
+    color: visual.muted,
+    fontFamily: fontFamily.sans,
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  quietCard: {
+    marginBottom: 18,
+    padding: 18,
+    borderRadius: 24,
+    backgroundColor: visual.surface,
+    borderWidth: 1,
+    borderColor: visual.surfaceBorder,
+  },
+  quietTitle: {
+    marginTop: 6,
+    color: visual.ink,
+    fontFamily: fontFamily.serif,
+    fontSize: 18,
+    fontWeight: '500',
+    lineHeight: 24,
+  },
+  quietBody: {
+    marginTop: 8,
+    color: visual.muted,
+    fontFamily: fontFamily.sans,
+    fontSize: 13,
+    lineHeight: 19,
   },
 });
