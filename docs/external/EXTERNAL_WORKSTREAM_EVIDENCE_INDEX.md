@@ -8,6 +8,7 @@ GitHub is now the canonical project-memory/index layer for these workstreams. Se
 ## Status vocabulary
 
 - `CONTACT_INITIATED`: an approach/contact exists; no partnership implied.
+- `INTRODUCTION_RECEIVED`: an institution/contact has provided a route to a named person; no substantive review implied.
 - `DISCUSSION`: substantive exchange exists; no formal collaboration implied.
 - `MEETING_SCHEDULED`: a dated meeting/calendar exchange is evidenced; content/outcome not implied.
 - `SCHEDULED_NOT_SENT`: Gmail scheduling evidence exists for a future send; transmission has not yet occurred.
@@ -37,7 +38,7 @@ Historical methodological/scientific correspondence is indexed and proves substa
 
 | Item | Current status | Repo evidence |
 |---|---|---|
-| Historical scientific / methodological exchange with Professor James Serpell | `DISCUSSION` | `docs/records/communications/science/SERPELL_UPENN_COMMUNICATIONS.md` |
+| Historical scientific / methodological exchange with Professor James Serpell | `DISCUSSION / EXTERNAL_FEEDBACK` | `docs/records/communications/science/SERPELL_UPENN_COMMUNICATIONS.md` |
 | 08/09 follow-up to Professor Serpell | `SCHEDULED_NOT_SENT` | Gmail message `1a0811a9de2fe45c`; `label:scheduled` |
 | 08/09 C-BARQ licensing enquiry to UPenn contact, cc Serpell | `SCHEDULED_NOT_SENT` | Gmail message `1a0811a9c1fa0ba0`; `label:scheduled`; no matching `in:sent` result at 2026-09-07 control point |
 | Exact files previously claimed as sent for scientific review | `TRANSMISSION_NOT_PROVEN` | exact Gmail filename searches returned no result on 2026-09-07; corrected in Serpell record and attachment register |
@@ -45,18 +46,20 @@ Historical methodological/scientific correspondence is indexed and proves substa
 | UPenn institutional partnership | `NOT_PROVEN` | no formal partnership evidence |
 | Validation of ELI by Professor Serpell | `NOT_PROVEN` | no validation evidence |
 
-Do not describe the exchange as endorsement, validation, partnership with UPenn, an active licensing discussion, or commercial licence unless later evidence establishes those states.
+Current attribution rule: Serpell's July feedback concerned owner-rating subjectivity, wording validity, conditions under which item elimination may be acceptable, and licensing. EMOPET's later full-instrument direction is an internal conservative decision, not a blanket Serpell instruction.
 
 ## Scientific — Oniris VetAgroBio
 
 | Item | Current status | Repo evidence |
 |---|---|---|
-| Contact / introduction initiated | `CONTACT_INITIATED / DISCUSSION` | `docs/records/communications/science/ONIRIS_COMMUNICATIONS.md` |
-| Institutional presentation sent | `SENT` | same record + attachment register |
+| Initial approach to Oniris Relations Entreprises | `CONTACT_INITIATED` | June 2026 Gmail messages; detailed record |
+| Oniris provided Audrey Lafragette as contact route | `INTRODUCTION_RECEIVED` | 24 July 2026 incoming `Relations Entreprises` message; detailed record |
+| Direct outreach to Audrey Lafragette | `SENT` on 3 Sep 2026 | Gmail message `1a0670d0ac6b7ca7`; `EMOPET_Presentation.pdf` attachment |
+| Reply / substantive discussion with Audrey Lafragette | `NOT_PROVEN` | no reply found in connected-Gmail control pass through 2026-09-07 |
 | Formal scientific collaboration | `NOT_PROVEN` | none recorded |
 | Signed partnership | `NOT_PROVEN` | none recorded |
 
-Do not use the wording “Oniris partner” until a formal instrument or explicit collaboration evidence exists.
+Do not use the wording `Oniris partner`, `Oniris is reviewing EMOPET`, or `scientific discussion with Audrey Lafragette` until a response establishes the relevant state.
 
 ## Funding / regional support — AudéLor / potential Emergys route
 
@@ -111,7 +114,7 @@ No agreement is classified `SIGNED` merely because it was sent through a messagi
 1. Signed team NDAs and contribution/IP instruments: verify originals, archive privately, record hashes/status.
 2. MOKO: receipt acknowledgement, quotation and controlled CAD/R3 addendum.
 3. Serpell/UPenn: after **08/09 15:00**, verify the scheduled messages actually moved to `SENT`, then capture responses/licensing status.
-4. Oniris: any reply that defines concrete collaboration scope.
+4. Oniris: any reply from Audrey Lafragette or another named contact that establishes review/discussion scope.
 5. AudéLor: **15/09/2026** meeting note with recommended regional route, any explicit Emergys guidance, eligibility answers and next actions.
 6. Bpifrance CII: any filed dossier or official rescrit outcome.
 7. Legal: accepted engagement letter or scoped legal opinion if/when executed.
