@@ -26,6 +26,7 @@ A scientific exchange is not automatically a validation, endorsement or partners
 - `PROJECT_DECISION`
 - `VALIDATED_EXTERNAL_INSTRUMENT`
 - `LICENSING_REQUIRED`
+- `SCHEDULED_NOT_SENT`
 - `NOT_PROVEN`
 - `SUPERSEDED`
 
@@ -33,13 +34,30 @@ A scientific exchange is not automatically a validation, endorsement or partners
 
 | Framework / topic | Current status | Source / authority | Current EMOPET consequence | Controlled record |
 |---|---|---|---|---|
-| Earlier reduced C-BARQ selection concept | `SUPERSEDED` | Historical EMOPET proposal prepared for Prof. James Serpell | Do not implement or describe as current C-BARQ integration strategy | `docs/research/cbarq/EMOPET_CBARQ_SELECTION_LEGACY.md` |
-| Use of complete validated C-BARQ instrument rather than an ad-hoc shortened substitute | `SCIENTIFIC_RECOMMENDATION / PROJECT_DIRECTION` | Methodological exchange with Prof. James Serpell | Product design should adapt around the validated instrument rather than silently deleting items for UX convenience | `docs/records/communications/science/SERPELL_UPENN_COMMUNICATIONS.md` |
-| C-BARQ commercial use | `LICENSING_REQUIRED / NOT_PROVEN` | Serpell exchange + separate UPenn licensing route | No production/commercial use should be represented as licensed until written licensing evidence exists | `docs/records/communications/science/SERPELL_UPENN_COMMUNICATIONS.md` |
-| C-BARQ contexts relevant to ELI behavioural-state interpretation | `EMOPET_PROPOSAL / SENT_FOR_SCIENTIFIC_REVIEW` | EMOPET research material sent to Prof. Serpell | Preserve as a proposed framework under review, not as Serpell-approved methodology unless explicit evidence later exists | Attachment register + Serpell communications record |
-| ELI Co-Pilot Training Proposal | `EMOPET_PROPOSAL / SENT_FOR_SCIENTIFIC_REVIEW` | EMOPET controlled research brief sent to Prof. Serpell | Record future feedback against the exact document/version before altering implementation assumptions | Attachment register + Serpell communications record |
-| ELI scientific validation by Prof. Serpell | `NOT_PROVEN` | No controlled evidence establishing validation | Must not be claimed | `docs/records/communications/science/SERPELL_UPENN_COMMUNICATIONS.md` |
-| UPenn institutional partnership / endorsement | `NOT_PROVEN` | No controlled institutional agreement | Must not be claimed | `docs/records/communications/science/SERPELL_UPENN_COMMUNICATIONS.md` |
+| Earlier reduced C-BARQ selection concept | `SUPERSEDED` | Historical EMOPET proposal reviewed by Prof. James Serpell | Do not implement the old subset as current production strategy | `docs/research/cbarq/EMOPET_CBARQ_SELECTION_LEGACY.md` |
+| C-BARQ item wording / owner extremity judgements / item elimination | `EXTERNAL_FEEDBACK / SCIENTIFIC_RECOMMENDATION` | Prof. James Serpell, 2 July 2026 written feedback | Preserve wording validity; avoid subjective owner extremity judgements; any item elimination must be psychometrically justified rather than UX-driven | `docs/records/communications/science/SERPELL_UPENN_COMMUNICATIONS.md` |
+| Conservative complete-instrument direction | `PROJECT_DECISION / SCIENTIFIC_REVIEW_REQUIRED` | EMOPET decision after Serpell feedback, not a blanket Serpell instruction | Seek the appropriate licence and investigate complete licensed use; progressive sequencing remains an open scientific question | `docs/research/CBARQ_PROJECT_IMPACT_2026-09-06.md`; Serpell communications record |
+| Progressive administration of complete C-BARQ | `EMOPET_PROPOSAL / NOT_PROVEN` | EMOPET product/science question scheduled for discussion with Prof. Serpell | Do not implement as psychometrically equivalent until qualified review establishes acceptable sequencing/time/completion rules | Serpell communications record |
+| C-BARQ commercial use | `LICENSING_REQUIRED / NOT_PROVEN` | Serpell flagged likely licensing; provided Neetu Singh Amin as UPenn contact | No production/commercial use should be represented as licensed until written licensing evidence exists | Serpell communications record |
+| 08/09 C-BARQ licensing enquiry | `SCHEDULED_NOT_SENT` at 2026-09-07 control point | Gmail scheduled message `1a0811a9c1fa0ba0` | Verify actual transmission after scheduled time before marking licensing discussion active | Serpell communications record |
+| `C-BARQ — contexts relevant to EMOPET ELI behavioral state interpretation.pdf` transmission | `NOT_PROVEN` | Exact connected-Gmail filename search returned no result on 2026-09-07 | May remain an EMOPET internal/proposed framework, but do not call it sent for Serpell review without evidence | Attachment register + Serpell record |
+| `Controlled Research Brief — ELI Co-Pilot Training Proposal.pdf` transmission | `NOT_PROVEN` | Exact connected-Gmail filename search returned no result on 2026-09-07 | May remain an EMOPET internal/proposed framework, but do not call it sent for Serpell review without evidence | Attachment register + Serpell record |
+| ELI scientific validation by Prof. Serpell | `NOT_PROVEN` | No controlled evidence establishing validation | Must not be claimed | Serpell communications record |
+| UPenn institutional partnership / endorsement | `NOT_PROVEN` | No controlled institutional agreement | Must not be claimed | Serpell communications record |
+
+## Exact Serpell attribution currently controlled
+
+The July 2026 feedback is materially narrower and more useful than the shorthand previously recorded.
+
+Professor Serpell's key points were:
+
+1. owners should not be asked to make subjective judgements about how extreme a behaviour is;
+2. changing C-BARQ wording risks invalidating items;
+3. eliminating individual items can be acceptable when they do not load strongly on their factor/subscale, with Flint et al. cited as a source for item factor loadings;
+4. commercial use is likely to require a licence from the University of Pennsylvania;
+5. Neetu Singh Amin is the licensing contact he provided.
+
+EMOPET's later choice to pursue the complete instrument is a **project decision made after this feedback**. Do not collapse those two layers.
 
 ## Framework-change rule
 
