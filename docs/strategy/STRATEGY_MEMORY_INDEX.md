@@ -13,17 +13,24 @@ Each strategic record should distinguish:
 - `PROJECT_DECISION` — internal decision that governs downstream work until changed;
 - `HYPOTHESIS` / `WORKING_ASSUMPTION` — proposition used for planning but not established fact;
 - `SOURCE_VERIFIED` — factual input supported by a dated controlled source;
+- `FOUNDER PRINCIPLE / GOVERNANCE DIRECTION` — a strategic principle adopted by the project but not yet necessarily formalised contractually or institutionally;
 - `SUPERSEDED` — historical direction retained for traceability.
 
 ## Current strategic records
 
 | Domain | Current status | Core direction | Controlled file |
 |---|---|---|---|
+| Founder strategic locks | `PROJECT_DECISION` | MAT + TAG + app; relationship-first; bounded ELI/Breiz; evidence contract; trust and maturity discipline | `docs/strategy/FOUNDER_STRATEGIC_LOCKS_2026-09-07.md` |
 | Project calendar | `PROJECT_DECISION` | 2026 is preparation/structuring; launch phase and Brittany ecosystem integration begin in 2027 | `docs/strategy/PROJECT_TIMELINE_2026_2027.md` |
+| Brittany regional entry | `WORKING_STRATEGY + PROJECT_DECISION ON 2027 START` | Prove locally; Lorient/Brittany as first operational ecosystem; scale region by region after evidence | `docs/strategy/BRETAGNE_LOCAL_ENTRY_AND_COMMUNITY_DOCTRINE_2026-09-07.md` |
 | Competitive positioning | `CONTROLLED WATCH / WORKING_STRATEGY` | Differentiate through EMOPET's evidence contract, MAT + TAG multi-context architecture, provenance, confidence gating and abstention rather than generic health-tracker claims | `docs/strategy/COMPETITIVE_LANDSCAPE.md` |
 | France veterinary channel | `WORKING_STRATEGY` | D2C as primary volume/margin engine; veterinarians as prescribers, credibility partners and early adopters rather than the primary retail channel | `docs/strategy/VETERINARY_PRESCRIBER_CHANNEL_FRANCE_2026-09-06.md` |
 | Veterinary founding loop | `WORKING_STRATEGY` | Build an early practitioner feedback/prescriber loop before scaling a veterinary commercial channel | `docs/strategy/VETERINARY_FOUNDING_12_PRESCRIBER_LOOP_2026-09-06.md` |
+| Data / trust / business model | `PROJECT_DECISION` | Private by default; contribution by choice; never paywall fundamental trust/control; base-case data revenue remains €0 until evidenced | `docs/strategy/DATA_TRUST_AND_BUSINESS_MODEL_DOCTRINE_2026-09-07.md` |
 | Scientific framework governance | `CONTROLLED SCIENTIFIC MEMORY` | Preserve proposal → feedback → recommendation → adoption → validation/licensing distinctions | `docs/research/SCIENTIFIC_FRAMEWORK_REGISTER.md` |
+| Scientific commons/governance | `FOUNDER PRINCIPLE / GOVERNANCE DIRECTION` | Scientific findings should remain examinable/publishable under governance while protectable engineering/IP remains controlled | `docs/strategy/SCIENCE_COMMONS_AND_GOVERNANCE_2026-09-07.md` |
+| Industrial / supplier authority | `PROJECT_DECISION` | Suppliers may own scoped engineering execution; EMOPET retains architecture, freeze and release authority | `docs/strategy/INDUSTRIAL_AND_FUNDING_GOVERNANCE_2026-09-07.md` |
+| Funding strategy | `PROJECT_DECISION / EVIDENCE-GATED` | Public support should buy proof/de-risking; eligibility and awards are never inferred; sequence funding before major irreversible spend | `docs/strategy/INDUSTRIAL_AND_FUNDING_GOVERNANCE_2026-09-07.md` |
 | Market intelligence | `CONTROLLED RESEARCH INDEX` | Market numbers, segmentation and channel assumptions require dated sources and explicit confidence | `docs/market/MARKET_INTELLIGENCE_REGISTER.md` |
 
 ## Strategy record minimum fields
@@ -61,6 +68,21 @@ This is especially important for:
 - data/AI strategy;
 - regulatory positioning;
 - partnership strategy.
+
+## Chat-to-repository rule
+
+Material strategic decisions reached in project chats must be imported into the repository when they affect downstream work.
+
+Do **not** import every brainstorming idea. Import items that establish or materially change:
+
+- a project decision;
+- a founder lock;
+- a working strategy used for planning;
+- a governance principle;
+- a rejected/superseded direction whose history matters;
+- a major hypothesis that is shaping spend or product architecture.
+
+When a chat-derived decision has supporting controlled files, link them. When it is a pure founder/project decision, label it as such rather than inventing external evidence.
 
 ## 2027 planning authority
 
