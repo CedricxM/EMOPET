@@ -18,6 +18,7 @@ This folder preserves historical project lineage, supersessions and retrospectiv
 - `SUPPLIER_CHAIN_LINEAGE_JUNE_JULY_2026.md` — historical Landztop / Yz-Link / ESAT hybrid-chain model and its limits before the active MOKO workstream.
 - `BRAND_AND_PUBLIC_COPY_LINEAGE_MAY_AUG_2026.md` — reconstructs the May→August brand sequence and records current repository drift against the controlled August brand authority.
 - `CURRENT_REPO_HARDWARE_TERMINOLOGY_DRIFT_AUDIT_2026-09-07.md` — distinguishes valid current coaxial-PVDF modality naming from stale MAT topology/maturity assumptions in code and documentation.
+- `CURRENT_UI_ELI_PRODUCT_DRIFT_AUDIT_2026-09-07.md` — records where the current web prototype's global ELI/wellbeing/WQI/RSI score semantics conflict with later founder/product doctrine.
 - `HISTORICAL_STRATEGY_SUPERSESSIONS_2026-09-07.md` — high-risk historical concepts that must not silently re-enter current authority.
 
 ## Scientific communication lineage
