@@ -43,8 +43,8 @@ export const usePreferencesStore = create<PreferencesState>((set) => ({
   manualPresenceOverride: null,
   consents: {
     location_opt_in: false,
-    community_opt_in: true,
-    vet_export_opt_in: true,
+    community_opt_in: false,
+    vet_export_opt_in: false,
   },
   setSubscriptionTier: (subscriptionTier) => set({ subscriptionTier }),
   setHardwareLinked: (hardwareLinked) => set({ hardwareLinked }),
