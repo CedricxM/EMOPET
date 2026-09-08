@@ -81,9 +81,23 @@ expectContains('backend/api/routes/directory.ts', [
   'UNVERIFIED_DEMO',
 ]);
 
+// The master seed may delegate the environment gate to a dedicated policy
+// module. Audit both sides of that boundary so a harmless refactor does not
+// fail merely because the literal env var moved, while the fail-closed control
+// still has to exist and be invoked by the seed entrypoint.
 expectContains('backend/db/seeds/index.ts', [
-  'EMOPET_ALLOW_DEMO_LOCAL_DIRECTORY_SEED',
+  'isDemoLocalDirectorySeedAllowed',
+  'getSanitizedDemoLocalDirectorySeed',
   'EMOPET_ALLOW_LEGACY_FREEMIUM_TEMPLATE_SEED',
+]);
+
+expectContains('backend/db/seeds/local-directory-policy.ts', [
+  'EMOPET_ALLOW_DEMO_LOCAL_DIRECTORY_SEED',
+  "=== '1'",
+  "LOCAL_DIRECTORY_SEED_AUTHORITY = 'UNVERIFIED_DEMO_ONLY'",
+  'ratingAvg: null',
+  'verified: false',
+  "source: 'demo_unverified'",
 ]);
 
 const seedIndex = text('backend/db/seeds/index.ts');
