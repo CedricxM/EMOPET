@@ -8,9 +8,24 @@ import {
   getConsentRecordsForUser,
   recordConsent,
 } from '../dist/api/services/feature-progress.js';
-import { community } from '../dist/api/routes/community.js';
+import {
+  community,
+  COMMUNITY_PERSISTENCE_CODE,
+} from '../dist/api/routes/community.js';
 
 const COMMUNITY_ID = '11111111-1111-4111-8111-111111111111';
+
+function buildCommunityApp({ userId } = {}) {
+  const app = new Hono();
+  if (userId) {
+    app.use('*', async (c, next) => {
+      c.set('userId', userId);
+      await next();
+    });
+  }
+  app.route('/api/community', community);
+  return app;
+}
 
 test('feature-progress returns a stable visible-but-locked snapshot', () => {
   const payload = buildFeatureProgress('u_feature_progress');
@@ -37,15 +52,10 @@ test('recordConsent stores purpose and context for contextual prompts', () => {
   assert.equal(records.at(-1)?.status, 'accepted');
 });
 
-test('community UGC creation is blocked until rules are accepted', async () => {
-  const app = new Hono();
-  app.use('*', async (c, next) => {
-    c.set('userId', 'u_rules');
-    await next();
-  });
-  app.route('/api/community', community);
+test('community mutation never invents a demo identity when auth context is missing', async () => {
+  const app = buildCommunityApp();
 
-  const blockedResponse = await app.request('/api/community/posts', {
+  const response = await app.request('/api/community/posts', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -58,9 +68,38 @@ test('community UGC creation is blocked until rules are accepted', async () => {
     }),
   });
 
-  assert.equal(blockedResponse.status, 403);
+  assert.equal(response.status, 401);
+  const body = await response.json();
+  assert.equal(body.code, 'AUTHENTICATION_REQUIRED');
+});
 
-  const acceptedResponse = await app.request('/api/community/rules/accept', {
+test('community create-post fails closed until durable Product V1 persistence exists', async () => {
+  const app = buildCommunityApp({ userId: 'u_runtime_truth' });
+
+  const response = await app.request('/api/community/posts', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      communityId: COMMUNITY_ID,
+      type: 'moment',
+      content: 'Bonjour la communaute',
+      mediaUrls: [],
+    }),
+  });
+
+  assert.equal(response.status, 503);
+  const body = await response.json();
+  assert.equal(body.code, COMMUNITY_PERSISTENCE_CODE);
+  assert.equal(body.operation, 'create_post');
+  assert.notEqual(response.status, 201);
+});
+
+test('community rules acceptance does not claim durable success while persistence is unavailable', async () => {
+  const app = buildCommunityApp({ userId: 'u_runtime_truth' });
+
+  const response = await app.request('/api/community/rules/accept', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -68,20 +107,19 @@ test('community UGC creation is blocked until rules are accepted', async () => {
     body: JSON.stringify({ accepted: true }),
   });
 
-  assert.equal(acceptedResponse.status, 201);
+  assert.equal(response.status, 503);
+  const body = await response.json();
+  assert.equal(body.code, COMMUNITY_PERSISTENCE_CODE);
+  assert.equal(body.operation, 'accept_rules');
+});
 
-  const allowedResponse = await app.request('/api/community/posts', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      communityId: COMMUNITY_ID,
-      type: 'moment',
-      content: 'Bonjour la communaute',
-      mediaUrls: [],
-    }),
-  });
+test('community reads fail closed instead of returning placeholder empty success', async () => {
+  const app = buildCommunityApp({ userId: 'u_runtime_truth' });
 
-  assert.equal(allowedResponse.status, 201);
+  const response = await app.request(`/api/community/${COMMUNITY_ID}/feed`);
+
+  assert.equal(response.status, 503);
+  const body = await response.json();
+  assert.equal(body.code, COMMUNITY_PERSISTENCE_CODE);
+  assert.equal(body.operation, 'read_feed');
 });
