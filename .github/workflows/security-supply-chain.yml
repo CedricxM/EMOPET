@@ -109,7 +109,7 @@ jobs:
           test "$WEBBUILD_EXIT" -eq 0
 
   authority-gates:
-    name: Rights + product + professional sharing authority gates
+    name: Rights + product + content + professional sharing authority gates
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -128,6 +128,8 @@ jobs:
         run: pnpm professional-share:audit
       - name: Enforce mobile Home authority gate
         run: pnpm mobile-home:audit
+      - name: Enforce legacy freemium quarantine gate
+        run: pnpm legacy-freemium:audit
 
   semgrep-sast:
     name: Semgrep SAST
