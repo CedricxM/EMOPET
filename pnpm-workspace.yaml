@@ -10,6 +10,11 @@ allowBuilds:
 minimumReleaseAge: 10080
 blockExoticSubdeps: true
 trustPolicy: no-downgrade
+# semver@6.3.1 is required by Babel's legacy 6.x range. It is a known
+# provenance-gap false positive for pnpm no-downgrade, so keep the exception
+# exact rather than weakening trust checks globally.
+trustPolicyExclude:
+  - semver@6.3.1
 minimumReleaseAgeExclude:
   - js-yaml@4.3.1
   - fast-uri@3.1.7
