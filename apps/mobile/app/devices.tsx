@@ -3,18 +3,7 @@ import { Image, Pressable, StyleSheet, Text, View, type ImageSourcePropType } fr
 
 import { ScreenContainer } from '../src/components/ui';
 import { usePreferencesStore } from '../src/store';
-import { fontFamily } from '../src/theme';
-
-const visual = {
-  bg: '#F5EEE7',
-  ink: '#221E72',
-  muted: '#787786',
-  surface: 'rgba(255,255,255,0.92)',
-  border: 'rgba(34,30,114,0.06)',
-  teal: '#35BEB2',
-  tealSoft: '#DDF4F1',
-  tealInk: '#137C74',
-} as const;
+import { colors, fontFamily } from '../src/theme';
 
 export default function DevicesScreen() {
   const hardwareLinked = usePreferencesStore((s) => s.hardwareLinked);
@@ -40,32 +29,32 @@ export default function DevicesScreen() {
       <Text style={styles.kicker}>APPAREILS</Text>
       <Text style={styles.title}>MAT & TAG</Text>
       <Text style={styles.intro}>
-        Des objets présents, pas envahissants. Leur rôle est de rendre le contexte plus solide, pas de prendre la place de la relation.
+        Deux surfaces complémentaires : MAT qualifie le contexte de repos, TAG apporte de la continuité mobile et contextuelle. Leur présence ne vaut jamais conclusion sur l’état intérieur du chien.
       </Text>
 
       <DeviceCard
         label="MAT"
-        title={hardwareLinked ? 'Disponible' : 'À associer'}
-        detail="Le lit de repos conserve son volume et sa présence physique. La technologie reste en dessous."
+        title={hardwareLinked ? 'Associé' : 'À associer'}
+        detail="Surface de repos instrumentée et contexte de référence qualifié. Les chaînes de mesure restent soumises à leurs gates de qualité et de publication."
         image={require('../assets/v2/mat-board.jpg')}
-        imageLabel="Vue produit du MAT EMOPET, lit de repos rembourré bleu nuit"
-        state={hardwareLinked ? 'Au repos' : 'Non associé'}
+        imageLabel="Vue produit du MAT EMOPET, surface de repos rembourrée"
+        state={hardwareLinked ? 'Associé' : 'Non associé'}
       />
 
       <DeviceCard
         label="TAG"
-        title={hardwareLinked ? 'Connecté' : 'À associer'}
-        detail="Le module s’intègre au collier textile comme un seul objet, sans langage médical ni instrumentation visuelle."
+        title={hardwareLinked ? 'Associé' : 'À associer'}
+        detail="Continuité mobile et contextuelle autour du chien. Les données du TAG restent des sources d’observation, pas un diagnostic ni un récit émotionnel."
         image={require('../assets/v2/tag-product.jpg')}
         imageLabel="Vue produit du TAG EMOPET intégré à un collier textile"
-        state={hardwareLinked ? 'Porté' : 'Non associé'}
+        state={hardwareLinked ? 'Associé' : 'Non associé'}
       />
 
       <View style={styles.principleCard} accessibilityRole="summary">
         <Text style={styles.principleKicker}>PRINCIPE</Text>
         <Text style={styles.principleTitle}>Relation d’abord. Information ensuite. Technologie dessous.</Text>
         <Text style={styles.principleBody}>
-          Les appareils apportent du contexte et de la continuité. Ils ne produisent pas, à eux seuls, une vérité sur l’état intérieur du chien.
+          MAT et TAG apportent du contexte et de la continuité. ELI doit encore qualifier la provenance, la qualité, les limites et l’incertitude avant toute publication admissible.
         </Text>
       </View>
     </ScreenContainer>
@@ -109,14 +98,16 @@ function DeviceCard({ label, title, detail, state, image, imageLabel }: DeviceCa
         </View>
       </View>
 
-      <Text style={styles.detail} importantForAccessibility="no-hide-descendants">{detail}</Text>
+      <Text style={styles.detail} importantForAccessibility="no-hide-descendants">
+        {detail}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
-    backgroundColor: visual.bg,
+    backgroundColor: colors.bg,
   },
   backButton: {
     alignSelf: 'flex-start',
@@ -128,21 +119,21 @@ const styles = StyleSheet.create({
     opacity: 0.62,
   },
   backText: {
-    color: visual.ink,
+    color: colors.fg,
     fontFamily: fontFamily.sansSemi,
     fontSize: 14,
     fontWeight: '700',
   },
   kicker: {
-    color: visual.muted,
-    fontFamily: fontFamily.sansSemi,
+    color: colors.accent,
+    fontFamily: fontFamily.mono,
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 1.25,
   },
   title: {
     marginTop: 6,
-    color: visual.ink,
+    color: colors.fgStrong,
     fontFamily: fontFamily.serif,
     fontSize: 34,
     fontWeight: '500',
@@ -151,7 +142,7 @@ const styles = StyleSheet.create({
   intro: {
     marginTop: 8,
     marginBottom: 20,
-    color: visual.muted,
+    color: colors.fgMuted,
     fontFamily: fontFamily.sans,
     fontSize: 14,
     lineHeight: 21,
@@ -160,14 +151,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     padding: 14,
     borderRadius: 28,
-    backgroundColor: visual.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: visual.border,
+    borderColor: colors.border,
   },
   imageFrame: {
     overflow: 'hidden',
     borderRadius: 22,
-    backgroundColor: '#FBF6F0',
+    backgroundColor: colors.bgAlt,
   },
   image: {
     width: '100%',
@@ -181,15 +172,15 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   label: {
-    color: visual.muted,
-    fontFamily: fontFamily.sansSemi,
+    color: colors.fgMuted,
+    fontFamily: fontFamily.mono,
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.9,
   },
   deviceTitle: {
     marginTop: 3,
-    color: visual.ink,
+    color: colors.fgStrong,
     fontFamily: fontFamily.serif,
     fontSize: 21,
     fontWeight: '500',
@@ -201,23 +192,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: visual.tealSoft,
+    backgroundColor: colors.accent2Soft,
   },
   badgeDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: visual.teal,
+    backgroundColor: colors.accent2,
   },
   badgeText: {
-    color: visual.tealInk,
+    color: colors.accent2Hover,
     fontFamily: fontFamily.sansSemi,
     fontSize: 10,
     fontWeight: '700',
   },
   detail: {
     marginTop: 10,
-    color: visual.muted,
+    color: colors.fgMuted,
     fontFamily: fontFamily.sans,
     fontSize: 13,
     lineHeight: 19,
@@ -226,18 +217,18 @@ const styles = StyleSheet.create({
     marginTop: 6,
     padding: 20,
     borderRadius: 26,
-    backgroundColor: '#221E72',
+    backgroundColor: colors.surfaceDark,
   },
   principleKicker: {
-    color: 'rgba(255,255,255,0.64)',
-    fontFamily: fontFamily.sansSemi,
+    color: colors.accentSoftBorder,
+    fontFamily: fontFamily.mono,
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 1.2,
   },
   principleTitle: {
     marginTop: 7,
-    color: '#FFFFFF',
+    color: colors.fgOnDark,
     fontFamily: fontFamily.serif,
     fontSize: 21,
     fontWeight: '500',
@@ -245,7 +236,7 @@ const styles = StyleSheet.create({
   },
   principleBody: {
     marginTop: 10,
-    color: 'rgba(255,255,255,0.74)',
+    color: colors.bgSunk,
     fontFamily: fontFamily.sans,
     fontSize: 13,
     lineHeight: 20,
