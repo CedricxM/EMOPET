@@ -2,6 +2,7 @@
 
 **Control date:** 2026-09-08  
 **Status:** `CANDIDATE / OPEN / REQUIRES_FOUNDER_APPROVAL`  
+**Authority effect:** `NONE UNTIL APPROVED`  
 **Related authority:** `docs/strategy/FOUNDER_STRATEGIC_LOCKS_2026-09-07.md`  
 **Related gate:** issue `#230`, `G-MAT-INCREMENTAL-VALUE-01`
 
@@ -36,6 +37,7 @@ Under this hierarchy, the strategic thesis explains what EMOPET is testing; the 
 
 Until Founder approval and closure of the evidence gate:
 
+- this file does not supersede or amend Founder Strategic Locks;
 - do not describe MAT as commercially indispensable;
 - do not claim MAT makes EMOPET generically more accurate than wearables;
 - do not use the Founder lock to bypass the incremental-value experiment;
