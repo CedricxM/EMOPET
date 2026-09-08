@@ -9,126 +9,134 @@ import {
   UserBlockCreateSchema,
 } from '@emopet/shared';
 
-import {
-  acceptCommunityRules,
-  canCreateCommunityContent,
-  containsObjectionableContent,
-  createUgcReport,
-  createUserBlock,
-} from '../services/feature-progress.js';
 import { requireDogOwnership } from '../middleware/authorization.js';
 
 const community = new Hono();
 
-function getUserId(c: unknown): string {
-  return String((c as { get: (key: string) => unknown }).get('userId') ?? 'demo-user');
+const COMMUNITY_PERSISTENCE_CODE = 'COMMUNITY_PERSISTENCE_NOT_READY';
+
+function getAuthenticatedUserId(c: unknown): string | null {
+  const value = (c as { get: (key: string) => unknown }).get('userId');
+  if (typeof value !== 'string') return null;
+  const userId = value.trim();
+  return userId.length > 0 ? userId : null;
 }
 
-function requireCommunityRules(c: { json: (value: unknown, status?: number) => Response }): Response | null {
-  const userId = getUserId(c);
-  if (canCreateCommunityContent(userId)) {
-    return null;
-  }
+function requireAuthenticatedUser(c: unknown): string | Response {
+  const userId = getAuthenticatedUserId(c);
+  if (userId) return userId;
 
-  return c.json(
+  return (c as { json: (value: unknown, status?: number) => Response }).json(
     {
-      error: 'Accept community rules before creating public community content.',
-      cta: {
-        type: 'accept_rules',
-        label: 'Accepter les regles',
-      },
+      error: 'Authentication required.',
+      code: 'AUTHENTICATION_REQUIRED',
     },
-    403,
+    401,
   );
 }
+
+function persistenceUnavailable(
+  c: unknown,
+  operation: string,
+): Response {
+  return (c as { json: (value: unknown, status?: number) => Response }).json(
+    {
+      error: 'Community durable persistence is not available on the Product V1 backend authority.',
+      code: COMMUNITY_PERSISTENCE_CODE,
+      operation,
+      retryable: false,
+    },
+    503,
+  );
+}
+
+function requireIdentityOrResponse(c: unknown): { userId: string } | { response: Response } {
+  const result = requireAuthenticatedUser(c);
+  return typeof result === 'string' ? { userId: result } : { response: result };
+}
+
+// Community release authority is Hono + durable Product V1 persistence.
+// Until that persistence exists, this router fails closed instead of returning
+// placeholder empties, synthetic identities or success responses for data that
+// cannot be read back durably.
 
 // ── Communities ─────────────────────────────────────────────────
 
 community.get('/', async (c) => {
-  // TODO: list communities user belongs to
-  return c.json({ communities: [] });
+  const identity = requireIdentityOrResponse(c);
+  if ('response' in identity) return identity.response;
+  return persistenceUnavailable(c, 'list_communities');
 });
 
 community.get('/:id', async (c) => {
-  const id = c.req.param('id');
-  return c.json({ id });
+  const identity = requireIdentityOrResponse(c);
+  if ('response' in identity) return identity.response;
+  return persistenceUnavailable(c, 'get_community');
 });
 
 community.get('/:id/feed', async (c) => {
-  const id = c.req.param('id');
-  // TODO: paginated feed
-  return c.json({ communityId: id, posts: [] });
+  const identity = requireIdentityOrResponse(c);
+  if ('response' in identity) return identity.response;
+  return persistenceUnavailable(c, 'read_feed');
 });
 
 community.post('/rules/accept', zValidator('json', CommunityRulesAcceptSchema), async (c) => {
-  const body = c.req.valid('json');
-  return c.json(acceptCommunityRules(getUserId(c), body), 201);
+  const identity = requireIdentityOrResponse(c);
+  if ('response' in identity) return identity.response;
+  return persistenceUnavailable(c, 'accept_rules');
 });
 
 community.post('/reports', zValidator('json', UgcReportCreateSchema), async (c) => {
-  const body = c.req.valid('json');
-  return c.json(createUgcReport(getUserId(c), body), 201);
+  const identity = requireIdentityOrResponse(c);
+  if ('response' in identity) return identity.response;
+  return persistenceUnavailable(c, 'create_report');
 });
 
 community.post('/blocks', zValidator('json', UserBlockCreateSchema), async (c) => {
-  const body = c.req.valid('json');
-  return c.json(createUserBlock(getUserId(c), body), 201);
+  const identity = requireIdentityOrResponse(c);
+  if ('response' in identity) return identity.response;
+  return persistenceUnavailable(c, 'create_block');
 });
 
 // ── Posts ────────────────────────────────────────────────────────
 
 community.post('/posts', zValidator('json', PostCreateSchema), async (c) => {
-  const guard = requireCommunityRules(c);
-  if (guard) {
-    return guard;
-  }
-  const body = c.req.valid('json');
-  if (containsObjectionableContent(body.content)) {
-    return c.json({ error: 'Content rejected by community safety filter.' }, 422);
-  }
-  return c.json({ message: 'posted', communityId: body.communityId }, 201);
+  const identity = requireIdentityOrResponse(c);
+  if ('response' in identity) return identity.response;
+  return persistenceUnavailable(c, 'create_post');
 });
 
 community.post('/comments', zValidator('json', CommentCreateSchema), async (c) => {
-  const guard = requireCommunityRules(c);
-  if (guard) {
-    return guard;
-  }
-  const body = c.req.valid('json');
-  if (containsObjectionableContent(body.content)) {
-    return c.json({ error: 'Content rejected by community safety filter.' }, 422);
-  }
-  return c.json({ message: 'commented', postId: body.postId }, 201);
+  const identity = requireIdentityOrResponse(c);
+  if ('response' in identity) return identity.response;
+  return persistenceUnavailable(c, 'create_comment');
 });
 
 // ── Events ──────────────────────────────────────────────────────
 
 community.get('/:id/events', async (c) => {
-  const id = c.req.param('id');
-  return c.json({ communityId: id, events: [] });
+  const identity = requireIdentityOrResponse(c);
+  if ('response' in identity) return identity.response;
+  return persistenceUnavailable(c, 'list_events');
 });
 
 community.post('/events', zValidator('json', EventCreateSchema), async (c) => {
-  const guard = requireCommunityRules(c);
-  if (guard) {
-    return guard;
-  }
-  const body = c.req.valid('json');
-  if (containsObjectionableContent(`${body.title} ${body.description}`)) {
-    return c.json({ error: 'Content rejected by community safety filter.' }, 422);
-  }
-  return c.json({ message: 'event_created', communityId: body.communityId }, 201);
+  const identity = requireIdentityOrResponse(c);
+  if ('response' in identity) return identity.response;
+  return persistenceUnavailable(c, 'create_event');
 });
 
 // ── Copresence ──────────────────────────────────────────────────
 
 community.get('/copresence/:dogId', async (c) => {
+  const identity = requireIdentityOrResponse(c);
+  if ('response' in identity) return identity.response;
+
   const dogId = c.req.param('dogId');
   const denied = await requireDogOwnership(c, dogId);
   if (denied) return denied;
 
-  // TODO: return copresence matches
-  return c.json({ dogId, matches: [] });
+  return persistenceUnavailable(c, 'read_copresence');
 });
 
-export { community };
+export { community, COMMUNITY_PERSISTENCE_CODE };
