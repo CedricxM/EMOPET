@@ -1,14 +1,21 @@
 /**
- * BLE service — connects to EMOPET MAT/TAG devices and parses SensorFrames.
+ * BLE service — connects to EMOPET MAT/TAG devices and parses wire frames.
  *
  * Uses react-native-ble-plx for BLE communication.
- * Frames are parsed using @emopet/ble-protocol.
+ * Raw characteristic bytes become ParsedBleSensorFrame through
+ * @emopet/ble-protocol. Feature extraction and ELI ingestion are separate
+ * downstream boundaries.
  */
 
 import { BLE_SERVICE_UUID, BLE_CHAR_SENSOR_FRAME } from '@emopet/shared';
-import { parseSensorFrame, isMatFrame, isTagFrame, type SensorFrame } from '@emopet/ble-protocol';
+import {
+  parseSensorFrame,
+  isMatFrame,
+  isTagFrame,
+  type ParsedBleSensorFrame,
+} from '@emopet/ble-protocol';
 
-export type FrameCallback = (frame: SensorFrame) => void;
+export type FrameCallback = (frame: ParsedBleSensorFrame) => void;
 
 /**
  * Start scanning for EMOPET devices.
@@ -26,7 +33,7 @@ export function startScan(
 }
 
 /**
- * Connect to a device and subscribe to SensorFrame notifications.
+ * Connect to a device and subscribe to parsed BLE frame notifications.
  */
 export async function connectAndSubscribe(
   _macAddress: string,
@@ -53,9 +60,7 @@ export async function connectAndSubscribe(
   };
 }
 
-/**
- * Utility: decode base64 string to Uint8Array.
- */
+/** Utility: decode base64 string to BLE wire bytes. */
 export function base64ToUint8Array(base64: string): Uint8Array {
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
