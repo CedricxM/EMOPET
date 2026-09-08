@@ -4,11 +4,10 @@ import { zValidator } from '@hono/zod-validator';
 import { DogCreateSchema, DogUpdateSchema } from '@emopet/shared';
 
 import { db } from '../../db/index.js';
-import { sensorSummaries } from '../../db/schema/index.js';
+import { dogs as dogsTable, sensorSummaries } from '../../db/schema/index.js';
 import {
   computePresenceComparison,
   getPresenceEventsForDog,
-  type PresenceEventInput,
 } from '../services/presence.js';
 import {
   buildVetReportPdf,
@@ -30,102 +29,94 @@ function parseReportDays(value: string | undefined): number | null {
   return Number.isInteger(parsed) && parsed >= 1 && parsed <= 30 ? parsed : null;
 }
 
-function buildFallbackPresenceEvents(): PresenceEventInput[] {
-  const now = new Date();
-  return [
-    { phoneSeen: true, timestamp: new Date(now.getTime() - 12 * 60 * 60 * 1000) },
-    { phoneSeen: false, timestamp: new Date(now.getTime() - 8 * 60 * 60 * 1000) },
-    { phoneSeen: true, timestamp: new Date(now.getTime() - 4 * 60 * 60 * 1000) },
-  ];
-}
-
-function buildFallbackSummaries(dogId: string): Array<typeof sensorSummaries.$inferSelect> {
-  const now = Date.now();
-  return [
-    {
-      id: 'fallback-1',
-      dogId,
-      timestamp: new Date(now - 11 * 60 * 60 * 1000),
-      source: 'TAG',
-      matPresenceMinutes: 28,
-      respiratoryRateMean: null,
-      respiratoryRateStd: null,
-      respiratoryRateConfidence: null,
-      weightKg: null,
-      positionChanges: null,
-      activityMinutes: 22,
-      distanceKm: 1.8,
-      vocalEvents: 3,
-      vocalEnergyMean: null,
-      postureDistribution: null,
-      agitationEvents: 2,
-      temperatureC: 15,
-      humidityPct: 74,
-      createdAt: new Date(),
-    },
-    {
-      id: 'fallback-2',
-      dogId,
-      timestamp: new Date(now - 7 * 60 * 60 * 1000),
-      source: 'TAG',
-      matPresenceMinutes: 12,
-      respiratoryRateMean: null,
-      respiratoryRateStd: null,
-      respiratoryRateConfidence: null,
-      weightKg: null,
-      positionChanges: null,
-      activityMinutes: 16,
-      distanceKm: 1.4,
-      vocalEvents: 7,
-      vocalEnergyMean: null,
-      postureDistribution: null,
-      agitationEvents: 5,
-      temperatureC: 17,
-      humidityPct: 68,
-      createdAt: new Date(),
-    },
-    {
-      id: 'fallback-3',
-      dogId,
-      timestamp: new Date(now - 3 * 60 * 60 * 1000),
-      source: 'MAT',
-      matPresenceMinutes: 36,
-      respiratoryRateMean: 22,
-      respiratoryRateStd: 1.2,
-      respiratoryRateConfidence: 0.8,
-      weightKg: 24.8,
-      positionChanges: 4,
-      activityMinutes: 10,
-      distanceKm: 0.8,
-      vocalEvents: 2,
-      vocalEnergyMean: null,
-      postureDistribution: null,
-      agitationEvents: 1,
-      temperatureC: 18,
-      humidityPct: 65,
-      createdAt: new Date(),
-    },
-  ];
-}
-
 function getUserId(c: unknown): string | undefined {
-  return (c as { get: (key: string) => unknown }).get('userId') as string | undefined;
+  const value = (c as { get: (key: string) => unknown }).get('userId');
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
+
+function requireUserId(c: { json: (value: unknown, status?: number) => Response } & unknown): string | Response {
+  const userId = getUserId(c);
+  if (userId) return userId;
+  return c.json({ error: 'unauthorized' }, 401);
+}
+
+function toDbDate(value: Date): string {
+  return value.toISOString().slice(0, 10);
+}
+
+function databaseUnavailable(
+  c: { json: (value: unknown, status?: number) => Response },
+  operation: string,
+): Response {
+  return c.json({
+    error: 'Product V1 database operation unavailable.',
+    code: 'PRODUCT_DATABASE_OPERATION_UNAVAILABLE',
+    operation,
+    retryable: true,
+  }, 503);
 }
 
 dogs.get('/', async (c) => {
-  return c.json({ dogs: [] });
+  const userId = requireUserId(c);
+  if (typeof userId !== 'string') return userId;
+
+  try {
+    const rows = await db
+      .select()
+      .from(dogsTable)
+      .where(eq(dogsTable.ownerId, userId))
+      .orderBy(dogsTable.createdAt);
+    return c.json({ dogs: rows });
+  } catch {
+    return databaseUnavailable(c, 'list_dogs');
+  }
 });
 
 dogs.post('/', zValidator('json', DogCreateSchema), async (c) => {
+  const userId = requireUserId(c);
+  if (typeof userId !== 'string') return userId;
   const body = c.req.valid('json');
-  return c.json({ message: 'created', name: body.name }, 201);
+
+  try {
+    const [created] = await db
+      .insert(dogsTable)
+      .values({
+        ownerId: userId,
+        name: body.name,
+        breed: body.breed,
+        breedFciNumber: body.breedFciNumber,
+        birthDate: toDbDate(body.birthDate),
+        sex: body.sex,
+        weight: body.weight,
+        furClass: body.furClass,
+        photoUrl: body.photo,
+      })
+      .returning();
+
+    if (!created) return databaseUnavailable(c, 'create_dog');
+    return c.json({ dog: created }, 201);
+  } catch {
+    return databaseUnavailable(c, 'create_dog');
+  }
 });
 
 dogs.get('/:id', async (c) => {
   const id = c.req.param('id');
   const denied = await requireDogOwnership(c, id);
   if (denied) return denied;
-  return c.json({ id });
+
+  const userId = getUserId(c)!;
+  try {
+    const [row] = await db
+      .select()
+      .from(dogsTable)
+      .where(and(eq(dogsTable.id, id), eq(dogsTable.ownerId, userId)))
+      .limit(1);
+    if (!row) return c.json({ error: 'not_found' }, 404);
+    return c.json({ dog: row });
+  } catch {
+    return databaseUnavailable(c, 'get_dog');
+  }
 });
 
 dogs.get('/:id/absence-comparison', async (c) => {
@@ -133,11 +124,13 @@ dogs.get('/:id/absence-comparison', async (c) => {
   const denied = await requireDogOwnership(c, id);
   if (denied) return denied;
 
-  const days = Number(c.req.query('days') ?? '14');
+  const days = parseReportDays(c.req.query('days'));
+  if (days == null) return c.json({ error: 'days must be an integer between 1 and 30' }, 400);
+
   const since = new Date();
   since.setDate(since.getDate() - days);
 
-  let summaries: Array<typeof sensorSummaries.$inferSelect> = [];
+  let summaries: Array<typeof sensorSummaries.$inferSelect>;
   try {
     summaries = await db
       .select()
@@ -145,11 +138,12 @@ dogs.get('/:id/absence-comparison', async (c) => {
       .where(and(eq(sensorSummaries.dogId, id), gte(sensorSummaries.timestamp, since)))
       .orderBy(sensorSummaries.timestamp);
   } catch {
-    summaries = [];
+    return databaseUnavailable(c, 'absence_comparison_sensor_read');
   }
 
+  const presenceEvents = getPresenceEventsForDog(id, since);
   const comparison = computePresenceComparison(
-    (summaries.length > 0 ? summaries : buildFallbackSummaries(id)).map((item) => ({
+    summaries.map((item) => ({
       timestamp: item.timestamp,
       matPresenceMinutes: item.matPresenceMinutes ?? undefined,
       vocalEvents: item.vocalEvents ?? undefined,
@@ -158,19 +152,24 @@ dogs.get('/:id/absence-comparison', async (c) => {
       respiratoryRateConfidence: item.respiratoryRateConfidence ?? undefined,
       weightKg: item.weightKg ?? undefined,
     })),
-    getPresenceEventsForDog(id, since).length > 0
-      ? getPresenceEventsForDog(id, since)
-      : buildFallbackPresenceEvents(),
+    presenceEvents,
   );
 
   return c.json({
     dogId: id,
     days,
     comparison,
+    evidence: {
+      sensorSummaryCount: summaries.length,
+      presenceEventCount: presenceEvents.length,
+      sensorAuthority: 'POSTGRESQL',
+      presenceAuthority: 'RUNTIME_MEMORY_NOT_DURABLE',
+      syntheticFallbackUsed: false,
+    },
     message:
       comparison.gate === 'REJECT'
-        ? 'Pas assez de donnees pour comparer presence et absence.'
-        : 'Comparaison presence / absence disponible.',
+        ? 'Pas assez de donnees reelles pour comparer presence et absence.'
+        : 'Comparaison presence / absence disponible a partir des donnees observees.',
   });
 });
 
@@ -260,14 +259,54 @@ dogs.patch('/:id', zValidator('json', DogUpdateSchema), async (c) => {
   const id = c.req.param('id');
   const denied = await requireDogOwnership(c, id);
   if (denied) return denied;
-  return c.json({ id, message: 'updated' });
+
+  const userId = getUserId(c)!;
+  const body = c.req.valid('json');
+  const values: Partial<typeof dogsTable.$inferInsert> = {
+    updatedAt: new Date(),
+  };
+  if (body.name !== undefined) values.name = body.name;
+  if (body.breed !== undefined) values.breed = body.breed;
+  if (body.breedFciNumber !== undefined) values.breedFciNumber = body.breedFciNumber;
+  if (body.birthDate !== undefined) values.birthDate = toDbDate(body.birthDate);
+  if (body.sex !== undefined) values.sex = body.sex;
+  if (body.weight !== undefined) values.weight = body.weight;
+  if (body.furClass !== undefined) values.furClass = body.furClass;
+  if (body.photo !== undefined) values.photoUrl = body.photo;
+
+  try {
+    const [updated] = await db
+      .update(dogsTable)
+      .set(values)
+      .where(and(eq(dogsTable.id, id), eq(dogsTable.ownerId, userId)))
+      .returning();
+    if (!updated) return c.json({ error: 'not_found' }, 404);
+    return c.json({ dog: updated });
+  } catch {
+    return databaseUnavailable(c, 'update_dog');
+  }
 });
 
 dogs.delete('/:id', async (c) => {
   const id = c.req.param('id');
   const denied = await requireDogOwnership(c, id);
   if (denied) return denied;
-  return c.json({ id, message: 'deleted' });
+
+  const userId = getUserId(c)!;
+  try {
+    const [deleted] = await db
+      .delete(dogsTable)
+      .where(and(eq(dogsTable.id, id), eq(dogsTable.ownerId, userId)))
+      .returning({ id: dogsTable.id });
+    if (!deleted) return c.json({ error: 'not_found' }, 404);
+    return c.json({ id: deleted.id, deleted: true });
+  } catch {
+    return c.json({
+      error: 'Dog deletion could not complete while dependent data still exists.',
+      code: 'DOG_DELETE_LIFECYCLE_BLOCKED',
+      deleted: false,
+    }, 409);
+  }
 });
 
 export { dogs };
