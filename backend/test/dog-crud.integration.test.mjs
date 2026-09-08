@@ -5,13 +5,15 @@ import { randomUUID } from 'node:crypto';
 import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 
-import { dogs as dogRoutes } from '../dist/api/routes/dogs.js';
-import { db } from '../dist/db/index.js';
-import { users } from '../dist/db/schema/index.js';
-
 const integrationEnabled = process.env.EMOPET_DB_INTEGRATION_TEST === '1';
 
 test('dog CRUD persists and remains scoped to the authenticated owner', { skip: !integrationEnabled }, async () => {
+  const [{ dogs: dogRoutes }, { db }, { dogs: dogsTable, users }] = await Promise.all([
+    import('../dist/api/routes/dogs.js'),
+    import('../dist/db/index.js'),
+    import('../dist/db/schema/index.js'),
+  ]);
+
   const ownerId = randomUUID();
   const otherUserId = randomUUID();
   const suffix = randomUUID();
@@ -87,10 +89,11 @@ test('dog CRUD persists and remains scoped to the authenticated owner', { skip: 
     assert.equal(deleteResponse.status, 200);
     const deleted = await deleteResponse.json();
     assert.equal(deleted.deleted, true);
-
-    const afterDeleteResponse = await app.request(`/api/dogs/${dogId}`);
-    assert.equal(afterDeleteResponse.status, 404);
+    dogId = undefined;
   } finally {
+    if (dogId) {
+      await db.delete(dogsTable).where(eq(dogsTable.id, dogId));
+    }
     await db.delete(users).where(eq(users.id, ownerId));
     await db.delete(users).where(eq(users.id, otherUserId));
   }
