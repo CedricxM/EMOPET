@@ -11,6 +11,7 @@
     "typecheck": "turbo typecheck",
     "rights:audit": "node scripts/data/rights-gate-audit.mjs",
     "professional-share:audit": "node scripts/security/professional-share-authority-audit.mjs",
+    "consent-defaults:audit": "node scripts/privacy/consent-defaults-audit.mjs",
     "mobile-home:audit": "node scripts/mobile-home-authority-audit.mjs",
     "legacy-freemium:audit": "node scripts/content/legacy-freemium-authority-audit.mjs",
     "clean": "turbo clean && rm -rf node_modules",
