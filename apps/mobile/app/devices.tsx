@@ -1,4 +1,5 @@
-import { Image, StyleSheet, Text, View, type ImageSourcePropType } from 'react-native';
+import { router } from 'expo-router';
+import { Image, Pressable, StyleSheet, Text, View, type ImageSourcePropType } from 'react-native';
 
 import { ScreenContainer } from '../src/components/ui';
 import { usePreferencesStore } from '../src/store';
@@ -26,6 +27,16 @@ export default function DevicesScreen() {
       bottomPadding={48}
       contentStyle={styles.screen}
     >
+      <Pressable
+        onPress={() => router.back()}
+        accessibilityRole="button"
+        accessibilityLabel="Revenir à l’écran précédent"
+        hitSlop={12}
+        style={({ pressed }) => [styles.backButton, pressed ? styles.backButtonPressed : null]}
+      >
+        <Text style={styles.backText}>‹ Retour</Text>
+      </Pressable>
+
       <Text style={styles.kicker}>APPAREILS</Text>
       <Text style={styles.title}>MAT & TAG</Text>
       <Text style={styles.intro}>
@@ -37,6 +48,7 @@ export default function DevicesScreen() {
         title={hardwareLinked ? 'Disponible' : 'À associer'}
         detail="Le lit de repos conserve son volume et sa présence physique. La technologie reste en dessous."
         image={require('../assets/v2/mat-board.jpg')}
+        imageLabel="Vue produit du MAT EMOPET, lit de repos rembourré bleu nuit"
         state={hardwareLinked ? 'Au repos' : 'Non associé'}
       />
 
@@ -45,10 +57,11 @@ export default function DevicesScreen() {
         title={hardwareLinked ? 'Connecté' : 'À associer'}
         detail="Le module s’intègre au collier textile comme un seul objet, sans langage médical ni instrumentation visuelle."
         image={require('../assets/v2/tag-product.jpg')}
+        imageLabel="Vue produit du TAG EMOPET intégré à un collier textile"
         state={hardwareLinked ? 'Porté' : 'Non associé'}
       />
 
-      <View style={styles.principleCard}>
+      <View style={styles.principleCard} accessibilityRole="summary">
         <Text style={styles.principleKicker}>PRINCIPE</Text>
         <Text style={styles.principleTitle}>Relation d’abord. Information ensuite. Technologie dessous.</Text>
         <Text style={styles.principleBody}>
@@ -65,16 +78,27 @@ interface DeviceCardProps {
   detail: string;
   state: string;
   image: ImageSourcePropType;
+  imageLabel: string;
 }
 
-function DeviceCard({ label, title, detail, state, image }: DeviceCardProps) {
+function DeviceCard({ label, title, detail, state, image, imageLabel }: DeviceCardProps) {
   return (
-    <View style={styles.deviceCard}>
-      <View style={styles.imageFrame}>
-        <Image source={image} style={styles.image} resizeMode="contain" />
+    <View
+      style={styles.deviceCard}
+      accessible
+      accessibilityLabel={`${label}. ${title}. État : ${state}. ${detail}`}
+    >
+      <View style={styles.imageFrame} importantForAccessibility="no-hide-descendants">
+        <Image
+          source={image}
+          style={styles.image}
+          resizeMode="contain"
+          accessible
+          accessibilityLabel={imageLabel}
+        />
       </View>
 
-      <View style={styles.deviceHeader}>
+      <View style={styles.deviceHeader} importantForAccessibility="no-hide-descendants">
         <View>
           <Text style={styles.label}>{label}</Text>
           <Text style={styles.deviceTitle}>{title}</Text>
@@ -85,7 +109,7 @@ function DeviceCard({ label, title, detail, state, image }: DeviceCardProps) {
         </View>
       </View>
 
-      <Text style={styles.detail}>{detail}</Text>
+      <Text style={styles.detail} importantForAccessibility="no-hide-descendants">{detail}</Text>
     </View>
   );
 }
@@ -93,6 +117,21 @@ function DeviceCard({ label, title, detail, state, image }: DeviceCardProps) {
 const styles = StyleSheet.create({
   screen: {
     backgroundColor: visual.bg,
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    minHeight: 44,
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  backButtonPressed: {
+    opacity: 0.62,
+  },
+  backText: {
+    color: visual.ink,
+    fontFamily: fontFamily.sansSemi,
+    fontSize: 14,
+    fontWeight: '700',
   },
   kicker: {
     color: visual.muted,
