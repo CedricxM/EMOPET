@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'backend/db/**'
+      - 'backend/api/routes/dogs.ts'
+      - 'backend/test/dog-crud.integration.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:
@@ -36,6 +38,7 @@ jobs:
       DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
       PGPASSWORD: emopet_qa_only
       NODE_ENV: test
+      EMOPET_DB_INTEGRATION_TEST: '1'
 
     steps:
       - name: Checkout
@@ -173,5 +176,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates only disposable P0 database behavior.'
-          echo 'It does not authorize production migration, deployment, or release.'
+          echo 'This workflow validates disposable P0 database behavior, including owner-scoped dog CRUD.'
+          echo 'It does not authorize production migration, deployment, authentication, or release.'
