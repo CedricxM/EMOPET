@@ -21,23 +21,11 @@ export async function fetchAbsenceComparison(
   dogId: string,
   token?: string | null,
 ): Promise<AbsenceComparisonPayload> {
+  if (!dogId.trim()) {
+    throw new Error('Aucun chien selectionne.');
+  }
   if (!token) {
-    return {
-      dogId,
-      days: 14,
-      comparison: {
-        present_vocal_events_per_hour: 2.1,
-        absent_vocal_events_per_hour: 4.8,
-        present_imu_agitation_index_mean: 1.3,
-        absent_imu_agitation_index_mean: 3.7,
-        present_mat_rest_min: 34,
-        absent_mat_rest_min: 18,
-        effect_size: 2.03,
-        confidence: 0.62,
-        gate: 'DEGRADE',
-      },
-      message: 'Mode demo: comparaison presence / absence construite localement.',
-    };
+    throw new Error('Connexion requise pour charger une comparaison reelle.');
   }
 
   return apiRequest<AbsenceComparisonPayload>(`/api/dogs/${dogId}/absence-comparison?days=14`, {
