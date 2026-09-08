@@ -5,7 +5,9 @@ on:
     paths:
       - 'backend/db/**'
       - 'backend/api/routes/dogs.ts'
+      - 'backend/api/routes/sensors.ts'
       - 'backend/test/dog-crud.integration.test.mjs'
+      - 'backend/test/sensor-runtime.integration.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:
@@ -176,5 +178,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior, including owner-scoped dog CRUD.'
-          echo 'It does not authorize production migration, deployment, authentication, or release.'
+          echo 'This workflow validates disposable P0 database behavior, including owner-scoped dog CRUD and sensor-summary persistence.'
+          echo 'It does not authorize production migration, deployment, authentication, ELI scientific validity, or release.'
