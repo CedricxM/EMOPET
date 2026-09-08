@@ -7,6 +7,7 @@ const failures = [];
 const root = resolve('.');
 const seedIndexPath = 'backend/db/seeds/index.ts';
 const allowedLegacyPrefix = 'backend/db/seeds/freemium-templates-';
+const runtimeRoots = ['apps', 'backend', 'packages'];
 
 function read(path) {
   const absolute = resolve(path);
@@ -18,6 +19,7 @@ function read(path) {
 }
 
 function walk(directory, files = []) {
+  if (!existsSync(directory)) return files;
   for (const entry of readdirSync(directory)) {
     if (entry === 'node_modules' || entry === '.git' || entry === '.next' || entry === 'dist' || entry === 'coverage') continue;
     const absolute = resolve(directory, entry);
@@ -48,7 +50,8 @@ if (insertPosition !== -1 && (guardPosition === -1 || insertPosition < guardPosi
   failures.push(`${seedIndexPath}: legacy template insert is not visibly behind the explicit opt-in gate`);
 }
 
-for (const absolute of walk(root)) {
+const runtimeFiles = runtimeRoots.flatMap((directory) => walk(resolve(root, directory)));
+for (const absolute of runtimeFiles) {
   const path = relative(root, absolute).replaceAll('\\', '/');
   const content = readFileSync(absolute, 'utf8');
 
