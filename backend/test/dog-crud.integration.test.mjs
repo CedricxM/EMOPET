@@ -8,8 +8,14 @@ import { Hono } from 'hono';
 const integrationEnabled = process.env.EMOPET_DB_INTEGRATION_TEST === '1';
 
 test('dog CRUD persists and remains scoped to the authenticated owner', { skip: !integrationEnabled }, async () => {
-  const [{ dogs: dogRoutes, ABSENCE_COMPARISON_PERSISTENCE_CODE }, { db }, { dogs: dogsTable, users }] = await Promise.all([
+  const [
+    { dogs: dogRoutes, ABSENCE_COMPARISON_PERSISTENCE_CODE },
+    { health: healthRoutes, HEALTH_PERSISTENCE_CODE },
+    { db },
+    { dogs: dogsTable, users },
+  ] = await Promise.all([
     import('../dist/api/routes/dogs.js'),
+    import('../dist/api/routes/health.js'),
     import('../dist/db/index.js'),
     import('../dist/db/schema/index.js'),
   ]);
@@ -40,6 +46,7 @@ test('dog CRUD persists and remains scoped to the authenticated owner', { skip: 
     await next();
   });
   app.route('/api/dogs', dogRoutes);
+  app.route('/api/health', healthRoutes);
 
   let dogId;
   try {
@@ -76,6 +83,12 @@ test('dog CRUD persists and remains scoped to the authenticated owner', { skip: 
     const absenceBody = await absenceResponse.json();
     assert.equal(absenceBody.code, ABSENCE_COMPARISON_PERSISTENCE_CODE);
     assert.equal(absenceBody.operation, 'absence_comparison');
+
+    const healthResponse = await app.request(`/api/health/${dogId}`);
+    assert.equal(healthResponse.status, 503);
+    const healthBody = await healthResponse.json();
+    assert.equal(healthBody.code, HEALTH_PERSISTENCE_CODE);
+    assert.equal(healthBody.operation, 'list_entries');
 
     const patchResponse = await app.request(`/api/dogs/${dogId}`, {
       method: 'PATCH',
