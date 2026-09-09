@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
   pull-requests: read
   security-events: write
 
@@ -166,24 +167,15 @@ jobs:
         run: test "$SEMGREP_EXIT" -eq 0
 
   codeql:
-    name: CodeQL JavaScript/TypeScript (best effort)
+    name: CodeQL JavaScript/TypeScript
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: github/codeql-action/init@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
         with:
           languages: javascript-typescript
-      - name: Analyze with CodeQL
-        id: codeql-analyze
-        continue-on-error: true
+      - name: Analyze and upload CodeQL results
         uses: github/codeql-action/analyze@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
-      - name: Record best-effort CodeQL outcome
-        if: always()
-        shell: bash
-        run: |
-          echo "### CodeQL best-effort evidence" >> "$GITHUB_STEP_SUMMARY"
-          echo "Analyze outcome: ${{ steps.codeql-analyze.outcome }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "CodeQL is supplementary evidence in this workflow. Semgrep, secret scanning, dependency, regression and authority gates remain blocking." >> "$GITHUB_STEP_SUMMARY"
 
   sbom:
     name: Generate CycloneDX/SPDX SBOM
