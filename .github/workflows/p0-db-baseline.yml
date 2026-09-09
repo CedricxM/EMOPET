@@ -4,6 +4,10 @@ on:
   pull_request:
     paths:
       - 'backend/db/**'
+      - 'backend/api/routes/auth.ts'
+      - 'backend/api/middleware/auth.ts'
+      - 'backend/api/services/auth-*.ts'
+      - 'backend/test/auth-routes-postgres.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:
@@ -78,6 +82,56 @@ jobs:
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0003_architecture_upgrade.sql
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0004_v6_additions.sql
 
+      - name: AUTH-01 refresh-session constraints on draft baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "
+            INSERT INTO users (email, password_hash, name)
+            VALUES ('auth-ci@emopet.invalid', 'not-a-real-password-hash', 'Auth CI');
+          "
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "
+            INSERT INTO auth_refresh_sessions (user_id, family_id, token_hash, expires_at)
+            VALUES (
+              (SELECT id FROM users WHERE email = 'auth-ci@emopet.invalid'),
+              gen_random_uuid(),
+              repeat('a', 64),
+              NOW() + INTERVAL '1 day'
+            );
+          "
+          raw_columns="$(psql "$DATABASE_URL" -Atc "
+            SELECT count(*)
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'auth_refresh_sessions'
+              AND column_name IN ('refresh_token', 'raw_token', 'token');
+          ")"
+          test "$raw_columns" -eq 0
+          if psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "
+            INSERT INTO auth_refresh_sessions (user_id, family_id, token_hash, expires_at)
+            VALUES (
+              '33333333-3333-4333-8333-333333333333',
+              gen_random_uuid(),
+              repeat('b', 64),
+              NOW() + INTERVAL '1 day'
+            );
+          "; then
+            echo 'AUTH-01 FK negative test unexpectedly succeeded'
+            exit 1
+          fi
+          if psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "
+            INSERT INTO auth_refresh_sessions (user_id, family_id, token_hash, expires_at)
+            VALUES (
+              (SELECT id FROM users WHERE email = 'auth-ci@emopet.invalid'),
+              gen_random_uuid(),
+              repeat('a', 64),
+              NOW() + INTERVAL '1 day'
+            );
+          "; then
+            echo 'AUTH-01 token_hash uniqueness negative test unexpectedly succeeded'
+            exit 1
+          fi
+
       - name: Capture first schema
         run: |
           pg_dump --schema-only --no-owner --no-privileges "$DATABASE_URL" > /tmp/schema-a.sql
@@ -116,6 +170,12 @@ jobs:
       - name: Build backend dependency closure
         run: pnpm --filter @emopet/api... build
 
+      - name: AUTH-01 route integration on draft baseline
+        working-directory: backend
+        env:
+          AUTH_DB_INTEGRATION: '1'
+        run: node --test test/auth-routes-postgres.test.mjs
+
       - name: Generate isolated Drizzle fresh baseline
         working-directory: backend
         run: |
@@ -147,6 +207,65 @@ jobs:
         run: |
           psql "$GENERATED_DATABASE_URL" -Atc "select tablename from pg_tables where schemaname='public' order by tablename" > /tmp/tables-generated.txt
           diff -u /tmp/tables-a.txt /tmp/tables-generated.txt
+
+      - name: AUTH-01 refresh-session constraints on generated baseline
+        env:
+          GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$GENERATED_DATABASE_URL" -v ON_ERROR_STOP=1 -c "
+            INSERT INTO users (email, password_hash, name)
+            VALUES ('auth-generated-ci@emopet.invalid', 'not-a-real-password-hash', 'Auth Generated CI');
+          "
+          psql "$GENERATED_DATABASE_URL" -v ON_ERROR_STOP=1 -c "
+            INSERT INTO auth_refresh_sessions (user_id, family_id, token_hash, expires_at)
+            VALUES (
+              (SELECT id FROM users WHERE email = 'auth-generated-ci@emopet.invalid'),
+              gen_random_uuid(),
+              repeat('c', 64),
+              NOW() + INTERVAL '1 day'
+            );
+          "
+          raw_columns="$(psql "$GENERATED_DATABASE_URL" -Atc "
+            SELECT count(*)
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'auth_refresh_sessions'
+              AND column_name IN ('refresh_token', 'raw_token', 'token');
+          ")"
+          test "$raw_columns" -eq 0
+          if psql "$GENERATED_DATABASE_URL" -v ON_ERROR_STOP=1 -c "
+            INSERT INTO auth_refresh_sessions (user_id, family_id, token_hash, expires_at)
+            VALUES (
+              '44444444-4444-4444-8444-444444444444',
+              gen_random_uuid(),
+              repeat('d', 64),
+              NOW() + INTERVAL '1 day'
+            );
+          "; then
+            echo 'AUTH-01 generated FK negative test unexpectedly succeeded'
+            exit 1
+          fi
+          if psql "$GENERATED_DATABASE_URL" -v ON_ERROR_STOP=1 -c "
+            INSERT INTO auth_refresh_sessions (user_id, family_id, token_hash, expires_at)
+            VALUES (
+              (SELECT id FROM users WHERE email = 'auth-generated-ci@emopet.invalid'),
+              gen_random_uuid(),
+              repeat('c', 64),
+              NOW() + INTERVAL '1 day'
+            );
+          "; then
+            echo 'AUTH-01 generated token_hash uniqueness negative test unexpectedly succeeded'
+            exit 1
+          fi
+
+      - name: AUTH-01 route integration on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          AUTH_DB_INTEGRATION: '1'
+        run: node --test test/auth-routes-postgres.test.mjs
 
       - name: Verify generated snapshot is stable
         working-directory: backend

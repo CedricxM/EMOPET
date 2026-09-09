@@ -1,4 +1,5 @@
 export * from './users.js';
+export * from './auth-sessions.js';
 export * from './dogs.js';
 export * from './sensors.js';
 export * from './community.js';
