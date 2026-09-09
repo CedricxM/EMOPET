@@ -1,7 +1,7 @@
 # EMOPET — Durable Professional Share Backend Plan v0.1
 
-**Status:** IMPLEMENTATION PLAN / BLOCKED ON AUTH + MIGRATION BASELINE  
-**Date:** 2026-09-06  
+**Status:** IMPLEMENTATION PLAN / DB BASELINE EXECUTABLE / BLOCKED ON AUTH + RECIPIENT/TOKEN DELIVERY POLICY  
+**Date:** 2026-09-09  
 **Parent:** #64  
 **Authority:** Guardian Professional Sharing + Guardian Authority Master
 
@@ -9,7 +9,7 @@
 
 A revocable professional grant must survive process restarts and must be checked server-side on every access. An in-memory map, client preference or self-contained bearer token cannot provide the required authority.
 
-Therefore the next implementation step is deliberately blocked until the durable auth/migration baseline is controlled.
+The disposable PostgreSQL / Drizzle baseline now executes repeatably in CI. That removes the former migration-baseline execution blocker, but it does **not** authorize implementation against production or resolve identity, recipient verification or token-delivery policy.
 
 ## 2. Candidate tables
 
@@ -138,7 +138,7 @@ Grant activation/link issuance should avoid states where:
 - grant says ACTIVE but token cannot be resolved;
 - revocation succeeds in UI but token remains usable.
 
-Use DB transactions once migration/DB baseline is controlled.
+Use DB transactions once the remaining authority decisions are closed. The current disposable migration evidence proves repeatable schema execution only; it is not a production migration approval.
 
 ## 7. Scope resolver
 
@@ -174,18 +174,24 @@ Candidate default:
 
 Requires Privacy/Product review.
 
-## 9. Blockers
+## 9. Remaining blockers after exact-head DB evidence
 
-Do not implement production persistence until:
-- backend auth principal is real, not stub authority;
-- dog ownership/Guardian authority data model is controlled;
-- Drizzle migration baseline is unblocked;
-- secret/token delivery model is selected;
-- recipient verification/delivery decision exists;
-- tests can actually execute in CI/local environment.
+Do not implement production professional-share persistence until:
+- backend auth principal is real; current register/login/refresh authority still fails closed rather than establishing an account lifecycle;
+- dog ownership is bound to that trusted authenticated principal across the full Guardian authority model;
+- secret/token delivery and recipient verification policy are selected;
+- recipient-bound email/principal semantics and reissue/rotation handling are decided;
+- snapshot-vs-live semantics are approved for every share scope;
+- production migration/deployment authority exists separately from disposable CI evidence.
+
+No longer a blocker:
+- disposable PostgreSQL migration execution and repeatability;
+- backend integration-test execution in GitHub Actions.
 
 ## 10. Current safe state
 
-The old generic share path is quarantined from production, mobile no longer emits it, and shared grant types/validators exist.
+The old generic share path is quarantined from production, mobile no longer emits it, and shared grant types/validators exist. The current backend does **not** pretend that those types constitute a durable sharing service.
 
-`G-PROFESSIONAL-SHARE-DURABLE-BACKEND-01 = BLOCKED_AUTH_MIGRATION_BASELINE`
+`G-PROFESSIONAL-SHARE-DURABLE-BACKEND-01 = BLOCKED_AUTH_RECIPIENT_DELIVERY_POLICY`
+
+This status is narrower than the previous `BLOCKED_AUTH_MIGRATION_BASELINE`: the migration-baseline execution gap is closed as code evidence, while production migration authorization remains separate and open.

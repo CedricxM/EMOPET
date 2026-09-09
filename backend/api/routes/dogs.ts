@@ -1,14 +1,10 @@
-import { and, eq, gte } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { DogCreateSchema, DogUpdateSchema } from '@emopet/shared';
 
 import { db } from '../../db/index.js';
-import { dogs as dogsTable, sensorSummaries } from '../../db/schema/index.js';
-import {
-  computePresenceComparison,
-  getPresenceEventsForDog,
-} from '../services/presence.js';
+import { dogs as dogsTable } from '../../db/schema/index.js';
 import {
   buildVetReportPdf,
   createVetReportShareToken,
@@ -18,6 +14,9 @@ import {
 import { requireDogOwnership } from '../middleware/authorization.js';
 
 const dogs = new Hono();
+
+export const ABSENCE_COMPARISON_PERSISTENCE_CODE =
+  'ABSENCE_COMPARISON_PERSISTENCE_NOT_READY' as const;
 
 function legacyGenericVetShareAllowed(): boolean {
   return process.env['NODE_ENV'] !== 'production' &&
@@ -127,50 +126,13 @@ dogs.get('/:id/absence-comparison', async (c) => {
   const days = parseReportDays(c.req.query('days'));
   if (days == null) return c.json({ error: 'days must be an integer between 1 and 30' }, 400);
 
-  const since = new Date();
-  since.setDate(since.getDate() - days);
-
-  let summaries: Array<typeof sensorSummaries.$inferSelect>;
-  try {
-    summaries = await db
-      .select()
-      .from(sensorSummaries)
-      .where(and(eq(sensorSummaries.dogId, id), gte(sensorSummaries.timestamp, since)))
-      .orderBy(sensorSummaries.timestamp);
-  } catch {
-    return databaseUnavailable(c, 'absence_comparison_sensor_read');
-  }
-
-  const presenceEvents = getPresenceEventsForDog(id, since);
-  const comparison = computePresenceComparison(
-    summaries.map((item) => ({
-      timestamp: item.timestamp,
-      matPresenceMinutes: item.matPresenceMinutes ?? undefined,
-      vocalEvents: item.vocalEvents ?? undefined,
-      agitationEvents: item.agitationEvents ?? undefined,
-      respiratoryRateMean: item.respiratoryRateMean ?? undefined,
-      respiratoryRateConfidence: item.respiratoryRateConfidence ?? undefined,
-      weightKg: item.weightKg ?? undefined,
-    })),
-    presenceEvents,
-  );
-
   return c.json({
-    dogId: id,
-    days,
-    comparison,
-    evidence: {
-      sensorSummaryCount: summaries.length,
-      presenceEventCount: presenceEvents.length,
-      sensorAuthority: 'POSTGRESQL',
-      presenceAuthority: 'RUNTIME_MEMORY_NOT_DURABLE',
-      syntheticFallbackUsed: false,
-    },
-    message:
-      comparison.gate === 'REJECT'
-        ? 'Pas assez de donnees reelles pour comparer presence et absence.'
-        : 'Comparaison presence / absence disponible a partir des donnees observees.',
-  });
+    error: 'Presence/absence comparison requires durable presence-event authority before release.',
+    code: ABSENCE_COMPARISON_PERSISTENCE_CODE,
+    operation: 'absence_comparison',
+    retryable: false,
+    maturity: 'NOT_IMPLEMENTED',
+  }, 503);
 });
 
 /**

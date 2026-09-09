@@ -12,6 +12,10 @@ import {
   community,
   COMMUNITY_PERSISTENCE_CODE,
 } from '../dist/api/routes/community.js';
+import {
+  featureProgress,
+  FEATURE_PROGRESS_PERSISTENCE_CODE,
+} from '../dist/api/routes/feature-progress.js';
 
 const COMMUNITY_ID = '11111111-1111-4111-8111-111111111111';
 
@@ -27,7 +31,19 @@ function buildCommunityApp({ userId } = {}) {
   return app;
 }
 
-test('feature-progress returns a stable visible-but-locked snapshot', () => {
+function buildFeatureProgressApp({ userId } = {}) {
+  const app = new Hono();
+  if (userId) {
+    app.use('*', async (c, next) => {
+      c.set('userId', userId);
+      await next();
+    });
+  }
+  app.route('/api/feature-progress', featureProgress);
+  return app;
+}
+
+test('feature-progress prototype service returns a stable visible-but-locked snapshot', () => {
   const payload = buildFeatureProgress('u_feature_progress');
   const copresence = payload.services.find((service) => service.serviceId === 'copresence');
 
@@ -39,7 +55,7 @@ test('feature-progress returns a stable visible-but-locked snapshot', () => {
   assert.equal(copresence.progress.steps[0].key, 'community_opt_in');
 });
 
-test('recordConsent stores purpose and context for contextual prompts', () => {
+test('prototype consent service preserves purpose/context for non-release tests', () => {
   const record = recordConsent('u_consent', {
     purpose: 'location_nearby_temp',
     status: 'accepted',
@@ -50,6 +66,43 @@ test('recordConsent stores purpose and context for contextual prompts', () => {
   assert.equal(record.context, 'unlock_copresence');
   assert.equal(records.at(-1)?.purpose, 'location_nearby_temp');
   assert.equal(records.at(-1)?.status, 'accepted');
+});
+
+test('feature-progress route never invents a demo identity', async () => {
+  const app = buildFeatureProgressApp();
+  const response = await app.request('/api/feature-progress');
+
+  assert.equal(response.status, 401);
+  const body = await response.json();
+  assert.equal(body.code, 'AUTHENTICATION_REQUIRED');
+});
+
+test('feature-progress route fails closed until durable state exists', async () => {
+  const app = buildFeatureProgressApp({ userId: 'u_runtime_truth' });
+  const response = await app.request('/api/feature-progress');
+
+  assert.equal(response.status, 503);
+  const body = await response.json();
+  assert.equal(body.code, FEATURE_PROGRESS_PERSISTENCE_CODE);
+  assert.equal(body.operation, 'read_feature_progress');
+});
+
+test('consent mutation never claims durable success while persistence is unavailable', async () => {
+  const app = buildFeatureProgressApp({ userId: 'u_runtime_truth' });
+  const response = await app.request('/api/feature-progress/consents', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      purpose: 'location_nearby_temp',
+      status: 'accepted',
+      context: 'unlock_copresence',
+    }),
+  });
+
+  assert.equal(response.status, 503);
+  const body = await response.json();
+  assert.equal(body.code, FEATURE_PROGRESS_PERSISTENCE_CODE);
+  assert.equal(body.operation, 'record_consent');
 });
 
 test('community mutation never invents a demo identity when auth context is missing', async () => {

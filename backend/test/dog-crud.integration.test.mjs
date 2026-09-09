@@ -8,7 +8,7 @@ import { Hono } from 'hono';
 const integrationEnabled = process.env.EMOPET_DB_INTEGRATION_TEST === '1';
 
 test('dog CRUD persists and remains scoped to the authenticated owner', { skip: !integrationEnabled }, async () => {
-  const [{ dogs: dogRoutes }, { db }, { dogs: dogsTable, users }] = await Promise.all([
+  const [{ dogs: dogRoutes, ABSENCE_COMPARISON_PERSISTENCE_CODE }, { db }, { dogs: dogsTable, users }] = await Promise.all([
     import('../dist/api/routes/dogs.js'),
     import('../dist/db/index.js'),
     import('../dist/db/schema/index.js'),
@@ -70,6 +70,12 @@ test('dog CRUD persists and remains scoped to the authenticated owner', { skip: 
     assert.equal(getResponse.status, 200);
     const fetched = await getResponse.json();
     assert.equal(fetched.dog.id, dogId);
+
+    const absenceResponse = await app.request(`/api/dogs/${dogId}/absence-comparison?days=14`);
+    assert.equal(absenceResponse.status, 503);
+    const absenceBody = await absenceResponse.json();
+    assert.equal(absenceBody.code, ABSENCE_COMPARISON_PERSISTENCE_CODE);
+    assert.equal(absenceBody.operation, 'absence_comparison');
 
     const patchResponse = await app.request(`/api/dogs/${dogId}`, {
       method: 'PATCH',
