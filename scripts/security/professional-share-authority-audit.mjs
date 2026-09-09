@@ -19,6 +19,7 @@ function requireText(path, values) {
   for (const value of values) {
     if (!content.includes(value)) failures.push(`${path}: missing ${value}`);
   }
+  return content;
 }
 
 requireText('packages/shared/src/types/user.ts', [
@@ -34,24 +35,63 @@ requireText('packages/shared/src/types/professional-share.ts', [
   'REVOKED',
 ]);
 
-requireText('packages/shared/src/validators/professional-share.ts', [
+const shareValidators = requireText('packages/shared/src/validators/professional-share.ts', [
   'ProfessionalShareGrantCreateSchema',
+  'GuardianProfessionalShareGrantCreateSchema',
+  'GuardianProfessionalShareGrantRevokeSchema',
   'Recipient must be bound to an email or verified professional principal.',
   'accessExpiresAt must be in the future.',
+  'Research sharing is unavailable until separate consent authority is implemented.',
+  'OWNER_SELECTED_NOTES',
+  'DECLARED_CONTEXT',
 ]);
 
-const dogRoutes = read('backend/api/routes/dogs.ts');
-for (const marker of [
+if (!shareValidators.includes('const GuardianProfessionalShareRecipientSchema')) {
+  failures.push('Guardian professional-share creation must use a dedicated client-facing recipient schema');
+}
+if (shareValidators.includes("const GuardianProfessionalShareRecipientSchema = z.object({\n  displayName: z.string().trim().min(1).max(160),\n  type: ProfessionalShareRecipientTypeSchema,\n  organizationName: z.string().trim().min(1).max(200).optional(),\n  email: z.string().email().max(254),\n  principalId:")) {
+  failures.push('Guardian client-facing recipient schema must not accept principalId');
+}
+
+const dogRoutes = requireText('backend/api/routes/dogs.ts', [
   'EMOPET_ALLOW_LEGACY_GENERIC_VET_SHARE',
   'RECIPIENT_BOUND_GRANT_REQUIRED',
   'G-GUARDIAN-PROFESSIONAL-SHARE-01',
-]) {
-  if (!dogRoutes.includes(marker)) failures.push(`backend/api/routes/dogs.ts: missing ${marker}`);
-}
+  "'/:id/professional-shares'",
+  "'/:id/professional-shares/:grantId/revoke'",
+  "recipientPrincipalId: null",
+  "status: 'PENDING'",
+  "activation: 'REQUIRES_VERIFIED_PROFESSIONAL_IDENTITY'",
+]);
 
 if (!dogRoutes.includes("process.env['NODE_ENV'] !== 'production'")) {
   failures.push('legacy generic vet share must be impossible in production');
 }
+if (dogRoutes.includes("'/:id/professional-shares/:grantId/activate'")) {
+  failures.push('professional-share activation route exists before verified recipient identity authority is approved');
+}
+
+requireText('backend/db/schema/professional-sharing.ts', [
+  "pgTable('professional_share_grants'",
+  "pgTable('professional_share_access_audits'",
+  'recipientPrincipalId',
+  'accessExpiresAt',
+  "'PENDING','ACTIVE','EXPIRED','REVOKED','SUSPENDED'",
+]);
+
+requireText('backend/db/migrations/0006_professional_share_authority.sql', [
+  'CREATE TABLE IF NOT EXISTS professional_share_grants',
+  'CREATE TABLE IF NOT EXISTS professional_share_access_audits',
+  'recipient_principal_id',
+  'access_expires_at',
+]);
+
+requireText('backend/api/services/professional-share-db-authority.ts', [
+  'createProfessionalShareDbAuthority',
+  'professionalShareAccessAudits',
+  'eq(dogs.ownerId, guardianUserId)',
+  'resolveVerifiedRecipient',
+]);
 
 const mobileService = read('apps/mobile/src/services/report.ts');
 if (mobileService.includes('createVetReportShareLink')) {
