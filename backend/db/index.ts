@@ -4,6 +4,11 @@ import * as schema from './schema/index.js';
 
 const connectionString = process.env['DATABASE_URL'] ?? 'postgres://localhost:5432/emopet';
 
-const client = postgres(connectionString);
+// Test runs use disposable databases. Close idle pool connections promptly so
+// the Node test runner can exit cleanly instead of waiting on postgres sockets.
+const client = postgres(
+  connectionString,
+  process.env['NODE_ENV'] === 'test' ? { idle_timeout: 1 } : {},
+);
 export const db = drizzle(client, { schema });
 export type Database = typeof db;
