@@ -4,6 +4,7 @@ import { and, eq, gte, lte } from 'drizzle-orm';
 import { db } from '../../db/index.js';
 import { dogs, devices } from '../../db/schema/dogs.js';
 import { baselines, eliStates, sensorSummaries } from '../../db/schema/sensors.js';
+import { toGuardianAuthorizedEliExport } from '../services/data-export-policy.js';
 
 interface Variables {
   userId: string;
@@ -94,6 +95,7 @@ dataExport.get('/', async (c) => {
       'This export contains only records currently persisted by the EMOPET backend.',
       'Raw high-rate MAT/TAG streams are not persisted by the current backend schema and are therefore not fabricated.',
       'ELI states are inferred/derived data and are separated from preprocessed sensor summaries.',
+      'Guardian inferred export is publication-gated: internal valence/arousal state is excluded and ELI load is exported only when gateStatus=PUBLISH.',
     ],
   };
 
@@ -138,13 +140,7 @@ dataExport.get('/', async (c) => {
         level: 'preprocessed',
       },
     })),
-    inferred: eliRows.map((row) => ({
-      ...row,
-      provenance: {
-        level: 'inferred',
-        warning: 'Derived ELI output; do not treat as raw sensor data or a veterinary diagnosis.',
-      },
-    })),
+    inferred: eliRows.map(toGuardianAuthorizedEliExport),
     baselines: baselineRows,
     devices: deviceRows.map((row) => ({
       id: row.id,
