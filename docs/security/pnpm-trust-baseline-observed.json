@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 3,
+  "status": "phase_b_decision_package_prepared_not_authorized",
+  "inventoryComplete": true,
+  "completenessScope": "controlled baseline lock: 1427 entries verified under pinned pnpm 11.24.0 lockfile verifier",
+  "freshResolutionEquivalenceProven": false,
+  "exceptionAuthorization": false,
+  "migrationAuthorized": false,
+  "baseline": {
+    "repositoryCommit": "c099581ff8aed1e619f72ab38898fc05833b7c66",
+    "lockBlobSha": "1c5392596508047eea6d64f861abd648ed9a7666",
+    "workspaceConfigBlobSha": "d43c2b9ba214f3237a027ac136a81d6b3c923eec",
+    "lockfileVersion": "9.0",
+    "trustPolicy": "no-downgrade"
+  },
+  "batchVerification": {
+    "branch": "sec/trust-baseline-batch-inventory-probe",
+    "commit": "7c6767f7105e62a5474b83770fa5bbd19d34a1aa",
+    "workflowRunId": 33621009815,
+    "nodeVersion": "22.13.1",
+    "pnpmVerifierVersion": "11.24.0",
+    "lockEntriesVerified": 1427,
+    "trustDowngradeCount": 5,
+    "dependencyPolicyMutationDetected": false,
+    "artifactId": 9842905248,
+    "artifactDigest": "sha256:b8bca8e4df3899660bc1875f99f8de7b0cdb30786546f3f93d767b166ad6bc37",
+    "projectPackageManagerAutoSwitchHandling": "pmOnFail=ignore for diagnostic invocation only"
+  },
+  "observedTrustDowngrades": [
+    {
+      "selector": "undici-types@6.21.0",
+      "lockedVersion": "6.21.0",
+      "lockedIntegrity": "sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==",
+      "integrityStatus": "verified_from_baseline_lock",
+      "observedUnderPnpm10": true,
+      "batchVerifiedUnderPnpm11": true,
+      "classification": "historical_locked_entry",
+      "expectedToMoveDuringMigration": false,
+      "migrationExceptionApproved": false
+    },
+    {
+      "selector": "eslint-import-resolver-typescript@3.10.1",
+      "lockedVersion": "3.10.1",
+      "lockedIntegrity": "sha512-A1rHYb06zjMGAxdLSkN2fXPBwuSaQ0iO5M/hdyS0Ajj1VBaRp0sPD3dn1FhME3c/JluGFbwSxyCfqdSbtQLAHQ==",
+      "integrityStatus": "verified_from_baseline_lock",
+      "observedUnderPnpm10": true,
+      "batchVerifiedUnderPnpm11": true,
+      "classification": "historical_locked_entry",
+      "expectedToMoveDuringMigration": false,
+      "migrationExceptionApproved": false
+    },
+    {
+      "selector": "ua-parser-js@1.0.41",
+      "lockedVersion": "1.0.41",
+      "lockedIntegrity": "sha512-LbBDqdIC5s8iROCUjMbW1f5dJQTEFB1+KO9ogbvlb3nm9n4YHa5p4KTvFPWvh2Hs8gZMBuiB1/8+pdfe/tDPug==",
+      "integrityStatus": "verified_from_baseline_lock",
+      "observedUnderPnpm10": true,
+      "batchVerifiedUnderPnpm11": true,
+      "classification": "historical_locked_entry",
+      "expectedToMoveDuringMigration": false,
+      "migrationExceptionApproved": false
+    },
+    {
+      "selector": "semver@6.3.1",
+      "lockedVersion": "6.3.1",
+      "lockedIntegrity": "sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==",
+      "integrityStatus": "verified_from_baseline_lock",
+      "observedUnderPnpm10": true,
+      "batchVerifiedUnderPnpm11": true,
+      "classification": "historical_locked_entry",
+      "expectedToMoveDuringMigration": false,
+      "migrationExceptionApproved": false
+    },
+    {
+      "selector": "semver@5.7.2",
+      "lockedVersion": "5.7.2",
+      "lockedIntegrity": "sha512-cBznnQ9KjJqU67B52RMC65CMarK2600WFnbkcaiwWq3xy/5haFJlshgnpjovMVJ+Hff49d8GEn0b87C5pDQ10g==",
+      "integrityStatus": "verified_from_baseline_lock",
+      "observedUnderPnpm10": true,
+      "batchVerifiedUnderPnpm11": true,
+      "classification": "historical_locked_entry",
+      "expectedToMoveDuringMigration": false,
+      "migrationExceptionApproved": false
+    }
+  ],
+  "phaseBDecisionPackage": {
+    "decisionState": "UNDECIDED",
+    "allowedDecisions": [
+      "APPROVE_BOUNDED_EXPERIMENT",
+      "HOLD"
+    ],
+    "proposedAuthorizationScope": "one controlled pnpm 10.33.0 lock-regeneration experiment only",
+    "proposedManifestCount": 5,
+    "proposedBrowserslistTarget": "4.28.7",
+    "temporaryExceptionPersistenceAllowed": false,
+    "persistentTrustPolicyRelaxationAllowed": false,
+    "manualLockEditingAllowed": false,
+    "auditWaiverAllowed": false,
+    "hardStopConditions": [
+      "trust downgrade outside the five-selector manifest",
+      "version or integrity movement for any historical manifest selector",
+      "browserslist does not resolve to the approved patched target",
+      "unreviewed unrelated lock movement",
+      "migration-only trust bypass remains in committed policy",
+      "strict post-generation frozen install fails",
+      "HIGH/CRITICAL audit remains blocking",
+      "workspace typecheck, tests, or web build regress",
+      "generated lock is not reproducible from the reviewed procedure"
+    ],
+    "approvalRecord": {
+      "decision": null,
+      "reviewer": null,
+      "reviewedAt": null,
+      "baselineCommit": null,
+      "manifestCount": null,
+      "browserslistTarget": null,
+      "authorizationScope": null,
+      "notes": null
+    }
+  },
+  "notes": [
+    "The five-selector inventory is complete only for the 1427 entries of the controlled baseline lock under the pinned pnpm 11.24.0 verifier.",
+    "All five selectors were independently observed during bounded pnpm 10.33.0 diagnostics before the #105 STOP condition.",
+    "Fresh-resolution equivalence under pnpm 10.33.0 is not proven by this inventory.",
+    "The Phase-B decision package is a proposal only; no approval record is populated.",
+    "This manifest must not be copied into persistent trustPolicyExclude or treated as an approved migration exception list.",
+    "No lockfile or trust-policy mutation is authorized by this file."
+  ]
+}
