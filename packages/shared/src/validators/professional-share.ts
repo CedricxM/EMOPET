@@ -100,6 +100,82 @@ export const ProfessionalShareGrantCreateSchema = z.object({
   }
 });
 
+const GuardianProfessionalShareRecipientSchema = z.object({
+  displayName: z.string().trim().min(1).max(160),
+  type: ProfessionalShareRecipientTypeSchema,
+  organizationName: z.string().trim().min(1).max(200).optional(),
+  email: z.string().email().max(254),
+}).strict();
+
+const GuardianProfessionalShareWindowSchema = z.object({
+  dataFrom: z.string().datetime(),
+  dataTo: z.string().datetime(),
+  accessExpiresAt: z.string().datetime(),
+}).strict().superRefine((window, ctx) => {
+  if (Date.parse(window.dataTo) < Date.parse(window.dataFrom)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'dataTo must be on or after dataFrom.',
+      path: ['dataTo'],
+    });
+  }
+  if (Date.parse(window.accessExpiresAt) <= Date.now()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'accessExpiresAt must be in the future.',
+      path: ['accessExpiresAt'],
+    });
+  }
+});
+
+const GuardianProfessionalShareScopesSchema = z.array(ProfessionalShareScopeSchema)
+  .min(1).max(5)
+  .refine((scopes) => new Set(scopes).size === scopes.length, 'Duplicate scopes are not allowed.');
+
+/**
+ * Guardian-facing creation contract.
+ *
+ * The client may provide contact metadata, never a verified professional
+ * principal. New grants are persisted as PENDING by the server. Research and
+ * selected note/context grants stay unavailable until their separate authorities
+ * are implemented rather than being smuggled through a syntactically valid body.
+ */
+export const GuardianProfessionalShareGrantCreateSchema = z.object({
+  recipient: GuardianProfessionalShareRecipientSchema,
+  purpose: ProfessionalSharePurposeSchema,
+  purposeNote: z.string().trim().min(1).max(500).optional(),
+  scopes: GuardianProfessionalShareScopesSchema,
+  window: GuardianProfessionalShareWindowSchema,
+}).strict().superRefine((grant, ctx) => {
+  if (grant.purpose === 'OTHER_DECLARED_PURPOSE' && !grant.purposeNote) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'purposeNote is required for OTHER_DECLARED_PURPOSE.',
+      path: ['purposeNote'],
+    });
+  }
+  if (grant.purpose === 'RESEARCH_WITH_SEPARATE_CONSENT') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Research sharing is unavailable until separate consent authority is implemented.',
+      path: ['purpose'],
+    });
+  }
+  for (const blockedScope of ['OWNER_SELECTED_NOTES', 'DECLARED_CONTEXT'] as const) {
+    if (grant.scopes.includes(blockedScope)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `${blockedScope} is unavailable until selection semantics are implemented.`,
+        path: ['scopes'],
+      });
+    }
+  }
+});
+
+export const GuardianProfessionalShareGrantRevokeSchema = z.object({
+  reason: z.string().trim().min(1).max(500).optional(),
+}).strict();
+
 export const ProfessionalShareGrantRevokeSchema = z.object({
   reason: z.string().trim().min(1).max(500).optional(),
 });

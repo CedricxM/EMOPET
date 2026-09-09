@@ -1,10 +1,19 @@
 import { and, eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
-import { DogCreateSchema, DogUpdateSchema } from '@emopet/shared';
+import {
+  DogCreateSchema,
+  DogUpdateSchema,
+  GuardianProfessionalShareGrantCreateSchema,
+  GuardianProfessionalShareGrantRevokeSchema,
+  ProfessionalShareGrantIdSchema,
+} from '@emopet/shared';
 
 import { db } from '../../db/index.js';
-import { dogs as dogsTable } from '../../db/schema/index.js';
+import {
+  dogs as dogsTable,
+  professionalShareGrants,
+} from '../../db/schema/index.js';
 import {
   buildVetReportPdf,
   createVetReportShareToken,
@@ -53,6 +62,35 @@ function databaseUnavailable(
     operation,
     retryable: true,
   }, 503);
+}
+
+function toGuardianProfessionalShareGrant(row: typeof professionalShareGrants.$inferSelect) {
+  return {
+    id: row.id,
+    dogId: row.dogId,
+    recipient: {
+      displayName: row.recipientDisplayName,
+      type: row.recipientType,
+      ...(row.recipientOrganizationName
+        ? { organizationName: row.recipientOrganizationName }
+        : {}),
+      ...(row.recipientEmail ? { email: row.recipientEmail } : {}),
+    },
+    purpose: row.purpose,
+    ...(row.purposeNote ? { purposeNote: row.purposeNote } : {}),
+    scopes: row.scopes,
+    window: {
+      dataFrom: row.dataFrom.toISOString(),
+      dataTo: row.dataTo.toISOString(),
+      accessExpiresAt: row.accessExpiresAt.toISOString(),
+    },
+    status: row.status,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+    ...(row.activatedAt ? { activatedAt: row.activatedAt.toISOString() } : {}),
+    ...(row.revokedAt ? { revokedAt: row.revokedAt.toISOString() } : {}),
+    ...(row.revocationReason ? { revocationReason: row.revocationReason } : {}),
+  };
 }
 
 dogs.get('/', async (c) => {
@@ -133,6 +171,132 @@ dogs.get('/:id/absence-comparison', async (c) => {
     retryable: false,
     maturity: 'NOT_IMPLEMENTED',
   }, 503);
+});
+
+/**
+ * Guardian-side lifecycle for professional grants.
+ *
+ * Creation is deliberately PENDING. Email is contact metadata only and cannot
+ * become professional authentication. There is no activation route until an
+ * approved server-side professional identity/binding authority exists.
+ */
+dogs.post(
+  '/:id/professional-shares',
+  zValidator('json', GuardianProfessionalShareGrantCreateSchema),
+  async (c) => {
+    const id = c.req.param('id');
+    const denied = await requireDogOwnership(c, id);
+    if (denied) return denied;
+
+    const userId = getUserId(c)!;
+    const body = c.req.valid('json');
+    try {
+      const [created] = await db
+        .insert(professionalShareGrants)
+        .values({
+          guardianUserId: userId,
+          dogId: id,
+          recipientDisplayName: body.recipient.displayName,
+          recipientType: body.recipient.type,
+          recipientOrganizationName: body.recipient.organizationName,
+          recipientEmail: body.recipient.email,
+          recipientPrincipalId: null,
+          purpose: body.purpose,
+          purposeNote: body.purposeNote,
+          scopes: body.scopes,
+          dataFrom: new Date(body.window.dataFrom),
+          dataTo: new Date(body.window.dataTo),
+          accessExpiresAt: new Date(body.window.accessExpiresAt),
+          status: 'PENDING',
+          activatedAt: null,
+        })
+        .returning();
+
+      if (!created) return databaseUnavailable(c, 'create_professional_share');
+      return c.json({
+        grant: toGuardianProfessionalShareGrant(created),
+        activation: 'REQUIRES_VERIFIED_PROFESSIONAL_IDENTITY',
+      }, 201);
+    } catch {
+      return databaseUnavailable(c, 'create_professional_share');
+    }
+  },
+);
+
+dogs.get('/:id/professional-shares', async (c) => {
+  const id = c.req.param('id');
+  const denied = await requireDogOwnership(c, id);
+  if (denied) return denied;
+
+  const userId = getUserId(c)!;
+  try {
+    const rows = await db
+      .select()
+      .from(professionalShareGrants)
+      .where(and(
+        eq(professionalShareGrants.guardianUserId, userId),
+        eq(professionalShareGrants.dogId, id),
+      ))
+      .orderBy(professionalShareGrants.createdAt);
+
+    return c.json({ grants: rows.map(toGuardianProfessionalShareGrant) });
+  } catch {
+    return databaseUnavailable(c, 'list_professional_shares');
+  }
+});
+
+dogs.post('/:id/professional-shares/:grantId/revoke', async (c) => {
+  const id = c.req.param('id');
+  const denied = await requireDogOwnership(c, id);
+  if (denied) return denied;
+
+  const grantId = c.req.param('grantId');
+  if (!ProfessionalShareGrantIdSchema.safeParse(grantId).success) {
+    return c.json({ error: 'not_found' }, 404);
+  }
+
+  const rawBody = await c.req.json().catch(() => ({}));
+  const parsedBody = GuardianProfessionalShareGrantRevokeSchema.safeParse(rawBody);
+  if (!parsedBody.success) return c.json({ error: 'invalid_request' }, 400);
+
+  const userId = getUserId(c)!;
+  try {
+    const [existing] = await db
+      .select()
+      .from(professionalShareGrants)
+      .where(and(
+        eq(professionalShareGrants.id, grantId),
+        eq(professionalShareGrants.dogId, id),
+        eq(professionalShareGrants.guardianUserId, userId),
+      ))
+      .limit(1);
+
+    if (!existing) return c.json({ error: 'not_found' }, 404);
+    if (existing.status === 'REVOKED') {
+      return c.json({ grant: toGuardianProfessionalShareGrant(existing) });
+    }
+
+    const now = new Date();
+    const [revoked] = await db
+      .update(professionalShareGrants)
+      .set({
+        status: 'REVOKED',
+        revokedAt: now,
+        revocationReason: parsedBody.data.reason ?? null,
+        updatedAt: now,
+      })
+      .where(and(
+        eq(professionalShareGrants.id, grantId),
+        eq(professionalShareGrants.dogId, id),
+        eq(professionalShareGrants.guardianUserId, userId),
+      ))
+      .returning();
+
+    if (!revoked) return c.json({ error: 'not_found' }, 404);
+    return c.json({ grant: toGuardianProfessionalShareGrant(revoked) });
+  } catch {
+    return databaseUnavailable(c, 'revoke_professional_share');
+  }
 });
 
 /**
