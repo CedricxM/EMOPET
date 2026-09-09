@@ -1,114 +1,18 @@
-name: Temporary lockfile refresh
+name: Temporary lockfile migration evidence
 
 on:
-  pull_request:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  refresh:
-    if: github.actor != 'github-actions[bot]'
+  evidence:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
-          fetch-depth: 0
-
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
-        with:
-          version: 10.33.0
-
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: '20'
-
-      - name: Capture baseline lockfile size
-        shell: bash
-        run: echo "LOCK_BEFORE_SIZE=$(wc -c < pnpm-lock.yaml)" >> "$GITHUB_ENV"
-
-      - name: Temporarily disable trust re-evaluation for deterministic lock refresh
-        shell: bash
+      - name: Stop marker
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path('pnpm-workspace.yaml')
-          lines = path.read_text().splitlines()
-          output = []
-          skipping_excludes = False
-          for line in lines:
-              if line.startswith('trustPolicy:'):
-                  continue
-              if line.startswith('trustPolicyExclude:'):
-                  skipping_excludes = True
-                  continue
-              if skipping_excludes and line.startswith('  - '):
-                  continue
-              if skipping_excludes:
-                  skipping_excludes = False
-              output.append(line)
-          path.write_text('\n'.join(output) + '\n')
-          PY
-
-      - name: Regenerate lockfile from controlled workspace overrides
-        run: pnpm install --lockfile-only --no-frozen-lockfile
-
-      - name: Restore committed trust policy
-        if: always()
-        run: git checkout -- pnpm-workspace.yaml
-
-      - name: Validate regenerated lockfile scope
-        shell: bash
-        run: |
-          python - <<'PY'
-          import os
-          from pathlib import Path
-
-          path = Path('pnpm-lock.yaml')
-          text = path.read_text()
-          required = [
-              '@xmldom/xmldom@0.8.15',
-              'sharp@0.35.4',
-              'js-yaml@4.3.2',
-              'browserslist@4.28.7',
-          ]
-          forbidden = [
-              '@xmldom/xmldom@0.8.13',
-              'sharp@0.35.0',
-              'js-yaml@4.3.1',
-          ]
-          for needle in required:
-              if needle not in text:
-                  raise SystemExit(f'missing required fixed lock entry: {needle}')
-          for needle in forbidden:
-              if needle in text:
-                  raise SystemExit(f'vulnerable lock entry still present: {needle}')
-
-          before = int(os.environ['LOCK_BEFORE_SIZE'])
-          after = path.stat().st_size
-          delta = after - before
-          print(f'lockfile bytes: {before} -> {after} (delta {delta:+d})')
-          if abs(delta) > 5000:
-              raise SystemExit('lockfile churn exceeds the one-shot 5 KB safety bound')
-          PY
-          git diff --check -- pnpm-lock.yaml
-          git diff --numstat -- pnpm-lock.yaml
-          test -z "$(git status --porcelain --untracked-files=no | grep -v '^ M pnpm-lock.yaml$')"
-
-      - name: Prove frozen install under restored trust baseline
-        run: pnpm install --frozen-lockfile
-
-      - name: Commit regenerated lockfile only
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add pnpm-lock.yaml
-          if git diff --cached --quiet; then
-            echo "No lockfile changes to commit"
-            exit 0
-          fi
-          git commit -m "security: regenerate lockfile for fresh high advisories"
-          git push origin "HEAD:${{ github.head_ref || github.ref_name }}"
+          echo "This temporary workflow is intentionally non-mutating."
+          echo "Do not use broad trust disablement as migration evidence."
+          echo "A reviewed exact-selector migration manifest is required by #106 before lock regeneration."
