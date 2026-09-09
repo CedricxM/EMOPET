@@ -37,9 +37,12 @@ const index = read(seedIndexPath);
 
 for (const marker of [
   "process.env['EMOPET_ALLOW_LEGACY_FREEMIUM_TEMPLATE_SEED'] === '1'",
+  "process.env['NODE_ENV'] !== 'production'",
+  "process.env['NODE_ENV'] === 'production' && legacyFreemiumSeedRequested",
   'if (allowLegacyFreemiumTemplates)',
   'db.insert(schema.bleizFreemiumTemplates)',
-  'migration/dev authority only',
+  'non-production migration/regression authority only',
+  'historical migration/dev corpus cannot be loaded in production',
 ]) {
   if (!index.includes(marker)) failures.push(`${seedIndexPath}: missing ${marker}`);
 }
@@ -48,6 +51,12 @@ const guardPosition = index.indexOf('if (allowLegacyFreemiumTemplates)');
 const insertPosition = index.indexOf('db.insert(schema.bleizFreemiumTemplates)');
 if (insertPosition !== -1 && (guardPosition === -1 || insertPosition < guardPosition)) {
   failures.push(`${seedIndexPath}: legacy template insert is not visibly behind the explicit opt-in gate`);
+}
+
+const productionGuardPosition = index.indexOf("process.env['NODE_ENV'] !== 'production'");
+const allowPosition = index.indexOf('const allowLegacyFreemiumTemplates');
+if (allowPosition === -1 || productionGuardPosition === -1 || productionGuardPosition < allowPosition) {
+  failures.push(`${seedIndexPath}: production exclusion is not bound to the legacy seed allow decision`);
 }
 
 const runtimeFiles = runtimeRoots.flatMap((directory) => walk(resolve(root, directory)));
@@ -71,4 +80,4 @@ if (failures.length > 0) {
 }
 
 console.log('Legacy freemium authority audit PASS.');
-console.log('PASS proves the historical DB template corpus is quarantined behind an explicit migration/dev gate; it does not approve that content for release.');
+console.log('PASS proves the historical DB template corpus is quarantined behind an explicit non-production migration/regression gate; it does not approve that content for release.');
