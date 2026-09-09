@@ -105,3 +105,51 @@ export const ProfessionalShareGrantRevokeSchema = z.object({
 });
 
 export const ProfessionalShareGrantIdSchema = z.string().uuid();
+
+const UniqueProfessionalShareScopesSchema = z.array(ProfessionalShareScopeSchema)
+  .min(1).max(5)
+  .refine((scopes) => new Set(scopes).size === scopes.length, 'Duplicate scopes are not allowed.');
+
+/** Request intent only; caller-supplied identity, consent or grant state is rejected. */
+export const ProfessionalShareReadIntentSchema = z.object({
+  grantId: ProfessionalShareGrantIdSchema,
+  dogId: z.string().uuid(),
+  purpose: ProfessionalSharePurposeSchema,
+  scopes: UniqueProfessionalShareScopesSchema,
+  dataFrom: z.string().datetime(),
+  dataTo: z.string().datetime(),
+}).strict().refine((value) => Date.parse(value.dataTo) >= Date.parse(value.dataFrom), {
+  message: 'dataTo must be on or after dataFrom.',
+  path: ['dataTo'],
+});
+
+/**
+ * Validate persisted authority at access time. Do not reuse the creation schema:
+ * expired/revoked records must remain readable so the policy can deny explicitly.
+ * Only fields used by the access policy survive this projection.
+ */
+export const ProfessionalShareAccessRecordSchema = z.object({
+  id: ProfessionalShareGrantIdSchema,
+  guardianUserId: z.string().trim().min(1).max(128),
+  dogId: z.string().uuid(),
+  recipient: ProfessionalShareRecipientSchema,
+  purpose: ProfessionalSharePurposeSchema,
+  purposeNote: z.string().trim().min(1).max(500).optional(),
+  scopes: UniqueProfessionalShareScopesSchema,
+  window: z.object({
+    dataFrom: z.string().datetime(),
+    dataTo: z.string().datetime(),
+    accessExpiresAt: z.string().datetime(),
+  }),
+  status: ProfessionalShareGrantStatusSchema,
+  createdAt: z.string().datetime(),
+  activatedAt: z.string().datetime().optional(),
+  revokedAt: z.string().datetime().optional(),
+}).superRefine((grant, ctx) => {
+  if (Date.parse(grant.window.dataTo) < Date.parse(grant.window.dataFrom)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Invalid stored data window.' });
+  }
+  if (grant.purpose === 'OTHER_DECLARED_PURPOSE' && !grant.purposeNote) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Declared purpose is missing.' });
+  }
+});
