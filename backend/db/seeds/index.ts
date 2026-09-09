@@ -32,8 +32,17 @@ const connectionString = process.env['DATABASE_URL'] ?? 'postgres://localhost:54
 const client = postgres(connectionString);
 const db = drizzle(client, { schema });
 
-const allowLegacyFreemiumTemplates =
+const legacyFreemiumSeedRequested =
   process.env['EMOPET_ALLOW_LEGACY_FREEMIUM_TEMPLATE_SEED'] === '1';
+const allowLegacyFreemiumTemplates =
+  process.env['NODE_ENV'] !== 'production' && legacyFreemiumSeedRequested;
+
+if (process.env['NODE_ENV'] === 'production' && legacyFreemiumSeedRequested) {
+  console.error(
+    'LEGACY FREEMIUM TEMPLATE SEED REFUSED — historical migration/dev corpus cannot be loaded in production.',
+  );
+  process.exit(1);
+}
 
 async function seed() {
   console.log('Seeding controlled EMOPET data...\n');
@@ -48,7 +57,8 @@ async function seed() {
 
   // 2. Historical freemium templates
   // These pre-date the canonical Breiz release authority and are quarantined by
-  // default under #235. They may be loaded only for explicit migration/dev work.
+  // default under #235. They may be loaded only for explicit non-production
+  // migration/regression work and are never release content authority.
   const allTemplates = [
     ...HEALTH_SEASONAL_TEMPLATES,
     ...BEHAVIOR_EDUCATION_TEMPLATES,
@@ -62,7 +72,7 @@ async function seed() {
   ];
 
   if (allowLegacyFreemiumTemplates) {
-    console.warn('LEGACY FREEMIUM TEMPLATE SEED ENABLED — migration/dev authority only.');
+    console.warn('LEGACY FREEMIUM TEMPLATE SEED ENABLED — non-production migration/regression authority only.');
     console.log(`Seeding ${allTemplates.length} historical freemium templates...`);
     for (const template of allTemplates) {
       await db.insert(schema.bleizFreemiumTemplates).values(template).onConflictDoNothing();
