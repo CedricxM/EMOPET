@@ -10,11 +10,14 @@ allowBuilds:
 minimumReleaseAge: 10080
 blockExoticSubdeps: true
 trustPolicy: no-downgrade
-# semver@6.3.1 is required by Babel's legacy 6.x range. It is a known
-# provenance-gap false positive for pnpm no-downgrade, so keep the exception
-# exact rather than weakening trust checks globally.
+# Exact provenance-gap exceptions only. semver@6.3.1 is required by Babel's
+# legacy 6.x range. undici-types@6.21.0 is already present in the controlled
+# lock baseline; pnpm flags it during full lock regeneration because an earlier
+# release carried stronger provenance evidence. Keep both exceptions exact
+# rather than weakening trust checks globally.
 trustPolicyExclude:
   - semver@6.3.1
+  - undici-types@6.21.0
 minimumReleaseAgeExclude:
   - fast-uri@3.1.7
   - browserslist@4.28.7
