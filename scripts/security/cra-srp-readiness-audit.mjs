@@ -50,15 +50,18 @@ for (const marker of requiredProcedureMarkers) {
   if (!procedure.includes(marker)) failures.push(`${procedurePath}: missing existing deadline/outage gate: ${marker}`);
 }
 
-const forbiddenRunbookPatterns = [
-  /Secondary AR (?:is|must be|should be) pre-registered/i,
-  /Primary \+ Secondary already (?:ready|active|registered) in SRP/i,
-  /wait for (?:Primary )?verification before (?:submitting|reporting)/i,
-  /share the Primary(?: AR)?['’]s (?:EU Login|MFA|credentials)/i,
+// Reject only affirmative operational instructions. Safety text is expected to
+// quote the forbidden assumptions while explicitly negating them, so broad
+// substring regexes would create false positives on the very controls we need.
+const forbiddenAffirmativeLines = [
+  /^\s*[-*]\s*Secondary AR (?:is|must be|should be) pre-registered\b/im,
+  /^\s*[-*]\s*Primary \+ Secondary already (?:ready|active|registered) in SRP\b/im,
+  /^\s*[-*]\s*wait for (?:Primary )?verification before (?:submitting|reporting)\b/im,
+  /^\s*[-*]\s*(?:use|share) the Primary(?: AR)?['’]s (?:EU Login|MFA|credentials)\b/im,
 ];
 
-for (const pattern of forbiddenRunbookPatterns) {
-  if (pattern.test(runbook)) failures.push(`${runbookPath}: forbidden launch assumption matched ${pattern}`);
+for (const pattern of forbiddenAffirmativeLines) {
+  if (pattern.test(runbook)) failures.push(`${runbookPath}: forbidden affirmative launch instruction matched ${pattern}`);
 }
 
 if (failures.length) {
