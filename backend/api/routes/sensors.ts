@@ -4,13 +4,14 @@ import { zValidator } from '@hono/zod-validator';
 import { PresenceEventCreateSchema, SensorSummaryCreateSchema } from '@emopet/shared';
 
 import { db } from '../../db/index.js';
-import { baselines, eliStates, sensorSummaries } from '../../db/schema/index.js';
+import { baselines, sensorSummaries } from '../../db/schema/index.js';
 import { requireDogOwnership } from '../middleware/authorization.js';
 import { toGuardianAuthorizedBaselineExport } from '../services/data-export-policy.js';
 
 const sensors = new Hono();
 
 const PRESENCE_PERSISTENCE_NOT_READY = 'PRESENCE_PERSISTENCE_NOT_READY' as const;
+const ELI_RUNTIME_NOT_IMPLEMENTED = 'ELI_RUNTIME_NOT_IMPLEMENTED' as const;
 
 function databaseUnavailable(
   c: { json: (value: unknown, status?: number) => Response },
@@ -48,6 +49,25 @@ function presencePersistenceUnavailable(
     operation,
     retryable: false,
   }, 503);
+}
+
+function eliRuntimeUnavailable(
+  c: {
+    header: (name: string, value: string) => void;
+    json: (value: unknown, status?: number) => Response;
+  },
+  dogId: string,
+  operation: 'get_latest_eli_state' | 'list_eli_history',
+): Response {
+  c.header('Cache-Control', 'private, no-store');
+  return c.json({
+    error: 'eli_runtime_not_implemented',
+    code: ELI_RUNTIME_NOT_IMPLEMENTED,
+    dogId,
+    operation,
+    maturity: 'NOT_IMPLEMENTED',
+    retryable: false,
+  }, 501);
 }
 
 sensors.post('/summaries', zValidator('json', SensorSummaryCreateSchema), async (c) => {
@@ -111,17 +131,10 @@ sensors.get('/eli/:dogId', async (c) => {
   const denied = await requireDogOwnership(c, dogId);
   if (denied) return denied;
 
-  try {
-    const [latest] = await db
-      .select()
-      .from(eliStates)
-      .where(eq(eliStates.dogId, dogId))
-      .orderBy(desc(eliStates.timestamp))
-      .limit(1);
-    return c.json({ dogId, eli: latest ?? null });
-  } catch {
-    return databaseUnavailable(c, 'get_latest_eli_state');
-  }
+  // Persistence schema alone is not a live ELI producer. Until one authoritative
+  // orchestration/projection path exists under #118/#124, fail honestly rather
+  // than expose whatever historical/internal row may happen to be persisted.
+  return eliRuntimeUnavailable(c, dogId, 'get_latest_eli_state');
 });
 
 sensors.get('/eli/:dogId/history', async (c) => {
@@ -129,19 +142,7 @@ sensors.get('/eli/:dogId/history', async (c) => {
   const denied = await requireDogOwnership(c, dogId);
   if (denied) return denied;
 
-  const range = parseRange(c.req.query('range') ?? '7d');
-  if (!range) return c.json({ error: 'range must be one of 1h, 6h, 12h, 24h, 48h, 72h, 7d, 14d, 30d' }, 400);
-
-  try {
-    const history = await db
-      .select()
-      .from(eliStates)
-      .where(and(eq(eliStates.dogId, dogId), gte(eliStates.timestamp, range.since)))
-      .orderBy(desc(eliStates.timestamp));
-    return c.json({ dogId, range: range.label, history });
-  } catch {
-    return databaseUnavailable(c, 'list_eli_history');
-  }
+  return eliRuntimeUnavailable(c, dogId, 'list_eli_history');
 });
 
 sensors.get('/baseline/:dogId', async (c) => {
@@ -185,4 +186,4 @@ sensors.get('/presence/:dogId/events', async (c) => {
   return presencePersistenceUnavailable(c, 'list_presence_events');
 });
 
-export { sensors, PRESENCE_PERSISTENCE_NOT_READY };
+export { sensors, PRESENCE_PERSISTENCE_NOT_READY, ELI_RUNTIME_NOT_IMPLEMENTED };
