@@ -62,6 +62,11 @@ const dogRoutes = requireText('backend/api/routes/dogs.ts', [
   "recipientPrincipalId: null",
   "status: 'PENDING'",
   "activation: 'REQUIRES_VERIFIED_PROFESSIONAL_IDENTITY'",
+  'withGuardianProfessionalShareAuthority',
+  "db.transaction(async (tx)",
+  ".for('share')",
+  ".for('update')",
+  "'Cache-Control', 'private, no-store'",
 ]);
 
 if (!dogRoutes.includes("process.env['NODE_ENV'] !== 'production'")) {

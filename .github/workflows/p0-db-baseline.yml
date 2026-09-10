@@ -5,8 +5,11 @@ on:
     paths:
       - 'backend/db/**'
       - 'backend/api/routes/dogs.ts'
+      - 'backend/api/services/professional-share-*.ts'
+      - 'packages/shared/src/validators/professional-share.ts'
       - 'backend/api/routes/sensors.ts'
       - 'backend/test/dog-crud.integration.test.mjs'
+      - 'backend/test/professional-share-*.test.mjs'
       - 'backend/test/sensor-runtime.integration.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
       - '.github/workflows/p0-db-baseline.yml'

@@ -1,5 +1,5 @@
-import { and, eq } from 'drizzle-orm';
-import { Hono } from 'hono';
+import { and, eq, sql } from 'drizzle-orm';
+import { Hono, type MiddlewareHandler } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import {
   DogCreateSchema,
@@ -62,6 +62,32 @@ function databaseUnavailable(
     operation,
     retryable: true,
   }, 503);
+}
+
+type ShareTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/**
+ * Recheck current ownership in the transaction that consumes it. FOR SHARE
+ * blocks owner changes/deletion until commit (FOR KEY SHARE would not).
+ * Always lock dog before grant; keep network calls outside these transactions.
+ */
+async function withGuardianProfessionalShareAuthority<T>(
+  userId: string,
+  dogId: string,
+  operation: (tx: ShareTransaction) => Promise<T>,
+): Promise<T | null> {
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`SET LOCAL lock_timeout = '5s'`);
+    await tx.execute(sql`SET LOCAL statement_timeout = '10s'`);
+    const [ownedDog] = await tx
+      .select({ id: dogsTable.id })
+      .from(dogsTable)
+      .where(and(eq(dogsTable.id, dogId), eq(dogsTable.ownerId, userId)))
+      .limit(1)
+      .for('share');
+    if (!ownedDog) return null;
+    return operation(tx);
+  });
 }
 
 function toGuardianProfessionalShareGrant(row: typeof professionalShareGrants.$inferSelect) {
@@ -180,6 +206,13 @@ dogs.get('/:id/absence-comparison', async (c) => {
  * become professional authentication. There is no activation route until an
  * approved server-side professional identity/binding authority exists.
  */
+const privateProfessionalShareResponse: MiddlewareHandler = async (c, next) => {
+  c.header('Cache-Control', 'private, no-store');
+  await next();
+};
+dogs.use('/:id/professional-shares', privateProfessionalShareResponse);
+dogs.use('/:id/professional-shares/*', privateProfessionalShareResponse);
+
 dogs.post(
   '/:id/professional-shares',
   zValidator('json', GuardianProfessionalShareGrantCreateSchema),
@@ -191,9 +224,8 @@ dogs.post(
     const userId = getUserId(c)!;
     const body = c.req.valid('json');
     try {
-      const [created] = await db
-        .insert(professionalShareGrants)
-        .values({
+      const created = await withGuardianProfessionalShareAuthority(userId, id, async (tx) => {
+        const [row] = await tx.insert(professionalShareGrants).values({
           guardianUserId: userId,
           dogId: id,
           recipientDisplayName: body.recipient.displayName,
@@ -210,9 +242,12 @@ dogs.post(
           status: 'PENDING',
           activatedAt: null,
         })
-        .returning();
+          .returning();
+        if (!row) throw new Error('Professional share was not persisted');
+        return row;
+      });
 
-      if (!created) return databaseUnavailable(c, 'create_professional_share');
+      if (!created) return c.json({ error: 'not_found' }, 404);
       return c.json({
         grant: toGuardianProfessionalShareGrant(created),
         activation: 'REQUIRES_VERIFIED_PROFESSIONAL_IDENTITY',
@@ -230,15 +265,16 @@ dogs.get('/:id/professional-shares', async (c) => {
 
   const userId = getUserId(c)!;
   try {
-    const rows = await db
+    const rows = await withGuardianProfessionalShareAuthority(userId, id, async (tx) => tx
       .select()
       .from(professionalShareGrants)
       .where(and(
         eq(professionalShareGrants.guardianUserId, userId),
         eq(professionalShareGrants.dogId, id),
       ))
-      .orderBy(professionalShareGrants.createdAt);
+      .orderBy(professionalShareGrants.createdAt));
 
+    if (!rows) return c.json({ error: 'not_found' }, 404);
     return c.json({ grants: rows.map(toGuardianProfessionalShareGrant) });
   } catch {
     return databaseUnavailable(c, 'list_professional_shares');
@@ -255,42 +291,53 @@ dogs.post('/:id/professional-shares/:grantId/revoke', async (c) => {
     return c.json({ error: 'not_found' }, 404);
   }
 
-  const rawBody = await c.req.json().catch(() => ({}));
+  const bodyText = await c.req.text();
+  let rawBody: unknown;
+  try {
+    rawBody = bodyText.trim() ? JSON.parse(bodyText) : {};
+  } catch {
+    return c.json({ error: 'invalid_request' }, 400);
+  }
   const parsedBody = GuardianProfessionalShareGrantRevokeSchema.safeParse(rawBody);
   if (!parsedBody.success) return c.json({ error: 'invalid_request' }, 400);
 
   const userId = getUserId(c)!;
   try {
-    const [existing] = await db
-      .select()
-      .from(professionalShareGrants)
-      .where(and(
-        eq(professionalShareGrants.id, grantId),
-        eq(professionalShareGrants.dogId, id),
-        eq(professionalShareGrants.guardianUserId, userId),
-      ))
-      .limit(1);
+    const revoked = await withGuardianProfessionalShareAuthority(userId, id, async (tx) => {
+      const [existing] = await tx
+        .select()
+        .from(professionalShareGrants)
+        .where(and(
+          eq(professionalShareGrants.id, grantId),
+          eq(professionalShareGrants.dogId, id),
+          eq(professionalShareGrants.guardianUserId, userId),
+        ))
+        .limit(1)
+        .for('update');
 
-    if (!existing) return c.json({ error: 'not_found' }, 404);
-    if (existing.status === 'REVOKED') {
-      return c.json({ grant: toGuardianProfessionalShareGrant(existing) });
-    }
+      if (!existing) return null;
+      // Serialize the read and write: concurrent retries must preserve the
+      // first committed revocation timestamp and reason.
+      if (existing.status === 'REVOKED') return existing;
 
-    const now = new Date();
-    const [revoked] = await db
-      .update(professionalShareGrants)
-      .set({
-        status: 'REVOKED',
-        revokedAt: now,
-        revocationReason: parsedBody.data.reason ?? null,
-        updatedAt: now,
-      })
-      .where(and(
-        eq(professionalShareGrants.id, grantId),
-        eq(professionalShareGrants.dogId, id),
-        eq(professionalShareGrants.guardianUserId, userId),
-      ))
-      .returning();
+      const now = new Date();
+      const [row] = await tx
+        .update(professionalShareGrants)
+        .set({
+          status: 'REVOKED',
+          revokedAt: now,
+          revocationReason: parsedBody.data.reason ?? null,
+          updatedAt: now,
+        })
+        .where(and(
+          eq(professionalShareGrants.id, grantId),
+          eq(professionalShareGrants.dogId, id),
+          eq(professionalShareGrants.guardianUserId, userId),
+        ))
+        .returning();
+      if (!row) throw new Error('Professional share revocation was not persisted');
+      return row;
+    });
 
     if (!revoked) return c.json({ error: 'not_found' }, 404);
     return c.json({ grant: toGuardianProfessionalShareGrant(revoked) });
