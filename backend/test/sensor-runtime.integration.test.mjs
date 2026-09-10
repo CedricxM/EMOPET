@@ -8,9 +8,10 @@ import { Hono } from 'hono';
 import {
   sensors as sensorRoutes,
   PRESENCE_PERSISTENCE_NOT_READY,
+  ELI_RUNTIME_NOT_IMPLEMENTED,
 } from '../dist/api/routes/sensors.js';
 import { db } from '../dist/db/index.js';
-import { dogs, sensorSummaries, users } from '../dist/db/schema/index.js';
+import { baselines, dogs, eliStates, sensorSummaries, users } from '../dist/db/schema/index.js';
 
 const integrationEnabled = process.env.EMOPET_DB_INTEGRATION_TEST === '1';
 
@@ -78,10 +79,36 @@ test('sensor summaries persist while non-durable presence fails closed', { skip:
     const listed = await listResponse.json();
     assert.ok(listed.summaries.some((summary) => summary.id === created.summary.id));
 
-    const latestEliResponse = await app.request(`/api/sensors/eli/${dogId}`);
-    assert.equal(latestEliResponse.status, 200);
-    const latestEli = await latestEliResponse.json();
-    assert.equal(latestEli.eli, null);
+    // Historical persisted rows are not an authoritative live ELI producer.
+    await db.insert(eliStates).values({
+      dogId, timestamp: new Date(), arousal: 0.7, valence: -0.4,
+      load: 72, confidence: 0.9, gateStatus: 'PUBLISH', sensorReliability: {},
+    });
+    for (const [path, operation] of [
+      [`/api/sensors/eli/${dogId}`, 'get_latest_eli_state'],
+      [`/api/sensors/eli/${dogId}/history`, 'list_eli_history'],
+    ]) {
+      const response = await app.request(path);
+      assert.equal(response.status, 501);
+      assert.equal(response.headers.get('cache-control'), 'private, no-store');
+      assert.deepEqual(await response.json(), {
+        error: 'eli_runtime_not_implemented', code: ELI_RUNTIME_NOT_IMPLEMENTED,
+        dogId, operation, maturity: 'NOT_IMPLEMENTED', retryable: false,
+      });
+    }
+
+    await db.insert(baselines).values({
+      dogId, startedAt: new Date(), validHours: 24, established: 1,
+      metrics: { valence: -0.4, nested: { internalOnly: 'must-not-be-disclosed' } },
+    });
+    const baselineResponse = await app.request(`/api/sensors/baseline/${dogId}`);
+    assert.equal(baselineResponse.status, 200);
+    const baselineBody = await baselineResponse.json();
+    assert.equal(baselineBody.baseline.dogId, dogId);
+    assert.equal(baselineBody.baseline.validHours, 24);
+    assert.equal(baselineBody.baseline.metricsStatus, 'WITHHELD_PENDING_DISCLOSURE_AUTHORITY');
+    assert.equal('metrics' in baselineBody.baseline, false);
+    assert.equal(JSON.stringify(baselineBody).includes('must-not-be-disclosed'), false);
 
     const presenceResponse = await app.request(`/api/sensors/presence/${dogId}/events`, {
       method: 'POST',
@@ -100,7 +127,15 @@ test('sensor summaries persist while non-durable presence fails closed', { skip:
     currentUserId = otherUserId;
     const crossOwnerResponse = await app.request(`/api/sensors/summaries/${dogId}?range=24h`);
     assert.equal(crossOwnerResponse.status, 404);
+    for (const path of [
+      `/api/sensors/eli/${dogId}`, `/api/sensors/eli/${dogId}/history`,
+      `/api/sensors/baseline/${dogId}`,
+    ]) {
+      assert.equal((await app.request(path)).status, 404);
+    }
   } finally {
+    await db.delete(baselines).where(eq(baselines.dogId, dogId));
+    await db.delete(eliStates).where(eq(eliStates.dogId, dogId));
     await db.delete(sensorSummaries).where(eq(sensorSummaries.dogId, dogId));
     await db.delete(dogs).where(eq(dogs.id, dogId));
     await db.delete(users).where(eq(users.id, ownerId));
