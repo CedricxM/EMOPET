@@ -4,10 +4,15 @@ on:
   pull_request:
     paths:
       - 'backend/db/**'
+      - 'backend/api/routes/auth.ts'
+      - 'backend/api/middleware/auth.ts'
+      - 'backend/api/services/auth-*.ts'
       - 'backend/api/routes/dogs.ts'
       - 'backend/api/services/professional-share-*.ts'
       - 'packages/shared/src/validators/professional-share.ts'
+      - 'packages/shared/src/validators/index.ts'
       - 'backend/api/routes/sensors.ts'
+      - 'backend/test/auth-*.test.mjs'
       - 'backend/test/dog-crud.integration.test.mjs'
       - 'backend/test/professional-share-*.test.mjs'
       - 'backend/test/sensor-runtime.integration.test.mjs'
@@ -156,6 +161,14 @@ jobs:
           psql "$GENERATED_DATABASE_URL" -Atc "select tablename from pg_tables where schemaname='public' order by tablename" > /tmp/tables-generated.txt
           diff -u /tmp/tables-a.txt /tmp/tables-generated.txt
 
+      - name: AUTH-01 route integration on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          AUTH_DB_INTEGRATION: '1'
+          EMOPET_DB_INTEGRATION_TEST: '0'
+        run: node --test test/auth-routes-postgres.test.mjs
+
       - name: Verify generated snapshot is stable
         working-directory: backend
         run: |
@@ -181,5 +194,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior, including owner-scoped dog CRUD and sensor-summary persistence.'
-          echo 'It does not authorize production migration, deployment, authentication, ELI scientific validity, or release.'
+          echo 'This workflow validates disposable P0 database behavior, including owner-scoped dog CRUD, sensor-summary persistence, professional-sharing candidates, and AUTH-01 session behavior.'
+          echo 'It does not authorize production migration, deployment, identity-provider selection, email verification, MFA, ELI scientific validity, or release.'

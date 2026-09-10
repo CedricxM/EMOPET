@@ -214,13 +214,13 @@ export const HealthEntryCreateSchema = z.object({
 // ── Auth Validators ─────────────────────────────────────────────
 
 export const RegisterSchema = z.object({
-  email: z.string().email(),
+  email: z.string().trim().email(),
   password: z.string().min(8).max(128),
-  name: z.string().min(1).max(100),
+  name: z.string().trim().min(1).max(100),
 });
 
 export const LoginSchema = z.object({
-  email: z.string().email(),
+  email: z.string().trim().email(),
   password: z.string().min(1),
 });
 
