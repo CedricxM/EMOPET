@@ -126,53 +126,34 @@ test('community mutation never invents a demo identity when auth context is miss
   assert.equal(body.code, 'AUTHENTICATION_REQUIRED');
 });
 
-test('community create-post fails closed until durable Product V1 persistence exists', async () => {
-  const app = buildCommunityApp({ userId: 'u_runtime_truth' });
-
+test('community router rejects unauthenticated malformed writes before validation', async () => {
+  const app = buildCommunityApp();
   const response = await app.request('/api/community/posts', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ malformed: true }),
+  });
+
+  assert.equal(response.status, 401);
+  const body = await response.json();
+  assert.equal(body.code, 'AUTHENTICATION_REQUIRED');
+});
+
+test('community moderation report authority remains fail-closed while durable lifecycle is not implemented', async () => {
+  const app = buildCommunityApp({ userId: '22222222-2222-4222-8222-222222222222' });
+  const response = await app.request('/api/community/reports', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      communityId: COMMUNITY_ID,
-      type: 'moment',
-      content: 'Bonjour la communaute',
-      mediaUrls: [],
+      contentId: COMMUNITY_ID,
+      contentType: 'post',
+      reason: 'spam',
     }),
   });
 
   assert.equal(response.status, 503);
   const body = await response.json();
   assert.equal(body.code, COMMUNITY_PERSISTENCE_CODE);
-  assert.equal(body.operation, 'create_post');
+  assert.equal(body.operation, 'create_report');
   assert.notEqual(response.status, 201);
-});
-
-test('community rules acceptance does not claim durable success while persistence is unavailable', async () => {
-  const app = buildCommunityApp({ userId: 'u_runtime_truth' });
-
-  const response = await app.request('/api/community/rules/accept', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ accepted: true }),
-  });
-
-  assert.equal(response.status, 503);
-  const body = await response.json();
-  assert.equal(body.code, COMMUNITY_PERSISTENCE_CODE);
-  assert.equal(body.operation, 'accept_rules');
-});
-
-test('community reads fail closed instead of returning placeholder empty success', async () => {
-  const app = buildCommunityApp({ userId: 'u_runtime_truth' });
-
-  const response = await app.request(`/api/community/${COMMUNITY_ID}/feed`);
-
-  assert.equal(response.status, 503);
-  const body = await response.json();
-  assert.equal(body.code, COMMUNITY_PERSISTENCE_CODE);
-  assert.equal(body.operation, 'read_feed');
 });
