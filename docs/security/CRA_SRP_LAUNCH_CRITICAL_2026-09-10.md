@@ -5,6 +5,8 @@ Status: `LAUNCH-CRITICAL OPERATIONAL CONTROL / OPEN HUMAN EVIDENCE / NOT LEGAL S
 Authority date: `2026-09-10`
 Source guidance date: `2026-09-09`
 
+Source recheck: `2026-09-10`. The official registration page now displays **Last updated: 10 September 2026**. The 9 September date above records the initial operational trigger. The recheck confirms invitation-only Secondary registration after Primary verification, seven-day invitation expiry, and reporting during pending Primary validation. ENISA also advises initiating SRP registration when a specific notification is needed; preparing personal EU Login/MFA and the off-SRP package does not require pre-emptive SRP registration. Human access and tabletop evidence remains open.
+
 This runbook supplements `CRA_INCIDENT_RESPONSE.md` for the 11 September 2026 CRA reporting launch. Where an older pre-launch assumption conflicts with the Assigned Representative registration mechanics below, this runbook controls the operational preparation.
 
 ## 1. New ENISA registration constraint
