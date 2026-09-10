@@ -4,7 +4,10 @@ import { and, eq, gte, lte } from 'drizzle-orm';
 import { db } from '../../db/index.js';
 import { dogs, devices } from '../../db/schema/dogs.js';
 import { baselines, eliStates, sensorSummaries } from '../../db/schema/sensors.js';
-import { toGuardianAuthorizedEliExport } from '../services/data-export-policy.js';
+import {
+  toGuardianAuthorizedBaselineExport,
+  toGuardianAuthorizedEliExport,
+} from '../services/data-export-policy.js';
 
 interface Variables {
   userId: string;
@@ -13,7 +16,7 @@ interface Variables {
 interface ExportProvenance {
   source: 'EMOPET_BACKEND';
   generatedAt: string;
-  schemaVersion: 'p0-data-act-v1';
+  schemaVersion: 'p0-data-act-v2';
   notes: string[];
 }
 
@@ -40,7 +43,7 @@ function toCsv(envelope: Record<string, unknown>): string {
   pushRows('device', envelope['devices']);
   pushRows('preprocessed_sensor_summary', envelope['preprocessed']);
   pushRows('inferred_eli_state', envelope['inferred']);
-  pushRows('baseline', envelope['baselines']);
+  pushRows('baseline_metadata', envelope['baselines']);
 
   const headers = [...new Set(rows.flatMap((row) => Object.keys(row)))];
   const lines = [headers.map(csvField).join(',')];
@@ -57,6 +60,9 @@ function toCsv(envelope: Record<string, unknown>): string {
  * This endpoint therefore reports raw data as unavailable rather than fabricating it.
  * If/when raw streams become part of the production data plane they must be added here
  * with units, timestamps, quality flags and device/firmware provenance.
+ *
+ * Persisted derived state is not automatically Guardian-disclosable. ELI and baseline
+ * rows pass through explicit Guardian projection functions before JSON/CSV serialization.
  */
 dataExport.get('/', async (c) => {
   const userId = c.get('userId');
@@ -90,17 +96,18 @@ dataExport.get('/', async (c) => {
   const provenance: ExportProvenance = {
     source: 'EMOPET_BACKEND',
     generatedAt: new Date().toISOString(),
-    schemaVersion: 'p0-data-act-v1',
+    schemaVersion: 'p0-data-act-v2',
     notes: [
       'This export contains only records currently persisted by the EMOPET backend.',
       'Raw high-rate MAT/TAG streams are not persisted by the current backend schema and are therefore not fabricated.',
       'ELI states are inferred/derived data and are separated from preprocessed sensor summaries.',
       'Guardian inferred export is publication-gated: internal valence/arousal state is excluded and ELI load is exported only when gateStatus=PUBLISH.',
+      'Baseline lifecycle metadata is exposed, but opaque baseline metrics are withheld pending explicit Guardian disclosure authority.',
     ],
   };
 
   const envelope = {
-    exportVersion: 'p0-data-act-v1',
+    exportVersion: 'p0-data-act-v2',
     generatedAt: provenance.generatedAt,
     subject: {
       userId,
@@ -141,7 +148,7 @@ dataExport.get('/', async (c) => {
       },
     })),
     inferred: eliRows.map(toGuardianAuthorizedEliExport),
-    baselines: baselineRows,
+    baselines: baselineRows.map(toGuardianAuthorizedBaselineExport),
     devices: deviceRows.map((row) => ({
       id: row.id,
       dogId: row.dogId,
@@ -168,13 +175,14 @@ dataExport.get('/', async (c) => {
 /**
  * Machine-readable capabilities endpoint for clients and third-party portability flows.
  * Direct third-party token delegation remains gated on the production auth/session slice;
- * users can already obtain a complete JSON/CSV package without that dependency.
+ * users can already obtain a JSON/CSV package without that dependency.
  */
 dataExport.get('/capabilities', (c) => c.json({
-  exportVersion: 'p0-data-act-v1',
+  exportVersion: 'p0-data-act-v2',
   formats: ['json', 'csv'],
   filters: ['dog_id', 'from', 'to'],
   directThirdPartyDelegation: 'GATED_AUTH_BASELINE_REQUIRED',
   rawHighRateStreams: 'NOT_PERSISTED_BY_CURRENT_BACKEND_SCHEMA',
-  availableLevels: ['preprocessed', 'inferred', 'device_metadata', 'baseline'],
+  baselineMetricDisclosurePolicy: 'WITHHELD_PENDING_DISCLOSURE_AUTHORITY',
+  availableLevels: ['preprocessed', 'inferred', 'device_metadata', 'baseline_metadata'],
 }));
