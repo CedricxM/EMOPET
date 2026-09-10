@@ -1,6 +1,6 @@
 # EMOPET — Référence de l'API Hono observée
 
-Cette référence décrit les routes montées par `backend/api/index.ts` sur la branche de durcissement au 2026-09-10. Elle n'est ni un contrat OpenAPI versionné ni une preuve de disponibilité en production.
+Cette référence décrit les routes montées par `backend/api/index.ts` sur la branche de durcissement au 2026-09-11. Elle n'est ni un contrat OpenAPI versionné ni une preuve de disponibilité en production.
 
 L'ancienne référence FastAPI (`/predict`, `/insights`, rapports CSV et extensions Python) ne correspond pas au serveur actif. Elle reste consultable dans l'historique Git.
 
@@ -73,16 +73,23 @@ Ces routes constituent une implémentation candidate testée sur PostgreSQL jeta
 
 ### Communauté
 
-Toutes les routes Community exigent une identité réelle dans le contexte. Aucune route ne retombe sur `demo-user`.
+Le routeur Hono Community impose désormais une identité authentifiée au niveau du routeur, avant les validateurs de corps. Aucune route ne retombe sur `demo-user`. Le cœur durable candidat utilise PostgreSQL, mais seulement pour un périmètre membre volontairement borné.
 
 | Méthode | Chemin | État observé |
 |---|---|---|
-| GET | `/api/community`, `/api/community/:id`, `/api/community/:id/feed` | `503 COMMUNITY_PERSISTENCE_NOT_READY` après authentification |
-| POST | `/api/community/rules/accept` | `503` ; aucune acceptation mémoire revendiquée comme durable |
-| POST | `/api/community/reports`, `/api/community/blocks` | `503` jusqu'à persistance durable |
-| POST | `/api/community/posts`, `/api/community/comments` | `503` jusqu'à persistance durable |
-| GET, POST | événements Community | `503` jusqu'à persistance durable |
-| GET | `/api/community/copresence/:dogId` | contrôle propriétaire puis `503` jusqu'à persistance durable |
+| GET | `/api/community` | Liste PostgreSQL des seules communautés où l'utilisateur authentifié possède déjà un `community_members` |
+| GET | `/api/community/:id` | Lecture membre uniquement ; un non-membre reçoit un `404` non énumérant |
+| GET | `/api/community/:id/feed` | Lecture durable des posts, membre + acceptation de la version courante des règles requises |
+| POST | `/api/community/rules/accept` | Acceptation explicite et versionnée persistée dans PostgreSQL ; `accepted=false` est rejeté |
+| POST | `/api/community/posts` | Création PostgreSQL, auteur imposé côté serveur, membre + règles courantes requises ; lecture ultérieure possible via le feed |
+| POST | `/api/community/comments` | Création PostgreSQL liée à un post existant ; auteur imposé côté serveur et membership du parent vérifié |
+| GET, POST | `/api/community/:id/events`, `/api/community/events` | Lecture/création PostgreSQL, membre + règles courantes requises |
+| POST | `/api/community/reports`, `/api/community/blocks` | `503 COMMUNITY_PERSISTENCE_NOT_READY` ; aucune autorité durable de modération/blocage n'est encore revendiquée |
+| GET | `/api/community/copresence/:dogId` | contrôle propriétaire puis `503 COMMUNITY_PERSISTENCE_NOT_READY` |
+
+La version candidate des règles est contrôlée côté serveur (`community-rules-v1-candidate`) afin qu'une future version différente puisse échouer fermée jusqu'à nouvelle acceptation. Ce marqueur est une version technique candidate, pas une approbation juridique ni une publication définitive des règles.
+
+Ce cœur ne crée pas encore de cycle join/leave/invite, d'autorité modérateur/admin, de découverte publique, de lifecycle reports/blocks, de politique de rétention/effacement/anonymisation, de lifecycle média ou de notification. Il reste donc `DRAFT / NOT RELEASE AUTHORITY` sous #98/#150/#223.
 
 ### Progression, consentements et waitlist
 
@@ -133,7 +140,9 @@ Les routes annuaire sont PostgreSQL, mais leur exposition reste soumise aux gate
 
 `apps/web/app/api/**` contient des Route Handlers Next.js pour Breiz, contact, journal, communauté, carte, races, contexte et administration. Ils ne sont pas montés dans l'application Hono et ne partagent pas automatiquement son middleware JWT/ownership.
 
-Ces handlers constituent un plan runtime distinct. Toute route web qui simule une persistance ou une identité doit être évaluée séparément avant d'être promue comme autorité Product V1.
+Les handlers Community historiques du plan Next.js restent un plan de démonstration non-production explicitement contenu par la branche ; ils ne constituent pas une seconde autorité Product V1 concurrente du cœur Hono/PostgreSQL.
+
+Les autres handlers web constituent toujours un plan runtime distinct. Toute route qui simule une persistance ou une identité doit être évaluée séparément avant d'être promue comme autorité Product V1.
 
 ## 6. CI et niveau de preuve
 
@@ -144,7 +153,7 @@ Sur la branche de durcissement, le workflow P0 DB exécute réellement :
 - génération/migration Drizzle isolée ;
 - intégration AUTH-01 sur la baseline générée ;
 - typecheck backend ;
-- tests backend d'intégration.
+- tests backend d'intégration, dont les candidats Community lorsque `EMOPET_DB_INTEGRATION_TEST=1`.
 
 Ce résultat est une preuve de code et de migration jetable. Il ne constitue pas une migration production, un déploiement, une validation scientifique ELI ni une autorisation de release.
 
