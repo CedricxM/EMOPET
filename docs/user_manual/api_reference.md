@@ -1,6 +1,6 @@
 # EMOPET — Référence de l'API Hono observée
 
-Cette référence décrit les routes montées par `backend/api/index.ts` sur la branche de durcissement au 2026-09-09. Elle n'est ni un contrat OpenAPI versionné ni une preuve de disponibilité en production.
+Cette référence décrit les routes montées par `backend/api/index.ts` sur la branche de durcissement au 2026-09-10. Elle n'est ni un contrat OpenAPI versionné ni une preuve de disponibilité en production.
 
 L'ancienne référence FastAPI (`/predict`, `/insights`, rapports CSV et extensions Python) ne correspond pas au serveur actif. Elle reste consultable dans l'historique Git.
 
@@ -13,7 +13,7 @@ L'ancienne référence FastAPI (`/predict`, `/insights`, rapports CSV et extensi
 
 ## 2. Authentification et autorisation
 
-`GET /health` et le groupe `/api/auth` sont publics. Toutes les autres routes `/api/*` passent par le middleware JWT.
+`GET /health` et le groupe `/api/auth` sont publics, à l'exception de `/api/auth/logout-all` qui applique lui-même `authMiddleware`. Toutes les autres routes `/api/*` passent par le middleware JWT.
 
 Pour une route protégée :
 
@@ -21,23 +21,30 @@ Pour une route protégée :
 Authorization: Bearer <token>
 ```
 
-Limites importantes :
+État et limites importants :
 
-- `JWT_SECRET` est obligatoire hors `NODE_ENV=test` ;
-- `register`, `login` et `refresh` échouent désormais explicitement avec `AUTH_BACKEND_NOT_READY` au lieu de simuler un cycle d'identité ;
+- `JWT_SECRET` est obligatoire hors `NODE_ENV=test` et doit contenir au moins 32 caractères ; les tests sans secret explicite utilisent une clé aléatoire limitée au processus ;
+- `register` et `login` utilisent désormais PostgreSQL, des mots de passe hachés et des identités utilisateur UUID canoniques ;
+- `refresh` utilise des jetons opaques dont seul le hash est persisté, avec rotation et détection de réutilisation par famille ;
+- `logout` révoque le jeton de rafraîchissement présenté et `logout-all` révoque les sessions de rafraîchissement actives de l'utilisateur authentifié ;
+- les jetons d'accès restent valides jusqu'à leur expiration bornée après une révocation de session de rafraîchissement ; aucune révocation instantanée de chaque JWT d'accès n'est revendiquée ;
 - plusieurs routes chien/capteur appliquent `requireDogOwnership`, avec non-divulgation cross-owner (`404`) sur les chemins couverts ;
 - le lien vétérinaire générique est bloqué en production et n'est disponible qu'avec l'opt-in explicite non-production `EMOPET_ALLOW_LEGACY_GENERIC_VET_SHARE=1` ;
 - le backend durable de partage professionnel recipient-bound reste ouvert ;
-- l'identité, la récupération, la révocation, la rotation et la suppression de compte restent `OPEN / GATED`.
+- stockage sécurisé côté client, transport cookie/native, vérification e-mail, récupération de mot de passe, MFA/IdP, politique de secrets production, rétention et tests de sécurité de production restent `OPEN / GATED` sous AUTH-01/PRIV-01.
 
-## 3. Routes publiques
+## 3. Routes d'authentification
 
 | Méthode | Chemin | État observé |
 |---|---|---|
 | GET | `/health` | Probe `{ status, version }` |
-| POST | `/api/auth/register` | `503 AUTH_BACKEND_NOT_READY` après validation d'entrée |
-| POST | `/api/auth/login` | `503 AUTH_BACKEND_NOT_READY` après validation d'entrée |
-| POST | `/api/auth/refresh` | `503 AUTH_BACKEND_NOT_READY` |
+| POST | `/api/auth/register` | Création PostgreSQL + session de rafraîchissement ; `201` si succès, `409` sur compte existant |
+| POST | `/api/auth/login` | Vérification des credentials + émission access/refresh ; `401` générique si credentials invalides |
+| POST | `/api/auth/refresh` | Rotation du refresh token ; réutilisation/révocation/expiration échouent sans recréer une session valide |
+| POST | `/api/auth/logout` | Révocation du refresh token présenté ; `204` |
+| POST | `/api/auth/logout-all` | Protégé par bearer access token ; révoque les refresh sessions actives ; `204` |
+
+Ces routes constituent une implémentation candidate testée sur PostgreSQL jetable. Elles ne constituent pas à elles seules une autorisation d'authentification production.
 
 ## 4. Routes protégées
 
@@ -56,13 +63,13 @@ Limites importantes :
 | Méthode | Chemin | État observé |
 |---|---|---|
 | POST | `/api/sensors/summaries` | Contrôle propriétaire + persistance PostgreSQL |
-| GET | `/api/sensors/summaries/:dogId` | Lecture PostgreSQL bornée par une plage validée |
-| GET | `/api/sensors/eli/:dogId` | Lecture du dernier état ELI PostgreSQL ; `null` si aucun état |
-| GET | `/api/sensors/eli/:dogId/history` | Historique PostgreSQL borné par plage |
-| GET | `/api/sensors/baseline/:dogId` | Lecture de la baseline PostgreSQL |
+| GET | `/api/sensors/summaries/:dogId` | Lecture PostgreSQL bornée par une plage validée ; erreur source distincte d'une lecture vide |
+| GET | `/api/sensors/eli/:dogId` | `501 ELI_RUNTIME_NOT_IMPLEMENTED` après contrôle propriétaire ; aucun état persistant n'est promu en résultat live sans producteur ELI autoritaire |
+| GET | `/api/sensors/eli/:dogId/history` | `501 ELI_RUNTIME_NOT_IMPLEMENTED` après contrôle propriétaire ; aucune API historique live n'est revendiquée |
+| GET | `/api/sensors/baseline/:dogId` | Lecture PostgreSQL de la baseline, projetée sur l'autorité Guardian ; le JSON `metrics` opaque est retenu hors réponse |
 | POST, GET | `/api/sensors/presence/:dogId/events` | `503 PRESENCE_PERSISTENCE_NOT_READY` ; aucun faux succès mémoire |
 
-**Frontière importante :** le parseur BLE produit `ParsedBleSensorFrame`, tandis que l'ELI consomme un `FeatureVector`/`EliInput`. Le transformateur physique device → feature extraction → ELI n'est pas démontré end-to-end par le dépôt actuel. La présence des types et du parseur ne doit pas être interprétée comme une chaîne runtime validée.
+**Frontière importante :** le parseur BLE produit `ParsedBleSensorFrame`, tandis que l'ELI consomme un `FeatureVector`/`EliInput`. Le transformateur physique device → feature extraction → ELI n'est pas démontré end-to-end par le dépôt actuel. La présence de types, de tables `eli_states` ou du parseur ne doit pas être interprétée comme une chaîne runtime validée. Le hook mobile v6 est explicitement `UNWIRED / authoritative=false / endpoint=null` et ne nomme aucun endpoint futur comme acquis.
 
 ### Communauté
 
@@ -111,7 +118,16 @@ Les routes annuaire sont PostgreSQL, mais leur exposition reste soumise aux gate
 
 ### Export de données
 
-`/api/data-export` est monté derrière le middleware JWT. Les exports doivent rester owner-scoped et ne constituent pas, par leur présence dans le dépôt, une preuve de conformité juridique complète.
+`/api/data-export` est monté derrière le middleware JWT. Les exports sont owner-scoped et ne constituent pas, par leur présence dans le dépôt, une preuve de conformité juridique complète.
+
+État observé sur la branche :
+
+- `rawDataStatus = NOT_PERSISTED_BY_CURRENT_BACKEND_SCHEMA` plutôt que fabrication de flux MAT/TAG bruts ;
+- sorties ELI dérivées projetées sur une whitelist Guardian, avec variables internes retenues hors export ;
+- baseline exposée uniquement comme métadonnées de cycle de vie, avec `metricsStatus = WITHHELD_PENDING_DISCLOSURE_AUTHORITY` ;
+- les bornes `from` / `to` absentes peuvent rester ouvertes, mais une borne fournie invalide retourne `400 invalid_from` ou `400 invalid_to` ;
+- `from > to` retourne `400 invalid_interval` avant toute lecture d'export, afin qu'un filtre malformé ne puisse pas élargir silencieusement le périmètre demandé ;
+- JSON et CSV partagent les mêmes projections de publication.
 
 ## 5. Plan API web distinct
 
@@ -126,6 +142,7 @@ Sur la branche de durcissement, le workflow P0 DB exécute réellement :
 - migrations historiques et prérequis sur PostgreSQL jetable ;
 - répétabilité de schéma ;
 - génération/migration Drizzle isolée ;
+- intégration AUTH-01 sur la baseline générée ;
 - typecheck backend ;
 - tests backend d'intégration.
 
