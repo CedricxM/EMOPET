@@ -2,10 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { Hono } from 'hono';
-import {
-  auth,
-  AUTH_BACKEND_NOT_READY_CODE,
-} from '../dist/api/routes/auth.js';
+import { auth } from '../dist/api/routes/auth.js';
 
 function buildApp() {
   const app = new Hono();
@@ -13,42 +10,57 @@ function buildApp() {
   return app;
 }
 
-async function expectUnavailable(response, operation) {
-  assert.equal(response.status, 503);
+async function expectRejectedWithoutSession(response, expectedStatus = 400) {
+  assert.equal(response.status, expectedStatus);
   const body = await response.json();
-  assert.equal(body.code, AUTH_BACKEND_NOT_READY_CODE);
-  assert.equal(body.operation, operation);
-  assert.equal(body.maturity, 'NOT_IMPLEMENTED');
+  assert.equal(body.accessToken, undefined);
+  assert.equal(body.refreshToken, undefined);
 }
 
-test('register does not return a synthetic success before auth backend integration', async () => {
+test('register rejects malformed input before any account/session success', async () => {
   const response = await buildApp().request('/api/auth/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      email: 'guardian@example.test',
-      password: 'correct-horse-battery-staple',
-      name: 'Guardian',
-    }),
+    body: JSON.stringify({ email: 'not-an-email', password: 'short', name: '' }),
   });
 
-  await expectUnavailable(response, 'register');
+  await expectRejectedWithoutSession(response);
 });
 
-test('login does not return a synthetic success before auth backend integration', async () => {
+test('login rejects malformed input before any authenticated-session success', async () => {
   const response = await buildApp().request('/api/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      email: 'guardian@example.test',
-      password: 'not-a-real-password',
-    }),
+    body: JSON.stringify({ email: 'not-an-email', password: '' }),
   });
 
-  await expectUnavailable(response, 'login');
+  await expectRejectedWithoutSession(response);
 });
 
-test('refresh does not return a synthetic success before auth backend integration', async () => {
-  const response = await buildApp().request('/api/auth/refresh', { method: 'POST' });
-  await expectUnavailable(response, 'refresh');
+test('refresh rejects a missing refresh credential without rotating a session', async () => {
+  const response = await buildApp().request('/api/auth/refresh', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({}),
+  });
+
+  await expectRejectedWithoutSession(response);
+});
+
+test('logout rejects a malformed refresh credential before revocation', async () => {
+  const response = await buildApp().request('/api/auth/logout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken: 'too-short' }),
+  });
+
+  await expectRejectedWithoutSession(response);
+});
+
+test('logout-all remains protected by the bearer access-token boundary', async () => {
+  const response = await buildApp().request('/api/auth/logout-all', { method: 'POST' });
+
+  assert.equal(response.status, 401);
+  const body = await response.json();
+  assert.match(body.error, /Authorization/i);
 });
