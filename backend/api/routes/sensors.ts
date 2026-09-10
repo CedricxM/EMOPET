@@ -6,6 +6,7 @@ import { PresenceEventCreateSchema, SensorSummaryCreateSchema } from '@emopet/sh
 import { db } from '../../db/index.js';
 import { baselines, eliStates, sensorSummaries } from '../../db/schema/index.js';
 import { requireDogOwnership } from '../middleware/authorization.js';
+import { toGuardianAuthorizedBaselineExport } from '../services/data-export-policy.js';
 
 const sensors = new Hono();
 
@@ -154,7 +155,10 @@ sensors.get('/baseline/:dogId', async (c) => {
       .from(baselines)
       .where(eq(baselines.dogId, dogId))
       .limit(1);
-    return c.json({ dogId, baseline: baseline ?? null });
+    return c.json({
+      dogId,
+      baseline: baseline ? toGuardianAuthorizedBaselineExport(baseline) : null,
+    });
   } catch {
     return databaseUnavailable(c, 'get_baseline');
   }
