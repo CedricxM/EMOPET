@@ -9,13 +9,17 @@ import { ACCESS_TOKEN_TTL_SECONDS, isCanonicalUserId } from '../services/auth-se
 
 const JWT_ISSUER = 'emopet-api';
 const JWT_AUDIENCE = 'emopet-client';
+let ephemeralTestJwtSecret: Uint8Array | null = null;
 
 function resolveJwtSecret(): Uint8Array {
   const secret = process.env['JWT_SECRET']?.trim();
   const isTest = process.env['NODE_ENV'] === 'test';
 
   if (isTest && !secret) {
-    return new TextEncoder().encode('emopet-test-only-jwt-secret-do-not-use-outside-tests');
+    if (!ephemeralTestJwtSecret) {
+      ephemeralTestJwtSecret = globalThis.crypto.getRandomValues(new Uint8Array(32));
+    }
+    return ephemeralTestJwtSecret;
   }
 
   if (!secret || secret === 'dev-secret-change-in-production' || secret.length < 32) {
