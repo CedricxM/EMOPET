@@ -12,10 +12,13 @@ on:
       - 'packages/shared/src/validators/professional-share.ts'
       - 'packages/shared/src/validators/index.ts'
       - 'backend/api/routes/sensors.ts'
+      - 'backend/api/routes/data-export.ts'
+      - 'backend/api/services/data-export-*.ts'
       - 'backend/test/auth-*.test.mjs'
       - 'backend/test/dog-crud.integration.test.mjs'
       - 'backend/test/professional-share-*.test.mjs'
       - 'backend/test/sensor-runtime.integration.test.mjs'
+      - 'backend/test/data-export-*.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:

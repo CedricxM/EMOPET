@@ -136,6 +136,12 @@ Les routes annuaire sont PostgreSQL, mais leur exposition reste soumise aux gate
 - `from > to` retourne `400 invalid_interval` avant toute lecture d'export, afin qu'un filtre malformé ne puisse pas élargir silencieusement le périmètre demandé ;
 - JSON et CSV partagent les mêmes projections de publication.
 
+Les lectures d'export s'exécutent dans une transaction avec verrou partagé sur le chien : un transfert en cours est attendu, puis la propriété est revérifiée ; un transfert ultérieur attend la fin des lectures. Cela garantit l'autorité pendant la collecte, pas un instantané global de toutes les tables ni le retrait d'un fichier déjà téléchargé. Les observations et états ELI sont ordonnés par date puis identifiant ; les bornes temporelles s'appliquent à ces séries, tandis que profil, appareils et métadonnées de baseline décrivent l'état disponible.
+
+Une panne ou un délai de verrou dépassé retourne `503 DATA_EXPORT_UNAVAILABLE` sans fichier partiel ni détail SQL. Les réponses de ce routeur portent `Cache-Control: private, no-store` et `X-Content-Type-Options: nosniff`. Une identité de chien malformée est rejetée avant accès SQL.
+
+Dans le CSV émis, les champs texte commençant par un préfixe de formule reçoivent une apostrophe et sont entourés de guillemets, avec échappement des guillemets internes. Les nombres restent numériques et JSON conserve les textes d'origine. `capabilities.csvTextPolicy` décrit ce traitement. Il ne garantit pas le comportement de tous les tableurs après modification, sauvegarde et réouverture ; utiliser JSON pour préserver les valeurs littérales lors d'un traitement automatisé.
+
 ## 5. Plan API web distinct
 
 `apps/web/app/api/**` contient des Route Handlers Next.js pour Breiz, contact, journal, communauté, carte, races, contexte et administration. Ils ne sont pas montés dans l'application Hono et ne partagent pas automatiquement son middleware JWT/ownership.

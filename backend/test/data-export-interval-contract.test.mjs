@@ -17,6 +17,25 @@ function makeApp() {
   return app;
 }
 
+test('export router rejects missing identity before database access', async () => {
+  const app = new Hono();
+  app.route('/data-export', dataExport);
+  for (const path of [`/data-export?dog_id=${DOG_ID}`, '/data-export/capabilities']) {
+    const response = await app.request(path);
+    assert.equal(response.status, 401);
+    assert.equal(response.headers.get('cache-control'), 'private, no-store');
+    assert.deepEqual(await response.json(), { error: 'unauthorized' });
+  }
+});
+
+test('malformed dog identity cannot reach PostgreSQL or an attachment filename', async () => {
+  const response = await makeApp().request('/data-export?dog_id=not-a-uuid&format=csv');
+  assert.equal(response.status, 400);
+  assert.equal(response.headers.get('cache-control'), 'private, no-store');
+  assert.equal(response.headers.get('content-disposition'), null);
+  assert.deepEqual(await response.json(), { error: 'invalid_dog_id' });
+});
+
 test('invalid from bound fails before export scope can widen', async () => {
   const response = await makeApp().request(
     `/data-export?dog_id=${DOG_ID}&from=not-a-date`,
