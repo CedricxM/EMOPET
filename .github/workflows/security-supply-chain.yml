@@ -109,7 +109,7 @@ jobs:
           test "$WEBBUILD_EXIT" -eq 0
 
   authority-gates:
-    name: Rights + product + privacy + content + professional sharing authority gates
+    name: Rights + product + privacy + content + professional sharing + CRA readiness gates
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -126,6 +126,8 @@ jobs:
         run: pnpm rights:audit
       - name: Enforce professional sharing authority gate
         run: pnpm professional-share:audit
+      - name: Enforce CRA SRP launch-critical readiness gate
+        run: pnpm cra-srp:audit
       - name: Enforce sensitive consent defaults gate
         run: pnpm consent-defaults:audit
       - name: Enforce mobile Home authority gate

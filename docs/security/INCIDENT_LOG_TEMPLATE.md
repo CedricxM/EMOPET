@@ -13,6 +13,14 @@ Status: `OPEN | CONTAINED | REMEDIATING | MONITORING | CLOSED`
 - Evidence Custodian:
 - Privacy/DPO reviewer:
 - Legal/regulatory reviewer:
+- Primary AR internal designation:
+- Primary AR SRP state: `NOT_REGISTERED | ACTIVE_PENDING_VALIDATION | VERIFIED | UNAVAILABLE | N/A`
+- Backup / intended Secondary AR internal designation:
+- Backup EU Login + MFA readiness: `READY | NOT_READY | NOT_TESTED | N/A`
+- Secondary invitation state: `NOT_AVAILABLE_PRIMARY_UNVERIFIED | NOT_SENT | SENT | ACCEPTED | EXPIRED | N/A`
+- Secondary invitation sent at UTC:
+- Secondary invitation expires at UTC:
+- Off-SRP reporting package reference:
 
 ## Timeline
 
@@ -70,6 +78,9 @@ Status: `OPEN | CONTAINED | REMEDIATING | MONITORING | CLOSED`
 - Submitted information snapshot/reference:
 - Submitter:
 - Approver:
+- Primary AR association state at submission: `PENDING_VALIDATION | VERIFIED | N/A`
+- Submitted while AR association validation pending? `YES | NO | N/A`
+- Backup/Secondary state at submission:
 
 ### CRA 72-hour main notification
 
@@ -80,6 +91,9 @@ Status: `OPEN | CONTAINED | REMEDIATING | MONITORING | CLOSED`
 - Submitted information snapshot/reference:
 - Submitter:
 - Approver:
+- Primary AR association state at submission: `PENDING_VALIDATION | VERIFIED | N/A`
+- Submitted while AR association validation pending? `YES | NO | N/A`
+- Backup/Secondary state at submission:
 
 ### CRA final report
 
@@ -88,6 +102,17 @@ Status: `OPEN | CONTAINED | REMEDIATING | MONITORING | CLOSED`
 - Final report deadline UTC:
 - Submitted at UTC:
 - SRP/reference id:
+
+### CRA AR continuity evidence
+
+- Primary verification received at UTC:
+- Secondary invitation initiated immediately after verification? `YES | NO | N/A`
+- Secondary invitation accepted at UTC:
+- Internal day-5 reminder triggered? `YES | NO | N/A`
+- Invitation expired? `YES | NO | N/A`
+- If Primary unavailable before Secondary activation, escalation path used:
+- Credential/MFA sharing avoided? `YES | NO | N/A`
+- Authority escalation evidence/reference:
 
 ### Parallel regimes
 
