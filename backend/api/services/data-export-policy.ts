@@ -26,6 +26,31 @@ export interface GuardianAuthorizedEliExport {
   };
 }
 
+export interface PersistedBaselineForGuardianSurface {
+  id: string;
+  dogId: string;
+  startedAt: Date;
+  validHours: number;
+  established: number;
+  metrics: unknown;
+  updatedAt: Date;
+}
+
+export interface GuardianAuthorizedBaseline {
+  id: string;
+  dogId: string;
+  startedAt: Date;
+  validHours: number;
+  established: number;
+  updatedAt: Date;
+  metricsStatus: 'WITHHELD_PENDING_DISCLOSURE_AUTHORITY';
+  provenance: {
+    level: 'baseline_metadata';
+    warning: string;
+    publicationPolicy: 'GUARDIAN_AUTHORIZED_FIELDS_ONLY';
+  };
+}
+
 /**
  * Project the persisted latent ELI state onto the narrower Guardian-facing
  * publication authority.
@@ -61,4 +86,29 @@ export function toGuardianAuthorizedEliExport(
   }
 
   return base;
+}
+
+/**
+ * Project a persisted baseline onto the current Guardian-facing disclosure
+ * authority. Baseline lifecycle metadata can be described mechanically, but
+ * the opaque `metrics` JSON is not automatically publishable just because it
+ * exists in PostgreSQL.
+ */
+export function toGuardianAuthorizedBaselineExport(
+  row: PersistedBaselineForGuardianSurface,
+): GuardianAuthorizedBaseline {
+  return {
+    id: row.id,
+    dogId: row.dogId,
+    startedAt: row.startedAt,
+    validHours: row.validHours,
+    established: row.established,
+    updatedAt: row.updatedAt,
+    metricsStatus: 'WITHHELD_PENDING_DISCLOSURE_AUTHORITY',
+    provenance: {
+      level: 'baseline_metadata',
+      warning: 'Opaque baseline metrics are withheld pending explicit Guardian disclosure authority; persistence alone does not authorize publication.',
+      publicationPolicy: 'GUARDIAN_AUTHORIZED_FIELDS_ONLY',
+    },
+  };
 }
