@@ -1,9 +1,9 @@
 # Community Product V1 release-authority containment — 2026-09-10
 
-**Status:** `CANDIDATE IMPLEMENTED / EXACT-HEAD CI PENDING`  
+**Status:** `CANDIDATE IMPLEMENTED / CODE CHECKPOINT CI PASS / PENDING MERGE`  
 **Parent:** #98 `G-COMMUNITY-DATA-PLANE-01`  
 **Branch:** `experience-hardening-2026-09-06`  
-**Code checkpoint:** `48e8892adda30e0201379d2427ac2c4f830c59cd`
+**Validated code checkpoint:** `48e8892adda30e0201379d2427ac2c4f830c59cd`
 
 ## Purpose
 
@@ -61,10 +61,23 @@ A static regression test forbids the known local fabricated-entity pattern and t
 
 ## Evidence
 
-On code checkpoint `48e8892adda30e0201379d2427ac2c4f830c59cd`:
+Validated code checkpoint `48e8892adda30e0201379d2427ac2c4f830c59cd`:
 
 - P0 DB baseline run `34451499854`: **PASS**;
-- Security run `34451499816`: exact-head execution was still completing when this record was created; dependency audit, licence inventory, authority gates, CodeQL evidence, Semgrep, Gitleaks, SBOM and provenance had already passed. Final workspace test/build enforcement must be recorded only after the run reaches a terminal successful state.
+- Security run `34451499816`: **PASS**;
+- frozen install: **PASS**;
+- dependency HIGH/CRITICAL gate: **PASS**;
+- workspace typecheck/tests: **PASS**;
+- web build + regression enforcement: **PASS**;
+- authority gates: **PASS**;
+- CodeQL exact-commit evidence gate: **PASS**;
+- Semgrep: **PASS**;
+- Gitleaks: **PASS**;
+- dependency licence evidence inventory: **PASS**;
+- CycloneDX/SPDX SBOM: **PASS**;
+- release provenance gate: **PASS**.
+
+The later documentation-only commit that records this evidence does not change the validated Community runtime behavior.
 
 ## Remaining open work
 
