@@ -21,6 +21,12 @@ export const communityMembers = pgTable('community_members', {
   joinedAt: timestamp('joined_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const communityRulesAcceptances = pgTable('community_rules_acceptances', {
+  userId: uuid('user_id').primaryKey().references(() => users.id),
+  rulesVersion: varchar('rules_version', { length: 64 }).notNull(),
+  acceptedAt: timestamp('accepted_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const posts = pgTable('posts', {
   id: uuid('id').primaryKey().defaultRandom(),
   communityId: uuid('community_id').notNull().references(() => communities.id),
