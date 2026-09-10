@@ -85,3 +85,28 @@ test('every legacy Next.js Community handler is protected by the canonical autho
     );
   }
 });
+
+test('Community client cannot fabricate shared success when Product V1 authority is unavailable', async () => {
+  const sectionPath = fileURLToPath(new URL('../../app/quartier/CommunitySection.tsx', import.meta.url));
+  const source = await readFile(sectionPath, 'utf8');
+
+  assert.match(source, /COMMUNITY_RUNTIME_UNAVAILABLE_MESSAGE/);
+  assert.match(source, /communityRuntime !== 'legacy-demo'/);
+  assert.match(source, /Aperçu prototype/);
+
+  assert.doesNotMatch(
+    source,
+    /LS_KEYS\.posts/,
+    'shared Community posts must not fall back to browser persistence',
+  );
+  assert.doesNotMatch(
+    source,
+    /id:\s*`user-\$\{Date\.now\(\)\}`/,
+    'failed server writes must not fabricate local Community entities',
+  );
+  assert.doesNotMatch(
+    source,
+    /hors-ligne\s*[→-]\s*baseline local|repli local/i,
+    'network or authority failure must not be described or implemented as local shared success',
+  );
+});
