@@ -167,7 +167,7 @@ jobs:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
           AUTH_DB_INTEGRATION: '1'
           EMOPET_DB_INTEGRATION_TEST: '0'
-        run: node --test test/auth-routes-postgres.test.mjs
+        run: node --test test/auth-routes-postgres.test.mjs test/auth-session-concurrency.test.mjs
 
       - name: Verify generated snapshot is stable
         working-directory: backend

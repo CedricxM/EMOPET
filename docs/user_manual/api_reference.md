@@ -26,7 +26,7 @@ Authorization: Bearer <token>
 - `JWT_SECRET` est obligatoire hors `NODE_ENV=test` et doit contenir au moins 32 caractères ; les tests sans secret explicite utilisent une clé aléatoire limitée au processus ;
 - `register` et `login` utilisent désormais PostgreSQL, des mots de passe hachés et des identités utilisateur UUID canoniques ;
 - `refresh` utilise des jetons opaques dont seul le hash est persisté, avec rotation et détection de réutilisation par famille ;
-- `logout` révoque le jeton de rafraîchissement présenté et `logout-all` révoque les sessions de rafraîchissement actives de l'utilisateur authentifié ;
+- `logout` révoque la famille de la session présentée, y compris son successeur après rotation, et `logout-all` révoque les sessions de rafraîchissement actives de l'utilisateur authentifié ; les mutations sont sérialisées par compte pour qu'une rotation concurrente ne puisse échapper à la déconnexion ;
 - les jetons d'accès restent valides jusqu'à leur expiration bornée après une révocation de session de rafraîchissement ; aucune révocation instantanée de chaque JWT d'accès n'est revendiquée ;
 - plusieurs routes chien/capteur appliquent `requireDogOwnership`, avec non-divulgation cross-owner (`404`) sur les chemins couverts ;
 - le lien vétérinaire générique est bloqué en production et n'est disponible qu'avec l'opt-in explicite non-production `EMOPET_ALLOW_LEGACY_GENERIC_VET_SHARE=1` ;
@@ -41,7 +41,7 @@ Authorization: Bearer <token>
 | POST | `/api/auth/register` | Création PostgreSQL + session de rafraîchissement ; `201` si succès, `409` sur compte existant |
 | POST | `/api/auth/login` | Vérification des credentials + émission access/refresh ; `401` générique si credentials invalides |
 | POST | `/api/auth/refresh` | Rotation du refresh token ; réutilisation/révocation/expiration échouent sans recréer une session valide |
-| POST | `/api/auth/logout` | Révocation du refresh token présenté ; `204` |
+| POST | `/api/auth/logout` | Révocation de la famille du refresh token présenté, successeur compris ; `204` idempotent |
 | POST | `/api/auth/logout-all` | Protégé par bearer access token ; révoque les refresh sessions actives ; `204` |
 
 Ces routes constituent une implémentation candidate testée sur PostgreSQL jetable. Elles ne constituent pas à elles seules une autorisation d'authentification production.

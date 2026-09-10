@@ -45,6 +45,10 @@ function makeRepository() {
       async lockFamily(familyId) {
         locks.push(familyId);
       },
+      async lockUser(userId) {
+        locks.push(userId);
+        return true;
+      },
       async revokeIfActive(id, reason, at) {
         const row = rows.get(id);
         if (!row || row.revokedAt) return false;
@@ -166,11 +170,11 @@ test('refresh rotation locks the family and re-reads state after the lock', asyn
   const result = await rotateRefreshCredential(
     state.repository,
     initial.rawToken,
-    new Date('2026-09-01T10:01:00Z'),
+    () => new Date('2026-09-01T10:01:00Z'),
   );
 
   assert.equal(result.ok, true);
-  assert.deepEqual(state.locks, [initial.session.familyId]);
+  assert.deepEqual(state.locks, [USER_ID, initial.session.familyId]);
   assert.equal(state.reads, 2);
 });
 
@@ -180,7 +184,7 @@ test('refresh rotation consumes once and reuse revokes the active token family',
   const initial = issueRefreshCredential(USER_ID, now);
   await repository.insert(initial.session);
 
-  const rotated = await rotateRefreshCredential(repository, initial.rawToken, new Date('2026-09-01T10:01:00Z'));
+  const rotated = await rotateRefreshCredential(repository, initial.rawToken, () => new Date('2026-09-01T10:01:00Z'));
   assert.equal(rotated.ok, true);
   if (!rotated.ok) throw new Error('rotation unexpectedly failed');
   assert.equal(rotated.userId, USER_ID);
@@ -191,7 +195,7 @@ test('refresh rotation consumes once and reuse revokes the active token family',
   assert.equal(initialRow?.revokeReason, 'rotated');
   assert.equal(activeRow?.revokedAt, null);
 
-  const reuse = await rotateRefreshCredential(repository, initial.rawToken, new Date('2026-09-01T10:02:00Z'));
+  const reuse = await rotateRefreshCredential(repository, initial.rawToken, () => new Date('2026-09-01T10:02:00Z'));
   assert.deepEqual(reuse, { ok: false, reason: 'reuse_detected' });
   assert.equal(activeRow?.revokeReason, 'reuse_detected');
   assert.ok(activeRow?.revokedAt instanceof Date);
@@ -199,7 +203,7 @@ test('refresh rotation consumes once and reuse revokes the active token family',
   const afterFamilyRevocation = await rotateRefreshCredential(
     repository,
     rotated.credential.rawToken,
-    new Date('2026-09-01T10:03:00Z'),
+    () => new Date('2026-09-01T10:03:00Z'),
   );
   assert.deepEqual(afterFamilyRevocation, { ok: false, reason: 'invalid_or_expired' });
 });
@@ -209,10 +213,24 @@ test('expired refresh credential is revoked and cannot rotate', async () => {
   const old = issueRefreshCredential(OTHER_USER_ID, new Date('2026-07-01T00:00:00Z'));
   await repository.insert(old.session);
 
-  const result = await rotateRefreshCredential(repository, old.rawToken, new Date('2026-09-01T10:00:00Z'));
+  const result = await rotateRefreshCredential(repository, old.rawToken, () => new Date('2026-09-01T10:00:00Z'));
   assert.deepEqual(result, { ok: false, reason: 'invalid_or_expired' });
 
   const row = [...rows.values()][0];
   assert.equal(row.revokeReason, 'expired');
   assert.ok(row.revokedAt instanceof Date);
+});
+
+test('a refresh token that expires while waiting cannot issue a successor', async () => {
+  const { rows, repository } = makeRepository();
+  const issuedAt = new Date('2026-09-01T10:00:00Z');
+  const initial = issueRefreshCredential(USER_ID, issuedAt);
+  await repository.insert(initial.session);
+  let currentTime = issuedAt;
+  repository.lockFamily = async () => { currentTime = initial.session.expiresAt; };
+
+  const result = await rotateRefreshCredential(repository, initial.rawToken, () => currentTime);
+  assert.deepEqual(result, { ok: false, reason: 'invalid_or_expired' });
+  assert.equal(rows.size, 1);
+  assert.equal([...rows.values()][0].revokeReason, 'expired');
 });

@@ -21,6 +21,25 @@ import {
 
 const auth = new Hono<{ Variables: { userId: string } }>();
 
+type AuthTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+async function withAuthSessionTransaction<T>(operation: (tx: AuthTransaction) => Promise<T>): Promise<T> {
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`SET LOCAL lock_timeout = '5s'`);
+    await tx.execute(sql`SET LOCAL statement_timeout = '10s'`);
+    return operation(tx);
+  });
+}
+
+// Every session mutation for an existing account locks user before family/token.
+// Password KDF and JWT signing stay outside these short database transactions.
+async function lockAuthUser(tx: AuthTransaction, userId: string) {
+  const [user] = await tx.select({
+    id: users.id, email: users.email, name: users.name, passwordHash: users.passwordHash,
+  }).from(users).where(eq(users.id, userId)).limit(1).for('update');
+  return user;
+}
+
 function readRefreshToken(body: unknown): string | null {
   if (!body || typeof body !== 'object') return null;
   const value = (body as { refreshToken?: unknown }).refreshToken;
@@ -124,13 +143,21 @@ auth.post('/login', zValidator('json', LoginSchema), async (c) => {
   const passwordOk = await verifyPassword(body.password, user.passwordHash);
   if (!passwordOk) return c.json({ error: 'Invalid credentials' }, 401);
 
-  const credential = issueRefreshCredential(user.id);
-  await db.insert(authRefreshSessions).values(credential.session);
+  const result = await withAuthSessionTransaction(async (tx) => {
+    const currentUser = await lockAuthUser(tx, user.id);
+    // A credential change/deletion while the KDF ran invalidates the preflight.
+    if (!currentUser || currentUser.passwordHash !== user.passwordHash) return null;
+    const credential = issueRefreshCredential(currentUser.id);
+    await tx.insert(authRefreshSessions).values(credential.session);
+    return { user: currentUser, credential };
+  });
+  if (!result) return c.json({ error: 'Invalid credentials' }, 401);
+  const { credential } = result;
   const accessToken = await signAccessToken(user.id);
 
   c.header('Cache-Control', 'no-store');
   return c.json({
-    user: { id: user.id, email: user.email, name: user.name },
+    user: { id: result.user.id, email: result.user.email, name: result.user.name },
     ...tokenResponse(accessToken, credential.rawToken, credential.session.expiresAt),
   });
 });
@@ -140,8 +167,7 @@ auth.post('/refresh', async (c) => {
   const refreshToken = readRefreshToken(body);
   if (!refreshToken) return c.json({ error: 'Invalid refresh token' }, 400);
 
-  const now = new Date();
-  const result = await db.transaction(async (tx) => {
+  const result = await withAuthSessionTransaction(async (tx) => {
     const repository: RefreshSessionRepository = {
       async findByTokenHash(tokenHash) {
         const [row] = await tx
@@ -158,6 +184,9 @@ auth.post('/refresh', async (c) => {
           .where(eq(authRefreshSessions.tokenHash, tokenHash))
           .limit(1);
         return row ?? null;
+      },
+      async lockUser(userId) {
+        return Boolean(await lockAuthUser(tx, userId));
       },
       async lockFamily(familyId) {
         await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${familyId}, 0))`);
@@ -181,7 +210,7 @@ auth.post('/refresh', async (c) => {
       },
     };
 
-    return rotateRefreshCredential(repository, refreshToken, now);
+    return rotateRefreshCredential(repository, refreshToken);
   });
 
   if (!result.ok) return c.json({ error: 'Invalid or expired refresh token' }, 401);
@@ -200,14 +229,24 @@ auth.post('/logout', async (c) => {
   const refreshToken = readRefreshToken(body);
   if (!refreshToken) return c.json({ error: 'Invalid refresh token' }, 400);
 
-  const now = new Date();
-  await db
-    .update(authRefreshSessions)
-    .set({ revokedAt: now, revokeReason: 'logout', lastUsedAt: now })
-    .where(and(
-      eq(authRefreshSessions.tokenHash, hashRefreshToken(refreshToken)),
-      isNull(authRefreshSessions.revokedAt),
-    ));
+  await withAuthSessionTransaction(async (tx) => {
+    const [session] = await tx.select({
+      userId: authRefreshSessions.userId, familyId: authRefreshSessions.familyId,
+    }).from(authRefreshSessions)
+      .where(eq(authRefreshSessions.tokenHash, hashRefreshToken(refreshToken))).limit(1);
+    if (!session || !await lockAuthUser(tx, session.userId)) return;
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${session.familyId}, 0))`);
+    const now = new Date();
+    // A rotated token still identifies this login session. Revoke its active
+    // successor too, without revoking other independently authenticated logins.
+    await tx.update(authRefreshSessions)
+      .set({ revokedAt: now, revokeReason: 'logout', lastUsedAt: now })
+      .where(and(
+        eq(authRefreshSessions.userId, session.userId),
+        eq(authRefreshSessions.familyId, session.familyId),
+        isNull(authRefreshSessions.revokedAt),
+      ));
+  });
 
   c.header('Cache-Control', 'no-store');
   return c.body(null, 204);
@@ -215,12 +254,13 @@ auth.post('/logout', async (c) => {
 
 auth.post('/logout-all', authMiddleware, async (c) => {
   const userId = c.get('userId');
-  const now = new Date();
-
-  await db
-    .update(authRefreshSessions)
-    .set({ revokedAt: now, revokeReason: 'logout_all', lastUsedAt: now })
-    .where(and(eq(authRefreshSessions.userId, userId), isNull(authRefreshSessions.revokedAt)));
+  await withAuthSessionTransaction(async (tx) => {
+    if (!await lockAuthUser(tx, userId)) return;
+    const now = new Date();
+    await tx.update(authRefreshSessions)
+      .set({ revokedAt: now, revokeReason: 'logout_all', lastUsedAt: now })
+      .where(and(eq(authRefreshSessions.userId, userId), isNull(authRefreshSessions.revokedAt)));
+  });
 
   c.header('Cache-Control', 'no-store');
   return c.body(null, 204);
