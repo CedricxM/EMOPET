@@ -61,12 +61,14 @@ jobs:
       - name: Install exact locked dependency graph
         run: pnpm install --frozen-lockfile
       - name: Capture exact-head dependency licence inventory
+        env:
+          EVIDENCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         shell: bash
         run: |
           pnpm licenses list --json > dependency-licenses.json
           sha256sum dependency-licenses.json > dependency-licenses.sha256
           {
-            echo "commit=${GITHUB_SHA}"
+            echo "commit=${EVIDENCE_SHA}"
             echo "pnpm=10.33.0"
             echo "generated_at_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
             echo "classification=EVIDENCE_INVENTORY_NOT_LEGAL_CLEARANCE"
