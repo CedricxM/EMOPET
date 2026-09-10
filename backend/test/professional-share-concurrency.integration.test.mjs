@@ -15,6 +15,9 @@ async function waitForBlockedOperations(tx, blockerPid, expected) {
   const deadline = Date.now() + 4_000;
   let observed = 0;
   while (Date.now() < deadline) {
+    // PostgreSQL caches pg_stat_activity within a transaction. Refresh it so
+    // connections opened by these requests after the first poll become visible.
+    await tx`SELECT pg_stat_clear_snapshot()`;
     const [row] = await tx`
       WITH RECURSIVE blocked AS (
         SELECT pid FROM pg_stat_activity
