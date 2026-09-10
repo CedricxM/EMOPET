@@ -89,6 +89,8 @@ Le routeur Hono Community impose désormais une identité authentifiée au nivea
 
 La version candidate des règles est contrôlée côté serveur (`community-rules-v1-candidate`) afin qu'une future version différente puisse échouer fermée jusqu'à nouvelle acceptation. Ce marqueur est une version technique candidate, pas une approbation juridique ni une publication définitive des règles.
 
+Les droits sont maintenant conservés dans la même transaction PostgreSQL que la lecture ou l'écriture. Un retrait ou une réaffectation d'adhésion déjà engagé est attendu puis revérifié ; une acceptation supprimée ou devenue obsolète bloque les opérations soumises aux règles. Pour un commentaire, le rattachement du post à la communauté est également revérifié et verrouillé. Une opération ayant acquis ses droits peut terminer avant un retrait ultérieur ; cette garantie ne retire pas des données déjà reçues. Les attentes de verrou sont limitées à 5 secondes et chaque instruction SQL à 10 secondes ; un échec renvoie `503 COMMUNITY_DATABASE_UNAVAILABLE`, sans détail SQL. Le cache privé est interdit également sur les erreurs de validation. Voir [le dossier de concurrence Community](../implementation/COMMUNITY_AUTHORITY_CONCURRENCY_2026-09-10.md).
+
 Ce cœur ne crée pas encore de cycle join/leave/invite, d'autorité modérateur/admin, de découverte publique, de lifecycle reports/blocks, de politique de rétention/effacement/anonymisation, de lifecycle média ou de notification. Il reste donc `DRAFT / NOT RELEASE AUTHORITY` sous #98/#150/#223.
 
 ### Progression, consentements et waitlist

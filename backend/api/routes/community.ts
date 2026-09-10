@@ -1,5 +1,5 @@
-import { and, desc, eq } from 'drizzle-orm';
-import { Hono } from 'hono';
+import { and, desc, eq, sql } from 'drizzle-orm';
+import { Hono, type Context } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import {
   CommentCreateSchema,
@@ -26,6 +26,8 @@ const community = new Hono<{ Variables: { userId: string } }>();
 const COMMUNITY_PERSISTENCE_CODE = 'COMMUNITY_PERSISTENCE_NOT_READY' as const;
 const COMMUNITY_DATABASE_UNAVAILABLE = 'COMMUNITY_DATABASE_UNAVAILABLE' as const;
 const COMMUNITY_RULES_VERSION = 'community-rules-v1-candidate' as const;
+type CommunityContext = Context<{ Variables: { userId: string } }>;
+type CommunityTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 function markPrivate(c: { header: (name: string, value: string) => void }): void {
   c.header('Cache-Control', 'private, no-store');
@@ -63,66 +65,76 @@ function databaseUnavailable(
   }, 503);
 }
 
-async function requireCommunityMembership(
-  c: {
-    header: (name: string, value: string) => void;
-    json: (value: unknown, status?: number) => Response;
-  },
-  userId: string,
-  communityId: string,
-): Promise<true | Response> {
+async function withCommunityTransaction(
+  c: CommunityContext,
+  operation: string,
+  work: (tx: CommunityTransaction) => Promise<Response>,
+): Promise<Response> {
   try {
-    const [membership] = await db
-      .select({ id: communityMembers.id })
-      .from(communityMembers)
-      .where(and(
-        eq(communityMembers.communityId, communityId),
-        eq(communityMembers.userId, userId),
-      ))
-      .limit(1);
-
-    if (!membership) {
-      markPrivate(c);
-      return c.json({ error: 'Community not found' }, 404);
-    }
-    return true;
+    return await db.transaction(async (tx) => {
+      await tx.execute(sql`SET LOCAL lock_timeout = '5s'`);
+      await tx.execute(sql`SET LOCAL statement_timeout = '10s'`);
+      return work(tx);
+    }, { isolationLevel: 'read committed' });
   } catch {
-    return databaseUnavailable(c, 'check_membership');
+    return databaseUnavailable(c, operation);
   }
 }
 
+async function requireCommunityMembership(
+  tx: CommunityTransaction,
+  c: CommunityContext,
+  userId: string,
+  communityId: string,
+): Promise<true | Response> {
+  // Keep the authority row(s) until the dependent read/write commits. SHARE
+  // also blocks non-key updates; KEY SHARE would allow membership reassignment.
+  const [membership] = await tx
+    .select({ id: communityMembers.id })
+    .from(communityMembers)
+    .where(and(
+      eq(communityMembers.communityId, communityId),
+      eq(communityMembers.userId, userId),
+    ))
+    .orderBy(communityMembers.id)
+    .for('share');
+
+  if (!membership) {
+    markPrivate(c);
+    return c.json({ error: 'Community not found' }, 404);
+  }
+  return true;
+}
+
 async function requireCurrentRulesAcceptance(
-  c: {
-    header: (name: string, value: string) => void;
-    json: (value: unknown, status?: number) => Response;
-  },
+  tx: CommunityTransaction,
+  c: CommunityContext,
   userId: string,
 ): Promise<true | Response> {
-  try {
-    const [acceptance] = await db
-      .select({ rulesVersion: communityRulesAcceptances.rulesVersion })
-      .from(communityRulesAcceptances)
-      .where(eq(communityRulesAcceptances.userId, userId))
-      .limit(1);
+  // Always lock membership before rules; recheck the version after any wait.
+  const [acceptance] = await tx
+    .select({ rulesVersion: communityRulesAcceptances.rulesVersion })
+    .from(communityRulesAcceptances)
+    .where(eq(communityRulesAcceptances.userId, userId))
+    .limit(1)
+    .for('share');
 
-    if (!acceptance || acceptance.rulesVersion !== COMMUNITY_RULES_VERSION) {
-      markPrivate(c);
-      return c.json({
-        error: 'Community rules acceptance required.',
-        code: 'COMMUNITY_RULES_REQUIRED',
-        rulesVersion: COMMUNITY_RULES_VERSION,
-      }, 403);
-    }
-    return true;
-  } catch {
-    return databaseUnavailable(c, 'check_rules_acceptance');
+  if (!acceptance || acceptance.rulesVersion !== COMMUNITY_RULES_VERSION) {
+    markPrivate(c);
+    return c.json({
+      error: 'Community rules acceptance required.',
+      code: 'COMMUNITY_RULES_REQUIRED',
+      rulesVersion: COMMUNITY_RULES_VERSION,
+    }, 403);
   }
+  return true;
 }
 
 // Router-level fail-closed identity boundary. This intentionally runs before
 // per-route validators so direct or mis-mounted use cannot create a shared
 // synthetic principal or treat validation as authentication.
 community.use('*', async (c, next) => {
+  markPrivate(c);
   const value = c.get('userId');
   if (typeof value !== 'string' || value.trim().length === 0) {
     markPrivate(c);
@@ -144,8 +156,8 @@ community.use('*', async (c, next) => {
 
 community.get('/', async (c) => {
   const userId = c.get('userId');
-  try {
-    const rows = await db
+  return withCommunityTransaction(c, 'list_communities', async (tx) => {
+    const rows = await tx
       .select({
         id: communities.id,
         name: communities.name,
@@ -162,23 +174,22 @@ community.get('/', async (c) => {
       .from(communityMembers)
       .innerJoin(communities, eq(communityMembers.communityId, communities.id))
       .where(eq(communityMembers.userId, userId))
-      .orderBy(communities.name);
+      .orderBy(communities.name)
+      .for('share', { of: communityMembers });
 
     markPrivate(c);
     return c.json({ communities: rows });
-  } catch {
-    return databaseUnavailable(c, 'list_communities');
-  }
+  });
 });
 
 community.get('/:id', async (c) => {
   const userId = c.get('userId');
   const communityId = c.req.param('id');
-  const membership = await requireCommunityMembership(c, userId, communityId);
-  if (membership !== true) return membership;
+  return withCommunityTransaction(c, 'get_community', async (tx) => {
+    const membership = await requireCommunityMembership(tx, c, userId, communityId);
+    if (membership !== true) return membership;
 
-  try {
-    const [row] = await db
+    const [row] = await tx
       .select()
       .from(communities)
       .where(eq(communities.id, communityId))
@@ -191,21 +202,19 @@ community.get('/:id', async (c) => {
 
     markPrivate(c);
     return c.json({ community: row });
-  } catch {
-    return databaseUnavailable(c, 'get_community');
-  }
+  });
 });
 
 community.get('/:id/feed', async (c) => {
   const userId = c.get('userId');
   const communityId = c.req.param('id');
-  const membership = await requireCommunityMembership(c, userId, communityId);
-  if (membership !== true) return membership;
-  const rules = await requireCurrentRulesAcceptance(c, userId);
-  if (rules !== true) return rules;
+  return withCommunityTransaction(c, 'read_feed', async (tx) => {
+    const membership = await requireCommunityMembership(tx, c, userId, communityId);
+    if (membership !== true) return membership;
+    const rules = await requireCurrentRulesAcceptance(tx, c, userId);
+    if (rules !== true) return rules;
 
-  try {
-    const rows = await db
+    const rows = await tx
       .select()
       .from(posts)
       .where(eq(posts.communityId, communityId))
@@ -213,9 +222,7 @@ community.get('/:id/feed', async (c) => {
 
     markPrivate(c);
     return c.json({ communityId, posts: rows });
-  } catch {
-    return databaseUnavailable(c, 'read_feed');
-  }
+  });
 });
 
 community.post('/rules/accept', zValidator('json', CommunityRulesAcceptSchema), async (c) => {
@@ -230,8 +237,8 @@ community.post('/rules/accept', zValidator('json', CommunityRulesAcceptSchema), 
   }
 
   const acceptedAt = new Date();
-  try {
-    const [record] = await db
+  return withCommunityTransaction(c, 'accept_rules', async (tx) => {
+    const [record] = await tx
       .insert(communityRulesAcceptances)
       .values({
         userId,
@@ -249,9 +256,7 @@ community.post('/rules/accept', zValidator('json', CommunityRulesAcceptSchema), 
 
     markPrivate(c);
     return c.json({ acceptance: record }, 201);
-  } catch {
-    return databaseUnavailable(c, 'accept_rules');
-  }
+  });
 });
 
 community.post('/reports', zValidator('json', UgcReportCreateSchema), async (c) => {
@@ -267,13 +272,13 @@ community.post('/blocks', zValidator('json', UserBlockCreateSchema), async (c) =
 community.post('/posts', zValidator('json', PostCreateSchema), async (c) => {
   const userId = c.get('userId');
   const body = c.req.valid('json');
-  const membership = await requireCommunityMembership(c, userId, body.communityId);
-  if (membership !== true) return membership;
-  const rules = await requireCurrentRulesAcceptance(c, userId);
-  if (rules !== true) return rules;
+  return withCommunityTransaction(c, 'create_post', async (tx) => {
+    const membership = await requireCommunityMembership(tx, c, userId, body.communityId);
+    if (membership !== true) return membership;
+    const rules = await requireCurrentRulesAcceptance(tx, c, userId);
+    if (rules !== true) return rules;
 
-  try {
-    const [created] = await db
+    const [created] = await tx
       .insert(posts)
       .values({
         communityId: body.communityId,
@@ -287,17 +292,15 @@ community.post('/posts', zValidator('json', PostCreateSchema), async (c) => {
     if (!created) return databaseUnavailable(c, 'create_post');
     markPrivate(c);
     return c.json({ post: created }, 201);
-  } catch {
-    return databaseUnavailable(c, 'create_post');
-  }
+  });
 });
 
 community.post('/comments', zValidator('json', CommentCreateSchema), async (c) => {
   const userId = c.get('userId');
   const body = c.req.valid('json');
 
-  try {
-    const [parentPost] = await db
+  return withCommunityTransaction(c, 'create_comment', async (tx) => {
+    const [parentPost] = await tx
       .select({ id: posts.id, communityId: posts.communityId })
       .from(posts)
       .where(eq(posts.id, body.postId))
@@ -308,12 +311,23 @@ community.post('/comments', zValidator('json', CommentCreateSchema), async (c) =
       return c.json({ error: 'Post not found' }, 404);
     }
 
-    const membership = await requireCommunityMembership(c, userId, parentPost.communityId);
+    const membership = await requireCommunityMembership(tx, c, userId, parentPost.communityId);
     if (membership !== true) return membership;
-    const rules = await requireCurrentRulesAcceptance(c, userId);
+    const rules = await requireCurrentRulesAcceptance(tx, c, userId);
     if (rules !== true) return rules;
 
-    const [created] = await db
+    // The first lookup only discovers the authority scope. After membership
+    // and rules are locked, recheck and retain the parent-to-community binding.
+    // A move/deletion that wins this lock must not authorize a stale comment.
+    const [lockedParent] = await tx
+      .select({ id: posts.id })
+      .from(posts)
+      .where(and(eq(posts.id, parentPost.id), eq(posts.communityId, parentPost.communityId)))
+      .limit(1)
+      .for('share');
+    if (!lockedParent) return c.json({ error: 'Post not found' }, 404);
+
+    const [created] = await tx
       .insert(comments)
       .values({
         postId: parentPost.id,
@@ -325,9 +339,7 @@ community.post('/comments', zValidator('json', CommentCreateSchema), async (c) =
     if (!created) return databaseUnavailable(c, 'create_comment');
     markPrivate(c);
     return c.json({ comment: created }, 201);
-  } catch {
-    return databaseUnavailable(c, 'create_comment');
-  }
+  });
 });
 
 // ── Events ──────────────────────────────────────────────────────
@@ -335,13 +347,13 @@ community.post('/comments', zValidator('json', CommentCreateSchema), async (c) =
 community.get('/:id/events', async (c) => {
   const userId = c.get('userId');
   const communityId = c.req.param('id');
-  const membership = await requireCommunityMembership(c, userId, communityId);
-  if (membership !== true) return membership;
-  const rules = await requireCurrentRulesAcceptance(c, userId);
-  if (rules !== true) return rules;
+  return withCommunityTransaction(c, 'list_events', async (tx) => {
+    const membership = await requireCommunityMembership(tx, c, userId, communityId);
+    if (membership !== true) return membership;
+    const rules = await requireCurrentRulesAcceptance(tx, c, userId);
+    if (rules !== true) return rules;
 
-  try {
-    const rows = await db
+    const rows = await tx
       .select()
       .from(communityEvents)
       .where(eq(communityEvents.communityId, communityId))
@@ -349,21 +361,19 @@ community.get('/:id/events', async (c) => {
 
     markPrivate(c);
     return c.json({ communityId, events: rows });
-  } catch {
-    return databaseUnavailable(c, 'list_events');
-  }
+  });
 });
 
 community.post('/events', zValidator('json', EventCreateSchema), async (c) => {
   const userId = c.get('userId');
   const body = c.req.valid('json');
-  const membership = await requireCommunityMembership(c, userId, body.communityId);
-  if (membership !== true) return membership;
-  const rules = await requireCurrentRulesAcceptance(c, userId);
-  if (rules !== true) return rules;
+  return withCommunityTransaction(c, 'create_event', async (tx) => {
+    const membership = await requireCommunityMembership(tx, c, userId, body.communityId);
+    if (membership !== true) return membership;
+    const rules = await requireCurrentRulesAcceptance(tx, c, userId);
+    if (rules !== true) return rules;
 
-  try {
-    const [created] = await db
+    const [created] = await tx
       .insert(communityEvents)
       .values({
         communityId: body.communityId,
@@ -380,9 +390,7 @@ community.post('/events', zValidator('json', EventCreateSchema), async (c) => {
     if (!created) return databaseUnavailable(c, 'create_event');
     markPrivate(c);
     return c.json({ event: created }, 201);
-  } catch {
-    return databaseUnavailable(c, 'create_event');
-  }
+  });
 });
 
 // ── Copresence ──────────────────────────────────────────────────
