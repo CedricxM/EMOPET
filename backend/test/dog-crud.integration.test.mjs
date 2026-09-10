@@ -10,7 +10,7 @@ const integrationEnabled = process.env.EMOPET_DB_INTEGRATION_TEST === '1';
 test('dog CRUD and Guardian professional-share lifecycle remain owner scoped', { skip: !integrationEnabled }, async () => {
   const [
     { dogs: dogRoutes, ABSENCE_COMPARISON_PERSISTENCE_CODE },
-    { health: healthRoutes, HEALTH_PERSISTENCE_CODE },
+    { health: healthRoutes },
     { db },
     { dogs: dogsTable, professionalShareGrants, users },
   ] = await Promise.all([
@@ -211,10 +211,10 @@ test('dog CRUD and Guardian professional-share lifecycle remain owner scoped', {
     assert.equal(absenceBody.operation, 'absence_comparison');
 
     const healthResponse = await app.request(`/api/health/${dogId}`);
-    assert.equal(healthResponse.status, 503);
+    assert.equal(healthResponse.status, 200);
     const healthBody = await healthResponse.json();
-    assert.equal(healthBody.code, HEALTH_PERSISTENCE_CODE);
-    assert.equal(healthBody.operation, 'list_entries');
+    assert.equal(healthBody.dogId, dogId);
+    assert.deepEqual(healthBody.entries, []);
 
     const patchResponse = await app.request(`/api/dogs/${dogId}`, {
       method: 'PATCH',
