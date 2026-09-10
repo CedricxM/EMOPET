@@ -42,7 +42,7 @@ Final controlled disposition, when eventually reviewed, is limited to `GO | HOLD
 | DATA-LIC-G4 | OSM/Overpass flow + attribution | OPEN | Product/Engineering | classify query/cache/export flows and review provider/service use |
 | DATA-LIC-G5 | Mapbox account/terms/token authority | OPEN | Founder/Product/Engineering | record account, billing, terms snapshot, token custody and rendered attribution evidence |
 | DATA-LIC-G6 | Breiz item-level source controls | OPEN | Product/Data | require item-level rights evidence and fail closed when absent |
-| DATA-LIC-G7 | Dependency licence inventory | OPEN | Engineering | exact-head licence inventory + notice/copyleft review |
+| DATA-LIC-G7 | Dependency licence inventory | EVIDENCE_INVENTORY_AVAILABLE / REVIEW_OPEN | Engineering + qualified reviewer | review ambiguous/non-permissive/dual-labelled entries, notice obligations and exact distribution paths |
 | DATA-LIC-G8 | Controlled review + release disposition | OPEN | Founder + qualified reviewer | dated GO/HOLD/REMEDIATE with residual gaps visible |
 
 ## 2. Registered external datasets
@@ -188,18 +188,42 @@ Missing evidence => fail closed.
 
 ## 7. Dependency licences
 
-SBOM/security scanning is supporting evidence only.
+Security/SBOM output remains supporting evidence only, but an exact-head dependency-licence inventory is now produced and preserved by the Security workflow.
 
-Still required:
+Evidence record:
 
-- exact-head machine-readable dependency licence inventory;
-- unknown/custom/copyleft review;
-- attribution/notice retention;
-- source-offer obligations where applicable;
-- transitive package review;
-- dated disposition.
+- `docs/control/EMOPET_DEPENDENCY_LICENSE_EVIDENCE_REVIEW_2026-09-10.md`;
+- reviewed dependency head: `fea9f754669a9f44781b57a6012faf277349ce61`;
+- Security workflow run: `34450694886`;
+- artifact id: `10141416548`;
+- artifact digest: `sha256:21d2fde2edfc54d93378c9353796b5cd5f84a6f452539e1aa98441032356f71d`;
+- embedded inventory SHA-256: `95733d8fa3403017e7eda46916df6b2da85b4cf7e9428f4104b751866bed8fc8`;
+- inventory size: 1,072 package records across 18 reported licence labels;
+- metadata classification: `EVIDENCE_INVENTORY_NOT_LEGAL_CLEARANCE`.
 
-State: `OPEN`.
+No `UNKNOWN` label was reported by pnpm in that inventory. This narrows discovery but does not prove licence accuracy, compatibility, notice completeness or product-use authority.
+
+Focused review queue now includes:
+
+- `@img/sharp-libvips-linux-x64@1.3.3` (`LGPL-3.0-or-later`);
+- MPL-labelled `axe-core` and `lightningcss` packages;
+- dual-labelled `node-forge@1.4.0` (`BSD-3-Clause OR GPL-2.0`);
+- CC-BY-labelled `caniuse-lite`;
+- ambiguous `BSD` metadata including `mapbox-gl@3.24.0`;
+- non-normalized/less-common identifiers requiring upstream verification and notice review.
+
+Mapbox remains separately controlled by DATA-LIC-G5; the package metadata label does not establish service/contract authority.
+
+Still required before G7 closure:
+
+- upstream licence-text verification for ambiguous/non-permissive/dual-labelled entries;
+- actual release/distribution-path classification, including platform-specific binaries;
+- applicable attribution/notice/source-offer retention;
+- transitive-package review where obligations require it;
+- named reviewer + dated disposition on the exact release-candidate graph;
+- rerun on any release dependency/lock change.
+
+State: `EVIDENCE_INVENTORY_AVAILABLE / REVIEW_OPEN`.
 
 ## 8. Evidence schema for future receipts
 
@@ -232,14 +256,14 @@ Do not commit confidential account material, personal data, secrets or private c
 
 ## 9. Current release statement
 
-As of 2026-09-06:
+As of 2026-09-10:
 
 - no dataset in `real-datasets.json` has a completed immutable SHA-256 receipt;
 - the Lorient seed is not authorized to be represented as a verified production directory;
 - OSM/Overpass runtime/service classification is not fully reviewed;
 - Mapbox account/terms/token authority is not evidenced in-repo;
 - Breiz source catalogue inclusion is not release authorization;
-- dependency licence review remains open.
+- an exact-head dependency licence inventory now exists, but licence/notice/distribution review remains open.
 
 Therefore:
 
