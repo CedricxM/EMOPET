@@ -2,7 +2,7 @@
 
 > **Observed:** 2026-09-11  
 > **Observed branch:** `experience-hardening-2026-09-06` / draft PR #224  
-> **Implementation observed through:** `9ba58acf6ef0bb5ca9c12323c2e813a2d620f49e`  
+> **Implementation observed through:** `e4a2afd15df1f699abe61967dfa70e62e81a934f`  
 > **Rule:** re-observe after a major integration merge or material runtime-authority change.
 
 This document records implementation and authority boundaries observed in the repository. It is not itself product, scientific, legal, deployment, hardware, privacy or release authority.
@@ -54,7 +54,7 @@ The repository uses pnpm workspaces and Turbo.
 
 | Workspace | Responsibility | Current authority caveat |
 |---|---|---|
-| `apps/web` | Next.js UI plus several Route Handlers | some historical server/data paths remain prototype/demo only |
+| `apps/web` | Next.js UI plus several Route Handlers | historical write planes are being explicitly contained as non-production demos |
 | `apps/mobile` | Expo/React Native client and BLE-facing services | client is not authorization or scientific authority |
 | `backend` | Hono API, middleware, services, Drizzle schemas/migrations | intended durable Product V1 authority; increasingly real but not yet exclusive |
 | `packages/shared` | shared types and Zod validators | contract layer only |
@@ -91,12 +91,14 @@ Owner-scoped dog, sensor, baseline, health and export paths increasingly use bac
 
 ### PostgreSQL / Drizzle
 
-The P0 DB workflow now proves:
+The P0 DB workflow proves on exact verified heads that:
 
 - current migrations apply to the controlled disposable historical baseline;
 - a fresh generated Drizzle baseline applies;
 - schema generation/repeatability checks run;
 - backend typecheck/tests execute against PostgreSQL.
+
+The Community feed seek index is now explicitly aligned across historical migration and generated Drizzle baseline with PostgreSQL `ORDER BY created_at DESC, id DESC` null ordering. Microsecond cursor fixtures are constructed inside PostgreSQL so the integration test measures database/feed behavior rather than JavaScript `Date` precision.
 
 Current status:
 
@@ -110,10 +112,14 @@ Current status:
 
 Historical Next.js Route Handlers remain present for several product surfaces. Their disposition must be explicit per path: `MIGRATE`, `REMOVE`, `DEMO_ONLY`, or `KEEP` with approved authority.
 
-Two important containment examples now exist:
+Contained candidate examples now include:
 
-- **Community:** historical Next.js Community persistence is disabled by default and can run only with explicit non-production demo opt-in. Product V1 Community authority is the Hono/PostgreSQL candidate.
-- **Journal/Memories prototype (#242):** historical Next.js Journal persistence is disabled by default, production cannot opt in, and the web client no longer uses browser `localStorage` as fallback Product V1 persistence or renders a new entry as saved before server acknowledgement. Final Journal/Memory Product V1 authority is still OPEN.
+- **Community core:** historical `/api/community/**` persistence is disabled by default and can run only with explicit non-production demo opt-in. Product V1 Community authority is the Hono/PostgreSQL candidate.
+- **Community map/admin extensions (#243):** file-backed map spots/comments and historical admin post moderation now reuse the same Community gate. The mixed legacy moderation queue cannot run unless both its Community and Contact demo authorities are explicitly enabled.
+- **Journal/Memories prototype (#242):** historical Next.js Journal persistence is disabled by default, production cannot opt in, and the web client no longer uses browser `localStorage` as fallback Product V1 persistence or renders a new entry as saved before server acknowledgement.
+- **Contact/support prototype (#244):** file-backed contact PII and admin mutation are disabled by default behind a dedicated Contact gate. A caller-provided owner token remains demo-only and is not treated as authenticated Guardian identity.
+
+`breeds` is a read-only versioned reference route, and `context` is a non-persistent context aggregator; they are not being disabled merely because they are Next.js Route Handlers. Breiz likewise does not use the historical JSON persistence plane, though provider/privacy/provenance remain separate review topics.
 
 ### Backend in-memory behavior
 
@@ -131,6 +137,8 @@ Current PR #224 Community candidate includes:
 - member-scoped community reads;
 - durable posts/comments/events;
 - bounded cursor feed;
+- stable `(created_at, id)` continuation preserving PostgreSQL microseconds;
+- a seek index whose generated and historical definitions match query ordering;
 - membership/rules authority retained through dependent DB work under concurrency;
 - explicit response projections rather than whole-row serialization;
 - stored historical sensor/ELI overlays withheld from post responses;
@@ -138,10 +146,12 @@ Current PR #224 Community candidate includes:
 - invalid media-reference metadata rejected/withheld rather than blindly published;
 - private/no-store behavior on protected responses.
 
+Historical map/admin Community JSON mutations are fail-closed under #243 and therefore cannot masquerade as moderation or shared-state changes to the PostgreSQL candidate.
+
 Still OPEN:
 
 - membership join/leave/invite/removal lifecycle;
-- reports, blocks and moderation enforcement;
+- reports, blocks and Product V1 moderation enforcement;
 - public discovery policy;
 - RSVP/progressive event-location authority;
 - free-text/media-content moderation and access;
@@ -152,7 +162,7 @@ Still OPEN:
 
 ## 7. Journal / Memories authority boundary
 
-The historical Journal route and browser fallback are now explicitly contained under #242.
+The historical Journal route and browser fallback are explicitly contained under #242.
 
 Current rule:
 
@@ -164,7 +174,30 @@ Current rule:
 
 This containment does **not** choose the final Memories/Journal schema, identity binding, retention, deletion, attachment, export, offline or sharing model.
 
-## 8. Guardian professional sharing
+## 8. Contact/support authority boundary
+
+The historical Contact workflow is explicitly contained under #244 because it handles personal contact data while relying on a JSON file store and caller-controlled owner token.
+
+Current candidate rule:
+
+- no default or production use of the legacy file-backed Contact plane;
+- explicit non-production demo opt-in only;
+- user and admin Contact mutations pass one Contact authority gate;
+- the mixed admin moderation queue requires both Contact and Community demo authorities;
+- disabled and demo responses are private/non-cacheable;
+- demo success is marked `LEGACY_DEMO_ONLY`.
+
+Still OPEN before Product V1 enablement:
+
+- canonical requester/Guardian identity where needed;
+- approved support/CRM persistence authority;
+- encryption and secret handling;
+- retention/purge and backup disposition;
+- processor/subprocessor and transfer review;
+- operational access/audit model;
+- deletion/export/rights workflow.
+
+## 9. Guardian professional sharing
 
 The repository contains a meaningful backend candidate for professional sharing:
 
@@ -188,14 +221,14 @@ Still OPEN:
 
 No current grant row should be treated as a reusable bearer capability.
 
-## 9. Client applications
+## 10. Client applications
 
 ### Web
 
 - Next.js 15 / React 19;
 - product UI plus bounded prototype/demo Route Handlers;
-- Community legacy plane is contained;
-- Journal legacy plane is now contained;
+- Community core, legacy map/admin Community, Journal and Contact file-backed write planes are fail-closed by default;
+- read-only/contextual routes are classified by behavior rather than disabled wholesale;
 - map/local services remain subject to third-party rights and provenance gates.
 
 ### Mobile
@@ -206,7 +239,7 @@ No current grant row should be treated as a reusable bearer capability.
 - mobile ELI remains unwired/non-authoritative;
 - production secure token storage/transport and recovery remain separate integration decisions.
 
-## 10. Sensor → ELI chain
+## 11. Sensor → ELI chain
 
 The project still needs five explicit contracts:
 
@@ -223,7 +256,7 @@ That is preferable to a normal `200 null`/`[]` that could be mistaken for succes
 Required code evidence for the full chain: cross-layer golden vectors.  
 Required scientific evidence: separate canine/bench validation appropriate to each claimed observation.
 
-## 11. Raw audio boundary
+## 12. Raw audio boundary
 
 Current contracts emphasize derived vocal/acoustic features rather than raw household audio, and mobile does not rely on microphone permission as the Product V1 input path in the observed candidate.
 
@@ -231,7 +264,7 @@ That is positive minimization evidence, not proof of non-exfiltration.
 
 Product V1 still requires negative evidence that raw audio is not representable, serialized, persisted, logged or transmitted unless an explicitly approved future authority changes that rule.
 
-## 12. MAT and TAG maturity
+## 13. MAT and TAG maturity
 
 ### MAT
 
@@ -245,20 +278,19 @@ TAG remains strategically important but physically incomplete. Power sequencing,
 
 Repository documentation or green software CI cannot close those hardware gates.
 
-## 13. CI, security and supply-chain evidence
+## 14. CI, security and supply-chain evidence
 
-On the last fully verified pre-Journal-containment head `bcb60503c1634b1342c4a6ecd730268562688117`:
+Exact-head evidence is SHA-specific.
 
-- P0 PostgreSQL validation passed with **93 backend tests, zero failures/skips**;
-- Security supply chain passed, including workspace typecheck/tests and web build;
-- dependency audit, Semgrep, secret scanning, authority/CRA gates, SBOM and provenance passed;
-- GitHub-managed CodeQL passed across the configured languages.
+Verified during this architecture pass:
 
-The Journal-containment commits require their own exact-head runs before they inherit that status. Code evidence is always SHA-specific.
+- `a06055343d24d530cb78ddceb583e2764e953d6d`: **P0 DB baseline validation PASS** after aligning generated Community feed index null ordering and PostgreSQL-native microsecond fixtures;
+- the later runtime-containment head `e4a2afd15df1f699abe61967dfa70e62e81a934f` has its P0 DB and Security supply-chain workflows running and must not inherit green status until those exact-head runs complete;
+- the earlier fully verified `bcb60503c1634b1342c4a6ecd730268562688117` passed P0 PostgreSQL validation with **93 backend tests, zero failures/skips**, Security supply chain, and GitHub-managed CodeQL.
 
 Branch protection/rulesets, deployment ownership, staging evidence and release policy remain separate operational controls.
 
-## 14. Controlled strategic/product authorities
+## 15. Controlled strategic/product authorities
 
 Important current authorities include:
 
@@ -274,13 +306,15 @@ Important current authorities include:
 
 Authority documents define what may be claimed or implemented. They are not substitutes for physical, human, scientific, legal or operational evidence.
 
-## 15. Open P0 integration decisions
+## 16. Open P0 integration decisions
 
 The next phase should preferentially close these gates with executable evidence rather than create additional broad governance layers:
 
 - `RUNTIME-AUTHORITY-01`: continue retiring/containing prototype persistence planes until Product V1 protected data has one explicit authority per domain;
 - `AUTH-PRODUCTION`: close client token transport/storage, recovery/MFA/provider and production security decisions around the composed auth candidate;
 - `JOURNAL-AUTH-01` (#242): design the real Journal/Memory backend authority before enabling Product V1 persistence;
+- `COMMUNITY-AUTH-02` (#243): legacy map/admin Community plane is candidate-contained, while real Product V1 moderation/location authority remains open;
+- `CONTACT-AUTH-01` (#244): legacy Contact PII is candidate-contained, while Product V1 support/privacy authority remains open;
 - `COMMUNITY`: membership lifecycle, moderation/block/report enforcement, event participation/location authority and privacy lifecycle;
 - `PRIV-01`: retention, erasure, processor/transfer, backup and rights behavior;
 - `VET SHARE`: verified professional binding plus scoped recipient-read transaction and revocation-during-read evidence;
