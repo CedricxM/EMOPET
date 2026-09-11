@@ -168,6 +168,8 @@ jobs:
         run: pnpm cra-srp:audit
       - name: Enforce sensitive consent defaults gate
         run: pnpm consent-defaults:audit
+      - name: Enforce raw-audio privacy boundary gate
+        run: pnpm privacy-audio:audit
       - name: Enforce mobile Home authority gate
         run: pnpm mobile-home:audit
       - name: Enforce legacy freemium quarantine gate
