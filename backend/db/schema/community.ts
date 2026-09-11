@@ -38,7 +38,14 @@ export const posts = pgTable('posts', {
   likeCount: integer('like_count').default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => [
-  index('idx_posts_community_created_id').on(table.communityId, table.createdAt.desc(), table.id.desc()),
+  // Match the feed's ORDER BY created_at DESC, id DESC semantics exactly.
+  // PostgreSQL defaults DESC to NULLS FIRST; spell that out in Drizzle so a
+  // freshly generated baseline does not drift to DESC NULLS LAST and force a Sort.
+  index('idx_posts_community_created_id').on(
+    table.communityId,
+    table.createdAt.desc().nullsFirst(),
+    table.id.desc().nullsFirst(),
+  ),
 ]);
 
 export const comments = pgTable('comments', {
