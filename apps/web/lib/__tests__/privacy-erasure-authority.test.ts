@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
-const profileSource = await readFile(
+const profileSource = readFileSync(
   new URL('../../app/profil/DonneesSection.tsx', import.meta.url),
   'utf8',
 );
-const erasureModalSource = await readFile(
+const erasureModalSource = readFileSync(
   new URL('../../components/donnees/privacy-erasure-modal.tsx', import.meta.url),
   'utf8',
 );
