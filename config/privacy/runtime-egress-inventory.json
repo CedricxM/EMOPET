@@ -35,6 +35,17 @@
       "evidencePaths": ["apps/web/lib/weather.ts"]
     },
     {
+      "id": "openweathermap-backend-weather",
+      "kind": "direct_fetch",
+      "repositoryDefault": "DISABLED_BY_EGRESS_GATE",
+      "surface": "backend_server",
+      "destinationHosts": ["api.openweathermap.org"],
+      "gate": "EMOPET_OPENWEATHERMAP_EGRESS_GATE=GO plus OPENWEATHERMAP_API_KEY",
+      "dataCategories": ["caller_supplied_or_known_location_latitude_longitude", "weather_query_parameters"],
+      "currentUsageNote": "The service accepts optional caller-supplied coordinates and can otherwise resolve a fixed known-city coordinate table; no callsite was found by repository code search at this checkpoint.",
+      "evidencePaths": ["backend/api/services/weather.ts"]
+    },
+    {
       "id": "mapbox-web-map",
       "kind": "sdk_managed_egress",
       "repositoryDefault": "DISABLED_BY_RIGHTS_GATE",
