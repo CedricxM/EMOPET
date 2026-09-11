@@ -149,8 +149,13 @@ test('professional recipient read rechecks authority before publication', {
 
     const storedAudits = await db.select().from(audits).where(eq(audits.grantId, grantId));
     assert.equal(storedAudits.length, 2);
-    assert.equal(storedAudits.at(-1).decisionStatus, 'DENIED');
-    assert.equal(storedAudits.at(-1).reason, 'GUARDIAN_AUTHORITY_MISMATCH');
+    assert.equal(
+      storedAudits.some((audit) =>
+        audit.decisionStatus === 'DENIED' &&
+        audit.reason === 'GUARDIAN_AUTHORITY_MISMATCH'),
+      true,
+      'committed transfer denial must be durably audited regardless of row return order',
+    );
   });
 
   await t.test('revocation committed during collection discards the collected bytes', async () => {
@@ -193,7 +198,12 @@ test('professional recipient read rechecks authority before publication', {
 
     const storedAudits = await db.select().from(audits).where(eq(audits.grantId, grantId));
     assert.equal(storedAudits.length, 3);
-    assert.equal(storedAudits.at(-1).decisionStatus, 'DENIED');
-    assert.equal(storedAudits.at(-1).reason, 'GRANT_REVOKED');
+    assert.equal(
+      storedAudits.some((audit) =>
+        audit.decisionStatus === 'DENIED' &&
+        audit.reason === 'GRANT_REVOKED'),
+      true,
+      'committed revocation denial must be durably audited regardless of row return order',
+    );
   });
 });
