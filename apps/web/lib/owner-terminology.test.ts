@@ -113,3 +113,27 @@ test('cross-surface product authorities use canonical Owner terminology', async 
   assert.match(veterinarySummary, /OWNER NOTES \(selected\)/);
   assert.doesNotMatch(veterinarySummary, englishRoleWord);
 });
+
+test('canonical security control sources use Owner while preserving stable legacy gate IDs', async () => {
+  const [ownerControl, shareControl, shareAudit] = await Promise.all([
+    readFile(new URL('../../../docs/control/EMOPET_OWNER_AUTHORITY_MASTER_v0.1.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../../docs/control/EMOPET_OWNER_PROFESSIONAL_SHARING_v0.1.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../../scripts/security/professional-share-authority-audit.mjs', import.meta.url), 'utf8'),
+  ]);
+
+  assert.match(ownerControl, /The Owner–dog relationship is the primary authorization boundary/);
+  assert.match(ownerControl, /### Trusted Caregiver/);
+  assert.doesNotMatch(ownerControl, /Primary Guardian|Trusted Guardian|The Guardian–dog|Care\/Guardian authority/iu);
+  assert.match(ownerControl, /G-GUARDIAN-AUTHORITY-01 = OPEN/);
+
+  assert.match(shareControl, /Owner-Controlled Professional Sharing/);
+  assert.match(shareControl, /An Owner shares a defined view/);
+  assert.doesNotMatch(shareControl, /Primary Guardian|Trusted\/household Guardian|A Guardian shares|Guardian-facing/iu);
+  assert.match(shareControl, /G-GUARDIAN-PROFESSIONAL-SHARE-01 = OPEN/);
+
+  assert.match(shareAudit, /docs\/control\/EMOPET_OWNER_PROFESSIONAL_SHARING_v0\.1\.md/);
+  assert.doesNotMatch(
+    shareAudit,
+    /requireText\('docs\/control\/EMOPET_GUARDIAN_PROFESSIONAL_SHARING_v0\.1\.md'/,
+  );
+});

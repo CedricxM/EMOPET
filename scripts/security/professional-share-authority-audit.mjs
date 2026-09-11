@@ -69,7 +69,7 @@ if (shareValidators.includes("const OwnerProfessionalShareRecipientSchema = z.ob
 const dogRoutes = requireText('backend/api/routes/dogs.ts', [
   'EMOPET_ALLOW_LEGACY_GENERIC_VET_SHARE',
   'RECIPIENT_BOUND_GRANT_REQUIRED',
-  // Historical gate identifier remains stable until the evidence/docs migration in #245 Phase C/D.
+  // Historical gate identifier remains stable for evidence continuity under #245.
   'G-GUARDIAN-PROFESSIONAL-SHARE-01',
   "'/:id/professional-shares'",
   "'/:id/professional-shares/:grantId/revoke'",
@@ -144,9 +144,10 @@ if (!mobileScreen.includes('Elle ne donne acces a aucune clinique')) {
   failures.push('health-vet screen does not explain that coarse preference is non-authorizing');
 }
 
-// Historical control filename/gate ID are retained until #245 Phase D migrates
-// evidence references without rewriting the historical record.
-requireText('docs/control/EMOPET_GUARDIAN_PROFESSIONAL_SHARING_v0.1.md', [
+// Canonical control source uses Owner terminology. The legacy gate ID remains
+// stable so past evidence and runtime references keep their identity.
+requireText('docs/control/EMOPET_OWNER_PROFESSIONAL_SHARING_v0.1.md', [
+  'Owner-Controlled Professional Sharing',
   'LEGACY_GENERIC_VET_REPORT_LINK = HOLD_FOR_RELEASE',
   'recipient-bound',
   'revocable',

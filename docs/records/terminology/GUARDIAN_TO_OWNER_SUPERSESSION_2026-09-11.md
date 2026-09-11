@@ -26,8 +26,12 @@ The following source files remain in the repository as historical evidence and m
 | `docs/strategy/GUARDIAN_RELATIONSHIP_AND_PRODUCT_SCOPE_DOCTRINE_2026-09-07.md` | `docs/strategy/OWNER_RELATIONSHIP_AND_PRODUCT_SCOPE_DOCTRINE_2026-09-11.md` | terminology only |
 | `docs/product/EMOPET_GUARDIAN_AUTHORITY_MASTER_v0.1.md` | `docs/product/EMOPET_OWNER_AUTHORITY_MASTER_v0.1.md` | terminology only |
 | `docs/product/EMOPET_GUARDIAN_CONTINUITY_MASTER_v0.1.md` | `docs/product/EMOPET_OWNER_CONTINUITY_MASTER_v0.1.md` | terminology only |
+| `docs/control/EMOPET_GUARDIAN_AUTHORITY_MASTER_v0.1.md` | `docs/control/EMOPET_OWNER_AUTHORITY_MASTER_v0.1.md` | terminology only; control status preserved |
+| `docs/control/EMOPET_GUARDIAN_PROFESSIONAL_SHARING_v0.1.md` | `docs/control/EMOPET_OWNER_PROFESSIONAL_SHARING_v0.1.md` | terminology only; control/security invariants preserved |
 
 Historical files are retained unchanged so the repository preserves what was actually written and reviewed at the time.
+
+The professional-sharing static audit now reads the canonical Owner control successor. It no longer depends on the historical `GUARDIAN` document path, while the legacy gate identifier remains stable for evidence continuity.
 
 ## Role mapping
 
