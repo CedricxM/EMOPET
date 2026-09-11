@@ -16,7 +16,7 @@ type DenialReason =
   | 'GRANT_REVOKED'
   | 'DOG_SCOPE_MISMATCH'
   | 'RECIPIENT_MISMATCH'
-  | 'GUARDIAN_AUTHORITY_MISMATCH'
+  | 'OWNER_AUTHORITY_MISMATCH'
   | 'PURPOSE_MISMATCH'
   | 'DATA_SCOPE_MISMATCH'
   | 'DATA_WINDOW_MISMATCH';
@@ -63,7 +63,7 @@ export interface ProfessionalShareAccessAudit {
 export interface ProfessionalShareAccessAuthority {
   readGrant(grantId: string, dogId: string): Promise<unknown>;
   resolveVerifiedRecipient(): Promise<{ principalId: string } | null>;
-  hasCurrentGuardianAuthority(guardianUserId: string, dogId: string): Promise<boolean>;
+  hasCurrentOwnerAuthority(ownerUserId: string, dogId: string): Promise<boolean>;
   recordDecision(event: ProfessionalShareAccessAudit): Promise<boolean>;
 }
 
@@ -150,8 +150,8 @@ export function createProfessionalShareAccessChecker(
       if (grant.dogId !== intent.dogId) return audited(deny('DOG_SCOPE_MISMATCH'));
       if (!grant.recipient.principalId?.trim()) return audited(unavailable('RECIPIENT_POLICY_NOT_READY'));
       if (grant.recipient.principalId !== recipient.principalId) return audited(deny('RECIPIENT_MISMATCH'));
-      if (await authority.hasCurrentGuardianAuthority(grant.guardianUserId, grant.dogId) !== true) {
-        return audited(deny('GUARDIAN_AUTHORITY_MISMATCH'));
+      if (await authority.hasCurrentOwnerAuthority(grant.ownerUserId, grant.dogId) !== true) {
+        return audited(deny('OWNER_AUTHORITY_MISMATCH'));
       }
       const decision = await audited(evaluateGrant(grant, intent, clock()));
       // A slow audit must not authorize access after the grant expires.

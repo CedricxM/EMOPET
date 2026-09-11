@@ -41,30 +41,36 @@ Historical files are retained unchanged so the repository preserves what was act
 | Guardian journal | Owner journal | same first-person context/evidence class |
 | Guardian Continuity | Owner Continuity | same capability group |
 
-## Persistence migration status
+## Persistence and contract migration status
 
-DOMAIN-TERM #245 Phase C migrates persistence independently from TypeScript caller names so each step is executable and reviewable.
+DOMAIN-TERM #245 Phase C migrates persistence and active contracts in reviewable layers.
 
-As of migration `0009_professional_share_owner_terminology.sql`:
+Migration `0009_professional_share_owner_terminology.sql` establishes the canonical persisted names:
 
-- persisted `professional_share_grants.guardian_user_id` is renamed to `owner_user_id`;
-- persisted index `idx_prof_share_grant_guardian_dog` is renamed to `idx_prof_share_grant_owner_dog`;
+- `professional_share_grants.guardian_user_id` → `owner_user_id`;
+- `idx_prof_share_grant_guardian_dog` → `idx_prof_share_grant_owner_dog`;
 - authorization semantics and existing data are unchanged;
-- historical migration `0006_professional_share_authority.sql` is retained unchanged;
-- the Drizzle property `guardianUserId` temporarily maps to `owner_user_id` as an explicit compatibility bridge while active route/service/test callers migrate to `ownerUserId`.
+- historical migration `0006_professional_share_authority.sql` remains unchanged.
 
-The compatibility property is not permission semantics and must not be copied into new code.
+The active professional-sharing contract now uses:
+
+- `ownerUserId`;
+- `hasCurrentOwnerAuthority`;
+- `OWNER_AUTHORITY_MISMATCH`;
+- audit actor `OWNER`;
+- Owner-named create/revoke validators only.
+
+The Drizzle table property `guardianUserId` temporarily maps to persisted `owner_user_id` as a **storage-adapter compatibility bridge** because the large dog-route lifecycle and a small set of DB fixtures still access that table property directly. The DB authority adapters translate it immediately to `ownerUserId`; it must not escape the persistence layer or appear in new contracts.
 
 ## Legacy identifiers intentionally retained
 
-The following identifiers may continue to contain `guardian` until their specific compatibility or evidence migration removes them:
+The following identifiers may continue to contain `guardian` only for explicit compatibility/history:
 
-- the temporary TypeScript compatibility property `guardianUserId` during the second half of Phase C;
+- the temporary Drizzle table property `guardianUserId` while the remaining direct table callers migrate;
 - historical control/gate identifiers including `G-GUARDIAN-AUTHORITY-01`, `G-GUARDIAN-CONTINUITY-01` and `G-GUARDIAN-PROFESSIONAL-SHARE-01`;
-- deprecated compatibility aliases such as `GuardianProfessionalShareGrantCreateSchema` and `GuardianProfessionalShareGrantRevokeSchema` while downstream callers may still depend on them;
-- filenames and records whose purpose is to preserve historical evidence.
+- historical filenames, migrations, implementation records and evidence whose purpose is to preserve what was reviewed at the time.
 
-`guardian_user_id` is no longer an approved current persistence identifier after migration 0009.
+`guardian_user_id`, `GuardianProfessionalShareGrantCreateSchema`, `GuardianProfessionalShareGrantRevokeSchema`, `hasCurrentGuardianAuthority`, `GUARDIAN_AUTHORITY_MISMATCH` and shared-contract `guardianUserId` are not approved current identifiers after this Phase C contract migration.
 
 These retained names are **legacy compatibility/history**, not permission semantics and not approved vocabulary for new product code.
 
@@ -72,7 +78,7 @@ These retained names are **legacy compatibility/history**, not permission semant
 
 New active product code, tests, UI copy and current controlled documentation must use canonical Owner terminology unless a legacy identifier is being referenced explicitly for compatibility or historical traceability.
 
-Do not perform a blind repository-wide replacement. In particular, do not rename persisted columns, public contracts or historical gate identifiers without a migration and compatibility plan.
+Do not perform a blind repository-wide replacement. In particular, historical gate identifiers and evidence records remain stable unless a separately controlled compatibility plan changes them.
 
 ## Delegated access rule
 

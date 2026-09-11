@@ -10,7 +10,7 @@ const NOW = Date.parse('2026-09-09T12:00:00Z');
 
 function grant() {
   return {
-    id: GRANT_ID, dogId: DOG_ID, guardianUserId: 'guardian-a',
+    id: GRANT_ID, dogId: DOG_ID, ownerUserId: 'owner-a',
     recipient: { displayName: 'Recipient', type: 'VETERINARIAN', principalId: 'professional-a' },
     purpose: 'VETERINARY_CONSULTATION',
     scopes: ['VETERINARY_SUMMARY', 'DATA_COVERAGE_AND_CONFIDENCE'],
@@ -35,14 +35,14 @@ function intent() {
 // Synthetic adapters exercise the policy only. They are not persistence,
 // recipient-verification or audit-durability evidence.
 function fixture() {
-  const state = { grant: grant(), principalId: 'professional-a', guardianCurrent: true, now: NOW };
+  const state = { grant: grant(), principalId: 'professional-a', ownerCurrent: true, now: NOW };
   const reads = [];
   const audits = [];
   const authority = {
     async readGrant(...args) { reads.push(args); return state.grant; },
     async resolveVerifiedRecipient() { return state.principalId ? { principalId: state.principalId } : null; },
-    async hasCurrentGuardianAuthority(userId, dogId) {
-      return state.guardianCurrent && userId === 'guardian-a' && dogId === DOG_ID;
+    async hasCurrentOwnerAuthority(userId, dogId) {
+      return state.ownerCurrent && userId === 'owner-a' && dogId === DOG_ID;
     },
     async recordDecision(event) { audits.push(event); return true; },
   };
@@ -68,7 +68,7 @@ test('valid authority returns only the requested projection and a sanitized poli
     status: 'AUTHORIZED', reason: 'ACTIVE_GRANT',
   }]);
   const exposed = JSON.stringify({ result, audits: f.audits });
-  for (const forbidden of ['never-return', 'guardian-a', 'professional-a', 'displayName', 'tokenId']) {
+  for (const forbidden of ['never-return', 'owner-a', 'professional-a', 'displayName', 'tokenId']) {
     assert.equal(exposed.includes(forbidden), false);
   }
 });
@@ -90,7 +90,7 @@ test('rejects malformed or widened intent before calling authority adapters', as
 });
 
 test('recipient identity must be server-verified, bound and current', async () => {
-  for (const principalId of [null, '', '   ', 'professional-b', 'guardian-a']) {
+  for (const principalId of [null, '', '   ', 'professional-b', 'owner-a']) {
     const f = fixture(); f.state.principalId = principalId;
     assert.equal((await f.check(intent())).reason, 'RECIPIENT_MISMATCH');
   }
@@ -99,11 +99,11 @@ test('recipient identity must be server-verified, bound and current', async () =
   assert.equal((await emailOnly.check(intent())).reason, 'RECIPIENT_POLICY_NOT_READY');
 });
 
-test('missing grant and stale Guardian authority deny access', async () => {
+test('missing grant and stale Owner authority deny access', async () => {
   const absent = fixture(); absent.state.grant = null;
   assert.equal((await absent.check(intent())).reason, 'GRANT_NOT_FOUND');
-  const transferred = fixture(); transferred.state.guardianCurrent = false;
-  assert.equal((await transferred.check(intent())).reason, 'GUARDIAN_AUTHORITY_MISMATCH');
+  const transferred = fixture(); transferred.state.ownerCurrent = false;
+  assert.equal((await transferred.check(intent())).reason, 'OWNER_AUTHORITY_MISMATCH');
 });
 
 test('grant and dog substitution cannot authorize another resource', async () => {
@@ -188,7 +188,7 @@ test('invalid persisted state and invalid clocks never become permission', async
 });
 
 test('provider and persistence failures return unavailable without error details', async () => {
-  for (const method of ['readGrant', 'resolveVerifiedRecipient', 'hasCurrentGuardianAuthority']) {
+  for (const method of ['readGrant', 'resolveVerifiedRecipient', 'hasCurrentOwnerAuthority']) {
     const f = fixture();
     f.authority[method] = async () => { throw new Error('bearer-token-private-database-detail'); };
     const result = await f.check(intent());

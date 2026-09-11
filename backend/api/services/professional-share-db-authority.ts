@@ -15,7 +15,9 @@ export type VerifiedProfessionalRecipientResolver = () => Promise<{
 function toAccessRecord(row: typeof professionalShareGrants.$inferSelect): unknown {
   return {
     id: row.id,
-    guardianUserId: row.guardianUserId,
+    // Drizzle compatibility bridge only. Persisted storage is owner_user_id
+    // after migration 0009; the external access contract is ownerUserId.
+    ownerUserId: row.guardianUserId,
     dogId: row.dogId,
     recipient: {
       displayName: row.recipientDisplayName,
@@ -66,11 +68,11 @@ export function createProfessionalShareDbAuthority(
 
     resolveVerifiedRecipient,
 
-    async hasCurrentGuardianAuthority(guardianUserId, dogId) {
+    async hasCurrentOwnerAuthority(ownerUserId, dogId) {
       const [row] = await db
         .select({ id: dogs.id })
         .from(dogs)
-        .where(and(eq(dogs.id, dogId), eq(dogs.ownerId, guardianUserId)))
+        .where(and(eq(dogs.id, dogId), eq(dogs.ownerId, ownerUserId)))
         .limit(1);
       return Boolean(row);
     },

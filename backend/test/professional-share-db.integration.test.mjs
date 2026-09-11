@@ -24,8 +24,8 @@ test('professional share policy reloads durable grant state and records sanitize
     import('../dist/api/services/professional-share-db-authority.js'),
   ]);
 
-  const guardianId = randomUUID();
-  const otherGuardianId = randomUUID();
+  const ownerId = randomUUID();
+  const otherOwnerId = randomUUID();
   const dogId = randomUUID();
   const grantId = randomUUID();
   const missingGrantId = randomUUID();
@@ -35,22 +35,22 @@ test('professional share policy reloads durable grant state and records sanitize
 
   await db.insert(users).values([
     {
-      id: guardianId,
-      email: `share-guardian-${suffix}@example.test`,
+      id: ownerId,
+      email: `share-owner-${suffix}@example.test`,
       passwordHash: 'integration-test-only',
-      name: 'Share Guardian',
+      name: 'Share Owner',
     },
     {
-      id: otherGuardianId,
+      id: otherOwnerId,
       email: `share-other-${suffix}@example.test`,
       passwordHash: 'integration-test-only',
-      name: 'Other Guardian',
+      name: 'Other Owner',
     },
   ]);
 
   await db.insert(dogs).values({
     id: dogId,
-    ownerId: guardianId,
+    ownerId,
     name: 'Nala',
     breed: 'Labrador Retriever',
     birthDate: '2022-04-12',
@@ -61,7 +61,8 @@ test('professional share policy reloads durable grant state and records sanitize
 
   await db.insert(professionalShareGrants).values({
     id: grantId,
-    guardianUserId: guardianId,
+    // Temporary Drizzle compatibility property; persisted column is owner_user_id.
+    guardianUserId: ownerId,
     dogId,
     recipientDisplayName: 'Dr Test',
     recipientType: 'VETERINARIAN',
@@ -110,11 +111,11 @@ test('professional share policy reloads durable grant state and records sanitize
     assert.equal(wrongRecipient.allowed, false);
     assert.equal(wrongRecipient.reason, 'RECIPIENT_MISMATCH');
 
-    await db.update(dogs).set({ ownerId: otherGuardianId }).where(eq(dogs.id, dogId));
+    await db.update(dogs).set({ ownerId: otherOwnerId }).where(eq(dogs.id, dogId));
     const transferred = await check(intent);
     assert.equal(transferred.allowed, false);
-    assert.equal(transferred.reason, 'GUARDIAN_AUTHORITY_MISMATCH');
-    await db.update(dogs).set({ ownerId: guardianId }).where(eq(dogs.id, dogId));
+    assert.equal(transferred.reason, 'OWNER_AUTHORITY_MISMATCH');
+    await db.update(dogs).set({ ownerId }).where(eq(dogs.id, dogId));
 
     await db.update(professionalShareGrants).set({
       status: 'REVOKED',
@@ -138,7 +139,7 @@ test('professional share policy reloads durable grant state and records sanitize
     assert.equal(grantAudits.length, 4);
     assert.deepEqual(
       grantAudits.map((row) => row.reason).sort(),
-      ['ACTIVE_GRANT', 'GRANT_REVOKED', 'GUARDIAN_AUTHORITY_MISMATCH', 'RECIPIENT_MISMATCH'].sort(),
+      ['ACTIVE_GRANT', 'GRANT_REVOKED', 'OWNER_AUTHORITY_MISMATCH', 'RECIPIENT_MISMATCH'].sort(),
     );
     for (const row of grantAudits) {
       assert.equal(row.event, 'PROFESSIONAL_SHARE_POLICY_DECISION');
@@ -159,7 +160,7 @@ test('professional share policy reloads durable grant state and records sanitize
       .where(eq(professionalShareAccessAudits.grantId, missingGrantId));
     await db.delete(professionalShareGrants).where(eq(professionalShareGrants.id, grantId));
     await db.delete(dogs).where(eq(dogs.id, dogId));
-    await db.delete(users).where(eq(users.id, guardianId));
-    await db.delete(users).where(eq(users.id, otherGuardianId));
+    await db.delete(users).where(eq(users.id, ownerId));
+    await db.delete(users).where(eq(users.id, otherOwnerId));
   }
 });

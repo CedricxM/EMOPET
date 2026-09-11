@@ -30,7 +30,7 @@ export type ProfessionalShareGrantStatus =
   | 'SUSPENDED';
 
 export interface ProfessionalShareRecipient {
-  /** Human-readable recipient identity recorded by the Guardian. */
+  /** Human-readable recipient identity recorded by the Owner. */
   displayName: string;
   type: ProfessionalShareRecipientType;
   /** Optional clinic/institution context. */
@@ -42,7 +42,7 @@ export interface ProfessionalShareRecipient {
 }
 
 export interface ProfessionalShareWindow {
-  /** Inclusive observation period requested by the Guardian. */
+  /** Inclusive observation period requested by the Owner. */
   dataFrom: string;
   dataTo: string;
   /** Access expiry is independent from the data period. */
@@ -56,7 +56,7 @@ export interface ProfessionalShareWindow {
  */
 export interface ProfessionalShareGrant {
   id: string;
-  guardianUserId: string;
+  ownerUserId: string;
   dogId: string;
   recipient: ProfessionalShareRecipient;
   purpose: ProfessionalSharePurpose;
@@ -88,7 +88,7 @@ export interface ProfessionalShareAuditEvent {
   dogId: string;
   action: ProfessionalShareAuditAction;
   occurredAt: string;
-  actorType: 'GUARDIAN' | 'RECIPIENT' | 'SYSTEM';
+  actorType: 'OWNER' | 'RECIPIENT' | 'SYSTEM';
   actorId?: string;
   /** Coarse reason/status only. Never log report contents or bearer tokens. */
   reason?: string;

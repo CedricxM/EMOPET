@@ -176,18 +176,6 @@ export const OwnerProfessionalShareGrantRevokeSchema = z.object({
   reason: z.string().trim().min(1).max(500).optional(),
 }).strict();
 
-/**
- * @deprecated Legacy terminology compatibility for callers not yet migrated.
- * New code must use OwnerProfessionalShareGrantCreateSchema.
- */
-export const GuardianProfessionalShareGrantCreateSchema = OwnerProfessionalShareGrantCreateSchema;
-
-/**
- * @deprecated Legacy terminology compatibility for callers not yet migrated.
- * New code must use OwnerProfessionalShareGrantRevokeSchema.
- */
-export const GuardianProfessionalShareGrantRevokeSchema = OwnerProfessionalShareGrantRevokeSchema;
-
 export const ProfessionalShareGrantRevokeSchema = z.object({
   reason: z.string().trim().min(1).max(500).optional(),
 });
@@ -215,13 +203,10 @@ export const ProfessionalShareReadIntentSchema = z.object({
  * Validate persisted authority at access time. Do not reuse the creation schema:
  * expired/revoked records must remain readable so the policy can deny explicitly.
  * Only fields used by the access policy survive this projection.
- *
- * `guardianUserId` is a legacy persistence identifier retained until the
- * explicit Phase C schema/API migration tracked by DOMAIN-TERM #245.
  */
 export const ProfessionalShareAccessRecordSchema = z.object({
   id: ProfessionalShareGrantIdSchema,
-  guardianUserId: z.string().trim().min(1).max(128),
+  ownerUserId: z.string().trim().min(1).max(128),
   dogId: z.string().uuid(),
   recipient: ProfessionalShareRecipientSchema,
   purpose: ProfessionalSharePurposeSchema,

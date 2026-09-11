@@ -48,13 +48,13 @@ test('professional recipient read rechecks authority before publication', {
       id: ownerId,
       email: `recipient-read-${ownerId}@example.test`,
       passwordHash: 'integration-test-only',
-      name: 'Recipient read Guardian',
+      name: 'Recipient read Owner',
     },
     {
       id: nextOwnerId,
       email: `recipient-read-${nextOwnerId}@example.test`,
       passwordHash: 'integration-test-only',
-      name: 'Next Guardian',
+      name: 'Next Owner',
     },
   ]);
   await db.insert(dogs).values({
@@ -69,6 +69,7 @@ test('professional recipient read rechecks authority before publication', {
   });
   await db.insert(grants).values({
     id: grantId,
+    // Temporary Drizzle compatibility property; persisted column is owner_user_id.
     guardianUserId: ownerId,
     dogId,
     recipientDisplayName: 'Dr Fixture',
@@ -113,10 +114,10 @@ test('professional recipient read rechecks authority before publication', {
     assert.equal(storedAudits[0].reason, 'ACTIVE_GRANT');
   });
 
-  await t.test('Guardian transfer committed during collection discards the former Guardian payload', async () => {
+  await t.test('Owner transfer committed during collection discards the former Owner payload', async () => {
     const collectorStarted = deferred();
     const releaseCollector = deferred();
-    const privateSentinel = `former-guardian-must-not-escape-${randomUUID()}`;
+    const privateSentinel = `former-owner-must-not-escape-${randomUUID()}`;
 
     const pendingRead = read(intent, async () => {
       collectorStarted.resolve();
@@ -143,15 +144,15 @@ test('professional recipient read rechecks authority before publication', {
 
     assert.equal(result.allowed, false);
     assert.equal(result.status, 'DENIED');
-    assert.equal(result.reason, 'GUARDIAN_AUTHORITY_MISMATCH');
-    assert.equal(JSON.stringify(result).includes(privateSentinel), false, 'former Guardian bytes must never escape');
+    assert.equal(result.reason, 'OWNER_AUTHORITY_MISMATCH');
+    assert.equal(JSON.stringify(result).includes(privateSentinel), false, 'former Owner bytes must never escape');
 
     const storedAudits = await db.select().from(audits).where(eq(audits.grantId, grantId));
     assert.equal(storedAudits.length, 2);
     assert.equal(
       storedAudits.some((audit) =>
         audit.decisionStatus === 'DENIED' &&
-        audit.reason === 'GUARDIAN_AUTHORITY_MISMATCH'),
+        audit.reason === 'OWNER_AUTHORITY_MISMATCH'),
       true,
       'committed transfer denial must be durably audited regardless of row return order',
     );
