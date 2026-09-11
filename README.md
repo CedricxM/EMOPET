@@ -130,7 +130,7 @@ Those remain separate evidence questions.
 
 ## Safety and privacy constraints
 
-- Backend authorization must enforce Guardian-to-dog access for protected resources.
+- Backend authorization must enforce Owner-to-dog access for protected resources.
 - Clients and future realtime/game components are untrusted inputs, not policy authorities.
 - Raw audio must not be stored or transmitted in Product V1; end-to-end negative tests remain required.
 - Sensitive location/telemetry requires explicit purpose, consent, minimization, retention, export, and deletion rules.
