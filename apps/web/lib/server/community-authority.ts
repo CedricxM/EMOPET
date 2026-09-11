@@ -22,6 +22,12 @@ export function legacyCommunityAuthorityGate(
       authority: 'Hono + durable Product V1 persistence',
       demoOptIn: LEGACY_COMMUNITY_DEMO_ENV,
     },
-    { status: 503 },
+    {
+      status: 503,
+      headers: {
+        'Cache-Control': 'private, no-store',
+        'X-Content-Type-Options': 'nosniff',
+      },
+    },
   );
 }
