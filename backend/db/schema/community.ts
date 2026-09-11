@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, timestamp, real, integer, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, timestamp, real, integer, jsonb, index } from 'drizzle-orm/pg-core';
 import { users } from './users.js';
 
 export const communities = pgTable('communities', {
@@ -37,7 +37,9 @@ export const posts = pgTable('posts', {
   sensorOverlay: jsonb('sensor_overlay'), // optional ELI context
   likeCount: integer('like_count').default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-});
+}, (table) => [
+  index('idx_posts_community_created_id').on(table.communityId, table.createdAt.desc(), table.id.desc()),
+]);
 
 export const comments = pgTable('comments', {
   id: uuid('id').primaryKey().defaultRandom(),

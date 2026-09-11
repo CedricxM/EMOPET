@@ -79,7 +79,7 @@ Le routeur Hono Community impose désormais une identité authentifiée au nivea
 |---|---|---|
 | GET | `/api/community` | Liste PostgreSQL des seules communautés où l'utilisateur authentifié possède déjà un `community_members` |
 | GET | `/api/community/:id` | Lecture membre uniquement ; un non-membre reçoit un `404` non énumérant |
-| GET | `/api/community/:id/feed` | Lecture durable des posts, membre + acceptation de la version courante des règles requises |
+| GET | `/api/community/:id/feed` | Lecture durable bornée à six posts, membre + règles courantes requises ; suite explicite via `?cursor=…` |
 | POST | `/api/community/rules/accept` | Acceptation explicite et versionnée persistée dans PostgreSQL ; `accepted=false` est rejeté |
 | POST | `/api/community/posts` | Création PostgreSQL, auteur imposé côté serveur, membre + règles courantes requises ; lecture ultérieure possible via le feed |
 | POST | `/api/community/comments` | Création PostgreSQL liée à un post existant ; auteur imposé côté serveur et membership du parent vérifié |
@@ -88,6 +88,10 @@ Le routeur Hono Community impose désormais une identité authentifiée au nivea
 | GET | `/api/community/copresence/:dogId` | contrôle propriétaire puis `503 COMMUNITY_PERSISTENCE_NOT_READY` |
 
 La version candidate des règles est contrôlée côté serveur (`community-rules-v1-candidate`) afin qu'une future version différente puisse échouer fermée jusqu'à nouvelle acceptation. Ce marqueur est une version technique candidate, pas une approbation juridique ni une publication définitive des règles.
+
+Le feed est ordonné par `createdAt DESC, id DESC` et renvoie au plus six posts par appel. Six est la taille candidate proposée sous #54, pas un optimum UX validé. La réponse ajoute `pagination: { pageSize: 6, hasMore, nextCursor }`. Le client peut demander explicitement le lot suivant en passant `nextCursor` comme unique paramètre `cursor` ; `hasMore=false` et `nextCursor=null` marquent la fin des résultats de cette requête, y compris pour une dernière page de six posts ou un flux vide. Un paramètre `limit` ne peut pas agrandir le lot. Aucune continuation automatique ni interface de recommandation n'est implémentée par ce contrat.
+
+Le curseur conserve la précision PostgreSQL à la microseconde et la clé UUID de départage, même si le `createdAt` public reste sérialisé à la milliseconde. Un curseur vide, dupliqué, mal formé ou réutilisé tel quel pour un autre compte ou une autre communauté renvoie `400 INVALID_FEED_CURSOR`, après les contrôles d'autorité. C'est un état de navigation non signé, pas une permission : chaque appel revérifie l'adhésion et l'acceptation des règles en base. La suppression du post servant de borne ne casse pas la suite ; un nouveau post plus récent que cette borne n'est visible qu'après un rafraîchissement explicite. Ce n'est pas un instantané immuable entre requêtes : les suppressions, insertions antidatées ou écritures tardivement validées peuvent modifier les résultats suivants. Voir [le contrat de flux borné candidat](../implementation/COMMUNITY_BOUNDED_FEED_2026-09-11.md).
 
 Les droits sont maintenant conservés dans la même transaction PostgreSQL que la lecture ou l'écriture. Un retrait ou une réaffectation d'adhésion déjà engagé est attendu puis revérifié ; une acceptation supprimée ou devenue obsolète bloque les opérations soumises aux règles. Pour un commentaire, le rattachement du post à la communauté est également revérifié et verrouillé. Une opération ayant acquis ses droits peut terminer avant un retrait ultérieur ; cette garantie ne retire pas des données déjà reçues. Les attentes de verrou sont limitées à 5 secondes et chaque instruction SQL à 10 secondes ; un échec renvoie `503 COMMUNITY_DATABASE_UNAVAILABLE`, sans détail SQL. Le cache privé est interdit également sur les erreurs de validation. Voir [le dossier de concurrence Community](../implementation/COMMUNITY_AUTHORITY_CONCURRENCY_2026-09-10.md).
 

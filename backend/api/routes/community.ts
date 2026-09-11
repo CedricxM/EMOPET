@@ -29,6 +29,12 @@ import {
   communityRulesColumns,
   presentCommunityPost,
 } from '../services/community-disclosure.js';
+import {
+  COMMUNITY_FEED_PAGE_SIZE,
+  InvalidCommunityFeedCursor,
+  decodeCommunityFeedCursor,
+  encodeCommunityFeedCursor,
+} from '../services/community-feed.js';
 
 const community = new Hono<{ Variables: { userId: string } }>();
 
@@ -215,14 +221,45 @@ community.get('/:id/feed', async (c) => {
     const rules = await requireCurrentRulesAcceptance(tx, c, userId);
     if (rules !== true) return rules;
 
+    const scope = { userId, communityId };
+    let before;
+    try {
+      before = decodeCommunityFeedCursor(c.req.queries('cursor'), scope);
+    } catch (error) {
+      if (!(error instanceof InvalidCommunityFeedCursor)) throw error;
+      return c.json({ error: 'Invalid feed cursor.', code: 'INVALID_FEED_CURSOR' }, 400);
+    }
+    const conditions = [eq(posts.communityId, communityId)];
+    if (before) {
+      conditions.push(sql`(${posts.createdAt}, ${posts.id}) < (${before.createdAt}::timestamptz, ${before.id}::uuid)`);
+    }
     const rows = await tx
-      .select(communityPostColumns)
+      .select({
+        ...communityPostColumns,
+        // JS Date truncates PostgreSQL microseconds. Keep full precision for
+        // the seek boundary, without exposing this internal field in posts.
+        cursorCreatedAt: sql<string>`to_char(${posts.createdAt} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`,
+      })
       .from(posts)
-      .where(eq(posts.communityId, communityId))
-      .orderBy(desc(posts.createdAt));
+      .where(and(...conditions))
+      .orderBy(desc(posts.createdAt), desc(posts.id))
+      .limit(COMMUNITY_FEED_PAGE_SIZE + 1);
 
+    const hasMore = rows.length > COMMUNITY_FEED_PAGE_SIZE;
+    const page = rows.slice(0, COMMUNITY_FEED_PAGE_SIZE);
+    const last = page.at(-1);
     markPrivate(c);
-    return c.json({ communityId, posts: rows.map(presentCommunityPost) });
+    return c.json({
+      communityId,
+      posts: page.map(presentCommunityPost),
+      pagination: {
+        pageSize: COMMUNITY_FEED_PAGE_SIZE,
+        hasMore,
+        nextCursor: hasMore && last
+          ? encodeCommunityFeedCursor({ createdAt: last.cursorCreatedAt, id: last.id }, scope)
+          : null,
+      },
+    });
   });
 });
 
