@@ -4,6 +4,8 @@ import { create } from 'zustand';
 export type MobileSubscriptionTier = 'free' | 'trial' | 'kit' | 'premium';
 export type MobileAiToneProfile = AIToneProfile;
 
+type SensitiveConsentKey = 'location_opt_in' | 'community_opt_in' | 'vet_export_opt_in';
+
 interface PreferencesState {
   subscriptionTier: MobileSubscriptionTier;
   hardwareLinked: boolean;
@@ -26,10 +28,8 @@ interface PreferencesState {
   joinWaitlist: (serviceId: string) => void;
   setPassivePhoneDetectionEnabled: (enabled: boolean) => void;
   setManualPresenceOverride: (state: 'present' | 'absence' | null) => void;
-  setConsent: (
-    key: 'location_opt_in' | 'community_opt_in' | 'vet_export_opt_in',
-    value: boolean,
-  ) => void;
+  setConsent: (key: SensitiveConsentKey, value: boolean) => void;
+  activateLocationConsentFromDurableAuthority: () => void;
 }
 
 export const usePreferencesStore = create<PreferencesState>((set) => ({
@@ -57,14 +57,41 @@ export const usePreferencesStore = create<PreferencesState>((set) => ({
         ? state.waitlistedServiceIds
         : [...state.waitlistedServiceIds, serviceId],
     })),
-  setPassivePhoneDetectionEnabled: (passivePhoneDetectionEnabled) =>
-    set({ passivePhoneDetectionEnabled }),
+  // Passive detection is a dependent location feature. A direct UI toggle must
+  // never be able to enable it while durable location authority is absent.
+  setPassivePhoneDetectionEnabled: (enabled) =>
+    set((state) => ({
+      passivePhoneDetectionEnabled: enabled && state.consents.location_opt_in,
+    })),
   setManualPresenceOverride: (manualPresenceOverride) => set({ manualPresenceOverride }),
   setConsent: (key, value) =>
+    set((state) => {
+      if (key === 'location_opt_in') {
+        // Generic/local state may revoke location authority, but must never
+        // manufacture a positive location consent. Positive activation is only
+        // available through activateLocationConsentFromDurableAuthority().
+        if (value) return {};
+        return {
+          consents: {
+            ...state.consents,
+            location_opt_in: false,
+          },
+          passivePhoneDetectionEnabled: false,
+        };
+      }
+
+      return {
+        consents: {
+          ...state.consents,
+          [key]: value,
+        },
+      };
+    }),
+  activateLocationConsentFromDurableAuthority: () =>
     set((state) => ({
       consents: {
         ...state.consents,
-        [key]: value,
+        location_opt_in: true,
       },
     })),
 }));

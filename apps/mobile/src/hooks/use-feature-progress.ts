@@ -20,6 +20,9 @@ export function useFeatureProgress() {
   const communityRulesAccepted = usePreferencesStore((state) => state.communityRulesAccepted);
   const waitlistedServiceIds = usePreferencesStore((state) => state.waitlistedServiceIds);
   const setConsent = usePreferencesStore((state) => state.setConsent);
+  const activateLocationConsentFromDurableAuthority = usePreferencesStore(
+    (state) => state.activateLocationConsentFromDurableAuthority,
+  );
   const setCommunityRulesAccepted = usePreferencesStore((state) => state.setCommunityRulesAccepted);
   const joinWaitlist = usePreferencesStore((state) => state.joinWaitlist);
   const setPassivePhoneDetectionEnabled = usePreferencesStore(
@@ -108,7 +111,7 @@ export function useFeatureProgress() {
         setConsent('community_opt_in', true);
       }
       if (isLocationConsent) {
-        setConsent('location_opt_in', true);
+        activateLocationConsentFromDurableAuthority();
         setPassivePhoneDetectionEnabled(true);
       }
 

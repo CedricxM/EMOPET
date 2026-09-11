@@ -9,6 +9,8 @@ const read = (path) => readFile(join(root, path), 'utf8');
 const [
   preferences,
   featureHook,
+  settingsScreen,
+  behaviorSettings,
   mobileBle,
   mobilePackageSource,
   sharedValidators,
@@ -19,6 +21,8 @@ const [
 ] = await Promise.all([
   read('apps/mobile/src/store/preferences.ts'),
   read('apps/mobile/src/hooks/use-feature-progress.ts'),
+  read('apps/mobile/app/settings/index.tsx'),
+  read('apps/mobile/app/settings/behavior.tsx'),
   read('apps/mobile/src/services/ble.ts'),
   read('apps/mobile/package.json'),
   read('packages/shared/src/validators/index.ts'),
@@ -39,7 +43,7 @@ if (!preferences.includes('passivePhoneDetectionEnabled: false')) {
 }
 
 const consentPersistIndex = featureHook.indexOf('await saveFeatureConsent(token');
-const locationEnableIndex = featureHook.indexOf("setConsent('location_opt_in', true)");
+const locationEnableIndex = featureHook.indexOf('activateLocationConsentFromDurableAuthority();');
 const passiveEnableIndex = featureHook.indexOf('setPassivePhoneDetectionEnabled(true)');
 if (consentPersistIndex < 0 || locationEnableIndex < 0 || passiveEnableIndex < 0) {
   fail('location consent transaction boundary could not be located');
@@ -57,6 +61,38 @@ if (!featureHook.includes('setPassivePhoneDetectionEnabled(false)')) {
 }
 if (/void\s+saveFeatureConsent\s*\(/.test(featureHook)) {
   fail('consent persistence must not be fire-and-forget');
+}
+
+// Positive location authority may only be created by the dedicated method used
+// after durable recording. Generic/local consent writes are withdrawal-only.
+if (!preferences.includes('activateLocationConsentFromDurableAuthority: () => void;') ||
+    !preferences.includes('activateLocationConsentFromDurableAuthority: () =>')) {
+  fail('preferences store must expose a dedicated durable-authority location activation method');
+}
+if (!preferences.includes("if (key === 'location_opt_in')")) {
+  fail('generic consent setter must special-case sensitive location authority');
+}
+if (!preferences.includes('if (value) return {};')) {
+  fail('generic consent setter must refuse to manufacture positive location authority');
+}
+const locationWithdrawalPattern = /location_opt_in:\s*false[\s\S]{0,220}passivePhoneDetectionEnabled:\s*false/;
+if (!locationWithdrawalPattern.test(preferences)) {
+  fail('withdrawing location authority must disable passive phone detection in the same store transition');
+}
+if (!preferences.includes('passivePhoneDetectionEnabled: enabled && state.consents.location_opt_in')) {
+  fail('passive phone detection setter must fail closed without location authority');
+}
+if (!settingsScreen.includes('onValueChange={onLocationConsentChange}')) {
+  fail('settings location switch must use the guarded location handler');
+}
+if (!settingsScreen.includes("setConsent('location_opt_in', false)")) {
+  fail('settings location switch must retain a direct withdrawal path');
+}
+if (!behaviorSettings.includes('disabled={!locationOptIn}')) {
+  fail('behavior settings must disable passive phone detection when location authority is absent');
+}
+if (!behaviorSettings.includes('value={locationOptIn && passivePhoneDetectionEnabled}')) {
+  fail('behavior settings must render passive detection off when location authority is absent');
 }
 
 if (!featureProgressRoutes.includes('FEATURE_PROGRESS_PERSISTENCE_NOT_READY')) {
@@ -156,6 +192,7 @@ const forbiddenMobileLocationMarkers = [
   { pattern: /GPS_MODE_GEOFENCE/, label: 'GPS geofence enable mode' },
   { pattern: /buildSetGpsMode\s*\(/, label: 'GPS mode command builder call' },
   { pattern: /buildSetGeofence\s*\(/, label: 'geofence command builder call' },
+  { pattern: /setConsent\(\s*['"]location_opt_in['"]\s*,\s*true\s*\)/, label: 'direct local positive location consent' },
 ];
 
 for (const file of await collectSourceFiles('apps/mobile')) {
@@ -173,5 +210,5 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log('Location privacy boundary audit passed for repository runtime surfaces: opt-in defaults off, durable consent precedes local activation, exact TAG coordinates are discarded before app callbacks, sensor ingress/storage exclude exact coordinates, and presence persistence remains fail-closed.');
-console.log('Scope note: this gate does not establish a legal retention period or attest device firmware/default GPS behavior that is absent from this repository.');
+console.log('Location privacy boundary audit passed for repository runtime surfaces: opt-in defaults off, durable consent precedes the only positive local activation path, withdrawal disables dependent passive detection, direct local activation is rejected, exact TAG coordinates are discarded before app callbacks, sensor ingress/storage exclude exact coordinates, and presence persistence remains fail-closed.');
+console.log('Scope note: this gate does not establish a legal retention period, implement durable consent persistence, or attest device firmware/default GPS behavior that is absent from this repository.');

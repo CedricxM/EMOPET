@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { usePreferencesStore } from '../../src/store';
 
 export default function BehaviorSettingsScreen() {
+  const locationOptIn = usePreferencesStore((state) => state.consents.location_opt_in);
   const passivePhoneDetectionEnabled = usePreferencesStore(
     (state) => state.passivePhoneDetectionEnabled,
   );
@@ -24,11 +25,17 @@ export default function BehaviorSettingsScreen() {
         <Text style={styles.helper}>
           Detection passive via telephone, avec comparaison presence / absence confidence-aware.
         </Text>
+        {!locationOptIn ? (
+          <Text style={styles.authorityNote}>
+            La detection passive reste desactivee tant que l autorite de localisation n a pas ete enregistree durablement.
+          </Text>
+        ) : null}
         <View style={styles.row}>
           <Text style={styles.label}>Detection passive via telephone</Text>
           <Switch
-            value={passivePhoneDetectionEnabled}
+            value={locationOptIn && passivePhoneDetectionEnabled}
             onValueChange={setPassivePhoneDetectionEnabled}
+            disabled={!locationOptIn}
             trackColor={{ false: '#3B4D73', true: '#E94560' }}
           />
         </View>
@@ -102,6 +109,12 @@ const styles = StyleSheet.create({
     color: '#A6B4C8',
     fontSize: 13,
     lineHeight: 18,
+  },
+  authorityNote: {
+    color: '#F2B880',
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 10,
   },
   row: {
     flexDirection: 'row',
