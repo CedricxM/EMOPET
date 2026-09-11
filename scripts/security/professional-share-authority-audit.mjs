@@ -49,7 +49,7 @@ const shareTypes = requireText('packages/shared/src/types/professional-share.ts'
   "actorType: 'OWNER' | 'RECIPIENT' | 'SYSTEM'",
   'REVOKED',
 ]);
-if (shareTypes.includes('guardianUserId: string')) {
+if (shareTypes.includes('guardianUserId')) {
   failures.push('active shared professional-share types must not expose guardianUserId');
 }
 
@@ -73,7 +73,7 @@ if (shareValidators.includes("const OwnerProfessionalShareRecipientSchema = z.ob
 }
 if (shareValidators.includes('GuardianProfessionalShareGrantCreateSchema') ||
     shareValidators.includes('GuardianProfessionalShareGrantRevokeSchema') ||
-    shareValidators.includes('guardianUserId: z.string()')) {
+    shareValidators.includes('guardianUserId')) {
   failures.push('active professional-share validators still expose Guardian terminology');
 }
 
@@ -84,6 +84,8 @@ const dogRoutes = requireText('backend/api/routes/dogs.ts', [
   'G-GUARDIAN-PROFESSIONAL-SHARE-01',
   "'/:id/professional-shares'",
   "'/:id/professional-shares/:grantId/revoke'",
+  'ownerUserId: userId',
+  'professionalShareGrants.ownerUserId',
   "recipientPrincipalId: null",
   "status: 'PENDING'",
   "activation: 'REQUIRES_VERIFIED_PROFESSIONAL_IDENTITY'",
@@ -93,6 +95,10 @@ const dogRoutes = requireText('backend/api/routes/dogs.ts', [
   ".for('update')",
   "'Cache-Control', 'private, no-store'",
 ]);
+if (dogRoutes.includes('professionalShareGrants.guardianUserId') ||
+    dogRoutes.includes('guardianUserId: userId')) {
+  failures.push('dog professional-share lifecycle still uses Guardian persistence property');
+}
 
 if (!dogRoutes.includes("process.env['NODE_ENV'] !== 'production'")) {
   failures.push('legacy generic vet share must be impossible in production');
@@ -104,15 +110,17 @@ if (dogRoutes.includes("'/:id/professional-shares/:grantId/activate'")) {
 const shareSchema = requireText('backend/db/schema/professional-sharing.ts', [
   "pgTable('professional_share_grants'",
   "pgTable('professional_share_access_audits'",
-  "uuid('owner_user_id')",
+  "ownerUserId: uuid('owner_user_id')",
   'idx_prof_share_grant_owner_dog',
+  'table.ownerUserId',
   'recipientPrincipalId',
   'accessExpiresAt',
   "'PENDING','ACTIVE','EXPIRED','REVOKED','SUSPENDED'",
 ]);
-if (shareSchema.includes("uuid('guardian_user_id')") ||
+if (shareSchema.includes('guardianUserId') ||
+    shareSchema.includes("uuid('guardian_user_id')") ||
     shareSchema.includes('idx_prof_share_grant_guardian_dog')) {
-  failures.push('current professional-share schema still maps legacy Guardian persistence identifiers');
+  failures.push('current professional-share schema still exposes legacy Guardian persistence identifiers');
 }
 
 requireText('backend/db/migrations/0006_professional_share_authority.sql', [
@@ -129,14 +137,13 @@ requireText('backend/db/migrations/0009_professional_share_owner_terminology.sql
 const dbAuthority = requireText('backend/api/services/professional-share-db-authority.ts', [
   'createProfessionalShareDbAuthority',
   'professionalShareAccessAudits',
-  'ownerUserId: row.guardianUserId',
+  'ownerUserId: row.ownerUserId',
   'hasCurrentOwnerAuthority',
   'eq(dogs.ownerId, ownerUserId)',
   'resolveVerifiedRecipient',
 ]);
-if (dbAuthority.includes('hasCurrentGuardianAuthority') ||
-    dbAuthority.includes('guardianUserId: row.guardianUserId')) {
-  failures.push('DB authority leaks Guardian terminology beyond the explicit Drizzle compatibility bridge');
+if (dbAuthority.includes('guardianUserId') || dbAuthority.includes('hasCurrentGuardianAuthority')) {
+  failures.push('DB authority still exposes Guardian terminology');
 }
 
 const accessPolicy = requireText('backend/api/services/professional-share-access.ts', [
@@ -150,16 +157,19 @@ if (accessPolicy.includes('hasCurrentGuardianAuthority') ||
   failures.push('active professional-share access policy still exposes Guardian terminology');
 }
 
-requireText('backend/api/services/professional-share-recipient-read.ts', [
+const recipientRead = requireText('backend/api/services/professional-share-recipient-read.ts', [
   'createProfessionalShareRecipientReadBoundary',
   'lockPublicationAuthority',
   "await collect({ tx, authorization: preflight })",
   ".for('share')",
   'createProfessionalShareAccessChecker(finalAuthority, clock)',
   'hasCurrentOwnerAuthority',
-  'ownerUserId: row.guardianUserId',
+  'ownerUserId: row.ownerUserId',
   'recordUnavailableAudit',
 ]);
+if (recipientRead.includes('guardianUserId') || recipientRead.includes('hasCurrentGuardianAuthority')) {
+  failures.push('recipient-read authority still exposes Guardian terminology');
+}
 
 // The recipient-read primitive is deliberately internal until professional
 // identity/binding and the concrete semantic report projection are approved.

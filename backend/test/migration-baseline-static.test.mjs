@@ -104,8 +104,9 @@ test('professional-share persistence advances to Owner terminology through migra
   const schema = read(join(schemaDir, 'professional-sharing.ts'));
   const migration = read(join(migrationsDir, '0009_professional_share_owner_terminology.sql'));
 
-  assert.match(schema, /guardianUserId: uuid\('owner_user_id'\)/);
+  assert.match(schema, /ownerUserId: uuid\('owner_user_id'\)/);
   assert.match(schema, /idx_prof_share_grant_owner_dog/);
+  assert.doesNotMatch(schema, /guardianUserId/);
   assert.doesNotMatch(schema, /uuid\('guardian_user_id'\)/);
   assert.doesNotMatch(schema, /idx_prof_share_grant_guardian_dog/);
 

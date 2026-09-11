@@ -228,9 +228,7 @@ dogs.post(
     try {
       const created = await withOwnerProfessionalShareAuthority(userId, id, async (tx) => {
         const [row] = await tx.insert(professionalShareGrants).values({
-          // Legacy persistence identifier retained until #245 Phase C performs
-          // the explicit schema/API migration to owner terminology.
-          guardianUserId: userId,
+          ownerUserId: userId,
           dogId: id,
           recipientDisplayName: body.recipient.displayName,
           recipientType: body.recipient.type,
@@ -273,8 +271,7 @@ dogs.get('/:id/professional-shares', async (c) => {
       .select()
       .from(professionalShareGrants)
       .where(and(
-        // Legacy persistence identifier retained until #245 Phase C.
-        eq(professionalShareGrants.guardianUserId, userId),
+        eq(professionalShareGrants.ownerUserId, userId),
         eq(professionalShareGrants.dogId, id),
       ))
       .orderBy(professionalShareGrants.createdAt));
@@ -315,8 +312,7 @@ dogs.post('/:id/professional-shares/:grantId/revoke', async (c) => {
         .where(and(
           eq(professionalShareGrants.id, grantId),
           eq(professionalShareGrants.dogId, id),
-          // Legacy persistence identifier retained until #245 Phase C.
-          eq(professionalShareGrants.guardianUserId, userId),
+          eq(professionalShareGrants.ownerUserId, userId),
         ))
         .limit(1)
         .for('update');
@@ -338,8 +334,7 @@ dogs.post('/:id/professional-shares/:grantId/revoke', async (c) => {
         .where(and(
           eq(professionalShareGrants.id, grantId),
           eq(professionalShareGrants.dogId, id),
-          // Legacy persistence identifier retained until #245 Phase C.
-          eq(professionalShareGrants.guardianUserId, userId),
+          eq(professionalShareGrants.ownerUserId, userId),
         ))
         .returning();
       if (!row) throw new Error('Professional share revocation was not persisted');

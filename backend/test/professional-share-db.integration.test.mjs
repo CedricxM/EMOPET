@@ -61,8 +61,7 @@ test('professional share policy reloads durable grant state and records sanitize
 
   await db.insert(professionalShareGrants).values({
     id: grantId,
-    // Temporary Drizzle compatibility property; persisted column is owner_user_id.
-    guardianUserId: ownerId,
+    ownerUserId: ownerId,
     dogId,
     recipientDisplayName: 'Dr Test',
     recipientType: 'VETERINARIAN',

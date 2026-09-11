@@ -7,7 +7,7 @@ import { Hono } from 'hono';
 
 const integrationEnabled = process.env.EMOPET_DB_INTEGRATION_TEST === '1';
 
-test('dog CRUD and Guardian professional-share lifecycle remain owner scoped', { skip: !integrationEnabled }, async () => {
+test('dog CRUD and Owner professional-share lifecycle remain owner scoped', { skip: !integrationEnabled }, async () => {
   const [
     { dogs: dogRoutes, ABSENCE_COMPARISON_PERSISTENCE_CODE, DOG_ERASURE_LIFECYCLE_CODE },
     { health: healthRoutes },
@@ -131,7 +131,7 @@ test('dog CRUD and Guardian professional-share lifecycle remain owner scoped', {
       .where(eq(professionalShareGrants.id, shareGrantId))
       .limit(1);
     assert.ok(persistedGrant);
-    assert.equal(persistedGrant.guardianUserId, ownerId);
+    assert.equal(persistedGrant.ownerUserId, ownerId);
     assert.equal(persistedGrant.dogId, dogId);
     assert.equal(persistedGrant.status, 'PENDING');
     assert.equal(persistedGrant.recipientPrincipalId, null);
@@ -169,13 +169,13 @@ test('dog CRUD and Guardian professional-share lifecycle remain owner scoped', {
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: 'Guardian ended sharing' }),
+        body: JSON.stringify({ reason: 'Owner ended sharing' }),
       },
     );
     assert.equal(revokeResponse.status, 200);
     const revoked = await revokeResponse.json();
     assert.equal(revoked.grant.status, 'REVOKED');
-    assert.equal(revoked.grant.revocationReason, 'Guardian ended sharing');
+    assert.equal(revoked.grant.revocationReason, 'Owner ended sharing');
     assert.ok(revoked.grant.revokedAt);
 
     const firstRevokedAt = revoked.grant.revokedAt;

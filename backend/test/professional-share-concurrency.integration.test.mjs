@@ -35,7 +35,7 @@ async function waitForBlockedOperations(tx, blockerPid, expected) {
   assert.fail(`Expected ${expected} concurrent operations waiting on PostgreSQL locks, saw ${observed}`);
 }
 
-test('Guardian sharing serializes ownership and concurrent revocation', {
+test('Owner sharing serializes ownership and concurrent revocation', {
   skip: !integrationEnabled,
   timeout: 25_000,
 }, async (t) => {
@@ -73,7 +73,7 @@ test('Guardian sharing serializes ownership and concurrent revocation', {
 
   await db.insert(users).values([ownerId, nextOwnerId].map((id) => ({
     id, email: `share-race-${id}@example.test`,
-    passwordHash: 'integration-test-only', name: 'Race fixture Guardian',
+    passwordHash: 'integration-test-only', name: 'Race fixture Owner',
   })));
   await db.insert(dogs).values({
     id: dogId, ownerId, name: 'Nala', breed: 'Labrador Retriever',
@@ -92,7 +92,7 @@ test('Guardian sharing serializes ownership and concurrent revocation', {
   };
   // ACTIVE binding is a DB fixture, never an activation endpoint or identity provider.
   await db.insert(grants).values({
-    id: grantId, guardianUserId: ownerId, dogId,
+    id: grantId, ownerUserId: ownerId, dogId,
     recipientDisplayName: shareBody.recipient.displayName,
     recipientType: shareBody.recipient.type,
     recipientEmail: shareBody.recipient.email,
@@ -125,7 +125,7 @@ test('Guardian sharing serializes ownership and concurrent revocation', {
         pending = [
           app.request(shareUrl, post(shareBody)),
           app.request(shareUrl),
-          app.request(revokeUrl, post({ reason: 'stale Guardian' })),
+          app.request(revokeUrl, post({ reason: 'stale Owner' })),
         ];
         requests.push(...pending);
         await waitForBlockedOperations(tx, pid, 3);
@@ -136,8 +136,8 @@ test('Guardian sharing serializes ownership and concurrent revocation', {
         assert.deepEqual(await response.json(), { error: 'not_found' });
       }
       const stored = await db.select().from(grants).where(eq(grants.dogId, dogId));
-      assert.equal(stored.length, 1, 'stale Guardian must not create a new grant');
-      assert.equal(stored[0].status, 'ACTIVE', 'stale Guardian must not revoke the grant');
+      assert.equal(stored.length, 1, 'stale Owner must not create a new grant');
+      assert.equal(stored[0].status, 'ACTIVE', 'stale Owner must not revoke the grant');
       assert.equal(stored[0].revokedAt, null);
     } finally {
       await Promise.allSettled(pending ?? []);

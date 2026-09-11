@@ -15,9 +15,7 @@ export type VerifiedProfessionalRecipientResolver = () => Promise<{
 function toAccessRecord(row: typeof professionalShareGrants.$inferSelect): unknown {
   return {
     id: row.id,
-    // Drizzle compatibility bridge only. Persisted storage is owner_user_id
-    // after migration 0009; the external access contract is ownerUserId.
-    ownerUserId: row.guardianUserId,
+    ownerUserId: row.ownerUserId,
     dogId: row.dogId,
     recipient: {
       displayName: row.recipientDisplayName,

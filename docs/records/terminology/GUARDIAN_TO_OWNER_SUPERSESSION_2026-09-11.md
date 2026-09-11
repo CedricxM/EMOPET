@@ -41,9 +41,9 @@ Historical files are retained unchanged so the repository preserves what was act
 | Guardian journal | Owner journal | same first-person context/evidence class |
 | Guardian Continuity | Owner Continuity | same capability group |
 
-## Persistence and contract migration status
+## Phase C persistence and contract migration
 
-DOMAIN-TERM #245 Phase C migrates persistence and active contracts in reviewable layers.
+DOMAIN-TERM #245 Phase C is complete for active professional-sharing persistence and runtime contracts.
 
 Migration `0009_professional_share_owner_terminology.sql` establishes the canonical persisted names:
 
@@ -52,36 +52,46 @@ Migration `0009_professional_share_owner_terminology.sql` establishes the canoni
 - authorization semantics and existing data are unchanged;
 - historical migration `0006_professional_share_authority.sql` remains unchanged.
 
-The active professional-sharing contract now uses:
+The active professional-sharing stack now uses Owner terminology end to end:
 
-- `ownerUserId`;
+- Drizzle property `ownerUserId` mapped to `owner_user_id`;
+- shared contract `ownerUserId`;
 - `hasCurrentOwnerAuthority`;
 - `OWNER_AUTHORITY_MISMATCH`;
 - audit actor `OWNER`;
-- Owner-named create/revoke validators only.
+- Owner-named create/revoke validators;
+- owner-scoped create/list/revoke route queries;
+- Owner-named integration fixtures and assertions.
 
-The Drizzle table property `guardianUserId` temporarily maps to persisted `owner_user_id` as a **storage-adapter compatibility bridge** because the large dog-route lifecycle and a small set of DB fixtures still access that table property directly. The DB authority adapters translate it immediately to `ownerUserId`; it must not escape the persistence layer or appear in new contracts.
+The temporary Drizzle `guardianUserId` compatibility bridge has been removed. No active professional-sharing contract or persistence adapter should reintroduce it.
 
 ## Legacy identifiers intentionally retained
 
 The following identifiers may continue to contain `guardian` only for explicit compatibility/history:
 
-- the temporary Drizzle table property `guardianUserId` while the remaining direct table callers migrate;
 - historical control/gate identifiers including `G-GUARDIAN-AUTHORITY-01`, `G-GUARDIAN-CONTINUITY-01` and `G-GUARDIAN-PROFESSIONAL-SHARE-01`;
-- historical filenames, migrations, implementation records and evidence whose purpose is to preserve what was reviewed at the time.
+- historical migration `0006_professional_share_authority.sql`, which records the schema originally authored at that point in time;
+- historical filenames, implementation records and evidence whose purpose is to preserve what was reviewed at the time.
 
-`guardian_user_id`, `GuardianProfessionalShareGrantCreateSchema`, `GuardianProfessionalShareGrantRevokeSchema`, `hasCurrentGuardianAuthority`, `GUARDIAN_AUTHORITY_MISMATCH` and shared-contract `guardianUserId` are not approved current identifiers after this Phase C contract migration.
+The following are **not approved current identifiers** after Phase C:
 
-These retained names are **legacy compatibility/history**, not permission semantics and not approved vocabulary for new product code.
+- `guardian_user_id` in current schema;
+- `guardianUserId` in active code/contracts;
+- `GuardianProfessionalShareGrantCreateSchema`;
+- `GuardianProfessionalShareGrantRevokeSchema`;
+- `hasCurrentGuardianAuthority`;
+- `GUARDIAN_AUTHORITY_MISMATCH`.
+
+These retained historical names are evidence lineage, not permission semantics and not approved vocabulary for new product code.
 
 ## Migration rule
 
 New active product code, tests, UI copy and current controlled documentation must use canonical Owner terminology unless a legacy identifier is being referenced explicitly for compatibility or historical traceability.
 
-Do not perform a blind repository-wide replacement. In particular, historical gate identifiers and evidence records remain stable unless a separately controlled compatibility plan changes them.
+Do not perform a blind repository-wide replacement. Historical gate identifiers and evidence records remain stable unless a separately controlled compatibility plan changes them.
 
 ## Delegated access rule
 
 A trusted household member, pet-sitter, professional recipient or other delegate does not become an Owner merely because access is granted. The canonical Owner term must therefore not be mechanically substituted into non-owner actor roles.
 
-**STATUS: TERMINOLOGY SUPERSESSION ACTIVE.**
+**STATUS: TERMINOLOGY SUPERSESSION ACTIVE — PHASE C ACTIVE PERSISTENCE/CONTRACT MIGRATION COMPLETE.**

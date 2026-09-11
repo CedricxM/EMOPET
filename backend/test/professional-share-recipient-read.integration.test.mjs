@@ -69,8 +69,7 @@ test('professional recipient read rechecks authority before publication', {
   });
   await db.insert(grants).values({
     id: grantId,
-    // Temporary Drizzle compatibility property; persisted column is owner_user_id.
-    guardianUserId: ownerId,
+    ownerUserId: ownerId,
     dogId,
     recipientDisplayName: 'Dr Fixture',
     recipientType: 'VETERINARIAN',
@@ -135,8 +134,6 @@ test('professional recipient read rechecks authority before publication', {
     releaseCollector.resolve();
     const result = await pendingRead;
 
-    // Restore the fixture only after the recipient read has observed the committed
-    // transfer. The following scenarios should start from ownerId again.
     await db
       .update(dogs)
       .set({ ownerId })
