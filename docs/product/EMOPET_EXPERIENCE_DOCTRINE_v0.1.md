@@ -2,8 +2,11 @@
 
 **Status:** PROPOSED CONTROLLED PRODUCT AUTHORITY / FOUNDER REVIEW REQUIRED  
 **Date:** 2026-09-06  
+**Canonical terminology revision:** 2026-09-11 under DOMAIN-TERM #245  
 **Parent gate:** `G-EMOPET-EXPERIENCE-HARDENING-01`  
 **Master issue:** #223
+
+> The 2026-09-11 revision updates dog-owner terminology only. Product boundaries, gates and maturity status are unchanged.
 
 ## 0. Purpose
 
@@ -23,11 +26,11 @@ The architecture aims to preserve seven continuities:
 
 1. **Observation continuity** — MAT + TAG observe complementary contexts.
 2. **Evidence continuity** — signal provenance, qualification, confidence and abstention stay attached to observations.
-3. **Daily continuity** — Care, Today and Breiz help the Guardian understand what deserves attention now.
+3. **Daily continuity** — Care, Today and Breiz help the Owner understand what deserves attention now.
 4. **Relationship continuity** — Together, Moments and Memories preserve chosen shared-life context without scoring the bond.
 5. **Social continuity** — Community, Circles and World can support real connection without turning dog performance into social status.
 6. **Territorial continuity** — Breiz and local discovery use controlled regional/contextual information without contaminating ELI inference.
-7. **Professional continuity** — the Guardian may share a bounded, revocable, provenance-preserving summary with a veterinarian or other authorized professional.
+7. **Professional continuity** — the Owner may share a bounded, revocable, provenance-preserving summary with a veterinarian or other authorized professional.
 
 ## 2. Semantic domains
 
@@ -49,7 +52,7 @@ Must not:
 
 ### 2.2 Breiz — contextual companion domain
 
-**Job:** explain, contextualize, retrieve useful local/reference information, ask clarifying questions and help the Guardian navigate EMOPET.
+**Job:** explain, contextualize, retrieve useful local/reference information, ask clarifying questions and help the Owner navigate EMOPET.
 
 Breiz may:
 - explain a qualified ELI observation without increasing its certainty;
@@ -79,13 +82,13 @@ A quiet Today state is valid.
 
 ### 2.4 Together — activity / suggestion domain
 
-**Job:** answer: `What might make sense for this Guardian and dog to do now?`
+**Job:** answer: `What might make sense for this Owner and dog to do now?`
 
 Together may use explicit preferences, practical context and bounded approved suitability signals.
 
 Together must not:
 - score the relationship;
-- score the Guardian;
+- score the Owner;
 - treat refusal as relationship failure;
 - optimize only for suggestion acceptance;
 - infer that repeated activity equals emotional importance.
@@ -94,7 +97,7 @@ A good outcome may be a suggestion, a conservative alternative or abstention.
 
 ### 2.5 Moments / Memories — chosen relationship-history domain
 
-**Job:** preserve what the Guardian deliberately chooses to keep from shared life.
+**Job:** preserve what the Owner deliberately chooses to keep from shared life.
 
 Memories may contain:
 - deliberate Moments;
@@ -113,7 +116,7 @@ Memories must not:
 
 ### 2.6 Community / Circles — human social domain
 
-**Job:** help Guardians find useful local people, activities, groups and knowledge.
+**Job:** help Owners find useful local people, activities, groups and knowledge.
 
 Community must remain distinct from EMOPET scientific authority.
 
@@ -146,10 +149,10 @@ World must not:
 
 ### 2.8 Professional / Veterinary sharing — delegated observation domain
 
-**Job:** let the Guardian share a bounded observation history with an authorized professional.
+**Job:** let the Owner share a bounded observation history with an authorized professional.
 
 Default principles:
-- Guardian-controlled;
+- Owner-controlled;
 - recipient-bound where feasible;
 - time/data scoped;
 - revocable/expiring;
@@ -170,7 +173,7 @@ The following flows are **forbidden by default**:
 - `World participation → Care score`
 - `Memories quantity → relationship score`
 - `raw Breiz conversation → social recommender`
-- `private Care/ELI → Vet View without explicit Guardian authority`
+- `private Care/ELI → Vet View without explicit Owner authority`
 - `local/cultural Breiz source → canine-state evidence`
 
 Any exception requires a separately documented authority, purpose, permission model, provenance path and validation gate.
@@ -189,7 +192,7 @@ Never gamify or reward:
 - sleep/rest quantity;
 - MAT/TAG adherence as moral performance;
 - ELI confidence;
-- `good Guardian` behaviour;
+- `good Owner` behaviour;
 - public dog popularity.
 
 Forbidden mechanics include, when tied to those domains:
@@ -249,11 +252,11 @@ No surface is protected from deletion merely because substantial design/code wor
 
 EMOPET succeeds only if the ecosystem feels coherent without flattening its domains.
 
-A Guardian should be able to understand the difference between:
+An Owner should be able to understand the difference between:
 - **observation** — what EMOPET measured/qualified;
 - **explanation** — how Breiz explains known information;
 - **suggestion** — what might be useful to do;
-- **memory** — what the Guardian deliberately chose to preserve;
+- **memory** — what the Owner deliberately chose to preserve;
 - **community speech** — what another person says;
 - **professional interpretation** — what a veterinarian concludes.
 
@@ -304,7 +307,7 @@ not:
 - #59 — Together
 - #60 — Today/Home
 - #61 — App Shell / IA
-- #64 — Guardian Authority / Vet View
+- #64 — Owner Authority / Vet View (historical workstream number retained)
 - #116 — third-party data/service-rights gate
 
 **Gate:** `G-EMOPET-EXPERIENCE-DOCTRINE-01 = OPEN`

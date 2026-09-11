@@ -88,3 +88,28 @@ test('canonical product and strategy authorities use Owner without turning deleg
   assert.match(careUiMap, /Owner-note separation/);
   assert.doesNotMatch(careUiMap, englishRoleWord);
 });
+
+test('cross-surface product authorities use canonical Owner terminology', async () => {
+  const [authorityMap, experienceDoctrine, surfaceMatrix, veterinarySummary] = await Promise.all([
+    readFile(new URL('../../../docs/control/EMOPET_PRODUCT_AUTHORITY_MAP_v0.1.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../../docs/product/EMOPET_EXPERIENCE_DOCTRINE_v0.1.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../../docs/product/EMOPET_SURFACE_NECESSITY_MATRIX_v0.1.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../../docs/product/EMOPET_VETERINARY_SUMMARY_SCOPE_v0.1.md', import.meta.url), 'utf8'),
+  ]);
+
+  assert.match(authorityMap, /Owner authority and professional sharing/);
+  assert.match(authorityMap, /The Owner–dog relationship is the central product authorization boundary/);
+  assert.doesNotMatch(authorityMap, englishRoleWord);
+
+  assert.match(experienceDoctrine, /help the Owner understand what deserves attention now/);
+  assert.match(experienceDoctrine, /Owner Authority \/ Vet View/);
+  assert.doesNotMatch(experienceDoctrine, englishRoleWord);
+
+  assert.match(surfaceMatrix, /Owner Hub \/ Authority/);
+  assert.match(surfaceMatrix, /full Owner rights/);
+  assert.doesNotMatch(surfaceMatrix, englishRoleWord);
+
+  assert.match(veterinarySummary, /DECLARED BY OWNER/);
+  assert.match(veterinarySummary, /OWNER NOTES \(selected\)/);
+  assert.doesNotMatch(veterinarySummary, englishRoleWord);
+});

@@ -2,11 +2,14 @@
 
 **Status:** PRODUCT / INFORMATION-ARCHITECTURE CANDIDATE — NOT CLINICALLY VALIDATED  
 **Date:** 2026-09-06  
+**Canonical terminology revision:** 2026-09-11 under DOMAIN-TERM #245  
 **Related:** #64, Founding 12 veterinary strategy, Experience Doctrine
+
+> The 2026-09-11 revision updates dog-owner terminology only. Clinical boundaries and validation status are unchanged.
 
 ## 1. Job
 
-Give a veterinarian a short, dated chronology of governed observations that a Guardian deliberately shares, without turning EMOPET into a diagnostic system or a second clinical dashboard.
+Give a veterinarian a short, dated chronology of governed observations that an Owner deliberately shares, without turning EMOPET into a diagnostic system or a second clinical dashboard.
 
 Target reading behavior:
 
@@ -18,7 +21,7 @@ This is a product target, not a validated time-saving claim.
 
 ### Identity/context header
 - dog name;
-- Guardian-provided basic profile fields relevant to identification;
+- Owner-provided basic profile fields relevant to identification;
 - observation period;
 - generated-at timestamp;
 - explicit `NON-MEDICAL / OBSERVATIONAL SUMMARY` label.
@@ -40,11 +43,11 @@ Each item should answer:
 - confidence/coverage;
 - known evidence limitations.
 
-### Guardian-selected context/notes
+### Owner-selected context/notes
 Only if explicitly included in the grant.
 
 Clearly label as:
-`DECLARED BY GUARDIAN`, not sensor truth.
+`DECLARED BY OWNER`, not sensor truth.
 
 ### Interpretation boundary
 Required text concept:
@@ -79,7 +82,7 @@ Every professional-facing observation should be traceable internally to:
 - quality/gate decision;
 - baseline/reference version where applicable;
 - generated-at version/build;
-- any Guardian-declared context used.
+- any Owner-declared context used.
 
 The PDF/UI may summarize provenance, but audit/export systems should preserve it.
 
@@ -115,7 +118,7 @@ PERSISTENT CHANGES
 2. Daytime activity
    Within individual reference range
 
-GUARDIAN NOTES (selected)
+OWNER NOTES (selected)
 [clearly declared]
 
 BOUNDARY

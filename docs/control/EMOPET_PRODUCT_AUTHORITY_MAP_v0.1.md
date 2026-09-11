@@ -2,8 +2,11 @@
 
 **Status:** PROPOSED CONTROLLED PRODUCT/DATA AUTHORITY — FOUNDER REVIEW REQUIRED  
 **Date:** 2026-09-06  
+**Canonical terminology revision:** 2026-09-11 under DOMAIN-TERM #245  
 **Parent:** #223  
 **Doctrine:** `docs/product/EMOPET_EXPERIENCE_DOCTRINE_v0.1.md`
+
+> The 2026-09-11 revision updates dog-owner terminology only. Authority boundaries, permissions and maturity status are unchanged.
 
 ## 0. Purpose
 
@@ -21,11 +24,11 @@ The default rule is:
 |---|---|---|
 | `SENSOR_RAW` | Raw or minimally processed device evidence | MAT PVDF/IMU/load/environment; TAG IMU/acoustic/context |
 | `QUALIFIED_OBSERVATION` | Observation that passed the applicable quality/provenance/confidence gate | rest-window observation, qualified movement trend |
-| `OWNER_FACT` | Explicit factual information supplied/confirmed by Guardian | schedule, dog profile, chosen place, declared routine |
+| `OWNER_FACT` | Explicit factual information supplied/confirmed by Owner | schedule, dog profile, chosen place, declared routine |
 | `OWNER_PREFERENCE` | Explicit/confirmed preference, not evidence about the dog | activity preference, notification preference |
 | `ELI_INTERPRETATION` | Bounded scientific interpretation with provenance/confidence/abstention | descriptive longitudinal change state |
 | `BREIZ_EXPLANATION` | Contextual explanation/retrieval/suggestion, never independent dog-state truth | explanation, source-backed local fact, navigation help |
-| `MEMORY_CONTENT` | Guardian-chosen private relationship history | Moment, milestone, chosen place, note |
+| `MEMORY_CONTENT` | Owner-chosen private relationship history | Moment, milestone, chosen place, note |
 | `COMMUNITY_SPEECH` | User/professional/community content subject to moderation | post, reply, Circle/event content |
 | `WORLD_STATE` | Optional playful/social state independent of canine evidence | personal-space object, symbolic keepsake |
 | `PROFESSIONAL_INTERPRETATION` | Conclusion made by veterinarian/authorized professional | clinical assessment, diagnosis, care decision |
@@ -40,9 +43,9 @@ QUALIFIED OBSERVATION
 ELI bounded interpretation
     ├──→ Care / Today
     ├──→ Breiz explanation (certainty cannot increase)
-    └──→ Guardian-controlled Veterinary Summary
+    └──→ Owner-controlled Veterinary Summary
 
-Guardian explicit facts/preferences
+Owner explicit facts/preferences
     ├──→ Care context where separately authorized
     ├──→ Breiz
     ├──→ Together
@@ -74,11 +77,11 @@ Veterinary Summary
 | **Care / ELI** | qualified MAT/TAG observations; approved contextual inputs | owner facts with explicit scientific role | Community popularity/speech, Memories sentiment, World state, raw Breiz conversation |
 | **Today / Home** | qualified Care state; operational device/account state; user-requested continuations | bounded Community/World operational state | generic health verdict, click-probability ranking, private cross-domain content without purpose |
 | **Breiz** | qualified Care observations, controlled sources, confirmed preferences | owner context needed for requested help | unsupported dog emotion, hidden certainty increase, unverified local source presented as fact, automatic sharing |
-| **Together** | confirmed preferences, practical context, approved suitability inputs | bounded canine-context signals only after their own review | relationship score, good-Guardian score, ELI emotion, hidden profiling, refusal-as-failure |
-| **Memories** | deliberate Moment, Guardian-authored milestone/place/ritual | explicitly confirmed factual context | automatic ELI narrative, sensor anomaly, Community popularity, dog-performance score |
+| **Together** | confirmed preferences, practical context, approved suitability inputs | bounded canine-context signals only after their own review | relationship score, good-Owner score, ELI emotion, hidden profiling, refusal-as-failure |
+| **Memories** | deliberate Moment, Owner-authored milestone/place/ritual | explicitly confirmed factual context | automatic ELI narrative, sensor anomaly, Community popularity, dog-performance score |
 | **Community / Circles** | moderated social content, explicit profile/audience choices | bounded context required for safe eligibility | automatic Care/ELI disclosure, exact location by default, private Memories, raw Breiz conversation |
 | **World** | World-specific state, permitted social identity/context | optional explicit sanitized Memory/Community handoff | MAT/TAG/ELI reward, real dog activity progression, health/bond score |
-| **Veterinary Summary / Vet View** | Guardian-authorized observation history + provenance/confidence | selected owner notes/context | private Memories, Community/World data, raw Breiz conversation, unrestricted raw telemetry by default |
+| **Veterinary Summary / Vet View** | Owner-authorized bounded observation history + provenance/confidence | selected owner notes/context | private Memories, Community/World data, raw Breiz conversation, unrestricted raw telemetry by default |
 
 ## 4. ELI authority
 
@@ -163,7 +166,7 @@ A refusal updates preference/cooldown only. It must never reduce a relationship 
 
 ## 8. Memories authority
 
-Memory requires deliberate Guardian authorship or confirmation.
+Memory requires deliberate Owner authorship or confirmation.
 
 Allowed creation paths:
 - user creates/saves Moment;
@@ -223,13 +226,13 @@ Forbidden reward sources:
 - dog health/wellbeing;
 - relationship quality.
 
-## 11. Guardian authority and professional sharing
+## 11. Owner authority and professional sharing
 
-The Guardian–dog relationship is the central product authorization boundary.
+The Owner–dog relationship is the central product authorization boundary.
 
 A future professional grant should contain at minimum:
 - `grant_id`;
-- dog/Guardian authority;
+- dog/Owner authority;
 - recipient identity or controlled recipient binding;
 - purpose;
 - data categories;
