@@ -26,12 +26,10 @@ The following source files remain in the repository as historical evidence and m
 | `docs/strategy/GUARDIAN_RELATIONSHIP_AND_PRODUCT_SCOPE_DOCTRINE_2026-09-07.md` | `docs/strategy/OWNER_RELATIONSHIP_AND_PRODUCT_SCOPE_DOCTRINE_2026-09-11.md` | terminology only |
 | `docs/product/EMOPET_GUARDIAN_AUTHORITY_MASTER_v0.1.md` | `docs/product/EMOPET_OWNER_AUTHORITY_MASTER_v0.1.md` | terminology only |
 | `docs/product/EMOPET_GUARDIAN_CONTINUITY_MASTER_v0.1.md` | `docs/product/EMOPET_OWNER_CONTINUITY_MASTER_v0.1.md` | terminology only |
-| `docs/control/EMOPET_GUARDIAN_AUTHORITY_MASTER_v0.1.md` | `docs/control/EMOPET_OWNER_AUTHORITY_MASTER_v0.1.md` | terminology only; control status preserved |
-| `docs/control/EMOPET_GUARDIAN_PROFESSIONAL_SHARING_v0.1.md` | `docs/control/EMOPET_OWNER_PROFESSIONAL_SHARING_v0.1.md` | terminology only; control/security invariants preserved |
+| `docs/control/EMOPET_GUARDIAN_AUTHORITY_MASTER_v0.1.md` | `docs/control/EMOPET_OWNER_AUTHORITY_MASTER_v0.1.md` | terminology only; legacy gate identifier retained |
+| `docs/control/EMOPET_GUARDIAN_PROFESSIONAL_SHARING_v0.1.md` | `docs/control/EMOPET_OWNER_PROFESSIONAL_SHARING_v0.1.md` | terminology only; legacy gate identifier retained |
 
 Historical files are retained unchanged so the repository preserves what was actually written and reviewed at the time.
-
-The professional-sharing static audit now reads the canonical Owner control successor. It no longer depends on the historical `GUARDIAN` document path, while the legacy gate identifier remains stable for evidence continuity.
 
 ## Role mapping
 
@@ -43,14 +41,30 @@ The professional-sharing static audit now reads the canonical Owner control succ
 | Guardian journal | Owner journal | same first-person context/evidence class |
 | Guardian Continuity | Owner Continuity | same capability group |
 
+## Persistence migration status
+
+DOMAIN-TERM #245 Phase C migrates persistence independently from TypeScript caller names so each step is executable and reviewable.
+
+As of migration `0009_professional_share_owner_terminology.sql`:
+
+- persisted `professional_share_grants.guardian_user_id` is renamed to `owner_user_id`;
+- persisted index `idx_prof_share_grant_guardian_dog` is renamed to `idx_prof_share_grant_owner_dog`;
+- authorization semantics and existing data are unchanged;
+- historical migration `0006_professional_share_authority.sql` is retained unchanged;
+- the Drizzle property `guardianUserId` temporarily maps to `owner_user_id` as an explicit compatibility bridge while active route/service/test callers migrate to `ownerUserId`.
+
+The compatibility property is not permission semantics and must not be copied into new code.
+
 ## Legacy identifiers intentionally retained
 
-The following identifiers may continue to contain `guardian` until an explicit compatibility or persistence migration removes them:
+The following identifiers may continue to contain `guardian` until their specific compatibility or evidence migration removes them:
 
-- database/storage identifiers including `guardian_user_id` and `guardianUserId`;
+- the temporary TypeScript compatibility property `guardianUserId` during the second half of Phase C;
 - historical control/gate identifiers including `G-GUARDIAN-AUTHORITY-01`, `G-GUARDIAN-CONTINUITY-01` and `G-GUARDIAN-PROFESSIONAL-SHARE-01`;
 - deprecated compatibility aliases such as `GuardianProfessionalShareGrantCreateSchema` and `GuardianProfessionalShareGrantRevokeSchema` while downstream callers may still depend on them;
 - filenames and records whose purpose is to preserve historical evidence.
+
+`guardian_user_id` is no longer an approved current persistence identifier after migration 0009.
 
 These retained names are **legacy compatibility/history**, not permission semantics and not approved vocabulary for new product code.
 

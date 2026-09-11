@@ -13,7 +13,12 @@ import { dogs } from './dogs.js';
 import { users } from './users.js';
 
 /**
- * Durable Guardian-controlled professional sharing authority.
+ * Durable Owner-controlled professional sharing authority.
+ *
+ * `guardianUserId` is a temporary TypeScript compatibility property only.
+ * The persisted column is canonically `owner_user_id` after migration 0009.
+ * Phase C of DOMAIN-TERM #245 removes the compatibility property once all
+ * route/service/test callers have moved to `ownerUserId`.
  *
  * This table stores grants, not reusable bearer links. Recipient identity is
  * deliberately represented separately from display/email metadata so access
@@ -21,7 +26,7 @@ import { users } from './users.js';
  */
 export const professionalShareGrants = pgTable('professional_share_grants', {
   id: uuid('id').primaryKey().defaultRandom(),
-  guardianUserId: uuid('guardian_user_id').notNull().references(() => users.id),
+  guardianUserId: uuid('owner_user_id').notNull().references(() => users.id),
   dogId: uuid('dog_id').notNull().references(() => dogs.id),
 
   recipientDisplayName: varchar('recipient_display_name', { length: 160 }).notNull(),
@@ -44,7 +49,7 @@ export const professionalShareGrants = pgTable('professional_share_grants', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => [
-  index('idx_prof_share_grant_guardian_dog').on(table.guardianUserId, table.dogId),
+  index('idx_prof_share_grant_owner_dog').on(table.guardianUserId, table.dogId),
   index('idx_prof_share_grant_recipient_principal').on(table.recipientPrincipalId),
   index('idx_prof_share_grant_status_expiry').on(table.status, table.accessExpiresAt),
   check(

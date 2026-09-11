@@ -99,3 +99,16 @@ test('all candidate draft SQL stays outside the active migrations directory', ()
     assert.equal(activeFiles.has(file), false, `${file} must remain outside db/migrations`);
   }
 });
+
+test('professional-share persistence advances to Owner terminology through migration 0009', () => {
+  const schema = read(join(schemaDir, 'professional-sharing.ts'));
+  const migration = read(join(migrationsDir, '0009_professional_share_owner_terminology.sql'));
+
+  assert.match(schema, /guardianUserId: uuid\('owner_user_id'\)/);
+  assert.match(schema, /idx_prof_share_grant_owner_dog/);
+  assert.doesNotMatch(schema, /uuid\('guardian_user_id'\)/);
+  assert.doesNotMatch(schema, /idx_prof_share_grant_guardian_dog/);
+
+  assert.match(migration, /RENAME COLUMN guardian_user_id TO owner_user_id/);
+  assert.match(migration, /idx_prof_share_grant_guardian_dog[\s\S]*idx_prof_share_grant_owner_dog/);
+});
