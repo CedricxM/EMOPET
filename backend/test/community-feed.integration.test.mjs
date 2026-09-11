@@ -221,7 +221,7 @@ test('Community feed uses bounded stable pages without turning cursors into auth
     assert.ok(index);
     assert.equal(index.indisvalid, true);
     assert.equal(index.indisready, true);
-    assert.match(index.definition, /\(community_id, created_at DESC(?: NULLS LAST)?, id DESC(?: NULLS LAST)?\)/);
+    assert.match(index.definition, /\(community_id, created_at DESC(?: NULLS FIRST)?, id DESC(?: NULLS FIRST)?\)/);
     await sql.begin(async (tx) => {
       // A controlled eligibility probe, not a production planner benchmark.
       await tx`SET LOCAL enable_seqscan = off`;
