@@ -2,7 +2,7 @@
 
 > **Observed:** 2026-09-11  
 > **Observed branch:** `experience-hardening-2026-09-06` / draft PR #224  
-> **Implementation observed through:** `e4a2afd15df1f699abe61967dfa70e62e81a934f`  
+> **Implementation observed through:** `7b753490bd4aa5ba2f49a49ac97489a9b794de80`  
 > **Rule:** re-observe after a major integration merge or material runtime-authority change.
 
 This document records implementation and authority boundaries observed in the repository. It is not itself product, scientific, legal, deployment, hardware, privacy or release authority.
@@ -18,9 +18,9 @@ Hono API ──────────────────────┘
    │
    ├── canonical access/session boundary candidate
    ├── Drizzle / PostgreSQL durable product-data candidate
-   ├── backend authorization / Guardian ownership checks
+   ├── backend authorization / Owner ownership checks
    ├── Community durable member-scoped core
-   ├── Guardian professional-share policy/grant candidate
+   ├── Owner professional-share policy/grant candidate
    ├── ELI availability boundary
    └── shared validation/domain contracts
 
@@ -42,7 +42,7 @@ Repository maturity must be reported by evidence class rather than one global gr
 |---|---|---|---|
 | **Code evidence** | install/typecheck/tests/build/static/runtime DB gates on an exact SHA | PR #224 GitHub Actions | animal validity, hardware performance, legal clearance |
 | **Physical evidence** | measured behavior of MAT/TAG/harness/bench | still incomplete/open | user value or scientific validity by itself |
-| **Human evidence** | Guardian/vet comprehension, burden, task success | pilots/interviews still open | electrical or security correctness |
+| **Human evidence** | Owner/vet comprehension, burden, task success | pilots/interviews still open | electrical or security correctness |
 | **Scientific evidence** | validity against controlled ground/reference evidence | canine validation still open | legal or operational readiness |
 | **Legal/compliance evidence** | rights, classification, applicable obligations | registers/gates exist; item-level review remains open | scientific efficacy |
 
@@ -81,7 +81,7 @@ PR #224 now contains a durable AUTH-01 candidate rather than the earlier scaffol
 
 This is strong candidate runtime evidence. Production client token transport/storage, password recovery, MFA/provider choices, security review and retention remain open.
 
-### Guardian/dog authorization
+### Owner/dog authorization
 
 Owner-scoped dog, sensor, baseline, health and export paths increasingly use backend authorization rather than client assertion. Negative authorization and concurrency evidence exists for several important slices. This does not yet mean every product surface has one complete authorization lifecycle.
 
@@ -117,7 +117,7 @@ Contained candidate examples now include:
 - **Community core:** historical `/api/community/**` persistence is disabled by default and can run only with explicit non-production demo opt-in. Product V1 Community authority is the Hono/PostgreSQL candidate.
 - **Community map/admin extensions (#243):** file-backed map spots/comments and historical admin post moderation now reuse the same Community gate. The mixed legacy moderation queue cannot run unless both its Community and Contact demo authorities are explicitly enabled.
 - **Journal/Memories prototype (#242):** historical Next.js Journal persistence is disabled by default, production cannot opt in, and the web client no longer uses browser `localStorage` as fallback Product V1 persistence or renders a new entry as saved before server acknowledgement.
-- **Contact/support prototype (#244):** file-backed contact PII and admin mutation are disabled by default behind a dedicated Contact gate. A caller-provided owner token remains demo-only and is not treated as authenticated Guardian identity.
+- **Contact/support prototype (#244):** file-backed contact PII and admin mutation are disabled by default behind a dedicated Contact gate. A caller-provided owner token remains demo-only and is not treated as authenticated Owner identity.
 
 `breeds` is a read-only versioned reference route, and `context` is a non-persistent context aggregator; they are not being disabled merely because they are Next.js Route Handlers. Breiz likewise does not use the historical JSON persistence plane, though provider/privacy/provenance remain separate review topics.
 
@@ -189,7 +189,7 @@ Current candidate rule:
 
 Still OPEN before Product V1 enablement:
 
-- canonical requester/Guardian identity where needed;
+- canonical requester/Owner identity where needed;
 - approved support/CRM persistence authority;
 - encryption and secret handling;
 - retention/purge and backup disposition;
@@ -197,12 +197,12 @@ Still OPEN before Product V1 enablement:
 - operational access/audit model;
 - deletion/export/rights workflow.
 
-## 9. Guardian professional sharing
+## 9. Owner professional sharing
 
 The repository contains a meaningful backend candidate for professional sharing:
 
 - durable PostgreSQL grants and policy-decision audit records;
-- Guardian create/list/revoke with current-owner recheck;
+- Owner create/list/revoke with current-owner recheck;
 - server-controlled `PENDING` creation;
 - clients cannot mint a verified professional principal;
 - concurrency handling for owner changes and simultaneous revocation;
@@ -249,7 +249,7 @@ The project still needs five explicit contracts:
 4. **ingestion envelope** — server-bound identity/time/device/provenance contract;
 5. **ELI input** — inference-ready evidence after eligibility/quality checks.
 
-Current backend candidate has real durable sensor-summary writes/reads and a Guardian-authorized baseline projection. ELI latest/history deliberately return `501 ELI_RUNTIME_NOT_IMPLEMENTED` after ownership checks because no live authoritative producer/orchestration path exists yet.
+Current backend candidate has real durable sensor-summary writes/reads and an Owner-authorized baseline projection. ELI latest/history deliberately return `501 ELI_RUNTIME_NOT_IMPLEMENTED` after ownership checks because no live authoritative producer/orchestration path exists yet.
 
 That is preferable to a normal `200 null`/`[]` that could be mistaken for successful authoritative no-data.
 
@@ -282,11 +282,11 @@ Repository documentation or green software CI cannot close those hardware gates.
 
 Exact-head evidence is SHA-specific.
 
-Verified during this architecture pass:
+Latest verified terminology/persistence checkpoint:
 
-- `a06055343d24d530cb78ddceb583e2764e953d6d`: **P0 DB baseline validation PASS** after aligning generated Community feed index null ordering and PostgreSQL-native microsecond fixtures;
-- the later runtime-containment head `e4a2afd15df1f699abe61967dfa70e62e81a934f` has its P0 DB and Security supply-chain workflows running and must not inherit green status until those exact-head runs complete;
-- the earlier fully verified `bcb60503c1634b1342c4a6ecd730268562688117` passed P0 PostgreSQL validation with **93 backend tests, zero failures/skips**, Security supply chain, and GitHub-managed CodeQL.
+- `5a906b44898754778c5a763a041a3a40b8a8846a`: **P0 DB baseline validation #246 PASS** and **Security supply chain #626 PASS** after completing DOMAIN-TERM #245 Phase C across `owner_user_id`, Drizzle `ownerUserId`, shared contracts, professional-share authority checks and persistence fixtures.
+
+Earlier architecture evidence remains useful for lineage, but green status is never inherited by a later SHA.
 
 Branch protection/rulesets, deployment ownership, staging evidence and release policy remain separate operational controls.
 
@@ -301,7 +301,8 @@ Important current authorities include:
 - `docs/control/EMOPET_PRODUCT_AUTHORITY_MAP_v0.1.md`;
 - `docs/control/EMOPET_CLAIMS_REGISTRY_v0.1.md`;
 - `docs/control/EMOPET_BREIZ_SEMANTIC_AUTHORITY_v0.1.md`;
-- `docs/control/EMOPET_GUARDIAN_AUTHORITY_MASTER_v0.1.md`;
+- `docs/control/EMOPET_OWNER_AUTHORITY_MASTER_v0.1.md`;
+- `docs/control/EMOPET_OWNER_PROFESSIONAL_SHARING_v0.1.md`;
 - third-party rights/provenance registers under `docs/control` and `data/registry`.
 
 Authority documents define what may be claimed or implemented. They are not substitutes for physical, human, scientific, legal or operational evidence.
