@@ -46,6 +46,12 @@ const authorityUnavailable = (): UnsuccessfulDecision => ({
   reason: 'AUTHORITY_UNAVAILABLE',
 });
 
+const auditUnavailable = (): UnsuccessfulDecision => ({
+  allowed: false,
+  status: 'UNAVAILABLE',
+  reason: 'AUDIT_UNAVAILABLE',
+});
+
 function toAccessRecord(row: typeof professionalShareGrants.$inferSelect): unknown {
   return {
     id: row.id,
@@ -182,10 +188,21 @@ export function createProfessionalShareRecipientReadBoundary(
     rawIntent: unknown,
     collect: ProfessionalShareScopedCollector<T>,
   ): Promise<ProfessionalShareRecipientReadResult<T>> {
+    const parsedIntent = ProfessionalShareReadIntentSchema.safeParse(rawIntent);
+    if (!parsedIntent.success) {
+      return { allowed: false, status: 'DENIED', reason: 'INVALID_REQUEST' };
+    }
+    const intent = parsedIntent.data;
+
     let recipient: VerifiedRecipient;
     try {
       recipient = await resolveVerifiedRecipient();
     } catch {
+      try {
+        await recordUnavailableAudit(intent);
+      } catch {
+        // Fail closed even if the audit store is unavailable.
+      }
       return authorityUnavailable();
     }
 
@@ -199,19 +216,25 @@ export function createProfessionalShareRecipientReadBoundary(
         return true;
       },
     };
-    const preflight = await createProfessionalShareAccessChecker(preflightAuthority, clock)(rawIntent);
+    const preflight = await createProfessionalShareAccessChecker(preflightAuthority, clock)(intent);
 
     if (!preflight.allowed) {
-      // Denied/unavailable attempts still use the existing durable sanitized
-      // policy audit when the database authority can be reached.
-      return createProfessionalShareAccessChecker(durableAuthority, clock)(rawIntent);
+      // Preserve the already-computed fail-closed decision. Re-running policy
+      // here could race into AUTHORIZED without collected data and would turn an
+      // audit write into a second authorization attempt.
+      try {
+        const written = await durableAuthority.recordDecision({
+          event: 'PROFESSIONAL_SHARE_POLICY_DECISION',
+          grantId: intent.grantId,
+          dogId: intent.dogId,
+          status: preflight.status,
+          reason: preflight.reason,
+        });
+        return written === true ? preflight : auditUnavailable();
+      } catch {
+        return auditUnavailable();
+      }
     }
-
-    const parsedIntent = ProfessionalShareReadIntentSchema.safeParse(rawIntent);
-    if (!parsedIntent.success) {
-      return { allowed: false, status: 'DENIED', reason: 'INVALID_REQUEST' };
-    }
-    const intent = parsedIntent.data;
 
     try {
       return await db.transaction(async (tx): Promise<ProfessionalShareRecipientReadResult<T>> => {
