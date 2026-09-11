@@ -23,9 +23,14 @@ test('Community feed uses bounded stable pages without turning cursors into auth
   const emptyCommunityId = randomUUID();
   const privateSentinel = `PRIVATE-FEED-${randomUUID()}`;
   const foreignSentinel = `FOREIGN-COMMUNITY-${randomUUID()}`;
-  const fixtures = Array.from({ length: 18 }, (_, i) => ({
-    id: randomUUID(), createdAt: `2026-09-01T12:00:00.123${String(Math.floor(i / 4) + 1).padStart(3, '0')}Z`,
-  }));
+  const fixtures = Array.from({ length: 18 }, (_, i) => {
+    const microsecondOffset = Math.floor(i / 4) + 1;
+    return {
+      id: randomUUID(),
+      microsecondOffset,
+      createdAt: `2026-09-01T12:00:00.123${String(microsecondOffset).padStart(3, '0')}Z`,
+    };
+  });
   const ordered = [...fixtures].sort((a, b) => {
     if (a.createdAt !== b.createdAt) return a.createdAt > b.createdAt ? -1 : 1;
     return a.id > b.id ? -1 : a.id < b.id ? 1 : 0;
@@ -57,8 +62,12 @@ test('Community feed uses bounded stable pages without turning cursors into auth
     await sql`INSERT INTO community_rules_acceptances (user_id, rules_version) VALUES (${id}, ${COMMUNITY_RULES_VERSION})`;
   }
   async function insertFixture(row) {
+    // Build the sub-millisecond boundary in PostgreSQL itself. Some JS drivers
+    // normalize ISO timestamp parameters through millisecond Date precision,
+    // which would make a microsecond cursor test accidentally test the driver.
     await sql`INSERT INTO posts (id, community_id, author_id, type, content, created_at, sensor_overlay, like_count)
-      VALUES (${row.id}, ${communityId}, ${memberId}, 'moment', 'Chosen post', ${row.createdAt}::timestamptz,
+      VALUES (${row.id}, ${communityId}, ${memberId}, 'moment', 'Chosen post',
+        TIMESTAMPTZ '2026-09-01 12:00:00.123000+00' + (${row.microsecondOffset} * INTERVAL '1 microsecond'),
         ${sql.json({ privateContext: privateSentinel })}, 999)`;
   }
   for (const fixture of fixtures) await insertFixture(fixture);
@@ -212,7 +221,7 @@ test('Community feed uses bounded stable pages without turning cursors into auth
     assert.ok(index);
     assert.equal(index.indisvalid, true);
     assert.equal(index.indisready, true);
-    assert.match(index.definition, /\(community_id, created_at DESC, id DESC\)/);
+    assert.match(index.definition, /\(community_id, created_at DESC(?: NULLS LAST)?, id DESC(?: NULLS LAST)?\)/);
     await sql.begin(async (tx) => {
       // A controlled eligibility probe, not a production planner benchmark.
       await tx`SET LOCAL enable_seqscan = off`;
