@@ -40,7 +40,7 @@ function formatMonthLabelLocale(key: string, locale: Locale): string {
   const month = Number(monthRaw);
   return new Date(Number.isFinite(year) ? year : 1970, (Number.isFinite(month) ? month : 1) - 1, 1).toLocaleDateString(intlLocale(locale), {
     month: 'long',
-    year,
+    year: 'numeric',
   });
 }
 
