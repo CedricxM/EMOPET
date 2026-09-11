@@ -172,6 +172,8 @@ jobs:
         run: pnpm privacy-audio:audit
       - name: Enforce location privacy boundary gate
         run: pnpm privacy-location:audit
+      - name: Enforce runtime processor/transfer egress inventory gate
+        run: pnpm processors-transfers:audit
       - name: Enforce mobile Home authority gate
         run: pnpm mobile-home:audit
       - name: Enforce legacy freemium quarantine gate

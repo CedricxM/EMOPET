@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "classification": "TECHNICAL_RUNTIME_EGRESS_INVENTORY_NOT_LEGAL_CLEARANCE",
+  "scopeNote": "This inventory records repository runtime egress surfaces and fail-closed activation controls. It does not establish processor/controller roles, vendor approval, DPA/SCC/transfer mechanisms, lawful basis, retention, residency, or deployment-time activation state.",
+  "entries": [
+    {
+      "id": "anthropic-breiz",
+      "kind": "direct_fetch",
+      "repositoryDefault": "DISABLED_BY_EGRESS_GATE",
+      "surface": "server",
+      "destinationHosts": ["api.anthropic.com"],
+      "gate": "EMOPET_ANTHROPIC_EGRESS_GATE=GO plus ANTHROPIC_API_KEY",
+      "dataCategories": ["user_message", "regional_system_prompt", "request_supplied_eli_context_indicator"],
+      "evidencePaths": ["apps/web/app/api/breiz/route.ts"]
+    },
+    {
+      "id": "resend-contact-notify",
+      "kind": "direct_fetch",
+      "repositoryDefault": "DISABLED_BY_EGRESS_GATE",
+      "surface": "server",
+      "destinationHosts": ["api.resend.com"],
+      "gate": "EMOPET_RESEND_EGRESS_GATE=GO plus RESEND_API_KEY and TEAM_EMAIL",
+      "dataCategories": ["contact_value", "contact_channel", "contact_reason", "optional_message", "proposed_slots"],
+      "evidencePaths": ["apps/web/lib/server/notify.ts"]
+    },
+    {
+      "id": "open-meteo-weather",
+      "kind": "direct_fetch",
+      "repositoryDefault": "DISABLED_BY_EGRESS_GATE",
+      "surface": "web_shared",
+      "destinationHosts": ["api.open-meteo.com"],
+      "gate": "NEXT_PUBLIC_EMOPET_OPEN_METEO_EGRESS_GATE=GO",
+      "dataCategories": ["caller_supplied_latitude_longitude", "forecast_parameters"],
+      "currentUsageNote": "Current visible web callsites use fixed Lorient coordinates; the helper remains generic and is therefore gated at the egress boundary.",
+      "evidencePaths": ["apps/web/lib/weather.ts"]
+    },
+    {
+      "id": "mapbox-web-map",
+      "kind": "sdk_managed_egress",
+      "repositoryDefault": "DISABLED_BY_RIGHTS_GATE",
+      "surface": "web_client",
+      "destinationHosts": ["mapbox_sdk_managed"],
+      "gate": "NEXT_PUBLIC_MAPBOX_TOKEN plus NEXT_PUBLIC_EMOPET_MAPBOX_RIGHTS_GATE=GO",
+      "dataCategories": ["map_viewport_requests", "user_triggered_browser_geolocation_can_recenter_map"],
+      "evidencePaths": ["apps/web/components/bretagne-map/MapboxMap.tsx"]
+    },
+    {
+      "id": "osm-overpass-pois",
+      "kind": "direct_fetch",
+      "repositoryDefault": "DISABLED_BY_RIGHTS_GATE",
+      "surface": "web_client",
+      "destinationHosts": ["overpass-api.de"],
+      "gate": "NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE=GO",
+      "dataCategories": ["map_bounding_box", "public_poi_query"],
+      "evidencePaths": ["apps/web/lib/osm-spots.ts"]
+    },
+    {
+      "id": "provider-adapter-framework",
+      "kind": "provider_framework",
+      "repositoryDefault": "DISABLED_BY_PROVIDER_FLAGS",
+      "surface": "web_shared",
+      "gate": "per-provider API_*_ENABLED=true plus required environment variables",
+      "adapterIds": ["openMeteo", "metNo", "openAQ", "adresseDataGouv", "geoApiGouv", "nagerDate", "dogCeo", "libreTranslate", "disify", "purgoMalum"],
+      "dataCategories": ["adapter_specific_request_parameters"],
+      "evidencePaths": ["apps/web/lib/api/config.ts", "apps/web/lib/api/adapters/index.ts"]
+    }
+  ]
+}
