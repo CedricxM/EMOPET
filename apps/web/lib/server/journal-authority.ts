@@ -22,6 +22,12 @@ export function legacyJournalAuthorityGate(
       authority: 'Product V1 Journal/Memory authority not yet wired',
       demoOptIn: LEGACY_JOURNAL_DEMO_ENV,
     },
-    { status: 503 },
+    {
+      status: 503,
+      headers: {
+        'Cache-Control': 'private, no-store',
+        'X-Content-Type-Options': 'nosniff',
+      },
+    },
   );
 }
