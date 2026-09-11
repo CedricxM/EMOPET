@@ -2,24 +2,27 @@
 
 **Original date:** 2026-09-01  
 **Original GitHub workstream:** #59  
+**Canonical terminology revision:** 2026-09-11 under DOMAIN-TERM #245  
 **Status:** `PROPOSED PRE-PRODUCTION AUTHORITY / NOT IMPLEMENTED / NOT RELEASED`  
 **Gate:** `G-TOGETHER-RELATIONSHIP-ENGINE-01`  
 **Imported to project memory:** 2026-09-07
+
+> The 2026-09-11 revision updates dog-owner terminology only. Product scope and relationship safeguards are unchanged.
 
 ## 1. Product role
 
 Together answers one bounded question:
 
-> **What might make sense for this Guardian and this dog to do together, in this context, now?**
+> **What might make sense for this Owner and this dog to do together, in this context, now?**
 
 It does **not** answer:
 
 - how strong their relationship is;
-- whether the Guardian is “good”;
+- whether the Owner is “good”;
 - whether the dog “loves” an activity;
 - whether the bond improved;
 - whether the dog is happy/sad;
-- whether the Guardian should spend more time with the dog.
+- whether the Owner should spend more time with the dog.
 
 The Relationship Engine is therefore a **context-and-preference engine**, not a relationship evaluator.
 
@@ -41,7 +44,7 @@ It should not get better at manipulating acceptance.
 
 ## 3. Output families
 
-### `SOLO_GUARDIAN_DOG`
+### `SOLO_OWNER_DOG`
 
 - quiet walk;
 - sniff/explore activity;
@@ -110,7 +113,7 @@ Examples:
 No edge such as:
 
 - `bond_strength = 0.91`;
-- `dog_loves_guardian`;
+- `dog_loves_owner`;
 - `owner_quality`;
 - `emotional_dependency`.
 

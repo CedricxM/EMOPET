@@ -39,12 +39,26 @@ test('current reference docs use Owner terminology for the dog owner role', asyn
 });
 
 test('canonical product and strategy authorities use Owner without turning delegates into owners', async () => {
-  const [care, ownerDoctrine, ownerAuthority, ownerContinuity, strategyIndex] = await Promise.all([
+  const [
+    care,
+    ownerDoctrine,
+    ownerAuthority,
+    ownerContinuity,
+    strategyIndex,
+    together,
+    memories,
+    inferenceGuardrails,
+    careUiMap,
+  ] = await Promise.all([
     readFile(new URL('../../../docs/product/EMOPET_CARE_PRODUCT_MASTER_v0.1.md', import.meta.url), 'utf8'),
     readFile(new URL('../../../docs/strategy/OWNER_RELATIONSHIP_AND_PRODUCT_SCOPE_DOCTRINE_2026-09-11.md', import.meta.url), 'utf8'),
     readFile(new URL('../../../docs/product/EMOPET_OWNER_AUTHORITY_MASTER_v0.1.md', import.meta.url), 'utf8'),
     readFile(new URL('../../../docs/product/EMOPET_OWNER_CONTINUITY_MASTER_v0.1.md', import.meta.url), 'utf8'),
     readFile(new URL('../../../docs/strategy/STRATEGY_MEMORY_INDEX.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../../docs/product/EMOPET_TOGETHER_RELATIONSHIP_ENGINE_MASTER_v0.1.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../../docs/product/EMOPET_MEMORIES_EXPERIENCE_MASTER_v0.1.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../../docs/strategy/INFERENCE_CONTEXT_AND_BREED_GUARDRAILS_2026-09-07.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../../docs/product/CARE_UI_MIGRATION_MAP_2026-09-07.md', import.meta.url), 'utf8'),
   ]);
 
   assert.doesNotMatch(care, englishRoleWord);
@@ -64,4 +78,13 @@ test('canonical product and strategy authorities use Owner without turning deleg
   assert.match(strategyIndex, /Detailed Owner access model/);
   assert.match(strategyIndex, /Owner Continuity/);
   assert.doesNotMatch(strategyIndex, englishRoleWord);
+
+  assert.match(together, /SOLO_OWNER_DOG/);
+  assert.doesNotMatch(together, englishRoleWord);
+  assert.match(memories, /Owner–dog relationship/);
+  assert.doesNotMatch(memories, englishRoleWord);
+  assert.match(inferenceGuardrails, /Owner report is a separate evidence class/);
+  assert.doesNotMatch(inferenceGuardrails, englishRoleWord);
+  assert.match(careUiMap, /Owner-note separation/);
+  assert.doesNotMatch(careUiMap, englishRoleWord);
 });
