@@ -100,14 +100,14 @@ export const ProfessionalShareGrantCreateSchema = z.object({
   }
 });
 
-const GuardianProfessionalShareRecipientSchema = z.object({
+const OwnerProfessionalShareRecipientSchema = z.object({
   displayName: z.string().trim().min(1).max(160),
   type: ProfessionalShareRecipientTypeSchema,
   organizationName: z.string().trim().min(1).max(200).optional(),
   email: z.string().email().max(254),
 }).strict();
 
-const GuardianProfessionalShareWindowSchema = z.object({
+const OwnerProfessionalShareWindowSchema = z.object({
   dataFrom: z.string().datetime(),
   dataTo: z.string().datetime(),
   accessExpiresAt: z.string().datetime(),
@@ -128,24 +128,24 @@ const GuardianProfessionalShareWindowSchema = z.object({
   }
 });
 
-const GuardianProfessionalShareScopesSchema = z.array(ProfessionalShareScopeSchema)
+const OwnerProfessionalShareScopesSchema = z.array(ProfessionalShareScopeSchema)
   .min(1).max(5)
   .refine((scopes) => new Set(scopes).size === scopes.length, 'Duplicate scopes are not allowed.');
 
 /**
- * Guardian-facing creation contract.
+ * Owner-facing creation contract.
  *
  * The client may provide contact metadata, never a verified professional
  * principal. New grants are persisted as PENDING by the server. Research and
  * selected note/context grants stay unavailable until their separate authorities
  * are implemented rather than being smuggled through a syntactically valid body.
  */
-export const GuardianProfessionalShareGrantCreateSchema = z.object({
-  recipient: GuardianProfessionalShareRecipientSchema,
+export const OwnerProfessionalShareGrantCreateSchema = z.object({
+  recipient: OwnerProfessionalShareRecipientSchema,
   purpose: ProfessionalSharePurposeSchema,
   purposeNote: z.string().trim().min(1).max(500).optional(),
-  scopes: GuardianProfessionalShareScopesSchema,
-  window: GuardianProfessionalShareWindowSchema,
+  scopes: OwnerProfessionalShareScopesSchema,
+  window: OwnerProfessionalShareWindowSchema,
 }).strict().superRefine((grant, ctx) => {
   if (grant.purpose === 'OTHER_DECLARED_PURPOSE' && !grant.purposeNote) {
     ctx.addIssue({
@@ -172,9 +172,21 @@ export const GuardianProfessionalShareGrantCreateSchema = z.object({
   }
 });
 
-export const GuardianProfessionalShareGrantRevokeSchema = z.object({
+export const OwnerProfessionalShareGrantRevokeSchema = z.object({
   reason: z.string().trim().min(1).max(500).optional(),
 }).strict();
+
+/**
+ * @deprecated Legacy terminology compatibility for callers not yet migrated.
+ * New code must use OwnerProfessionalShareGrantCreateSchema.
+ */
+export const GuardianProfessionalShareGrantCreateSchema = OwnerProfessionalShareGrantCreateSchema;
+
+/**
+ * @deprecated Legacy terminology compatibility for callers not yet migrated.
+ * New code must use OwnerProfessionalShareGrantRevokeSchema.
+ */
+export const GuardianProfessionalShareGrantRevokeSchema = OwnerProfessionalShareGrantRevokeSchema;
 
 export const ProfessionalShareGrantRevokeSchema = z.object({
   reason: z.string().trim().min(1).max(500).optional(),
@@ -203,6 +215,9 @@ export const ProfessionalShareReadIntentSchema = z.object({
  * Validate persisted authority at access time. Do not reuse the creation schema:
  * expired/revoked records must remain readable so the policy can deny explicitly.
  * Only fields used by the access policy survive this projection.
+ *
+ * `guardianUserId` is a legacy persistence identifier retained until the
+ * explicit Phase C schema/API migration tracked by DOMAIN-TERM #245.
  */
 export const ProfessionalShareAccessRecordSchema = z.object({
   id: ProfessionalShareGrantIdSchema,
