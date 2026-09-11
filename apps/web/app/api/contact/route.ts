@@ -2,7 +2,7 @@
  * Legacy file-backed Contact prototype.
  *
  * The historical JSON store and caller-provided owner token are not Product V1
- * PII or Guardian-identity authority. This route is disabled by default and may
+ * PII or Owner-identity authority. This route is disabled by default and may
  * run only under an explicit non-production Contact demo opt-in.
  */
 

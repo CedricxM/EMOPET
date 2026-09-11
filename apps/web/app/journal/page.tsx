@@ -168,7 +168,7 @@ export default function JournalPage() {
         <Card tone="sunk">
           <P2>
             {journalRuntime === 'legacy-demo'
-              ? 'Aperçu prototype · stockage démo non Product V1. Aucune autorité de rétention, partage ou identité Guardian n’est déduite de cette démo.'
+              ? 'Aperçu prototype · stockage démo non Product V1. Aucune autorité de rétention, partage ou identité du propriétaire n’est déduite de cette démo.'
               : journalRuntime === 'checking'
                 ? 'Vérification de l’autorité du Carnet…'
                 : 'Carnet prototype · la persistance historique est désactivée tant qu’une autorité Product V1 n’est pas reliée.'}

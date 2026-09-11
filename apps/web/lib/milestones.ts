@@ -4,7 +4,7 @@
  * Experience-hardening decision 2026-09-06:
  * - the journal no longer calls this module;
  * - automatic count/activity milestones are not release authority;
- * - Memories/relationship history requires deliberate Guardian authorship or
+ * - Memories/relationship history requires deliberate Owner authorship or
  *   confirmation under #228 and the Experience Doctrine;
  * - historical entries may remain readable, but this module must not be wired
  *   back into launch flows without a new controlled review.
@@ -58,7 +58,7 @@ export function detectMilestones(entries: JournalEntry[], now: Date = new Date()
   }
 
   // Legacy automatic calendar milestone. Future Memories flow requires explicit
-  // Guardian confirmation before durable relationship-history creation.
+  // Owner confirmation before durable relationship-history creation.
   if (DOG.birthDate && isSameDayMonth(DOG.birthDate, now) && !existingKinds.has(`birthday_${now.getFullYear()}`)) {
     const age = now.getFullYear() - new Date(DOG.birthDate).getFullYear();
     candidates.push({

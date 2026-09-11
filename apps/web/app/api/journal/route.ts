@@ -5,7 +5,7 @@
  * Next.js collection store is disabled by default and may run only in an
  * explicit non-production demo using EMOPET_ALLOW_LEGACY_JOURNAL_DEMO=1.
  *
- * It must never be interpreted as canonical Guardian identity, retention,
+ * It must never be interpreted as canonical Owner identity, retention,
  * erasure, sharing or durable Product V1 authority.
  */
 

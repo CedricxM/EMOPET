@@ -137,3 +137,19 @@ test('canonical security control sources use Owner while preserving stable legac
     /requireText\('docs\/control\/EMOPET_GUARDIAN_PROFESSIONAL_SHARING_v0\.1\.md'/,
   );
 });
+
+test('active web runtime and legacy compatibility modules do not expose Guardian as the owner role', async () => {
+  const [journalPage, journalRoute, contactRoute, gamification, milestones] = await Promise.all([
+    readFile(new URL('../app/journal/page.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../app/api/journal/route.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../app/api/contact/route.ts', import.meta.url), 'utf8'),
+    readFile(new URL('./gamification.ts', import.meta.url), 'utf8'),
+    readFile(new URL('./milestones.ts', import.meta.url), 'utf8'),
+  ]);
+
+  assert.match(journalPage, /identité du propriétaire/);
+  for (const source of [journalPage, journalRoute, contactRoute, gamification, milestones]) {
+    assert.doesNotMatch(source, englishRoleWord);
+    assert.doesNotMatch(source, frenchRoleWord);
+  }
+});

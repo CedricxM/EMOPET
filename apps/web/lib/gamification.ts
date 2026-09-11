@@ -5,7 +5,7 @@
  * - global points/levels/badges are NOT release-authorized;
  * - MAT/TAG/ELI, dog activity, distance, rest, signal quality, baseline/data
  *   adherence and relationship signals MUST NOT drive rewards or progression;
- * - learning content may keep a local read/unread state only so the Guardian can
+ * - learning content may keep a local read/unread state only so the Owner can
  *   resume where they stopped. Reading does not earn points or unlock product rights.
  *
  * The exported legacy types/functions are intentionally preserved as a temporary
