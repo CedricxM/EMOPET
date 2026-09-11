@@ -88,11 +88,16 @@ if (!bleParser.includes('payload: parseTagPayload(view, HEADER_SIZE)')) {
 if (bleParser.includes('payload: raw') || bleParser.includes('rawFrame: raw')) {
   fail('BLE parser must not expose the original wire buffer on parsed frames');
 }
-if (!mobileBle.includes('export type FrameCallback = (frame: ParsedBleSensorFrame) => void;')) {
-  fail('mobile BLE callback must remain typed to ParsedBleSensorFrame');
+
+// Audio privacy owns the raw-bytes -> structured-frame invariant. Other privacy
+// gates may narrow that structured frame further (for example by removing exact
+// location) before application publication; that composition must remain valid.
+if (!/export type FrameCallback = \(frame: (?:ParsedBleSensorFrame|MobileBleSensorFrame)\) => void;/.test(mobileBle)) {
+  fail('mobile BLE callback must remain typed to a structured parsed/minimized BLE frame');
 }
-if (!mobileBle.includes('const frame = parseSensorFrame(raw);') || !mobileBle.includes('onFrame(frame);')) {
-  fail('mobile BLE boundary must parse wire bytes before publishing a frame');
+const parsedFrameAssignment = /const\s+frame\s*=\s*(?:minimizeLocationForApp\(\s*)?parseSensorFrame\(\s*raw\s*\)\s*\)?\s*;/.test(mobileBle);
+if (!parsedFrameAssignment || !/onFrame\s*\(\s*frame\s*\)/.test(mobileBle)) {
+  fail('mobile BLE boundary must parse wire bytes before publishing the structured/minimized frame');
 }
 if (/onFrame\s*\(\s*raw\s*\)/.test(mobileBle)) {
   fail('mobile BLE boundary must never publish raw wire bytes to consumers');
@@ -192,5 +197,5 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log('Raw-audio privacy boundary audit passed for repository runtime surfaces: derived acoustic features only, no client capture permission/API, no raw-audio BLE contract, and strict sensor ingress.');
+console.log('Raw-audio privacy boundary audit passed for repository runtime surfaces: derived acoustic features only, no client capture permission/API, no raw-audio BLE contract, and structured BLE publication after mandatory parsing.');
 console.log('Scope note: this gate does not attest device firmware or other runtime code that is absent from this repository.');
