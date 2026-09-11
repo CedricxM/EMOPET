@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 import {
-  toGuardianAuthorizedBaselineExport,
-  toGuardianAuthorizedEliExport,
+  toOwnerAuthorizedBaselineExport,
+  toOwnerAuthorizedEliExport,
 } from '../dist/api/services/data-export-policy.js';
 
 function persistedEli(gateStatus = 'PUBLISH') {
@@ -56,18 +56,18 @@ function assertInternalStateIsAbsent(result) {
   assert.equal(serialized.includes('"sensorReliability"'), false);
 }
 
-test('PUBLISH exports only Guardian-authorized inferred ELI fields', () => {
-  const result = toGuardianAuthorizedEliExport(persistedEli('PUBLISH'));
+test('PUBLISH exports only Owner-authorized inferred ELI fields', () => {
+  const result = toOwnerAuthorizedEliExport(persistedEli('PUBLISH'));
 
   assert.equal(result.gateStatus, 'PUBLISH');
   assert.equal(result.load, 0.62);
   assert.equal(result.confidence, 0.91);
-  assert.equal(result.provenance.publicationPolicy, 'GUARDIAN_AUTHORIZED_FIELDS_ONLY');
+  assert.equal(result.provenance.publicationPolicy, 'OWNER_AUTHORIZED_FIELDS_ONLY');
   assertInternalStateIsAbsent(result);
 });
 
 test('DEGRADE does not leak latent ELI values', () => {
-  const result = toGuardianAuthorizedEliExport(persistedEli('DEGRADE'));
+  const result = toOwnerAuthorizedEliExport(persistedEli('DEGRADE'));
 
   assert.equal(result.gateStatus, 'DEGRADE');
   assert.equal('load' in result, false);
@@ -76,7 +76,7 @@ test('DEGRADE does not leak latent ELI values', () => {
 
 test('REJECT and unknown gate values fail closed', () => {
   for (const gateStatus of ['REJECT', 'UNRECOGNIZED']) {
-    const result = toGuardianAuthorizedEliExport(persistedEli(gateStatus));
+    const result = toOwnerAuthorizedEliExport(persistedEli(gateStatus));
 
     assert.equal(result.gateStatus, gateStatus);
     assert.equal('load' in result, false);
@@ -86,14 +86,14 @@ test('REJECT and unknown gate values fail closed', () => {
 
 test('baseline projection exposes lifecycle metadata but withholds opaque metrics', () => {
   const row = persistedBaseline();
-  const result = toGuardianAuthorizedBaselineExport(row);
+  const result = toOwnerAuthorizedBaselineExport(row);
 
   assert.equal(result.id, row.id);
   assert.equal(result.dogId, row.dogId);
   assert.equal(result.validHours, row.validHours);
   assert.equal(result.established, row.established);
   assert.equal(result.metricsStatus, 'WITHHELD_PENDING_DISCLOSURE_AUTHORITY');
-  assert.equal(result.provenance.publicationPolicy, 'GUARDIAN_AUTHORIZED_FIELDS_ONLY');
+  assert.equal(result.provenance.publicationPolicy, 'OWNER_AUTHORIZED_FIELDS_ONLY');
   assert.equal(Object.hasOwn(result, 'metrics'), false);
 
   const serialized = JSON.stringify(result);
@@ -102,17 +102,17 @@ test('baseline projection exposes lifecycle metadata but withholds opaque metric
   assert.equal(serialized.includes('DO_NOT_DISCLOSE'), false);
 });
 
-test('Guardian export and baseline read routes must use the controlled baseline projection', async () => {
+test('Owner export and baseline read routes must use the controlled baseline projection', async () => {
   const [exportRoute, sensorRoute] = await Promise.all([
     readFile(new URL('../api/routes/data-export.ts', import.meta.url), 'utf8'),
     readFile(new URL('../api/routes/sensors.ts', import.meta.url), 'utf8'),
   ]);
 
-  assert.match(exportRoute, /baselineRows\.map\(toGuardianAuthorizedBaselineExport\)/);
+  assert.match(exportRoute, /baselineRows\.map\(toOwnerAuthorizedBaselineExport\)/);
   assert.doesNotMatch(exportRoute, /baselines:\s*baselineRows[,\n]/);
   assert.match(exportRoute, /baselineMetricDisclosurePolicy:\s*'WITHHELD_PENDING_DISCLOSURE_AUTHORITY'/);
   assert.match(exportRoute, /p0-data-act-v2/);
 
-  assert.match(sensorRoute, /baseline\s*\?\s*toGuardianAuthorizedBaselineExport\(baseline\)\s*:\s*null/);
+  assert.match(sensorRoute, /baseline\s*\?\s*toOwnerAuthorizedBaselineExport\(baseline\)\s*:\s*null/);
   assert.doesNotMatch(sensorRoute, /baseline:\s*baseline\s*\?\?\s*null/);
 });

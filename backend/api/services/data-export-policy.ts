@@ -11,7 +11,7 @@ export interface PersistedEliStateForExport {
   createdAt: Date;
 }
 
-export interface GuardianAuthorizedEliExport {
+export interface OwnerAuthorizedEliExport {
   id: string;
   dogId: string;
   timestamp: Date;
@@ -22,11 +22,11 @@ export interface GuardianAuthorizedEliExport {
   provenance: {
     level: 'inferred';
     warning: string;
-    publicationPolicy: 'GUARDIAN_AUTHORIZED_FIELDS_ONLY';
+    publicationPolicy: 'OWNER_AUTHORIZED_FIELDS_ONLY';
   };
 }
 
-export interface PersistedBaselineForGuardianSurface {
+export interface PersistedBaselineForOwnerSurface {
   id: string;
   dogId: string;
   startedAt: Date;
@@ -36,7 +36,7 @@ export interface PersistedBaselineForGuardianSurface {
   updatedAt: Date;
 }
 
-export interface GuardianAuthorizedBaseline {
+export interface OwnerAuthorizedBaseline {
   id: string;
   dogId: string;
   startedAt: Date;
@@ -47,27 +47,27 @@ export interface GuardianAuthorizedBaseline {
   provenance: {
     level: 'baseline_metadata';
     warning: string;
-    publicationPolicy: 'GUARDIAN_AUTHORIZED_FIELDS_ONLY';
+    publicationPolicy: 'OWNER_AUTHORIZED_FIELDS_ONLY';
   };
 }
 
 /**
- * Project the persisted latent ELI state onto the narrower Guardian-facing
+ * Project the persisted latent ELI state onto the narrower Owner-facing
  * publication authority.
  *
  * Persisted state is not automatically publishable state:
  * - valence is internal to V1 and is never exported;
  * - arousal is an internal input to the current display mapping and is not
- *   exported as a direct Guardian-facing value;
+ *   exported as a direct Owner-facing value;
  * - sensorReliability remains internal model/quality state here;
  * - load is exported only when the confidence gate explicitly says PUBLISH.
  *
  * Any unknown gate value therefore fails closed and receives no latent value.
  */
-export function toGuardianAuthorizedEliExport(
+export function toOwnerAuthorizedEliExport(
   row: PersistedEliStateForExport,
-): GuardianAuthorizedEliExport {
-  const base: GuardianAuthorizedEliExport = {
+): OwnerAuthorizedEliExport {
+  const base: OwnerAuthorizedEliExport = {
     id: row.id,
     dogId: row.dogId,
     timestamp: row.timestamp,
@@ -77,7 +77,7 @@ export function toGuardianAuthorizedEliExport(
     provenance: {
       level: 'inferred',
       warning: 'Derived ELI output; do not treat as raw sensor data or a veterinary diagnosis.',
-      publicationPolicy: 'GUARDIAN_AUTHORIZED_FIELDS_ONLY',
+      publicationPolicy: 'OWNER_AUTHORIZED_FIELDS_ONLY',
     },
   };
 
@@ -89,14 +89,14 @@ export function toGuardianAuthorizedEliExport(
 }
 
 /**
- * Project a persisted baseline onto the current Guardian-facing disclosure
+ * Project a persisted baseline onto the current Owner-facing disclosure
  * authority. Baseline lifecycle metadata can be described mechanically, but
  * the opaque `metrics` JSON is not automatically publishable just because it
  * exists in PostgreSQL.
  */
-export function toGuardianAuthorizedBaselineExport(
-  row: PersistedBaselineForGuardianSurface,
-): GuardianAuthorizedBaseline {
+export function toOwnerAuthorizedBaselineExport(
+  row: PersistedBaselineForOwnerSurface,
+): OwnerAuthorizedBaseline {
   return {
     id: row.id,
     dogId: row.dogId,
@@ -107,8 +107,8 @@ export function toGuardianAuthorizedBaselineExport(
     metricsStatus: 'WITHHELD_PENDING_DISCLOSURE_AUTHORITY',
     provenance: {
       level: 'baseline_metadata',
-      warning: 'Opaque baseline metrics are withheld pending explicit Guardian disclosure authority; persistence alone does not authorize publication.',
-      publicationPolicy: 'GUARDIAN_AUTHORIZED_FIELDS_ONLY',
+      warning: 'Opaque baseline metrics are withheld pending explicit Owner disclosure authority; persistence alone does not authorize publication.',
+      publicationPolicy: 'OWNER_AUTHORIZED_FIELDS_ONLY',
     },
   };
 }

@@ -6,8 +6,8 @@ import { dogs, devices } from '../../db/schema/dogs.js';
 import { baselines, eliStates, sensorSummaries } from '../../db/schema/sensors.js';
 import { isCanonicalUserId } from '../services/auth-security.js';
 import {
-  toGuardianAuthorizedBaselineExport,
-  toGuardianAuthorizedEliExport,
+  toOwnerAuthorizedBaselineExport,
+  toOwnerAuthorizedEliExport,
 } from '../services/data-export-policy.js';
 
 interface Variables {
@@ -99,8 +99,8 @@ function toCsv(envelope: Record<string, unknown>): string {
  * If/when raw streams become part of the production data plane they must be added here
  * with units, timestamps, quality flags and device/firmware provenance.
  *
- * Persisted derived state is not automatically Guardian-disclosable. ELI and baseline
- * rows pass through explicit Guardian projection functions before JSON/CSV serialization.
+ * Persisted derived state is not automatically Owner-disclosable. ELI and baseline
+ * rows pass through explicit Owner projection functions before JSON/CSV serialization.
  */
 dataExport.get('/', async (c) => {
   const userId = c.get('userId');
@@ -166,8 +166,8 @@ dataExport.get('/', async (c) => {
       'This export contains only records currently persisted by the EMOPET backend.',
       'Raw high-rate MAT/TAG streams are not persisted by the current backend schema and are therefore not fabricated.',
       'ELI states are inferred/derived data and are separated from preprocessed sensor summaries.',
-      'Guardian inferred export is publication-gated: internal valence/arousal state is excluded and ELI load is exported only when gateStatus=PUBLISH.',
-      'Baseline lifecycle metadata is exposed, but opaque baseline metrics are withheld pending explicit Guardian disclosure authority.',
+      'Owner inferred export is publication-gated: internal valence/arousal state is excluded and ELI load is exported only when gateStatus=PUBLISH.',
+      'Baseline lifecycle metadata is exposed, but opaque baseline metrics are withheld pending explicit Owner disclosure authority.',
     ],
   };
 
@@ -212,8 +212,8 @@ dataExport.get('/', async (c) => {
         level: 'preprocessed',
       },
     })),
-    inferred: eliRows.map(toGuardianAuthorizedEliExport),
-    baselines: baselineRows.map(toGuardianAuthorizedBaselineExport),
+    inferred: eliRows.map(toOwnerAuthorizedEliExport),
+    baselines: baselineRows.map(toOwnerAuthorizedBaselineExport),
     devices: deviceRows.map((row) => ({
       id: row.id,
       dogId: row.dogId,
