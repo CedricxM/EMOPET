@@ -93,9 +93,8 @@ test('professional recipient read rechecks authority before publication', {
     dataFrom: '2026-09-02T00:00:00.000Z',
     dataTo: '2026-09-07T00:00:00.000Z',
   };
-  const read = createProfessionalShareRecipientReadBoundary(
-    async () => ({ principalId }),
-  );
+  const resolveRecipient = async () => ({ principalId });
+  const read = createProfessionalShareRecipientReadBoundary(resolveRecipient);
 
   await t.test('publishes a collected projection only after a final durable check', async () => {
     const result = await read(intent, async ({ authorization }) => ({
@@ -136,7 +135,7 @@ test('professional recipient read rechecks authority before publication', {
     const result = await pendingRead;
 
     // Restore the fixture only after the recipient read has observed the committed
-    // transfer. The following revocation scenario should start from ownerId again.
+    // transfer. The following scenarios should start from ownerId again.
     await db
       .update(dogs)
       .set({ ownerId })
@@ -155,6 +154,44 @@ test('professional recipient read rechecks authority before publication', {
         audit.reason === 'GUARDIAN_AUTHORITY_MISMATCH'),
       true,
       'committed transfer denial must be durably audited regardless of row return order',
+    );
+  });
+
+  await t.test('grant expiration during collection discards the collected bytes', async () => {
+    const collectorStarted = deferred();
+    const releaseCollector = deferred();
+    const privateSentinel = `expired-grant-must-not-escape-${randomUUID()}`;
+    let now = Date.parse('2026-09-10T00:00:00.000Z');
+    const expiringRead = createProfessionalShareRecipientReadBoundary(
+      resolveRecipient,
+      () => now,
+    );
+
+    const pendingRead = expiringRead(intent, async () => {
+      collectorStarted.resolve();
+      await releaseCollector.promise;
+      return { privateSentinel };
+    });
+
+    await collectorStarted.promise;
+    now = Date.parse('2100-01-01T00:00:00.000Z');
+    releaseCollector.resolve();
+
+    const result = await pendingRead;
+
+    assert.equal(result.allowed, false);
+    assert.equal(result.status, 'DENIED');
+    assert.equal(result.reason, 'GRANT_EXPIRED');
+    assert.equal(JSON.stringify(result).includes(privateSentinel), false, 'expired-grant bytes must never escape');
+
+    const storedAudits = await db.select().from(audits).where(eq(audits.grantId, grantId));
+    assert.equal(storedAudits.length, 3);
+    assert.equal(
+      storedAudits.some((audit) =>
+        audit.decisionStatus === 'DENIED' &&
+        audit.reason === 'GRANT_EXPIRED'),
+      true,
+      'mid-read expiration denial must be durably audited regardless of row return order',
     );
   });
 
@@ -197,7 +234,7 @@ test('professional recipient read rechecks authority before publication', {
     assert.equal(JSON.stringify(result).includes(privateSentinel), false, 'collected bytes must never escape');
 
     const storedAudits = await db.select().from(audits).where(eq(audits.grantId, grantId));
-    assert.equal(storedAudits.length, 3);
+    assert.equal(storedAudits.length, 4);
     assert.equal(
       storedAudits.some((audit) =>
         audit.decisionStatus === 'DENIED' &&
