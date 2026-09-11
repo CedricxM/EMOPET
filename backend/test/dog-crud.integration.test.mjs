@@ -9,7 +9,7 @@ const integrationEnabled = process.env.EMOPET_DB_INTEGRATION_TEST === '1';
 
 test('dog CRUD and Guardian professional-share lifecycle remain owner scoped', { skip: !integrationEnabled }, async () => {
   const [
-    { dogs: dogRoutes, ABSENCE_COMPARISON_PERSISTENCE_CODE },
+    { dogs: dogRoutes, ABSENCE_COMPARISON_PERSISTENCE_CODE, DOG_ERASURE_LIFECYCLE_CODE },
     { health: healthRoutes },
     { db },
     { dogs: dogsTable, professionalShareGrants, users },
@@ -228,13 +228,27 @@ test('dog CRUD and Guardian professional-share lifecycle remain owner scoped', {
     currentUserId = otherUserId;
     const crossOwnerResponse = await app.request(`/api/dogs/${dogId}`);
     assert.equal(crossOwnerResponse.status, 404);
+    const crossOwnerDeleteResponse = await app.request(`/api/dogs/${dogId}`, { method: 'DELETE' });
+    assert.equal(crossOwnerDeleteResponse.status, 404);
 
     currentUserId = ownerId;
     const deleteResponse = await app.request(`/api/dogs/${dogId}`, { method: 'DELETE' });
-    assert.equal(deleteResponse.status, 200);
-    const deleted = await deleteResponse.json();
-    assert.equal(deleted.deleted, true);
-    dogId = undefined;
+    assert.equal(deleteResponse.status, 409);
+    assert.match(deleteResponse.headers.get('cache-control') ?? '', /no-store/);
+    const deletion = await deleteResponse.json();
+    assert.equal(deletion.code, DOG_ERASURE_LIFECYCLE_CODE);
+    assert.equal(deletion.deleted, false);
+    assert.equal(deletion.retryable, false);
+    assert.equal(deletion.maturity, 'NOT_IMPLEMENTED');
+    assert.equal(deletion.gate, 'G-PRIV-ERASURE');
+
+    const [stillPersisted] = await db
+      .select({ id: dogsTable.id, ownerId: dogsTable.ownerId })
+      .from(dogsTable)
+      .where(eq(dogsTable.id, dogId))
+      .limit(1);
+    assert.ok(stillPersisted, 'fail-closed erasure request must not delete the canonical dog row');
+    assert.equal(stillPersisted.ownerId, ownerId);
   } finally {
     if (shareGrantId) {
       await db.delete(professionalShareGrants).where(eq(professionalShareGrants.id, shareGrantId));

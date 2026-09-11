@@ -26,6 +26,8 @@ const dogs = new Hono();
 
 export const ABSENCE_COMPARISON_PERSISTENCE_CODE =
   'ABSENCE_COMPARISON_PERSISTENCE_NOT_READY' as const;
+export const DOG_ERASURE_LIFECYCLE_CODE =
+  'DOG_ERASURE_LIFECYCLE_NOT_READY' as const;
 
 function legacyGenericVetShareAllowed(): boolean {
   return process.env['NODE_ENV'] !== 'production' &&
@@ -460,26 +462,25 @@ dogs.patch('/:id', zValidator('json', DogUpdateSchema), async (c) => {
   }
 });
 
+/**
+ * Fail closed until PRIV-01 defines and implements the complete dog-erasure
+ * lifecycle. Deleting only the canonical dogs row would not prove erasure of
+ * dependent, derived, object-store, provider, cache/index or backup copies.
+ */
 dogs.delete('/:id', async (c) => {
   const id = c.req.param('id');
   const denied = await requireDogOwnership(c, id);
   if (denied) return denied;
 
-  const userId = getUserId(c)!;
-  try {
-    const [deleted] = await db
-      .delete(dogsTable)
-      .where(and(eq(dogsTable.id, id), eq(dogsTable.ownerId, userId)))
-      .returning({ id: dogsTable.id });
-    if (!deleted) return c.json({ error: 'not_found' }, 404);
-    return c.json({ id: deleted.id, deleted: true });
-  } catch {
-    return c.json({
-      error: 'Dog deletion could not complete while dependent data still exists.',
-      code: 'DOG_DELETE_LIFECYCLE_BLOCKED',
-      deleted: false,
-    }, 409);
-  }
+  c.header('Cache-Control', 'private, no-store');
+  return c.json({
+    error: 'Dog erasure is unavailable until the approved lifecycle covers dependent and external data.',
+    code: DOG_ERASURE_LIFECYCLE_CODE,
+    deleted: false,
+    retryable: false,
+    maturity: 'NOT_IMPLEMENTED',
+    gate: 'G-PRIV-ERASURE',
+  }, 409);
 });
 
 export { dogs };
