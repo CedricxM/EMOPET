@@ -1,18 +1,16 @@
 /**
- * Demandes de contact — persistance SERVEUR (R3, première tranche réelle).
+ * Legacy file-backed Contact prototype.
  *
- * POST   /api/contact      crée une demande (validation, rate-limit, notif équipe)
- * GET    /api/contact      liste les demandes (démo : toutes ; auth utilisateur différée)
- * DELETE /api/contact?id=  supprime une demande (droit à l'effacement RGPD)
- *
- * Store fichier JSON (lib/server/store) — remplaçable par Drizzle/Postgres.
- * ⚠ Chiffrement au repos de contactValue + purge cron 6 mois = passe Postgres.
+ * The historical JSON store and caller-provided owner token are not Product V1
+ * PII or Guardian-identity authority. This route is disabled by default and may
+ * run only under an explicit non-production Contact demo opt-in.
  */
 
 import { NextResponse } from 'next/server';
 import { MAX_ACTIVE_REQUESTS, buildRequest, validateContactInput } from '../../../lib/contact';
 import type { ContactRequest, NewContactInput } from '../../../lib/contact';
 import { isAdmin } from '../../../lib/server/admin';
+import { legacyContactAuthorityGate } from '../../../lib/server/contact-authority';
 import { createFixedWindowRateLimiter } from '../../../lib/server/rate-limit';
 import { enforceRateLimit } from '../../../lib/server/request-security';
 import { collection } from '../../../lib/server/store';
@@ -34,18 +32,37 @@ function ownerTokenFromRequest(req: Request): string | null {
   return token ? token : null;
 }
 
+function demoJson(body: Record<string, unknown>, status = 200): NextResponse {
+  return NextResponse.json(
+    { ...body, authority: 'LEGACY_DEMO_ONLY' },
+    {
+      status,
+      headers: {
+        'Cache-Control': 'private, no-store',
+        'X-Content-Type-Options': 'nosniff',
+      },
+    },
+  );
+}
+
 export async function GET(req: Request) {
+  const authorityGate = legacyContactAuthorityGate();
+  if (authorityGate) return authorityGate;
+
   const limited = enforceRateLimit(req, contactReadLimiter, 'contact:get');
   if (limited) return limited;
-  if (isAdmin(req)) return NextResponse.json({ requests: requests.list() });
+  if (isAdmin(req)) return demoJson({ requests: requests.list() });
   const ownerToken = ownerTokenFromRequest(req);
   if (!ownerToken) {
-    return NextResponse.json({ ok: false, errors: ['Non autorisé.'] }, { status: 401 });
+    return demoJson({ ok: false, errors: ['Non autorisé.'] }, 401);
   }
-  return NextResponse.json({ requests: requests.list().filter((r) => r.ownerToken === ownerToken) });
+  return demoJson({ requests: requests.list().filter((r) => r.ownerToken === ownerToken) });
 }
 
 export async function POST(req: Request) {
+  const authorityGate = legacyContactAuthorityGate();
+  if (authorityGate) return authorityGate;
+
   const limited = enforceRateLimit(req, contactWriteLimiter, 'contact:post');
   if (limited) return limited;
 
@@ -53,43 +70,46 @@ export async function POST(req: Request) {
   try {
     input = (await req.json()) as NewContactInput;
   } catch {
-    return NextResponse.json({ ok: false, errors: ['Requête invalide.'] }, { status: 400 });
+    return demoJson({ ok: false, errors: ['Requête invalide.'] }, 400);
   }
 
   const errors = validateContactInput(input);
-  if (errors.length > 0) return NextResponse.json({ ok: false, errors }, { status: 400 });
+  if (errors.length > 0) return demoJson({ ok: false, errors }, 400);
 
   const ownerToken = input.ownerToken?.trim() || ownerTokenFromRequest(req);
   if (!ownerToken) {
-    return NextResponse.json({ ok: false, errors: ['Jeton propriétaire manquant.'] }, { status: 400 });
+    return demoJson({ ok: false, errors: ['Jeton propriétaire manquant.'] }, 400);
   }
 
   if (activeCount(requests.list().filter((item) => item.ownerToken === ownerToken)) >= MAX_ACTIVE_REQUESTS) {
-    return NextResponse.json({ ok: false, errors: [`Vous avez déjà ${MAX_ACTIVE_REQUESTS} demandes actives.`] }, { status: 429 });
+    return demoJson({ ok: false, errors: [`Vous avez déjà ${MAX_ACTIVE_REQUESTS} demandes actives.`] }, 429);
   }
 
   const request = buildRequest({ ...input, ownerToken });
   requests.insert(request);
   const notify = await notifyTeamOfContactRequest(request);
 
-  return NextResponse.json({ ok: true, request, notified: notify.sent }, { status: 201 });
+  return demoJson({ ok: true, request, notified: notify.sent }, 201);
 }
 
 export async function DELETE(req: Request) {
+  const authorityGate = legacyContactAuthorityGate();
+  if (authorityGate) return authorityGate;
+
   const limited = enforceRateLimit(req, contactWriteLimiter, 'contact:delete');
   if (limited) return limited;
 
   const id = new URL(req.url).searchParams.get('id');
-  if (!id) return NextResponse.json({ ok: false, errors: ['id manquant'] }, { status: 400 });
+  if (!id) return demoJson({ ok: false, errors: ['id manquant'] }, 400);
   const all = requests.list();
   const target = all.find((item) => item.id === id);
-  if (!target) return NextResponse.json({ ok: false, errors: ['Demande introuvable.'] }, { status: 404 });
+  if (!target) return demoJson({ ok: false, errors: ['Demande introuvable.'] }, 404);
   if (!isAdmin(req)) {
     const ownerToken = ownerTokenFromRequest(req);
     if (!ownerToken || target.ownerToken !== ownerToken) {
-      return NextResponse.json({ ok: false, errors: ['Non autorisé.'] }, { status: 404 });
+      return demoJson({ ok: false, errors: ['Non autorisé.'] }, 404);
     }
   }
   requests.remove(id);
-  return NextResponse.json({ ok: true });
+  return demoJson({ ok: true });
 }
