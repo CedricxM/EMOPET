@@ -5,7 +5,6 @@ import {
   CommentCreateSchema,
   CommunityRulesAcceptSchema,
   EventCreateSchema,
-  PostCreateSchema,
   UgcReportCreateSchema,
   UserBlockCreateSchema,
 } from '@emopet/shared';
@@ -20,6 +19,16 @@ import {
   posts,
 } from '../../db/schema/index.js';
 import { requireDogOwnership } from '../middleware/authorization.js';
+import {
+  COMMUNITY_LOCATION_DISCLOSURE,
+  CommunityPostCreateSchema,
+  communityViewColumns,
+  communityPostColumns,
+  communityCommentColumns,
+  communityEventColumns,
+  communityRulesColumns,
+  presentCommunityPost,
+} from '../services/community-disclosure.js';
 
 const community = new Hono<{ Variables: { userId: string } }>();
 
@@ -159,15 +168,7 @@ community.get('/', async (c) => {
   return withCommunityTransaction(c, 'list_communities', async (tx) => {
     const rows = await tx
       .select({
-        id: communities.id,
-        name: communities.name,
-        description: communities.description,
-        type: communities.type,
-        latitude: communities.latitude,
-        longitude: communities.longitude,
-        radiusM: communities.radiusM,
-        createdBy: communities.createdBy,
-        createdAt: communities.createdAt,
+        ...communityViewColumns,
         membershipRole: communityMembers.role,
         joinedAt: communityMembers.joinedAt,
       })
@@ -178,7 +179,7 @@ community.get('/', async (c) => {
       .for('share', { of: communityMembers });
 
     markPrivate(c);
-    return c.json({ communities: rows });
+    return c.json({ communities: rows.map((row) => ({ ...row, locationDisclosure: COMMUNITY_LOCATION_DISCLOSURE })) });
   });
 });
 
@@ -190,7 +191,7 @@ community.get('/:id', async (c) => {
     if (membership !== true) return membership;
 
     const [row] = await tx
-      .select()
+      .select(communityViewColumns)
       .from(communities)
       .where(eq(communities.id, communityId))
       .limit(1);
@@ -201,7 +202,7 @@ community.get('/:id', async (c) => {
     }
 
     markPrivate(c);
-    return c.json({ community: row });
+    return c.json({ community: { ...row, locationDisclosure: COMMUNITY_LOCATION_DISCLOSURE } });
   });
 });
 
@@ -215,13 +216,13 @@ community.get('/:id/feed', async (c) => {
     if (rules !== true) return rules;
 
     const rows = await tx
-      .select()
+      .select(communityPostColumns)
       .from(posts)
       .where(eq(posts.communityId, communityId))
       .orderBy(desc(posts.createdAt));
 
     markPrivate(c);
-    return c.json({ communityId, posts: rows });
+    return c.json({ communityId, posts: rows.map(presentCommunityPost) });
   });
 });
 
@@ -252,7 +253,7 @@ community.post('/rules/accept', zValidator('json', CommunityRulesAcceptSchema), 
           acceptedAt,
         },
       })
-      .returning();
+      .returning(communityRulesColumns);
 
     markPrivate(c);
     return c.json({ acceptance: record }, 201);
@@ -269,7 +270,7 @@ community.post('/blocks', zValidator('json', UserBlockCreateSchema), async (c) =
 
 // ── Posts ────────────────────────────────────────────────────────
 
-community.post('/posts', zValidator('json', PostCreateSchema), async (c) => {
+community.post('/posts', zValidator('json', CommunityPostCreateSchema), async (c) => {
   const userId = c.get('userId');
   const body = c.req.valid('json');
   return withCommunityTransaction(c, 'create_post', async (tx) => {
@@ -287,11 +288,11 @@ community.post('/posts', zValidator('json', PostCreateSchema), async (c) => {
         content: body.content,
         mediaUrls: body.mediaUrls,
       })
-      .returning();
+      .returning(communityPostColumns);
 
     if (!created) return databaseUnavailable(c, 'create_post');
     markPrivate(c);
-    return c.json({ post: created }, 201);
+    return c.json({ post: presentCommunityPost(created) }, 201);
   });
 });
 
@@ -334,7 +335,7 @@ community.post('/comments', zValidator('json', CommentCreateSchema), async (c) =
         authorId: userId,
         content: body.content,
       })
-      .returning();
+      .returning(communityCommentColumns);
 
     if (!created) return databaseUnavailable(c, 'create_comment');
     markPrivate(c);
@@ -354,13 +355,13 @@ community.get('/:id/events', async (c) => {
     if (rules !== true) return rules;
 
     const rows = await tx
-      .select()
+      .select(communityEventColumns)
       .from(communityEvents)
       .where(eq(communityEvents.communityId, communityId))
       .orderBy(desc(communityEvents.startsAt));
 
     markPrivate(c);
-    return c.json({ communityId, events: rows });
+    return c.json({ communityId, events: rows.map((row) => ({ ...row, locationDisclosure: COMMUNITY_LOCATION_DISCLOSURE })) });
   });
 });
 
@@ -385,11 +386,11 @@ community.post('/events', zValidator('json', EventCreateSchema), async (c) => {
         longitude: body.longitude,
         startsAt: body.startsAt,
       })
-      .returning();
+      .returning(communityEventColumns);
 
     if (!created) return databaseUnavailable(c, 'create_event');
     markPrivate(c);
-    return c.json({ event: created }, 201);
+    return c.json({ event: { ...created, locationDisclosure: COMMUNITY_LOCATION_DISCLOSURE } }, 201);
   });
 });
 
