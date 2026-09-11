@@ -13,7 +13,7 @@ function deferred() {
   return { promise, resolve };
 }
 
-test('professional recipient read rechecks revocation before publication', {
+test('professional recipient read rechecks authority before publication', {
   skip: !integrationEnabled,
   timeout: 20_000,
 }, async (t) => {
@@ -30,6 +30,7 @@ test('professional recipient read rechecks revocation before publication', {
   ]);
 
   const ownerId = randomUUID();
+  const nextOwnerId = randomUUID();
   const dogId = randomUUID();
   const grantId = randomUUID();
   const principalId = `fixture-vet-${randomUUID()}`;
@@ -39,14 +40,23 @@ test('professional recipient read rechecks revocation before publication', {
     await db.delete(grants).where(eq(grants.dogId, dogId));
     await db.delete(dogs).where(eq(dogs.id, dogId));
     await db.delete(users).where(eq(users.id, ownerId));
+    await db.delete(users).where(eq(users.id, nextOwnerId));
   });
 
-  await db.insert(users).values({
-    id: ownerId,
-    email: `recipient-read-${ownerId}@example.test`,
-    passwordHash: 'integration-test-only',
-    name: 'Recipient read Guardian',
-  });
+  await db.insert(users).values([
+    {
+      id: ownerId,
+      email: `recipient-read-${ownerId}@example.test`,
+      passwordHash: 'integration-test-only',
+      name: 'Recipient read Guardian',
+    },
+    {
+      id: nextOwnerId,
+      email: `recipient-read-${nextOwnerId}@example.test`,
+      passwordHash: 'integration-test-only',
+      name: 'Next Guardian',
+    },
+  ]);
   await db.insert(dogs).values({
     id: dogId,
     ownerId,
@@ -104,6 +114,45 @@ test('professional recipient read rechecks revocation before publication', {
     assert.equal(storedAudits[0].reason, 'ACTIVE_GRANT');
   });
 
+  await t.test('Guardian transfer committed during collection discards the former Guardian payload', async () => {
+    const collectorStarted = deferred();
+    const releaseCollector = deferred();
+    const privateSentinel = `former-guardian-must-not-escape-${randomUUID()}`;
+
+    const pendingRead = read(intent, async () => {
+      collectorStarted.resolve();
+      await releaseCollector.promise;
+      return { privateSentinel };
+    });
+
+    await collectorStarted.promise;
+
+    await db
+      .update(dogs)
+      .set({ ownerId: nextOwnerId })
+      .where(eq(dogs.id, dogId));
+
+    releaseCollector.resolve();
+    const result = await pendingRead;
+
+    // Restore the fixture only after the recipient read has observed the committed
+    // transfer. The following revocation scenario should start from ownerId again.
+    await db
+      .update(dogs)
+      .set({ ownerId })
+      .where(eq(dogs.id, dogId));
+
+    assert.equal(result.allowed, false);
+    assert.equal(result.status, 'DENIED');
+    assert.equal(result.reason, 'GUARDIAN_AUTHORITY_MISMATCH');
+    assert.equal(JSON.stringify(result).includes(privateSentinel), false, 'former Guardian bytes must never escape');
+
+    const storedAudits = await db.select().from(audits).where(eq(audits.grantId, grantId));
+    assert.equal(storedAudits.length, 2);
+    assert.equal(storedAudits.at(-1).decisionStatus, 'DENIED');
+    assert.equal(storedAudits.at(-1).reason, 'GUARDIAN_AUTHORITY_MISMATCH');
+  });
+
   await t.test('revocation committed during collection discards the collected bytes', async () => {
     const collectorStarted = deferred();
     const releaseCollector = deferred();
@@ -143,7 +192,7 @@ test('professional recipient read rechecks revocation before publication', {
     assert.equal(JSON.stringify(result).includes(privateSentinel), false, 'collected bytes must never escape');
 
     const storedAudits = await db.select().from(audits).where(eq(audits.grantId, grantId));
-    assert.equal(storedAudits.length, 2);
+    assert.equal(storedAudits.length, 3);
     assert.equal(storedAudits.at(-1).decisionStatus, 'DENIED');
     assert.equal(storedAudits.at(-1).reason, 'GRANT_REVOKED');
   });
