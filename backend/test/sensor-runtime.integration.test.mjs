@@ -15,7 +15,7 @@ import { baselines, dogs, eliStates, sensorSummaries, users } from '../dist/db/s
 
 const integrationEnabled = process.env.EMOPET_DB_INTEGRATION_TEST === '1';
 
-test('sensor summaries persist while raw payloads and non-durable presence fail closed', { skip: !integrationEnabled }, async () => {
+test('sensor summaries persist while raw audio, exact location and non-durable presence fail closed', { skip: !integrationEnabled }, async () => {
   const ownerId = randomUUID();
   const otherUserId = randomUUID();
   const dogId = randomUUID();
@@ -82,27 +82,34 @@ test('sensor summaries persist while raw payloads and non-durable presence fail 
     assert.ok(listed.summaries.some((summary) => summary.id === created.summary.id));
 
     const rawAudioSentinel = `raw-household-audio-${randomUUID()}`;
-    for (const forbiddenPayload of [
+    const forbiddenSensitivePayloads = [
       { rawAudio: rawAudioSentinel },
       { audioBase64: Buffer.from(rawAudioSentinel).toString('base64') },
       { pcm: [0, 1, -1, 32767] },
-    ]) {
+      { latitudeE6: 48581234, longitudeE6: 2294567 },
+      { latitude: 48.581234, longitude: 2.294567 },
+    ];
+    for (const forbiddenPayload of forbiddenSensitivePayloads) {
       const forbiddenResponse = await app.request('/api/sensors/summaries', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...validSummary, ...forbiddenPayload }),
       });
-      assert.equal(forbiddenResponse.status, 400, 'unknown raw sensor fields must be rejected at ingress');
+      assert.equal(
+        forbiddenResponse.status,
+        400,
+        'unknown raw-audio or exact-location sensor fields must be rejected at ingress',
+      );
     }
 
-    const persistedAfterRejectedRawAudio = await db
+    const persistedAfterRejectedSensitivePayloads = await db
       .select({ id: sensorSummaries.id })
       .from(sensorSummaries)
       .where(eq(sensorSummaries.dogId, dogId));
     assert.deepEqual(
-      persistedAfterRejectedRawAudio.map((row) => row.id),
+      persistedAfterRejectedSensitivePayloads.map((row) => row.id),
       [created.summary.id],
-      'rejected raw-audio payloads must not create any sensor summary row',
+      'rejected raw-audio/exact-location payloads must not create any sensor summary row',
     );
 
     // Historical persisted rows are not an authoritative live ELI producer.

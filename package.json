@@ -14,6 +14,7 @@
     "cra-srp:audit": "node scripts/security/cra-srp-readiness-audit.mjs",
     "consent-defaults:audit": "node scripts/privacy/consent-defaults-audit.mjs",
     "privacy-audio:audit": "node scripts/privacy/privacy-audio-audit.mjs",
+    "privacy-location:audit": "node scripts/privacy/privacy-location-audit.mjs",
     "mobile-home:audit": "node scripts/mobile-home-authority-audit.mjs",
     "legacy-freemium:audit": "node scripts/content/legacy-freemium-authority-audit.mjs",
     "clean": "turbo clean && rm -rf node_modules",
