@@ -4,8 +4,8 @@ import { zValidator } from '@hono/zod-validator';
 import {
   DogCreateSchema,
   DogUpdateSchema,
-  GuardianProfessionalShareGrantCreateSchema,
-  GuardianProfessionalShareGrantRevokeSchema,
+  OwnerProfessionalShareGrantCreateSchema,
+  OwnerProfessionalShareGrantRevokeSchema,
   ProfessionalShareGrantIdSchema,
 } from '@emopet/shared';
 
@@ -73,7 +73,7 @@ type ShareTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
  * blocks owner changes/deletion until commit (FOR KEY SHARE would not).
  * Always lock dog before grant; keep network calls outside these transactions.
  */
-async function withGuardianProfessionalShareAuthority<T>(
+async function withOwnerProfessionalShareAuthority<T>(
   userId: string,
   dogId: string,
   operation: (tx: ShareTransaction) => Promise<T>,
@@ -92,7 +92,7 @@ async function withGuardianProfessionalShareAuthority<T>(
   });
 }
 
-function toGuardianProfessionalShareGrant(row: typeof professionalShareGrants.$inferSelect) {
+function toOwnerProfessionalShareGrant(row: typeof professionalShareGrants.$inferSelect) {
   return {
     id: row.id,
     dogId: row.dogId,
@@ -202,7 +202,7 @@ dogs.get('/:id/absence-comparison', async (c) => {
 });
 
 /**
- * Guardian-side lifecycle for professional grants.
+ * Owner-side lifecycle for professional grants.
  *
  * Creation is deliberately PENDING. Email is contact metadata only and cannot
  * become professional authentication. There is no activation route until an
@@ -217,7 +217,7 @@ dogs.use('/:id/professional-shares/*', privateProfessionalShareResponse);
 
 dogs.post(
   '/:id/professional-shares',
-  zValidator('json', GuardianProfessionalShareGrantCreateSchema),
+  zValidator('json', OwnerProfessionalShareGrantCreateSchema),
   async (c) => {
     const id = c.req.param('id');
     const denied = await requireDogOwnership(c, id);
@@ -226,8 +226,10 @@ dogs.post(
     const userId = getUserId(c)!;
     const body = c.req.valid('json');
     try {
-      const created = await withGuardianProfessionalShareAuthority(userId, id, async (tx) => {
+      const created = await withOwnerProfessionalShareAuthority(userId, id, async (tx) => {
         const [row] = await tx.insert(professionalShareGrants).values({
+          // Legacy persistence identifier retained until #245 Phase C performs
+          // the explicit schema/API migration to owner terminology.
           guardianUserId: userId,
           dogId: id,
           recipientDisplayName: body.recipient.displayName,
@@ -251,7 +253,7 @@ dogs.post(
 
       if (!created) return c.json({ error: 'not_found' }, 404);
       return c.json({
-        grant: toGuardianProfessionalShareGrant(created),
+        grant: toOwnerProfessionalShareGrant(created),
         activation: 'REQUIRES_VERIFIED_PROFESSIONAL_IDENTITY',
       }, 201);
     } catch {
@@ -267,17 +269,18 @@ dogs.get('/:id/professional-shares', async (c) => {
 
   const userId = getUserId(c)!;
   try {
-    const rows = await withGuardianProfessionalShareAuthority(userId, id, async (tx) => tx
+    const rows = await withOwnerProfessionalShareAuthority(userId, id, async (tx) => tx
       .select()
       .from(professionalShareGrants)
       .where(and(
+        // Legacy persistence identifier retained until #245 Phase C.
         eq(professionalShareGrants.guardianUserId, userId),
         eq(professionalShareGrants.dogId, id),
       ))
       .orderBy(professionalShareGrants.createdAt));
 
     if (!rows) return c.json({ error: 'not_found' }, 404);
-    return c.json({ grants: rows.map(toGuardianProfessionalShareGrant) });
+    return c.json({ grants: rows.map(toOwnerProfessionalShareGrant) });
   } catch {
     return databaseUnavailable(c, 'list_professional_shares');
   }
@@ -300,18 +303,19 @@ dogs.post('/:id/professional-shares/:grantId/revoke', async (c) => {
   } catch {
     return c.json({ error: 'invalid_request' }, 400);
   }
-  const parsedBody = GuardianProfessionalShareGrantRevokeSchema.safeParse(rawBody);
+  const parsedBody = OwnerProfessionalShareGrantRevokeSchema.safeParse(rawBody);
   if (!parsedBody.success) return c.json({ error: 'invalid_request' }, 400);
 
   const userId = getUserId(c)!;
   try {
-    const revoked = await withGuardianProfessionalShareAuthority(userId, id, async (tx) => {
+    const revoked = await withOwnerProfessionalShareAuthority(userId, id, async (tx) => {
       const [existing] = await tx
         .select()
         .from(professionalShareGrants)
         .where(and(
           eq(professionalShareGrants.id, grantId),
           eq(professionalShareGrants.dogId, id),
+          // Legacy persistence identifier retained until #245 Phase C.
           eq(professionalShareGrants.guardianUserId, userId),
         ))
         .limit(1)
@@ -334,6 +338,7 @@ dogs.post('/:id/professional-shares/:grantId/revoke', async (c) => {
         .where(and(
           eq(professionalShareGrants.id, grantId),
           eq(professionalShareGrants.dogId, id),
+          // Legacy persistence identifier retained until #245 Phase C.
           eq(professionalShareGrants.guardianUserId, userId),
         ))
         .returning();
@@ -342,7 +347,7 @@ dogs.post('/:id/professional-shares/:grantId/revoke', async (c) => {
     });
 
     if (!revoked) return c.json({ error: 'not_found' }, 404);
-    return c.json({ grant: toGuardianProfessionalShareGrant(revoked) });
+    return c.json({ grant: toOwnerProfessionalShareGrant(revoked) });
   } catch {
     return databaseUnavailable(c, 'revoke_professional_share');
   }
@@ -364,6 +369,7 @@ dogs.get('/:id/vet-report-link', async (c) => {
     return c.json({
       error: 'Generic professional sharing is disabled',
       code: 'RECIPIENT_BOUND_GRANT_REQUIRED',
+      // Legacy gate identifier retained for evidence/history compatibility.
       gate: 'G-GUARDIAN-PROFESSIONAL-SHARE-01',
       message: 'Create a recipient-bound, scoped, expiring professional grant instead.',
     }, 409);
@@ -402,6 +408,7 @@ dogs.get('/:id/vet-report', async (c) => {
       return c.json({
         error: 'Legacy generic share access is disabled',
         code: 'RECIPIENT_BOUND_GRANT_REQUIRED',
+        // Legacy gate identifier retained for evidence/history compatibility.
         gate: 'G-GUARDIAN-PROFESSIONAL-SHARE-01',
       }, 401);
     }
