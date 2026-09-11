@@ -37,11 +37,11 @@ const UsagesModal = dynamic(
   { ssr: false },
 );
 const DeleteModal = dynamic(
-  () => import('../../components/donnees/modals').then((m) => m.DeleteModal),
+  () => import('../../components/donnees/ErasureSimulationModals').then((m) => m.DeleteModal),
   { ssr: false },
 );
 const DeletedToastModal = dynamic(
-  () => import('../../components/donnees/modals').then((m) => m.DeletedToastModal),
+  () => import('../../components/donnees/ErasureSimulationModals').then((m) => m.DeletedToastModal),
   { ssr: false },
 );
 
