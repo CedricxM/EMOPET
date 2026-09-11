@@ -15,7 +15,7 @@ import { baselines, dogs, eliStates, sensorSummaries, users } from '../dist/db/s
 
 const integrationEnabled = process.env.EMOPET_DB_INTEGRATION_TEST === '1';
 
-test('sensor summaries persist while non-durable presence fails closed', { skip: !integrationEnabled }, async () => {
+test('sensor summaries persist while raw payloads and non-durable presence fail closed', { skip: !integrationEnabled }, async () => {
   const ownerId = randomUUID();
   const otherUserId = randomUUID();
   const dogId = randomUUID();
@@ -55,19 +55,21 @@ test('sensor summaries persist while non-durable presence fails closed', { skip:
   app.route('/api/sensors', sensorRoutes);
 
   try {
+    const validSummary = {
+      timestamp: new Date().toISOString(),
+      dogId,
+      source: 'TAG',
+      activityMinutes: 12.5,
+      vocalEvents: 2,
+      vocalEnergyMean: 18.4,
+      agitationEvents: 1,
+      temperatureC: 19.2,
+      humidityPct: 63,
+    };
     const createResponse = await app.request('/api/sensors/summaries', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        timestamp: new Date().toISOString(),
-        dogId,
-        source: 'TAG',
-        activityMinutes: 12.5,
-        vocalEvents: 2,
-        agitationEvents: 1,
-        temperatureC: 19.2,
-        humidityPct: 63,
-      }),
+      body: JSON.stringify(validSummary),
     });
     assert.equal(createResponse.status, 201);
     const created = await createResponse.json();
@@ -78,6 +80,30 @@ test('sensor summaries persist while non-durable presence fails closed', { skip:
     assert.equal(listResponse.status, 200);
     const listed = await listResponse.json();
     assert.ok(listed.summaries.some((summary) => summary.id === created.summary.id));
+
+    const rawAudioSentinel = `raw-household-audio-${randomUUID()}`;
+    for (const forbiddenPayload of [
+      { rawAudio: rawAudioSentinel },
+      { audioBase64: Buffer.from(rawAudioSentinel).toString('base64') },
+      { pcm: [0, 1, -1, 32767] },
+    ]) {
+      const forbiddenResponse = await app.request('/api/sensors/summaries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...validSummary, ...forbiddenPayload }),
+      });
+      assert.equal(forbiddenResponse.status, 400, 'unknown raw sensor fields must be rejected at ingress');
+    }
+
+    const persistedAfterRejectedRawAudio = await db
+      .select({ id: sensorSummaries.id })
+      .from(sensorSummaries)
+      .where(eq(sensorSummaries.dogId, dogId));
+    assert.deepEqual(
+      persistedAfterRejectedRawAudio.map((row) => row.id),
+      [created.summary.id],
+      'rejected raw-audio payloads must not create any sensor summary row',
+    );
 
     // Historical persisted rows are not an authoritative live ELI producer.
     await db.insert(eliStates).values({
