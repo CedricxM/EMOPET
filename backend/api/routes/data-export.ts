@@ -61,6 +61,23 @@ function toCsv(envelope: Record<string, unknown>): string {
     for (const value of values) rows.push({ record_type: recordType, ...(value as Record<string, unknown>) });
   };
 
+  // JSON already carries the canonical subject profile. CSV must represent the
+  // same subject so a later rectification cannot appear corrected in one export
+  // format while remaining absent/stale in the other.
+  const subject = envelope['subject'];
+  if (subject && typeof subject === 'object' && !Array.isArray(subject)) {
+    const subjectRecord = subject as Record<string, unknown>;
+    const dogProfile = subjectRecord['dogProfile'];
+    if (dogProfile && typeof dogProfile === 'object' && !Array.isArray(dogProfile)) {
+      rows.push({
+        record_type: 'dog_profile',
+        userId: subjectRecord['userId'],
+        dogId: subjectRecord['dogId'],
+        ...(dogProfile as Record<string, unknown>),
+      });
+    }
+  }
+
   pushRows('device', envelope['devices']);
   pushRows('preprocessed_sensor_summary', envelope['preprocessed']);
   pushRows('inferred_eli_state', envelope['inferred']);
@@ -233,5 +250,5 @@ dataExport.get('/capabilities', (c) => c.json({
   rawHighRateStreams: 'NOT_PERSISTED_BY_CURRENT_BACKEND_SCHEMA',
   baselineMetricDisclosurePolicy: 'WITHHELD_PENDING_DISCLOSURE_AUTHORITY',
   csvTextPolicy: 'FORMULA_LIKE_TEXT_PREFIXED_WITH_APOSTROPHE',
-  availableLevels: ['preprocessed', 'inferred', 'device_metadata', 'baseline_metadata'],
+  availableLevels: ['dog_profile', 'preprocessed', 'inferred', 'device_metadata', 'baseline_metadata'],
 }));
