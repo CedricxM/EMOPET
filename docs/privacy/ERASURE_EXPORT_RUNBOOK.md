@@ -68,6 +68,19 @@ At minimum verify deletion/anonymisation for:
 
 This registry is deliberately narrower than a complete erasure or access graph. It does **not** enumerate indirect dog-linked descendants, rows linked only by non-FK identifiers, object/media storage, processors/providers, caches/search indexes, analytics or backups. A direct FK also does not decide whether a record is deleted, anonymised, retained under a justified hold or included in an account access package.
 
+### Machine-readable dog lineage
+
+`config/privacy/dog-subject-lineage.json` classifies dog-like identifier columns declared by the current Drizzle schemas into two mechanical groups:
+
+- `canonicalForeignKeys`: columns with an explicit foreign key to canonical `dogs.id`;
+- `unconstrainedDogIdentifiers`: `dog_id`, `dog_a_id` or `dog_b_id` columns that currently have no foreign key to `dogs.id`.
+
+CI derives both groups from the schemas and compares them to the registry. This prevents a new dog-linked persistence path from being added silently, including legacy or audit tables that use dog identifiers without relational enforcement.
+
+The unconstrained group is especially important for erasure design. Current examples include the legacy `eli-v5` tables, `copresence_events.dog_a_id/dog_b_id`, and the deliberately non-FK `professional_share_access_audits.dog_id`. Those rows cannot be assumed to follow a dog ownership transfer, dog deletion, or account deletion automatically.
+
+This remains **technical lineage only**. A canonical FK does not authorize `ON DELETE CASCADE`, and an unconstrained identifier does not imply that the corresponding row must be deleted rather than anonymised or retained under an approved hold. Object/media storage, providers, caches, analytics, backups and identifiers outside the Drizzle PostgreSQL schemas remain outside this registry.
+
 ### Current Contact topology
 
 The Product V1 Contact candidate now persists support requests in PostgreSQL table `contact_requests`. Its subject link is `contact_requests.requester_user_id -> users.id`, backed by a foreign key and canonical authenticated core-user UUID. The current candidate stores request id, reason, message, status, consent timestamp and record timestamps; it does not persist a separate caller-supplied owner token or direct phone/email contact value.
@@ -88,6 +101,7 @@ No retention duration or deletion deadline is established by this runbook. Those
 - deletion requires recent authentication or equivalent strong confirmation;
 - dog-only deletion does not erase another dog/account accidentally;
 - account deletion covers all owned dogs and related data;
+- account deletion enumerates canonical dog descendants and unconstrained dog identifiers separately;
 - account deletion enumerates account-scoped support/contact records separately from dog-scoped data;
 - revoked tokens cannot continue deletion/export;
 - audit record contains no deleted sensitive payload;
