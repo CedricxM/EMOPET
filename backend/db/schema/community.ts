@@ -38,9 +38,6 @@ export const posts = pgTable('posts', {
   likeCount: integer('like_count').default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => [
-  // Match the feed's ORDER BY created_at DESC, id DESC semantics exactly.
-  // PostgreSQL defaults DESC to NULLS FIRST; spell that out in Drizzle so a
-  // freshly generated baseline does not drift to DESC NULLS LAST and force a Sort.
   index('idx_posts_community_created_id').on(
     table.communityId,
     table.createdAt.desc().nullsFirst(),
@@ -55,6 +52,29 @@ export const comments = pgTable('comments', {
   content: varchar('content', { length: 1000 }).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
+
+export const communityReports = pgTable('community_reports', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  reporterUserId: uuid('reporter_user_id').notNull().references(() => users.id),
+  contentType: varchar('content_type', { length: 20 }).notNull().default('post'),
+  contentId: uuid('content_id').notNull(),
+  communityId: uuid('community_id').notNull(),
+  reason: varchar('reason', { length: 20 }).notNull(),
+  details: varchar('details', { length: 500 }),
+  status: varchar('status', { length: 20 }).notNull().default('open'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  index('idx_community_reports_reporter_created').on(
+    table.reporterUserId,
+    table.createdAt.desc().nullsFirst(),
+    table.id.desc().nullsFirst(),
+  ),
+  index('idx_community_reports_content').on(
+    table.contentType,
+    table.contentId,
+    table.createdAt.desc().nullsFirst(),
+  ),
+]);
 
 export const communityEvents = pgTable('community_events', {
   id: uuid('id').primaryKey().defaultRandom(),

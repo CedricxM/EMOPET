@@ -20,6 +20,7 @@ test('Community core is durable, membership scoped and rules gated', { skip: !in
       communities,
       communityEvents,
       communityMembers,
+      communityReports,
       communityRulesAcceptances,
       posts,
       users,
@@ -74,6 +75,7 @@ test('Community core is durable, membership scoped and rules gated', { skip: !in
   let postId;
   let commentId;
   let eventId;
+  let reportId;
 
   try {
     const listResponse = await app.request('/api/community');
@@ -173,6 +175,41 @@ test('Community core is durable, membership scoped and rules gated', { skip: !in
     const eventsBody = await eventsResponse.json();
     assert.ok(eventsBody.events.some((event) => event.id === eventId));
 
+    const missingReport = await app.request('/api/community/reports', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contentId: randomUUID(), reason: 'unsafe' }),
+    });
+    assert.equal(missingReport.status, 404);
+
+    const reportResponse = await app.request('/api/community/reports', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contentId: postId,
+        reason: 'spam',
+        details: 'Integration report evidence.',
+      }),
+    });
+    assert.equal(reportResponse.status, 201);
+    const reportBody = await reportResponse.json();
+    reportId = reportBody.report.id;
+    assert.equal(reportBody.report.contentType, 'post');
+    assert.equal(reportBody.report.contentId, postId);
+    assert.equal(reportBody.report.reason, 'spam');
+    assert.equal(reportBody.report.status, 'open');
+    assert.equal(reportResponse.headers.get('cache-control'), 'private, no-store');
+
+    const [persistedReport] = await db
+      .select()
+      .from(communityReports)
+      .where(eq(communityReports.id, reportId))
+      .limit(1);
+    assert.ok(persistedReport);
+    assert.equal(persistedReport.reporterUserId, memberId);
+    assert.equal(persistedReport.communityId, communityId);
+    assert.equal(persistedReport.contentId, postId);
+
     currentUserId = outsiderId;
     const outsiderGet = await app.request(`/api/community/${communityId}`);
     assert.equal(outsiderGet.status, 404);
@@ -192,6 +229,13 @@ test('Community core is durable, membership scoped and rules gated', { skip: !in
     });
     assert.equal(outsiderPost.status, 404);
 
+    const outsiderReport = await app.request('/api/community/reports', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contentId: postId, reason: 'harassment' }),
+    });
+    assert.equal(outsiderReport.status, 404);
+
     currentUserId = null;
     const unauthenticatedMalformedPost = await app.request('/api/community/posts', {
       method: 'POST',
@@ -202,14 +246,15 @@ test('Community core is durable, membership scoped and rules gated', { skip: !in
     assert.equal((await unauthenticatedMalformedPost.json()).code, 'AUTHENTICATION_REQUIRED');
 
     currentUserId = memberId;
-    const reportResponse = await app.request('/api/community/reports', {
+    const blockResponse = await app.request('/api/community/blocks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contentId: postId, reason: 'spam' }),
+      body: JSON.stringify({ targetUserId: outsiderId, reason: 'integration test' }),
     });
-    assert.equal(reportResponse.status, 503);
-    assert.equal((await reportResponse.json()).code, COMMUNITY_PERSISTENCE_CODE);
+    assert.equal(blockResponse.status, 503);
+    assert.equal((await blockResponse.json()).code, COMMUNITY_PERSISTENCE_CODE);
   } finally {
+    if (reportId) await db.delete(communityReports).where(eq(communityReports.id, reportId));
     if (commentId) await db.delete(comments).where(eq(comments.id, commentId));
     if (eventId) await db.delete(communityEvents).where(eq(communityEvents.id, eventId));
     if (postId) await db.delete(posts).where(eq(posts.id, postId));

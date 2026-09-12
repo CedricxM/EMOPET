@@ -15,6 +15,7 @@ import {
   communities,
   communityEvents,
   communityMembers,
+  communityReports,
   communityRulesAcceptances,
   posts,
 } from '../../db/schema/index.js';
@@ -102,8 +103,6 @@ async function requireCommunityMembership(
   userId: string,
   communityId: string,
 ): Promise<true | Response> {
-  // Keep the authority row(s) until the dependent read/write commits. SHARE
-  // also blocks non-key updates; KEY SHARE would allow membership reassignment.
   const [membership] = await tx
     .select({ id: communityMembers.id })
     .from(communityMembers)
@@ -126,7 +125,6 @@ async function requireCurrentRulesAcceptance(
   c: CommunityContext,
   userId: string,
 ): Promise<true | Response> {
-  // Always lock membership before rules; recheck the version after any wait.
   const [acceptance] = await tx
     .select({ rulesVersion: communityRulesAcceptances.rulesVersion })
     .from(communityRulesAcceptances)
@@ -145,9 +143,6 @@ async function requireCurrentRulesAcceptance(
   return true;
 }
 
-// Router-level fail-closed identity boundary. This intentionally runs before
-// per-route validators so direct or mis-mounted use cannot create a shared
-// synthetic principal or treat validation as authentication.
 community.use('*', async (c, next) => {
   markPrivate(c);
   const value = c.get('userId');
@@ -162,12 +157,10 @@ community.use('*', async (c, next) => {
   await next();
 });
 
-// Community release authority is Hono + PostgreSQL. This slice deliberately
-// exposes only membership-scoped communities, versioned rules acceptance and
-// durable posts/comments/events. Moderation reports, blocks and copresence
-// remain fail-closed until their own lifecycle/authority is implemented.
-
-// ── Communities ─────────────────────────────────────────────────
+// Community release authority is Hono + PostgreSQL. This slice exposes
+// membership-scoped communities, rules acceptance, durable posts/comments/events
+// and durable post-report intake. User blocking and copresence remain fail-closed
+// until their runtime effects are implemented.
 
 community.get('/', async (c) => {
   const userId = c.get('userId');
@@ -236,8 +229,6 @@ community.get('/:id/feed', async (c) => {
     const rows = await tx
       .select({
         ...communityPostColumns,
-        // JS Date truncates PostgreSQL microseconds. Keep full precision for
-        // the seek boundary, without exposing this internal field in posts.
         cursorCreatedAt: sql<string>`to_char(${posts.createdAt} AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`,
       })
       .from(posts)
@@ -298,14 +289,66 @@ community.post('/rules/accept', zValidator('json', CommunityRulesAcceptSchema), 
 });
 
 community.post('/reports', zValidator('json', UgcReportCreateSchema), async (c) => {
-  return persistenceUnavailable(c, 'create_report');
+  const userId = c.get('userId');
+  const body = c.req.valid('json');
+
+  return withCommunityTransaction(c, 'create_report', async (tx) => {
+    const [targetPost] = await tx
+      .select({ id: posts.id, communityId: posts.communityId })
+      .from(posts)
+      .where(eq(posts.id, body.contentId))
+      .limit(1);
+
+    if (!targetPost) {
+      markPrivate(c);
+      return c.json({ error: 'Reportable content not found' }, 404);
+    }
+
+    const membership = await requireCommunityMembership(tx, c, userId, targetPost.communityId);
+    if (membership !== true) return membership;
+
+    // Reporting remains available as a safety action even if the current rules
+    // version has not been accepted. Membership is the access boundary.
+    const [lockedTarget] = await tx
+      .select({ id: posts.id })
+      .from(posts)
+      .where(and(eq(posts.id, targetPost.id), eq(posts.communityId, targetPost.communityId)))
+      .limit(1)
+      .for('share');
+    if (!lockedTarget) {
+      markPrivate(c);
+      return c.json({ error: 'Reportable content not found' }, 404);
+    }
+
+    const [created] = await tx
+      .insert(communityReports)
+      .values({
+        reporterUserId: userId,
+        contentType: 'post',
+        contentId: targetPost.id,
+        communityId: targetPost.communityId,
+        reason: body.reason,
+        details: body.details,
+      })
+      .returning({
+        id: communityReports.id,
+        contentType: communityReports.contentType,
+        contentId: communityReports.contentId,
+        reason: communityReports.reason,
+        details: communityReports.details,
+        status: communityReports.status,
+        createdAt: communityReports.createdAt,
+      });
+
+    if (!created) return databaseUnavailable(c, 'create_report');
+    markPrivate(c);
+    return c.json({ report: created }, 201);
+  });
 });
 
 community.post('/blocks', zValidator('json', UserBlockCreateSchema), async (c) => {
   return persistenceUnavailable(c, 'create_block');
 });
-
-// ── Posts ────────────────────────────────────────────────────────
 
 community.post('/posts', zValidator('json', CommunityPostCreateSchema), async (c) => {
   const userId = c.get('userId');
@@ -354,9 +397,6 @@ community.post('/comments', zValidator('json', CommentCreateSchema), async (c) =
     const rules = await requireCurrentRulesAcceptance(tx, c, userId);
     if (rules !== true) return rules;
 
-    // The first lookup only discovers the authority scope. After membership
-    // and rules are locked, recheck and retain the parent-to-community binding.
-    // A move/deletion that wins this lock must not authorize a stale comment.
     const [lockedParent] = await tx
       .select({ id: posts.id })
       .from(posts)
@@ -379,8 +419,6 @@ community.post('/comments', zValidator('json', CommentCreateSchema), async (c) =
     return c.json({ comment: created }, 201);
   });
 });
-
-// ── Events ──────────────────────────────────────────────────────
 
 community.get('/:id/events', async (c) => {
   const userId = c.get('userId');
@@ -430,8 +468,6 @@ community.post('/events', zValidator('json', EventCreateSchema), async (c) => {
     return c.json({ event: { ...created, locationDisclosure: COMMUNITY_LOCATION_DISCLOSURE } }, 201);
   });
 });
-
-// ── Copresence ──────────────────────────────────────────────────
 
 community.get('/copresence/:dogId', async (c) => {
   const dogId = c.req.param('dogId');
