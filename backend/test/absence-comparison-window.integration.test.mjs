@@ -51,13 +51,15 @@ for (const invalidDays of [
 
 const integrationEnabled = process.env.EMOPET_DB_INTEGRATION_TEST === '1';
 
-test('absence comparison preserves open lookback authority while runtime remains fail-closed', { skip: !integrationEnabled }, async () => {
+test('presence routes preserve open lookback authority while runtime remains fail-closed', { skip: !integrationEnabled }, async () => {
   const [
     { dogs: dogRoutes, ABSENCE_COMPARISON_PERSISTENCE_CODE },
+    { sensors: sensorRoutes, PRESENCE_PERSISTENCE_NOT_READY },
     { db },
     { dogs: dogsTable, users },
   ] = await Promise.all([
     import('../dist/api/routes/dogs.js'),
+    import('../dist/api/routes/sensors.js'),
     import('../dist/db/index.js'),
     import('../dist/db/schema/index.js'),
   ]);
@@ -79,6 +81,7 @@ test('absence comparison preserves open lookback authority while runtime remains
     await next();
   });
   app.route('/api/dogs', dogRoutes);
+  app.route('/api/sensors', sensorRoutes);
 
   try {
     const createResponse = await app.request('/api/dogs', {
@@ -96,20 +99,32 @@ test('absence comparison preserves open lookback authority while runtime remains
     assert.equal(createResponse.status, 201);
     dogId = (await createResponse.json()).dog.id;
 
-    const longWindowResponse = await app.request(`/api/dogs/${dogId}/absence-comparison?days=31`);
-    assert.equal(longWindowResponse.status, 503);
-    assert.match(longWindowResponse.headers.get('cache-control') ?? '', /private/);
-    assert.match(longWindowResponse.headers.get('cache-control') ?? '', /no-store/);
-    const longWindowBody = await longWindowResponse.json();
-    assert.equal(longWindowBody.code, ABSENCE_COMPARISON_PERSISTENCE_CODE);
-    assert.equal(longWindowBody.operation, 'absence_comparison');
-    assert.equal(longWindowBody.maturity, 'NOT_IMPLEMENTED');
+    const comparisonLongWindow = await app.request(`/api/dogs/${dogId}/absence-comparison?days=31`);
+    assert.equal(comparisonLongWindow.status, 503);
+    assert.match(comparisonLongWindow.headers.get('cache-control') ?? '', /private/);
+    assert.match(comparisonLongWindow.headers.get('cache-control') ?? '', /no-store/);
+    const comparisonLongBody = await comparisonLongWindow.json();
+    assert.equal(comparisonLongBody.code, ABSENCE_COMPARISON_PERSISTENCE_CODE);
+    assert.equal(comparisonLongBody.operation, 'absence_comparison');
+    assert.equal(comparisonLongBody.maturity, 'NOT_IMPLEMENTED');
 
-    const invalidWindowResponse = await app.request(`/api/dogs/${dogId}/absence-comparison?days=0`);
-    assert.equal(invalidWindowResponse.status, 400);
-    const invalidWindowBody = await invalidWindowResponse.json();
-    assert.equal(invalidWindowBody.error, 'invalid_presence_window');
-    assert.equal(invalidWindowBody.parameter, 'days');
+    const comparisonInvalidWindow = await app.request(`/api/dogs/${dogId}/absence-comparison?days=0`);
+    assert.equal(comparisonInvalidWindow.status, 400);
+    const comparisonInvalidBody = await comparisonInvalidWindow.json();
+    assert.equal(comparisonInvalidBody.error, 'invalid_presence_window');
+    assert.equal(comparisonInvalidBody.parameter, 'days');
+
+    const eventsLongWindow = await app.request(`/api/sensors/presence/${dogId}/events?days=31`);
+    assert.equal(eventsLongWindow.status, 503);
+    const eventsLongBody = await eventsLongWindow.json();
+    assert.equal(eventsLongBody.code, PRESENCE_PERSISTENCE_NOT_READY);
+    assert.equal(eventsLongBody.operation, 'list_presence_events');
+
+    const eventsInvalidWindow = await app.request(`/api/sensors/presence/${dogId}/events?days=0`);
+    assert.equal(eventsInvalidWindow.status, 400);
+    const eventsInvalidBody = await eventsInvalidWindow.json();
+    assert.equal(eventsInvalidBody.error, 'invalid_presence_window');
+    assert.equal(eventsInvalidBody.parameter, 'days');
   } finally {
     if (dogId) {
       await db.delete(dogsTable).where(eq(dogsTable.id, dogId));
