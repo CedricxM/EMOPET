@@ -55,7 +55,6 @@ function summaryRetryFingerprint(
     deviceId: string | null;
     timestamp: Date;
     source: string;
-    firmwareVersionAtIngest: string | null;
     matPresenceMinutes: number | null;
     respiratoryRateMean: number | null;
     respiratoryRateStd: number | null;
@@ -206,7 +205,6 @@ sensors.post('/summaries', zValidator('json', SensorSummaryCreateSchema), async 
         deviceId: boundDevice?.id ?? null,
         timestamp: body.timestamp,
         source: body.source,
-        firmwareVersionAtIngest: boundDevice?.firmwareVersion ?? null,
         matPresenceMinutes: body.matPresenceMinutes ?? null,
         respiratoryRateMean: body.respiratoryRate?.mean ?? null,
         respiratoryRateStd: body.respiratoryRate?.std ?? null,
