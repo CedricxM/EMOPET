@@ -17,6 +17,19 @@ Export must remain:
 
 Account-scoped categories that are not part of the dog-scoped Data Act export, including support/contact requests, require their own rights projection before production. They must not be silently omitted from a future account-level access package or bolted onto a dog export with the wrong subject boundary.
 
+### Account access coverage
+
+`config/privacy/account-access-coverage.json` records the **current implementation coverage** for every direct `users.id` relation in the machine-readable subject-lineage registry. It is not a legal-rights decision matrix and it does not claim a complete DSAR/account export exists.
+
+The distinction is intentional:
+
+- `config/privacy/user-subject-lineage.json` answers **where direct account-linked PostgreSQL relations exist**;
+- `config/privacy/account-access-coverage.json` answers **whether the current product has an explicit account-access projection for each direct relation**.
+
+The coverage registry must stay one-to-one with direct subject lineage. Existing dog-scoped export and Owner self-list Contact behavior are recorded as separate/current surfaces, not re-labelled as a complete account package. Security-sensitive session state and all other unprojected direct relations remain visibly incomplete until a safe field-level projection or justified exclusion is explicitly reviewed.
+
+A future account-access endpoint must not claim completeness merely because it can read `users` or a subset of directly linked tables. Indirect dog descendants, non-FK subject identifiers, object/media storage, processors/providers, caches/search indexes, analytics and backups remain outside the direct-FK coverage registry and require separate treatment.
+
 ## Erasure request lifecycle
 
 1. authenticate the requester;
