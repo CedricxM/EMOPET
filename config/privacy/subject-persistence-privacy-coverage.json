@@ -55,6 +55,11 @@
       "inventoryCategories": ["community"]
     },
     {
+      "table": "community_reports",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": ["community"]
+    },
+    {
       "table": "community_rules_acceptances",
       "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
       "inventoryCategories": ["community"]

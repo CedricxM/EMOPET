@@ -21,6 +21,7 @@
     { "table": "communities", "column": "created_by", "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE", "projectionAuthority": "TO_CONFIRM_COMMUNITY_CONTENT_POLICY" },
     { "table": "community_events", "column": "created_by", "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE", "projectionAuthority": "TO_CONFIRM_COMMUNITY_CONTENT_POLICY" },
     { "table": "community_members", "column": "user_id", "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE", "projectionAuthority": "TO_CONFIRM_COMMUNITY_CONTENT_POLICY" },
+    { "table": "community_reports", "column": "reporter_user_id", "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE", "projectionAuthority": "TO_CONFIRM_MODERATION_REPORT_PROJECTION" },
     { "table": "community_rules_acceptances", "column": "user_id", "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE", "projectionAuthority": "TO_CONFIRM" },
     { "table": "contact_requests", "column": "requester_user_id", "implementationStatus": "OWNER_SELF_LIST_EXISTS_NOT_ACCOUNT_EXPORT_PACKAGE", "projectionAuthority": "TO_CONFIRM_ACCOUNT_ACCESS_PROJECTION" },
     { "table": "dogs", "column": "owner_id", "implementationStatus": "SEPARATE_DOG_SCOPED_EXPORT_EXISTS_NOT_ACCOUNT_PACKAGE", "projectionAuthority": "EXISTING_DOG_SCOPED_EXPORT_ONLY" },

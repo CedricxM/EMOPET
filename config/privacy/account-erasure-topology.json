@@ -16,6 +16,7 @@
     { "table": "communities", "column": "created_by", "source": "backend/db/schema/community.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "erasureDisposition": "TO_CONFIRM" },
     { "table": "community_events", "column": "created_by", "source": "backend/db/schema/community.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "erasureDisposition": "TO_CONFIRM" },
     { "table": "community_members", "column": "user_id", "source": "backend/db/schema/community.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "erasureDisposition": "TO_CONFIRM" },
+    { "table": "community_reports", "column": "reporter_user_id", "source": "backend/db/schema/community.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "erasureDisposition": "TO_CONFIRM" },
     { "table": "community_rules_acceptances", "column": "user_id", "source": "backend/db/schema/community.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "erasureDisposition": "TO_CONFIRM" },
     { "table": "contact_requests", "column": "requester_user_id", "source": "backend/db/schema/contact.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "erasureDisposition": "TO_CONFIRM" },
     { "table": "dogs", "column": "owner_id", "source": "backend/db/schema/dogs.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "erasureDisposition": "TO_CONFIRM_DOG_AND_DESCENDANT_LIFECYCLE" },
