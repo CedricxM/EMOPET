@@ -71,7 +71,26 @@ function summaryRetryFingerprint(
     humidityPct: number | null;
   },
 ): string {
-  return canonicalJson(row);
+  return canonicalJson({
+    dogId: row.dogId,
+    deviceId: row.deviceId,
+    timestamp: row.timestamp,
+    source: row.source,
+    matPresenceMinutes: row.matPresenceMinutes,
+    respiratoryRateMean: row.respiratoryRateMean,
+    respiratoryRateStd: row.respiratoryRateStd,
+    respiratoryRateConfidence: row.respiratoryRateConfidence,
+    weightKg: row.weightKg,
+    positionChanges: row.positionChanges,
+    activityMinutes: row.activityMinutes,
+    distanceKm: row.distanceKm,
+    vocalEvents: row.vocalEvents,
+    vocalEnergyMean: row.vocalEnergyMean,
+    postureDistribution: row.postureDistribution,
+    agitationEvents: row.agitationEvents,
+    temperatureC: row.temperatureC,
+    humidityPct: row.humidityPct,
+  });
 }
 
 function parseRange(value: string | undefined): { label: string; since: Date } | null {
