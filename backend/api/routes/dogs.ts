@@ -21,6 +21,7 @@ import {
   verifyVetReportShareToken,
 } from '../services/vet-report.js';
 import { requireDogOwnership } from '../middleware/authorization.js';
+import { parseLookbackWindow } from '../utils/temporal-window.js';
 
 const dogs = new Hono();
 
@@ -189,9 +190,12 @@ dogs.get('/:id/absence-comparison', async (c) => {
   const denied = await requireDogOwnership(c, id);
   if (denied) return denied;
 
-  const days = parseReportDays(c.req.query('days'));
-  if (days == null) return c.json({ error: 'days must be an integer between 1 and 30' }, 400);
+  const window = parseLookbackWindow(c.req.query('days'));
+  if (!window) {
+    return c.json({ error: 'invalid_presence_window', parameter: 'days' }, 400);
+  }
 
+  c.header('Cache-Control', 'private, no-store');
   return c.json({
     error: 'Presence/absence comparison requires durable presence-event authority before release.',
     code: ABSENCE_COMPARISON_PERSISTENCE_CODE,
