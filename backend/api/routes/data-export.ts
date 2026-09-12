@@ -92,7 +92,10 @@ function toCsv(envelope: Record<string, unknown>): string {
 }
 
 /**
- * Data Act / portability export for data currently available to the EMOPET backend.
+ * Data Act / portability export for the currently authorized Product V1
+ * dog-scoped projection. This is intentionally not a complete dump of every
+ * dog-linked PostgreSQL relation; coverage is tracked separately by the privacy
+ * dog-export coverage registry and enforced by tests.
  *
  * Important: the current backend schema does not persist raw high-rate MAT/TAG streams.
  * This endpoint therefore reports raw data as unavailable rather than fabricating it.
@@ -163,7 +166,8 @@ dataExport.get('/', async (c) => {
     generatedAt: new Date().toISOString(),
     schemaVersion: 'p0-data-act-v2',
     notes: [
-      'This export contains only records currently persisted by the EMOPET backend.',
+      'This package is a partial controlled projection, not a complete dump of every dog-linked PostgreSQL relation.',
+      'This export contains only records currently persisted by the EMOPET backend and explicitly selected by the current dog export projection.',
       'Raw high-rate MAT/TAG streams are not persisted by the current backend schema and are therefore not fabricated.',
       'ELI states are inferred/derived data and are separated from preprocessed sensor summaries.',
       'Owner inferred export is publication-gated: internal valence/arousal state is excluded and ELI load is exported only when gateStatus=PUBLISH.',
@@ -247,6 +251,7 @@ dataExport.get('/capabilities', (c) => c.json({
   formats: ['json', 'csv'],
   filters: ['dog_id', 'from', 'to'],
   directThirdPartyDelegation: 'GATED_AUTH_BASELINE_REQUIRED',
+  dogPersistenceCoverage: 'PARTIAL_CURRENT_BACKEND_PROJECTION',
   rawHighRateStreams: 'NOT_PERSISTED_BY_CURRENT_BACKEND_SCHEMA',
   baselineMetricDisclosurePolicy: 'WITHHELD_PENDING_DISCLOSURE_AUTHORITY',
   csvTextPolicy: 'FORMULA_LIKE_TEXT_PREFIXED_WITH_APOSTROPHE',

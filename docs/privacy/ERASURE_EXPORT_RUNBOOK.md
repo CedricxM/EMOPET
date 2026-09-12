@@ -4,7 +4,7 @@ Status: `P0 EXPORT IMPLEMENTED / ERASURE IMPLEMENTATION OPEN`
 
 ## Export
 
-The Data Act/access slice implements owner-scoped JSON/CSV export of currently persisted dog-scoped backend data.
+The Data Act/access slice implements owner-scoped JSON/CSV export of a **selected controlled projection** of currently persisted dog-scoped backend data. It is not a complete dump of every dog-linked PostgreSQL relation.
 
 Export must remain:
 
@@ -29,6 +29,22 @@ The distinction is intentional:
 The coverage registry must stay one-to-one with direct subject lineage. Existing dog-scoped export and Owner self-list Contact behavior are recorded as separate/current surfaces, not re-labelled as a complete account package. Security-sensitive session state and all other unprojected direct relations remain visibly incomplete until a safe field-level projection or justified exclusion is explicitly reviewed.
 
 A future account-access endpoint must not claim completeness merely because it can read `users` or a subset of directly linked tables. Indirect dog descendants, non-FK subject identifiers, object/media storage, processors/providers, caches/search indexes, analytics and backups remain outside the direct-FK coverage registry and require separate treatment.
+
+### Dog export coverage
+
+`config/privacy/dog-export-coverage.json` records the current implementation coverage of `/api/data-export` against `config/privacy/dog-subject-lineage.json`. It is an implementation-truth matrix, not a legal entitlement matrix and not a statement that every dog-linked record should be disclosed.
+
+The current route is explicitly partial:
+
+- the root `dogs` row is projected field-by-field rather than dumped wholesale;
+- 4 of the 10 canonical dog foreign-key relations are currently read by the route: `devices`, `sensor_summaries`, `eli_states` and `baselines`;
+- the other 6 canonical relations are not in the current dog package;
+- all 10 current unconstrained dog identifiers remain outside the current dog package;
+- raw high-rate MAT/TAG streams remain reported as unavailable because the current backend schema does not persist them.
+
+`/api/data-export/capabilities` exposes `dogPersistenceCoverage = PARTIAL_CURRENT_BACKEND_PROJECTION` so clients cannot infer completeness from the presence of an export endpoint alone. CI keeps the coverage matrix one-to-one with both canonical and unconstrained dog lineage and checks that the route's actual table reads match the declared included/not-included state.
+
+A future expansion of the dog export must update the coverage matrix and use an explicit field-level/publication projection where persisted state is not automatically Owner-disclosable. Adding a table read is not itself authority to expose every column in that table.
 
 ## Erasure request lifecycle
 
