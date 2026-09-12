@@ -8,6 +8,7 @@ import { isCanonicalUserId } from '../services/auth-security.js';
 import {
   toOwnerAuthorizedBaselineExport,
   toOwnerAuthorizedEliExport,
+  toOwnerAuthorizedSensorSummaryExport,
 } from '../services/data-export-policy.js';
 
 interface Variables {
@@ -196,26 +197,7 @@ dataExport.get('/', async (c) => {
     },
     raw: [],
     rawDataStatus: 'NOT_PERSISTED_BY_CURRENT_BACKEND_SCHEMA',
-    preprocessed: summaryRows.map((row) => ({
-      ...row,
-      units: {
-        matPresenceMinutes: 'min',
-        respiratoryRateMean: 'breaths/min',
-        respiratoryRateStd: 'breaths/min',
-        weightKg: 'kg',
-        activityMinutes: 'min',
-        distanceKm: 'km',
-        temperatureC: 'degC',
-        humidityPct: '%',
-      },
-      quality: {
-        respiratoryRateConfidence: row.respiratoryRateConfidence,
-      },
-      provenance: {
-        deviceSource: row.source,
-        level: 'preprocessed',
-      },
-    })),
+    preprocessed: summaryRows.map(toOwnerAuthorizedSensorSummaryExport),
     inferred: eliRows.map(toOwnerAuthorizedEliExport),
     baselines: baselineRows.map(toOwnerAuthorizedBaselineExport),
     devices: deviceRows.map((row) => ({
