@@ -4,7 +4,7 @@ import { zValidator } from '@hono/zod-validator';
 import { PresenceEventCreateSchema, SensorSummaryCreateSchema } from '@emopet/shared';
 
 import { db } from '../../db/index.js';
-import { baselines, sensorSummaries } from '../../db/schema/index.js';
+import { baselines, devices, sensorSummaries } from '../../db/schema/index.js';
 import { requireDogOwnership } from '../middleware/authorization.js';
 import { toOwnerAuthorizedBaselineExport } from '../services/data-export-policy.js';
 import { parseLookbackWindow } from '../utils/temporal-window.js';
@@ -77,12 +77,38 @@ sensors.post('/summaries', zValidator('json', SensorSummaryCreateSchema), async 
   if (denied) return denied;
 
   try {
+    let boundDevice: { id: string; firmwareVersion: string | null } | null = null;
+    if (body.deviceId) {
+      const [device] = await db
+        .select({
+          id: devices.id,
+          firmwareVersion: devices.firmwareVersion,
+        })
+        .from(devices)
+        .where(and(
+          eq(devices.id, body.deviceId),
+          eq(devices.dogId, body.dogId),
+          eq(devices.type, body.source),
+        ))
+        .limit(1);
+
+      if (!device) {
+        return c.json({
+          error: 'device_id is not bound to this dog/source',
+          code: 'SENSOR_DEVICE_BINDING_INVALID',
+        }, 400);
+      }
+      boundDevice = device;
+    }
+
     const [created] = await db
       .insert(sensorSummaries)
       .values({
         dogId: body.dogId,
+        deviceId: boundDevice?.id,
         timestamp: body.timestamp,
         source: body.source,
+        firmwareVersionAtIngest: boundDevice?.firmwareVersion,
         matPresenceMinutes: body.matPresenceMinutes,
         respiratoryRateMean: body.respiratoryRate?.mean,
         respiratoryRateStd: body.respiratoryRate?.std,
