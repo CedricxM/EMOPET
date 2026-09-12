@@ -6,7 +6,11 @@ function key(entry) {
   return `${entry.table}.${entry.column}`;
 }
 
-test('account access coverage stays one-to-one with direct user subject lineage and cannot claim completeness', async () => {
+function sortedKeys(entries) {
+  return entries.map(key).sort();
+}
+
+test('account access coverage stays one-to-one with user subject lineage and cannot claim completeness', async () => {
   const [lineage, coverage] = await Promise.all([
     readFile(new URL('../../config/privacy/user-subject-lineage.json', import.meta.url), 'utf8').then(JSON.parse),
     readFile(new URL('../../config/privacy/account-access-coverage.json', import.meta.url), 'utf8').then(JSON.parse),
@@ -17,21 +21,40 @@ test('account access coverage stays one-to-one with direct user subject lineage 
   assert.match(coverage.promotionGate, /^BLOCK_COMPLETE_ACCOUNT_ACCESS_CLAIM_/);
   assert.match(coverage.rootAccountProjection.status, /FIELD_LEVEL_PROJECTION_REQUIRED/);
 
-  const lineageKeys = lineage.directReferences.map(key).sort();
-  const coverageKeys = coverage.directReferences.map(key).sort();
+  const lineageKeys = sortedKeys(lineage.directReferences);
+  const coverageKeys = sortedKeys(coverage.directReferences);
   assert.deepEqual(
     coverageKeys,
     lineageKeys,
     'every direct users.id relation must have an explicit account-access coverage state and no stale coverage row may remain',
   );
-  assert.equal(new Set(coverageKeys).size, coverageKeys.length, 'account-access coverage rows must be unique');
+  assert.equal(new Set(coverageKeys).size, coverageKeys.length, 'account-access direct coverage rows must be unique');
 
-  for (const entry of coverage.directReferences) {
+  const unconstrainedLineageKeys = sortedKeys(lineage.unconstrainedUserIdentifiers ?? []);
+  const unconstrainedCoverageKeys = sortedKeys(coverage.unconstrainedUserIdentifiers ?? []);
+  assert.deepEqual(
+    unconstrainedCoverageKeys,
+    unconstrainedLineageKeys,
+    'every mechanically identified non-FK user_id relation must have an explicit account-access coverage state',
+  );
+  assert.equal(
+    new Set(unconstrainedCoverageKeys).size,
+    unconstrainedCoverageKeys.length,
+    'account-access non-FK coverage rows must be unique',
+  );
+
+  for (const entry of [
+    ...coverage.directReferences,
+    ...(coverage.unconstrainedUserIdentifiers ?? []),
+  ]) {
     assert.ok(entry.implementationStatus, `${key(entry)} must declare implementationStatus`);
     assert.ok(entry.projectionAuthority, `${key(entry)} must declare projectionAuthority`);
   }
 
-  const byKey = new Map(coverage.directReferences.map((entry) => [key(entry), entry]));
+  const byKey = new Map([
+    ...coverage.directReferences,
+    ...(coverage.unconstrainedUserIdentifiers ?? []),
+  ].map((entry) => [key(entry), entry]));
   assert.equal(
     byKey.get('dogs.owner_id').implementationStatus,
     'SEPARATE_DOG_SCOPED_EXPORT_EXISTS_NOT_ACCOUNT_PACKAGE',
@@ -44,9 +67,14 @@ test('account access coverage stays one-to-one with direct user subject lineage 
     byKey.get('auth_refresh_sessions.user_id').implementationStatus,
     /SECURITY_SENSITIVE/,
   );
+  assert.equal(
+    byKey.get('user_config.user_id').projectionAuthority,
+    'TO_CONFIRM_UNCONSTRAINED_IDENTIFIER_PROJECTION',
+  );
 
   assert.ok(
-    coverage.directReferences.some((entry) => entry.implementationStatus === 'NOT_IN_ACCOUNT_ACCESS_PACKAGE'),
+    [...coverage.directReferences, ...(coverage.unconstrainedUserIdentifiers ?? [])]
+      .some((entry) => entry.implementationStatus === 'NOT_IN_ACCOUNT_ACCESS_PACKAGE'),
     'coverage must remain visibly incomplete until explicit projections are implemented',
   );
 

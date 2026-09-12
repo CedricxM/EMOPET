@@ -29,9 +29,12 @@
     { "table": "research_data_consents", "column": "user_id", "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE", "projectionAuthority": "TO_CONFIRM_CONSENT_RECORD_PROJECTION" },
     { "table": "subscriptions", "column": "user_id", "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE", "projectionAuthority": "TO_CONFIRM" }
   ],
-  "knownOutOfScopeForThisDirectFkMatrix": [
+  "unconstrainedUserIdentifiers": [
+    { "table": "user_config", "column": "user_id", "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE", "projectionAuthority": "TO_CONFIRM_UNCONSTRAINED_IDENTIFIER_PROJECTION" }
+  ],
+  "knownOutOfScopeForThisMatrix": [
     "indirect dog-linked descendants",
-    "non-FK subject identifiers",
+    "other non-FK subject identifiers not mechanically classifiable as user_id",
     "object/media storage",
     "provider-held copies",
     "caches/search indexes",
