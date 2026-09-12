@@ -49,6 +49,12 @@ At minimum verify deletion/anonymisation for:
 - analytics/telemetry identifiers;
 - backups according to policy.
 
+### Machine-readable direct account lineage
+
+`config/privacy/user-subject-lineage.json` is the controlled mechanical registry of direct PostgreSQL foreign-key references to `users.id` declared by the current Drizzle schemas. CI compares that registry to every `backend/db/schema/*.ts` file so a new direct account relation cannot be added silently.
+
+This registry is deliberately narrower than a complete erasure or access graph. It does **not** enumerate indirect dog-linked descendants, rows linked only by non-FK identifiers, object/media storage, processors/providers, caches/search indexes, analytics or backups. A direct FK also does not decide whether a record is deleted, anonymised, retained under a justified hold or included in an account access package.
+
 ### Current Contact topology
 
 The Product V1 Contact candidate now persists support requests in PostgreSQL table `contact_requests`. Its subject link is `contact_requests.requester_user_id -> users.id`, backed by a foreign key and canonical authenticated core-user UUID. The current candidate stores request id, reason, message, status, consent timestamp and record timestamps; it does not persist a separate caller-supplied owner token or direct phone/email contact value.

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "emopet-user-subject-lineage-v1",
+  "status": "TECHNICAL_DIRECT_FK_TOPOLOGY_NOT_ERASURE_OR_DISCLOSURE_POLICY",
+  "subject": {
+    "table": "users",
+    "column": "id"
+  },
+  "lifecyclePolicyStatus": "TO_CONFIRM_BEFORE_ACCOUNT_ERASURE_OR_COMPLETE_ACCOUNT_EXPORT",
+  "scope": "Direct PostgreSQL foreign-key references to users.id declared in backend/db/schema. Indirect dog-linked records, non-FK identifiers, object storage, providers, caches, analytics and backups are outside this direct-FK registry and require separate lifecycle mapping.",
+  "directReferences": [
+    { "table": "achievements", "column": "user_id", "source": "backend/db/schema/users.ts" },
+    { "table": "ai_messages", "column": "target_user_id", "source": "backend/db/schema/ai.ts" },
+    { "table": "auth_refresh_sessions", "column": "user_id", "source": "backend/db/schema/auth-sessions.ts" },
+    { "table": "behavioral_assessments", "column": "respondent_user_id", "source": "backend/db/schema/behavioral-assessments.ts" },
+    { "table": "comments", "column": "author_id", "source": "backend/db/schema/community.ts" },
+    { "table": "communities", "column": "created_by", "source": "backend/db/schema/community.ts" },
+    { "table": "community_events", "column": "created_by", "source": "backend/db/schema/community.ts" },
+    { "table": "community_members", "column": "user_id", "source": "backend/db/schema/community.ts" },
+    { "table": "community_rules_acceptances", "column": "user_id", "source": "backend/db/schema/community.ts" },
+    { "table": "contact_requests", "column": "requester_user_id", "source": "backend/db/schema/contact.ts" },
+    { "table": "dogs", "column": "owner_id", "source": "backend/db/schema/dogs.ts" },
+    { "table": "posts", "column": "author_id", "source": "backend/db/schema/community.ts" },
+    { "table": "professional_share_grants", "column": "owner_user_id", "source": "backend/db/schema/professional-sharing.ts" },
+    { "table": "research_data_consents", "column": "user_id", "source": "backend/db/schema/behavioral-assessments.ts" },
+    { "table": "subscriptions", "column": "user_id", "source": "backend/db/schema/users.ts" }
+  ]
+}
