@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 
 import { Hono } from 'hono';
 
@@ -67,6 +68,17 @@ test('Community feature progress separates durable reporting from unavailable bl
     assert.equal(byKey.get('block_enforcement')?.state, 'blocked');
     assert.equal(byKey.has('report_block'), false, 'report and block readiness must never be collapsed into one done step');
   }
+});
+
+test('mobile local feature progress preserves the Community report/block truth split', async () => {
+  const source = await readFile(
+    new URL('../../apps/mobile/src/services/feature-progress.ts', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(source, /key:\s*'report_durable'[\s\S]{0,160}state:\s*'done'/);
+  assert.match(source, /key:\s*'block_enforcement'[\s\S]{0,180}state:\s*'blocked'/);
+  assert.doesNotMatch(source, /key:\s*'report_block'/);
 });
 
 test('prototype consent service preserves purpose/context for non-release tests', () => {
