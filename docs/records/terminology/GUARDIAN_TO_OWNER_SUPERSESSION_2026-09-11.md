@@ -28,6 +28,7 @@ The following source files remain in the repository as historical evidence and m
 | `docs/product/EMOPET_GUARDIAN_CONTINUITY_MASTER_v0.1.md` | `docs/product/EMOPET_OWNER_CONTINUITY_MASTER_v0.1.md` | terminology only |
 | `docs/control/EMOPET_GUARDIAN_AUTHORITY_MASTER_v0.1.md` | `docs/control/EMOPET_OWNER_AUTHORITY_MASTER_v0.1.md` | terminology only; legacy gate identifier retained |
 | `docs/control/EMOPET_GUARDIAN_PROFESSIONAL_SHARING_v0.1.md` | `docs/control/EMOPET_OWNER_PROFESSIONAL_SHARING_v0.1.md` | terminology only; legacy gate identifier retained |
+| `docs/qa/EMOPET_GUARDIAN_AUTHORITY_BOLA_MATRIX_v0.1.md` | `docs/qa/EMOPET_OWNER_AUTHORITY_BOLA_MATRIX_v0.1.md` | terminology only; legacy QA gate identifier retained |
 
 Historical files are retained unchanged so the repository preserves what was actually written and reviewed at the time.
 
@@ -65,11 +66,19 @@ The active professional-sharing stack now uses Owner terminology end to end:
 
 The temporary Drizzle `guardianUserId` compatibility bridge has been removed. No active professional-sharing contract or persistence adapter should reintroduce it.
 
+## Phase D current-source migration
+
+Phase D migrates current source-of-truth material while preserving historical evidence.
+
+Current Owner terminology now covers active web runtime copy/comments and the observed repository architecture. QA authorities that still carry legacy filenames are migrated by creating Owner-named canonical successors rather than rewriting the historical source in place.
+
+The BOLA QA matrix successor keeps `G-GUARDIAN-BOLA-QA-01` stable because the gate identifier is evidence lineage, not product vocabulary.
+
 ## Legacy identifiers intentionally retained
 
 The following identifiers may continue to contain `guardian` only for explicit compatibility/history:
 
-- historical control/gate identifiers including `G-GUARDIAN-AUTHORITY-01`, `G-GUARDIAN-CONTINUITY-01` and `G-GUARDIAN-PROFESSIONAL-SHARE-01`;
+- historical control/gate identifiers including `G-GUARDIAN-AUTHORITY-01`, `G-GUARDIAN-CONTINUITY-01`, `G-GUARDIAN-PROFESSIONAL-SHARE-01` and `G-GUARDIAN-BOLA-QA-01`;
 - historical migration `0006_professional_share_authority.sql`, which records the schema originally authored at that point in time;
 - historical filenames, implementation records and evidence whose purpose is to preserve what was reviewed at the time.
 
@@ -94,4 +103,4 @@ Do not perform a blind repository-wide replacement. Historical gate identifiers 
 
 A trusted household member, pet-sitter, professional recipient or other delegate does not become an Owner merely because access is granted. The canonical Owner term must therefore not be mechanically substituted into non-owner actor roles.
 
-**STATUS: TERMINOLOGY SUPERSESSION ACTIVE — PHASE C ACTIVE PERSISTENCE/CONTRACT MIGRATION COMPLETE.**
+**STATUS: TERMINOLOGY SUPERSESSION ACTIVE — PHASE C COMPLETE / PHASE D IN PROGRESS.**
