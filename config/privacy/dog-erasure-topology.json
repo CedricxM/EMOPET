@@ -8,28 +8,148 @@
   },
   "promotionGate": "BLOCK_COMPLETE_DOG_ERASURE_CLAIM_UNTIL_CANONICAL_FKS_UNCONSTRAINED_IDENTIFIERS_TRANSITIVE_DESCENDANTS_AND_NON_DATABASE_COPIES_HAVE_EXPLICIT_DISPOSITION_AND_TESTED_EXECUTION",
   "canonicalForeignKeys": [
-    { "table": "ai_messages", "column": "dog_id", "source": "backend/db/schema/ai.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "erasureDisposition": "TO_CONFIRM" },
-    { "table": "behavioral_assessments", "column": "dog_id", "source": "backend/db/schema/behavioral-assessments.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "erasureDisposition": "TO_CONFIRM_WITH_TRANSITIVE_ASSESSMENT_DESCENDANTS" },
-    { "table": "baselines", "column": "dog_id", "source": "backend/db/schema/sensors.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "erasureDisposition": "TO_CONFIRM" },
-    { "table": "devices", "column": "dog_id", "source": "backend/db/schema/dogs.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "erasureDisposition": "TO_CONFIRM" },
-    { "table": "eli_behavioral_priors", "column": "dog_id", "source": "backend/db/schema/behavioral-assessments.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "erasureDisposition": "TO_CONFIRM" },
-    { "table": "eli_states", "column": "dog_id", "source": "backend/db/schema/sensors.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "erasureDisposition": "TO_CONFIRM" },
-    { "table": "health_entries", "column": "dog_id", "source": "backend/db/schema/dogs.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "erasureDisposition": "TO_CONFIRM" },
-    { "table": "professional_share_grants", "column": "dog_id", "source": "backend/db/schema/professional-sharing.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "erasureDisposition": "TO_CONFIRM" },
-    { "table": "research_data_consents", "column": "dog_id", "source": "backend/db/schema/behavioral-assessments.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "erasureDisposition": "TO_CONFIRM" },
-    { "table": "sensor_summaries", "column": "dog_id", "source": "backend/db/schema/sensors.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "erasureDisposition": "TO_CONFIRM" }
+    {
+      "table": "ai_messages",
+      "column": "dog_id",
+      "source": "backend/db/schema/ai.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "anticipation_events",
+      "column": "dog_id",
+      "source": "backend/db/schema/eli-v5.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "baseline_drift_monitor",
+      "column": "dog_id",
+      "source": "backend/db/schema/eli-v5.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "baselines",
+      "column": "dog_id",
+      "source": "backend/db/schema/sensors.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "behavioral_assessments",
+      "column": "dog_id",
+      "source": "backend/db/schema/behavioral-assessments.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM_WITH_TRANSITIVE_ASSESSMENT_DESCENDANTS"
+    },
+    {
+      "table": "devices",
+      "column": "dog_id",
+      "source": "backend/db/schema/dogs.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "dog_sub_baselines",
+      "column": "dog_id",
+      "source": "backend/db/schema/eli-v5.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "eli_behavioral_priors",
+      "column": "dog_id",
+      "source": "backend/db/schema/behavioral-assessments.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "eli_states",
+      "column": "dog_id",
+      "source": "backend/db/schema/sensors.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "health_entries",
+      "column": "dog_id",
+      "source": "backend/db/schema/dogs.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "professional_share_grants",
+      "column": "dog_id",
+      "source": "backend/db/schema/professional-sharing.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "recovery_events",
+      "column": "dog_id",
+      "source": "backend/db/schema/eli-v5.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "research_data_consents",
+      "column": "dog_id",
+      "source": "backend/db/schema/behavioral-assessments.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "routine_stability",
+      "column": "dog_id",
+      "source": "backend/db/schema/eli-v5.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "sensor_summaries",
+      "column": "dog_id",
+      "source": "backend/db/schema/sensors.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "user_config",
+      "column": "dog_id",
+      "source": "backend/db/schema/eli-v5.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "walk_quality",
+      "column": "dog_id",
+      "source": "backend/db/schema/eli-v5.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    }
   ],
   "unconstrainedDogIdentifiers": [
-    { "table": "anticipation_events", "column": "dog_id", "source": "backend/db/schema/eli-v5.ts", "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED", "erasureDisposition": "TO_CONFIRM" },
-    { "table": "baseline_drift_monitor", "column": "dog_id", "source": "backend/db/schema/eli-v5.ts", "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED", "erasureDisposition": "TO_CONFIRM" },
-    { "table": "copresence_events", "column": "dog_a_id", "source": "backend/db/schema/community.ts", "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED", "erasureDisposition": "TO_CONFIRM" },
-    { "table": "copresence_events", "column": "dog_b_id", "source": "backend/db/schema/community.ts", "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED", "erasureDisposition": "TO_CONFIRM" },
-    { "table": "dog_sub_baselines", "column": "dog_id", "source": "backend/db/schema/eli-v5.ts", "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED", "erasureDisposition": "TO_CONFIRM" },
-    { "table": "professional_share_access_audits", "column": "dog_id", "source": "backend/db/schema/professional-sharing.ts", "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED", "erasureDisposition": "TO_CONFIRM_AUDIT_RETENTION_EXCEPTION_OR_SANITIZED_DELETION" },
-    { "table": "recovery_events", "column": "dog_id", "source": "backend/db/schema/eli-v5.ts", "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED", "erasureDisposition": "TO_CONFIRM" },
-    { "table": "routine_stability", "column": "dog_id", "source": "backend/db/schema/eli-v5.ts", "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED", "erasureDisposition": "TO_CONFIRM" },
-    { "table": "user_config", "column": "dog_id", "source": "backend/db/schema/eli-v5.ts", "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED", "erasureDisposition": "TO_CONFIRM" },
-    { "table": "walk_quality", "column": "dog_id", "source": "backend/db/schema/eli-v5.ts", "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED", "erasureDisposition": "TO_CONFIRM" }
+    {
+      "table": "copresence_events",
+      "column": "dog_a_id",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "copresence_events",
+      "column": "dog_b_id",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "professional_share_access_audits",
+      "column": "dog_id",
+      "source": "backend/db/schema/professional-sharing.ts",
+      "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED",
+      "erasureDisposition": "TO_CONFIRM_AUDIT_RETENTION_EXCEPTION_OR_SANITIZED_DELETION"
+    }
   ],
   "transitiveLineageAuthority": "config/privacy/subject-transitive-lineage.json",
   "scopeLimitations": [
