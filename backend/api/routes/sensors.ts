@@ -26,6 +26,50 @@ function databaseUnavailable(
   }, 503);
 }
 
+function canonicalJson(value: unknown): string {
+  const normalize = (input: unknown): unknown => {
+    if (input === undefined || input === null) return null;
+    if (input instanceof Date) return input.toISOString();
+    if (Array.isArray(input)) return input.map(normalize);
+    if (typeof input === 'object') {
+      return Object.fromEntries(
+        Object.entries(input as Record<string, unknown>)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([key, nested]) => [key, normalize(nested)]),
+      );
+    }
+    return input;
+  };
+
+  return JSON.stringify(normalize(value));
+}
+
+function summaryRetryFingerprint(
+  row: {
+    dogId: string;
+    deviceId: string | null;
+    timestamp: Date;
+    source: string;
+    firmwareVersionAtIngest: string | null;
+    matPresenceMinutes: number | null;
+    respiratoryRateMean: number | null;
+    respiratoryRateStd: number | null;
+    respiratoryRateConfidence: number | null;
+    weightKg: number | null;
+    positionChanges: number | null;
+    activityMinutes: number | null;
+    distanceKm: number | null;
+    vocalEvents: number | null;
+    vocalEnergyMean: number | null;
+    postureDistribution: unknown;
+    agitationEvents: number | null;
+    temperatureC: number | null;
+    humidityPct: number | null;
+  },
+): string {
+  return canonicalJson(row);
+}
+
 function parseRange(value: string | undefined): { label: string; since: Date } | null {
   const label = value ?? '24h';
   const match = /^(1|6|12|24|48|72)h$|^(7|14|30)d$/.exec(label);
@@ -101,33 +145,92 @@ sensors.post('/summaries', zValidator('json', SensorSummaryCreateSchema), async 
       boundDevice = device;
     }
 
-    const [created] = await db
-      .insert(sensorSummaries)
-      .values({
+    const values = {
+      dogId: body.dogId,
+      ingestionId: body.ingestionId,
+      deviceId: boundDevice?.id,
+      timestamp: body.timestamp,
+      source: body.source,
+      firmwareVersionAtIngest: boundDevice?.firmwareVersion,
+      matPresenceMinutes: body.matPresenceMinutes,
+      respiratoryRateMean: body.respiratoryRate?.mean,
+      respiratoryRateStd: body.respiratoryRate?.std,
+      respiratoryRateConfidence: body.respiratoryRate?.confidence,
+      weightKg: body.weightKg,
+      positionChanges: body.positionChanges,
+      activityMinutes: body.activityMinutes,
+      distanceKm: body.distanceKm,
+      vocalEvents: body.vocalEvents,
+      vocalEnergyMean: body.vocalEnergyMean,
+      postureDistribution: body.postureDistribution,
+      agitationEvents: body.agitationEvents,
+      temperatureC: body.temperatureC,
+      humidityPct: body.humidityPct,
+    };
+
+    const [created] = body.ingestionId
+      ? await db
+          .insert(sensorSummaries)
+          .values(values)
+          .onConflictDoNothing({ target: sensorSummaries.ingestionId })
+          .returning()
+      : await db
+          .insert(sensorSummaries)
+          .values(values)
+          .returning();
+
+    if (!created && body.ingestionId) {
+      const [existing] = await db
+        .select()
+        .from(sensorSummaries)
+        .where(and(
+          eq(sensorSummaries.ingestionId, body.ingestionId),
+          eq(sensorSummaries.dogId, body.dogId),
+        ))
+        .limit(1);
+
+      if (!existing) {
+        return c.json({
+          error: 'ingestion_id already belongs to another summary',
+          code: 'SENSOR_INGESTION_ID_CONFLICT',
+        }, 409);
+      }
+
+      const expectedFingerprint = summaryRetryFingerprint({
         dogId: body.dogId,
-        deviceId: boundDevice?.id,
+        deviceId: boundDevice?.id ?? null,
         timestamp: body.timestamp,
         source: body.source,
-        firmwareVersionAtIngest: boundDevice?.firmwareVersion,
-        matPresenceMinutes: body.matPresenceMinutes,
-        respiratoryRateMean: body.respiratoryRate?.mean,
-        respiratoryRateStd: body.respiratoryRate?.std,
-        respiratoryRateConfidence: body.respiratoryRate?.confidence,
-        weightKg: body.weightKg,
-        positionChanges: body.positionChanges,
-        activityMinutes: body.activityMinutes,
-        distanceKm: body.distanceKm,
-        vocalEvents: body.vocalEvents,
-        vocalEnergyMean: body.vocalEnergyMean,
-        postureDistribution: body.postureDistribution,
-        agitationEvents: body.agitationEvents,
-        temperatureC: body.temperatureC,
-        humidityPct: body.humidityPct,
-      })
-      .returning();
+        firmwareVersionAtIngest: boundDevice?.firmwareVersion ?? null,
+        matPresenceMinutes: body.matPresenceMinutes ?? null,
+        respiratoryRateMean: body.respiratoryRate?.mean ?? null,
+        respiratoryRateStd: body.respiratoryRate?.std ?? null,
+        respiratoryRateConfidence: body.respiratoryRate?.confidence ?? null,
+        weightKg: body.weightKg ?? null,
+        positionChanges: body.positionChanges ?? null,
+        activityMinutes: body.activityMinutes ?? null,
+        distanceKm: body.distanceKm ?? null,
+        vocalEvents: body.vocalEvents ?? null,
+        vocalEnergyMean: body.vocalEnergyMean ?? null,
+        postureDistribution: body.postureDistribution ?? null,
+        agitationEvents: body.agitationEvents ?? null,
+        temperatureC: body.temperatureC ?? null,
+        humidityPct: body.humidityPct ?? null,
+      });
+
+      const actualFingerprint = summaryRetryFingerprint(existing);
+      if (actualFingerprint !== expectedFingerprint) {
+        return c.json({
+          error: 'ingestion_id was reused with a different summary payload',
+          code: 'SENSOR_INGESTION_ID_CONFLICT',
+        }, 409);
+      }
+
+      return c.json({ summary: existing, idempotentReplay: true }, 200);
+    }
 
     if (!created) return databaseUnavailable(c, 'create_sensor_summary');
-    return c.json({ summary: created }, 201);
+    return c.json({ summary: created, idempotentReplay: false }, 201);
   } catch {
     return databaseUnavailable(c, 'create_sensor_summary');
   }
