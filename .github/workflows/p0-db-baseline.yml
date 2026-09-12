@@ -5,6 +5,7 @@ on:
     paths:
       - 'backend/db/**'
       - 'backend/test/migration-baseline-static.test.mjs'
+      - 'backend/test/id-01-referential-integrity.sql'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:
 
@@ -140,6 +141,11 @@ jobs:
         env:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: pnpm exec drizzle-kit migrate --config=db/drizzle.p0-baseline.config.ts
+
+      - name: ID-01 canonical identity and FK checks
+        env:
+          GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+        run: psql "$GENERATED_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/id-01-referential-integrity.sql
 
       - name: Verify generated table inventory
         env:
