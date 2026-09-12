@@ -1,0 +1,7 @@
+title = "EMOPET Gitleaks configuration"
+
+[allowlist]
+description = "Reviewed false positives only. Never broaden this to path/rule-wide exclusions."
+fingerprints = [
+  "143b99bb566738d1719840d910f7ccc1850129cc:ARCHITECTURE.md:generic-api-key:170"
+]
