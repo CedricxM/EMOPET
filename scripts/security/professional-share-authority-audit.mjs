@@ -184,13 +184,41 @@ const mobileService = read('apps/mobile/src/services/report.ts');
 if (mobileService.includes('createVetReportShareLink')) {
   failures.push('mobile service still exposes createVetReportShareLink');
 }
+for (const forbidden of [
+  '/vet-report-link',
+  '/vet-report?days=',
+  'expiresInMinutes',
+  'share_token',
+  'demo-dog',
+]) {
+  if (mobileService.includes(forbidden)) {
+    failures.push(`mobile report service reintroduced legacy veterinary share material: ${forbidden}`);
+  }
+}
+if (!mobileService.includes("PROFESSIONAL_SHARE_STATUS = 'RECIPIENT_BOUND_GRANT_REQUIRED'")) {
+  failures.push('mobile report service does not preserve recipient-bound professional-share hold status');
+}
 
 const mobileScreen = read('apps/mobile/app/settings/health-vet.tsx');
-if (mobileScreen.includes('Share.share(') || mobileScreen.includes('createVetReportShareLink')) {
-  failures.push('health-vet screen still exposes generic bearer-link sharing');
+for (const forbidden of [
+  'Share.share(',
+  'createVetReportShareLink',
+  '/vet-report-link',
+  '/vet-report?days=',
+  'expiresInMinutes',
+  'share_token',
+  'demo-dog',
+]) {
+  if (mobileScreen.includes(forbidden)) {
+    failures.push(`health-vet screen reintroduced generic veterinary sharing material: ${forbidden}`);
+  }
 }
 if (!mobileScreen.includes('Elle ne donne acces a aucune clinique')) {
   failures.push('health-vet screen does not explain that coarse preference is non-authorizing');
+}
+if (!mobileScreen.includes('Acces nominatif en preparation') ||
+    !mobileScreen.includes('disabled accessibilityState={{ disabled: true }}')) {
+  failures.push('health-vet screen must keep recipient-bound sharing visibly unavailable until authority is approved');
 }
 
 requireText('docs/control/EMOPET_OWNER_PROFESSIONAL_SHARING_v0.1.md', [
