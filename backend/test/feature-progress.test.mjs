@@ -55,6 +55,20 @@ test('feature-progress prototype service returns a stable visible-but-locked sna
   assert.equal(copresence.progress.steps[0].key, 'community_opt_in');
 });
 
+test('Community feature progress separates durable reporting from unavailable block enforcement', () => {
+  const payload = buildFeatureProgress('u_community_safety_truth');
+
+  for (const serviceId of ['thematic_communities', 'direct_messages', 'service_reviews']) {
+    const service = payload.services.find((entry) => entry.serviceId === serviceId);
+    assert.ok(service, `${serviceId} must stay visible in feature progress`);
+
+    const byKey = new Map(service.progress.steps.map((step) => [step.key, step]));
+    assert.equal(byKey.get('report_durable')?.state, 'done');
+    assert.equal(byKey.get('block_enforcement')?.state, 'blocked');
+    assert.equal(byKey.has('report_block'), false, 'report and block readiness must never be collapsed into one done step');
+  }
+});
+
 test('prototype consent service preserves purpose/context for non-release tests', () => {
   const record = recordConsent('u_consent', {
     purpose: 'location_nearby_temp',
