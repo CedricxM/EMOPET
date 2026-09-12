@@ -133,9 +133,41 @@ export async function discoverSubjectData(
     countWhere(userConfig, eq(userConfig.userId, userId)),
   ]);
 
-  let dogCounts = Array(15).fill(0) as number[];
+  let dogCounts = {
+    devices: 0,
+    healthEntries: 0,
+    sensorSummaries: 0,
+    coreEliStates: 0,
+    baselines: 0,
+    aiMessagesTargetingDog: 0,
+    professionalShareGrants: 0,
+    eliDogSubBaselines: 0,
+    eliRecoveryEvents: 0,
+    eliAnticipationEvents: 0,
+    eliBaselineDriftMonitor: 0,
+    eliWalkQuality: 0,
+    eliRoutineStability: 0,
+    eliUserConfig: 0,
+    copresenceEvents: 0,
+  };
   if (selectedDogIds.length > 0) {
-    dogCounts = await Promise.all([
+    const [
+      devicesCount,
+      healthEntriesCount,
+      sensorSummariesCount,
+      coreEliStatesCount,
+      baselinesCount,
+      aiMessagesTargetingDogCount,
+      professionalShareGrantsCount,
+      eliDogSubBaselinesCount,
+      eliRecoveryEventsCount,
+      eliAnticipationEventsCount,
+      eliBaselineDriftMonitorCount,
+      eliWalkQualityCount,
+      eliRoutineStabilityCount,
+      eliUserConfigCount,
+      copresenceEventsCount,
+    ] = await Promise.all([
       countWhere(devices, inArray(devices.dogId, selectedDogIds)),
       countWhere(healthEntries, inArray(healthEntries.dogId, selectedDogIds)),
       countWhere(sensorSummaries, inArray(sensorSummaries.dogId, selectedDogIds)),
@@ -158,6 +190,24 @@ export async function discoverSubjectData(
         ),
       ),
     ]);
+
+    dogCounts = {
+      devices: devicesCount,
+      healthEntries: healthEntriesCount,
+      sensorSummaries: sensorSummariesCount,
+      coreEliStates: coreEliStatesCount,
+      baselines: baselinesCount,
+      aiMessagesTargetingDog: aiMessagesTargetingDogCount,
+      professionalShareGrants: professionalShareGrantsCount,
+      eliDogSubBaselines: eliDogSubBaselinesCount,
+      eliRecoveryEvents: eliRecoveryEventsCount,
+      eliAnticipationEvents: eliAnticipationEventsCount,
+      eliBaselineDriftMonitor: eliBaselineDriftMonitorCount,
+      eliWalkQuality: eliWalkQualityCount,
+      eliRoutineStability: eliRoutineStabilityCount,
+      eliUserConfig: eliUserConfigCount,
+      copresenceEvents: copresenceEventsCount,
+    };
   }
 
   return {
@@ -185,21 +235,21 @@ export async function discoverSubjectData(
     },
     dog: {
       profiles: counted(selectedDogIds.length, { ids: selectedDogIds }),
-      devices: counted(dogCounts[0]),
-      healthEntries: counted(dogCounts[1]),
-      sensorSummaries: counted(dogCounts[2]),
-      coreEliStates: counted(dogCounts[3]),
-      baselines: counted(dogCounts[4]),
-      aiMessagesTargetingDog: counted(dogCounts[5]),
-      professionalShareGrants: counted(dogCounts[6]),
-      eliDogSubBaselines: counted(dogCounts[7]),
-      eliRecoveryEvents: counted(dogCounts[8]),
-      eliAnticipationEvents: counted(dogCounts[9]),
-      eliBaselineDriftMonitor: counted(dogCounts[10]),
-      eliWalkQuality: counted(dogCounts[11]),
-      eliRoutineStability: counted(dogCounts[12]),
-      eliUserConfig: counted(dogCounts[13]),
-      copresenceEvents: counted(dogCounts[14], {
+      devices: counted(dogCounts.devices),
+      healthEntries: counted(dogCounts.healthEntries),
+      sensorSummaries: counted(dogCounts.sensorSummaries),
+      coreEliStates: counted(dogCounts.coreEliStates),
+      baselines: counted(dogCounts.baselines),
+      aiMessagesTargetingDog: counted(dogCounts.aiMessagesTargetingDog),
+      professionalShareGrants: counted(dogCounts.professionalShareGrants),
+      eliDogSubBaselines: counted(dogCounts.eliDogSubBaselines),
+      eliRecoveryEvents: counted(dogCounts.eliRecoveryEvents),
+      eliAnticipationEvents: counted(dogCounts.eliAnticipationEvents),
+      eliBaselineDriftMonitor: counted(dogCounts.eliBaselineDriftMonitor),
+      eliWalkQuality: counted(dogCounts.eliWalkQuality),
+      eliRoutineStability: counted(dogCounts.eliRoutineStability),
+      eliUserConfig: counted(dogCounts.eliUserConfig),
+      copresenceEvents: counted(dogCounts.copresenceEvents, {
         note: 'Discovery searches both unconstrained dog_a_id and dog_b_id columns.',
       }),
     },
