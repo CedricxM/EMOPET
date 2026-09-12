@@ -46,6 +46,21 @@ The current route is explicitly partial:
 
 A future expansion of the dog export must update the coverage matrix and use an explicit field-level/publication projection where persisted state is not automatically Owner-disclosable. Adding a table read is not itself authority to expose every column in that table.
 
+### First-order subject persistence privacy classification
+
+`config/privacy/subject-persistence-privacy-coverage.json` compares the existing privacy inventory with the first-order PostgreSQL persistence that is mechanically linked to the canonical account or dog subjects. The expected table set is derived from the `users` and `dogs` roots, direct `users.id` foreign keys, canonical `dogs.id` foreign keys and current unconstrained dog-like identifiers.
+
+Every table in that first-order set must have exactly one of two states:
+
+- `MAPPED_TO_EXISTING_PRIVACY_CATEGORY`: the current technical inventory already has an explicit topical category for that persistence family;
+- `UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION`: the persistence exists and is subject-linked, but the current privacy inventory does not yet provide a sufficiently explicit classification for it.
+
+`UNCLASSIFIED` is a visibility/control state only. It does **not** mean the persistence is unlawful, must be erased immediately, lacks a lawful basis, or belongs to any suggested candidate area. Candidate areas are navigation hints for the future privacy review, not approved classifications.
+
+The current first-order registry intentionally leaves several families visible as unclassified, including subscription metadata, refresh-session state, behavioral assessment evidence, research consent records, professional sharing grants, baseline state and behavioral ELI priors. CI prevents those gaps from disappearing through silence: a first-order subject-linked table cannot exist without either an existing inventory-category mapping or an explicit unclassified state.
+
+This registry is still narrower than a complete privacy data map. Transitive descendants such as behavioral responses/factor scores, object/media storage, providers, caches/indexes, analytics, backups and non-subject reference/catalog tables require separate treatment. Mapping a table to an inventory category also does not establish legal basis, retention, exportability, erasure mode or production approval.
+
 ## Erasure request lifecycle
 
 1. authenticate the requester;

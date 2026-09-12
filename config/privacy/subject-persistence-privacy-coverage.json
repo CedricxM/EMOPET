@@ -1,0 +1,188 @@
+{
+  "schemaVersion": "emopet-subject-persistence-privacy-coverage-v1",
+  "status": "INCOMPLETE_FIRST_ORDER_SUBJECT_PERSISTENCE_PRIVACY_CLASSIFICATION",
+  "scope": "First-order PostgreSQL subject persistence derived from the users root, direct users.id foreign keys, the dogs root, canonical dogs.id foreign keys and current unconstrained dog-like identifiers. Transitive descendants, object/media storage, providers, caches, analytics and backups remain outside this first-order registry.",
+  "mappingAuthority": "TECHNICAL_TOPICAL_MAPPING_NOT_LEGAL_SIGNOFF",
+  "promotionGate": "BLOCK_PRIVACY_INVENTORY_COMPLETENESS_CLAIM_WHILE_FIRST_ORDER_SUBJECT_PERSISTENCE_REMAINS_UNCLASSIFIED",
+  "tables": [
+    {
+      "table": "users",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": ["account"]
+    },
+    {
+      "table": "achievements",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": ["product activity", "account-linked achievements"]
+    },
+    {
+      "table": "ai_messages",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": ["targeted product messaging", "community", "dog-linked content"]
+    },
+    {
+      "table": "auth_refresh_sessions",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": ["authentication session state", "security-sensitive account data"]
+    },
+    {
+      "table": "behavioral_assessments",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": ["behavioral assessment evidence", "owner report"]
+    },
+    {
+      "table": "comments",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": ["community"]
+    },
+    {
+      "table": "communities",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": ["community"]
+    },
+    {
+      "table": "community_events",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": ["community"]
+    },
+    {
+      "table": "community_members",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": ["community"]
+    },
+    {
+      "table": "community_rules_acceptances",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": ["community"]
+    },
+    {
+      "table": "contact_requests",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": ["support_contact"]
+    },
+    {
+      "table": "dogs",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": ["dog_profile"]
+    },
+    {
+      "table": "posts",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": ["community"]
+    },
+    {
+      "table": "professional_share_grants",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": ["professional sharing authority", "recipient metadata"]
+    },
+    {
+      "table": "research_data_consents",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": ["research consent records", "governance evidence"]
+    },
+    {
+      "table": "subscriptions",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": ["subscription and billing metadata"]
+    },
+    {
+      "table": "baselines",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": ["dog baseline lifecycle metadata", "derived baseline metrics"]
+    },
+    {
+      "table": "devices",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": ["device_metadata"]
+    },
+    {
+      "table": "eli_behavioral_priors",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": ["behavioral-derived model prior", "ELI derived state"]
+    },
+    {
+      "table": "eli_states",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": ["eli_inferred"]
+    },
+    {
+      "table": "health_entries",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": ["health_records"]
+    },
+    {
+      "table": "sensor_summaries",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": ["sensor_preprocessed"]
+    },
+    {
+      "table": "anticipation_events",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": ["legacy ELI-v5 derived event"]
+    },
+    {
+      "table": "baseline_drift_monitor",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": ["legacy ELI-v5 baseline state"]
+    },
+    {
+      "table": "copresence_events",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": ["community", "location", "dog co-presence"]
+    },
+    {
+      "table": "dog_sub_baselines",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": ["legacy ELI-v5 baseline state"]
+    },
+    {
+      "table": "professional_share_access_audits",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": ["professional sharing audit", "security evidence"]
+    },
+    {
+      "table": "recovery_events",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": ["legacy ELI-v5 derived event"]
+    },
+    {
+      "table": "routine_stability",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": ["legacy ELI-v5 derived routine state"]
+    },
+    {
+      "table": "user_config",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": ["account and dog configuration"]
+    },
+    {
+      "table": "walk_quality",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": ["legacy ELI-v5 derived walk state"]
+    }
+  ],
+  "scopeLimitations": [
+    "This registry does not classify transitive descendants such as behavioral_responses or behavioral_factor_scores merely because their parent assessment is subject-linked.",
+    "This registry does not cover non-subject reference/catalog tables.",
+    "Mapping to an existing privacy category does not establish legal basis, retention, exportability, erasure mode or production approval.",
+    "Unclassified means the persistence family requires explicit privacy inventory classification or inventory extension; it does not mean the data is unlawful or must be deleted."
+  ]
+}
