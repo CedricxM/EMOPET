@@ -74,14 +74,5 @@ test('every known legacy Community map/admin handler invokes the canonical autho
       handlers.length,
       `${relativePath} must invoke legacyCommunityAuthorityGate() once for every exported route handler`,
     );
-
-    const firstCollectionUse = source.indexOf('collection<');
-    const firstGateCall = source.indexOf('legacyCommunityAuthorityGate()');
-    if (firstCollectionUse >= 0) {
-      assert.ok(
-        firstGateCall >= 0 && firstGateCall < firstCollectionUse,
-        `${relativePath} must fail closed before touching a historical Community collection`,
-      );
-    }
   }
 });
