@@ -4,7 +4,36 @@ on:
   pull_request:
     paths:
       - 'backend/db/**'
+      - 'backend/api/routes/auth.ts'
+      - 'backend/api/middleware/auth.ts'
+      - 'backend/api/services/auth-*.ts'
+      - 'backend/api/routes/dogs.ts'
+      - 'backend/api/services/professional-share-*.ts'
+      - 'packages/shared/src/validators/professional-share.ts'
+      - 'packages/shared/src/validators/index.ts'
+      - 'backend/api/routes/sensors.ts'
+      - 'backend/api/routes/data-export.ts'
+      - 'backend/api/services/data-export-*.ts'
+      - 'backend/api/routes/community.ts'
+      - 'backend/api/services/community-*.ts'
+      - 'backend/test/auth-*.test.mjs'
+      - 'backend/test/dog-crud.integration.test.mjs'
+      - 'backend/test/professional-share-*.test.mjs'
+      - 'backend/test/sensor-runtime.integration.test.mjs'
+      - 'backend/test/data-export-*.test.mjs'
+      - 'backend/test/community-*.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
+      - 'backend/test/id-01-referential-integrity.sql'
+      - 'backend/test/privacy-*.test.mjs'
+      - 'backend/test/privacy-user-subject-lineage.test.mjs'
+      - 'backend/test/privacy-dog-subject-lineage.test.mjs'
+      - 'backend/test/privacy-account-erasure-topology.test.mjs'
+      - 'backend/test/privacy-dog-erasure-topology.test.mjs'
+      - 'config/privacy/user-subject-lineage.json'
+      - 'config/privacy/dog-subject-lineage.json'
+      - 'config/privacy/account-erasure-topology.json'
+      - 'config/privacy/dog-erasure-topology.json'
+      - 'config/privacy/**'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:
 
@@ -36,6 +65,7 @@ jobs:
       DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
       PGPASSWORD: emopet_qa_only
       NODE_ENV: test
+      EMOPET_DB_INTEGRATION_TEST: '1'
 
     steps:
       - name: Checkout
@@ -73,10 +103,10 @@ jobs:
 
       - name: Apply historical migrations in order
         run: |
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0001_dataset_registry.sql
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0002_freemium_foundation.sql
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0003_architecture_upgrade.sql
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0004_v6_additions.sql
+          for file in $(find backend/db/migrations -maxdepth 1 -type f -name '*.sql' | sort); do
+            echo "Applying $file"
+            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$file"
+          done
 
       - name: Capture first schema
         run: |
@@ -95,10 +125,10 @@ jobs:
             echo "Applying $file"
             psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f "$file"
           done
-          psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0001_dataset_registry.sql
-          psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0002_freemium_foundation.sql
-          psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0003_architecture_upgrade.sql
-          psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0004_v6_additions.sql
+          for file in $(find backend/db/migrations -maxdepth 1 -type f -name '*.sql' | sort); do
+            echo "Applying $file"
+            psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f "$file"
+          done
           pg_dump --schema-only --no-owner --no-privileges "$REPEAT_DATABASE_URL" > /tmp/schema-b.sql
           psql "$REPEAT_DATABASE_URL" -Atc "select tablename from pg_tables where schemaname='public' order by tablename" > /tmp/tables-b.txt
 
@@ -141,12 +171,32 @@ jobs:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: pnpm exec drizzle-kit migrate --config=db/drizzle.p0-baseline.config.ts
 
+      - name: ID-01 canonical identity and FK checks
+        env:
+          GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+        run: psql "$GENERATED_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/id-01-referential-integrity.sql
+
       - name: Verify generated table inventory
         env:
           GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: |
           psql "$GENERATED_DATABASE_URL" -Atc "select tablename from pg_tables where schemaname='public' order by tablename" > /tmp/tables-generated.txt
           diff -u /tmp/tables-a.txt /tmp/tables-generated.txt
+
+      - name: AUTH-01 route integration on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          AUTH_DB_INTEGRATION: '1'
+          EMOPET_DB_INTEGRATION_TEST: '0'
+        run: node --test test/auth-routes-postgres.test.mjs test/auth-session-concurrency.test.mjs
+
+      - name: Community feed integration on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          EMOPET_DB_INTEGRATION_TEST: '1'
+        run: node --test test/community-feed.integration.test.mjs
 
       - name: Verify generated snapshot is stable
         working-directory: backend
@@ -173,5 +223,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates only disposable P0 database behavior.'
-          echo 'It does not authorize production migration, deployment, or release.'
+          echo 'This workflow validates disposable P0 database behavior, including owner-scoped dog CRUD, sensor-summary persistence, professional-sharing candidates, and AUTH-01 session behavior.'
+          echo 'It does not authorize production migration, deployment, identity-provider selection, email verification, MFA, ELI scientific validity, or release.'

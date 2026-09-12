@@ -3,6 +3,7 @@ export * from './eli.js';
 export * from './sensor.js';
 export * from './community.js';
 export * from './user.js';
+export * from './professional-share.js';
 export * from './ai.js';
 export * from './feature-progress.js';
 export * from './freemium.js';

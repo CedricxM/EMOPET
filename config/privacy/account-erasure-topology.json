@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "emopet-account-erasure-topology-v1",
+  "status": "TECHNICAL_DATABASE_ERASURE_TOPOLOGY_NOT_ERASURE_POLICY",
+  "claimsCompleteAccountErasure": false,
+  "subject": {
+    "table": "users",
+    "column": "id"
+  },
+  "promotionGate": "BLOCK_COMPLETE_ACCOUNT_ERASURE_CLAIM_UNTIL_DATABASE_DEPENDENCIES_AND_NON_DATABASE_COPIES_HAVE_EXPLICIT_DISPOSITION_AND_TESTED_EXECUTION",
+  "directUserReferences": [
+    {
+      "table": "achievements",
+      "column": "user_id",
+      "source": "backend/db/schema/users.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "ai_messages",
+      "column": "target_user_id",
+      "source": "backend/db/schema/ai.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "auth_refresh_sessions",
+      "column": "user_id",
+      "source": "backend/db/schema/auth-sessions.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "behavioral_assessments",
+      "column": "respondent_user_id",
+      "source": "backend/db/schema/behavioral-assessments.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "comments",
+      "column": "author_id",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "communities",
+      "column": "created_by",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "community_events",
+      "column": "created_by",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "community_members",
+      "column": "user_id",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "community_reports",
+      "column": "reporter_user_id",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "community_rules_acceptances",
+      "column": "user_id",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "contact_requests",
+      "column": "requester_user_id",
+      "source": "backend/db/schema/contact.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "dogs",
+      "column": "owner_id",
+      "source": "backend/db/schema/dogs.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM_DOG_AND_DESCENDANT_LIFECYCLE"
+    },
+    {
+      "table": "posts",
+      "column": "author_id",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "professional_share_grants",
+      "column": "owner_user_id",
+      "source": "backend/db/schema/professional-sharing.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "research_data_consents",
+      "column": "user_id",
+      "source": "backend/db/schema/behavioral-assessments.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "subscriptions",
+      "column": "user_id",
+      "source": "backend/db/schema/users.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "user_config",
+      "column": "user_id",
+      "source": "backend/db/schema/eli-v5.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    }
+  ],
+  "unconstrainedUserIdentifiers": [],
+  "scopeLimitations": [
+    "This file records current Drizzle/PostgreSQL relationship mechanics; it does not decide whether a row must be deleted, anonymized, detached or retained under an approved exception.",
+    "NO_ACTION_DEFAULT means the schema declares no explicit ON DELETE action, so a referenced users row cannot be assumed to cascade through that relation.",
+    "Dog-linked descendants require the separate dog subject-lineage and transitive-lineage maps; this direct account layer is not the complete deletion graph.",
+    "Object/media storage, provider-held copies, caches/search indexes, analytics/telemetry and backups remain outside this SQL topology and need separate erasure evidence."
+  ]
+}

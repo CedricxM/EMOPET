@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "emopet-dog-erasure-topology-v1",
+  "status": "TECHNICAL_DATABASE_ERASURE_TOPOLOGY_NOT_ERASURE_POLICY",
+  "claimsCompleteDogErasure": false,
+  "subject": {
+    "table": "dogs",
+    "column": "id"
+  },
+  "promotionGate": "BLOCK_COMPLETE_DOG_ERASURE_CLAIM_UNTIL_CANONICAL_FKS_UNCONSTRAINED_IDENTIFIERS_TRANSITIVE_DESCENDANTS_AND_NON_DATABASE_COPIES_HAVE_EXPLICIT_DISPOSITION_AND_TESTED_EXECUTION",
+  "canonicalForeignKeys": [
+    {
+      "table": "ai_messages",
+      "column": "dog_id",
+      "source": "backend/db/schema/ai.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "anticipation_events",
+      "column": "dog_id",
+      "source": "backend/db/schema/eli-v5.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "baseline_drift_monitor",
+      "column": "dog_id",
+      "source": "backend/db/schema/eli-v5.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "baselines",
+      "column": "dog_id",
+      "source": "backend/db/schema/sensors.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "behavioral_assessments",
+      "column": "dog_id",
+      "source": "backend/db/schema/behavioral-assessments.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM_WITH_TRANSITIVE_ASSESSMENT_DESCENDANTS"
+    },
+    {
+      "table": "devices",
+      "column": "dog_id",
+      "source": "backend/db/schema/dogs.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "dog_sub_baselines",
+      "column": "dog_id",
+      "source": "backend/db/schema/eli-v5.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "eli_behavioral_priors",
+      "column": "dog_id",
+      "source": "backend/db/schema/behavioral-assessments.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "eli_states",
+      "column": "dog_id",
+      "source": "backend/db/schema/sensors.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "health_entries",
+      "column": "dog_id",
+      "source": "backend/db/schema/dogs.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "professional_share_grants",
+      "column": "dog_id",
+      "source": "backend/db/schema/professional-sharing.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "recovery_events",
+      "column": "dog_id",
+      "source": "backend/db/schema/eli-v5.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "research_data_consents",
+      "column": "dog_id",
+      "source": "backend/db/schema/behavioral-assessments.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "routine_stability",
+      "column": "dog_id",
+      "source": "backend/db/schema/eli-v5.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "sensor_summaries",
+      "column": "dog_id",
+      "source": "backend/db/schema/sensors.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "user_config",
+      "column": "dog_id",
+      "source": "backend/db/schema/eli-v5.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "walk_quality",
+      "column": "dog_id",
+      "source": "backend/db/schema/eli-v5.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    }
+  ],
+  "unconstrainedDogIdentifiers": [
+    {
+      "table": "copresence_events",
+      "column": "dog_a_id",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "copresence_events",
+      "column": "dog_b_id",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "professional_share_access_audits",
+      "column": "dog_id",
+      "source": "backend/db/schema/professional-sharing.ts",
+      "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED",
+      "erasureDisposition": "TO_CONFIRM_AUDIT_RETENTION_EXCEPTION_OR_SANITIZED_DELETION"
+    }
+  ],
+  "transitiveLineageAuthority": "config/privacy/subject-transitive-lineage.json",
+  "scopeLimitations": [
+    "This file records current Drizzle/PostgreSQL relationship mechanics for the dog subject root; it does not decide deletion, anonymization, detachment or justified retention.",
+    "NO_ACTION_DEFAULT means the schema declares no explicit ON DELETE action, so deleting dogs.id cannot be assumed to cascade through canonical foreign keys.",
+    "NO_FK_LIFECYCLE_NOT_ENFORCED means PostgreSQL referential actions cannot guarantee cleanup for that identifier.",
+    "Behavioral and other one-hop descendants remain governed by the separate transitive-lineage registry and require explicit lifecycle disposition before dog erasure can be called complete.",
+    "Dog photos/object media, providers, caches/search indexes, analytics/telemetry and backups remain outside this SQL topology and need separate erasure evidence."
+  ]
+}

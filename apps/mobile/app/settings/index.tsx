@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { usePreferencesStore } from '../../src/store';
 import { FirmwareVersionRow } from '../../src/components/firmware-version-row';
@@ -15,6 +15,18 @@ export default function SettingsScreen() {
   const setHardwareLinked = usePreferencesStore((state) => state.setHardwareLinked);
   const setConsent = usePreferencesStore((state) => state.setConsent);
   const insights = useV6Insights();
+
+  function onLocationConsentChange(value: boolean): void {
+    if (!value) {
+      setConsent('location_opt_in', false);
+      return;
+    }
+
+    Alert.alert(
+      'Activation protegee',
+      'La localisation ne peut pas etre activee par un simple switch local. Utilisez le parcours Proximite quand l enregistrement durable du consentement est disponible.',
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -82,7 +94,7 @@ export default function SettingsScreen() {
           <Text style={styles.label}>Localisation passive</Text>
           <Switch
             value={consents.location_opt_in}
-            onValueChange={(value) => setConsent('location_opt_in', value)}
+            onValueChange={onLocationConsentChange}
             trackColor={{ false: '#3B4D73', true: '#E94560' }}
           />
         </View>

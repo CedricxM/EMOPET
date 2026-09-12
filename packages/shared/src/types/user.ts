@@ -5,6 +5,10 @@ export type SubscriptionTier = 'free' | 'trial' | 'kit' | 'premium';
 export interface UserConsents {
   location_opt_in: boolean;
   community_opt_in: boolean;
+  /**
+   * Coarse preference only. This MUST NOT authorize durable professional access.
+   * Vet View requires a scoped, recipient-bound, revocable grant entity.
+   */
   vet_export_opt_in: boolean;
 }
 
@@ -46,7 +50,10 @@ export interface Subscription {
   engagementEndDate: Date;
   renewalDate: Date;
   paymentMethod: PaymentMethod;
-  /** Months of continuous membership — drives progressive rewards. */
+  /**
+   * Months of continuous membership. Billing/account history only.
+   * It must not drive streaks, social rank, Care authority or dog-performance rewards.
+   */
   tier: number;
 }
 
@@ -71,17 +78,25 @@ export interface HealthEntry {
   createdAt: Date;
 }
 
+/**
+ * Legacy achievement compatibility.
+ *
+ * `distance_record`, `mat_streak`, walk-volume and journal-quota achievements
+ * were removed because real-dog performance, MAT/data adherence and pressure to
+ * produce relationship content are not authorized reward sources.
+ */
 export type AchievementType =
-  | 'distance_record'
-  | 'mat_streak'
   | 'community_first'
-  | 'walk_group'
-  | 'founding_member'
-  | 'monthly_journal';
+  | 'founding_member';
 
+/**
+ * @deprecated Global achievements are HOLD under #233.
+ * If playful progression is later approved, it belongs to a World-owned model
+ * independent of Care/ELI and real-dog performance.
+ */
 export interface Achievement {
   id: string;
-  dogId: string;
+  userId: string;
   type: AchievementType;
   title: string;
   description: string;

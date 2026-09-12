@@ -1,39 +1,11 @@
-import { useState } from 'react';
 import { router } from 'expo-router';
-import { ActivityIndicator, Pressable, Share, StyleSheet, Switch, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
-import { createVetReportShareLink } from '../../src/services/report';
-import { useAuthStore, useDogStore, usePreferencesStore } from '../../src/store';
+import { usePreferencesStore } from '../../src/store';
 
 export default function HealthVetScreen() {
-  const token = useAuthStore((state) => state.token);
-  const selectedDogId = useDogStore((state) => state.selectedDogId) ?? 'demo-dog';
   const vetExportOptIn = usePreferencesStore((state) => state.consents.vet_export_opt_in);
   const setConsent = usePreferencesStore((state) => state.setConsent);
-  const [loading, setLoading] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
-
-  async function handleExport(): Promise<void> {
-    if (!vetExportOptIn) {
-      setFeedback('Activez d abord l opt-in export veterinaire.');
-      return;
-    }
-
-    setLoading(true);
-    setFeedback('Generation du rapport en cours...');
-    try {
-      const payload = await createVetReportShareLink(selectedDogId, token);
-      await Share.share({
-        title: 'Rapport veterinaire EMOPET',
-        message: payload.url,
-      });
-      setFeedback('Rapport pret a etre partage.');
-    } catch (error) {
-      setFeedback(error instanceof Error ? error.message : 'Export impossible pour le moment.');
-    } finally {
-      setLoading(false);
-    }
-  }
 
   return (
     <View style={styles.container}>
@@ -43,23 +15,38 @@ export default function HealthVetScreen() {
       <Text style={styles.title}>Sante & Veterinaire</Text>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Rapport 14 jours</Text>
+        <Text style={styles.sectionTitle}>Partage professionnel</Text>
         <Text style={styles.helper}>
-          Export PDF passif, non medical, avec couverture de donnees, tendances et notes proprietaire.
+          Cette preference indique seulement si vous souhaitez utiliser les fonctions de partage
+          veterinaire. Elle ne donne acces a aucune clinique et ne partage aucune donnee a elle seule.
         </Text>
+
         <View style={styles.row}>
-          <Text style={styles.label}>Opt-in export veterinaire</Text>
+          <View style={styles.labelColumn}>
+            <Text style={styles.label}>Autoriser les fonctions de partage</Text>
+            <Text style={styles.secondary}>
+              Chaque futur partage devra nommer le destinataire, les donnees, la periode et la date
+              d expiration. Vous pourrez le revoquer.
+            </Text>
+          </View>
           <Switch
             value={vetExportOptIn}
             onValueChange={(value) => setConsent('vet_export_opt_in', value)}
             trackColor={{ false: '#3B4D73', true: '#E94560' }}
           />
         </View>
-        <Pressable style={styles.exportButton} onPress={handleExport} disabled={loading}>
-          <Text style={styles.exportButtonText}>Exporter rapport veterinaire (14 jours)</Text>
+
+        <View style={styles.holdBox}>
+          <Text style={styles.holdTitle}>Acces nominatif en preparation</Text>
+          <Text style={styles.holdText}>
+            Le lien generique a ete retire du parcours. EMOPET utilisera un acces lie a un destinataire,
+            limite dans le temps et dans son perimetre, avec revocation et historique d acces.
+          </Text>
+        </View>
+
+        <Pressable style={styles.disabledButton} disabled accessibilityState={{ disabled: true }}>
+          <Text style={styles.disabledButtonText}>Creer un acces pour mon veterinaire</Text>
         </Pressable>
-        {loading ? <ActivityIndicator color="#FFFFFF" style={styles.loader} /> : null}
-        {feedback ? <Text style={styles.feedback}>{feedback}</Text> : null}
       </View>
     </View>
   );
@@ -103,33 +90,53 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 14,
+    marginTop: 16,
+  },
+  labelColumn: {
+    flex: 1,
+    marginRight: 12,
   },
   label: {
     color: '#FFFFFF',
     fontSize: 15,
-    flex: 1,
-    marginRight: 12,
+    fontWeight: '600',
   },
-  exportButton: {
+  secondary: {
+    color: '#93A5BE',
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 4,
+  },
+  holdBox: {
     marginTop: 18,
-    backgroundColor: '#E94560',
+    borderWidth: 1,
+    borderColor: '#3B4D73',
+    borderRadius: 14,
+    padding: 12,
+    backgroundColor: '#162A50',
+  },
+  holdTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  holdText: {
+    color: '#A6B4C8',
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 5,
+  },
+  disabledButton: {
+    marginTop: 16,
+    backgroundColor: '#34435F',
     borderRadius: 16,
     paddingVertical: 14,
     alignItems: 'center',
+    opacity: 0.72,
   },
-  exportButtonText: {
-    color: '#FFFFFF',
+  disabledButtonText: {
+    color: '#C4CDDA',
     fontSize: 15,
     fontWeight: '700',
-  },
-  loader: {
-    marginTop: 12,
-  },
-  feedback: {
-    color: '#BFD0E5',
-    fontSize: 13,
-    lineHeight: 18,
-    marginTop: 12,
   },
 });

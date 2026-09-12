@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 interface Message {
-  sender: 'breiz' | 'gardien';
+  sender: 'breiz' | 'owner';
   text: string;
 }
 
@@ -17,7 +17,7 @@ const conversation: Message[] = [
     text: "Il fera doux cet après-midi. J'ai trouvé une idée pas très loin.",
   },
   {
-    sender: 'gardien',
+    sender: 'owner',
     text: "Pas trop longtemps aujourd'hui.",
   },
   {
@@ -93,7 +93,7 @@ export default function BreizConversation() {
           <div
             key={index}
             className={`flex ${
-              msg.sender === 'gardien' ? 'justify-end' : 'justify-start'
+              msg.sender === 'owner' ? 'justify-end' : 'justify-start'
             } transition-all duration-500 ${
               visibleMessages.includes(index)
                 ? 'opacity-100 translate-y-0'

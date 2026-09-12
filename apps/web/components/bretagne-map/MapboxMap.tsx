@@ -1,12 +1,14 @@
 'use client';
 
 /**
- * Carte Mapbox GL réelle (Réalité R1). Activée si NEXT_PUBLIC_MAPBOX_TOKEN
- * est défini ; sinon le wrapper CommunityMap retombe sur la carte SVG.
+ * Controlled Mapbox GL implementation.
  *
- * Affiche : spots communautaires (lon/lat), POI réels OpenStreetMap chargés
- * dans le viewport (vétos, magasins, parcs, plages), et points de RDV
- * d'événements. Bornée à la Bretagne historique.
+ * Activation requires:
+ * - NEXT_PUBLIC_MAPBOX_TOKEN
+ * - NEXT_PUBLIC_EMOPET_MAPBOX_RIGHTS_GATE=GO
+ *
+ * OSM/Overpass POIs are separately gated inside fetchOsmSpots().
+ * Environment gates are operator controls only; they do not replace #116 review.
  */
 
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -55,20 +57,36 @@ function dotEl(color: string, size: number, ring = false): HTMLDivElement {
   return el;
 }
 
-function osmPopupEl(name: string, label: string): HTMLDivElement {
+function osmPopupEl(spot: OsmSpot, label: string): HTMLDivElement {
   const root = document.createElement('div');
   root.style.fontFamily = 'var(--font-sans)';
   root.style.fontSize = '12px';
 
   const title = document.createElement('strong');
-  title.textContent = name;
+  title.textContent = spot.name;
   root.appendChild(title);
   root.appendChild(document.createElement('br'));
 
   const meta = document.createElement('span');
   meta.style.color = '#6B6F76';
-  meta.textContent = `${label} - OpenStreetMap`;
+  meta.textContent = `${label} · `;
   root.appendChild(meta);
+
+  const sourceLink = document.createElement('a');
+  sourceLink.href = spot.sourceElementUrl;
+  sourceLink.target = '_blank';
+  sourceLink.rel = 'noopener noreferrer';
+  sourceLink.textContent = spot.attributionText;
+  root.appendChild(sourceLink);
+
+  root.appendChild(document.createTextNode(' · '));
+
+  const licenceLink = document.createElement('a');
+  licenceLink.href = spot.licenseUrl;
+  licenceLink.target = '_blank';
+  licenceLink.rel = 'noopener noreferrer';
+  licenceLink.textContent = 'ODbL / attribution';
+  root.appendChild(licenceLink);
 
   return root;
 }
@@ -80,10 +98,11 @@ export function MapboxMap({ spots, events, selectedSpotId, onSpotClick, onEventC
   const [osmSpots, setOsmSpots] = useState<OsmSpot[]>([]);
   const [ready, setReady] = useState(false);
 
-  // Init carte (une fois)
   useEffect(() => {
     const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-    if (!token || !containerRef.current) return;
+    const rightsGate = process.env.NEXT_PUBLIC_EMOPET_MAPBOX_RIGHTS_GATE;
+    if (!token || rightsGate !== 'GO' || !containerRef.current) return;
+
     mapboxgl.accessToken = token;
     const map = new mapboxgl.Map({
       container: containerRef.current,
@@ -110,24 +129,22 @@ export function MapboxMap({ spots, events, selectedSpotId, onSpotClick, onEventC
     return () => { map.remove(); mapRef.current = null; };
   }, []);
 
-  // (Re)rendu des marqueurs
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready) return;
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
 
-    // POI réels OSM (sous la couche communautaire)
     for (const s of osmSpots) {
       const meta = categoryMeta(s.category);
       const el = dotEl(meta.color, 11);
       el.style.opacity = '0.75';
-      const popup = new mapboxgl.Popup({ offset: 12, closeButton: false }).setDOMContent(osmPopupEl(s.name, meta.label));
+      el.setAttribute('aria-label', `${s.name}, ${meta.label}, source OpenStreetMap`);
+      const popup = new mapboxgl.Popup({ offset: 12, closeButton: false }).setDOMContent(osmPopupEl(s, meta.label));
       const marker = new mapboxgl.Marker({ element: el }).setLngLat([s.lon, s.lat]).setPopup(popup).addTo(map);
       markersRef.current.push(marker);
     }
 
-    // Spots communautaires
     for (const s of spots) {
       const meta = categoryMeta(s.category);
       const selected = s.id === selectedSpotId;
@@ -138,7 +155,6 @@ export function MapboxMap({ spots, events, selectedSpotId, onSpotClick, onEventC
       markersRef.current.push(marker);
     }
 
-    // Événements (RDV)
     for (const ev of events) {
       const el = dotEl('var(--terracotta-600)', 18, true);
       el.setAttribute('aria-label', `Événement : ${ev.title}`);

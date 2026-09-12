@@ -1,23 +1,40 @@
 # EMOPET
 
-EMOPET is a canine-wellbeing software and firmware monorepo. The repository currently contains a web application, a mobile application, a TypeScript API, shared inference/protocol packages, database schemas and migrations, and partial MAT/TAG firmware code.
+EMOPET is a canine-wellbeing software and firmware monorepo containing a web application, a mobile application, a TypeScript API, shared inference/protocol packages, PostgreSQL/Drizzle schemas and migrations, controlled product/science authorities, and partial MAT/TAG firmware work.
 
-This README describes the code observed on `main`. It does not establish product maturity, deployment readiness, clinical validity, or a frozen Product V1 scope.
+> **Observed snapshot:** 2026-09-08  
+> **Observed branch:** `experience-hardening-2026-09-06`  
+> **Snapshot basis:** PR #224 after reconciliation with `main`  
+> **Do not treat as fresh after:** 2026-09-15 without re-observation
+
+This README is a repository snapshot, not product authority. It does not establish deployment readiness, clinical validity, scientific validation, legal clearance, or a frozen Product V1 scope.
 
 ## Repository status
 
 | Area | Observed implementation | Current status |
 |---|---|---|
 | Web | Next.js 15, React 19, HeroUI 3, Tailwind 4 | `OBSERVED` |
-| Mobile | Expo 52, React 18, React Native 0.76 | `OBSERVED` |
-| API | Hono 4 on Node.js, Zod validation | `OBSERVED`, several routes remain placeholders |
-| Database | Drizzle ORM schemas for PostgreSQL | `OBSERVED`, clean migration application is `BLOCKED` |
+| Mobile | Expo 52, React 18, React Native 0.76 | `OBSERVED`; Home/Devices are being aligned to current Care/brand authority |
+| API | Hono 4 on Node.js, Zod validation | `OBSERVED`; several routes remain placeholders/prototypes |
+| Database | Drizzle ORM + PostgreSQL migrations | `EXECUTABLE BASELINE CI PASS`; production/upgrade migration authority remains open |
 | Shared packages | ELI engine, BLE protocol, AI personality, shared types | `OBSERVED` |
-| Firmware | Partial MAT/TAG C sources | `OBSERVED_PARTIAL` |
-| Authentication | JWT middleware and ownership helper; register/login/refresh are stubs | `OPEN / GATED` |
-| CI and branch protection | No GitHub Actions, CODEOWNERS, or protected `main` observed | `OPEN` |
-| Unity | No Unity project in this repository | `ABSENT_IN_REPOSITORY / GATED` |
-| Nakama | No Nakama integration in this repository | `ABSENT_IN_REPOSITORY / GATED` |
+| Firmware | Partial MAT/TAG C sources | `OBSERVED_PARTIAL`; no complete physical integration proof |
+| Authentication | JWT middleware and ownership helper; register/login/refresh still not consolidated production auth | `OPEN / GATED` |
+| Security CI | GitHub Actions supply-chain and P0 DB baseline workflows execute on PR #224 | `EXECUTABLE CODE EVIDENCE`, not release/scientific/legal evidence |
+| Third-party data | Rights register + fail-closed release gates | `CONTROLLED / LEGAL CLEARANCE STILL OPEN` |
+| Unity | No active Unity product implementation | `ABSENT_IN_ACTIVE_RUNTIME / GATED` |
+| Nakama | No active Nakama product implementation | `ABSENT_IN_ACTIVE_RUNTIME / GATED` |
+
+### Exact-head CI evidence observed on 2026-09-08
+
+For PR #224 head `dac5d185be0930d9ecc8cdf3a743e45113d68a91` before this documentation refresh:
+
+- `Security supply chain` run `34197853592`: **success**;
+- `P0 DB baseline validation` run `34197853598`: **success**;
+- dependency remediation regression executed install, workspace typecheck, workspace tests, and web build successfully;
+- rights, professional-sharing, mobile-Home, legacy-content, Semgrep, Gitleaks, SBOM/provenance-related gates executed in CI.
+
+A green code run proves only the checks it executed on that SHA. It does **not** prove animal-science validity, hardware performance, user value, third-party legal rights, regulatory compliance, or production readiness. Any later commit requires fresh exact-head evidence.
 
 ## Monorepo layout
 
@@ -27,15 +44,17 @@ apps/
   mobile/               Expo/React Native application
 backend/
   api/                  Hono routes, middleware, and services
-  db/                   Drizzle schemas, migrations, and seeds
+  db/                   Drizzle schemas, migrations, and controlled seeds
   test/                 Backend node:test suites
 packages/
   shared/               Shared TypeScript types and Zod validators
   eli-engine/           ELI inference, confidence, baseline, and veto logic
   ble-protocol/         MAT/TAG binary frame parsing and commands
-  ai-personality/       Breiz templates and content safeguards
+  ai-personality/       Breiz release authority and semantic safeguards
 firmware/               Partial MAT/TAG embedded implementations
-docs/, data/, scripts/  Documentation, reference data, and utilities
+docs/                   Controlled strategy/product/science/engineering records
+data/                    Dataset registries and provenance/rights evidence
+scripts/                 Validation, provenance and authority gates
 ```
 
 The workspace is declared in `pnpm-workspace.yaml` and orchestrated with Turbo.
@@ -46,16 +65,17 @@ The workspace is declared in `pnpm-workspace.yaml` and orchestrated with Turbo.
 - pnpm 10.33.0
 - PostgreSQL for database-backed API work
 
-## Manifest-declared commands
-
-These commands are defined by the committed manifests. Their presence is not evidence that the current branch passes them in every environment.
+## Core validation commands
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm build
-pnpm lint
 pnpm typecheck
 pnpm test
+pnpm web:build
+pnpm rights:audit
+pnpm professional-share:audit
+pnpm mobile-home:audit
+pnpm legacy-freemium:audit
 ```
 
 Application shortcuts:
@@ -68,65 +88,69 @@ pnpm mobile:ios
 pnpm mobile:android
 ```
 
-Package-focused validation:
+Backend tests may depend on compiled backend output in some paths; CI is the reference for the exact composed command sequence used as code evidence.
 
-```bash
-pnpm --filter @emopet/web lint
-pnpm --filter @emopet/web typecheck
-pnpm --filter @emopet/web test
-pnpm --filter @emopet/web build
+## Runtime and data authority
 
-pnpm --filter @emopet/api typecheck
-pnpm --filter @emopet/api build
-pnpm --filter @emopet/api test
+The durable target direction is Hono + TypeScript with PostgreSQL as durable data authority and server-side authorization as policy authority. The repository does not yet realize that boundary consistently.
 
-pnpm --filter @emopet/eli-engine typecheck
-pnpm --filter @emopet/eli-engine test
-pnpm --filter @emopet/ai-personality test
-```
+Observed competing/prototype paths still include:
 
-Backend tests import compiled files from `backend/dist`, so build the backend before running its test command.
-
-## Runtime and data boundaries
-
-The intended backend direction in the current handoff is Hono + TypeScript with PostgreSQL as durable authority and server-side authorization as policy authority. The repository does not yet implement that boundary consistently.
-
-Observed data paths include:
-
-- Drizzle/PostgreSQL schemas under `backend/db`;
-- in-memory stores in backend prototype services;
+- Drizzle/PostgreSQL under `backend/db`;
+- in-memory backend prototype stores;
 - JSON-file persistence under `apps/web/.data/` through Next.js Route Handlers;
-- localStorage/sessionStorage fallbacks and prototype owner tokens in web clients.
+- browser/local fallbacks and prototype identity paths in some clients.
 
-Treat the JSON, in-memory, and browser stores as prototype paths, not production or governance authority. Migration to one versioned backend contract remains open.
+Treat JSON, in-memory, and browser stores as prototype/non-authoritative paths unless a controlled record states otherwise. A Product V1 behavior should not be born in the wrong data plane merely because it is convenient.
 
-## Database warning
+## Database evidence boundary
 
-Do not treat `pnpm --filter @emopet/api db:migrate` as clean-database proof yet.
+The previous statement that clean migration application was simply `BLOCKED` is stale.
 
-The committed migrations alter base tables such as `breed_sensor_profiles` and `devices` without a checked-in migration that creates every required base table, and Drizzle migration metadata is absent. Repair and validation of the migration baseline require a separate approved change with clean-database and upgrade-path evidence.
+The P0 DB baseline workflow now executes a PostgreSQL service, applies the checked-in SQL migration sequence, checks repeatability/inventory expectations, builds the backend and runs database-related validation successfully on the cited PR head.
 
-## Docker warning
+That establishes **current CI baseline executability**. It does not automatically establish:
 
-`docker-compose.yml`, `scripts/init_db.sh`, and several helper documents still reference the historical Python/FastAPI/Alembic stack. The Compose API service also references a missing root `Dockerfile`. These files are retained for provenance but are not valid instructions for the active Hono backend.
+- compatibility with every historical deployed database;
+- rollback/recovery readiness;
+- production migration ownership;
+- backup/restore guarantees;
+- zero-downtime upgrade behavior.
+
+Those remain separate evidence questions.
+
+## Product and maturity boundaries
+
+- `docs/strategy/FOUNDER_STRATEGIC_LOCKS_2026-09-07.md` is founder-level strategic authority.
+- MAT commercial inclusion remains governed by `G-MAT-INCREMENTAL-VALUE-01` / issue #230; a candidate reconciliation record now exists and still requires Founder approval.
+- `docs/product/EMOPET_CARE_PRODUCT_MASTER_v0.1.md` is product authority, not evidence that Care is implemented or validated.
+- Breiz release content must pass canonical semantic/release authority; legacy paths are not release authority.
+- Third-party rights gates fail closed where evidence is missing; this is a control, not legal clearance.
+- Code tests are not scientific validation.
 
 ## Safety and privacy constraints
 
-- Backend authorization must enforce Guardian-to-dog access for protected resources.
-- Clients, Unity, and any future realtime subsystem are untrusted inputs, not policy authorities.
-- Raw audio must not be stored or transmitted; current data contracts use derived vocal counts/energy, but end-to-end negative tests remain required.
-- Sensitive location/telemetry requires explicit purpose, consent, minimization, retention, and deletion rules.
-- Outputs must remain non-diagnostic and avoid unsupported emotional labels or anthropomorphism.
-- Product, scientific, brand, and maturity claims require their controlling source; code existence is not approval.
+- Backend authorization must enforce Owner-to-dog access for protected resources.
+- Clients and future realtime/game components are untrusted inputs, not policy authorities.
+- Raw audio must not be stored or transmitted in Product V1; end-to-end negative tests remain required.
+- Sensitive location/telemetry requires explicit purpose, consent, minimization, retention, export, and deletion rules.
+- Outputs must remain non-diagnostic and must not convert signals into unsupported emotional truth.
+- Product, scientific, brand, legal and maturity claims require their controlling source; implementation alone cannot promote them.
 
-## Known documentation drift
+## Known open integration risks
 
-Historical FastAPI, Uvicorn, psycopg2, Flutter, Python backend, NestJS, and web React 18 references remain in parts of the repository. They are cleanup candidates, not evidence of active implementations. Do not delete or promote them without an approved retention disposition.
+- Hono/PostgreSQL is not yet the only runtime data/policy plane.
+- Authentication is not yet a single composed production authority.
+- Community and Vet sharing still require end-to-end truth tests rather than optimistic UI success.
+- BLE bytes → parsed frame → features → ingestion → ELI has not yet been demonstrated as one controlled end-to-end evidence chain.
+- MAT and TAG physical/product evidence remain behind the maturity of repo governance.
+- Historical documentation and prototype paths still require explicit retirement/supersession decisions.
 
 ## Further reading
 
-- `ARCHITECTURE.md` — evidence-based repository topology and boundaries
-- `AGENTS.md` / `CLAUDE.md` — project working constraints
-- `SECURITY_AUDIT_REPORT.md` — historical security-pass evidence; reverify before relying on results
-- `SECURITY_ROTATION_REQUIRED.md` — credential names requiring rotation review, without values
-- `docs/APP_OVERVIEW.md` — detailed web application description; some product/status claims require reconciliation
+- `ARCHITECTURE.md` — observed runtime architecture and unresolved authority boundaries
+- `AGENTS.md` / `CLAUDE.md` — project working constraints and authority routing
+- `docs/strategy/FOUNDER_STRATEGIC_LOCKS_2026-09-07.md` — founder strategic authority
+- `docs/strategy/MAT_STRATEGIC_THESIS_LAUNCH_AUTHORITY_CANDIDATE_2026-09-08.md` — OPEN candidate reconciliation, not yet a founder decision
+- `docs/product/EMOPET_CARE_PRODUCT_MASTER_v0.1.md` — Care product authority
+- `docs/brand/BRAND-AUTHORITY-001_EMOPET_Current_Visual_Authority_2026-08-25.md` — current controlled brand authority

@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "emopet-account-access-coverage-v1",
+  "status": "INCOMPLETE_ACCOUNT_ACCESS_COVERAGE_NOT_COMPLETE_DSAR",
+  "claimsCompleteAccountExport": false,
+  "subject": {
+    "table": "users",
+    "column": "id"
+  },
+  "rootAccountProjection": {
+    "status": "FIELD_LEVEL_PROJECTION_REQUIRED_NOT_IMPLEMENTED_AS_ACCOUNT_PACKAGE",
+    "inventoryCategory": "account",
+    "note": "Persisted account fields require an explicit projection. The privacy inventory must not be treated as a raw SELECT/export allow-list."
+  },
+  "promotionGate": "BLOCK_COMPLETE_ACCOUNT_ACCESS_CLAIM_UNTIL_DIRECT_AND_INDIRECT_SUBJECT_DATA_HAVE_EXPLICIT_PROJECTION_OR_JUSTIFIED_EXCLUSION",
+  "directReferences": [
+    {
+      "table": "achievements",
+      "column": "user_id",
+      "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE",
+      "projectionAuthority": "TO_CONFIRM"
+    },
+    {
+      "table": "ai_messages",
+      "column": "target_user_id",
+      "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE",
+      "projectionAuthority": "TO_CONFIRM"
+    },
+    {
+      "table": "auth_refresh_sessions",
+      "column": "user_id",
+      "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE_SECURITY_SENSITIVE",
+      "projectionAuthority": "TO_CONFIRM_SAFE_SESSION_METADATA_PROJECTION"
+    },
+    {
+      "table": "behavioral_assessments",
+      "column": "respondent_user_id",
+      "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE",
+      "projectionAuthority": "TO_CONFIRM"
+    },
+    {
+      "table": "comments",
+      "column": "author_id",
+      "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE",
+      "projectionAuthority": "TO_CONFIRM_COMMUNITY_CONTENT_POLICY"
+    },
+    {
+      "table": "communities",
+      "column": "created_by",
+      "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE",
+      "projectionAuthority": "TO_CONFIRM_COMMUNITY_CONTENT_POLICY"
+    },
+    {
+      "table": "community_events",
+      "column": "created_by",
+      "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE",
+      "projectionAuthority": "TO_CONFIRM_COMMUNITY_CONTENT_POLICY"
+    },
+    {
+      "table": "community_members",
+      "column": "user_id",
+      "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE",
+      "projectionAuthority": "TO_CONFIRM_COMMUNITY_CONTENT_POLICY"
+    },
+    {
+      "table": "community_reports",
+      "column": "reporter_user_id",
+      "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE",
+      "projectionAuthority": "TO_CONFIRM_MODERATION_REPORT_PROJECTION"
+    },
+    {
+      "table": "community_rules_acceptances",
+      "column": "user_id",
+      "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE",
+      "projectionAuthority": "TO_CONFIRM"
+    },
+    {
+      "table": "contact_requests",
+      "column": "requester_user_id",
+      "implementationStatus": "OWNER_SELF_LIST_EXISTS_NOT_ACCOUNT_EXPORT_PACKAGE",
+      "projectionAuthority": "TO_CONFIRM_ACCOUNT_ACCESS_PROJECTION"
+    },
+    {
+      "table": "dogs",
+      "column": "owner_id",
+      "implementationStatus": "SEPARATE_DOG_SCOPED_EXPORT_EXISTS_NOT_ACCOUNT_PACKAGE",
+      "projectionAuthority": "EXISTING_DOG_SCOPED_EXPORT_ONLY"
+    },
+    {
+      "table": "posts",
+      "column": "author_id",
+      "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE",
+      "projectionAuthority": "TO_CONFIRM_COMMUNITY_CONTENT_POLICY"
+    },
+    {
+      "table": "professional_share_grants",
+      "column": "owner_user_id",
+      "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE",
+      "projectionAuthority": "TO_CONFIRM"
+    },
+    {
+      "table": "research_data_consents",
+      "column": "user_id",
+      "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE",
+      "projectionAuthority": "TO_CONFIRM_CONSENT_RECORD_PROJECTION"
+    },
+    {
+      "table": "subscriptions",
+      "column": "user_id",
+      "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE",
+      "projectionAuthority": "TO_CONFIRM"
+    },
+    {
+      "table": "user_config",
+      "column": "user_id",
+      "implementationStatus": "NOT_IN_ACCOUNT_ACCESS_PACKAGE",
+      "projectionAuthority": "TO_CONFIRM"
+    }
+  ],
+  "unconstrainedUserIdentifiers": [],
+  "knownOutOfScopeForThisMatrix": [
+    "indirect dog-linked descendants",
+    "other non-FK subject identifiers not mechanically classifiable as user_id",
+    "object/media storage",
+    "provider-held copies",
+    "caches/search indexes",
+    "analytics/telemetry",
+    "backups"
+  ]
+}

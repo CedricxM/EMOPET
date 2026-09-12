@@ -2,14 +2,15 @@
 
 **Original date:** 2026-09-01  
 **Imported to project memory:** 2026-09-07  
+**Canonical terminology revision:** 2026-09-11 under DOMAIN-TERM #245  
 **Status:** `PROPOSED PRE-PRODUCTION AUTHORITY / NOT IMPLEMENTED / NOT RELEASED`  
 **Gate:** `G-MEMORIES-EXPERIENCE-01`
 
-> GitHub import preserves this document's original maturity. It does not make Memories an implemented or released feature.
+> GitHub import preserves this document's original maturity. It does not make Memories an implemented or released feature. The 2026-09-11 revision updates dog-owner terminology only.
 
 ## 1. Product role
 
-Memories is the private longitudinal history of a Guardian–dog relationship.
+Memories is the private longitudinal history of an Owner–dog relationship.
 
 It exists to preserve continuity through deliberately retained:
 
@@ -71,16 +72,16 @@ Already-created Memories must remain accessible independently of social particip
 Photo, short video, note or lived capture deliberately saved.
 
 ### `MILESTONE`
-Guardian-authored or explicitly confirmed fact.
+Owner-authored or explicitly confirmed fact.
 
 ### `PLACE_MEMORY`
-A place the Guardian deliberately chooses to retain. Prefer broad/user-chosen labelling; no automatic home/work inference.
+A place the Owner deliberately chooses to retain. Prefer broad/user-chosen labelling; no automatic home/work inference.
 
 ### `PEOPLE_CONTEXT`
 A person/Circle attached only through permitted identity/audience rules.
 
 ### `RITUAL`
-A routine explicitly named or confirmed by the Guardian. Frequency alone must not be treated as emotional importance.
+A routine explicitly named or confirmed by the Owner. Frequency alone must not be treated as emotional importance.
 
 ### `WORLD_KEEPSAKE`
 Optional symbolic artifact created by user choice.
@@ -169,7 +170,7 @@ Breiz may:
 
 Breiz may not:
 
-- say what the dog “felt” unless quoting Guardian-authored text;
+- say what the dog “felt” unless quoting Owner-authored text;
 - declare the relationship stronger/weaker;
 - create a memory streak;
 - pressure sharing;

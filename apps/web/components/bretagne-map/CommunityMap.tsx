@@ -1,12 +1,14 @@
 'use client';
 
 /**
- * Wrapper de carte (Réalité R1).
- * - Si NEXT_PUBLIC_MAPBOX_TOKEN est défini → carte Mapbox réelle + POI OSM.
- * - Sinon → repli sur la carte SVG stylisée (BretagneMap), projection maison.
+ * Controlled map wrapper.
  *
- * Les données entrent toujours en (lon, lat) ; la projection vers le repère
- * SVG est faite ici pour le fallback.
+ * Mapbox is enabled only when BOTH are present:
+ * - NEXT_PUBLIC_MAPBOX_TOKEN
+ * - NEXT_PUBLIC_EMOPET_MAPBOX_RIGHTS_GATE=GO
+ *
+ * Token presence alone is not product-use authority. If the gate is not GO,
+ * the experience fails closed to the internal SVG map.
  */
 
 import dynamic from 'next/dynamic';
@@ -34,7 +36,9 @@ export interface CommunityMapProps {
   };
 }
 
-const HAS_MAPBOX = !!process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+const HAS_CONTROLLED_MAPBOX =
+  !!process.env.NEXT_PUBLIC_MAPBOX_TOKEN &&
+  process.env.NEXT_PUBLIC_EMOPET_MAPBOX_RIGHTS_GATE === 'GO';
 
 export function CommunityMap({ spots, events, selectedSpotId, onSpotClick, onEventClick, svg }: CommunityMapProps) {
   const spotMarkers = useMemo<SpotMarker[]>(
@@ -53,7 +57,7 @@ export function CommunityMap({ spots, events, selectedSpotId, onSpotClick, onEve
     [events],
   );
 
-  if (HAS_MAPBOX) {
+  if (HAS_CONTROLLED_MAPBOX) {
     return <MapboxMap spots={spots} events={events} selectedSpotId={selectedSpotId} onSpotClick={onSpotClick} onEventClick={onEventClick} />;
   }
 

@@ -147,6 +147,11 @@ export const ELIStateSchema = z.object({
 
 // ── Sensor Summary Validators ───────────────────────────────────
 
+/**
+ * Device/network boundary for persisted summaries. Keep this strict: unknown
+ * fields must be rejected rather than silently stripped so raw sensor payloads
+ * (notably household audio bytes) cannot hitchhike beside approved features.
+ */
 export const SensorSummaryCreateSchema = z.object({
   timestamp: z.coerce.date(),
   dogId: z.string().uuid(),
@@ -173,7 +178,7 @@ export const SensorSummaryCreateSchema = z.object({
   agitationEvents: z.number().int().min(0).optional(),
   temperatureC: z.number().finite().min(-40).max(60).optional(),
   humidityPct: z.number().finite().min(0).max(100).optional(),
-});
+}).strict();
 
 // ── Community Validators ────────────────────────────────────────
 
@@ -214,13 +219,13 @@ export const HealthEntryCreateSchema = z.object({
 // ── Auth Validators ─────────────────────────────────────────────
 
 export const RegisterSchema = z.object({
-  email: z.string().email(),
+  email: z.string().trim().email(),
   password: z.string().min(8).max(128),
-  name: z.string().min(1).max(100),
+  name: z.string().trim().min(1).max(100),
 });
 
 export const LoginSchema = z.object({
-  email: z.string().email(),
+  email: z.string().trim().email(),
   password: z.string().min(1),
 });
 

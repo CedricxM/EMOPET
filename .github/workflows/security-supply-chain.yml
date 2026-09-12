@@ -8,8 +8,8 @@ on:
 
 permissions:
   contents: read
+  actions: read
   pull-requests: read
-  security-events: write
 
 env:
   TURBO_TELEMETRY_DISABLED: '1'
@@ -45,6 +45,44 @@ jobs:
       - name: Enforce high/critical dependency gate
         if: always()
         run: node tools/security/evaluate-pnpm-audit.mjs pnpm-audit.json
+
+  dependency-license-inventory:
+    name: Dependency licence evidence inventory (not clearance)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          version: 10.33.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '20'
+          cache: pnpm
+      - name: Install exact locked dependency graph
+        run: pnpm install --frozen-lockfile
+      - name: Capture exact-head dependency licence inventory
+        env:
+          EVIDENCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        shell: bash
+        run: |
+          pnpm licenses list --json > dependency-licenses.json
+          sha256sum dependency-licenses.json > dependency-licenses.sha256
+          {
+            echo "commit=${EVIDENCE_SHA}"
+            echo "pnpm=10.33.0"
+            echo "generated_at_utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "classification=EVIDENCE_INVENTORY_NOT_LEGAL_CLEARANCE"
+          } > dependency-licenses.metadata.txt
+      - name: Upload dependency licence evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dependency-license-inventory-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            dependency-licenses.json
+            dependency-licenses.sha256
+            dependency-licenses.metadata.txt
+          if-no-files-found: error
+          retention-days: 30
 
   security-regression:
     name: Dependency remediation regression
@@ -108,6 +146,39 @@ jobs:
           test "$TESTS_EXIT" -eq 0
           test "$WEBBUILD_EXIT" -eq 0
 
+  authority-gates:
+    name: Rights + product + privacy + content + professional sharing + CRA readiness gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          version: 10.33.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '20'
+          cache: pnpm
+      - name: Install exact locked dependency graph
+        run: pnpm install --frozen-lockfile
+      - name: Enforce third-party data rights gate
+        run: pnpm rights:audit
+      - name: Enforce professional sharing authority gate
+        run: pnpm professional-share:audit
+      - name: Enforce CRA SRP launch-critical readiness gate
+        run: pnpm cra-srp:audit
+      - name: Enforce sensitive consent defaults gate
+        run: pnpm consent-defaults:audit
+      - name: Enforce raw-audio privacy boundary gate
+        run: pnpm privacy-audio:audit
+      - name: Enforce location privacy boundary gate
+        run: pnpm privacy-location:audit
+      - name: Enforce runtime processor/transfer egress inventory gate
+        run: pnpm processors-transfers:audit
+      - name: Enforce mobile Home authority gate
+        run: pnpm mobile-home:audit
+      - name: Enforce legacy freemium quarantine gate
+        run: pnpm legacy-freemium:audit
+
   semgrep-sast:
     name: Semgrep SAST
     runs-on: ubuntu-latest
@@ -141,15 +212,30 @@ jobs:
         run: test "$SEMGREP_EXIT" -eq 0
 
   codeql:
-    name: CodeQL JavaScript/TypeScript (best effort)
+    # Preserve the existing check name while GitHub default setup owns analysis
+    # and SARIF upload. Advanced uploads conflict with the enabled default setup.
+    name: CodeQL JavaScript/TypeScript
     runs-on: ubuntu-latest
-    continue-on-error: true
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: github/codeql-action/init@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          languages: javascript-typescript
-      - uses: github/codeql-action/analyze@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
+          node-version: '20'
+      - name: Test CodeQL evidence gate
+        run: node --test scripts/security/verify-codeql-default-setup.test.mjs
+      - name: Require successful GitHub CodeQL analysis and upload for this commit
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CODEQL_EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/security/verify-codeql-default-setup.mjs
+      - name: Preserve verified CodeQL run evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: codeql-default-setup-${{ github.event.pull_request.head.sha || github.sha }}-attempt-${{ github.run_attempt }}
+          path: codeql-default-setup-evidence.json
+          if-no-files-found: error
+          retention-days: 14
 
   sbom:
     name: Generate CycloneDX/SPDX SBOM

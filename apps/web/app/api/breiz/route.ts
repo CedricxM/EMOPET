@@ -2,8 +2,9 @@
  * Route serveur de l'assistant régional (Breiz).
  *
  * Assemble le prompt système via le MOTEUR régional (commun + profil + savoir
- * filtré) et appelle l'API Anthropic SI `ANTHROPIC_API_KEY` est défini. Sinon,
- * renvoie un signal de repli : le client utilise la base RAG locale (R4).
+ * filtré) et appelle l'API Anthropic uniquement si `ANTHROPIC_API_KEY` est
+ * défini ET `EMOPET_ANTHROPIC_EGRESS_GATE=GO`. Sinon, le client utilise le
+ * repli RAG local (R4). Le gate est un contrôle opérateur, pas une clearance.
  *
  * La clé reste côté serveur (jamais exposée au client). Prompt caching activé
  * sur le prompt système (cache_control ephemeral).
@@ -70,10 +71,11 @@ export async function POST(req: Request) {
   });
 
   const apiKey = process.env['ANTHROPIC_API_KEY'];
+  const anthropicEgressAllowed = process.env['EMOPET_ANTHROPIC_EGRESS_GATE'] === 'GO';
 
-  // Pas de clé → repli RAG côté client. La réponse reste explicitement identifiée
-  // comme une interaction avec l'assistant IA, mais le mode de réponse est retrieval.
-  if (!apiKey) {
+  // Pas de clé ou pas d'autorité opérateur d'egress → repli RAG côté client.
+  // Le flag GO n'est pas, à lui seul, une approbation juridique du fournisseur.
+  if (!apiKey || !anthropicEgressAllowed) {
     return NextResponse.json({
       via: 'fallback',
       assistantName: region.profile.assistantName,

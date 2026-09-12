@@ -31,7 +31,7 @@ Lorient is the practical starting point for local proof and ecosystem learning.
 
 The project should use the region to test:
 
-- Guardian understanding and willingness to pay;
+- Owner understanding and willingness to pay;
 - onboarding and longitudinal value;
 - veterinary usefulness;
 - local discovery/community utility;

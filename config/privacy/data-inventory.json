@@ -4,13 +4,14 @@
   "categories": [
     {
       "id": "account",
-      "data": ["user_id", "email", "password_hash", "gdpr_consent", "created_at", "updated_at"],
-      "purpose": "account access, authentication and account administration",
+      "data": ["user_id", "email", "password_hash", "name", "avatar_url", "locale", "push_token", "onboarding_complete", "gdpr_consent_at", "created_at", "updated_at"],
+      "purpose": "account access, authentication, account administration and persisted profile/notification preferences",
       "legalBasis": "TO_CONFIRM_BEFORE_PRODUCTION",
       "retention": "TO_CONFIRM_BEFORE_PRODUCTION",
       "thirdParties": [],
       "internationalTransfer": "NONE_BY_DEFAULT",
-      "exportable": true,
+      "exportable": "FIELD_LEVEL_PROJECTION_REQUIRED",
+      "rightsProjection": "TO_CONFIRM_BEFORE_ACCOUNT_EXPORT_SECURITY_SENSITIVE_FIELDS",
       "erasure": "DELETE_OR_ANONYMIZE_SUBJECT_TO_LEGAL_OBLIGATIONS"
     },
     {
@@ -103,14 +104,14 @@
     },
     {
       "id": "support_contact",
-      "data": ["contact/support requests", "request history"],
+      "data": ["contact_request_id", "requester_user_id", "reason", "message", "status", "consent_at", "created_at", "updated_at"],
       "purpose": "respond to user requests and support",
       "legalBasis": "TO_CONFIRM_BEFORE_PRODUCTION",
       "retention": "SUPPORT_RETENTION_TO_CONFIRM",
       "thirdParties": [],
       "internationalTransfer": "NONE_BY_DEFAULT",
       "exportable": true,
-      "erasure": "DELETE_AFTER_RETENTION_WINDOW_OR_ON_VALID_REQUEST"
+      "erasure": "TO_CONFIRM_DELETE_ANONYMIZE_OR_JUSTIFIED_RETENTION_BEFORE_PRODUCTION"
     },
     {
       "id": "security_logs",

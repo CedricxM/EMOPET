@@ -1,5 +1,11 @@
 /**
- * BLE SensorFrame binary protocol types.
+ * BLE binary protocol contracts.
+ *
+ * Boundary names are intentionally explicit:
+ * - BleWireFrame: raw notification bytes on the BLE characteristic.
+ * - ParsedBleSensorFrame: validated MAT/TAG protocol object after parsing.
+ *
+ * Neither type is a FeatureVector and neither is an ELI input.
  *
  * Frame layout (little-endian unless noted):
  * ┌─────────┬─────────┬────────┬──────┬─────────┬─────────────┬────┐
@@ -15,6 +21,9 @@
  * payload = source-dependent sensor data
  * crc     = XOR of all preceding bytes (simple integrity check)
  */
+
+/** Raw bytes received from or serialized onto the BLE transport. */
+export type BleWireFrame = Uint8Array;
 
 // ── Source Identifiers ──────────────────────────────────────────
 
@@ -111,7 +120,14 @@ export interface TagFrame {
   payload: TagPayload;
 }
 
-export type SensorFrame = MatFrame | TagFrame;
+/** Canonical parsed BLE boundary after header/version/length/CRC validation. */
+export type ParsedBleSensorFrame = MatFrame | TagFrame;
+
+/**
+ * @deprecated Use ParsedBleSensorFrame. Kept temporarily to avoid a flag-day
+ * rename while callers migrate to the explicit ELI-IO boundary names.
+ */
+export type SensorFrame = ParsedBleSensorFrame;
 
 // ── Frame Sizes ─────────────────────────────────────────────────
 

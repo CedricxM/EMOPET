@@ -1,6 +1,6 @@
 # EMOPET — Strategy Memory Index
 
-**Control date:** 2026-09-07  
+**Control date:** 2026-09-11  
 **Status:** CONTROLLED STRATEGY-MEMORY INDEX
 
 ## Purpose
@@ -22,14 +22,14 @@ Each strategic record should distinguish:
 | Domain | Current status | Core direction | Controlled file |
 |---|---|---|---|
 | Founder strategic locks | `PROJECT_DECISION` | MAT + TAG + app; relationship-first; bounded ELI/Breiz; evidence contract; trust and maturity discipline | `docs/strategy/FOUNDER_STRATEGIC_LOCKS_2026-09-07.md` |
-| Guardian relationship authority | `PROJECT_DECISION / FOUNDER LOCK` | One Guardian–dog authority boundary for devices, data, permissions, activities, Memories, sharing, professional access and rights | `docs/strategy/GUARDIAN_RELATIONSHIP_AND_PRODUCT_SCOPE_DOCTRINE_2026-09-07.md` |
-| Detailed Guardian access model | `PROPOSED PRE-PRODUCTION AUTHORITY` | Person + dog + purpose + scope + time; household/social status never silently expands authority | `docs/product/EMOPET_GUARDIAN_AUTHORITY_MASTER_v0.1.md` |
-| Product capability scope | `PROJECT_DECISION / STATUS DISCIPLINE` | Distinguish strategic CORE from launch-active, progressive, gated, experimental and not-implemented states | `docs/strategy/GUARDIAN_RELATIONSHIP_AND_PRODUCT_SCOPE_DOCTRINE_2026-09-07.md` |
+| Owner relationship authority | `PROJECT_DECISION / FOUNDER LOCK` | One Owner–dog authority boundary for devices, data, permissions, activities, Memories, sharing, professional access and rights | `docs/strategy/OWNER_RELATIONSHIP_AND_PRODUCT_SCOPE_DOCTRINE_2026-09-11.md` |
+| Detailed Owner access model | `PROPOSED PRE-PRODUCTION AUTHORITY` | Person + dog + purpose + scope + time; household/social status never silently expands authority | `docs/product/EMOPET_OWNER_AUTHORITY_MASTER_v0.1.md` |
+| Product capability scope | `PROJECT_DECISION / STATUS DISCIPLINE` | Distinguish strategic CORE from launch-active, progressive, gated, experimental and not-implemented states | `docs/strategy/OWNER_RELATIONSHIP_AND_PRODUCT_SCOPE_DOCTRINE_2026-09-11.md` |
 | Home / Today | `PROPOSED PRE-PRODUCTION AUTHORITY` | Calm orchestration surface; no health/mood/relationship verdict; can legitimately show nothing requiring attention | `docs/product/EMOPET_HOME_TODAY_PRODUCT_MASTER_v0.1.md` |
 | Care product doctrine | `PROPOSED PRE-PRODUCTION AUTHORITY` | Observation/context/provenance/confidence; individual reference; no generic health/emotion/relationship score; epistemic silence is a product state | `docs/product/EMOPET_CARE_PRODUCT_MASTER_v0.1.md` |
 | Together / Relationship Engine | `PROPOSED PRE-PRODUCTION AUTHORITY` | Learn choices/context, not worth or intimacy score; explicit intent/constraints before recommendation; abstention is success | `docs/product/EMOPET_TOGETHER_RELATIONSHIP_ENGINE_MASTER_v0.1.md` |
 | Memories doctrine | `PROPOSED PRE-PRODUCTION AUTHORITY` | Private relationship chronology; deliberate memories; no sensor-generated sentimental biography or retention pressure | `docs/product/EMOPET_MEMORIES_EXPERIENCE_MASTER_v0.1.md` |
-| Guardian Continuity | `PROPOSED PRE-PRODUCTION AUTHORITY` | Private Lexicon / Voice / Relay / Rescue with explicit authority; no continuous surveillance, raw TAG audio, automatic emergency or public location | `docs/product/EMOPET_GUARDIAN_CONTINUITY_MASTER_v0.1.md` |
+| Owner Continuity | `PROPOSED PRE-PRODUCTION AUTHORITY` | Private Lexicon / Voice / Relay / Rescue with explicit authority; no continuous surveillance, raw TAG audio, automatic emergency or public location | `docs/product/EMOPET_OWNER_CONTINUITY_MASTER_v0.1.md` |
 | Humane social architecture | `PROPOSED CONTROLLED PRODUCT / TRUST & SAFETY AUTHORITY` | Finite social experience, no engagement-maximisation, safety-first matching, anti-dark-patterns, pre-publication moderation | `docs/product/EMOPET_HUMANE_SOCIAL_ARCHITECTURE_MASTER_v0.2_VERIFIED_2026-09-01.md` |
 | World | `DESIGN WORKSTREAM OPEN` | Persistent shared social experience, not monetised game; no dog-health/ELI scoring as gameplay; Unity behind gate | `docs/product/EMOPET_WORLD_WORKSTREAM_HANDOFF_2026-09-01.md` |
 | Project calendar | `PROJECT_DECISION` | 2026 is preparation/structuring; launch phase and Brittany ecosystem integration begin in 2027 | `docs/strategy/PROJECT_TIMELINE_2026_2027.md` |

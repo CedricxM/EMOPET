@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 
 import { Hono } from 'hono';
 
@@ -8,11 +9,42 @@ import {
   getConsentRecordsForUser,
   recordConsent,
 } from '../dist/api/services/feature-progress.js';
-import { community } from '../dist/api/routes/community.js';
+import {
+  community,
+  COMMUNITY_PERSISTENCE_CODE,
+} from '../dist/api/routes/community.js';
+import {
+  featureProgress,
+  FEATURE_PROGRESS_PERSISTENCE_CODE,
+} from '../dist/api/routes/feature-progress.js';
 
 const COMMUNITY_ID = '11111111-1111-4111-8111-111111111111';
 
-test('feature-progress returns a stable visible-but-locked snapshot', () => {
+function buildCommunityApp({ userId } = {}) {
+  const app = new Hono();
+  if (userId) {
+    app.use('*', async (c, next) => {
+      c.set('userId', userId);
+      await next();
+    });
+  }
+  app.route('/api/community', community);
+  return app;
+}
+
+function buildFeatureProgressApp({ userId } = {}) {
+  const app = new Hono();
+  if (userId) {
+    app.use('*', async (c, next) => {
+      c.set('userId', userId);
+      await next();
+    });
+  }
+  app.route('/api/feature-progress', featureProgress);
+  return app;
+}
+
+test('feature-progress prototype service returns a stable visible-but-locked snapshot', () => {
   const payload = buildFeatureProgress('u_feature_progress');
   const copresence = payload.services.find((service) => service.serviceId === 'copresence');
 
@@ -24,7 +56,32 @@ test('feature-progress returns a stable visible-but-locked snapshot', () => {
   assert.equal(copresence.progress.steps[0].key, 'community_opt_in');
 });
 
-test('recordConsent stores purpose and context for contextual prompts', () => {
+test('Community feature progress separates durable reporting from unavailable block enforcement', () => {
+  const payload = buildFeatureProgress('u_community_safety_truth');
+
+  for (const serviceId of ['thematic_communities', 'direct_messages', 'service_reviews']) {
+    const service = payload.services.find((entry) => entry.serviceId === serviceId);
+    assert.ok(service, `${serviceId} must stay visible in feature progress`);
+
+    const byKey = new Map(service.progress.steps.map((step) => [step.key, step]));
+    assert.equal(byKey.get('report_durable')?.state, 'done');
+    assert.equal(byKey.get('block_enforcement')?.state, 'blocked');
+    assert.equal(byKey.has('report_block'), false, 'report and block readiness must never be collapsed into one done step');
+  }
+});
+
+test('mobile local feature progress preserves the Community report/block truth split', async () => {
+  const source = await readFile(
+    new URL('../../apps/mobile/src/services/feature-progress.ts', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(source, /key:\s*'report_durable'[\s\S]{0,160}state:\s*'done'/);
+  assert.match(source, /key:\s*'block_enforcement'[\s\S]{0,180}state:\s*'blocked'/);
+  assert.doesNotMatch(source, /key:\s*'report_block'/);
+});
+
+test('prototype consent service preserves purpose/context for non-release tests', () => {
   const record = recordConsent('u_consent', {
     purpose: 'location_nearby_temp',
     status: 'accepted',
@@ -37,15 +94,47 @@ test('recordConsent stores purpose and context for contextual prompts', () => {
   assert.equal(records.at(-1)?.status, 'accepted');
 });
 
-test('community UGC creation is blocked until rules are accepted', async () => {
-  const app = new Hono();
-  app.use('*', async (c, next) => {
-    c.set('userId', 'u_rules');
-    await next();
-  });
-  app.route('/api/community', community);
+test('feature-progress route never invents a demo identity', async () => {
+  const app = buildFeatureProgressApp();
+  const response = await app.request('/api/feature-progress');
 
-  const blockedResponse = await app.request('/api/community/posts', {
+  assert.equal(response.status, 401);
+  const body = await response.json();
+  assert.equal(body.code, 'AUTHENTICATION_REQUIRED');
+});
+
+test('feature-progress route fails closed until durable state exists', async () => {
+  const app = buildFeatureProgressApp({ userId: 'u_runtime_truth' });
+  const response = await app.request('/api/feature-progress');
+
+  assert.equal(response.status, 503);
+  const body = await response.json();
+  assert.equal(body.code, FEATURE_PROGRESS_PERSISTENCE_CODE);
+  assert.equal(body.operation, 'read_feature_progress');
+});
+
+test('consent mutation never claims durable success while persistence is unavailable', async () => {
+  const app = buildFeatureProgressApp({ userId: 'u_runtime_truth' });
+  const response = await app.request('/api/feature-progress/consents', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      purpose: 'location_nearby_temp',
+      status: 'accepted',
+      context: 'unlock_copresence',
+    }),
+  });
+
+  assert.equal(response.status, 503);
+  const body = await response.json();
+  assert.equal(body.code, FEATURE_PROGRESS_PERSISTENCE_CODE);
+  assert.equal(body.operation, 'record_consent');
+});
+
+test('community mutation never invents a demo identity when auth context is missing', async () => {
+  const app = buildCommunityApp();
+
+  const response = await app.request('/api/community/posts', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -58,30 +147,38 @@ test('community UGC creation is blocked until rules are accepted', async () => {
     }),
   });
 
-  assert.equal(blockedResponse.status, 403);
+  assert.equal(response.status, 401);
+  const body = await response.json();
+  assert.equal(body.code, 'AUTHENTICATION_REQUIRED');
+});
 
-  const acceptedResponse = await app.request('/api/community/rules/accept', {
+test('community router rejects unauthenticated malformed writes before validation', async () => {
+  const app = buildCommunityApp();
+  const response = await app.request('/api/community/posts', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ accepted: true }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ malformed: true }),
   });
 
-  assert.equal(acceptedResponse.status, 201);
+  assert.equal(response.status, 401);
+  const body = await response.json();
+  assert.equal(body.code, 'AUTHENTICATION_REQUIRED');
+});
 
-  const allowedResponse = await app.request('/api/community/posts', {
+test('community user block authority remains fail-closed while enforcement is not implemented', async () => {
+  const app = buildCommunityApp({ userId: '22222222-2222-4222-8222-222222222222' });
+  const response = await app.request('/api/community/blocks', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      communityId: COMMUNITY_ID,
-      type: 'moment',
-      content: 'Bonjour la communaute',
-      mediaUrls: [],
+      targetUserId: '33333333-3333-4333-8333-333333333333',
+      reason: 'runtime truth boundary',
     }),
   });
 
-  assert.equal(allowedResponse.status, 201);
+  assert.equal(response.status, 503);
+  const body = await response.json();
+  assert.equal(body.code, COMMUNITY_PERSISTENCE_CODE);
+  assert.equal(body.operation, 'create_block');
+  assert.notEqual(response.status, 201);
 });

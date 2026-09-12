@@ -14,7 +14,7 @@ Ce document oriente les personnes qui découvrent `apps/web` au 2026-08-29. Il d
 
 Les stores JSON et navigateur ne sont pas une autorité de production. Le code présent ne prouve pas que le web compile, passe ses tests ou est déployable sur le commit courant.
 
-## 2. Contraintes de contenu et conflit ouvert
+## 2. Contraintes de contenu et autorité ludique
 
 - aucune revendication diagnostique ou médicale ;
 - aucune attribution d'émotion humaine au chien ;
@@ -23,7 +23,7 @@ Les stores JSON et navigateur ne sont pas une autorité de production. Le code p
 - données vocales limitées aux caractéristiques dérivées, sans audio brut ;
 - accessibilité et réduction de mouvement prévues dans les composants.
 
-Le code contient une gamification centrée propriétaire et une page `world`, tandis que `AGENTS.md` interdit toute gamification. Ce conflit d'autorité reste ouvert : ne pas étendre, supprimer ou déclarer conforme ce comportement sans décision contrôlée.
+Le produit interdit strictement la gamification de la santé/bien-être canin, de l'émotion inférée, de la qualité de relation, du risque vétérinaire et de la performance réelle du chien. Les mécaniques ludiques observées dans `/world` ou ailleurs restent des prototypes : elles ne sont potentiellement admissibles que si elles sont indépendantes de MAT/TAG/ELI et des métriques réelles du chien, et si elles passent leurs gates World/Community dédiés. Leur présence dans le code ne constitue pas une autorisation de release. Voir `AGENTS.md` et `docs/product/EMOPET_EXPERIENCE_DOCTRINE_v0.1.md`.
 
 ## 3. Routes de pages observées
 
@@ -34,7 +34,7 @@ Le code contient une gamification centrée propriétaire et une page `world`, ta
 | `/breiz` | Interface assistant Breiz |
 | `/journal` | Journal et observations |
 | `/quartier` | Carte, annuaire et communauté regroupés |
-| `/world` | Espace de world-building centré routines/qualité d'observation ; conflit gamification ouvert |
+| `/world` | Espace de world-building prototype ; systèmes ludiques soumis à autorité/gates séparés et non approuvés par leur seule présence dans le code |
 | `/profil` | Profil, données et progression propriétaire |
 | `/contact` | Parcours de contact humain |
 | `/mobile-preview` | Prévisualisation web hors navigation principale |
@@ -114,6 +114,8 @@ Autres scripts déclarés : `vocab`, `smoke`, `check` et `verify`. La présence 
 
 - `README.md` — état général et commandes ;
 - `ARCHITECTURE.md` — architecture et statuts ouverts/gated ;
+- `AGENTS.md` — règles produit et garde-fous permanents ;
+- `docs/product/EMOPET_EXPERIENCE_DOCTRINE_v0.1.md` — doctrine d'expérience proposée sur la branche d'hardening ;
 - `apps/web/components/sidebar.tsx` — navigation principale ;
 - `apps/web/next.config.mjs` — redirections ;
 - `apps/web/app/api` — handlers web ;

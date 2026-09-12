@@ -1,9 +1,12 @@
 /**
- * use-v6-insights — client hook returning the v6 additions of the latest
- * InferenceResult for display on the home and ELI detail screens.
+ * use-v6-insights — client hook for future v6 ELI projections.
  *
- * For now this reads from local state only; once the inference API is
- * live, swap the body for a TanStack Query call against /api/eli/latest.
+ * No authoritative ELI API endpoint is selected or live at the current
+ * repository boundary. The hook deliberately returns an empty state rather
+ * than naming a phantom endpoint or substituting local/mock inference.
+ *
+ * Final endpoint shape and projection semantics are controlled by ELI-API-01
+ * (#124) and the canonical runtime gate #118.
  */
 
 import { useEffect, useState } from 'react';
@@ -19,6 +22,12 @@ export interface V6Insights {
   firmwareVersionTag: string;
 }
 
+export const V6_INSIGHTS_RUNTIME_SOURCE = {
+  status: 'UNWIRED',
+  authoritative: false,
+  endpoint: null,
+} as const;
+
 const EMPTY: V6Insights = {
   dogName: '',
   anticipation: null,
@@ -32,8 +41,8 @@ export function useV6Insights(): V6Insights {
   const [insights, setInsights] = useState<V6Insights>(EMPTY);
 
   useEffect(() => {
-    // Placeholder wiring: real impl will call the backend. Kept side-effect
-    // free so snapshot tests stay deterministic.
+    // Intentionally fail closed: no backend producer/projection is authoritative
+    // yet, so do not invent an endpoint or substitute locally computed values.
     setInsights(EMPTY);
   }, []);
 

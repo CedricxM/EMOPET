@@ -32,6 +32,8 @@ EMOPET combines connected-device data, potentially precise location, longitudina
 
 Machine-readable inventory: `config/privacy/data-inventory.json`.
 
+Current repository truth for support/contact: the controlled Product V1 candidate persists support requests in PostgreSQL `contact_requests`, with `requester_user_id` linked to canonical `users.id` and requester identity derived from server authentication. The historical file-backed Contact plane remains non-production/demo-only. This is a technical authority statement only; it does not approve a production retention period, erasure disposition, staff-access model or processor arrangement.
+
 ## Core principles
 
 - data minimisation;
@@ -57,7 +59,7 @@ Machine-readable inventory: `config/privacy/data-inventory.json`.
 | Account takeover exposes long-term history | High | auth baseline, refresh/revocation, rate limits, security monitoring | BLOCKED_AUTH_BASELINE |
 | Community accidentally publishes private dog/location data | High | public-safe schemas, opt-in/privacy levels, moderation tests | OPEN_END_TO_END_TESTS |
 | Data retained indefinitely | Medium/High | machine-readable inventory; retention values explicitly TO_CONFIRM | OPEN_RETENTION_DECISION |
-| Deletion misses backups/derived records | High | erasure runbook; cascade map required | OPEN_IMPLEMENTATION |
+| Deletion misses backups/derived/account-scoped records | High | erasure runbook; canonical subject links mapped where implemented; lifecycle policy and executor required | OPEN_IMPLEMENTATION |
 | Supply-chain compromise | High | SBOM, dependency audit, Semgrep, Gitleaks and regression workflow merged as P0 control layer | CONTROL_LAYER_MERGED_RESIDUAL_RISK_REMAINS |
 
 ## Legal bases
@@ -80,11 +82,13 @@ For each category ask:
 
 P0 target flows:
 
-- access/portability: machine-readable export via the Data Act/access slice;
+- access/portability: dog-scoped machine-readable export exists; account-scoped categories such as support/contact still require an explicit rights projection before production;
 - rectification: account/dog profile edit flows;
-- deletion: controlled erasure flow to be implemented after auth/database authority is finalised;
+- deletion: canonical auth/database foundations exist as controlled candidates, but destructive erasure remains fail-closed until the full lifecycle policy and executor are approved and tested;
 - objection/withdrawal: category/provider/optional-feature controls where applicable;
 - information: privacy notice and AI/provider transparency before production.
+
+The presence of a foreign key such as `contact_requests.requester_user_id -> users.id` is not an instruction to cascade-delete. Delete, anonymise, retain-for-justified-hold, provider cleanup and backup expiry decisions remain governed by PRIV-01.
 
 ## International transfers
 

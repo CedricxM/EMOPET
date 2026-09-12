@@ -1,11 +1,14 @@
 /**
- * Spots réels depuis OpenStreetMap via l'API Overpass (Réalité R1).
+ * OpenStreetMap POIs via Overpass.
  *
- * Récupère de vrais lieux utiles pour les chiens dans le viewport courant :
- * vétérinaires, magasins spécialisés, parcs, parcs canins, plages.
- * Données ouvertes © contributeurs OpenStreetMap (ODbL).
+ * RIGHTS CONTROL:
+ * - public Overpass use is disabled by default;
+ * - enabling it requires NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE=GO;
+ * - the flag is an operator gate only, not legal clearance;
+ * - persistent caching/export/derived-database use remains separately reviewable
+ *   under #116.
  *
- * ⚠ Invariants : aucune donnée médicale/émotionnelle. Ce sont des POI publics.
+ * Invariants: no medical/emotional inference. These are public-place records.
  */
 
 import type { SpotCategory } from '../components/bretagne-map/spots';
@@ -16,8 +19,11 @@ export interface OsmSpot {
   name: string;
   lon: number;
   lat: number;
-  /** Toujours vrai — distingue un POI OSM d'un spot communautaire. */
   fromOsm: true;
+  sourceName: 'OpenStreetMap';
+  sourceElementUrl: string;
+  attributionText: '© OpenStreetMap contributors';
+  licenseUrl: 'https://www.openstreetmap.org/copyright';
 }
 
 export interface Bounds {
@@ -28,6 +34,9 @@ export interface Bounds {
 }
 
 const ENDPOINT = 'https://overpass-api.de/api/interpreter';
+const OSM_LICENSE_URL = 'https://www.openstreetmap.org/copyright' as const;
+const OVERPASS_RUNTIME_ALLOWED =
+  process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE === 'GO';
 
 /** Tag OSM → catégorie EMOPET. */
 function categoryFor(tags: Record<string, string>): SpotCategory | null {
@@ -60,11 +69,22 @@ function bboxKey(b: Bounds): string {
   return [b.south, b.west, b.north, b.east].map((n) => n.toFixed(2)).join(',');
 }
 
+function sourceElementUrl(el: OverpassElement): string {
+  const type = el.type === 'node' || el.type === 'way' || el.type === 'relation'
+    ? el.type
+    : 'node';
+  return `https://www.openstreetmap.org/${type}/${el.id}`;
+}
+
 /**
- * Récupère les POI réels dans une zone. Mis en cache par bbox arrondie.
- * Renvoie [] en cas d'échec réseau (la carte reste utilisable).
+ * Fetch POIs within the current bbox.
+ *
+ * The cache is process-memory only. No persistent OSM database or export is
+ * created here. If the rights/service gate is not explicitly GO, fail closed.
  */
 export async function fetchOsmSpots(b: Bounds, signal?: AbortSignal): Promise<OsmSpot[]> {
+  if (!OVERPASS_RUNTIME_ALLOWED) return [];
+
   const key = bboxKey(b);
   const cached = cache.get(key);
   if (cached) return cached;
@@ -98,7 +118,18 @@ export async function fetchOsmSpots(b: Bounds, signal?: AbortSignal): Promise<Os
       const id = `osm-${el.type}-${el.id}`;
       if (seen.has(id)) continue;
       seen.add(id);
-      spots.push({ id, category, name: tags.name ?? FALLBACK_NAMES[category], lon, lat, fromOsm: true });
+      spots.push({
+        id,
+        category,
+        name: tags.name ?? FALLBACK_NAMES[category],
+        lon,
+        lat,
+        fromOsm: true,
+        sourceName: 'OpenStreetMap',
+        sourceElementUrl: sourceElementUrl(el),
+        attributionText: '© OpenStreetMap contributors',
+        licenseUrl: OSM_LICENSE_URL,
+      });
     }
     cache.set(key, spots);
     return spots;

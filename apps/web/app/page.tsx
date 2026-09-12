@@ -91,7 +91,7 @@ export default function HomePage() {
               className="text-[#4A5766] text-base md:text-lg max-w-lg mx-auto mb-10 leading-relaxed"
               style={{ fontFamily: 'var(--font-source-sans)' }}
             >
-              Un système attentif qui aide les gardiens à mieux comprendre
+              Un système attentif qui aide les propriétaires à mieux comprendre
               le quotidien de leur compagnon.
             </p>
 
@@ -586,7 +586,7 @@ export default function HomePage() {
                 {[
                   { checked: true, label: 'Résumés de repos récents' },
                   { checked: true, label: "Contexte d'activité" },
-                  { checked: true, label: 'Notes du gardien' },
+                  { checked: true, label: 'Notes du propriétaire' },
                   { checked: false, label: 'Historique complet' },
                 ].map((item) => (
                   <div key={item.label} className="flex items-center gap-3">
@@ -690,7 +690,7 @@ export default function HomePage() {
               className="text-[#4A5766] text-base md:text-lg max-w-sm mx-auto mb-10 leading-relaxed"
               style={{ fontFamily: 'var(--font-source-sans)' }}
             >
-              Rejoignez les premiers gardiens qui testent EMOPET.
+              Rejoignez les premiers propriétaires qui testent EMOPET.
             </p>
 
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-[#ECE5D7] max-w-sm mx-auto">

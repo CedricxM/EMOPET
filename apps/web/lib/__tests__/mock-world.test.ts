@@ -23,36 +23,40 @@ import {
 import type { ResourceBalance, WorldResourceKey } from '../mock-world';
 
 test('addResources : additionne sans muter l’entrée', () => {
-  const base: ResourceBalance = { ...EMPTY_RESOURCE_BALANCE, routinePoints: 10 };
-  const next = addResources(base, { routinePoints: 5, walkTraces: 3 });
-  assert.equal(next.routinePoints, 15);
-  assert.equal(next.walkTraces, 3);
-  assert.equal(base.routinePoints, 10, 'entrée non mutée');
+  const base: ResourceBalance = { ...EMPTY_RESOURCE_BALANCE, driftwood: 10 };
+  const next = addResources(base, { driftwood: 5, seaGlass: 3 });
+  assert.equal(next.driftwood, 15);
+  assert.equal(next.seaGlass, 3);
+  assert.equal(base.driftwood, 10, 'entrée non mutée');
 });
 
 test('computeResourceBalance : somme des grants de tous les événements mock', () => {
   const balance = computeResourceBalance();
-  // routinePoints : 40 (rest) + 12 (learning) + 18 (setup) = 70
-  assert.equal(balance.routinePoints, 70);
-  // signalClarity : 18 (rest) + 28 (signal) + 20 (setup) = 66
-  assert.equal(balance.signalClarity, 66);
+  assert.deepEqual(balance, {
+    driftwood: 42,
+    seaGlass: 32,
+    gardenSeeds: 34,
+    lanternLight: 26,
+    mapInk: 36,
+    storyThreads: 18,
+  });
   for (const key of Object.keys(balance) as WorldResourceKey[]) {
     assert.ok(balance[key] >= 0, `${key} négatif`);
   }
 });
 
 test('canAfford / spendResources cohérents', () => {
-  const balance: ResourceBalance = { ...EMPTY_RESOURCE_BALANCE, routinePoints: 20, calmStones: 8 };
-  assert.equal(canAfford(balance, { routinePoints: 12, calmStones: 8 }), true);
-  assert.equal(canAfford(balance, { routinePoints: 25 }), false);
-  const after = spendResources(balance, { routinePoints: 12, calmStones: 8 });
-  assert.equal(after.routinePoints, 8);
-  assert.equal(after.calmStones, 0);
+  const balance: ResourceBalance = { ...EMPTY_RESOURCE_BALANCE, driftwood: 20, gardenSeeds: 8 };
+  assert.equal(canAfford(balance, { driftwood: 12, gardenSeeds: 8 }), true);
+  assert.equal(canAfford(balance, { driftwood: 25 }), false);
+  const after = spendResources(balance, { driftwood: 12, gardenSeeds: 8 });
+  assert.equal(after.driftwood, 8);
+  assert.equal(after.gardenSeeds, 0);
 });
 
 test('spendResources : jamais négatif (quête douce, pas de blocage agressif)', () => {
-  const after = spendResources(EMPTY_RESOURCE_BALANCE, { routinePoints: 50 });
-  assert.equal(after.routinePoints, 0);
+  const after = spendResources(EMPTY_RESOURCE_BALANCE, { driftwood: 50 });
+  assert.equal(after.driftwood, 0);
 });
 
 test('le budget initial permet de construire au moins quelques éléments', () => {
@@ -80,7 +84,7 @@ test('chaque grant d’événement référence des ressources connues', () => {
 });
 
 test('getResourceDefinition : connue ok, inconnue lève', () => {
-  assert.equal(getResourceDefinition('routinePoints').label, 'Routine Points');
+  assert.equal(getResourceDefinition('driftwood').label, 'Bois flotté');
   assert.throws(() => getResourceDefinition('nope' as WorldResourceKey));
 });
 

@@ -2,7 +2,7 @@
  * Barre verte EMOPET — exécute en séquence les vérifications exigées après chaque
  * étape (protocole standards) et s'arrête à la PREMIÈRE qui échoue.
  *
- *   node scripts/verify.mjs              # complet : typecheck → lint → test → vocab → build
+ *   node scripts/verify.mjs              # complet : typecheck → lint → test → vocab → doctrine → build
  *   node scripts/verify.mjs --no-build   # boucle rapide (sans build)
  *
  * Chaque étape délègue au script npm correspondant : la définition des commandes
@@ -18,6 +18,7 @@ const STAGES = [
   ['lint', 'eslint'],
   ['test', 'tests unitaires'],
   ['vocab', 'garde-fou vocabulaire'],
+  ['doctrine', 'garde-fou doctrine produit'],
   ...(skipBuild ? [] : [['build', 'next build']]),
 ];
 

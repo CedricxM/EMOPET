@@ -1,12 +1,15 @@
 /**
- * Publications de cercle — persistance SERVEUR (R3, tranche communauté).
- * GET  /api/community/posts[?circleId=]   liste (seed des posts démo si vide)
- * POST /api/community/posts               crée un post (validation + filtre modération)
+ * Legacy Community posts plane.
+ *
+ * Product V1 authority is Hono + durable persistence. This historical Next.js
+ * JSON-store route is disabled by default and may run only in an explicit
+ * non-production demo using EMOPET_ALLOW_LEGACY_COMMUNITY_DEMO=1.
  */
 
 import { NextResponse } from 'next/server';
 import { INITIAL_POSTS, buildPost, validatePostInput } from '../../../../lib/community';
 import type { CirclePost, PostCreateInput } from '../../../../lib/community';
+import { legacyCommunityAuthorityGate } from '../../../../lib/server/community-authority';
 import { createFixedWindowRateLimiter } from '../../../../lib/server/rate-limit';
 import { cleanDisplayName, enforceRateLimit } from '../../../../lib/server/request-security';
 import { collection } from '../../../../lib/server/store';
@@ -27,6 +30,9 @@ function listSeeded(): CirclePost[] {
 }
 
 export async function GET(req: Request) {
+  const authorityGate = legacyCommunityAuthorityGate();
+  if (authorityGate) return authorityGate;
+
   const limited = enforceRateLimit(req, postsReadLimiter, 'community:posts:get');
   if (limited) return limited;
 
@@ -36,6 +42,9 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const authorityGate = legacyCommunityAuthorityGate();
+  if (authorityGate) return authorityGate;
+
   const limited = enforceRateLimit(req, postsWriteLimiter, 'community:posts:post');
   if (limited) return limited;
 
