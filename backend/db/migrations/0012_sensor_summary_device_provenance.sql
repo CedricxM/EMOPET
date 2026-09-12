@@ -20,5 +20,4 @@ BEGIN
 END $$;
 
 CREATE INDEX IF NOT EXISTS idx_sensor_summaries_device_timestamp
-  ON sensor_summaries (device_id, timestamp DESC)
-  WHERE device_id IS NOT NULL;
+  ON sensor_summaries (device_id, timestamp);
