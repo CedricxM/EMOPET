@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 import {
   toOwnerAuthorizedBaselineExport,
   toOwnerAuthorizedEliExport,
+  toOwnerAuthorizedSensorSummaryExport,
 } from '../dist/api/services/data-export-policy.js';
 
 function persistedEli(gateStatus = 'PUBLISH') {
@@ -26,6 +27,33 @@ function persistedEli(gateStatus = 'PUBLISH') {
       gps: 'SUPPRESSED',
     },
     createdAt: new Date('2026-09-09T20:00:01.000Z'),
+  };
+}
+
+function persistedSensorSummary() {
+  return {
+    id: '44444444-4444-4444-8444-444444444444',
+    dogId: '22222222-2222-4222-8222-222222222222',
+    ingestionId: '55555555-5555-4555-8555-555555555555',
+    deviceId: '66666666-6666-4666-8666-666666666666',
+    timestamp: new Date('2026-09-12T18:00:00.000Z'),
+    source: 'TAG',
+    firmwareVersionAtIngest: '1.2.3',
+    matPresenceMinutes: null,
+    respiratoryRateMean: null,
+    respiratoryRateStd: null,
+    respiratoryRateConfidence: null,
+    weightKg: null,
+    positionChanges: null,
+    activityMinutes: 12.5,
+    distanceKm: 1.4,
+    vocalEvents: 2,
+    vocalEnergyMean: 18.4,
+    postureDistribution: { walking: 0.4 },
+    agitationEvents: 1,
+    temperatureC: 19.2,
+    humidityPct: 63,
+    createdAt: new Date('2026-09-12T18:00:01.000Z'),
   };
 }
 
@@ -55,6 +83,26 @@ function assertInternalStateIsAbsent(result) {
   assert.equal(serialized.includes('"arousal"'), false);
   assert.equal(serialized.includes('"sensorReliability"'), false);
 }
+
+test('sensor summary export exposes useful provenance but never leaks ingestion retry identity', () => {
+  const row = persistedSensorSummary();
+  const result = toOwnerAuthorizedSensorSummaryExport(row);
+
+  assert.equal(result.id, row.id);
+  assert.equal(result.deviceId, row.deviceId);
+  assert.equal(result.firmwareVersionAtIngest, '1.2.3');
+  assert.equal(result.timestamp.toISOString(), '2026-09-12T18:00:00.000Z');
+  assert.equal(result.createdAt.toISOString(), '2026-09-12T18:00:01.000Z');
+  assert.equal(result.provenance.deviceBinding, 'SERVER_VERIFIED_REGISTRY_BINDING');
+  assert.equal(result.provenance.eventTimeField, 'timestamp');
+  assert.equal(result.provenance.receiveTimeField, 'createdAt');
+  assert.equal(result.provenance.firmwareSnapshotSource, 'SERVER_DEVICE_REGISTRY');
+  assert.equal(Object.hasOwn(result, 'ingestionId'), false);
+
+  const serialized = JSON.stringify(result);
+  assert.equal(serialized.includes('ingestionId'), false);
+  assert.equal(serialized.includes(row.ingestionId), false);
+});
 
 test('PUBLISH exports only Owner-authorized inferred ELI fields', () => {
   const result = toOwnerAuthorizedEliExport(persistedEli('PUBLISH'));
@@ -108,6 +156,8 @@ test('Owner export and baseline read routes must use the controlled baseline pro
     readFile(new URL('../api/routes/sensors.ts', import.meta.url), 'utf8'),
   ]);
 
+  assert.match(exportRoute, /summaryRows\.map\(toOwnerAuthorizedSensorSummaryExport\)/);
+  assert.doesNotMatch(exportRoute, /preprocessed:\s*summaryRows\.map\(\(row\)\s*=>\s*\(\{\s*\.\.\.row/);
   assert.match(exportRoute, /baselineRows\.map\(toOwnerAuthorizedBaselineExport\)/);
   assert.doesNotMatch(exportRoute, /baselines:\s*baselineRows[,\n]/);
   assert.match(exportRoute, /baselineMetricDisclosurePolicy:\s*'WITHHELD_PENDING_DISCLOSURE_AUTHORITY'/);
