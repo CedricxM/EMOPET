@@ -30,6 +30,11 @@ function canonicalJson(value: unknown): string {
   const normalize = (input: unknown): unknown => {
     if (input === undefined || input === null) return null;
     if (input instanceof Date) return input.toISOString();
+    if (typeof input === 'number' && Number.isFinite(input)) {
+      // PostgreSQL REAL is float32. Normalize only representational round-trip
+      // noise so an identical logical retry is not misclassified as conflict.
+      return Number(input.toPrecision(7));
+    }
     if (Array.isArray(input)) return input.map(normalize);
     if (typeof input === 'object') {
       return Object.fromEntries(
