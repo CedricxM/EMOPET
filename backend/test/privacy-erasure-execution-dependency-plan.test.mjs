@@ -62,7 +62,15 @@ test('technical erasure execution plan stays aligned with locked topology and do
 
   for (const entry of plan.accountRoot.blockingForeignKeys) {
     assert.equal(entry.databaseDeleteAction, 'NO_ACTION_DEFAULT');
-    assert.match(entry.executionRequirement, /BEFORE_ROOT_DELETE/);
+    if (`${entry.table}.${entry.column}` === 'dogs.owner_id') {
+      assert.equal(
+        entry.executionRequirement,
+        'RESOLVE_NESTED_DOG_ROOT_BEFORE_USERS_DELETE',
+        'dogs.owner_id must preserve the nested dog-subject dependency before the user root is deleted',
+      );
+    } else {
+      assert.match(entry.executionRequirement, /BEFORE_ROOT_DELETE/);
+    }
   }
   for (const entry of plan.dogRoot.blockingForeignKeys) {
     assert.equal(entry.databaseDeleteAction, 'NO_ACTION_DEFAULT');
