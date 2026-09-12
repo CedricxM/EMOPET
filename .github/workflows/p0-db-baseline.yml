@@ -4,7 +4,11 @@ on:
   pull_request:
     paths:
       - 'backend/db/**'
+      - 'backend/api/services/subject-access.ts'
+      - 'backend/api/services/subject-discovery.ts'
+      - 'backend/api/routes/data-export.ts'
       - 'backend/test/migration-baseline-static.test.mjs'
+      - 'backend/test/subject-discovery-postgres.test.mjs'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:
 
@@ -116,6 +120,12 @@ jobs:
       - name: Build backend dependency closure
         run: pnpm --filter @emopet/api... build
 
+      - name: PRIV-DISC-01 read-only subject discovery on draft baseline
+        working-directory: backend
+        env:
+          SUBJECT_DISCOVERY_DB_INTEGRATION: '1'
+        run: node --test test/subject-discovery-postgres.test.mjs
+
       - name: Generate isolated Drizzle fresh baseline
         working-directory: backend
         run: |
@@ -148,6 +158,13 @@ jobs:
           psql "$GENERATED_DATABASE_URL" -Atc "select tablename from pg_tables where schemaname='public' order by tablename" > /tmp/tables-generated.txt
           diff -u /tmp/tables-a.txt /tmp/tables-generated.txt
 
+      - name: PRIV-DISC-01 read-only subject discovery on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          SUBJECT_DISCOVERY_DB_INTEGRATION: '1'
+        run: node --test test/subject-discovery-postgres.test.mjs
+
       - name: Verify generated snapshot is stable
         working-directory: backend
         run: |
@@ -174,4 +191,5 @@ jobs:
         if: always()
         run: |
           echo 'This workflow validates only disposable P0 database behavior.'
+          echo 'PRIV-DISC-01 subject discovery is read-only and does not authorize erasure.'
           echo 'It does not authorize production migration, deployment, or release.'

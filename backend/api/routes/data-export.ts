@@ -2,8 +2,9 @@ import { Hono } from 'hono';
 import { and, eq, gte, lte } from 'drizzle-orm';
 
 import { db } from '../../db/index.js';
-import { dogs, devices } from '../../db/schema/dogs.js';
+import { devices } from '../../db/schema/dogs.js';
 import { baselines, eliStates, sensorSummaries } from '../../db/schema/sensors.js';
+import { findOwnedDog } from '../services/subject-access.js';
 
 interface Variables {
   userId: string;
@@ -66,9 +67,7 @@ dataExport.get('/', async (c) => {
 
   if (!dogId) return c.json({ error: 'dog_id is required' }, 400);
 
-  const ownedDog = await db.query.dogs.findFirst({
-    where: and(eq(dogs.id, dogId), eq(dogs.ownerId, userId)),
-  });
+  const ownedDog = await findOwnedDog(userId, dogId);
   if (!ownedDog) return c.json({ error: 'Dog not found' }, 404);
 
   const timestampFilters = [eq(sensorSummaries.dogId, dogId)];
