@@ -139,21 +139,20 @@ test('community router rejects unauthenticated malformed writes before validatio
   assert.equal(body.code, 'AUTHENTICATION_REQUIRED');
 });
 
-test('community moderation report authority remains fail-closed while durable lifecycle is not implemented', async () => {
+test('community user block authority remains fail-closed while enforcement is not implemented', async () => {
   const app = buildCommunityApp({ userId: '22222222-2222-4222-8222-222222222222' });
-  const response = await app.request('/api/community/reports', {
+  const response = await app.request('/api/community/blocks', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contentId: COMMUNITY_ID,
-      contentType: 'post',
-      reason: 'spam',
+      targetUserId: '33333333-3333-4333-8333-333333333333',
+      reason: 'runtime truth boundary',
     }),
   });
 
   assert.equal(response.status, 503);
   const body = await response.json();
   assert.equal(body.code, COMMUNITY_PERSISTENCE_CODE);
-  assert.equal(body.operation, 'create_report');
+  assert.equal(body.operation, 'create_block');
   assert.notEqual(response.status, 201);
 });
