@@ -57,7 +57,7 @@ async function waitForBlockedOperations(tx, blockerPid, expected) {
   assert.fail(`Expected ${expected} blocked export/transfer operations, saw ${observed}`);
 }
 
-test('Guardian data export preserves authorization and disclosure through JSON/CSV delivery', {
+test('Owner data export preserves authorization and disclosure through JSON/CSV delivery', {
   skip: !enabled, timeout: 40_000,
 }, async (t) => {
   // Isolate observed waiters from other concurrently running integration files.
@@ -100,7 +100,7 @@ test('Guardian data export preserves authorization and disclosure through JSON/C
       VALUES (${id}, ${`export-${id}@example.test`}, 'PRIVATE-PASSWORD-FIXTURE', 'Export fixture')`;
   }
   for (const [id, owner, name] of [
-    [dogId, ownerId, 'Export dog'], [otherDogId, otherOwnerId, 'OTHER-GUARDIAN-DOG'],
+    [dogId, ownerId, 'Export dog'], [otherDogId, otherOwnerId, 'OTHER-OWNER-DOG'],
     [emptyDogId, ownerId, 'Empty dog'],
   ]) {
     await sql`INSERT INTO dogs (id, owner_id, name, breed, birth_date, sex, weight, fur_class)
@@ -214,7 +214,7 @@ test('Guardian data export preserves authorization and disclosure through JSON/C
     }
   });
 
-  await t.test('another Guardian and an unknown dog receive identical denials in either format', async () => {
+  await t.test('another Owner and an unknown dog receive identical denials in either format', async () => {
     assert.equal((await request(dogId, 'json', null)).status, 401);
     for (const format of ['json', 'csv']) {
       const denied = await request(otherDogId, format);

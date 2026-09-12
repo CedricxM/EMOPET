@@ -69,7 +69,7 @@ test('health journal create/read is durable and owner scoped while reminder poli
         dogId,
         type: 'weight',
         date: '2026-09-10',
-        title: 'Pesée volontaire du Guardian',
+        title: 'Pesée volontaire du propriétaire',
         details: 'Entrée de journal déclarative, sans interprétation clinique.',
         value: 24.7,
         nextDueDate: '2026-10-10',
@@ -83,7 +83,7 @@ test('health journal create/read is durable and owner scoped while reminder poli
     assert.equal(createBody.entry.dogId, dogId);
     assert.equal(createBody.entry.type, 'weight');
     assert.equal(createBody.entry.date, '2026-09-10');
-    assert.equal(createBody.entry.title, 'Pesée volontaire du Guardian');
+    assert.equal(createBody.entry.title, 'Pesée volontaire du propriétaire');
     assert.equal(createBody.entry.value, 24.7);
     assert.equal(createBody.entry.nextDueDate, '2026-10-10');
 
