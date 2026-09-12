@@ -1,11 +1,13 @@
 import { pgTable, uuid, varchar, timestamp, real, integer, jsonb } from 'drizzle-orm/pg-core';
-import { dogs } from './dogs.js';
+import { devices, dogs } from './dogs.js';
 
 export const sensorSummaries = pgTable('sensor_summaries', {
   id: uuid('id').primaryKey().defaultRandom(),
   dogId: uuid('dog_id').notNull().references(() => dogs.id),
+  deviceId: uuid('device_id').references(() => devices.id),
   timestamp: timestamp('timestamp', { withTimezone: true }).notNull(),
   source: varchar('source', { length: 5 }).notNull(), // MAT, TAG
+  firmwareVersionAtIngest: varchar('firmware_version_at_ingest', { length: 20 }),
   matPresenceMinutes: real('mat_presence_minutes'),
   respiratoryRateMean: real('respiratory_rate_mean'),
   respiratoryRateStd: real('respiratory_rate_std'),
