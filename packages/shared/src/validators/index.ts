@@ -155,6 +155,7 @@ export const ELIStateSchema = z.object({
 export const SensorSummaryCreateSchema = z.object({
   timestamp: z.coerce.date(),
   dogId: z.string().uuid(),
+  ingestionId: z.string().uuid().optional(),
   deviceId: z.string().uuid().optional(),
   source: z.enum(['MAT', 'TAG']),
   matPresenceMinutes: z.number().min(0).max(60).optional(),
