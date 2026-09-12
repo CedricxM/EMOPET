@@ -7,6 +7,7 @@ import { db } from '../../db/index.js';
 import { baselines, sensorSummaries } from '../../db/schema/index.js';
 import { requireDogOwnership } from '../middleware/authorization.js';
 import { toOwnerAuthorizedBaselineExport } from '../services/data-export-policy.js';
+import { parseLookbackWindow } from '../utils/temporal-window.js';
 
 const sensors = new Hono();
 
@@ -182,6 +183,11 @@ sensors.get('/presence/:dogId/events', async (c) => {
   const dogId = c.req.param('dogId');
   const denied = await requireDogOwnership(c, dogId);
   if (denied) return denied;
+
+  const window = parseLookbackWindow(c.req.query('days'));
+  if (!window) {
+    return c.json({ error: 'invalid_presence_window', parameter: 'days' }, 400);
+  }
 
   return presencePersistenceUnavailable(c, 'list_presence_events');
 });
