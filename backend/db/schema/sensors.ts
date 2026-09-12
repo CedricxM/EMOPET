@@ -1,9 +1,10 @@
-import { pgTable, uuid, varchar, timestamp, real, integer, jsonb, index } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, timestamp, real, integer, jsonb, index, uniqueIndex } from 'drizzle-orm/pg-core';
 import { devices, dogs } from './dogs.js';
 
 export const sensorSummaries = pgTable('sensor_summaries', {
   id: uuid('id').primaryKey().defaultRandom(),
   dogId: uuid('dog_id').notNull().references(() => dogs.id),
+  ingestionId: uuid('ingestion_id'),
   deviceId: uuid('device_id').references(() => devices.id),
   timestamp: timestamp('timestamp', { withTimezone: true }).notNull(),
   source: varchar('source', { length: 5 }).notNull(), // MAT, TAG
@@ -24,6 +25,7 @@ export const sensorSummaries = pgTable('sensor_summaries', {
   humidityPct: real('humidity_pct'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
+  ingestionIdUnique: uniqueIndex('uq_sensor_summaries_ingestion_id').on(table.ingestionId),
   deviceTimestampIdx: index('idx_sensor_summaries_device_timestamp').on(table.deviceId, table.timestamp),
 }));
 
