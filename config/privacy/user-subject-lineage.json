@@ -6,7 +6,8 @@
     "column": "id"
   },
   "lifecyclePolicyStatus": "TO_CONFIRM_BEFORE_ACCOUNT_ERASURE_OR_COMPLETE_ACCOUNT_EXPORT",
-  "scope": "Direct PostgreSQL foreign-key references to users.id declared in backend/db/schema. Indirect dog-linked records, non-FK identifiers, object storage, providers, caches, analytics and backups are outside this direct-FK registry and require separate lifecycle mapping.",
+  "unconstrainedIdentifierStatus": "MIGRATION_OR_EXPLICIT_LIFECYCLE_HANDLING_REQUIRED_BEFORE_ERASURE",
+  "scope": "Direct PostgreSQL foreign-key references to users.id plus persisted schema columns whose SQL name ends in user_id but lacks a direct users.id foreign key. Other non-FK identifiers, indirect dog-linked records, object storage, providers, caches, analytics and backups remain outside this mechanical registry and require separate lifecycle mapping.",
   "directReferences": [
     { "table": "achievements", "column": "user_id", "source": "backend/db/schema/users.ts" },
     { "table": "ai_messages", "column": "target_user_id", "source": "backend/db/schema/ai.ts" },
@@ -23,5 +24,13 @@
     { "table": "professional_share_grants", "column": "owner_user_id", "source": "backend/db/schema/professional-sharing.ts" },
     { "table": "research_data_consents", "column": "user_id", "source": "backend/db/schema/behavioral-assessments.ts" },
     { "table": "subscriptions", "column": "user_id", "source": "backend/db/schema/users.ts" }
+  ],
+  "unconstrainedUserIdentifiers": [
+    { "table": "user_config", "column": "user_id", "source": "backend/db/schema/eli-v5.ts" }
+  ],
+  "scopeLimitations": [
+    "A direct foreign key proves relational linkage only; it does not authorize cascade deletion, disclosure, anonymization or retention.",
+    "An unconstrained user identifier must not be assumed to follow account deletion or identity changes automatically.",
+    "This registry does not establish legal basis, retention duration or a complete account export/erasure policy."
   ]
 }

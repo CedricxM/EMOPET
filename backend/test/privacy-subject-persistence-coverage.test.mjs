@@ -6,6 +6,7 @@ function firstOrderSubjectTables(userLineage, dogLineage) {
   return [...new Set([
     userLineage.subject.table,
     ...userLineage.directReferences.map((entry) => entry.table),
+    ...(userLineage.unconstrainedUserIdentifiers ?? []).map((entry) => entry.table),
     dogLineage.subject.table,
     ...dogLineage.canonicalForeignKeys.map((entry) => entry.table),
     ...dogLineage.unconstrainedDogIdentifiers.map((entry) => entry.table),

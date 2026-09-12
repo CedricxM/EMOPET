@@ -11,6 +11,12 @@ function latestMatchBefore(source, pattern, endIndex, label) {
   return matches.at(-1)[1];
 }
 
+function sortLineage(entries) {
+  return [...entries].sort((a, b) =>
+    `${a.table}.${a.column}.${a.source}`.localeCompare(`${b.table}.${b.column}.${b.source}`),
+  );
+}
+
 async function declaredDirectUserReferences() {
   const fileNames = (await readdir(schemaDir)).filter((name) => name.endsWith('.ts')).sort();
   const references = [];
@@ -24,7 +30,25 @@ async function declaredDirectUserReferences() {
     }
   }
 
-  return references.sort((a, b) => `${a.table}.${a.column}`.localeCompare(`${b.table}.${b.column}`));
+  return sortLineage(references);
+}
+
+async function declaredUnconstrainedUserIdentifiers() {
+  const fileNames = (await readdir(schemaDir)).filter((name) => name.endsWith('.ts')).sort();
+  const identifiers = [];
+
+  for (const fileName of fileNames) {
+    const source = await readFile(new URL(fileName, schemaDir), 'utf8');
+    for (const match of source.matchAll(/\b\w+:\s*\w+\('([^']*user_id)'[^)]*\)([\s\S]*?)(?=,\s*\n)/g)) {
+      const [, column, chain] = match;
+      if (/\.references\(\(\)\s*=>\s*users\.id\b/.test(chain)) continue;
+
+      const table = latestMatchBefore(source, /pgTable\('([^']+)'/g, match.index, 'table');
+      identifiers.push({ table, column, source: `backend/db/schema/${fileName}` });
+    }
+  }
+
+  return sortLineage(identifiers);
 }
 
 test('machine-readable user subject lineage covers every direct users.id foreign key', async () => {
@@ -42,8 +66,7 @@ test('machine-readable user subject lineage covers every direct users.id foreign
   assert.match(registry.lifecyclePolicyStatus, /TO_CONFIRM/);
 
   const declared = await declaredDirectUserReferences();
-  const registered = [...registry.directReferences]
-    .sort((a, b) => `${a.table}.${a.column}`.localeCompare(`${b.table}.${b.column}`));
+  const registered = sortLineage(registry.directReferences);
 
   assert.deepEqual(
     registered,
@@ -63,4 +86,26 @@ test('machine-readable user subject lineage covers every direct users.id foreign
       `direct user lineage must include ${required}`,
     );
   }
+});
+
+test('user-like non-FK identifiers stay explicit instead of disappearing from account lifecycle mapping', async () => {
+  const registry = JSON.parse(await readFile(
+    new URL('../../config/privacy/user-subject-lineage.json', import.meta.url),
+    'utf8',
+  ));
+
+  assert.match(registry.unconstrainedIdentifierStatus, /EXPLICIT_LIFECYCLE_HANDLING_REQUIRED/);
+
+  const declared = await declaredUnconstrainedUserIdentifiers();
+  const registered = sortLineage(registry.unconstrainedUserIdentifiers ?? []);
+
+  assert.deepEqual(
+    registered,
+    declared,
+    'every persisted *user_id column without a direct users.id FK must remain visible in the user subject-lineage registry',
+  );
+  assert.ok(
+    registered.some((entry) => `${entry.table}.${entry.column}` === 'user_config.user_id'),
+    'user_config.user_id must remain visible until it gains a canonical FK or explicit lifecycle handling',
+  );
 });
