@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "emopet-subject-transitive-privacy-coverage-v1",
+  "status": "INCOMPLETE_TRANSITIVE_SUBJECT_PERSISTENCE_PRIVACY_CLASSIFICATION",
+  "mappingAuthority": "TECHNICAL_TOPICAL_MAPPING_NOT_LEGAL_SIGNOFF",
+  "scope": "Privacy classification coverage for the direct children recorded in config/privacy/subject-transitive-lineage.json.",
+  "tables": [
+    {
+      "table": "behavioral_factor_scores",
+      "parentTable": "behavioral_assessments",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": ["behavioral assessment derived scores", "scientific scoring provenance"]
+    },
+    {
+      "table": "behavioral_responses",
+      "parentTable": "behavioral_assessments",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": ["behavioral assessment responses", "owner-reported instrument evidence"]
+    }
+  ],
+  "scopeLimitations": [
+    "This file classifies only the transitive descendants present in the controlled one-hop lineage registry.",
+    "Unclassified is a visibility state and does not establish unlawfulness, legal basis, retention, disclosure or erasure mode.",
+    "Candidate areas are navigation hints for future privacy review, not approved inventory categories."
+  ]
+}
