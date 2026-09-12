@@ -90,6 +90,8 @@ test('machine-readable dog subject lineage classifies every dog-like schema iden
     'eli_states.dog_id',
     'professional_share_grants.dog_id',
     'behavioral_assessments.dog_id',
+    'dog_sub_baselines.dog_id',
+    'user_config.dog_id',
   ]) {
     assert.ok(
       registry.canonicalForeignKeys.some((entry) => `${entry.table}.${entry.column}` === required),
@@ -101,8 +103,6 @@ test('machine-readable dog subject lineage classifies every dog-like schema iden
     'copresence_events.dog_a_id',
     'copresence_events.dog_b_id',
     'professional_share_access_audits.dog_id',
-    'dog_sub_baselines.dog_id',
-    'user_config.dog_id',
   ]) {
     assert.ok(
       registry.unconstrainedDogIdentifiers.some((entry) => `${entry.table}.${entry.column}` === required),
