@@ -103,14 +103,14 @@
     },
     {
       "id": "support_contact",
-      "data": ["contact/support requests", "request history"],
+      "data": ["contact_request_id", "requester_user_id", "reason", "message", "status", "consent_at", "created_at", "updated_at"],
       "purpose": "respond to user requests and support",
       "legalBasis": "TO_CONFIRM_BEFORE_PRODUCTION",
       "retention": "SUPPORT_RETENTION_TO_CONFIRM",
       "thirdParties": [],
       "internationalTransfer": "NONE_BY_DEFAULT",
       "exportable": true,
-      "erasure": "DELETE_AFTER_RETENTION_WINDOW_OR_ON_VALID_REQUEST"
+      "erasure": "TO_CONFIRM_DELETE_ANONYMIZE_OR_JUSTIFIED_RETENTION_BEFORE_PRODUCTION"
     },
     {
       "id": "security_logs",

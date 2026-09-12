@@ -50,6 +50,43 @@ test('CONTACT-AUTH-01 keeps every file-backed Contact surface behind the same no
   assert.ok(contactMount > authBoundary, 'Product V1 Contact candidate must be mounted behind authMiddleware');
 });
 
+test('privacy authority tracks durable Contact subject lineage without inventing erasure policy', async () => {
+  const [schema, inventoryRaw, runbook, dpia] = await Promise.all([
+    readFile(new URL('../db/schema/contact.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../config/privacy/data-inventory.json', import.meta.url), 'utf8'),
+    readFile(new URL('../../docs/privacy/ERASURE_EXPORT_RUNBOOK.md', import.meta.url), 'utf8'),
+    readFile(new URL('../../docs/privacy/DPIA_P0.md', import.meta.url), 'utf8'),
+  ]);
+
+  const inventory = JSON.parse(inventoryRaw);
+  const supportContact = inventory.categories.find((category) => category.id === 'support_contact');
+  assert.ok(supportContact, 'support_contact must remain in the privacy inventory');
+
+  for (const field of [
+    'contact_request_id',
+    'requester_user_id',
+    'reason',
+    'message',
+    'status',
+    'consent_at',
+    'created_at',
+    'updated_at',
+  ]) {
+    assert.ok(supportContact.data.includes(field), `support_contact inventory must include ${field}`);
+  }
+
+  assert.equal(supportContact.retention, 'SUPPORT_RETENTION_TO_CONFIRM');
+  assert.match(supportContact.erasure, /TO_CONFIRM/);
+  assert.doesNotMatch(supportContact.erasure, /DELETE_AFTER_RETENTION_WINDOW/);
+
+  assert.match(schema, /uuid\('requester_user_id'\).*references\(\(\) => users\.id\)/);
+  assert.match(runbook, /contact_requests\.requester_user_id -> users\.id/);
+  assert.match(runbook, /foreign key does not authorize an automatic SQL cascade/i);
+  assert.match(runbook, /G-PRIV-ERASURE[^\n]*remains `OPEN`/);
+  assert.match(dpia, /contact_requests/);
+  assert.match(dpia, /destructive erasure remains fail-closed/i);
+});
+
 test('durable Contact candidate derives requester identity from server auth and is cross-user isolated', { skip: !integrationEnabled }, async () => {
   const previousFlag = process.env.EMOPET_ENABLE_CONTACT_PRODUCT_V1_CANDIDATE;
   process.env.EMOPET_ENABLE_CONTACT_PRODUCT_V1_CANDIDATE = '1';

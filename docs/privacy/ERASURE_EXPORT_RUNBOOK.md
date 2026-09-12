@@ -4,7 +4,7 @@ Status: `P0 EXPORT IMPLEMENTED / ERASURE IMPLEMENTATION OPEN`
 
 ## Export
 
-The Data Act/access slice implements owner-scoped JSON/CSV export of currently persisted backend data.
+The Data Act/access slice implements owner-scoped JSON/CSV export of currently persisted dog-scoped backend data.
 
 Export must remain:
 
@@ -14,6 +14,8 @@ Export must remain:
 - separated by measured/preprocessed/inferred level;
 - transparent about unavailable raw data;
 - auditable without exposing unnecessary device identifiers.
+
+Account-scoped categories that are not part of the dog-scoped Data Act export, including support/contact requests, require their own rights projection before production. They must not be silently omitted from a future account-level access package or bolted onto a dog export with the wrong subject boundary.
 
 ## Erasure request lifecycle
 
@@ -47,9 +49,19 @@ At minimum verify deletion/anonymisation for:
 - analytics/telemetry identifiers;
 - backups according to policy.
 
+### Current Contact topology
+
+The Product V1 Contact candidate now persists support requests in PostgreSQL table `contact_requests`. Its subject link is `contact_requests.requester_user_id -> users.id`, backed by a foreign key and canonical authenticated core-user UUID. The current candidate stores request id, reason, message, status, consent timestamp and record timestamps; it does not persist a separate caller-supplied owner token or direct phone/email contact value.
+
+This relationship is **technical lineage, not an erasure decision**. The foreign key does not authorize an automatic SQL cascade, and no delete-vs-anonymise-vs-justified-retention policy is inferred from it. `G-PRIV-ERASURE` remains `OPEN` until the lifecycle policy and executor are approved and tested.
+
+The historical Next.js file-backed Contact plane remains explicit non-production/demo-only legacy state. It must be considered when cleaning up development/demo environments, but it is not Product V1 durable PII authority and must not be used as evidence that production rights handling is complete.
+
 ## Current blocker
 
-A destructive erasure endpoint must not be added while authentication/session authority and the final database baseline are still under controlled P0 review. Until those are merged and tested, erasure remains `OPEN_IMPLEMENTATION` rather than a fake button or unsafe cascading delete.
+Canonical authentication/session and PostgreSQL foundations now exist as controlled Product V1 candidates, so they are no longer the sole reason erasure is unavailable. Destructive erasure must remain fail-closed until an approved lifecycle policy and executor cover, at minimum, delete-vs-anonymise decisions, justified holds, Community residue, object/media storage, provider-held copies, caches/indexes, security/audit evidence, account-scoped support/contact records and backup expiry.
+
+No retention duration or deletion deadline is established by this runbook. Those decisions remain subject to the controlled privacy/legal approval path tracked by PRIV-01.
 
 ## Required tests before enabling deletion
 
@@ -57,6 +69,7 @@ A destructive erasure endpoint must not be added while authentication/session au
 - deletion requires recent authentication or equivalent strong confirmation;
 - dog-only deletion does not erase another dog/account accidentally;
 - account deletion covers all owned dogs and related data;
+- account deletion enumerates account-scoped support/contact records separately from dog-scoped data;
 - revoked tokens cannot continue deletion/export;
 - audit record contains no deleted sensitive payload;
 - retries are idempotent;
