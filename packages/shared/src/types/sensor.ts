@@ -32,6 +32,8 @@ export interface SensorSummary {
   /** Event/window timestamp supplied by the summary producer. */
   timestamp: Date;
   dogId: string;
+  /** Producer-generated retry key for one logical summary ingestion. */
+  ingestionId?: string;
   /** Canonical EMOPET device UUID when the ingestion was device-bound. */
   deviceId?: string;
   source: SensorSource;
