@@ -24,6 +24,7 @@ on:
       - 'backend/test/community-*.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
       - 'backend/test/id-01-referential-integrity.sql'
+      - 'backend/test/privacy-*.test.mjs'
       - 'backend/test/privacy-user-subject-lineage.test.mjs'
       - 'backend/test/privacy-dog-subject-lineage.test.mjs'
       - 'backend/test/privacy-account-erasure-topology.test.mjs'
@@ -32,6 +33,7 @@ on:
       - 'config/privacy/dog-subject-lineage.json'
       - 'config/privacy/account-erasure-topology.json'
       - 'config/privacy/dog-erasure-topology.json'
+      - 'config/privacy/**'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:
 
