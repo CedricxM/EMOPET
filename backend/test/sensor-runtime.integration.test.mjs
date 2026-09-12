@@ -21,6 +21,7 @@ test('sensor summaries persist while raw audio, exact location and non-durable p
   const dogId = randomUUID();
   const tagDeviceId = randomUUID();
   const matDeviceId = randomUUID();
+  const ingestionId = randomUUID();
   const suffix = randomUUID();
 
   await db.insert(users).values([
@@ -76,6 +77,7 @@ test('sensor summaries persist while raw audio, exact location and non-durable p
     const validSummary = {
       timestamp: new Date().toISOString(),
       dogId,
+      ingestionId,
       deviceId: tagDeviceId,
       source: 'TAG',
       activityMinutes: 12.5,
@@ -95,12 +97,35 @@ test('sensor summaries persist while raw audio, exact location and non-durable p
     assert.equal(created.summary.dogId, dogId);
     assert.equal(created.summary.deviceId, tagDeviceId);
     assert.equal(created.summary.source, 'TAG');
+    assert.equal(created.summary.ingestionId, ingestionId);
     assert.equal(created.summary.firmwareVersionAtIngest, '1.2.3');
+    assert.equal(created.idempotentReplay, false);
     assert.ok(created.summary.createdAt, 'server persistence/receive timestamp must be present');
     assert.notEqual(
       created.summary.createdAt,
       validSummary.timestamp,
       'server createdAt must remain distinct from producer event timestamp',
+    );
+
+    const retryResponse = await app.request('/api/sensors/summaries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(validSummary),
+    });
+    assert.equal(retryResponse.status, 200);
+    const retried = await retryResponse.json();
+    assert.equal(retried.idempotentReplay, true);
+    assert.equal(retried.summary.id, created.summary.id);
+
+    const conflictingRetryResponse = await app.request('/api/sensors/summaries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...validSummary, activityMinutes: 13.5 }),
+    });
+    assert.equal(conflictingRetryResponse.status, 409);
+    assert.equal(
+      (await conflictingRetryResponse.json()).code,
+      'SENSOR_INGESTION_ID_CONFLICT',
     );
 
     const mismatchedDeviceResponse = await app.request('/api/sensors/summaries', {
@@ -148,7 +173,7 @@ test('sensor summaries persist while raw audio, exact location and non-durable p
     assert.deepEqual(
       persistedAfterRejectedSensitivePayloads.map((row) => row.id),
       [created.summary.id],
-      'rejected raw-audio/exact-location payloads must not create any sensor summary row',
+      'idempotent/conflicting retries and rejected sensitive payloads must not create duplicate summary rows',
     );
 
     // Historical persisted rows are not an authoritative live ELI producer.
