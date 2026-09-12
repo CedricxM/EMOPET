@@ -14,7 +14,7 @@ EMOPET Community and World must be designed around **meaningful connection, appr
 
 They must not be designed around maximizing time spent, scroll depth, notification opens, posting volume, follower accumulation, virality, FOMO, streak dependence or behavioral manipulation by Breiz.
 
-> **A successful EMOPET social session is not the longest session. It is one that helps a Guardian safely find a useful person, activity, group, discovery or shared World experience — and then makes leaving the product easy.**
+> **A successful EMOPET social session is not the longest session. It is one that helps an Owner safely find a useful person, activity, group, discovery or shared World experience — and then makes leaving the product easy.**
 
 Offline interaction is optional and mutually chosen. World-only or Community-only outcomes can also be successful.
 
@@ -25,7 +25,7 @@ COMMUNITY
 posts / groups / events / discoveries
         ↓
 SOCIAL DISCOVERY & MATCHING
-Guardian interests + canine encounter context
+Owner interests + canine encounter context
         ↓
 WORLD
 interactive social presence / shared activities
@@ -65,7 +65,7 @@ Allowed priority inputs, subject to policy:
 3. explicit user intent;
 4. activity suitability;
 5. canine contextual fit;
-6. confirmed Guardian interests;
+6. confirmed Owner interests;
 7. chosen Circles/connections;
 8. broad regional relevance;
 9. freshness;
@@ -91,7 +91,7 @@ Required user controls should include mechanisms equivalent to:
 - `Ne plus utiliser cette préférence`
 - `Mettre les suggestions en pause`
 
-## 4. Canine + Guardian matching
+## 4. Canine + Owner matching
 
 No global compatibility percentage, dog friendship score, ELI compatibility or breed-essentialist rule.
 
@@ -104,7 +104,7 @@ CANINE SAFETY VETO
         ↓
 CANINE ACTIVITY-CONTEXT FIT
         ↓
-GUARDIAN PRACTICAL FIT
+OWNER PRACTICAL FIT
         ↓
 CONFIRMED SHARED INTERESTS
         ↓

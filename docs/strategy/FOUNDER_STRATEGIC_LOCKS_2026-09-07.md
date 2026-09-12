@@ -31,7 +31,7 @@ A more complex sensing stack is not automatically better. Hardware complexity mu
 
 EMOPET is relationship-first rather than metric-first.
 
-The product is intended to help the Guardian understand changes in the dog's lived pattern over time, not to flood the interface with generic scores.
+The product is intended to help the Owner understand changes in the dog's lived pattern over time, not to flood the interface with generic scores.
 
 The product experience should favour:
 

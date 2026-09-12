@@ -156,7 +156,7 @@ When imported:
 - do not convert `PROPOSED`, `NOT IMPLEMENTED`, `NOT RELEASED`, `FOUNDER REVIEW REQUIRED` or similar states into current product claims;
 - link founder-level strategic locks separately where a design authority implements a broader doctrine.
 
-Examples now tracked include Guardian Authority, Care, Home/Today, Together/Relationship Engine, Memories, Guardian Continuity, Humane Social Architecture and World.
+Examples now tracked include Owner Authority, Care, Home/Today, Together/Relationship Engine, Memories, Owner Continuity, Humane Social Architecture and World.
 
 ## 9. Canonical planning calendar
 

@@ -71,7 +71,7 @@ Rules:
 - do not archive or remove them solely because the current product is not production-ready;
 - do not claim they are active production services without runtime evidence;
 - keep Unity as presentation/client-side immersive technology unless a later authority changes that choice;
-- Nakama, if used, must not become durable authority for Guardian identity, consent, ELI truth, balances/entitlements or other durable product truth that belongs in controlled backend data stores;
+- Nakama, if used, must not become durable authority for Owner identity, consent, ELI truth, balances/entitlements or other durable product truth that belongs in controlled backend data stores;
 - any final runtime selection remains separately gated.
 
 ## 7. Launch-scope matrix rule
@@ -94,7 +94,7 @@ Do not use `FUTURE CONCEPT` as a synonym for `NOT YET IMPLEMENTED`.
 
 Read with:
 
-- `docs/strategy/GUARDIAN_RELATIONSHIP_AND_PRODUCT_SCOPE_DOCTRINE_2026-09-07.md`;
+- `docs/strategy/OWNER_RELATIONSHIP_AND_PRODUCT_SCOPE_DOCTRINE_2026-09-11.md`;
 - `docs/product/EMOPET_HUMANE_SOCIAL_ARCHITECTURE_MASTER_v0.2_VERIFIED_2026-09-01.md`;
 - `docs/product/EMOPET_WORLD_WORKSTREAM_HANDOFF_2026-09-01.md`;
 - `docs/strategy/PROJECT_TIMELINE_2026_2027.md`.
