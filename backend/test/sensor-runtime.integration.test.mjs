@@ -11,7 +11,7 @@ import {
   ELI_RUNTIME_NOT_IMPLEMENTED,
 } from '../dist/api/routes/sensors.js';
 import { db } from '../dist/db/index.js';
-import { baselines, dogs, eliStates, sensorSummaries, users } from '../dist/db/schema/index.js';
+import { baselines, devices, dogs, eliStates, sensorSummaries, users } from '../dist/db/schema/index.js';
 
 const integrationEnabled = process.env.EMOPET_DB_INTEGRATION_TEST === '1';
 
@@ -19,6 +19,8 @@ test('sensor summaries persist while raw audio, exact location and non-durable p
   const ownerId = randomUUID();
   const otherUserId = randomUUID();
   const dogId = randomUUID();
+  const tagDeviceId = randomUUID();
+  const matDeviceId = randomUUID();
   const suffix = randomUUID();
 
   await db.insert(users).values([
@@ -45,6 +47,22 @@ test('sensor summaries persist while raw audio, exact location and non-durable p
     weight: 18.4,
     furClass: 'FC2',
   });
+  await db.insert(devices).values([
+    {
+      id: tagDeviceId,
+      dogId,
+      type: 'TAG',
+      macAddress: '02:00:00:00:00:01',
+      firmwareVersion: '1.2.3',
+    },
+    {
+      id: matDeviceId,
+      dogId,
+      type: 'MAT',
+      macAddress: '02:00:00:00:00:02',
+      firmwareVersion: '2.0.0',
+    },
+  ]);
 
   let currentUserId = ownerId;
   const app = new Hono();
@@ -58,6 +76,7 @@ test('sensor summaries persist while raw audio, exact location and non-durable p
     const validSummary = {
       timestamp: new Date().toISOString(),
       dogId,
+      deviceId: tagDeviceId,
       source: 'TAG',
       activityMinutes: 12.5,
       vocalEvents: 2,
@@ -74,7 +93,27 @@ test('sensor summaries persist while raw audio, exact location and non-durable p
     assert.equal(createResponse.status, 201);
     const created = await createResponse.json();
     assert.equal(created.summary.dogId, dogId);
+    assert.equal(created.summary.deviceId, tagDeviceId);
     assert.equal(created.summary.source, 'TAG');
+    assert.equal(created.summary.firmwareVersionAtIngest, '1.2.3');
+    assert.ok(created.summary.createdAt, 'server persistence/receive timestamp must be present');
+    assert.notEqual(
+      created.summary.createdAt,
+      validSummary.timestamp,
+      'server createdAt must remain distinct from producer event timestamp',
+    );
+
+    const mismatchedDeviceResponse = await app.request('/api/sensors/summaries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...validSummary, deviceId: matDeviceId }),
+    });
+    assert.equal(mismatchedDeviceResponse.status, 400);
+    assert.equal(
+      (await mismatchedDeviceResponse.json()).code,
+      'SENSOR_DEVICE_BINDING_INVALID',
+      'MAT device must not be accepted for a TAG summary',
+    );
 
     const listResponse = await app.request(`/api/sensors/summaries/${dogId}?range=24h`);
     assert.equal(listResponse.status, 200);
@@ -170,6 +209,7 @@ test('sensor summaries persist while raw audio, exact location and non-durable p
     await db.delete(baselines).where(eq(baselines.dogId, dogId));
     await db.delete(eliStates).where(eq(eliStates.dogId, dogId));
     await db.delete(sensorSummaries).where(eq(sensorSummaries.dogId, dogId));
+    await db.delete(devices).where(eq(devices.dogId, dogId));
     await db.delete(dogs).where(eq(dogs.id, dogId));
     await db.delete(users).where(eq(users.id, ownerId));
     await db.delete(users).where(eq(users.id, otherUserId));
