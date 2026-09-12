@@ -69,7 +69,11 @@ test('account access coverage stays one-to-one with user subject lineage and can
   );
   assert.equal(
     byKey.get('user_config.user_id').projectionAuthority,
-    'TO_CONFIRM_UNCONSTRAINED_IDENTIFIER_PROJECTION',
+    'TO_CONFIRM',
+  );
+  assert.ok(
+    coverage.directReferences.some((entry) => key(entry) === 'user_config.user_id'),
+    'user_config.user_id must be treated as a direct account relation once ID-01 adds the users.id FK',
   );
 
   assert.ok(
