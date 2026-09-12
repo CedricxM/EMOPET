@@ -15,9 +15,14 @@
       "source": "backend/db/schema/ai.ts"
     },
     {
-      "table": "behavioral_assessments",
+      "table": "anticipation_events",
       "column": "dog_id",
-      "source": "backend/db/schema/behavioral-assessments.ts"
+      "source": "backend/db/schema/eli-v5.ts"
+    },
+    {
+      "table": "baseline_drift_monitor",
+      "column": "dog_id",
+      "source": "backend/db/schema/eli-v5.ts"
     },
     {
       "table": "baselines",
@@ -25,9 +30,19 @@
       "source": "backend/db/schema/sensors.ts"
     },
     {
+      "table": "behavioral_assessments",
+      "column": "dog_id",
+      "source": "backend/db/schema/behavioral-assessments.ts"
+    },
+    {
       "table": "devices",
       "column": "dog_id",
       "source": "backend/db/schema/dogs.ts"
+    },
+    {
+      "table": "dog_sub_baselines",
+      "column": "dog_id",
+      "source": "backend/db/schema/eli-v5.ts"
     },
     {
       "table": "eli_behavioral_priors",
@@ -50,27 +65,37 @@
       "source": "backend/db/schema/professional-sharing.ts"
     },
     {
+      "table": "recovery_events",
+      "column": "dog_id",
+      "source": "backend/db/schema/eli-v5.ts"
+    },
+    {
       "table": "research_data_consents",
       "column": "dog_id",
       "source": "backend/db/schema/behavioral-assessments.ts"
     },
     {
+      "table": "routine_stability",
+      "column": "dog_id",
+      "source": "backend/db/schema/eli-v5.ts"
+    },
+    {
       "table": "sensor_summaries",
       "column": "dog_id",
       "source": "backend/db/schema/sensors.ts"
+    },
+    {
+      "table": "user_config",
+      "column": "dog_id",
+      "source": "backend/db/schema/eli-v5.ts"
+    },
+    {
+      "table": "walk_quality",
+      "column": "dog_id",
+      "source": "backend/db/schema/eli-v5.ts"
     }
   ],
   "unconstrainedDogIdentifiers": [
-    {
-      "table": "anticipation_events",
-      "column": "dog_id",
-      "source": "backend/db/schema/eli-v5.ts"
-    },
-    {
-      "table": "baseline_drift_monitor",
-      "column": "dog_id",
-      "source": "backend/db/schema/eli-v5.ts"
-    },
     {
       "table": "copresence_events",
       "column": "dog_a_id",
@@ -82,34 +107,9 @@
       "source": "backend/db/schema/community.ts"
     },
     {
-      "table": "dog_sub_baselines",
-      "column": "dog_id",
-      "source": "backend/db/schema/eli-v5.ts"
-    },
-    {
       "table": "professional_share_access_audits",
       "column": "dog_id",
       "source": "backend/db/schema/professional-sharing.ts"
-    },
-    {
-      "table": "recovery_events",
-      "column": "dog_id",
-      "source": "backend/db/schema/eli-v5.ts"
-    },
-    {
-      "table": "routine_stability",
-      "column": "dog_id",
-      "source": "backend/db/schema/eli-v5.ts"
-    },
-    {
-      "table": "user_config",
-      "column": "dog_id",
-      "source": "backend/db/schema/eli-v5.ts"
-    },
-    {
-      "table": "walk_quality",
-      "column": "dog_id",
-      "source": "backend/db/schema/eli-v5.ts"
     }
   ],
   "scopeLimitations": [
