@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "emopet-erasure-execution-dependency-plan-v1",
+  "status": "TECHNICAL_DELETE_DEPENDENCY_PLAN_NOT_ERASURE_AUTHORITY",
+  "claimsExecutableErasure": false,
+  "activationPrecondition": "ONLY_APPLIES_WHERE_APPROVED_DISPOSITION_IS_DELETE",
+  "accountRoot": {
+    "root": "users.id",
+    "rootDeletePhase": "AFTER_ALL_APPROVED_BLOCKING_RELATIONS_AND_NESTED_SUBJECT_ROOTS_ARE_RESOLVED",
+    "nestedSubjectRoots": [
+      {
+        "viaTable": "dogs",
+        "viaColumn": "owner_id",
+        "nestedRoot": "dogs.id",
+        "requirement": "RESOLVE_DOG_DISPOSITION_AND_REQUIRED_DESCENDANTS_BEFORE_USERS_DELETE"
+      }
+    ],
+    "blockingForeignKeys": [
+      { "table": "achievements", "column": "user_id", "source": "backend/db/schema/users.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" },
+      { "table": "ai_messages", "column": "target_user_id", "source": "backend/db/schema/ai.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" },
+      { "table": "auth_refresh_sessions", "column": "user_id", "source": "backend/db/schema/auth-sessions.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" },
+      { "table": "behavioral_assessments", "column": "respondent_user_id", "source": "backend/db/schema/behavioral-assessments.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" },
+      { "table": "comments", "column": "author_id", "source": "backend/db/schema/community.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" },
+      { "table": "communities", "column": "created_by", "source": "backend/db/schema/community.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" },
+      { "table": "community_events", "column": "created_by", "source": "backend/db/schema/community.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" },
+      { "table": "community_members", "column": "user_id", "source": "backend/db/schema/community.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" },
+      { "table": "community_rules_acceptances", "column": "user_id", "source": "backend/db/schema/community.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" },
+      { "table": "contact_requests", "column": "requester_user_id", "source": "backend/db/schema/contact.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" },
+      { "table": "dogs", "column": "owner_id", "source": "backend/db/schema/dogs.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "RESOLVE_NESTED_DOG_ROOT_BEFORE_USERS_DELETE" },
+      { "table": "posts", "column": "author_id", "source": "backend/db/schema/community.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" },
+      { "table": "professional_share_grants", "column": "owner_user_id", "source": "backend/db/schema/professional-sharing.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" },
+      { "table": "research_data_consents", "column": "user_id", "source": "backend/db/schema/behavioral-assessments.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" },
+      { "table": "subscriptions", "column": "user_id", "source": "backend/db/schema/users.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" }
+    ],
+    "unconstrainedIdentifiers": [
+      { "table": "user_config", "column": "user_id", "source": "backend/db/schema/eli-v5.ts", "executionRequirement": "EXPLICIT_LIFECYCLE_STEP_REQUIRED_BEFORE_COMPLETE_ERASURE_CLAIM" }
+    ]
+  },
+  "dogRoot": {
+    "root": "dogs.id",
+    "rootDeletePhase": "AFTER_ALL_APPROVED_BLOCKING_RELATIONS_ARE_RESOLVED",
+    "blockingForeignKeys": [
+      { "table": "ai_messages", "column": "dog_id", "source": "backend/db/schema/ai.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" },
+      { "table": "behavioral_assessments", "column": "dog_id", "source": "backend/db/schema/behavioral-assessments.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_PARENT_BEFORE_ROOT_DELETE_TRANSITIVE_CHILDREN_CASCADE_FROM_PARENT" },
+      { "table": "baselines", "column": "dog_id", "source": "backend/db/schema/sensors.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" },
+      { "table": "devices", "column": "dog_id", "source": "backend/db/schema/dogs.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" },
+      { "table": "eli_behavioral_priors", "column": "dog_id", "source": "backend/db/schema/behavioral-assessments.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" },
+      { "table": "eli_states", "column": "dog_id", "source": "backend/db/schema/sensors.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" },
+      { "table": "health_entries", "column": "dog_id", "source": "backend/db/schema/dogs.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" },
+      { "table": "professional_share_grants", "column": "dog_id", "source": "backend/db/schema/professional-sharing.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" },
+      { "table": "research_data_consents", "column": "dog_id", "source": "backend/db/schema/behavioral-assessments.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" },
+      { "table": "sensor_summaries", "column": "dog_id", "source": "backend/db/schema/sensors.ts", "databaseDeleteAction": "NO_ACTION_DEFAULT", "executionRequirement": "HANDLE_BEFORE_ROOT_DELETE_IF_REFERENCING_ROW_EXISTS" }
+    ],
+    "transitiveParentCascades": [
+      { "parentTable": "behavioral_assessments", "childTable": "behavioral_factor_scores", "column": "assessment_id", "source": "backend/db/schema/behavioral-assessments.ts", "databaseDeleteAction": "EXPLICIT_CASCADE_FROM_PARENT", "executionRequirement": "NO_SEPARATE_CHILD_DELETE_REQUIRED_IF_PARENT_DELETE_IS_APPROVED_AND_EXECUTED" },
+      { "parentTable": "behavioral_assessments", "childTable": "behavioral_responses", "column": "assessment_id", "source": "backend/db/schema/behavioral-assessments.ts", "databaseDeleteAction": "EXPLICIT_CASCADE_FROM_PARENT", "executionRequirement": "NO_SEPARATE_CHILD_DELETE_REQUIRED_IF_PARENT_DELETE_IS_APPROVED_AND_EXECUTED" }
+    ],
+    "unconstrainedIdentifiers": [
+      { "table": "anticipation_events", "column": "dog_id", "source": "backend/db/schema/eli-v5.ts", "executionRequirement": "EXPLICIT_LIFECYCLE_STEP_REQUIRED_BEFORE_COMPLETE_ERASURE_CLAIM" },
+      { "table": "baseline_drift_monitor", "column": "dog_id", "source": "backend/db/schema/eli-v5.ts", "executionRequirement": "EXPLICIT_LIFECYCLE_STEP_REQUIRED_BEFORE_COMPLETE_ERASURE_CLAIM" },
+      { "table": "copresence_events", "column": "dog_a_id", "source": "backend/db/schema/community.ts", "executionRequirement": "EXPLICIT_LIFECYCLE_STEP_REQUIRED_BEFORE_COMPLETE_ERASURE_CLAIM" },
+      { "table": "copresence_events", "column": "dog_b_id", "source": "backend/db/schema/community.ts", "executionRequirement": "EXPLICIT_LIFECYCLE_STEP_REQUIRED_BEFORE_COMPLETE_ERASURE_CLAIM" },
+      { "table": "dog_sub_baselines", "column": "dog_id", "source": "backend/db/schema/eli-v5.ts", "executionRequirement": "EXPLICIT_LIFECYCLE_STEP_REQUIRED_BEFORE_COMPLETE_ERASURE_CLAIM" },
+      { "table": "professional_share_access_audits", "column": "dog_id", "source": "backend/db/schema/professional-sharing.ts", "executionRequirement": "EXPLICIT_APPROVED_AUDIT_LIFECYCLE_STEP_REQUIRED_BEFORE_COMPLETE_ERASURE_CLAIM" },
+      { "table": "recovery_events", "column": "dog_id", "source": "backend/db/schema/eli-v5.ts", "executionRequirement": "EXPLICIT_LIFECYCLE_STEP_REQUIRED_BEFORE_COMPLETE_ERASURE_CLAIM" },
+      { "table": "routine_stability", "column": "dog_id", "source": "backend/db/schema/eli-v5.ts", "executionRequirement": "EXPLICIT_LIFECYCLE_STEP_REQUIRED_BEFORE_COMPLETE_ERASURE_CLAIM" },
+      { "table": "user_config", "column": "dog_id", "source": "backend/db/schema/eli-v5.ts", "executionRequirement": "EXPLICIT_LIFECYCLE_STEP_REQUIRED_BEFORE_COMPLETE_ERASURE_CLAIM" },
+      { "table": "walk_quality", "column": "dog_id", "source": "backend/db/schema/eli-v5.ts", "executionRequirement": "EXPLICIT_LIFECYCLE_STEP_REQUIRED_BEFORE_COMPLETE_ERASURE_CLAIM" }
+    ]
+  },
+  "nonSqlCompletionGates": [
+    { "surface": "OBJECT_MEDIA_STORAGE", "requirement": "APPROVED_DISPOSITION_PLUS_EXECUTION_EVIDENCE_REQUIRED" },
+    { "surface": "PROVIDER_HELD_COPIES", "requirement": "APPROVED_DISPOSITION_PLUS_EXECUTION_EVIDENCE_REQUIRED" },
+    { "surface": "CACHES_SEARCH_INDEXES", "requirement": "APPROVED_DISPOSITION_PLUS_EXECUTION_EVIDENCE_REQUIRED" },
+    { "surface": "ANALYTICS_TELEMETRY", "requirement": "APPROVED_DISPOSITION_PLUS_EXECUTION_EVIDENCE_REQUIRED" },
+    { "surface": "BACKUPS", "requirement": "APPROVED_DISPOSITION_PLUS_EXPIRY_OR_DELETION_EVIDENCE_REQUIRED" }
+  ],
+  "scopeLimitations": [
+    "This plan describes dependency order only when a future approved disposition requires deletion; it does not choose DELETE over anonymization, detachment or justified retention.",
+    "NO ACTION foreign keys identify root-delete blockers, not privacy policy.",
+    "Unconstrained identifiers cannot block a root SQL DELETE automatically, but they still block a complete erasure claim until their lifecycle step is approved and evidenced.",
+    "Non-SQL copies are completion gates and may require provider-specific or backup-expiry evidence outside the database transaction."
+  ]
+}
