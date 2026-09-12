@@ -10,8 +10,21 @@
   "rootDogProjection": {
     "status": "PARTIAL_FIELD_LEVEL_PROJECTION_IN_CURRENT_DOG_EXPORT",
     "routeSymbol": "dogs",
-    "includedSourceFields": ["id", "name", "breed", "birthDate", "sex", "weight"],
-    "notProjectedSourceFields": ["breedFciNumber", "furClass", "photoUrl", "createdAt", "updatedAt"],
+    "includedSourceFields": [
+      "id",
+      "name",
+      "breed",
+      "birthDate",
+      "sex",
+      "weight"
+    ],
+    "notProjectedSourceFields": [
+      "breedFciNumber",
+      "furClass",
+      "photoUrl",
+      "createdAt",
+      "updatedAt"
+    ],
     "note": "The current dogProfile payload is an explicit subset of the persisted dogs row and must not be described as a complete row dump."
   },
   "promotionGate": "BLOCK_COMPLETE_DOG_EXPORT_CLAIM_UNTIL_CANONICAL_AND_UNCONSTRAINED_DOG_LINKED_DATA_HAVE_EXPLICIT_PROJECTION_OR_JUSTIFIED_EXCLUSION",
@@ -24,11 +37,18 @@
       "projectionAuthority": "TO_CONFIRM"
     },
     {
-      "table": "behavioral_assessments",
+      "table": "anticipation_events",
       "column": "dog_id",
-      "routeSymbol": "behavioralAssessments",
+      "routeSymbol": "anticipationEvents",
       "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT",
-      "projectionAuthority": "TO_CONFIRM_BEHAVIORAL_ACCESS_PROJECTION"
+      "projectionAuthority": "TO_CONFIRM_ELI_V5_DISCLOSURE"
+    },
+    {
+      "table": "baseline_drift_monitor",
+      "column": "dog_id",
+      "routeSymbol": "baselineDriftMonitor",
+      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT",
+      "projectionAuthority": "TO_CONFIRM_ELI_V5_DISCLOSURE"
     },
     {
       "table": "baselines",
@@ -38,11 +58,25 @@
       "projectionAuthority": "BASELINE_METRICS_WITHHELD_PENDING_DISCLOSURE_AUTHORITY"
     },
     {
+      "table": "behavioral_assessments",
+      "column": "dog_id",
+      "routeSymbol": "behavioralAssessments",
+      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT",
+      "projectionAuthority": "TO_CONFIRM_BEHAVIORAL_ACCESS_PROJECTION"
+    },
+    {
       "table": "devices",
       "column": "dog_id",
       "routeSymbol": "devices",
       "implementationStatus": "INCLUDED_CURRENT_DOG_EXPORT_FIELD_LEVEL_PROJECTION",
       "projectionAuthority": "CURRENT_OWNER_DOG_EXPORT_DEVICE_METADATA_PROJECTION"
+    },
+    {
+      "table": "dog_sub_baselines",
+      "column": "dog_id",
+      "routeSymbol": "dogSubBaselines",
+      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT",
+      "projectionAuthority": "TO_CONFIRM_ELI_V5_DISCLOSURE"
     },
     {
       "table": "eli_behavioral_priors",
@@ -73,6 +107,13 @@
       "projectionAuthority": "TO_CONFIRM_SHARE_GRANT_ACCESS_PROJECTION"
     },
     {
+      "table": "recovery_events",
+      "column": "dog_id",
+      "routeSymbol": "recoveryEvents",
+      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT",
+      "projectionAuthority": "TO_CONFIRM_ELI_V5_DISCLOSURE"
+    },
+    {
       "table": "research_data_consents",
       "column": "dog_id",
       "routeSymbol": "researchDataConsents",
@@ -80,28 +121,35 @@
       "projectionAuthority": "TO_CONFIRM_CONSENT_RECORD_PROJECTION"
     },
     {
+      "table": "routine_stability",
+      "column": "dog_id",
+      "routeSymbol": "routineStability",
+      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT",
+      "projectionAuthority": "TO_CONFIRM_ELI_V5_DISCLOSURE"
+    },
+    {
       "table": "sensor_summaries",
       "column": "dog_id",
       "routeSymbol": "sensorSummaries",
       "implementationStatus": "INCLUDED_CURRENT_DOG_EXPORT_PREPROCESSED",
       "projectionAuthority": "CURRENT_OWNER_DOG_EXPORT_PREPROCESSED_PROJECTION"
+    },
+    {
+      "table": "user_config",
+      "column": "dog_id",
+      "routeSymbol": "userConfig",
+      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT",
+      "projectionAuthority": "TO_CONFIRM_ELI_V5_DISCLOSURE"
+    },
+    {
+      "table": "walk_quality",
+      "column": "dog_id",
+      "routeSymbol": "walkQuality",
+      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT",
+      "projectionAuthority": "TO_CONFIRM_ELI_V5_DISCLOSURE"
     }
   ],
   "unconstrainedDogIdentifiers": [
-    {
-      "table": "anticipation_events",
-      "column": "dog_id",
-      "routeSymbol": "anticipationEvents",
-      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT_UNCONSTRAINED_IDENTIFIER",
-      "projectionAuthority": "TO_CONFIRM_LEGACY_ELI_V5_MIGRATION_AND_DISCLOSURE"
-    },
-    {
-      "table": "baseline_drift_monitor",
-      "column": "dog_id",
-      "routeSymbol": "baselineDriftMonitor",
-      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT_UNCONSTRAINED_IDENTIFIER",
-      "projectionAuthority": "TO_CONFIRM_LEGACY_ELI_V5_MIGRATION_AND_DISCLOSURE"
-    },
     {
       "table": "copresence_events",
       "column": "dog_a_id",
@@ -117,46 +165,11 @@
       "projectionAuthority": "TO_CONFIRM_COMMUNITY_LOCATION_ACCESS_POLICY"
     },
     {
-      "table": "dog_sub_baselines",
-      "column": "dog_id",
-      "routeSymbol": "dogSubBaselines",
-      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT_UNCONSTRAINED_IDENTIFIER",
-      "projectionAuthority": "TO_CONFIRM_LEGACY_ELI_V5_MIGRATION_AND_DISCLOSURE"
-    },
-    {
       "table": "professional_share_access_audits",
       "column": "dog_id",
       "routeSymbol": "professionalShareAccessAudits",
       "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT_UNCONSTRAINED_IDENTIFIER",
       "projectionAuthority": "TO_CONFIRM_SECURITY_AUDIT_DISCLOSURE_AND_RETENTION"
-    },
-    {
-      "table": "recovery_events",
-      "column": "dog_id",
-      "routeSymbol": "recoveryEvents",
-      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT_UNCONSTRAINED_IDENTIFIER",
-      "projectionAuthority": "TO_CONFIRM_LEGACY_ELI_V5_MIGRATION_AND_DISCLOSURE"
-    },
-    {
-      "table": "routine_stability",
-      "column": "dog_id",
-      "routeSymbol": "routineStability",
-      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT_UNCONSTRAINED_IDENTIFIER",
-      "projectionAuthority": "TO_CONFIRM_LEGACY_ELI_V5_MIGRATION_AND_DISCLOSURE"
-    },
-    {
-      "table": "user_config",
-      "column": "dog_id",
-      "routeSymbol": "userConfig",
-      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT_UNCONSTRAINED_IDENTIFIER",
-      "projectionAuthority": "TO_CONFIRM_LEGACY_ELI_V5_MIGRATION_AND_DISCLOSURE"
-    },
-    {
-      "table": "walk_quality",
-      "column": "dog_id",
-      "routeSymbol": "walkQuality",
-      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT_UNCONSTRAINED_IDENTIFIER",
-      "projectionAuthority": "TO_CONFIRM_LEGACY_ELI_V5_MIGRATION_AND_DISCLOSURE"
     }
   ],
   "knownOutOfScopeForThisPostgresRouteMatrix": [
