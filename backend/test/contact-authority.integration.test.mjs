@@ -25,9 +25,10 @@ test('CONTACT-AUTH-01 keeps every file-backed Contact surface behind the same no
     readFile(new URL('../api/index.ts', import.meta.url), 'utf8'),
   ]);
 
-  assert.match(authority, /CONTACT-AUTH-01/);
-  assert.match(authority, /NODE_ENV\s*===\s*['"]production['"]/);
-  assert.match(authority, /EMOPET_ALLOW_LEGACY_CONTACT_ROUTES/);
+  assert.match(authority, /LEGACY_CONTACT_DEMO_ENV/);
+  assert.match(authority, /LEGACY_CONTACT_DATA_PLANE_DISABLED/);
+  assert.match(authority, /NODE_ENV\s*!==\s*['"]production['"]/);
+  assert.match(authority, /env\[LEGACY_CONTACT_DEMO_ENV\]\s*===\s*['"]1['"]/);
   assert.match(authority, /private, no-store/);
 
   for (const source of [publicContact, adminContact, mixedModeration]) {
