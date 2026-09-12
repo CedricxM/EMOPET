@@ -14,6 +14,8 @@ on:
       - 'backend/api/routes/sensors.ts'
       - 'backend/api/routes/data-export.ts'
       - 'backend/api/services/data-export-*.ts'
+      - 'backend/api/services/subject-access.ts'
+      - 'backend/api/services/subject-discovery.ts'
       - 'backend/api/routes/community.ts'
       - 'backend/api/services/community-*.ts'
       - 'backend/test/auth-*.test.mjs'
@@ -24,6 +26,7 @@ on:
       - 'backend/test/community-*.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
       - 'backend/test/id-01-referential-integrity.sql'
+      - 'backend/test/subject-discovery-postgres.test.mjs'
       - 'backend/test/privacy-*.test.mjs'
       - 'backend/test/privacy-user-subject-lineage.test.mjs'
       - 'backend/test/privacy-dog-subject-lineage.test.mjs'
@@ -197,6 +200,14 @@ jobs:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
           EMOPET_DB_INTEGRATION_TEST: '1'
         run: node --test test/community-feed.integration.test.mjs
+
+      - name: PRIV-DISC-01 read-only subject discovery on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          SUBJECT_DISCOVERY_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/subject-discovery-postgres.test.mjs
 
       - name: Verify generated snapshot is stable
         working-directory: backend
