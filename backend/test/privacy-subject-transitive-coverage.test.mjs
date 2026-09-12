@@ -60,7 +60,7 @@ test('transitive subject persistence has explicit privacy classification state',
     assert.equal(entry?.parentTable, 'behavioral_assessments');
   }
 
-  assert.match(coverage.scope, /transitive descendants/i);
+  assert.match(coverage.scope, /direct children/i);
   assert.ok(coverage.scopeLimitations.some((item) => item.includes('visibility state')));
   assert.ok(coverage.scopeLimitations.some((item) => item.includes('navigation hints')));
 });
