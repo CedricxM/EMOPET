@@ -80,6 +80,7 @@ test('machine-readable user subject lineage covers every direct users.id foreign
     'dogs.owner_id',
     'professional_share_grants.owner_user_id',
     'research_data_consents.user_id',
+    'user_config.user_id',
   ]) {
     assert.ok(
       registered.some((entry) => `${entry.table}.${entry.column}` === required),
@@ -105,7 +106,7 @@ test('user-like non-FK identifiers stay explicit instead of disappearing from ac
     'every persisted *user_id column without a direct users.id FK must remain visible in the user subject-lineage registry',
   );
   assert.ok(
-    registered.some((entry) => `${entry.table}.${entry.column}` === 'user_config.user_id'),
-    'user_config.user_id must remain visible until it gains a canonical FK or explicit lifecycle handling',
+    !registered.some((entry) => `${entry.table}.${entry.column}` === 'user_config.user_id'),
+    'user_config.user_id must leave the unconstrained registry once it has a canonical users.id FK',
   );
 });
