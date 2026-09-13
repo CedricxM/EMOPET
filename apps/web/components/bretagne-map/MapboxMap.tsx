@@ -14,6 +14,7 @@
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from 'mapbox-gl';
 import { useEffect, useRef, useState } from 'react';
+import { getControlledMapboxToken } from '../../lib/mapbox-rights';
 import { categoryMeta } from './spots';
 import type { CommunitySpot } from './spots';
 import { fetchOsmSpots } from '../../lib/osm-spots';
@@ -99,9 +100,8 @@ export function MapboxMap({ spots, events, selectedSpotId, onSpotClick, onEventC
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-    const rightsGate = process.env.NEXT_PUBLIC_EMOPET_MAPBOX_RIGHTS_GATE;
-    if (!token || rightsGate !== 'GO' || !containerRef.current) return;
+    const token = getControlledMapboxToken();
+    if (!token || !containerRef.current) return;
 
     mapboxgl.accessToken = token;
     const map = new mapboxgl.Map({
