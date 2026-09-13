@@ -11,6 +11,7 @@ const PUBLIC_SOURCE_FIXTURE: BreizDocument = {
   title: 'Verified public source fixture',
   source_name: 'Controlled test fixture',
   source_url: 'https://example.invalid/controlled-fixture',
+  source_registry_id: 'region-bretagne-open-data',
   license: 'Test fixture only',
   territory: 'Bretagne',
   region: 'Bretagne',
@@ -19,7 +20,7 @@ const PUBLIC_SOURCE_FIXTURE: BreizDocument = {
   theme: 'test',
   tags: ['controlled', 'fixture'],
   summary: 'Fixture used only to prove the retriever public-answer filter.',
-  content: 'controlled-public-sentinel information is available from this verified test fixture',
+  content: 'controlled-public-sentinel information must stay withheld without registry rights evidence',
   reliability_level: 'source_verified',
   last_checked_at: '2026-09-13',
   allowed_usage: 'public_answer_with_source',
@@ -46,6 +47,7 @@ test('Breiz local ingestion cannot self-authorize verified public answers', () =
         title: 'Self authorization sentinel',
         source_name: 'Unreviewed local payload',
         source_url: 'https://example.invalid/unreviewed',
+        source_registry_id: 'region-bretagne-open-data',
         license: 'CC-BY-4.0',
         content: 'sentinel-rights-bypass should never become a public answer from raw import alone',
         reliability_level: 'source_verified',
@@ -59,6 +61,7 @@ test('Breiz local ingestion cannot self-authorize verified public answers', () =
   assert.equal(result.documents.length, 1);
   assert.equal(result.documents[0]!.allowed_usage, 'retrieval_only');
   assert.equal(result.documents[0]!.reliability_level, 'unknown');
+  assert.equal(result.documents[0]!.source_registry_id, undefined);
 
   const store = createBreizMockStore(result.documents);
   const answer = retrieveBreizLocalKnowledge('sentinel-rights-bypass', store);
@@ -75,17 +78,12 @@ test('Breiz chunks export vector-store-ready metadata', () => {
   assert.ok('source_name' in exported[0]!.metadata);
 });
 
-test('Breiz retriever answers only from an explicitly verified public fixture', () => {
+test('Breiz public flags are insufficient without registry rightsEvidence + GO', () => {
   const store = createBreizMockStore([PUBLIC_SOURCE_FIXTURE]);
   const answer = retrieveBreizLocalKnowledge('controlled-public-sentinel', store);
-  assert.equal(answer.status, 'answered_from_sources');
-  assert.ok(answer.source_refs.length > 0);
-
-  const missing = retrieveBreizLocalKnowledge('zzznomatch qqq void', store);
-  assert.equal(missing.status, 'not_enough_information');
-  assert.equal(missing.chunks.length, 0);
-  assert.equal(missing.source_refs.length, 0);
-  assert.ok(missing.note.includes('does not contain enough sourced information'));
+  assert.equal(answer.status, 'not_enough_information');
+  assert.equal(answer.chunks.length, 0);
+  assert.equal(answer.source_refs.length, 0);
 });
 
 test('Breiz default mock corpus cannot produce public answers', () => {
