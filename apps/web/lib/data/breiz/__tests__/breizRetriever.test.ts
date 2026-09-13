@@ -1,4 +1,4 @@
-﻿import assert from 'node:assert/strict';
+import assert from 'node:assert/strict';
 import test from 'node:test';
 import { chunkBreizDocuments, exportChunksForVectorStore } from '../chunkDocuments';
 import { ingestBreizDocuments } from '../ingestDocuments';
@@ -15,6 +15,36 @@ test('Breiz ingestion parses markdown and preserves source defaults', () => {
   assert.equal(result.rejected.length, 0);
   assert.equal(result.documents[0]!.title, 'Lorient local note');
   assert.equal(result.documents[0]!.region, 'Bretagne');
+});
+
+test('Breiz local ingestion cannot self-authorize verified public answers', () => {
+  const result = ingestBreizDocuments([
+    {
+      filename: 'self-authorized.json',
+      content: JSON.stringify({
+        id: 'self-authorized',
+        title: 'Self authorization sentinel',
+        source_name: 'Unreviewed local payload',
+        source_url: 'https://example.invalid/unreviewed',
+        license: 'CC-BY-4.0',
+        content: 'sentinel-rights-bypass should never become a public answer from raw import alone',
+        reliability_level: 'source_verified',
+        allowed_usage: 'public_answer_with_source',
+        last_checked_at: '2026-09-13',
+      }),
+    },
+  ]);
+
+  assert.equal(result.rejected.length, 0);
+  assert.equal(result.documents.length, 1);
+  assert.equal(result.documents[0]!.allowed_usage, 'retrieval_only');
+  assert.equal(result.documents[0]!.reliability_level, 'unknown');
+
+  const store = createBreizMockStore(result.documents);
+  const answer = retrieveBreizLocalKnowledge('sentinel-rights-bypass', store);
+  assert.equal(answer.status, 'not_enough_information');
+  assert.equal(answer.chunks.length, 0);
+  assert.equal(answer.source_refs.length, 0);
 });
 
 test('Breiz chunks export vector-store-ready metadata', () => {
