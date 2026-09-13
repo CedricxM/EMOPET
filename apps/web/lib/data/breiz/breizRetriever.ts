@@ -1,6 +1,7 @@
 import { chunkBreizDocuments } from './chunkDocuments';
 import { MOCK_BREIZ_DOCUMENTS } from './mockDocuments';
 import { MockBreizVectorStore } from './mockVectorStore';
+import { getBreizSource, isBreizSourceReleaseReady } from './sourceRegistry';
 import type { BreizDocument, BreizDocumentChunk } from './breizDocument.schema';
 
 export interface BreizRetrievalAnswer {
@@ -12,17 +13,24 @@ export interface BreizRetrievalAnswer {
 }
 
 /**
- * Public-answer retrieval is fail-closed: a chunk must be both explicitly
- * allowed for sourced public answers and already source-verified. Generic/local
- * ingestion cannot assign `source_verified`, so raw files cannot self-promote
- * into this path.
- *
- * This is still not a substitute for DATA-LIC-G6 rightsEvidence review. It is a
- * runtime containment boundary while item-level promotion authority is built.
+ * Public-answer retrieval is fail-closed. A chunk must be explicitly marked for
+ * sourced public answers, source-verified, bound to the controlled Breiz source
+ * registry, and that registry entry must currently pass the reviewed rights
+ * evidence + GO release gate.
  */
 function canAnswerFromChunk(chunk: BreizDocumentChunk): boolean {
-  return chunk.metadata.allowed_usage === 'public_answer_with_source' &&
-    chunk.metadata.reliability_level === 'source_verified';
+  if (
+    chunk.metadata.allowed_usage !== 'public_answer_with_source' ||
+    chunk.metadata.reliability_level !== 'source_verified'
+  ) {
+    return false;
+  }
+
+  const sourceRegistryId = chunk.metadata.source_registry_id?.trim();
+  if (!sourceRegistryId) return false;
+
+  const source = getBreizSource(sourceRegistryId);
+  return source != null && isBreizSourceReleaseReady(source);
 }
 
 export function createBreizMockStore(documents: BreizDocument[] = MOCK_BREIZ_DOCUMENTS): MockBreizVectorStore {
