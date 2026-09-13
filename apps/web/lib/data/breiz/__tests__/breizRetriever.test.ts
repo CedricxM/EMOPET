@@ -1,9 +1,29 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import type { BreizDocument } from '../breizDocument.schema';
 import { chunkBreizDocuments, exportChunksForVectorStore } from '../chunkDocuments';
 import { ingestBreizDocuments } from '../ingestDocuments';
 import { MOCK_BREIZ_DOCUMENTS } from '../mockDocuments';
 import { createBreizMockStore, retrieveBreizLocalKnowledge } from '../breizRetriever';
+
+const PUBLIC_SOURCE_FIXTURE: BreizDocument = {
+  id: 'verified-public-fixture',
+  title: 'Verified public source fixture',
+  source_name: 'Controlled test fixture',
+  source_url: 'https://example.invalid/controlled-fixture',
+  license: 'Test fixture only',
+  territory: 'Bretagne',
+  region: 'Bretagne',
+  department: null,
+  commune: 'Lorient',
+  theme: 'test',
+  tags: ['controlled', 'fixture'],
+  summary: 'Fixture used only to prove the retriever public-answer filter.',
+  content: 'controlled-public-sentinel information is available from this verified test fixture',
+  reliability_level: 'source_verified',
+  last_checked_at: '2026-09-13',
+  allowed_usage: 'public_answer_with_source',
+};
 
 test('Breiz ingestion parses markdown and preserves source defaults', () => {
   const result = ingestBreizDocuments([
@@ -55,9 +75,9 @@ test('Breiz chunks export vector-store-ready metadata', () => {
   assert.ok('source_name' in exported[0]!.metadata);
 });
 
-test('Breiz retrieval returns sourced chunks or not_enough_information', () => {
-  const store = createBreizMockStore(MOCK_BREIZ_DOCUMENTS);
-  const answer = retrieveBreizLocalKnowledge('Lorient harbor walk', store);
+test('Breiz retriever answers only from an explicitly verified public fixture', () => {
+  const store = createBreizMockStore([PUBLIC_SOURCE_FIXTURE]);
+  const answer = retrieveBreizLocalKnowledge('controlled-public-sentinel', store);
   assert.equal(answer.status, 'answered_from_sources');
   assert.ok(answer.source_refs.length > 0);
 
@@ -66,6 +86,13 @@ test('Breiz retrieval returns sourced chunks or not_enough_information', () => {
   assert.equal(missing.chunks.length, 0);
   assert.equal(missing.source_refs.length, 0);
   assert.ok(missing.note.includes('does not contain enough sourced information'));
+});
+
+test('Breiz default mock corpus cannot produce public answers', () => {
+  const answer = retrieveBreizLocalKnowledge('Lorient harbor walk');
+  assert.equal(answer.status, 'not_enough_information');
+  assert.equal(answer.chunks.length, 0);
+  assert.equal(answer.source_refs.length, 0);
 });
 
 test('Breiz retrieval filters internal_reference chunks from public answers', () => {
