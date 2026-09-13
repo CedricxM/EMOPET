@@ -9,6 +9,8 @@ on:
       - 'backend/test/migration-0012-upgrade-postcheck.sql'
       - 'backend/test/migration-0013-eli-identity-seed.sql'
       - 'backend/test/migration-0013-eli-identity-postcheck.sql'
+      - 'backend/test/migration-full-chain-core-seed.sql'
+      - 'backend/test/migration-full-chain-core-postcheck.sql'
       - '.github/workflows/p0-db-upgrade-rehearsal.yml'
   workflow_dispatch:
 
@@ -223,3 +225,63 @@ jobs:
           echo 'This job proves only the disposable 0012 -> 0013 ELI shared-identity transition and its fail-closed validation behavior.'
           echo 'It deliberately refuses non-UUID or orphan legacy identifiers instead of inventing mappings.'
           echo 'It does not authorize a production migration or define remediation for real invalid production data.'
+
+  full-chain-populated-core-upgrade:
+    name: Populated core -> current historical chain rehearsal
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: emopet_qa
+          POSTGRES_PASSWORD: emopet_qa_only
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U emopet_qa -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      PGPASSWORD: emopet_qa_only
+      FULL_CHAIN_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_upgrade_full_chain
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Build populated reconstructed core before migration 0001
+        run: |
+          createdb -h 127.0.0.1 -p 5432 -U emopet_qa emopet_upgrade_full_chain
+
+          for file in $(find backend/db/baseline-draft -maxdepth 1 -type f -name '*.sql' | sort); do
+            echo "Applying prerequisite $file"
+            psql "$FULL_CHAIN_DATABASE_URL" -v ON_ERROR_STOP=1 -f "$file"
+          done
+
+          psql "$FULL_CHAIN_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/migration-full-chain-core-seed.sql
+
+      - name: Apply complete historical migration chain over populated core
+        run: |
+          for file in $(find backend/db/migrations -maxdepth 1 -type f -name '*.sql' | sort); do
+            echo "Applying $file"
+            psql "$FULL_CHAIN_DATABASE_URL" -v ON_ERROR_STOP=1 -f "$file"
+          done
+
+      - name: Verify populated core survived through current schema
+        run: psql "$FULL_CHAIN_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/migration-full-chain-core-postcheck.sql
+
+      - name: Maturity boundary
+        if: always()
+        run: |
+          echo 'This job proves representative core rows survive the reconstructed pre-0001 baseline through the complete checked-in migration chain.'
+          echo 'It is not evidence from a real production dump and does not replace staging, backup/restore, rollback, lock-time or operator-runbook validation.'
