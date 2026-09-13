@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, date, integer, doublePrecision, serial, jsonb, primaryKey, uniqueIndex, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, date, integer, doublePrecision, serial, jsonb, primaryKey, unique, index } from 'drizzle-orm/pg-core';
 
 // ─── Dataset Governance ─────────────────────────────────────────────
 
@@ -72,7 +72,7 @@ export const imuDiscriminationThresholds = pgTable('imu_discrimination_threshold
   sourceDataset: text('source_dataset').references(() => datasetRegistry.datasetId),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => [
-  uniqueIndex('uq_discrimination').on(table.activityA, table.activityB, table.featureName, table.placement),
+  unique('uq_discrimination').on(table.activityA, table.activityB, table.featureName, table.placement),
 ]);
 
 // ─── IMU Shake Filter (Posture Dataset) ─────────────────────────────
