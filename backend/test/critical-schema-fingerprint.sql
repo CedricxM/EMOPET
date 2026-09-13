@@ -1,8 +1,8 @@
 \set ON_ERROR_STOP on
 
--- Stable semantic fingerprint for the cross-domain identity/provenance surfaces
--- where historical SQL and the active Drizzle schema must converge.
--- Intentionally compares meaning rather than constraint creation order or
+-- Stable semantic fingerprint for cross-domain identity/provenance and ELI
+-- surfaces where historical SQL and the active Drizzle schema must converge.
+-- Intentionally compares meaning rather than migration creation order or
 -- pg_dump formatting.
 
 WITH critical_columns(table_name, column_name) AS (
@@ -129,4 +129,91 @@ SELECT 'INDEX|'
      'idx_sensor_summaries_device_timestamp'
    )
  GROUP BY table_rel.relname, index_rel.relname, idx.indisunique
+ ORDER BY table_rel.relname, index_rel.relname;
+
+-- Full ELI column semantics. This catches precision/default/nullability drift,
+-- including PostgreSQL FLOAT (double precision) vs REAL (float4).
+WITH eli_tables(table_name) AS (
+  VALUES
+    ('dog_sub_baselines'),
+    ('recovery_events'),
+    ('anticipation_events'),
+    ('baseline_drift_monitor'),
+    ('walk_quality'),
+    ('routine_stability'),
+    ('user_config')
+)
+SELECT 'ELI_COLUMN|'
+       || c.table_name || '|'
+       || c.column_name || '|'
+       || c.data_type || '|'
+       || c.udt_name || '|'
+       || COALESCE(c.character_maximum_length::text, '-') || '|'
+       || c.is_nullable || '|'
+       || COALESCE(c.column_default, '-')
+  FROM information_schema.columns c
+  JOIN eli_tables wanted ON wanted.table_name = c.table_name
+ WHERE c.table_schema = 'public'
+ ORDER BY c.table_name, c.ordinal_position;
+
+-- Compare CHECK meaning without depending on constraint names, which differ
+-- between column-level historical SQL and explicitly named Drizzle checks.
+SELECT 'ELI_CHECK|'
+       || rel.relname || '|'
+       || regexp_replace(pg_get_constraintdef(con.oid, true), '\s+', ' ', 'g')
+  FROM pg_constraint con
+  JOIN pg_class rel ON rel.oid = con.conrelid
+  JOIN pg_namespace ns ON ns.oid = rel.relnamespace
+ WHERE con.contype = 'c'
+   AND ns.nspname = 'public'
+   AND rel.relname IN (
+     'dog_sub_baselines',
+     'recovery_events',
+     'anticipation_events',
+     'routine_stability',
+     'user_config'
+   )
+ ORDER BY rel.relname, pg_get_constraintdef(con.oid, true);
+
+-- Include all ELI primary-key shapes, including serial event tables.
+SELECT 'ELI_PK|'
+       || rel.relname || '|'
+       || string_agg(att.attname, ',' ORDER BY key_col.ord)
+  FROM pg_constraint con
+  JOIN pg_class rel ON rel.oid = con.conrelid
+  JOIN pg_namespace ns ON ns.oid = rel.relnamespace
+  JOIN LATERAL unnest(con.conkey) WITH ORDINALITY key_col(attnum, ord) ON true
+  JOIN pg_attribute att
+    ON att.attrelid = rel.oid
+   AND att.attnum = key_col.attnum
+ WHERE con.contype = 'p'
+   AND ns.nspname = 'public'
+   AND rel.relname IN (
+     'dog_sub_baselines',
+     'recovery_events',
+     'anticipation_events',
+     'baseline_drift_monitor',
+     'walk_quality',
+     'routine_stability',
+     'user_config'
+   )
+ GROUP BY rel.relname
+ ORDER BY rel.relname;
+
+-- pg_get_indexdef exposes sort direction as well as indexed columns. These
+-- historical indexes intentionally order event time DESC for newest-first use.
+SELECT 'ELI_INDEX|'
+       || table_rel.relname || '|'
+       || index_rel.relname || '|'
+       || pg_get_indexdef(idx.indexrelid)
+  FROM pg_index idx
+  JOIN pg_class table_rel ON table_rel.oid = idx.indrelid
+  JOIN pg_namespace ns ON ns.oid = table_rel.relnamespace
+  JOIN pg_class index_rel ON index_rel.oid = idx.indexrelid
+ WHERE ns.nspname = 'public'
+   AND index_rel.relname IN (
+     'idx_recovery_events_dog_time',
+     'idx_anticipation_events_dog_time',
+     'idx_walk_quality_dog_date'
+   )
  ORDER BY table_rel.relname, index_rel.relname;
