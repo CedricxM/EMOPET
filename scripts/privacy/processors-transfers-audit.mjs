@@ -30,12 +30,25 @@ for (const id of [
   if (!byId.has(id)) fail(`runtime egress inventory is missing ${id}`);
 }
 
-const [breiz, notify, weather, backendWeather, mapbox, overpass, providerConfig, adapters] = await Promise.all([
+const [
+  reiz,
+  notify,
+  weather,
+  backendWeather,
+  communityMap,
+  mapbox,
+  mapboxRights,
+  overpass,
+  providerConfig,
+  adapters,
+] = await Promise.all([
   read('apps/web/app/api/breiz/route.ts'),
   read('apps/web/lib/server/notify.ts'),
   read('apps/web/lib/weather.ts'),
   read('backend/api/services/weather.ts'),
+  read('apps/web/components/bretagne-map/CommunityMap.tsx'),
   read('apps/web/components/bretagne-map/MapboxMap.tsx'),
+  read('apps/web/lib/mapbox-rights.ts'),
   read('apps/web/lib/osm-spots.ts'),
   read('apps/web/lib/api/config.ts'),
   read('apps/web/lib/api/adapters/index.ts'),
@@ -51,8 +64,8 @@ function requireBefore(source, gateMarker, egressMarker, label) {
   }
 }
 
-requireBefore(breiz, "process.env['EMOPET_ANTHROPIC_EGRESS_GATE'] === 'GO'", "fetch('https://api.anthropic.com/v1/messages'", 'Anthropic/Breiz');
-if (!breiz.includes('!apiKey || !anthropicEgressAllowed')) fail('Anthropic/Breiz must fail closed unless both API key and explicit egress gate are present');
+requireBefore(reiz, "process.env['EMOPET_ANTHROPIC_EGRESS_GATE'] === 'GO'", "fetch('https://api.anthropic.com/v1/messages'", 'Anthropic/Breiz');
+if (!reiz.includes('!apiKey || !anthropicEgressAllowed')) fail('Anthropic/Breiz must fail closed unless both API key and explicit egress gate are present');
 
 requireBefore(notify, "process.env['EMOPET_RESEND_EGRESS_GATE'] === 'GO'", "fetch('https://api.resend.com/emails'", 'Resend contact notification');
 if (!notify.includes('if (!resendEgressAllowed)')) fail('Resend notification must fail closed when its explicit egress gate is not GO');
@@ -64,8 +77,21 @@ if (!weather.includes('if (!OPEN_METEO_EGRESS_ALLOWED) return [];')) fail('Open-
 requireBefore(backendWeather, "process.env['EMOPET_OPENWEATHERMAP_EGRESS_GATE'] === 'GO'", 'const res = await fetch(url);', 'OpenWeatherMap backend weather');
 if (!backendWeather.includes('if (!OWM_EGRESS_ALLOWED)')) fail('OpenWeatherMap backend weather must fail closed when its explicit egress gate is not GO');
 
-if (!mapbox.includes('process.env.NEXT_PUBLIC_EMOPET_MAPBOX_RIGHTS_GATE') || !mapbox.includes("rightsGate !== 'GO'")) fail('Mapbox must remain disabled unless the explicit rights gate is GO');
-if (!mapbox.includes('NEXT_PUBLIC_MAPBOX_TOKEN')) fail('Mapbox runtime must still require its token in addition to the operator gate');
+if (!mapboxRights.includes('process.env.NEXT_PUBLIC_EMOPET_MAPBOX_RIGHTS_GATE') || !mapboxRights.includes("rightsGate !== 'GO'")) {
+  fail('Mapbox must remain disabled unless the explicit rights gate is GO');
+}
+if (!mapboxRights.includes('process.env.NEXT_PUBLIC_MAPBOX_TOKEN')) {
+  fail('Mapbox runtime must still require its token in addition to the operator gate');
+}
+if (!communityMap.includes('getControlledMapboxToken')) {
+  fail('Mapbox wrapper must use the canonical runtime authority helper');
+}
+if (!mapbox.includes('getControlledMapboxToken')) {
+  fail('Mapbox renderer must use the canonical runtime authority helper');
+}
+if (!mapbox.includes('attributionControl: true')) {
+  fail('Mapbox renderer must keep attribution controls enabled');
+}
 
 if (!overpass.includes("process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE === 'GO'")) fail('Overpass must remain disabled unless its explicit rights gate is GO');
 if (!overpass.includes('if (!OVERPASS_RUNTIME_ALLOWED) return [];')) fail('Overpass must fail closed before querying the public endpoint');
