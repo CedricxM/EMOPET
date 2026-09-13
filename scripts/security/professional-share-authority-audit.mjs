@@ -174,8 +174,30 @@ for (const forbidden of ['...snapshot', '...trend', 'ownerNotes: snapshot.ownerN
   }
 }
 
+const boundedSnapshot = requireText('backend/api/services/professional-share-vet-snapshot.ts', [
+  'collectProfessionalShareVetSnapshot',
+  'authorization.dataFrom',
+  'authorization.dataTo',
+  'eq(sensorSummaries.dogId, authorization.dogId)',
+  'gte(sensorSummaries.timestamp, from)',
+  'lte(sensorSummaries.timestamp, to)',
+  'ownerNotes: []',
+]);
+for (const forbidden of [
+  'healthEntries',
+  'listHealthEntries',
+  'loadVetReportSummary',
+  'createVetReportSummaryLoader',
+]) {
+  if (boundedSnapshot.includes(forbidden)) {
+    failures.push(`bounded professional-share collector must not read legacy/unapproved data source: ${forbidden}`);
+  }
+}
+
 const recipientRead = requireText('backend/api/services/professional-share-recipient-read.ts', [
   'createProfessionalShareRecipientReadBoundary',
+  'collectProfessionalShareVetSnapshot',
+  'const collect = options.collect ?? collectProfessionalShareVetSnapshot',
   'lockPublicationAuthority',
   'const collectedSnapshot = await collect({ tx, authorization: preflight })',
   ".for('share')",
@@ -187,6 +209,9 @@ const recipientRead = requireText('backend/api/services/professional-share-recip
 ]);
 if (recipientRead.includes('guardianUserId') || recipientRead.includes('hasCurrentGuardianAuthority')) {
   failures.push('recipient-read authority still exposes Guardian terminology');
+}
+if (recipientRead.includes('loadVetReportSummary') || recipientRead.includes('createVetReportSummaryLoader')) {
+  failures.push('recipient-read boundary must not fall back to the legacy unbounded veterinary report loader');
 }
 const finalGuardIndex = recipientRead.indexOf('if (!finalDecision.allowed) return finalDecision;');
 const projectionIndex = recipientRead.indexOf('projectProfessionalShareSnapshot(finalDecision, collectedSnapshot)');
