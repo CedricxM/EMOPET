@@ -9,6 +9,7 @@ on:
 permissions:
   contents: read
   actions: read
+  checks: read
   pull-requests: read
 
 env:
@@ -224,7 +225,7 @@ jobs:
           node-version: '20'
       - name: Test CodeQL evidence gate
         run: node --test scripts/security/verify-codeql-default-setup.test.mjs
-      - name: Require successful GitHub CodeQL analysis and upload for this commit
+      - name: Require successful GitHub CodeQL analysis, upload and findings check for this commit
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CODEQL_EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}

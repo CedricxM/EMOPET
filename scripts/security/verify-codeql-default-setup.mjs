@@ -3,6 +3,8 @@ import { pathToFileURL } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 
 const workflowPath = 'dynamic/github-code-scanning/codeql';
+const codeqlSecurityCheckName = 'CodeQL';
+const codeqlSecurityAppSlug = 'github-advanced-security';
 const requiredJobs = [
   'Analyze (actions)',
   'Analyze (c-cpp)',
@@ -35,13 +37,38 @@ export function requireCodeqlAnalysis(run, jobs, expectedSha) {
   }
 }
 
+export function selectCodeqlSecurityCheck(checkRuns, expectedSha) {
+  return checkRuns
+    .filter((check) =>
+      check.head_sha === expectedSha &&
+      check.name === codeqlSecurityCheckName &&
+      check.app?.slug === codeqlSecurityAppSlug)
+    .sort((a, b) => Number(b.id ?? 0) - Number(a.id ?? 0))[0];
+}
+
+export function requireCodeqlSecurityCheck(check, expectedSha) {
+  if (!check ||
+      check.head_sha !== expectedSha ||
+      check.name !== codeqlSecurityCheckName ||
+      check.app?.slug !== codeqlSecurityAppSlug) {
+    throw new Error('No GitHub Advanced Security CodeQL findings check for the exact requested commit.');
+  }
+  if (check.status !== 'completed' || check.conclusion !== 'success') {
+    throw new Error(
+      `CodeQL findings check ${check.id ?? 'unknown'} is ${check.status}/${check.conclusion ?? 'no conclusion'}; ` +
+      'GitHub Advanced Security findings must pass at the configured threshold.',
+    );
+  }
+  return check;
+}
+
 async function main() {
   const repository = process.env.GITHUB_REPOSITORY;
   const expectedSha = process.env.CODEQL_EXPECTED_SHA;
   const token = process.env.GITHUB_TOKEN;
   if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository ?? '') ||
       !/^[a-f0-9]{40}$/.test(expectedSha ?? '') || !token) {
-    throw new Error('Repository, exact commit SHA and GitHub Actions read token are required.');
+    throw new Error('Repository, exact commit SHA and GitHub Actions/checks read token are required.');
   }
 
   async function get(path) {
@@ -53,12 +80,13 @@ async function main() {
       },
       signal: AbortSignal.timeout(15_000),
     });
-    if (!response.ok) throw new Error(`GitHub Actions evidence request failed: HTTP ${response.status}.`);
+    if (!response.ok) throw new Error(`GitHub evidence request failed: HTTP ${response.status}.`);
     return response.json();
   }
 
-  // Default setup runs independently of this workflow. Missing/disabled analysis
-  // times out as a failure; an older commit or a skipped job cannot satisfy it.
+  // Default setup and the native GitHub Advanced Security findings check run
+  // independently of this workflow. Neither an older success nor a successful
+  // SARIF upload is allowed to hide a blocking finding on the exact commit.
   const deadline = Date.now() + 8 * 60_000;
   while (Date.now() < deadline) {
     const listing = await get(`actions/runs?head_sha=${expectedSha}&per_page=100`);
@@ -73,25 +101,53 @@ async function main() {
       requireCodeqlAnalysis(confirmed, jobListing.jobs, expectedSha);
       if (confirmed.run_attempt !== run.run_attempt) throw new Error('CodeQL attempt changed during verification.');
 
-      const evidence = {
-        repository, headSha: expectedSha, workflowPath,
-        runId: run.id, runAttempt: run.run_attempt,
-        url: `https://github.com/${repository}/actions/runs/${run.id}`,
-        conclusion: run.conclusion,
-        jobs: jobListing.jobs.map((job) => ({ id: job.id, name: job.name, conclusion: job.conclusion })),
-      };
-      writeFileSync('codeql-default-setup-evidence.json', `${JSON.stringify(evidence, null, 2)}\n`);
-      if (process.env.GITHUB_STEP_SUMMARY) {
-        appendFileSync(process.env.GITHUB_STEP_SUMMARY,
-          `CodeQL default setup analysis/upload PASS for \`${expectedSha}\`: [run ${run.id}](${evidence.url}).\n`);
+      const checkListing = await get(`commits/${expectedSha}/check-runs?filter=latest&per_page=100`);
+      const securityCheck = selectCodeqlSecurityCheck(checkListing.check_runs ?? [], expectedSha);
+      if (securityCheck?.status === 'completed') {
+        requireCodeqlSecurityCheck(securityCheck, expectedSha);
+
+        const evidence = {
+          repository,
+          headSha: expectedSha,
+          workflowPath,
+          runId: run.id,
+          runAttempt: run.run_attempt,
+          url: `https://github.com/${repository}/actions/runs/${run.id}`,
+          conclusion: run.conclusion,
+          jobs: jobListing.jobs.map((job) => ({ id: job.id, name: job.name, conclusion: job.conclusion })),
+          findingsCheck: {
+            id: securityCheck.id,
+            name: securityCheck.name,
+            appSlug: securityCheck.app?.slug,
+            status: securityCheck.status,
+            conclusion: securityCheck.conclusion,
+            detailsUrl: securityCheck.details_url ?? null,
+          },
+        };
+        writeFileSync('codeql-default-setup-evidence.json', `${JSON.stringify(evidence, null, 2)}\n`);
+        if (process.env.GITHUB_STEP_SUMMARY) {
+          appendFileSync(
+            process.env.GITHUB_STEP_SUMMARY,
+            `CodeQL default setup analysis/upload + native findings PASS for \`${expectedSha}\`: ` +
+              `[run ${run.id}](${evidence.url}), check ${securityCheck.id}.\n`,
+          );
+        }
+        console.log(
+          `CodeQL analysis/upload + native findings PASS for ${expectedSha}: ${evidence.url} / check ${securityCheck.id}`,
+        );
+        return;
       }
-      console.log(`CodeQL analysis/upload PASS for ${expectedSha}: ${evidence.url}`);
-      return;
+
+      console.log(
+        `Waiting for GitHub Advanced Security CodeQL findings check on ${expectedSha} ` +
+          `(${securityCheck?.status ?? 'not found'}).`,
+      );
+    } else {
+      console.log(`Waiting for GitHub CodeQL default setup on ${expectedSha} (${run?.status ?? 'not found'}).`);
     }
-    console.log(`Waiting for GitHub CodeQL default setup on ${expectedSha} (${run?.status ?? 'not found'}).`);
     await delay(10_000);
   }
-  throw new Error('Timed out waiting for CodeQL default setup analysis/upload on the exact commit.');
+  throw new Error('Timed out waiting for CodeQL analysis/upload and native findings check on the exact commit.');
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
