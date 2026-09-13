@@ -208,13 +208,23 @@ expectContains('apps/web/lib/data/breiz/sourceRegistry.ts', [
   'getBreizReleaseReadySources',
 ]);
 
-expectContains('apps/web/components/bretagne-map/CommunityMap.tsx', [
+// DATA-LIC-G5: both map entrypoints must share the same exact runtime authority
+// helper. The helper requires a non-empty token and an exact GO rights gate;
+// this proves fail-closed runtime wiring only, not account/terms/billing authority.
+expectContains('apps/web/lib/mapbox-rights.ts', [
+  'getControlledMapboxToken',
+  'NEXT_PUBLIC_MAPBOX_TOKEN',
   'NEXT_PUBLIC_EMOPET_MAPBOX_RIGHTS_GATE',
-  "=== 'GO'",
+  "rightsGate !== 'GO'",
+]);
+
+expectContains('apps/web/components/bretagne-map/CommunityMap.tsx', [
+  'getControlledMapboxToken',
+  'HAS_CONTROLLED_MAPBOX',
 ]);
 
 expectContains('apps/web/components/bretagne-map/MapboxMap.tsx', [
-  'NEXT_PUBLIC_EMOPET_MAPBOX_RIGHTS_GATE',
+  'getControlledMapboxToken',
   'attributionControl: true',
 ]);
 
