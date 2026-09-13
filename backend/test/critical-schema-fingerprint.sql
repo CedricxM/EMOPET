@@ -254,7 +254,7 @@ SELECT 'DATASET_FK|'
        || child_att.attname || '|'
        || parent.relname || '|'
        || parent_att.attname || '|'
-       || con.confdeltype
+       || con.confdeltype::text
   FROM pg_constraint con
   JOIN pg_class child ON child.oid = con.conrelid
   JOIN pg_namespace child_ns ON child_ns.oid = child.relnamespace
