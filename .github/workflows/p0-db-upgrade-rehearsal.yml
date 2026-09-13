@@ -1,0 +1,82 @@
+name: P0 DB upgrade rehearsal
+
+on:
+  pull_request:
+    paths:
+      - 'backend/db/baseline-draft/**'
+      - 'backend/db/migrations/**'
+      - 'backend/test/migration-0012-upgrade-seed.sql'
+      - 'backend/test/migration-0012-upgrade-postcheck.sql'
+      - '.github/workflows/p0-db-upgrade-rehearsal.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  migration-0012-populated-upgrade:
+    name: Populated 0011 -> 0012 PostgreSQL rehearsal
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: emopet_qa
+          POSTGRES_PASSWORD: emopet_qa_only
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U emopet_qa -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      PGPASSWORD: emopet_qa_only
+      UPGRADE_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_upgrade_0012
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Create populated N-1 rehearsal database
+        run: |
+          createdb -h 127.0.0.1 -p 5432 -U emopet_qa emopet_upgrade_0012
+
+          for file in $(find backend/db/baseline-draft -maxdepth 1 -type f -name '*.sql' | sort); do
+            echo "Applying prerequisite $file"
+            psql "$UPGRADE_DATABASE_URL" -v ON_ERROR_STOP=1 -f "$file"
+          done
+
+          reached_target=0
+          for file in $(find backend/db/migrations -maxdepth 1 -type f -name '*.sql' | sort); do
+            if [ "$(basename "$file")" = '0012_sensor_summary_device_provenance.sql' ]; then
+              reached_target=1
+              break
+            fi
+            echo "Applying pre-0012 migration $file"
+            psql "$UPGRADE_DATABASE_URL" -v ON_ERROR_STOP=1 -f "$file"
+          done
+          test "$reached_target" -eq 1
+
+          psql "$UPGRADE_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/migration-0012-upgrade-seed.sql
+
+      - name: Apply 0012 over populated N-1 database
+        run: psql "$UPGRADE_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0012_sensor_summary_device_provenance.sql
+
+      - name: Verify legacy row preservation and new constraints
+        run: psql "$UPGRADE_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/migration-0012-upgrade-postcheck.sql
+
+      - name: Maturity boundary
+        if: always()
+        run: |
+          echo 'This workflow proves only the disposable PostgreSQL 0011 -> 0012 transition exercised here.'
+          echo 'It does not authorize production migration, prove every historical/future upgrade path, or replace backup/rollback/staging rehearsal.'
