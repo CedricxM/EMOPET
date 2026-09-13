@@ -70,11 +70,21 @@ test('Breiz local ingestion cannot self-authorize verified public answers', () =
   assert.equal(answer.source_refs.length, 0);
 });
 
-test('Breiz chunks export vector-store-ready metadata', () => {
+test('Breiz chunks preserve source registry authority in vector-store metadata', () => {
+  const chunks = chunkBreizDocuments([PUBLIC_SOURCE_FIXTURE], { maxWords: 40, overlapWords: 5 });
+  const exported = exportChunksForVectorStore(chunks);
+  assert.ok(exported.length >= 1);
+  assert.equal(exported[0]!.metadata.region, 'Bretagne');
+  assert.equal(exported[0]!.metadata.source_registry_id, 'region-bretagne-open-data');
+  assert.equal(exported[0]!.metadata.allowed_usage, 'public_answer_with_source');
+});
+
+test('Breiz chunks export unbound mock metadata without inventing registry authority', () => {
   const chunks = chunkBreizDocuments(MOCK_BREIZ_DOCUMENTS, { maxWords: 40, overlapWords: 5 });
   const exported = exportChunksForVectorStore(chunks);
   assert.ok(exported.length >= MOCK_BREIZ_DOCUMENTS.length);
   assert.equal(exported[0]!.metadata.region, 'Bretagne');
+  assert.equal(exported[0]!.metadata.source_registry_id, null);
   assert.ok('source_name' in exported[0]!.metadata);
 });
 
