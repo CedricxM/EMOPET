@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
+import { parseAdminPostPatch } from '../admin-post-patch';
 import {
   authorizePrivilegedSessionToken,
   type PrivilegedAuthorizationVerifier,
@@ -11,7 +12,7 @@ const ADMIN_ID = '11111111-1111-4111-8111-111111111111';
 const TOKEN = 'privileged-session-token-value-1234567890';
 const ACTION = 'moderation.post.manage' as const;
 
-test('post PATCH composes origin guard, session-only authority and exact action before mutation', async () => {
+test('post PATCH composes origin guard, session-only authority and bounded body parsing before mutation', async () => {
   const routeUrl = new URL('../../../app/api/admin/posts/[id]/route.ts', import.meta.url);
   const source = await readFile(routeUrl, 'utf8');
   const patchStart = source.indexOf('export async function PATCH');
@@ -25,6 +26,7 @@ test('post PATCH composes origin guard, session-only authority and exact action 
   assert.equal(patchSource.includes('ADMIN_TOKEN'), false);
   assert.equal(patchSource.includes('authorizePrivilegedRequestOrSession'), false);
   assert.equal(patchSource.includes('authorizePrivilegedRequest('), false);
+  assert.equal(patchSource.includes('await req.json()'), false);
 
   assert.equal(patchSource.includes('resolvePrivilegedWebOrigin()'), true);
   assert.equal(patchSource.includes('evaluatePrivilegedMutationOrigin'), true);
@@ -34,6 +36,12 @@ test('post PATCH composes origin guard, session-only authority and exact action 
   assert.equal(patchSource.includes('canonicalPrivilegedAuthorizationVerifier'), true);
   assert.equal(patchSource.includes("'moderation.post.manage'"), true);
   assert.equal(patchSource.includes('PRIVATE_NO_STORE'), true);
+  assert.equal(patchSource.includes('MAX_ADMIN_POST_PATCH_BYTES = 8 * 1024'), true);
+  assert.equal(
+    patchSource.includes('readLimitedJson<unknown>(req, MAX_ADMIN_POST_PATCH_BYTES)'),
+    true,
+  );
+  assert.equal(patchSource.includes('parseAdminPostPatch(body.data)'), true);
 
   const rateLimit = patchSource.indexOf('enforceRateLimit');
   const originConfig = patchSource.indexOf('resolvePrivilegedWebOrigin()');
@@ -42,7 +50,10 @@ test('post PATCH composes origin guard, session-only authority and exact action 
   const cookieRead = patchSource.indexOf('await cookies()');
   const authorization = patchSource.indexOf('authorizePrivilegedSessionToken');
   const paramsRead = patchSource.indexOf('await ctx.params');
-  const bodyRead = patchSource.indexOf('await req.json()');
+  const bodyRead = patchSource.indexOf(
+    'readLimitedJson<unknown>(req, MAX_ADMIN_POST_PATCH_BYTES)',
+  );
+  const bodyParse = patchSource.indexOf('parseAdminPostPatch(body.data)');
   const mutation = patchSource.indexOf("collection<CirclePost>('community-posts').update");
 
   for (const position of [
@@ -54,6 +65,7 @@ test('post PATCH composes origin guard, session-only authority and exact action 
     authorization,
     paramsRead,
     bodyRead,
+    bodyParse,
     mutation,
   ]) {
     assert.notEqual(position, -1);
@@ -66,7 +78,8 @@ test('post PATCH composes origin guard, session-only authority and exact action 
   assert.ok(cookieRead < authorization);
   assert.ok(authorization < paramsRead);
   assert.ok(paramsRead < bodyRead);
-  assert.ok(bodyRead < mutation);
+  assert.ok(bodyRead < bodyParse);
+  assert.ok(bodyParse < mutation);
 });
 
 test('post mutation session authority asks the canonical verifier for moderation.post.manage', async () => {
@@ -81,4 +94,34 @@ test('post mutation session authority asks the canonical verifier for moderation
     await authorizePrivilegedSessionToken(TOKEN, ACTION, verifier),
     { status: 'AUTHORIZED', subject: ADMIN_ID, action: ACTION },
   );
+});
+
+test('admin post patch parser accepts only finite moderation actions and drops unknown fields', () => {
+  for (const action of ['hide', 'unhide', 'dismiss'] as const) {
+    assert.deepEqual(
+      parseAdminPostPatch({ action, unexpected: 'discarded' }),
+      { action },
+    );
+  }
+});
+
+test('admin post patch parser rejects malformed runtime shapes and unsupported actions', () => {
+  for (const payload of [
+    null,
+    [],
+    'hide',
+    42,
+    true,
+    {},
+    { action: null },
+    { action: 1 },
+    { action: true },
+    { action: [] },
+    { action: {} },
+    { action: '' },
+    { action: 'delete' },
+    { action: 'HIDE' },
+  ]) {
+    assert.equal(parseAdminPostPatch(payload), null);
+  }
 });

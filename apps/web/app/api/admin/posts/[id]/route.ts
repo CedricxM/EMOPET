@@ -12,6 +12,7 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import type { CirclePost } from '../../../../../lib/community';
+import { parseAdminPostPatch } from '../../../../../lib/server/admin-post-patch';
 import { canonicalPrivilegedAuthorizationVerifier } from '../../../../../lib/server/canonical-privileged-verifier';
 import { evaluatePrivilegedMutationOrigin } from '../../../../../lib/server/privileged-mutation-origin';
 import { authorizePrivilegedSessionToken } from '../../../../../lib/server/privileged-request';
@@ -19,11 +20,12 @@ import { PRIVILEGED_SESSION_COOKIE } from '../../../../../lib/server/privileged-
 import { resolvePrivilegedWebOrigin } from '../../../../../lib/server/privileged-web-origin-config';
 import { collection } from '../../../../../lib/server/store';
 import { createFixedWindowRateLimiter } from '../../../../../lib/server/rate-limit';
-import { enforceRateLimit } from '../../../../../lib/server/request-security';
+import { enforceRateLimit, readLimitedJson } from '../../../../../lib/server/request-security';
 
 export const runtime = 'nodejs';
 const adminLimiter = createFixedWindowRateLimiter({ limit: 30, windowMs: 60_000 });
 const PRIVATE_NO_STORE = { 'Cache-Control': 'private, no-store' };
+const MAX_ADMIN_POST_PATCH_BYTES = 8 * 1024;
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const limited = enforceRateLimit(req, adminLimiter, 'admin:posts:patch');
@@ -78,28 +80,26 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   }
 
   const { id } = await ctx.params;
-  let body: { action?: 'hide' | 'unhide' | 'dismiss' };
-  try {
-    body = (await req.json()) as typeof body;
-  } catch {
+  const body = await readLimitedJson<unknown>(req, MAX_ADMIN_POST_PATCH_BYTES);
+  if (!body.ok) {
     return NextResponse.json(
-      { ok: false, errors: ['Requête invalide.'] },
-      { status: 400, headers: PRIVATE_NO_STORE },
+      { ok: false, errors: [body.status === 413 ? 'Requête trop volumineuse.' : 'Requête invalide.'] },
+      { status: body.status, headers: PRIVATE_NO_STORE },
     );
   }
 
-  const patch: Partial<CirclePost> =
-    body.action === 'hide' ? { isHidden: true }
-      : body.action === 'unhide' ? { isHidden: false }
-        : body.action === 'dismiss' ? { isHidden: false, flagCount: 0 }
-          : {};
-
-  if (Object.keys(patch).length === 0) {
+  const parsed = parseAdminPostPatch(body.data);
+  if (!parsed) {
     return NextResponse.json(
       { ok: false, errors: ['Action invalide.'] },
       { status: 400, headers: PRIVATE_NO_STORE },
     );
   }
+
+  const patch: Partial<CirclePost> =
+    parsed.action === 'hide' ? { isHidden: true }
+      : parsed.action === 'unhide' ? { isHidden: false }
+        : { isHidden: false, flagCount: 0 };
 
   const updated = collection<CirclePost>('community-posts').update(id, patch);
   if (!updated) {
