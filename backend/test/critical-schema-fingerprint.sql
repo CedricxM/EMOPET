@@ -132,7 +132,10 @@ SELECT 'INDEX|'
  ORDER BY table_rel.relname, index_rel.relname;
 
 -- Full ELI column semantics. This catches precision/default/nullability drift,
--- including PostgreSQL FLOAT (double precision) vs REAL (float4).
+-- including PostgreSQL FLOAT (double precision) vs REAL (float4). Physical
+-- column position is deliberately ignored: ALTER TABLE appends columns while a
+-- fresh Drizzle baseline emits declaration order, but callers address columns
+-- by name and the order does not change the data contract.
 WITH eli_tables(table_name) AS (
   VALUES
     ('dog_sub_baselines'),
@@ -154,7 +157,7 @@ SELECT 'ELI_COLUMN|'
   FROM information_schema.columns c
   JOIN eli_tables wanted ON wanted.table_name = c.table_name
  WHERE c.table_schema = 'public'
- ORDER BY c.table_name, c.ordinal_position;
+ ORDER BY c.table_name, c.column_name;
 
 -- Compare CHECK meaning without depending on constraint names, which differ
 -- between column-level historical SQL and explicitly named Drizzle checks.
@@ -200,12 +203,15 @@ SELECT 'ELI_PK|'
  GROUP BY rel.relname
  ORDER BY rel.relname;
 
--- pg_get_indexdef exposes sort direction as well as indexed columns. These
--- historical indexes intentionally order event time DESC for newest-first use.
+-- pg_get_indexdef exposes sort direction as well as indexed columns. Drizzle
+-- renders DESC on these NOT NULL timestamp keys as explicit "DESC NULLS LAST"
+-- while the historical shorthand omits a NULL-order token. Because NULL is
+-- impossible for both keys, normalize only that unreachable syntax. DESC itself
+-- remains in the fingerprint and is still enforced.
 SELECT 'ELI_INDEX|'
        || table_rel.relname || '|'
        || index_rel.relname || '|'
-       || pg_get_indexdef(idx.indexrelid)
+       || replace(pg_get_indexdef(idx.indexrelid), ' NULLS LAST', '')
   FROM pg_index idx
   JOIN pg_class table_rel ON table_rel.oid = idx.indrelid
   JOIN pg_namespace ns ON ns.oid = table_rel.relnamespace
