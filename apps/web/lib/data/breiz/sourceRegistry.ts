@@ -209,25 +209,48 @@ export function canStoreFullText(source: BreizSourceDescriptor): boolean {
     !source.usagePolicy.includes('PARTNER_PERMISSION_REQUIRED');
 }
 
+function parseEvidenceTime(value: string): number | null {
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 /**
  * Product-release readiness is deliberately stricter than catalogue enablement.
- * Missing item-level evidence, a stale/unknown review or any non-GO disposition
- * fails closed.
+ * Missing item-level evidence, an invalid/future review, an expired recheck or
+ * any non-GO disposition fails closed.
  */
-export function isBreizSourceReleaseReady(source: BreizSourceDescriptor): boolean {
+export function isBreizSourceReleaseReady(
+  source: BreizSourceDescriptor,
+  nowMs: number = Date.now(),
+): boolean {
   const evidence = source.rightsEvidence;
   if (!source.enabled || !evidence) return false;
 
-  return evidence.evidenceState === 'SOURCE_CONFIRMED' &&
-    evidence.disposition === 'GO' &&
-    evidence.immutableVersion.trim().length > 0 &&
-    evidence.receiptPath.trim().length > 0 &&
-    evidence.attributionText.trim().length > 0 &&
-    evidence.permittedUseSummary.trim().length > 0 &&
-    evidence.reviewedAt.trim().length > 0 &&
-    evidence.reviewerRole.trim().length > 0;
+  if (evidence.evidenceState !== 'SOURCE_CONFIRMED' || evidence.disposition !== 'GO') {
+    return false;
+  }
+
+  if (
+    evidence.immutableVersion.trim().length === 0 ||
+    evidence.receiptPath.trim().length === 0 ||
+    evidence.attributionText.trim().length === 0 ||
+    evidence.permittedUseSummary.trim().length === 0 ||
+    evidence.reviewerRole.trim().length === 0
+  ) {
+    return false;
+  }
+
+  const reviewedAt = parseEvidenceTime(evidence.reviewedAt);
+  if (reviewedAt == null || reviewedAt > nowMs) return false;
+
+  if (evidence.recheckAt != null) {
+    const recheckAt = parseEvidenceTime(evidence.recheckAt);
+    if (recheckAt == null || recheckAt <= nowMs) return false;
+  }
+
+  return true;
 }
 
-export function getBreizReleaseReadySources(): BreizSourceDescriptor[] {
-  return BREIZ_SOURCE_REGISTRY.filter(isBreizSourceReleaseReady);
+export function getBreizReleaseReadySources(nowMs: number = Date.now()): BreizSourceDescriptor[] {
+  return BREIZ_SOURCE_REGISTRY.filter((source) => isBreizSourceReleaseReady(source, nowMs));
 }
