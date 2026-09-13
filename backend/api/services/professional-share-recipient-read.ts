@@ -20,6 +20,7 @@ import {
   projectProfessionalShareSnapshot,
   type ProfessionalShareProjectedData,
 } from './professional-share-projection.js';
+import { collectProfessionalShareVetSnapshot } from './professional-share-vet-snapshot.js';
 import type { VetReportSummary } from './vet-report.js';
 
 type ShareTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -44,6 +45,12 @@ export interface ProfessionalShareScopedCollectorContext {
 export type ProfessionalShareScopedCollector = (
   context: ProfessionalShareScopedCollectorContext,
 ) => Promise<VetReportSummary>;
+
+export interface ProfessionalShareRecipientReadBoundaryOptions {
+  /** Test/internal dependency seam. Production callers should use the bounded default collector. */
+  collect?: ProfessionalShareScopedCollector;
+  clock?: () => number;
+}
 
 const authorityUnavailable = (): UnsuccessfulDecision => ({
   allowed: false,
@@ -177,20 +184,22 @@ async function recordUnavailableAudit(intent: ReadIntent): Promise<void> {
  * activation or delivery. Identity is resolved once before opening the database
  * transaction so external/provider work is never held under PostgreSQL locks.
  *
- * The collector may assemble a richer internal VetReportSummary, but it is not
- * publication authority. After collection, dog then grant are locked and policy
- * is re-evaluated against transaction-current durable state. Only after that
- * final durable check succeeds does the centralized scope projector rebuild the
- * exact fields allowed to leave the boundary. Projection failure rolls back the
- * final AUTHORIZED audit and fails closed.
+ * The default collector reads only the authorized dog and exact data window.
+ * After collection, dog then grant are locked and policy is re-evaluated against
+ * transaction-current durable state. Only after that final durable check succeeds
+ * does the centralized scope projector rebuild the exact fields allowed to leave
+ * the boundary. Projection failure rolls back the final AUTHORIZED audit and
+ * fails closed.
  */
 export function createProfessionalShareRecipientReadBoundary(
   resolveVerifiedRecipient: VerifiedProfessionalRecipientResolver,
-  clock: () => number = Date.now,
+  options: ProfessionalShareRecipientReadBoundaryOptions = {},
 ) {
+  const collect = options.collect ?? collectProfessionalShareVetSnapshot;
+  const clock = options.clock ?? Date.now;
+
   return async function readScopedRecipientData(
     rawIntent: unknown,
-    collect: ProfessionalShareScopedCollector,
   ): Promise<ProfessionalShareRecipientReadResult> {
     const parsedIntent = ProfessionalShareReadIntentSchema.safeParse(rawIntent);
     if (!parsedIntent.success) {
