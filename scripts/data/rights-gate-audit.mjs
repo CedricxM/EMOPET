@@ -208,6 +208,39 @@ expectContains('apps/web/lib/data/breiz/sourceRegistry.ts', [
   'getBreizReleaseReadySources',
 ]);
 
+// Raw/local files are intake only. They must not be able to assign themselves
+// verified/public-answer authority, even if those fields are present in input.
+expectContains('apps/web/lib/data/breiz/ingestDocuments.ts', [
+  'normalizeIngestedUsage',
+  'normalizeIngestedReliability',
+  "if (value === 'do_not_answer')",
+  "if (value === 'internal_reference')",
+  "return 'retrieval_only'",
+  "return 'unknown'",
+]);
+
+// Public retrieval must bind every candidate chunk back to the controlled
+// source registry and require that source to pass the reviewed GO helper.
+expectContains('apps/web/lib/data/breiz/breizRetriever.ts', [
+  'getBreizSource',
+  'isBreizSourceReleaseReady',
+  "chunk.metadata.allowed_usage !== 'public_answer_with_source'",
+  "chunk.metadata.reliability_level !== 'source_verified'",
+  'chunk.metadata.source_registry_id?.trim()',
+  'isBreizSourceReleaseReady(source)',
+]);
+
+// The registry binding must survive vector-store serialization; otherwise a
+// future external vector backend could lose the authority key after chunking.
+expectContains('apps/web/lib/data/breiz/chunkDocuments.ts', [
+  'source_registry_id: chunk.metadata.source_registry_id ?? null',
+]);
+
+const breizMocks = text('apps/web/lib/data/breiz/mockDocuments.ts');
+if (breizMocks.includes("allowed_usage: 'public_answer_with_source'")) {
+  fail('apps/web/lib/data/breiz/mockDocuments.ts must not grant public-answer authority to mock corpus');
+}
+
 // DATA-LIC-G5: both map entrypoints must share the same exact runtime authority
 // helper. The helper requires a non-empty token and an exact GO rights gate;
 // this proves fail-closed runtime wiring only, not account/terms/billing authority.
@@ -226,12 +259,21 @@ expectContains('apps/web/components/bretagne-map/CommunityMap.tsx', [
 expectContains('apps/web/components/bretagne-map/MapboxMap.tsx', [
   'getControlledMapboxToken',
   'attributionControl: true',
+  '© OpenStreetMap contributors',
+  'OSM_COPYRIGHT_URL',
 ]);
 
+// DATA-LIC-G4: Overpass remains opt-in and returned OSM data carries source +
+// licence pointers. The only cache in this module must remain bounded and
+// expiring process/browser memory, not a persistent accumulating OSM store.
 expectContains('apps/web/lib/osm-spots.ts', [
   'NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE',
   'sourceElementUrl',
   'licenseUrl',
+  'CACHE_TTL_MS = 5 * 60 * 1000',
+  'MAX_CACHE_ENTRIES = 40',
+  'expiresAt',
+  'while (cache.size > MAX_CACHE_ENTRIES)',
 ]);
 
 expectContains('backend/api/routes/directory.ts', [
