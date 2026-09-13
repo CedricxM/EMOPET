@@ -56,6 +56,12 @@ export interface OwnerAuthorizedSensorSummaryExport {
     humidityPct: '%';
   };
   quality: { respiratoryRateConfidence: number | null };
+  aggregationWindow: {
+    durationMinutes: 60;
+    timestampAnchor: 'UNSPECIFIED_BY_CURRENT_CONTRACT';
+    sampleRateStatus: 'NOT_RECORDED';
+    sampleCountStatus: 'NOT_RECORDED';
+  };
   provenance: {
     level: 'preprocessed';
     deviceSource: string;
@@ -72,6 +78,12 @@ export interface OwnerAuthorizedSensorSummaryExport {
  * ingestionId is an internal retry/idempotency key and is deliberately not
  * disclosed merely because it exists in PostgreSQL. Device binding, firmware
  * snapshot, event time and server persistence time remain useful provenance.
+ *
+ * The shared SensorSummary contract defines one-hour cloud summaries. The
+ * current producer contract does not yet define whether `timestamp` anchors
+ * the start, end or another point within that hour, nor does it persist the
+ * upstream sample rate/count. Export those unknowns explicitly rather than
+ * inventing precision that the current data plane cannot prove.
  */
 export function toOwnerAuthorizedSensorSummaryExport(
   row: PersistedSensorSummaryForExport,
@@ -109,6 +121,12 @@ export function toOwnerAuthorizedSensorSummaryExport(
       humidityPct: '%',
     },
     quality: { respiratoryRateConfidence: row.respiratoryRateConfidence },
+    aggregationWindow: {
+      durationMinutes: 60,
+      timestampAnchor: 'UNSPECIFIED_BY_CURRENT_CONTRACT',
+      sampleRateStatus: 'NOT_RECORDED',
+      sampleCountStatus: 'NOT_RECORDED',
+    },
     provenance: {
       level: 'preprocessed',
       deviceSource: row.source,
