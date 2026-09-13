@@ -1,10 +1,11 @@
 # EMOPET — Third-Party Data & Service Rights Register v0.1
 
 **Status:** CONTROLLED / NON-CONCLUSIVE / HOLD-AWARE  
-**Date:** 2026-09-06  
+**Initial date:** 2026-09-06  
+**Last reconciled:** 2026-09-13  
 **Parent gate:** #116 (`G-THIRD-PARTY-DATA-RIGHTS-01`)  
 **Snapshot preserved:** `main@c099581ff8aed1e619f72ab38898fc05833b7c66`  
-**Current implementation branch:** `experience-hardening-2026-09-06`  
+**Current composed candidate:** `experience-hardening-2026-09-06@9b1bf1c1c58d1274ab5d4ee13fecdac6c92e493c`  
 **Authority:** NOT LEGAL SIGN-OFF / NOT RELEASE AUTHORITY
 
 ## 0. Purpose
@@ -19,7 +20,7 @@ This register turns #116 into an operational evidence ledger. It separates:
 - contractual/service-account authority;
 - final product-use disposition.
 
-A public URL, a repository licence label, or an `enabled: true` flag is **not** product-use authorization.
+A public URL, a repository licence label, an environment variable, or an `enabled: true` flag is **not** product-use authorization.
 
 Allowed evidence states:
 
@@ -37,13 +38,17 @@ Final controlled disposition, when eventually reviewed, is limited to `GO | HOLD
 | Gate | Scope | State | Owner role | Next action |
 |---|---|---|---|---|
 | DATA-LIC-G1 | Dataset identity + retrieval receipts | OPEN | Data/Science | create immutable receipts + SHA-256 for every external dataset |
-| DATA-LIC-G2 | VBO upstream/derivative traceability | OPEN | Data/Science | bind payload + derivatives to exact upstream release and transform commands |
-| DATA-LIC-G3 | Local-directory row provenance | HOLD | Product/Data | remove production representation until row-level evidence or explicit demo classification exists |
+| DATA-LIC-G2 | VBO upstream/derivative traceability | COMMITTED_SNAPSHOT_TRACEABILITY_PROVEN / UPSTREAM_RECEIPT_OPEN | Data/Science | bind the committed snapshot to an exact immutable upstream release and independent retrieval receipt |
+| DATA-LIC-G3 | Local-directory row provenance | HOLD / RUNTIME_ENFORCED | Product/Data | keep production representation disabled until row-level evidence or explicit reviewed classification exists |
 | DATA-LIC-G4 | OSM/Overpass flow + attribution | OPEN | Product/Engineering | classify query/cache/export flows and review provider/service use |
 | DATA-LIC-G5 | Mapbox account/terms/token authority | OPEN | Founder/Product/Engineering | record account, billing, terms snapshot, token custody and rendered attribution evidence |
 | DATA-LIC-G6 | Breiz item-level source controls | OPEN | Product/Data | require item-level rights evidence and fail closed when absent |
 | DATA-LIC-G7 | Dependency licence inventory | EVIDENCE_INVENTORY_AVAILABLE / REVIEW_OPEN | Engineering + qualified reviewer | review ambiguous/non-permissive/dual-labelled entries, notice obligations and exact distribution paths |
 | DATA-LIC-G8 | Controlled review + release disposition | OPEN | Founder + qualified reviewer | dated GO/HOLD/REMEDIATE with residual gaps visible |
+
+`G-THIRD-PARTY-DATA-RIGHTS-01 = OPEN`
+
+No partial engineering proof above changes the aggregate gate to `GO`.
 
 ## 2. Registered external datasets
 
@@ -73,14 +78,30 @@ Final controlled disposition, when eventually reviewed, is limited to `GO | HOLD
 
 ### vbo-ontology
 
-- Source: `https://monarchinitiative.org/ontologies/vbo`
+- Source family: Vertebrate Breed Ontology (VBO)
+- Source pointer recorded by the committed snapshot evidence: `http://purl.obolibrary.org/obo/vbo.json`
 - Repository licence label: `CC-BY-4.0`
 - Official-source state from #116: `SOURCE_CONFIRMED`
-- Current version tag: `controlled-at-retrieval` (not immutable enough)
-- Immutable retrieval receipt: `RECEIPT_MISSING`
-- Committed payload/derivatives exist under `data/vbo/`
-- Release disposition: `HOLD` on redistribution/derivative claims until exact upstream release + transform provenance is bound
-- Next action: upstream version, source SHA-256, local SHA-256, transform command/version, attribution and redistribution review
+- Committed payload: `data/vbo/vbo.json`
+- Committed payload size: `40,128,716` bytes
+- Committed payload SHA-256: `09da44412ed43ee271e407a83401275ada85483e2199273203c8404b84c093de`
+- Repository version tag: `09da44412ed4`
+- Canonical derivative: `data/vbo/breed_canonical.json`
+- Derived record count: `1,575`
+- Dataset-version SQL: `data/vbo/dataset_version_insert.sql`
+- Transform source: `scripts/ingest_vbo.ts`
+- Machine-readable evidence: `data/vbo/committed-snapshot-evidence.json`
+- Upstream immutable release: still `null`
+- Independent upstream retrieval receipt: `RECEIPT_MISSING`
+
+Commit `9b1bf1c1c58d1274ab5d4ee13fecdac6c92e493c` adds a fail-closed audit that recomputes the committed payload SHA-256 and reconciles it with the evidence file, dataset-version SQL, canonical derivative count/provenance and transform markers. The evidence explicitly keeps `claimsUpstreamReleaseEquivalence=false` and `claimsProductUseClearance=false`.
+
+**Controlled classification:**
+
+`DATA-LIC-G2 COMMITTED SNAPSHOT TRACEABILITY = PROVEN CANDIDATE`  
+`DATA-LIC-G2 UPSTREAM IMMUTABLE RECEIPT = OPEN`
+
+This proves internal repository consistency for the committed snapshot. It does not prove byte-equivalence to a particular upstream immutable release and does not authorize product use or redistribution.
 
 ### anmv-veterinary-medicines-fr
 
@@ -109,13 +130,21 @@ Observed #116 snapshot facts:
 
 `PUBLICATION OR PRODUCTION REPRESENTATION AS A VERIFIED DIRECTORY = HOLD`
 
-Implementation requirements:
+The current composed Hono implementation in `backend/api/routes/directory.ts` enforces three explicit runtime modes:
 
-1. raw legacy seed must not be seeded into normal runtime by default;
-2. any explicit demo seed must suppress unsupported `verified` and rating claims;
-3. production API must fail closed until `EMOPET_LOCAL_DIRECTORY_RELEASE_GATE=GO` is deliberately set after evidence review;
-4. demo access must be explicit and visibly marked `UNVERIFIED_DEMO`;
+1. default: `HOLD`, returning a typed 503 before directory rows are served;
+2. explicit non-production demo: `EMOPET_LOCAL_DIRECTORY_DEMO=1`, with unsupported rating/verification claims sanitized and output marked `UNVERIFIED_DEMO`;
+3. reviewed release switch: `EMOPET_LOCAL_DIRECTORY_RELEASE_GATE=GO`, which is an operator gate and must not be interpreted as proof that the underlying rights/provenance review occurred.
+
+Current implementation requirements remain:
+
+1. raw legacy seed must not be treated as a verified normal runtime source by default;
+2. explicit demo output must suppress unsupported `verified` and rating claims;
+3. production representation must remain on HOLD until the evidence review authorizes the release switch;
+4. demo access must remain explicit and visibly marked `UNVERIFIED_DEMO`;
 5. future production rows require item-level source pointer + evidence state.
+
+`DATA-LIC-G3 = HOLD / RUNTIME_ENFORCEMENT_PRESENT / ROW-LEVEL EVIDENCE OPEN`.
 
 ## 4. OpenStreetMap / Overpass
 
@@ -188,9 +217,9 @@ Missing evidence => fail closed.
 
 ## 7. Dependency licences
 
-Security/SBOM output remains supporting evidence only, but an exact-head dependency-licence inventory is now produced and preserved by the Security workflow.
+Security/SBOM output remains supporting evidence only, but an exact-head dependency-licence inventory is produced and preserved by the Security workflow.
 
-Evidence record:
+### Historical evidence checkpoint — 2026-09-10
 
 - `docs/control/EMOPET_DEPENDENCY_LICENSE_EVIDENCE_REVIEW_2026-09-10.md`;
 - reviewed dependency head: `fea9f754669a9f44781b57a6012faf277349ce61`;
@@ -201,9 +230,22 @@ Evidence record:
 - inventory size: 1,072 package records across 18 reported licence labels;
 - metadata classification: `EVIDENCE_INVENTORY_NOT_LEGAL_CLEARANCE`.
 
-No `UNKNOWN` label was reported by pnpm in that inventory. This narrows discovery but does not prove licence accuracy, compatibility, notice completeness or product-use authority.
+No `UNKNOWN` label was reported by pnpm in that checkpoint. This narrows discovery but does not prove licence accuracy, compatibility, notice completeness or product-use authority.
 
-Focused review queue now includes:
+### Exact-head revalidation — 2026-09-13
+
+On composed head `9b1bf1c1c58d1274ab5d4ee13fecdac6c92e493c`:
+
+- Security supply-chain run `34756777134` / run #739: `PASS`;
+- job `Dependency licence evidence inventory (not clearance)`: `PASS`;
+- exact-head artifact: `dependency-license-inventory-9b1bf1c1c58d1274ab5d4ee13fecdac6c92e493c`;
+- artifact id: `10317921425`;
+- artifact digest: `sha256:f327cb9a3eab494485fe6493ff208b0f78a7ad0283e2d9e108f23ab425512dc6`;
+- rights/product/privacy authority job, including `Enforce third-party data rights gate`: `PASS`.
+
+The revalidation proves that the evidence-generation and current rights-gate machinery still execute successfully on the composed candidate. It is not a new licence disposition.
+
+Focused review queue remains:
 
 - `@img/sharp-libvips-linux-x64@1.3.3` (`LGPL-3.0-or-later`);
 - MPL-labelled `axe-core` and `lightningcss` packages;
@@ -225,7 +267,20 @@ Still required before G7 closure:
 
 State: `EVIDENCE_INVENTORY_AVAILABLE / REVIEW_OPEN`.
 
-## 8. Evidence schema for future receipts
+## 8. Exact-head engineering evidence — 2026-09-13
+
+The VBO traceability candidate and the existing rights/licence controls are green together on head `9b1bf1c1c58d1274ab5d4ee13fecdac6c92e493c`:
+
+- P0 DB baseline validation run `34756777122` / #359: PASS;
+- P0 DB upgrade rehearsal run `34756777133` / #21: PASS;
+- P0 DB authority parity run `34756777138` / #12: PASS;
+- Security supply chain run `34756777134` / #739: PASS.
+
+Within Security #739, dependency audit, workspace typecheck/tests, web build, Semgrep, Gitleaks, CodeQL evidence, rights/privacy/product gates, dependency-licence evidence, SBOM and release provenance all passed.
+
+This is candidate engineering evidence only. It does not close DATA-LIC-G1 through G8, legal review, service-account authority, human review or release authority.
+
+## 9. Evidence schema for future receipts
 
 Recommended receipt fields:
 
@@ -254,19 +309,20 @@ notes
 
 Do not commit confidential account material, personal data, secrets or private contracts to this register. Store only controlled pointers where needed.
 
-## 9. Current release statement
+## 10. Current release statement
 
-As of 2026-09-10:
+As of 2026-09-13:
 
-- no dataset in `real-datasets.json` has a completed immutable SHA-256 receipt;
-- the Lorient seed is not authorized to be represented as a verified production directory;
+- the two Mendeley datasets and ANMV resource still lack completed immutable retrieval receipts/checksums in the controlled registry;
+- the committed VBO payload now has machine-checked internal snapshot/derivative traceability, but the exact immutable upstream release and independent retrieval receipt remain OPEN;
+- the Lorient seed remains `HOLD`; the runtime boundary is enforced, but row-level provenance and rights review are not complete;
 - OSM/Overpass runtime/service classification is not fully reviewed;
 - Mapbox account/terms/token authority is not evidenced in-repo;
 - Breiz source catalogue inclusion is not release authorization;
-- an exact-head dependency licence inventory now exists, but licence/notice/distribution review remains open.
+- exact-head dependency licence evidence is generated successfully, but licence/notice/distribution review remains open.
 
 Therefore:
 
 `G-THIRD-PARTY-DATA-RIGHTS-01 = OPEN`
 
-This document narrows accidental use and creates evidence structure. It does not close #116.
+This document narrows accidental use, preserves engineering evidence and records partial gate progress. It does not close #116.
