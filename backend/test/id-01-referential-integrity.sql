@@ -39,6 +39,28 @@ BEGIN
   IF actual_type IS DISTINCT FROM 'uuid' THEN
     RAISE EXCEPTION 'ID-01 expected user_config.user_id to be uuid, got %', actual_type;
   END IF;
+
+  SELECT data_type
+    INTO actual_type
+    FROM information_schema.columns
+   WHERE table_schema = 'public'
+     AND table_name = 'copresence_events'
+     AND column_name = 'dog_a_id';
+
+  IF actual_type IS DISTINCT FROM 'uuid' THEN
+    RAISE EXCEPTION 'ID-01 expected copresence_events.dog_a_id to be uuid, got %', actual_type;
+  END IF;
+
+  SELECT data_type
+    INTO actual_type
+    FROM information_schema.columns
+   WHERE table_schema = 'public'
+     AND table_name = 'copresence_events'
+     AND column_name = 'dog_b_id';
+
+  IF actual_type IS DISTINCT FROM 'uuid' THEN
+    RAISE EXCEPTION 'ID-01 expected copresence_events.dog_b_id to be uuid, got %', actual_type;
+  END IF;
 END $$;
 
 -- ID-01: every ELI dog_id must reference core dogs.id; user_config.user_id must reference users.id.
@@ -90,7 +112,41 @@ BEGIN
   END IF;
 END $$;
 
--- Seed one valid core identity pair.
+-- ID-01 / PRIV-01: both copresence dog identifiers must reference dogs.id and
+-- preserve NO ACTION while erasure/location lifecycle policy remains unresolved.
+DO $$
+DECLARE
+  col text;
+  has_fk boolean;
+BEGIN
+  FOREACH col IN ARRAY ARRAY['dog_a_id', 'dog_b_id'] LOOP
+    SELECT EXISTS (
+      SELECT 1
+        FROM pg_constraint c
+        JOIN LATERAL unnest(c.conkey) WITH ORDINALITY child_key(attnum, ord) ON true
+        JOIN LATERAL unnest(c.confkey) WITH ORDINALITY parent_key(attnum, ord)
+          ON parent_key.ord = child_key.ord
+        JOIN pg_attribute child_att
+          ON child_att.attrelid = c.conrelid
+         AND child_att.attnum = child_key.attnum
+        JOIN pg_attribute parent_att
+          ON parent_att.attrelid = c.confrelid
+         AND parent_att.attnum = parent_key.attnum
+       WHERE c.contype = 'f'
+         AND c.conrelid = 'public.copresence_events'::regclass
+         AND c.confrelid = 'public.dogs'::regclass
+         AND child_att.attname = col
+         AND parent_att.attname = 'id'
+         AND c.confdeltype = 'a'
+    ) INTO has_fk;
+
+    IF NOT has_fk THEN
+      RAISE EXCEPTION 'ID-01 missing NO ACTION dogs.id FK on copresence_events.%', col;
+    END IF;
+  END LOOP;
+END $$;
+
+-- Seed one valid core identity set.
 INSERT INTO users (id, email, password_hash, name)
 VALUES (
   '00000000-0000-4000-8000-000000000001'::uuid,
@@ -100,16 +156,27 @@ VALUES (
 );
 
 INSERT INTO dogs (id, owner_id, name, breed, birth_date, sex, weight, fur_class)
-VALUES (
-  '00000000-0000-4000-8000-000000000101'::uuid,
-  '00000000-0000-4000-8000-000000000001'::uuid,
-  'ID01-Dog',
-  'Test',
-  '2020-01-01',
-  'male',
-  10.0,
-  'FC1'
-);
+VALUES
+  (
+    '00000000-0000-4000-8000-000000000101'::uuid,
+    '00000000-0000-4000-8000-000000000001'::uuid,
+    'ID01-Dog-A',
+    'Test',
+    '2020-01-01',
+    'male',
+    10.0,
+    'FC1'
+  ),
+  (
+    '00000000-0000-4000-8000-000000000102'::uuid,
+    '00000000-0000-4000-8000-000000000001'::uuid,
+    'ID01-Dog-B',
+    'Test',
+    '2020-01-02',
+    'female',
+    11.0,
+    'FC1'
+  );
 
 -- A nonexistent dog must be rejected by the ELI FK.
 DO $$
@@ -142,7 +209,37 @@ BEGIN
   END;
 END $$;
 
--- The canonical valid pair must be accepted.
+-- Either side of a copresence event must reject a nonexistent dog.
+DO $$
+BEGIN
+  BEGIN
+    INSERT INTO copresence_events (dog_a_id, dog_b_id, occurred_at)
+    VALUES (
+      '00000000-0000-4000-8000-000000009997'::uuid,
+      '00000000-0000-4000-8000-000000000102'::uuid,
+      NOW()
+    );
+    RAISE EXCEPTION 'ID-01 expected nonexistent copresence dog_a_id to fail';
+  EXCEPTION
+    WHEN foreign_key_violation THEN
+      NULL;
+  END;
+
+  BEGIN
+    INSERT INTO copresence_events (dog_a_id, dog_b_id, occurred_at)
+    VALUES (
+      '00000000-0000-4000-8000-000000000101'::uuid,
+      '00000000-0000-4000-8000-000000009996'::uuid,
+      NOW()
+    );
+    RAISE EXCEPTION 'ID-01 expected nonexistent copresence dog_b_id to fail';
+  EXCEPTION
+    WHEN foreign_key_violation THEN
+      NULL;
+  END;
+END $$;
+
+-- Canonical valid identities must be accepted.
 INSERT INTO dog_sub_baselines (dog_id, slot)
 VALUES ('00000000-0000-4000-8000-000000000101'::uuid, 'deep_rest_mat');
 
@@ -153,5 +250,31 @@ VALUES (
   'id01-test',
   '{}'::jsonb
 );
+
+INSERT INTO copresence_events (
+  id,
+  dog_a_id,
+  dog_b_id,
+  occurred_at
+)
+VALUES (
+  '00000000-0000-4000-8000-000000000201'::uuid,
+  '00000000-0000-4000-8000-000000000101'::uuid,
+  '00000000-0000-4000-8000-000000000102'::uuid,
+  NOW()
+);
+
+-- NO ACTION must block silent deletion of a dog referenced by copresence.
+DO $$
+BEGIN
+  BEGIN
+    DELETE FROM dogs
+     WHERE id = '00000000-0000-4000-8000-000000000102'::uuid;
+    RAISE EXCEPTION 'ID-01 expected referenced copresence dog delete to fail';
+  EXCEPTION
+    WHEN foreign_key_violation THEN
+      NULL;
+  END;
+END $$;
 
 ROLLBACK;

@@ -44,6 +44,20 @@
       "erasureDisposition": "TO_CONFIRM_WITH_TRANSITIVE_ASSESSMENT_DESCENDANTS"
     },
     {
+      "table": "copresence_events",
+      "column": "dog_a_id",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "copresence_events",
+      "column": "dog_b_id",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_ACTION_DEFAULT",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
       "table": "devices",
       "column": "dog_id",
       "source": "backend/db/schema/dogs.ts",
@@ -129,20 +143,6 @@
     }
   ],
   "unconstrainedDogIdentifiers": [
-    {
-      "table": "copresence_events",
-      "column": "dog_a_id",
-      "source": "backend/db/schema/community.ts",
-      "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED",
-      "erasureDisposition": "TO_CONFIRM"
-    },
-    {
-      "table": "copresence_events",
-      "column": "dog_b_id",
-      "source": "backend/db/schema/community.ts",
-      "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED",
-      "erasureDisposition": "TO_CONFIRM"
-    },
     {
       "table": "professional_share_access_audits",
       "column": "dog_id",

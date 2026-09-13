@@ -6,6 +6,7 @@ on:
       - 'backend/db/**'
       - 'backend/test/critical-schema-fingerprint.sql'
       - 'backend/test/dataset-operational-fingerprint.sql'
+      - 'backend/test/copresence-identity-fingerprint.sql'
       - 'scripts/ingest_vbo.ts'
       - 'data/vbo/breed_canonical_insert.sql'
       - 'data/vbo/breed_canonical_insert.legacy.sql'
@@ -112,8 +113,10 @@ jobs:
         run: |
           psql "$HISTORICAL_DATABASE_URL" -At -v ON_ERROR_STOP=1 -f backend/test/critical-schema-fingerprint.sql > /tmp/critical-historical.txt
           psql "$HISTORICAL_DATABASE_URL" -At -v ON_ERROR_STOP=1 -f backend/test/dataset-operational-fingerprint.sql >> /tmp/critical-historical.txt
+          psql "$HISTORICAL_DATABASE_URL" -At -v ON_ERROR_STOP=1 -f backend/test/copresence-identity-fingerprint.sql >> /tmp/critical-historical.txt
           psql "$GENERATED_DATABASE_URL" -At -v ON_ERROR_STOP=1 -f backend/test/critical-schema-fingerprint.sql > /tmp/critical-generated.txt
           psql "$GENERATED_DATABASE_URL" -At -v ON_ERROR_STOP=1 -f backend/test/dataset-operational-fingerprint.sql >> /tmp/critical-generated.txt
+          psql "$GENERATED_DATABASE_URL" -At -v ON_ERROR_STOP=1 -f backend/test/copresence-identity-fingerprint.sql >> /tmp/critical-generated.txt
 
           echo '--- historical critical fingerprint ---'
           cat /tmp/critical-historical.txt
@@ -126,6 +129,6 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow compares selected critical identity/provenance, ELI, dataset schema, and selected dataset operational authority semantics between checked-in historical migrations and a fresh current Drizzle authority.'
+          echo 'This workflow compares selected critical identity/provenance, ELI, dataset schema, copresence identity, and selected dataset operational authority semantics between checked-in historical migrations and a fresh current Drizzle authority.'
           echo 'It is intentionally not a claim that every non-critical table, constraint name, storage parameter, data snapshot, or production extension is identical.'
           echo 'It does not authorize production migration or release.'

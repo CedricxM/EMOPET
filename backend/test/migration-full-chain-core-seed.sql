@@ -41,18 +41,31 @@ VALUES (
 INSERT INTO dogs (
   id, owner_id, name, breed, birth_date, sex, weight, fur_class, created_at, updated_at
 )
-VALUES (
-  '72000000-0000-4000-8000-000000000101'::uuid,
-  '72000000-0000-4000-8000-000000000001'::uuid,
-  'Full Chain Dog',
-  'Test Breed',
-  '2021-02-03',
-  'female',
-  21.25,
-  'FC2',
-  '2026-08-01T08:05:00Z',
-  '2026-08-02T08:05:00Z'
-);
+VALUES
+  (
+    '72000000-0000-4000-8000-000000000101'::uuid,
+    '72000000-0000-4000-8000-000000000001'::uuid,
+    'Full Chain Dog',
+    'Test Breed',
+    '2021-02-03',
+    'female',
+    21.25,
+    'FC2',
+    '2026-08-01T08:05:00Z',
+    '2026-08-02T08:05:00Z'
+  ),
+  (
+    '72000000-0000-4000-8000-000000000102'::uuid,
+    '72000000-0000-4000-8000-000000000001'::uuid,
+    'Full Chain Dog B',
+    'Test Breed',
+    '2022-03-04',
+    'male',
+    18.5,
+    'FC2',
+    '2026-08-01T08:06:00Z',
+    '2026-08-02T08:06:00Z'
+  );
 
 INSERT INTO devices (
   id, dog_id, type, mac_address, firmware_version, last_seen_at, created_at
@@ -90,4 +103,25 @@ VALUES (
   20.75,
   61.0,
   '2026-08-03T09:00:04Z'
+);
+
+-- Pre-0015 copresence rows are intentionally unconstrained in the reconstructed
+-- core. A valid legacy row must survive when 0015 adds canonical dog FKs.
+INSERT INTO copresence_events (
+  id,
+  dog_a_id,
+  dog_b_id,
+  latitude,
+  longitude,
+  occurred_at,
+  recurring
+)
+VALUES (
+  '72000000-0000-4000-8000-000000000401'::uuid,
+  '72000000-0000-4000-8000-000000000101'::uuid,
+  '72000000-0000-4000-8000-000000000102'::uuid,
+  48.8566,
+  2.3522,
+  '2026-08-03T11:00:00Z',
+  2
 );

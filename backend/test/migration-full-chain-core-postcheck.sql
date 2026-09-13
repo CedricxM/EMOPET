@@ -32,6 +32,20 @@ BEGIN
   END IF;
 
   IF NOT EXISTS (
+    SELECT 1 FROM dogs
+     WHERE id='72000000-0000-4000-8000-000000000102'::uuid
+       AND owner_id='72000000-0000-4000-8000-000000000001'::uuid
+       AND name='Full Chain Dog B'
+       AND breed='Test Breed'
+       AND birth_date='2022-03-04'
+       AND sex='male'
+       AND abs(weight - 18.5) < 0.001
+       AND fur_class='FC2'
+  ) THEN
+    RAISE EXCEPTION 'full-chain upgrade changed or lost seeded second dog row';
+  END IF;
+
+  IF NOT EXISTS (
     SELECT 1 FROM devices
      WHERE id='72000000-0000-4000-8000-000000000201'::uuid
        AND dog_id='72000000-0000-4000-8000-000000000101'::uuid
@@ -64,6 +78,19 @@ BEGIN
        AND firmware_version_at_ingest IS NULL
   ) THEN
     RAISE EXCEPTION 'full-chain upgrade changed or lost seeded sensor summary row';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM copresence_events
+     WHERE id='72000000-0000-4000-8000-000000000401'::uuid
+       AND dog_a_id='72000000-0000-4000-8000-000000000101'::uuid
+       AND dog_b_id='72000000-0000-4000-8000-000000000102'::uuid
+       AND abs(latitude - 48.8566) < 0.0001
+       AND abs(longitude - 2.3522) < 0.0001
+       AND occurred_at='2026-08-03T11:00:00Z'::timestamptz
+       AND recurring=2
+  ) THEN
+    RAISE EXCEPTION 'full-chain upgrade changed or lost seeded copresence row';
   END IF;
 END $$;
 
@@ -132,6 +159,40 @@ BEGIN
   IF NOT has_fk THEN
     RAISE EXCEPTION 'full-chain final user_config.user_id missing users FK';
   END IF;
+END $$;
+
+-- 0015 must preserve valid legacy copresence rows while adding both canonical
+-- dogs.id foreign keys with NO ACTION semantics.
+DO $$
+DECLARE
+  col text;
+  has_fk boolean;
+BEGIN
+  FOREACH col IN ARRAY ARRAY['dog_a_id', 'dog_b_id'] LOOP
+    SELECT EXISTS (
+      SELECT 1
+        FROM pg_constraint c
+        JOIN LATERAL unnest(c.conkey) WITH ORDINALITY child_key(attnum, ord) ON true
+        JOIN LATERAL unnest(c.confkey) WITH ORDINALITY parent_key(attnum, ord)
+          ON parent_key.ord = child_key.ord
+        JOIN pg_attribute child_att
+          ON child_att.attrelid = c.conrelid
+         AND child_att.attnum = child_key.attnum
+        JOIN pg_attribute parent_att
+          ON parent_att.attrelid = c.confrelid
+         AND parent_att.attnum = parent_key.attnum
+       WHERE c.contype='f'
+         AND c.conrelid='public.copresence_events'::regclass
+         AND c.confrelid='public.dogs'::regclass
+         AND child_att.attname=col
+         AND parent_att.attname='id'
+         AND c.confdeltype='a'
+    ) INTO has_fk;
+
+    IF NOT has_fk THEN
+      RAISE EXCEPTION 'full-chain final copresence_events.% missing NO ACTION dogs.id FK', col;
+    END IF;
+  END LOOP;
 END $$;
 
 -- Representative tables from the historical chain must exist, proving this

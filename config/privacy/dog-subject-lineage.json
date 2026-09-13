@@ -35,6 +35,16 @@
       "source": "backend/db/schema/behavioral-assessments.ts"
     },
     {
+      "table": "copresence_events",
+      "column": "dog_a_id",
+      "source": "backend/db/schema/community.ts"
+    },
+    {
+      "table": "copresence_events",
+      "column": "dog_b_id",
+      "source": "backend/db/schema/community.ts"
+    },
+    {
       "table": "devices",
       "column": "dog_id",
       "source": "backend/db/schema/dogs.ts"
@@ -96,16 +106,6 @@
     }
   ],
   "unconstrainedDogIdentifiers": [
-    {
-      "table": "copresence_events",
-      "column": "dog_a_id",
-      "source": "backend/db/schema/community.ts"
-    },
-    {
-      "table": "copresence_events",
-      "column": "dog_b_id",
-      "source": "backend/db/schema/community.ts"
-    },
     {
       "table": "professional_share_access_audits",
       "column": "dog_id",
