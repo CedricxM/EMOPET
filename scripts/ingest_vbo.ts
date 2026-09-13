@@ -313,7 +313,7 @@ async function main() {
     const displayName = b.display_name.replace(/'/g, "''");
     const label = b.label.replace(/'/g, "''");
 
-    return `INSERT INTO breed_canonical (vbo_id, label, display_name, breed_slug, synonyms, fci_number, provenance) VALUES ('${b.vbo_id}', '${label}', '${displayName}', '${b.breed_slug}', '${synonymsJson}'::jsonb, ${fciNum}, '${provenanceJson}'::jsonb) ON CONFLICT (vbo_id) DO UPDATE SET label = EXCLUDED.label, display_name = EXCLUDED.display_name, synonyms = EXCLUDED.synonyms, fci_number = EXCLUDED.fci_number, provenance = EXCLUDED.provenance;`;
+    return `INSERT INTO breed_canonical (vbo_id, label, display_name, breed_slug, synonyms, fci_number, provenance) VALUES ('${b.vbo_id}', '${label}', '${displayName}', '${b.breed_slug}', '${synonymsJson}'::jsonb, ${fciNum}, '${provenanceJson}'::jsonb) ON CONFLICT (vbo_id) DO UPDATE SET label = EXCLUDED.label, display_name = EXCLUDED.display_name, synonyms = EXCLUDED.synonyms, fci_number = EXCLUDED.fci_number, provenance = EXCLUDED.provenance, updated_at = NOW();`;
   });
 
   writeFileSync(sqlPath, sqlLines.join('\n'));

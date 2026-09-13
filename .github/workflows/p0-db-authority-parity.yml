@@ -5,6 +5,11 @@ on:
     paths:
       - 'backend/db/**'
       - 'backend/test/critical-schema-fingerprint.sql'
+      - 'backend/test/dataset-operational-fingerprint.sql'
+      - 'scripts/ingest_vbo.ts'
+      - 'data/vbo/breed_canonical_insert.sql'
+      - 'data/vbo/breed_canonical_insert.legacy.sql'
+      - 'data/vbo/README.md'
       - '.github/workflows/p0-db-authority-parity.yml'
   workflow_dispatch:
 
@@ -88,10 +93,27 @@ jobs:
           cd backend
           DATABASE_URL="$GENERATED_DATABASE_URL" pnpm exec drizzle-kit migrate --config=db/drizzle.p0-baseline.config.ts
 
+      - name: Require writer-owned VBO updated_at contract
+        run: |
+          grep -Fq "updated_at = NOW()" scripts/ingest_vbo.ts
+          test -f data/vbo/breed_canonical_insert.legacy.sql
+
+          if grep -Fq "RAISE EXCEPTION" data/vbo/breed_canonical_insert.sql \
+            && grep -Fq "ingest_vbo.ts" data/vbo/breed_canonical_insert.sql; then
+            echo "Checked-in VBO SQL path is an intentional fail-closed regeneration guard."
+          elif grep -Fq "updated_at = NOW()" data/vbo/breed_canonical_insert.sql; then
+            echo "Current generated VBO SQL owns updated_at."
+          else
+            echo "VBO SQL artifact is stale and executable without writer-owned updated_at." >&2
+            exit 1
+          fi
+
       - name: Capture critical semantic fingerprints
         run: |
           psql "$HISTORICAL_DATABASE_URL" -At -v ON_ERROR_STOP=1 -f backend/test/critical-schema-fingerprint.sql > /tmp/critical-historical.txt
+          psql "$HISTORICAL_DATABASE_URL" -At -v ON_ERROR_STOP=1 -f backend/test/dataset-operational-fingerprint.sql >> /tmp/critical-historical.txt
           psql "$GENERATED_DATABASE_URL" -At -v ON_ERROR_STOP=1 -f backend/test/critical-schema-fingerprint.sql > /tmp/critical-generated.txt
+          psql "$GENERATED_DATABASE_URL" -At -v ON_ERROR_STOP=1 -f backend/test/dataset-operational-fingerprint.sql >> /tmp/critical-generated.txt
 
           echo '--- historical critical fingerprint ---'
           cat /tmp/critical-historical.txt
@@ -104,6 +126,6 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow compares selected critical identity/provenance schema semantics between the checked-in historical migration authority and a fresh current Drizzle authority.'
-          echo 'It is intentionally not a claim that every non-critical table, constraint name, storage parameter or production extension is identical.'
+          echo 'This workflow compares selected critical identity/provenance, ELI, dataset schema, and selected dataset operational authority semantics between checked-in historical migrations and a fresh current Drizzle authority.'
+          echo 'It is intentionally not a claim that every non-critical table, constraint name, storage parameter, data snapshot, or production extension is identical.'
           echo 'It does not authorize production migration or release.'
