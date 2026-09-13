@@ -306,10 +306,14 @@ if (seedIndex.includes("import { LORIENT_DIRECTORY } from './local-directory-lor
   fail('backend/db/seeds/index.ts directly imports uncontrolled Lorient directory seed');
 }
 
-expectContains('docs/control/EMOPET_THIRD_PARTY_DATA_RIGHTS_REGISTER_v0.1.md', [
+// v0.1 remains historical evidence. v0.2 is the current reconciled register
+// and must keep the aggregate HOLD/OPEN posture plus the corrected G2/G6 states.
+expectContains('docs/control/EMOPET_THIRD_PARTY_DATA_RIGHTS_REGISTER_v0.2.md', [
   'NOT LEGAL SIGN-OFF / NOT RELEASE AUTHORITY',
   'DATA-LIC-G1',
   'DATA-LIC-G8',
+  'IMMUTABLE UPSTREAM COMMIT MATCH PROVEN',
+  'FAIL-CLOSED ENGINEERING BOUNDARY PRESENT',
   'G-THIRD-PARTY-DATA-RIGHTS-01 = OPEN',
 ]);
 
