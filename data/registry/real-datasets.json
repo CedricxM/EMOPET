@@ -1,5 +1,5 @@
 {
-  "registryVersion": "2026-09-13-rights-evidence-v2",
+  "registryVersion": "2026-09-13-rights-evidence-v3",
   "datasets": [
     {
       "datasetId": "dog-movement-vxhx934tbn-v4",
@@ -54,11 +54,12 @@
       "ingestionMode": "direct_download",
       "expectedUse": ["canonical breed identifiers", "synonyms", "cross-references"],
       "prohibitedShortcut": "Breed metadata is context/taxonomy, not a proxy for an individual dog's state.",
-      "evidenceState": "IMMUTABLE_UPSTREAM_MATCH_PROVEN_RECEIPT_MISSING",
+      "evidenceState": "RECEIPT_MISSING_IMMUTABLE_UPSTREAM_MATCH_PROVEN",
       "receiptPath": null,
-      "checksumSha256": "09da44412ed43ee271e407a83401275ada85483e2199273203c8404b84c093de",
+      "checksumSha256": null,
       "payloadPath": "data/vbo/vbo.json",
       "provenanceEvidencePath": "data/vbo/committed-snapshot-evidence.json",
+      "provenancePayloadSha256": "09da44412ed43ee271e407a83401275ada85483e2199273203c8404b84c093de",
       "upstreamImmutableCommit": "323e8a3dbdb13696b41408f0f2f70454ba37b6f6",
       "upstreamGitBlobSha": "902e7457b8a31ff3256d253ad13592a7ce9e54fa",
       "observedRetrievedAtFromCommittedDerivatives": "2026-04-03T13:15:25.288Z"
