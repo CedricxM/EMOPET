@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "emopet-vbo-committed-snapshot-evidence-v1",
+  "status": "COMMITTED_SNAPSHOT_TRACEABILITY_ONLY_UPSTREAM_RECEIPT_OPEN",
+  "claimsUpstreamReleaseEquivalence": false,
+  "claimsProductUseClearance": false,
+  "sourceFamily": "Vertebrate Breed Ontology (VBO)",
+  "sourcePointer": "http://purl.obolibrary.org/obo/vbo.json",
+  "payloadPath": "data/vbo/vbo.json",
+  "payloadBytes": 40128716,
+  "payloadSha256": "09da44412ed43ee271e407a83401275ada85483e2199273203c8404b84c093de",
+  "versionTag": "09da44412ed4",
+  "derivedRecordCount": 1575,
+  "derivedPath": "data/vbo/breed_canonical.json",
+  "datasetVersionSqlPath": "data/vbo/dataset_version_insert.sql",
+  "transformScriptPath": "scripts/ingest_vbo.ts",
+  "observedRetrievedAtFromCommittedDerivatives": "2026-04-03T13:15:25.288Z",
+  "repositoryLicenseLabel": "CC-BY-4.0",
+  "repositoryAttribution": "Vertebrate Breed Ontology (VBO), OBO Foundry, CC BY 4.0",
+  "upstreamImmutableRelease": null,
+  "upstreamRetrievalReceiptStatus": "RECEIPT_MISSING",
+  "limitations": [
+    "This file proves consistency of the committed EMOPET VBO snapshot and derivatives only.",
+    "It does not prove that the committed payload is byte-identical to a particular upstream immutable release.",
+    "The observed retrieval timestamp is inherited from committed derivative provenance and is not treated as an independently retained upstream receipt.",
+    "The licence label and attribution are repository evidence, not legal or product-use clearance."
+  ]
+}

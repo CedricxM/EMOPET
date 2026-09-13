@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -18,6 +19,26 @@ function text(path) {
   return readFileSync(absolute, 'utf8');
 }
 
+function bytes(path) {
+  const absolute = resolve(path);
+  if (!existsSync(absolute)) {
+    fail(`missing required file: ${path}`);
+    return Buffer.alloc(0);
+  }
+  return readFileSync(absolute);
+}
+
+function json(path, fallback) {
+  const content = text(path);
+  if (!content) return fallback;
+  try {
+    return JSON.parse(content);
+  } catch (error) {
+    fail(`${path}: invalid JSON (${error instanceof Error ? error.message : String(error)})`);
+    return fallback;
+  }
+}
+
 function expectContains(path, needles) {
   const content = text(path);
   for (const needle of needles) {
@@ -26,7 +47,7 @@ function expectContains(path, needles) {
 }
 
 const registryPath = 'data/registry/real-datasets.json';
-const registry = JSON.parse(text(registryPath) || '{"datasets":[]}');
+const registry = json(registryPath, { datasets: [] });
 
 for (const dataset of registry.datasets ?? []) {
   if (!dataset.datasetId) fail('dataset without datasetId');
@@ -52,6 +73,126 @@ for (const dataset of registry.datasets ?? []) {
     }
   }
 }
+
+// DATA-LIC-G2 committed-snapshot traceability.
+// This proves only internal consistency of the committed VBO payload and its
+// generated derivatives. It is deliberately not an upstream retrieval receipt
+// and not licence/product-use clearance.
+const vboEvidencePath = 'data/vbo/committed-snapshot-evidence.json';
+const vboEvidence = json(vboEvidencePath, {});
+const vboPayload = bytes('data/vbo/vbo.json');
+const vboSha256 = vboPayload.length > 0
+  ? createHash('sha256').update(vboPayload).digest('hex')
+  : '';
+
+if (vboEvidence.status !== 'COMMITTED_SNAPSHOT_TRACEABILITY_ONLY_UPSTREAM_RECEIPT_OPEN') {
+  fail(`${vboEvidencePath}: committed snapshot status must remain explicitly non-conclusive`);
+}
+if (vboEvidence.claimsUpstreamReleaseEquivalence !== false) {
+  fail(`${vboEvidencePath}: must not claim upstream release equivalence`);
+}
+if (vboEvidence.claimsProductUseClearance !== false) {
+  fail(`${vboEvidencePath}: must not claim product-use clearance`);
+}
+if (vboEvidence.upstreamRetrievalReceiptStatus !== 'RECEIPT_MISSING') {
+  fail(`${vboEvidencePath}: upstream receipt must remain RECEIPT_MISSING until independent evidence exists`);
+}
+if (vboEvidence.payloadSha256 !== vboSha256) {
+  fail(`${vboEvidencePath}: payloadSha256 does not match committed data/vbo/vbo.json`);
+}
+if (Number(vboEvidence.payloadBytes) !== vboPayload.length) {
+  fail(`${vboEvidencePath}: payloadBytes does not match committed data/vbo/vbo.json`);
+}
+if (vboEvidence.versionTag !== vboSha256.slice(0, 12)) {
+  fail(`${vboEvidencePath}: versionTag must equal the first 12 hex characters of payload SHA-256`);
+}
+
+const datasetVersionSql = text('data/vbo/dataset_version_insert.sql');
+const datasetVersionMatch = datasetVersionSql.match(
+  /VALUES\s*\(\s*'vbo'\s*,\s*'([0-9a-f]{12})'\s*,\s*'([0-9a-f]{64})'\s*,\s*(\d+)\s*,/i,
+);
+if (!datasetVersionMatch) {
+  fail('data/vbo/dataset_version_insert.sql: unable to parse VBO version/checksum/record_count');
+}
+
+const sqlVersionTag = datasetVersionMatch?.[1]?.toLowerCase() ?? '';
+const sqlChecksum = datasetVersionMatch?.[2]?.toLowerCase() ?? '';
+const sqlRecordCount = Number(datasetVersionMatch?.[3] ?? NaN);
+
+if (sqlChecksum !== vboSha256) {
+  fail('data/vbo/dataset_version_insert.sql: checksum does not match committed VBO payload');
+}
+if (sqlVersionTag !== vboSha256.slice(0, 12)) {
+  fail('data/vbo/dataset_version_insert.sql: version tag does not match payload checksum prefix');
+}
+if (sqlVersionTag !== vboEvidence.versionTag) {
+  fail(`${vboEvidencePath}: versionTag disagrees with dataset_version_insert.sql`);
+}
+if (sqlChecksum !== vboEvidence.payloadSha256) {
+  fail(`${vboEvidencePath}: payloadSha256 disagrees with dataset_version_insert.sql`);
+}
+if (sqlRecordCount !== Number(vboEvidence.derivedRecordCount)) {
+  fail(`${vboEvidencePath}: derivedRecordCount disagrees with dataset_version_insert.sql`);
+}
+
+const canonicalBreeds = json('data/vbo/breed_canonical.json', []);
+if (!Array.isArray(canonicalBreeds)) {
+  fail('data/vbo/breed_canonical.json: expected an array');
+} else {
+  if (canonicalBreeds.length !== sqlRecordCount) {
+    fail(`data/vbo/breed_canonical.json: expected ${sqlRecordCount} rows, found ${canonicalBreeds.length}`);
+  }
+
+  const vboIds = new Set();
+  const retrievalTimes = new Set();
+  for (const [index, breed] of canonicalBreeds.entries()) {
+    const label = breed?.vbo_id ?? `row_${index}`;
+    if (typeof breed?.vbo_id !== 'string' || !breed.vbo_id.startsWith('VBO:')) {
+      fail(`data/vbo/breed_canonical.json: ${label} missing canonical VBO id`);
+    } else if (vboIds.has(breed.vbo_id)) {
+      fail(`data/vbo/breed_canonical.json: duplicate VBO id ${breed.vbo_id}`);
+    } else {
+      vboIds.add(breed.vbo_id);
+    }
+
+    const provenance = breed?.provenance;
+    if (!provenance || provenance.source !== 'vbo') {
+      fail(`data/vbo/breed_canonical.json: ${label} missing vbo provenance source`);
+      continue;
+    }
+    if (provenance.version !== vboEvidence.versionTag) {
+      fail(`data/vbo/breed_canonical.json: ${label} provenance version does not match committed payload`);
+    }
+    if (provenance.license !== vboEvidence.repositoryLicenseLabel) {
+      fail(`data/vbo/breed_canonical.json: ${label} licence label differs from committed snapshot evidence`);
+    }
+    if (provenance.attribution !== vboEvidence.repositoryAttribution) {
+      fail(`data/vbo/breed_canonical.json: ${label} attribution differs from committed snapshot evidence`);
+    }
+    if (typeof provenance.retrieved_at !== 'string' || Number.isNaN(Date.parse(provenance.retrieved_at))) {
+      fail(`data/vbo/breed_canonical.json: ${label} has invalid retrieved_at provenance`);
+    } else {
+      retrievalTimes.add(provenance.retrieved_at);
+    }
+  }
+
+  if (retrievalTimes.size !== 1) {
+    fail(`data/vbo/breed_canonical.json: expected one shared committed retrieval timestamp, found ${retrievalTimes.size}`);
+  }
+  const [observedRetrievedAt] = retrievalTimes;
+  if (observedRetrievedAt !== vboEvidence.observedRetrievedAtFromCommittedDerivatives) {
+    fail(`${vboEvidencePath}: observed retrieval timestamp disagrees with committed derivatives`);
+  }
+}
+
+expectContains('scripts/ingest_vbo.ts', [
+  "createHash('sha256')",
+  "source: 'vbo'",
+  "license: 'CC-BY-4.0'",
+  "resolve(dataDir, 'vbo.json')",
+  "resolve(dataDir, 'breed_canonical.json')",
+  "resolve(dataDir, 'dataset_version_insert.sql')",
+]);
 
 expectContains('apps/web/lib/data/breiz/sourceRegistry.ts', [
   'rightsEvidence?: BreizRightsEvidence',
@@ -119,4 +260,5 @@ if (failures.length > 0) {
 }
 
 console.log(`Third-party data rights gate audit PASS (${registry.datasets?.length ?? 0} datasets checked).`);
+console.log(`VBO committed snapshot traceability PASS (${sqlRecordCount} derived rows; SHA-256 ${vboSha256}).`);
 console.log('PASS means control invariants are present; it is not legal clearance or release authorization.');
