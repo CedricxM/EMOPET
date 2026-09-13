@@ -35,8 +35,12 @@ export interface Bounds {
 
 const ENDPOINT = 'https://overpass-api.de/api/interpreter';
 const OSM_LICENSE_URL = 'https://www.openstreetmap.org/copyright' as const;
-const OVERPASS_RUNTIME_ALLOWED =
-  process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE === 'GO';
+
+export function isOverpassRuntimeAllowed(): boolean {
+  return process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE === 'GO';
+}
+
+const OVERPASS_RUNTIME_ALLOWED = isOverpassRuntimeAllowed();
 
 /** Tag OSM → catégorie EMOPET. */
 function categoryFor(tags: Record<string, string>): SpotCategory | null {
@@ -54,7 +58,7 @@ const FALLBACK_NAMES: Record<SpotCategory, string> = {
   comportementaliste: 'Éducateur', pension: 'Pension', magasin: 'Magasin animalier', cafe: 'Café',
 };
 
-interface OverpassElement {
+export interface OverpassElement {
   type: string;
   id: number;
   lat?: number;
@@ -74,6 +78,45 @@ function sourceElementUrl(el: OverpassElement): string {
     ? el.type
     : 'node';
   return `https://www.openstreetmap.org/${type}/${el.id}`;
+}
+
+/**
+ * Convert raw Overpass elements into the bounded public POI projection used by
+ * the map. Provenance is attached here so every returned OSM marker carries
+ * its source element and attribution/licence pointers with it.
+ */
+export function overpassElementsToOsmSpots(elements: readonly OverpassElement[]): OsmSpot[] {
+  const spots: OsmSpot[] = [];
+  const seen = new Set<string>();
+
+  for (const el of elements) {
+    const tags = el.tags ?? {};
+    const category = categoryFor(tags);
+    if (!category) continue;
+
+    const lat = el.lat ?? el.center?.lat;
+    const lon = el.lon ?? el.center?.lon;
+    if (lat == null || lon == null) continue;
+
+    const id = `osm-${el.type}-${el.id}`;
+    if (seen.has(id)) continue;
+    seen.add(id);
+
+    spots.push({
+      id,
+      category,
+      name: tags.name ?? FALLBACK_NAMES[category],
+      lon,
+      lat,
+      fromOsm: true,
+      sourceName: 'OpenStreetMap',
+      sourceElementUrl: sourceElementUrl(el),
+      attributionText: '© OpenStreetMap contributors',
+      licenseUrl: OSM_LICENSE_URL,
+    });
+  }
+
+  return spots;
 }
 
 /**
@@ -105,32 +148,9 @@ export async function fetchOsmSpots(b: Bounds, signal?: AbortSignal): Promise<Os
       signal,
     });
     if (!res.ok) return [];
+
     const json = (await res.json()) as { elements?: OverpassElement[] };
-    const spots: OsmSpot[] = [];
-    const seen = new Set<string>();
-    for (const el of json.elements ?? []) {
-      const tags = el.tags ?? {};
-      const category = categoryFor(tags);
-      if (!category) continue;
-      const lat = el.lat ?? el.center?.lat;
-      const lon = el.lon ?? el.center?.lon;
-      if (lat == null || lon == null) continue;
-      const id = `osm-${el.type}-${el.id}`;
-      if (seen.has(id)) continue;
-      seen.add(id);
-      spots.push({
-        id,
-        category,
-        name: tags.name ?? FALLBACK_NAMES[category],
-        lon,
-        lat,
-        fromOsm: true,
-        sourceName: 'OpenStreetMap',
-        sourceElementUrl: sourceElementUrl(el),
-        attributionText: '© OpenStreetMap contributors',
-        licenseUrl: OSM_LICENSE_URL,
-      });
-    }
+    const spots = overpassElementsToOsmSpots(json.elements ?? []);
     cache.set(key, spots);
     return spots;
   } catch {
