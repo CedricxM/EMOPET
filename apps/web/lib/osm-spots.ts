@@ -35,6 +35,8 @@ export interface Bounds {
 
 const ENDPOINT = 'https://overpass-api.de/api/interpreter';
 const OSM_LICENSE_URL = 'https://www.openstreetmap.org/copyright' as const;
+const CACHE_TTL_MS = 5 * 60 * 1000;
+const MAX_CACHE_ENTRIES = 40;
 
 export function isOverpassRuntimeAllowed(): boolean {
   return process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE === 'GO';
@@ -67,10 +69,42 @@ export interface OverpassElement {
   tags?: Record<string, string>;
 }
 
-const cache = new Map<string, OsmSpot[]>();
+interface CacheEntry {
+  spots: OsmSpot[];
+  expiresAt: number;
+}
+
+// Ephemeral process/browser memory only. This cache is deliberately bounded and
+// expiring so this module does not become a persistent or accumulating OSM store.
+const cache = new Map<string, CacheEntry>();
 
 function bboxKey(b: Bounds): string {
   return [b.south, b.west, b.north, b.east].map((n) => n.toFixed(2)).join(',');
+}
+
+function getCachedSpots(key: string, now = Date.now()): OsmSpot[] | null {
+  const entry = cache.get(key);
+  if (!entry) return null;
+  if (entry.expiresAt <= now) {
+    cache.delete(key);
+    return null;
+  }
+
+  // Refresh insertion order so eviction behaves as a small LRU cache.
+  cache.delete(key);
+  cache.set(key, entry);
+  return entry.spots;
+}
+
+function setCachedSpots(key: string, spots: OsmSpot[], now = Date.now()): void {
+  cache.delete(key);
+  cache.set(key, { spots, expiresAt: now + CACHE_TTL_MS });
+
+  while (cache.size > MAX_CACHE_ENTRIES) {
+    const oldestKey = cache.keys().next().value as string | undefined;
+    if (!oldestKey) break;
+    cache.delete(oldestKey);
+  }
 }
 
 function sourceElementUrl(el: OverpassElement): string {
@@ -122,14 +156,15 @@ export function overpassElementsToOsmSpots(elements: readonly OverpassElement[])
 /**
  * Fetch POIs within the current bbox.
  *
- * The cache is process-memory only. No persistent OSM database or export is
- * created here. If the rights/service gate is not explicitly GO, fail closed.
+ * The cache is process/browser-memory only, capped at 40 bboxes and expires
+ * entries after five minutes. No persistent OSM database or export is created
+ * here. If the rights/service gate is not explicitly GO, fail closed.
  */
 export async function fetchOsmSpots(b: Bounds, signal?: AbortSignal): Promise<OsmSpot[]> {
   if (!OVERPASS_RUNTIME_ALLOWED) return [];
 
   const key = bboxKey(b);
-  const cached = cache.get(key);
+  const cached = getCachedSpots(key);
   if (cached) return cached;
 
   const bbox = `(${b.south},${b.west},${b.north},${b.east})`;
@@ -151,7 +186,7 @@ export async function fetchOsmSpots(b: Bounds, signal?: AbortSignal): Promise<Os
 
     const json = (await res.json()) as { elements?: OverpassElement[] };
     const spots = overpassElementsToOsmSpots(json.elements ?? []);
-    cache.set(key, spots);
+    setCachedSpots(key, spots);
     return spots;
   } catch {
     return [];
