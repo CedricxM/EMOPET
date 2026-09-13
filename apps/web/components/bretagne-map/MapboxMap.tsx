@@ -40,6 +40,8 @@ const BRETAGNE_BOUNDS: mapboxgl.LngLatBoundsLike = [
   [-0.9, 49.1],
 ];
 
+const OSM_COPYRIGHT_URL = 'https://www.openstreetmap.org/copyright';
+
 function dotEl(color: string, size: number, ring = false): HTMLDivElement {
   const el = document.createElement('div');
   el.style.width = `${size}px`;
@@ -165,9 +167,36 @@ export function MapboxMap({ spots, events, selectedSpotId, onSpotClick, onEventC
   }, [spots, events, osmSpots, selectedSpotId, ready, onSpotClick, onEventClick]);
 
   return (
-    <div
-      ref={containerRef}
-      style={{ width: '100%', height: 480, borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border)' }}
-    />
+    <div style={{ position: 'relative', width: '100%', height: 480 }}>
+      <div
+        ref={containerRef}
+        style={{ width: '100%', height: '100%', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border)' }}
+      />
+      {osmSpots.length > 0 ? (
+        <div
+          aria-label="Attribution des points d’intérêt OpenStreetMap"
+          style={{
+            position: 'absolute',
+            left: 8,
+            bottom: 8,
+            zIndex: 2,
+            padding: '3px 6px',
+            borderRadius: 4,
+            background: 'rgba(255,255,255,0.88)',
+            fontSize: 10,
+            lineHeight: 1.3,
+          }}
+        >
+          POI{' '}
+          <a href={OSM_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">
+            © OpenStreetMap contributors
+          </a>{' '}
+          ·{' '}
+          <a href={OSM_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">
+            ODbL / attribution
+          </a>
+        </div>
+      ) : null}
+    </div>
   );
 }
