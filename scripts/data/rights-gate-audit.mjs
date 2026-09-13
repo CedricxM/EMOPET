@@ -194,10 +194,18 @@ expectContains('scripts/ingest_vbo.ts', [
   "resolve(dataDir, 'dataset_version_insert.sql')",
 ]);
 
+// DATA-LIC-G6: catalogue enablement is not release authority. Keep the source
+// helper fail-closed unless reviewed evidence is SOURCE_CONFIRMED + GO, carries
+// the required receipt/attribution/use fields, has a valid non-future review
+// timestamp, and has not passed an optional recheck deadline.
 expectContains('apps/web/lib/data/breiz/sourceRegistry.ts', [
   'rightsEvidence?: BreizRightsEvidence',
   'isBreizSourceReleaseReady',
-  "evidence.disposition === 'GO'",
+  "evidence.evidenceState !== 'SOURCE_CONFIRMED'",
+  "evidence.disposition !== 'GO'",
+  'reviewedAt == null || reviewedAt > nowMs',
+  'recheckAt == null || recheckAt <= nowMs',
+  'getBreizReleaseReadySources',
 ]);
 
 expectContains('apps/web/components/bretagne-map/CommunityMap.tsx', [
