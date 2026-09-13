@@ -157,18 +157,41 @@ if (accessPolicy.includes('hasCurrentGuardianAuthority') ||
   failures.push('active professional-share access policy still exposes Guardian terminology');
 }
 
+const projection = requireText('backend/api/services/professional-share-projection.ts', [
+  'projectProfessionalShareSnapshot',
+  "case 'VETERINARY_SUMMARY'",
+  "case 'QUALIFIED_LONGITUDINAL_OBSERVATIONS'",
+  "case 'DATA_COVERAGE_AND_CONFIDENCE'",
+  "case 'OWNER_SELECTED_NOTES'",
+  "case 'DECLARED_CONTEXT'",
+  'ProfessionalShareProjectionUnavailableError',
+  'snapshot.dogId !== authority.dogId',
+  'generatedAt: snapshot.generatedAt.toISOString()',
+]);
+for (const forbidden of ['...snapshot', '...trend', 'ownerNotes: snapshot.ownerNotes']) {
+  if (projection.includes(forbidden)) {
+    failures.push(`professional-share projection must remain field-whitelisted: ${forbidden}`);
+  }
+}
+
 const recipientRead = requireText('backend/api/services/professional-share-recipient-read.ts', [
   'createProfessionalShareRecipientReadBoundary',
   'lockPublicationAuthority',
-  "await collect({ tx, authorization: preflight })",
+  'const collectedSnapshot = await collect({ tx, authorization: preflight })',
   ".for('share')",
   'createProfessionalShareAccessChecker(finalAuthority, clock)',
   'hasCurrentOwnerAuthority',
   'ownerUserId: row.ownerUserId',
   'recordUnavailableAudit',
+  'projectProfessionalShareSnapshot(finalDecision, collectedSnapshot)',
 ]);
 if (recipientRead.includes('guardianUserId') || recipientRead.includes('hasCurrentGuardianAuthority')) {
   failures.push('recipient-read authority still exposes Guardian terminology');
+}
+const finalGuardIndex = recipientRead.indexOf('if (!finalDecision.allowed) return finalDecision;');
+const projectionIndex = recipientRead.indexOf('projectProfessionalShareSnapshot(finalDecision, collectedSnapshot)');
+if (finalGuardIndex < 0 || projectionIndex <= finalGuardIndex) {
+  failures.push('recipient-read projection must happen only after final durable authority succeeds');
 }
 
 // The recipient-read primitive is deliberately internal until professional

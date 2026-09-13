@@ -96,16 +96,32 @@ test('professional recipient read rechecks authority before publication', {
   const resolveRecipient = async () => ({ principalId });
   const read = createProfessionalShareRecipientReadBoundary(resolveRecipient);
 
-  await t.test('publishes a collected projection only after a final durable check', async () => {
-    const result = await read(intent, async ({ authorization }) => ({
-      projectionMarker: 'approved-veterinary-summary-projection',
-      scopes: authorization.scopes,
+  await t.test('publishes only the scope whitelist after a final durable check', async () => {
+    const privateSentinel = `owner-note-must-not-escape-${randomUUID()}`;
+    const generatedAt = new Date('2026-09-07T12:00:00.000Z');
+    const result = await read(intent, async () => ({
+      dogId,
+      dogName: 'Nala',
+      days: 5,
+      generatedAt,
+      coverage: { validDays: 4, totalDays: 5, coverageRatio: 0.8 },
+      trends: [{ label: 'Activite', value: '4 km', coverage: 'stable' }],
+      ownerNotes: [privateSentinel],
     }));
 
     assert.equal(result.allowed, true);
     assert.equal(result.status, 'AUTHORIZED');
-    assert.equal(result.data.projectionMarker, 'approved-veterinary-summary-projection');
-    assert.deepEqual(result.data.scopes, ['VETERINARY_SUMMARY']);
+    assert.deepEqual(result.data, {
+      veterinarySummary: {
+        dogId,
+        dogName: 'Nala',
+        days: 5,
+        generatedAt: generatedAt.toISOString(),
+      },
+    });
+    assert.equal(JSON.stringify(result).includes(privateSentinel), false, 'owner note bytes must never escape summary scope');
+    assert.equal('qualifiedLongitudinalObservations' in result.data, false);
+    assert.equal('dataCoverageAndConfidence' in result.data, false);
 
     const storedAudits = await db.select().from(audits).where(eq(audits.grantId, grantId));
     assert.equal(storedAudits.length, 1, 'preflight must not masquerade as a published access decision');

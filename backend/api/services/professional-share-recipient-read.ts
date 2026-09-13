@@ -16,6 +16,11 @@ import {
   createProfessionalShareDbAuthority,
   type VerifiedProfessionalRecipientResolver,
 } from './professional-share-db-authority.js';
+import {
+  projectProfessionalShareSnapshot,
+  type ProfessionalShareProjectedData,
+} from './professional-share-projection.js';
+import type { VetReportSummary } from './vet-report.js';
 
 type ShareTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 type AuthorizedDecision = Extract<ProfessionalShareReadDecision, { allowed: true }>;
@@ -23,22 +28,22 @@ type UnsuccessfulDecision = Exclude<ProfessionalShareReadDecision, { allowed: tr
 type VerifiedRecipient = Awaited<ReturnType<VerifiedProfessionalRecipientResolver>>;
 type ReadIntent = ReturnType<typeof ProfessionalShareReadIntentSchema.parse>;
 
-export type ProfessionalShareRecipientReadResult<T> =
+export type ProfessionalShareRecipientReadResult =
   | UnsuccessfulDecision
-  | (AuthorizedDecision & { data: T });
+  | (AuthorizedDecision & { data: ProfessionalShareProjectedData });
 
 export interface ProfessionalShareScopedCollectorContext {
   /**
-   * Transaction-scoped database handle. The collector must remain read-only and
-   * must only assemble the semantic projection represented by authorization.
+   * Transaction-scoped database handle. The collector must remain read-only.
+   * Its VetReportSummary result is internal-only and is never published as-is.
    */
   tx: ShareTransaction;
   authorization: AuthorizedDecision;
 }
 
-export type ProfessionalShareScopedCollector<T> = (
+export type ProfessionalShareScopedCollector = (
   context: ProfessionalShareScopedCollectorContext,
-) => Promise<T>;
+) => Promise<VetReportSummary>;
 
 const authorityUnavailable = (): UnsuccessfulDecision => ({
   allowed: false,
@@ -169,25 +174,24 @@ async function recordUnavailableAudit(intent: ReadIntent): Promise<void> {
  * Internal recipient-read publication boundary for #64.
  *
  * This is intentionally not a route and does not provide professional identity,
- * activation/delivery, or an approved veterinary report projection. Identity is
- * resolved once before opening the database transaction so external/provider
- * work is never held under PostgreSQL locks.
+ * activation or delivery. Identity is resolved once before opening the database
+ * transaction so external/provider work is never held under PostgreSQL locks.
  *
- * The first policy check is a non-publishing preflight and deliberately does not
- * write a durable AUTHORIZED audit. After collection, dog then grant are locked
- * and the policy is re-evaluated against transaction-current durable state. Only
- * that final decision is durably audited and allowed data is returned after the
- * transaction commits. A collector failure or database/lock failure returns a
- * sanitized UNAVAILABLE result and best-effort sanitized audit.
+ * The collector may assemble a richer internal VetReportSummary, but it is not
+ * publication authority. After collection, dog then grant are locked and policy
+ * is re-evaluated against transaction-current durable state. Only after that
+ * final durable check succeeds does the centralized scope projector rebuild the
+ * exact fields allowed to leave the boundary. Projection failure rolls back the
+ * final AUTHORIZED audit and fails closed.
  */
 export function createProfessionalShareRecipientReadBoundary(
   resolveVerifiedRecipient: VerifiedProfessionalRecipientResolver,
   clock: () => number = Date.now,
 ) {
-  return async function readScopedRecipientData<T>(
+  return async function readScopedRecipientData(
     rawIntent: unknown,
-    collect: ProfessionalShareScopedCollector<T>,
-  ): Promise<ProfessionalShareRecipientReadResult<T>> {
+    collect: ProfessionalShareScopedCollector,
+  ): Promise<ProfessionalShareRecipientReadResult> {
     const parsedIntent = ProfessionalShareReadIntentSchema.safeParse(rawIntent);
     if (!parsedIntent.success) {
       return { allowed: false, status: 'DENIED', reason: 'INVALID_REQUEST' };
@@ -237,19 +241,19 @@ export function createProfessionalShareRecipientReadBoundary(
     }
 
     try {
-      return await db.transaction(async (tx): Promise<ProfessionalShareRecipientReadResult<T>> => {
+      return await db.transaction(async (tx): Promise<ProfessionalShareRecipientReadResult> => {
         await tx.execute(sql`SET LOCAL lock_timeout = '5s'`);
         await tx.execute(sql`SET LOCAL statement_timeout = '15s'`);
 
-        // No bytes leave this service here. The result remains transaction-local
-        // until the final authority lock and recheck below succeed.
-        const data = await collect({ tx, authorization: preflight });
+        // No bytes leave this service here. This is an internal snapshot only.
+        const collectedSnapshot = await collect({ tx, authorization: preflight });
 
         await lockPublicationAuthority(tx, intent);
         const finalAuthority = createTransactionAuthority(tx, recipient);
         const finalDecision = await createProfessionalShareAccessChecker(finalAuthority, clock)(intent);
         if (!finalDecision.allowed) return finalDecision;
 
+        const data = projectProfessionalShareSnapshot(finalDecision, collectedSnapshot);
         return { ...finalDecision, data };
       });
     } catch {
