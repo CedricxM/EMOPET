@@ -13,13 +13,31 @@ function deferred() {
   return { promise, resolve };
 }
 
+function internalSnapshot(dogId, ownerNotes = []) {
+  return {
+    dogId,
+    dogName: 'Nala',
+    days: 5,
+    generatedAt: new Date('2026-09-07T12:00:00.000Z'),
+    coverage: { validDays: 4, totalDays: 5, coverageRatio: 0.8 },
+    trends: [{ label: 'Activite', value: '4 km', coverage: 'stable' }],
+    ownerNotes,
+  };
+}
+
 test('professional recipient read rechecks authority before publication', {
   skip: !integrationEnabled,
   timeout: 20_000,
 }, async (t) => {
   const [
     { db },
-    { dogs, users, professionalShareGrants: grants, professionalShareAccessAudits: audits },
+    {
+      dogs,
+      users,
+      sensorSummaries,
+      professionalShareGrants: grants,
+      professionalShareAccessAudits: audits,
+    },
     { dogs: dogRoutes },
     { createProfessionalShareRecipientReadBoundary },
   ] = await Promise.all([
@@ -35,9 +53,14 @@ test('professional recipient read rechecks authority before publication', {
   const grantId = randomUUID();
   const principalId = `fixture-vet-${randomUUID()}`;
 
-  t.after(async () => {
+  async function clearAudits() {
     await db.delete(audits).where(eq(audits.dogId, dogId));
+  }
+
+  t.after(async () => {
+    await clearAudits();
     await db.delete(grants).where(eq(grants.dogId, dogId));
+    await db.delete(sensorSummaries).where(eq(sensorSummaries.dogId, dogId));
     await db.delete(dogs).where(eq(dogs.id, dogId));
     await db.delete(users).where(eq(users.id, ownerId));
     await db.delete(users).where(eq(users.id, nextOwnerId));
@@ -76,7 +99,11 @@ test('professional recipient read rechecks authority before publication', {
     recipientEmail: 'vet@example.test',
     recipientPrincipalId: principalId,
     purpose: 'VETERINARY_CONSULTATION',
-    scopes: ['VETERINARY_SUMMARY'],
+    scopes: [
+      'VETERINARY_SUMMARY',
+      'QUALIFIED_LONGITUDINAL_OBSERVATIONS',
+      'DATA_COVERAGE_AND_CONFIDENCE',
+    ],
     dataFrom: new Date('2026-09-01T00:00:00.000Z'),
     dataTo: new Date('2026-09-09T23:59:59.000Z'),
     accessExpiresAt: new Date('2099-01-01T00:00:00.000Z'),
@@ -84,6 +111,27 @@ test('professional recipient read rechecks authority before publication', {
     activatedAt: new Date('2026-09-01T00:00:00.000Z'),
     status: 'ACTIVE',
   });
+
+  await db.insert(sensorSummaries).values([
+    {
+      dogId,
+      timestamp: new Date('2026-09-01T12:00:00.000Z'),
+      source: 'MAT',
+      distanceKm: 111,
+    },
+    {
+      dogId,
+      timestamp: new Date('2026-09-04T12:00:00.000Z'),
+      source: 'MAT',
+      distanceKm: 4,
+    },
+    {
+      dogId,
+      timestamp: new Date('2026-09-08T12:00:00.000Z'),
+      source: 'MAT',
+      distanceKm: 999,
+    },
+  ]);
 
   const intent = {
     grantId,
@@ -94,20 +142,14 @@ test('professional recipient read rechecks authority before publication', {
     dataTo: '2026-09-07T00:00:00.000Z',
   };
   const resolveRecipient = async () => ({ principalId });
-  const read = createProfessionalShareRecipientReadBoundary(resolveRecipient);
 
   await t.test('publishes only the scope whitelist after a final durable check', async () => {
+    await clearAudits();
     const privateSentinel = `owner-note-must-not-escape-${randomUUID()}`;
-    const generatedAt = new Date('2026-09-07T12:00:00.000Z');
-    const result = await read(intent, async () => ({
-      dogId,
-      dogName: 'Nala',
-      days: 5,
-      generatedAt,
-      coverage: { validDays: 4, totalDays: 5, coverageRatio: 0.8 },
-      trends: [{ label: 'Activite', value: '4 km', coverage: 'stable' }],
-      ownerNotes: [privateSentinel],
-    }));
+    const read = createProfessionalShareRecipientReadBoundary(resolveRecipient, {
+      collect: async () => internalSnapshot(dogId, [privateSentinel]),
+    });
+    const result = await read(intent);
 
     assert.equal(result.allowed, true);
     assert.equal(result.status, 'AUTHORIZED');
@@ -116,7 +158,7 @@ test('professional recipient read rechecks authority before publication', {
         dogId,
         dogName: 'Nala',
         days: 5,
-        generatedAt: generatedAt.toISOString(),
+        generatedAt: '2026-09-07T12:00:00.000Z',
       },
     });
     assert.equal(JSON.stringify(result).includes(privateSentinel), false, 'owner note bytes must never escape summary scope');
@@ -129,17 +171,45 @@ test('professional recipient read rechecks authority before publication', {
     assert.equal(storedAudits[0].reason, 'ACTIVE_GRANT');
   });
 
+  await t.test('default collector uses both authorized time bounds at SQL read time', async () => {
+    await clearAudits();
+    const read = createProfessionalShareRecipientReadBoundary(resolveRecipient);
+    const result = await read({
+      ...intent,
+      scopes: ['QUALIFIED_LONGITUDINAL_OBSERVATIONS', 'DATA_COVERAGE_AND_CONFIDENCE'],
+    });
+
+    assert.equal(result.allowed, true);
+    assert.equal(result.status, 'AUTHORIZED');
+    assert.equal('veterinarySummary' in result.data, false);
+    assert.equal(result.data.dataCoverageAndConfidence.validDays, 1);
+    assert.equal(result.data.dataCoverageAndConfidence.totalDays, 6);
+
+    const activity = result.data.qualifiedLongitudinalObservations.trends
+      .find((trend) => trend.label === 'Activite');
+    assert.equal(activity?.value, '4 km');
+    assert.equal(JSON.stringify(result).includes('111 km'), false, 'pre-window sensor bytes must not affect projection');
+    assert.equal(JSON.stringify(result).includes('999 km'), false, 'post-window sensor bytes must not affect projection');
+
+    const storedAudits = await db.select().from(audits).where(eq(audits.grantId, grantId));
+    assert.equal(storedAudits.length, 1);
+    assert.equal(storedAudits[0].decisionStatus, 'AUTHORIZED');
+  });
+
   await t.test('Owner transfer committed during collection discards the former Owner payload', async () => {
+    await clearAudits();
     const collectorStarted = deferred();
     const releaseCollector = deferred();
     const privateSentinel = `former-owner-must-not-escape-${randomUUID()}`;
-
-    const pendingRead = read(intent, async () => {
-      collectorStarted.resolve();
-      await releaseCollector.promise;
-      return { privateSentinel };
+    const read = createProfessionalShareRecipientReadBoundary(resolveRecipient, {
+      collect: async () => {
+        collectorStarted.resolve();
+        await releaseCollector.promise;
+        return internalSnapshot(dogId, [privateSentinel]);
+      },
     });
 
+    const pendingRead = read(intent);
     await collectorStarted.promise;
 
     await db
@@ -161,32 +231,27 @@ test('professional recipient read rechecks authority before publication', {
     assert.equal(JSON.stringify(result).includes(privateSentinel), false, 'former Owner bytes must never escape');
 
     const storedAudits = await db.select().from(audits).where(eq(audits.grantId, grantId));
-    assert.equal(storedAudits.length, 2);
-    assert.equal(
-      storedAudits.some((audit) =>
-        audit.decisionStatus === 'DENIED' &&
-        audit.reason === 'OWNER_AUTHORITY_MISMATCH'),
-      true,
-      'committed transfer denial must be durably audited regardless of row return order',
-    );
+    assert.equal(storedAudits.length, 1);
+    assert.equal(storedAudits[0].decisionStatus, 'DENIED');
+    assert.equal(storedAudits[0].reason, 'OWNER_AUTHORITY_MISMATCH');
   });
 
   await t.test('grant expiration during collection discards the collected bytes', async () => {
+    await clearAudits();
     const collectorStarted = deferred();
     const releaseCollector = deferred();
     const privateSentinel = `expired-grant-must-not-escape-${randomUUID()}`;
     let now = Date.parse('2026-09-10T00:00:00.000Z');
-    const expiringRead = createProfessionalShareRecipientReadBoundary(
-      resolveRecipient,
-      () => now,
-    );
-
-    const pendingRead = expiringRead(intent, async () => {
-      collectorStarted.resolve();
-      await releaseCollector.promise;
-      return { privateSentinel };
+    const expiringRead = createProfessionalShareRecipientReadBoundary(resolveRecipient, {
+      clock: () => now,
+      collect: async () => {
+        collectorStarted.resolve();
+        await releaseCollector.promise;
+        return internalSnapshot(dogId, [privateSentinel]);
+      },
     });
 
+    const pendingRead = expiringRead(intent);
     await collectorStarted.promise;
     now = Date.parse('2100-01-01T00:00:00.000Z');
     releaseCollector.resolve();
@@ -199,27 +264,25 @@ test('professional recipient read rechecks authority before publication', {
     assert.equal(JSON.stringify(result).includes(privateSentinel), false, 'expired-grant bytes must never escape');
 
     const storedAudits = await db.select().from(audits).where(eq(audits.grantId, grantId));
-    assert.equal(storedAudits.length, 3);
-    assert.equal(
-      storedAudits.some((audit) =>
-        audit.decisionStatus === 'DENIED' &&
-        audit.reason === 'GRANT_EXPIRED'),
-      true,
-      'mid-read expiration denial must be durably audited regardless of row return order',
-    );
+    assert.equal(storedAudits.length, 1);
+    assert.equal(storedAudits[0].decisionStatus, 'DENIED');
+    assert.equal(storedAudits[0].reason, 'GRANT_EXPIRED');
   });
 
   await t.test('revocation committed during collection discards the collected bytes', async () => {
+    await clearAudits();
     const collectorStarted = deferred();
     const releaseCollector = deferred();
     const privateSentinel = `must-not-escape-${randomUUID()}`;
-
-    const pendingRead = read(intent, async () => {
-      collectorStarted.resolve();
-      await releaseCollector.promise;
-      return { privateSentinel };
+    const read = createProfessionalShareRecipientReadBoundary(resolveRecipient, {
+      collect: async () => {
+        collectorStarted.resolve();
+        await releaseCollector.promise;
+        return internalSnapshot(dogId, [privateSentinel]);
+      },
     });
 
+    const pendingRead = read(intent);
     await collectorStarted.promise;
 
     const app = new Hono();
@@ -248,13 +311,8 @@ test('professional recipient read rechecks authority before publication', {
     assert.equal(JSON.stringify(result).includes(privateSentinel), false, 'collected bytes must never escape');
 
     const storedAudits = await db.select().from(audits).where(eq(audits.grantId, grantId));
-    assert.equal(storedAudits.length, 4);
-    assert.equal(
-      storedAudits.some((audit) =>
-        audit.decisionStatus === 'DENIED' &&
-        audit.reason === 'GRANT_REVOKED'),
-      true,
-      'committed revocation denial must be durably audited regardless of row return order',
-    );
+    assert.equal(storedAudits.length, 1);
+    assert.equal(storedAudits[0].decisionStatus, 'DENIED');
+    assert.equal(storedAudits[0].reason, 'GRANT_REVOKED');
   });
 });
