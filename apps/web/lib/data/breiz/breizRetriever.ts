@@ -11,8 +11,18 @@ export interface BreizRetrievalAnswer {
   note: string;
 }
 
+/**
+ * Public-answer retrieval is fail-closed: a chunk must be both explicitly
+ * allowed for sourced public answers and already source-verified. Generic/local
+ * ingestion cannot assign `source_verified`, so raw files cannot self-promote
+ * into this path.
+ *
+ * This is still not a substitute for DATA-LIC-G6 rightsEvidence review. It is a
+ * runtime containment boundary while item-level promotion authority is built.
+ */
 function canAnswerFromChunk(chunk: BreizDocumentChunk): boolean {
-  return chunk.metadata.allowed_usage === 'public_answer_with_source';
+  return chunk.metadata.allowed_usage === 'public_answer_with_source' &&
+    chunk.metadata.reliability_level === 'source_verified';
 }
 
 export function createBreizMockStore(documents: BreizDocument[] = MOCK_BREIZ_DOCUMENTS): MockBreizVectorStore {
