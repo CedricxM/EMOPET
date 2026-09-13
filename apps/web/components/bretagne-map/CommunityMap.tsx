@@ -13,6 +13,7 @@
 
 import dynamic from 'next/dynamic';
 import { useMemo } from 'react';
+import { getControlledMapboxToken } from '../../lib/mapbox-rights';
 import { BretagneMap } from './Map';
 import type { SpotMarker } from './Map';
 import type { MapboxEvent } from './MapboxMap';
@@ -36,9 +37,7 @@ export interface CommunityMapProps {
   };
 }
 
-const HAS_CONTROLLED_MAPBOX =
-  !!process.env.NEXT_PUBLIC_MAPBOX_TOKEN &&
-  process.env.NEXT_PUBLIC_EMOPET_MAPBOX_RIGHTS_GATE === 'GO';
+const HAS_CONTROLLED_MAPBOX = getControlledMapboxToken() !== null;
 
 export function CommunityMap({ spots, events, selectedSpotId, onSpotClick, onEventClick, svg }: CommunityMapProps) {
   const spotMarkers = useMemo<SpotMarker[]>(
