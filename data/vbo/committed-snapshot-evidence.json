@@ -2,6 +2,7 @@
   "schemaVersion": "emopet-vbo-committed-snapshot-evidence-v1",
   "status": "COMMITTED_SNAPSHOT_TRACEABILITY_ONLY_UPSTREAM_RECEIPT_OPEN",
   "claimsUpstreamReleaseEquivalence": false,
+  "claimsUpstreamImmutableCommitByteEquivalence": true,
   "claimsProductUseClearance": false,
   "sourceFamily": "Vertebrate Breed Ontology (VBO)",
   "sourcePointer": "http://purl.obolibrary.org/obo/vbo.json",
@@ -17,10 +18,18 @@
   "repositoryLicenseLabel": "CC-BY-4.0",
   "repositoryAttribution": "Vertebrate Breed Ontology (VBO), OBO Foundry, CC BY 4.0",
   "upstreamImmutableRelease": null,
+  "upstreamImmutableCommit": "323e8a3dbdb13696b41408f0f2f70454ba37b6f6",
+  "upstreamImmutableCommitDate": "2026-03-26T14:43:34Z",
+  "upstreamImmutableCommitVerifiedSignature": true,
+  "upstreamImmutableCommitUrl": "https://github.com/monarch-initiative/vertebrate-breed-ontology/commit/323e8a3dbdb13696b41408f0f2f70454ba37b6f6",
+  "committedPayloadGitBlobSha": "902e7457b8a31ff3256d253ad13592a7ce9e54fa",
+  "upstreamVboJsonGitBlobSha": "902e7457b8a31ff3256d253ad13592a7ce9e54fa",
+  "upstreamImmutableCommitByteEquivalenceStatus": "PROVEN_GIT_BLOB_MATCH",
   "upstreamRetrievalReceiptStatus": "RECEIPT_MISSING",
   "limitations": [
     "This file proves consistency of the committed EMOPET VBO snapshot and derivatives only.",
-    "It does not prove that the committed payload is byte-identical to a particular upstream immutable release.",
+    "The matching Git blob SHA proves that the committed EMOPET payload is byte-identical to upstream vbo.json at immutable commit 323e8a3dbdb13696b41408f0f2f70454ba37b6f6.",
+    "The immutable-commit match does not promote that commit to an upstream release and does not replace an independently retained upstream retrieval receipt.",
     "The observed retrieval timestamp is inherited from committed derivative provenance and is not treated as an independently retained upstream receipt.",
     "The licence label and attribution are repository evidence, not legal or product-use clearance."
   ]
