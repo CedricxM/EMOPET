@@ -223,3 +223,112 @@ SELECT 'ELI_INDEX|'
      'idx_walk_quality_dog_date'
    )
  ORDER BY table_rel.relname, index_rel.relname;
+
+-- Dataset authority semantics from migration 0001. This intentionally compares
+-- storage precision, defaults, keys and the useful FCI lookup index. The legacy
+-- updated_at triggers and the redundant explicit breed_slug index are tracked as
+-- separate reconciliation debt rather than silently promoted into fresh Drizzle.
+WITH dataset_tables(table_name) AS (
+  VALUES
+    ('dataset_registry'),
+    ('dataset_versions'),
+    ('breed_canonical'),
+    ('imu_activity_profiles'),
+    ('imu_discrimination_thresholds'),
+    ('imu_shake_filter')
+)
+SELECT 'DATASET_COLUMN|'
+       || c.table_name || '|'
+       || c.column_name || '|'
+       || c.data_type || '|'
+       || c.udt_name || '|'
+       || c.is_nullable || '|'
+       || COALESCE(c.column_default, '-')
+  FROM information_schema.columns c
+  JOIN dataset_tables wanted ON wanted.table_name = c.table_name
+ WHERE c.table_schema = 'public'
+ ORDER BY c.table_name, c.column_name;
+
+SELECT 'DATASET_FK|'
+       || child.relname || '|'
+       || child_att.attname || '|'
+       || parent.relname || '|'
+       || parent_att.attname || '|'
+       || con.confdeltype
+  FROM pg_constraint con
+  JOIN pg_class child ON child.oid = con.conrelid
+  JOIN pg_namespace child_ns ON child_ns.oid = child.relnamespace
+  JOIN pg_class parent ON parent.oid = con.confrelid
+  JOIN LATERAL unnest(con.conkey) WITH ORDINALITY child_key(attnum, ord) ON true
+  JOIN LATERAL unnest(con.confkey) WITH ORDINALITY parent_key(attnum, ord)
+    ON parent_key.ord = child_key.ord
+  JOIN pg_attribute child_att
+    ON child_att.attrelid = child.oid
+   AND child_att.attnum = child_key.attnum
+  JOIN pg_attribute parent_att
+    ON parent_att.attrelid = parent.oid
+   AND parent_att.attnum = parent_key.attnum
+ WHERE con.contype = 'f'
+   AND child_ns.nspname = 'public'
+   AND child.relname IN (
+     'dataset_versions',
+     'imu_activity_profiles',
+     'imu_discrimination_thresholds',
+     'imu_shake_filter'
+   )
+ ORDER BY child.relname, child_att.attname;
+
+SELECT 'DATASET_PK|'
+       || rel.relname || '|'
+       || string_agg(att.attname, ',' ORDER BY key_col.ord)
+  FROM pg_constraint con
+  JOIN pg_class rel ON rel.oid = con.conrelid
+  JOIN pg_namespace ns ON ns.oid = rel.relnamespace
+  JOIN LATERAL unnest(con.conkey) WITH ORDINALITY key_col(attnum, ord) ON true
+  JOIN pg_attribute att
+    ON att.attrelid = rel.oid
+   AND att.attnum = key_col.attnum
+ WHERE con.contype = 'p'
+   AND ns.nspname = 'public'
+   AND rel.relname IN (
+     'dataset_registry',
+     'dataset_versions',
+     'breed_canonical',
+     'imu_activity_profiles',
+     'imu_discrimination_thresholds',
+     'imu_shake_filter'
+   )
+ GROUP BY rel.relname
+ ORDER BY rel.relname;
+
+SELECT 'DATASET_UNIQUE|'
+       || rel.relname || '|'
+       || string_agg(att.attname, ',' ORDER BY key_col.ord)
+  FROM pg_constraint con
+  JOIN pg_class rel ON rel.oid = con.conrelid
+  JOIN pg_namespace ns ON ns.oid = rel.relnamespace
+  JOIN LATERAL unnest(con.conkey) WITH ORDINALITY key_col(attnum, ord) ON true
+  JOIN pg_attribute att
+    ON att.attrelid = rel.oid
+   AND att.attnum = key_col.attnum
+ WHERE con.contype = 'u'
+   AND ns.nspname = 'public'
+   AND rel.relname IN (
+     'breed_canonical',
+     'imu_discrimination_thresholds',
+     'imu_shake_filter'
+   )
+ GROUP BY rel.relname, con.oid
+ ORDER BY rel.relname, string_agg(att.attname, ',' ORDER BY key_col.ord);
+
+SELECT 'DATASET_INDEX|'
+       || table_rel.relname || '|'
+       || index_rel.relname || '|'
+       || pg_get_indexdef(idx.indexrelid)
+  FROM pg_index idx
+  JOIN pg_class table_rel ON table_rel.oid = idx.indrelid
+  JOIN pg_namespace ns ON ns.oid = table_rel.relnamespace
+  JOIN pg_class index_rel ON index_rel.oid = idx.indexrelid
+ WHERE ns.nspname = 'public'
+   AND index_rel.relname = 'idx_breed_canonical_fci'
+ ORDER BY table_rel.relname, index_rel.relname;
