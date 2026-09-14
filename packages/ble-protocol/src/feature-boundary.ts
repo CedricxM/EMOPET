@@ -52,11 +52,11 @@ export interface BleFeatureBoundaryTypes {
 type IsAssignable<From, To> = [From] extends [To] ? true : false;
 type Assert<T extends true> = T;
 
-type _VerifiedRetainsParsedShape = Assert<
-  IsAssignable<VerifiedParsedBleFrame, ParsedBleSensorFrame>
->;
-type _PlainParsedFrameLacksVerificationProof = Assert<
-  IsAssignable<ParsedBleSensorFrame, VerifiedParsedBleFrame> extends false
-    ? true
-    : false
->;
+export type BleFeatureBoundaryCompileTimeProof = readonly [
+  Assert<IsAssignable<VerifiedParsedBleFrame, ParsedBleSensorFrame>>,
+  Assert<
+    IsAssignable<ParsedBleSensorFrame, VerifiedParsedBleFrame> extends false
+      ? true
+      : false
+  >,
+];
