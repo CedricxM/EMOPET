@@ -11,6 +11,7 @@ const [
   mobileManifestSource,
   bleTypes,
   bleParser,
+  bleFeatureBoundary,
   bleCommands,
   mobileBle,
   sensorValidators,
@@ -20,6 +21,7 @@ const [
   read('apps/mobile/app.json'),
   read('packages/ble-protocol/src/frames/types.ts'),
   read('packages/ble-protocol/src/parser/index.ts'),
+  read('packages/ble-protocol/src/feature-boundary.ts'),
   read('packages/ble-protocol/src/commands/index.ts'),
   read('apps/mobile/src/services/ble.ts'),
   read('packages/shared/src/validators/index.ts'),
@@ -89,13 +91,22 @@ if (bleParser.includes('payload: raw') || bleParser.includes('rawFrame: raw')) {
   fail('BLE parser must not expose the original wire buffer on parsed frames');
 }
 
+// The protocol-verification wrapper is allowed at the mobile boundary only if
+// it remains a narrow delegate to the canonical parser. This keeps the privacy
+// invariant coupled to actual byte parsing instead of accepting a nominal type
+// assertion as a substitute for parser execution.
+const verifiedParserWrapper = /export function parseProtocolVerifiedSensorFrame\s*\(\s*raw:\s*BleWireFrame,?\s*\)\s*:\s*VerifiedParsedBleFrame\s*\{[\s\S]*?return\s+parseSensorFrame\(raw\)\s+as\s+VerifiedParsedBleFrame\s*;[\s\S]*?\}/.test(bleFeatureBoundary);
+if (!verifiedParserWrapper) {
+  fail('protocol-verification wrapper must delegate raw BLE bytes to parseSensorFrame before branding');
+}
+
 // Audio privacy owns the raw-bytes -> structured-frame invariant. Other privacy
 // gates may narrow that structured frame further (for example by removing exact
 // location) before application publication; that composition must remain valid.
 if (!/export type FrameCallback = \(frame: (?:ParsedBleSensorFrame|MobileBleSensorFrame)\) => void;/.test(mobileBle)) {
   fail('mobile BLE callback must remain typed to a structured parsed/minimized BLE frame');
 }
-const parsedFrameAssignment = /const\s+frame\s*=\s*(?:minimizeLocationForApp\(\s*)?parseSensorFrame\(\s*raw\s*\)\s*\)?\s*;/.test(mobileBle);
+const parsedFrameAssignment = /const\s+frame\s*=\s*(?:minimizeLocationForApp\(\s*)?(?:parseSensorFrame|parseProtocolVerifiedSensorFrame)\(\s*raw\s*\)\s*\)?\s*;/.test(mobileBle);
 if (!parsedFrameAssignment || !/onFrame\s*\(\s*frame\s*\)/.test(mobileBle)) {
   fail('mobile BLE boundary must parse wire bytes before publishing the structured/minimized frame');
 }
