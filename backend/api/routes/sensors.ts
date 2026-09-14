@@ -13,6 +13,32 @@ const sensors = new Hono();
 
 const PRESENCE_PERSISTENCE_NOT_READY = 'PRESENCE_PERSISTENCE_NOT_READY' as const;
 const ELI_RUNTIME_NOT_IMPLEMENTED = 'ELI_RUNTIME_NOT_IMPLEMENTED' as const;
+const SENSOR_PROVENANCE_REQUIRED = 'SENSOR_PROVENANCE_REQUIRED' as const;
+const SENSOR_SOURCE_FIELDS_INVALID = 'SENSOR_SOURCE_FIELDS_INVALID' as const;
+
+const MAT_ONLY_SUMMARY_FIELDS = [
+  'matPresenceMinutes',
+  'respiratoryRate',
+  'weightKg',
+  'positionChanges',
+] as const;
+
+const TAG_ONLY_SUMMARY_FIELDS = [
+  'activityMinutes',
+  'distanceKm',
+  'vocalEvents',
+  'vocalEnergyMean',
+  'postureDistribution',
+  'agitationEvents',
+] as const;
+
+sensors.use('*', async (c, next) => {
+  // Sensor, baseline and presence surfaces contain private household/animal data.
+  // Keep intermediary/browser caches out of the authority boundary on success
+  // and failure paths alike.
+  c.header('Cache-Control', 'private, no-store');
+  await next();
+});
 
 function databaseUnavailable(
   c: { json: (value: unknown, status?: number) => Response },
@@ -47,6 +73,16 @@ function canonicalJson(value: unknown): string {
   };
 
   return JSON.stringify(normalize(value));
+}
+
+function firstDefinedField(
+  value: Record<string, unknown>,
+  fields: readonly string[],
+): string | null {
+  for (const field of fields) {
+    if (value[field] !== undefined) return field;
+  }
+  return null;
 }
 
 function summaryRetryFingerprint(
@@ -143,6 +179,30 @@ sensors.post('/summaries', zValidator('json', SensorSummaryCreateSchema), async 
   const userId = getCurrentUserId(c);
   if (!userId) return c.json({ error: 'unauthorized' }, 401);
 
+  const ingestionId = body.ingestionId;
+  const deviceId = body.deviceId;
+  if (!ingestionId || !deviceId) {
+    return c.json({
+      error: 'ingestion_id and device_id are required for durable sensor-summary ingestion',
+      code: SENSOR_PROVENANCE_REQUIRED,
+      retryable: false,
+    }, 400);
+  }
+
+  const crossSourceField = firstDefinedField(
+    body as Record<string, unknown>,
+    body.source === 'MAT' ? TAG_ONLY_SUMMARY_FIELDS : MAT_ONLY_SUMMARY_FIELDS,
+  );
+  if (crossSourceField) {
+    return c.json({
+      error: `${crossSourceField} is not valid for ${body.source} sensor summaries`,
+      code: SENSOR_SOURCE_FIELDS_INVALID,
+      field: crossSourceField,
+      source: body.source,
+      retryable: false,
+    }, 400);
+  }
+
   try {
     const result = await db.transaction(async (tx) => {
       // Authority locks are correctness boundaries, but a stale administrative
@@ -165,35 +225,32 @@ sensors.post('/summaries', zValidator('json', SensorSummaryCreateSchema), async 
         return { kind: 'not_found' as const };
       }
 
-      let boundDevice: { id: string; firmwareVersion: string | null } | null = null;
-      if (body.deviceId) {
-        // Keep device↔dog/source binding and the firmware snapshot stable through
-        // the insert for the same reason. Request data never supplies firmware.
-        const [device] = await tx
-          .select({
-            id: devices.id,
-            firmwareVersion: devices.firmwareVersion,
-          })
-          .from(devices)
-          .where(and(
-            eq(devices.id, body.deviceId),
-            eq(devices.dogId, body.dogId),
-            eq(devices.type, body.source),
-          ))
-          .for('share')
-          .limit(1);
+      // Every durable Product V1 summary is device-bound. Keep the binding and
+      // firmware snapshot stable through commit; request data never supplies the
+      // firmware lineage itself.
+      const [boundDevice] = await tx
+        .select({
+          id: devices.id,
+          firmwareVersion: devices.firmwareVersion,
+        })
+        .from(devices)
+        .where(and(
+          eq(devices.id, deviceId),
+          eq(devices.dogId, body.dogId),
+          eq(devices.type, body.source),
+        ))
+        .for('share')
+        .limit(1);
 
-        if (!device) return { kind: 'invalid_device' as const };
-        boundDevice = device;
-      }
+      if (!boundDevice) return { kind: 'invalid_device' as const };
 
       const values = {
         dogId: body.dogId,
-        ingestionId: body.ingestionId,
-        deviceId: boundDevice?.id,
+        ingestionId,
+        deviceId: boundDevice.id,
         timestamp: body.timestamp,
         source: body.source,
-        firmwareVersionAtIngest: boundDevice?.firmwareVersion,
+        firmwareVersionAtIngest: boundDevice.firmwareVersion,
         matPresenceMinutes: body.matPresenceMinutes,
         respiratoryRateMean: body.respiratoryRate?.mean,
         respiratoryRateStd: body.respiratoryRate?.std,
@@ -210,23 +267,18 @@ sensors.post('/summaries', zValidator('json', SensorSummaryCreateSchema), async 
         humidityPct: body.humidityPct,
       };
 
-      const [created] = body.ingestionId
-        ? await tx
-            .insert(sensorSummaries)
-            .values(values)
-            .onConflictDoNothing({ target: sensorSummaries.ingestionId })
-            .returning()
-        : await tx
-            .insert(sensorSummaries)
-            .values(values)
-            .returning();
+      const [created] = await tx
+        .insert(sensorSummaries)
+        .values(values)
+        .onConflictDoNothing({ target: sensorSummaries.ingestionId })
+        .returning();
 
-      if (!created && body.ingestionId) {
+      if (!created) {
         const [existing] = await tx
           .select()
           .from(sensorSummaries)
           .where(and(
-            eq(sensorSummaries.ingestionId, body.ingestionId),
+            eq(sensorSummaries.ingestionId, ingestionId),
             eq(sensorSummaries.dogId, body.dogId),
           ))
           .limit(1);
@@ -235,7 +287,7 @@ sensors.post('/summaries', zValidator('json', SensorSummaryCreateSchema), async 
 
         const expectedFingerprint = summaryRetryFingerprint({
           dogId: body.dogId,
-          deviceId: boundDevice?.id ?? null,
+          deviceId: boundDevice.id,
           timestamp: body.timestamp,
           source: body.source,
           matPresenceMinutes: body.matPresenceMinutes ?? null,
@@ -262,7 +314,6 @@ sensors.post('/summaries', zValidator('json', SensorSummaryCreateSchema), async 
         return { kind: 'replay' as const, summary: existing };
       }
 
-      if (!created) return { kind: 'unavailable' as const };
       return { kind: 'created' as const, summary: created };
     });
 
@@ -279,7 +330,6 @@ sensors.post('/summaries', zValidator('json', SensorSummaryCreateSchema), async 
         code: 'SENSOR_INGESTION_ID_CONFLICT',
       }, 409);
     }
-    if (result.kind === 'unavailable') return databaseUnavailable(c, 'create_sensor_summary');
     return c.json({
       summary: result.summary,
       idempotentReplay: result.kind === 'replay',
@@ -374,4 +424,10 @@ sensors.get('/presence/:dogId/events', async (c) => {
   return presencePersistenceUnavailable(c, 'list_presence_events');
 });
 
-export { sensors, PRESENCE_PERSISTENCE_NOT_READY, ELI_RUNTIME_NOT_IMPLEMENTED };
+export {
+  sensors,
+  PRESENCE_PERSISTENCE_NOT_READY,
+  ELI_RUNTIME_NOT_IMPLEMENTED,
+  SENSOR_PROVENANCE_REQUIRED,
+  SENSOR_SOURCE_FIELDS_INVALID,
+};
