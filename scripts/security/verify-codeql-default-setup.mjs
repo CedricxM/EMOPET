@@ -16,6 +16,25 @@ export function selectCodeqlRun(runs, expectedSha) {
     .sort((a, b) => b.id - a.id)[0];
 }
 
+export function codeqlJobEvidenceState(jobs) {
+  if (!Array.isArray(jobs)) return 'failed';
+
+  if (jobs.some((job) => job.status === 'completed' && job.conclusion !== 'success')) {
+    return 'failed';
+  }
+  if (jobs.some((job) => job.status !== 'completed')) return 'pending';
+
+  for (const name of requiredJobs) {
+    const job = jobs.find((candidate) => candidate.name === name);
+    if (!job) return 'pending';
+    const analysis = job.steps?.find((step) => step.name === 'Perform CodeQL Analysis');
+    if (!analysis || analysis.status !== 'completed' || analysis.conclusion !== 'success') {
+      return 'failed';
+    }
+  }
+  return 'ready';
+}
+
 export function requireCodeqlAnalysis(run, jobs, expectedSha) {
   if (!run || run.path !== workflowPath || run.event !== 'dynamic' || run.head_sha !== expectedSha) {
     throw new Error('No GitHub-managed CodeQL run for the exact requested commit.');
@@ -115,18 +134,35 @@ async function main() {
 
   // Default setup runs independently. Require all configured languages to finish
   // successfully on the exact PR head before asking GitHub's code-scanning API for
-  // the native open-alert inventory. This avoids treating the PR summary check as
-  // authoritative when GitHub completes that aggregate check before every language
-  // configuration has uploaded its result.
+  // the native open-alert inventory. GitHub can mark the aggregate run completed a
+  // few seconds before its jobs endpoint becomes fully consistent, so a completed
+  // successful run with pending/missing job evidence is retried until the deadline.
   const deadline = Date.now() + 8 * 60_000;
   while (Date.now() < deadline) {
     const listing = await get(`actions/runs?head_sha=${expectedSha}&per_page=100`);
     const run = selectCodeqlRun(listing.workflow_runs, expectedSha);
     if (run?.status === 'completed') {
+      if (run.conclusion !== 'success') {
+        requireCodeqlAnalysis(run, [], expectedSha);
+      }
+
       const jobListing = await get(`actions/runs/${run.id}/jobs?filter=latest&per_page=100`);
       if (jobListing.total_count !== jobListing.jobs.length) {
-        throw new Error('Incomplete CodeQL job inventory.');
+        console.log(`Waiting for complete CodeQL job inventory on run ${run.id}.`);
+        await delay(5_000);
+        continue;
       }
+
+      const jobState = codeqlJobEvidenceState(jobListing.jobs);
+      if (jobState === 'pending') {
+        console.log(`Waiting for CodeQL jobs API consistency on run ${run.id}.`);
+        await delay(5_000);
+        continue;
+      }
+      if (jobState === 'failed') {
+        requireCodeqlAnalysis(run, jobListing.jobs, expectedSha);
+      }
+
       requireCodeqlAnalysis(run, jobListing.jobs, expectedSha);
       const confirmed = await get(`actions/runs/${run.id}`);
       requireCodeqlAnalysis(confirmed, jobListing.jobs, expectedSha);

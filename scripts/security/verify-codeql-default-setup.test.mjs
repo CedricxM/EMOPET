@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  codeqlJobEvidenceState,
   normalizePullRequestNumber,
   requireCodeqlAlertInventory,
   requireCodeqlAnalysis,
@@ -19,6 +20,7 @@ const jobs = ['actions', 'c-cpp', 'javascript-typescript', 'python'].map((langua
 
 test('accepts complete default setup evidence for the exact commit', () => {
   assert.equal(selectCodeqlRun([run], sha), run);
+  assert.equal(codeqlJobEvidenceState(jobs), 'ready');
   assert.doesNotThrow(() => requireCodeqlAnalysis(run, jobs, sha));
 });
 
@@ -47,14 +49,32 @@ test('a previous analysis success cannot hide the newest failed or pending run',
   }
 });
 
-test('missing languages, skipped analysis and incomplete jobs fail closed', () => {
+test('jobs endpoint eventual consistency is pending, not a false security failure', () => {
+  assert.equal(codeqlJobEvidenceState([]), 'pending');
+  assert.equal(codeqlJobEvidenceState(jobs.slice(1)), 'pending');
+  assert.equal(
+    codeqlJobEvidenceState([{ ...jobs[0], status: 'in_progress', conclusion: null }, ...jobs.slice(1)]),
+    'pending',
+  );
+});
+
+test('completed failed/skipped analysis evidence fails closed', () => {
   for (const changed of [
-    [], jobs.slice(1),
+    [{ ...jobs[0], conclusion: 'failure' }, ...jobs.slice(1)],
     [{ ...jobs[0], conclusion: 'skipped' }, ...jobs.slice(1)],
-    [{ ...jobs[0], status: 'in_progress' }, ...jobs.slice(1)],
     [{ ...jobs[0], steps: [] }, ...jobs.slice(1)],
     [{ ...jobs[0], steps: [{ name: 'Perform CodeQL Analysis', status: 'completed', conclusion: 'skipped' }] }, ...jobs.slice(1)],
     [...jobs, { name: 'Analyze (new-language)', status: 'completed', conclusion: 'failure' }],
+  ]) {
+    assert.equal(codeqlJobEvidenceState(changed), 'failed');
+    assert.throws(() => requireCodeqlAnalysis(run, changed, sha));
+  }
+});
+
+test('requireCodeqlAnalysis still rejects pending or incomplete job evidence', () => {
+  for (const changed of [
+    [], jobs.slice(1),
+    [{ ...jobs[0], status: 'in_progress', conclusion: null }, ...jobs.slice(1)],
   ]) {
     assert.throws(() => requireCodeqlAnalysis(run, changed, sha));
   }
