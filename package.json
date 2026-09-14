@@ -9,7 +9,7 @@
     "lint": "turbo lint",
     "test": "turbo test",
     "typecheck": "turbo typecheck",
-    "rights:audit": "node scripts/data/rights-gate-audit.mjs",
+    "rights:audit": "node scripts/data/dataset-rights-release-audit.mjs && node scripts/data/rights-gate-audit.mjs",
     "professional-share:audit": "node scripts/security/professional-share-authority-audit.mjs",
     "cra-srp:audit": "node scripts/security/cra-srp-readiness-audit.mjs",
     "consent-defaults:audit": "node scripts/privacy/consent-defaults-audit.mjs",
