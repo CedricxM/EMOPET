@@ -4,8 +4,10 @@
  * Boundary names are intentionally explicit:
  * - BleWireFrame: raw notification bytes on the BLE characteristic.
  * - ParsedBleSensorFrame: validated MAT/TAG protocol object after parsing.
+ * - VerifiedParsedBleFrame: opaque compile-time proof that bytes passed the
+ *   canonical BLE parser before entering a downstream feature boundary.
  *
- * Neither type is a FeatureVector and neither is an ELI input.
+ * Neither parsed-frame type is a FeatureVector and neither is an ELI input.
  *
  * Frame layout (little-endian unless noted):
  * ┌─────────┬─────────┬────────┬──────┬─────────┬─────────────┬────┐
@@ -122,6 +124,19 @@ export interface TagFrame {
 
 /** Canonical parsed BLE boundary after header/version/length/CRC validation. */
 export type ParsedBleSensorFrame = MatFrame | TagFrame;
+
+/**
+ * Opaque proof carried only by the canonical verification wrapper after the
+ * raw BLE bytes have passed header/version/source/length/CRC parsing.
+ *
+ * This proof is deliberately narrow. It does NOT attest physical-device
+ * identity, dog binding, firmware trust, wall-clock correctness, calibration,
+ * sample quality, feature extraction correctness, or scientific validity.
+ */
+declare const verifiedParsedBleFrameBrand: unique symbol;
+export type VerifiedParsedBleFrame = ParsedBleSensorFrame & {
+  readonly [verifiedParsedBleFrameBrand]: true;
+};
 
 /**
  * @deprecated Use ParsedBleSensorFrame. Kept temporarily to avoid a flag-day
