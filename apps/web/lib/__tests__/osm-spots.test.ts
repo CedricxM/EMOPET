@@ -5,9 +5,15 @@ import { readFile } from 'node:fs/promises';
 import {
   getControlledOverpassEndpoint,
   isOverpassRuntimeAllowed,
+  normalizeOverpassEndpoint,
   overpassElementsToOsmSpots,
   type OverpassElement,
 } from '../osm-spots';
+import {
+  isOverpassProductionUseAuthorized,
+  OVERPASS_PRODUCTION_AUTHORITY,
+  type OverpassReleaseAuthority,
+} from '../overpass-rights';
 
 const mapboxMapUrl = new URL('../../components/bretagne-map/MapboxMap.tsx', import.meta.url);
 
@@ -16,44 +22,74 @@ function restoreEnv(name: string, value: string | undefined) {
   else process.env[name] = value;
 }
 
-test('DATA-LIC-G4: Overpass activation requires exact GO plus an explicit HTTPS endpoint', () => {
+test('DATA-LIC-G4: repository release authority is fail-closed and environment variables cannot bypass it', () => {
   const originalGate = process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE;
   const originalEndpoint = process.env.NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT;
 
   try {
+    assert.equal(OVERPASS_PRODUCTION_AUTHORITY.disposition, 'HOLD');
+    assert.equal(isOverpassProductionUseAuthorized(), false);
+
     delete process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE;
     delete process.env.NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT;
     assert.equal(isOverpassRuntimeAllowed(), false);
     assert.equal(getControlledOverpassEndpoint(), null);
 
     process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE = 'GO';
-    assert.equal(isOverpassRuntimeAllowed(), false);
-
-    process.env.NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT = 'http://overpass-api.de/api/interpreter';
-    assert.equal(getControlledOverpassEndpoint(), null);
-
-    process.env.NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT = 'https://user:pass@example.com/api/interpreter';
-    assert.equal(getControlledOverpassEndpoint(), null);
-
-    process.env.NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT = 'https://overpass-api.de/api/interpreter?foo=bar';
-    assert.equal(getControlledOverpassEndpoint(), null);
-
-    process.env.NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT = 'https://overpass-api.de/api/interpreter#fragment';
-    assert.equal(getControlledOverpassEndpoint(), null);
-
     process.env.NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT = 'https://overpass-api.de/api/interpreter';
-    assert.equal(
-      getControlledOverpassEndpoint(),
-      'https://overpass-api.de/api/interpreter',
-    );
-    assert.equal(isOverpassRuntimeAllowed(), true);
 
-    process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE = 'go';
+    // A runtime switch and endpoint do not create service-use authority.
     assert.equal(getControlledOverpassEndpoint(), null);
+    assert.equal(isOverpassRuntimeAllowed(), false);
   } finally {
     restoreEnv('NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE', originalGate);
     restoreEnv('NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT', originalEndpoint);
   }
+});
+
+test('DATA-LIC-G4: reviewed authority requires complete evidence and the bounded current data flow', () => {
+  const reviewed: OverpassReleaseAuthority = {
+    disposition: 'GO',
+    evidenceRevision: 'DATA-LIC-G4-REVIEW-001',
+    reviewedAt: '2026-09-14T12:00:00.000Z',
+    reviewerRole: 'qualified-reviewer',
+    providerPolicyReceipt: 'docs/evidence/overpass-provider-policy-receipt.json',
+    renderedAttributionEvidence: 'docs/evidence/osm-attribution-render-check.json',
+    liveQueryFlow: 'REVIEWED',
+    cacheFlow: 'EPHEMERAL_MEMORY_ONLY',
+    exportFlow: 'PROHIBITED',
+    derivedDatabaseFlow: 'PROHIBITED',
+    reason: 'Synthetic test authority only.',
+  };
+
+  assert.equal(isOverpassProductionUseAuthorized(reviewed), true);
+
+  for (const mutation of [
+    { evidenceRevision: null },
+    { reviewerRole: null },
+    { providerPolicyReceipt: null },
+    { renderedAttributionEvidence: null },
+    { liveQueryFlow: 'OPEN' as const },
+    { cacheFlow: 'OPEN' as const },
+    { exportFlow: 'OPEN' as const },
+    { derivedDatabaseFlow: 'REVIEWED' as const },
+    { disposition: 'HOLD' as const },
+  ]) {
+    assert.equal(isOverpassProductionUseAuthorized({ ...reviewed, ...mutation }), false);
+  }
+});
+
+test('DATA-LIC-G4: endpoint validation accepts only a clean explicit HTTPS endpoint', () => {
+  assert.equal(normalizeOverpassEndpoint(undefined), null);
+  assert.equal(normalizeOverpassEndpoint(''), null);
+  assert.equal(normalizeOverpassEndpoint('http://overpass-api.de/api/interpreter'), null);
+  assert.equal(normalizeOverpassEndpoint('https://user:pass@example.com/api/interpreter'), null);
+  assert.equal(normalizeOverpassEndpoint('https://overpass-api.de/api/interpreter?foo=bar'), null);
+  assert.equal(normalizeOverpassEndpoint('https://overpass-api.de/api/interpreter#fragment'), null);
+  assert.equal(
+    normalizeOverpassEndpoint('https://overpass-api.de/api/interpreter'),
+    'https://overpass-api.de/api/interpreter',
+  );
 });
 
 test('DATA-LIC-G4: Overpass projection carries source and licence provenance', () => {

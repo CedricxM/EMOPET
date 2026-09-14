@@ -3,18 +3,20 @@
  *
  * RIGHTS CONTROL:
  * - public Overpass use is disabled by default;
- * - enabling it requires NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE=GO;
+ * - activation requires BOTH a reviewed repository release authority and
+ *   NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE=GO;
  * - an explicit HTTPS endpoint must also be configured through
  *   NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT;
- * - the flag and endpoint are engineering/operator controls only, not legal
+ * - environment flags/endpoints are deployment controls only, not legal
  *   clearance or proof that a public service permits the intended traffic;
  * - persistent caching/export/derived-database use remains separately reviewable
- *   under #116.
+ *   under #116 and is outside the current authority.
  *
  * Invariants: no medical/emotional inference. These are public-place records.
  */
 
 import type { SpotCategory } from '../components/bretagne-map/spots';
+import { isOverpassProductionUseAuthorized } from './overpass-rights';
 
 export interface OsmSpot {
   id: string;
@@ -40,12 +42,7 @@ const OSM_LICENSE_URL = 'https://www.openstreetmap.org/copyright' as const;
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const MAX_CACHE_ENTRIES = 40;
 
-export function getControlledOverpassEndpoint(
-  rightsGate: string | undefined = process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE,
-  endpoint: string | undefined = process.env.NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT,
-): string | null {
-  if (rightsGate !== 'GO') return null;
-
+export function normalizeOverpassEndpoint(endpoint: string | undefined): string | null {
   const normalizedEndpoint = endpoint?.trim();
   if (!normalizedEndpoint) return null;
 
@@ -64,6 +61,15 @@ export function getControlledOverpassEndpoint(
   } catch {
     return null;
   }
+}
+
+export function getControlledOverpassEndpoint(
+  rightsGate: string | undefined = process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE,
+  endpoint: string | undefined = process.env.NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT,
+): string | null {
+  if (rightsGate !== 'GO') return null;
+  if (!isOverpassProductionUseAuthorized()) return null;
+  return normalizeOverpassEndpoint(endpoint);
 }
 
 export function isOverpassRuntimeAllowed(): boolean {
@@ -194,8 +200,8 @@ export function overpassElementsToOsmSpots(elements: readonly OverpassElement[])
  *
  * The cache is process/browser-memory only, capped at 40 bboxes and expires
  * entries after five minutes. No persistent OSM database or export is created
- * here. If either the rights gate or an explicit controlled HTTPS endpoint is
- * missing, fail closed.
+ * here. If either the reviewed repository authority, runtime rights gate or an
+ * explicit controlled HTTPS endpoint is missing, fail closed.
  */
 export async function fetchOsmSpots(b: Bounds, signal?: AbortSignal): Promise<OsmSpot[]> {
   const endpoint = getControlledOverpassEndpoint();
