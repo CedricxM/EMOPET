@@ -9,13 +9,15 @@ import {
   sensors as sensorRoutes,
   PRESENCE_PERSISTENCE_NOT_READY,
   ELI_RUNTIME_NOT_IMPLEMENTED,
+  SENSOR_PROVENANCE_REQUIRED,
+  SENSOR_SOURCE_FIELDS_INVALID,
 } from '../dist/api/routes/sensors.js';
 import { db } from '../dist/db/index.js';
 import { baselines, devices, dogs, eliStates, sensorSummaries, users } from '../dist/db/schema/index.js';
 
 const integrationEnabled = process.env.EMOPET_DB_INTEGRATION_TEST === '1';
 
-test('sensor summaries persist while raw audio, exact location and non-durable presence fail closed', { skip: !integrationEnabled }, async () => {
+test('sensor summaries persist while provenance, source and sensitive-data boundaries fail closed', { skip: !integrationEnabled }, async () => {
   const ownerId = randomUUID();
   const otherUserId = randomUUID();
   const dogId = randomUUID();
@@ -73,6 +75,12 @@ test('sensor summaries persist while raw audio, exact location and non-durable p
   });
   app.route('/api/sensors', sensorRoutes);
 
+  const postSummary = (body) => app.request('/api/sensors/summaries', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
   try {
     const validSummary = {
       timestamp: new Date().toISOString(),
@@ -87,12 +95,40 @@ test('sensor summaries persist while raw audio, exact location and non-durable p
       temperatureC: 19.2,
       humidityPct: 63,
     };
-    const createResponse = await app.request('/api/sensors/summaries', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(validSummary),
+
+    for (const incomplete of [
+      { ...validSummary, ingestionId: undefined },
+      { ...validSummary, deviceId: undefined },
+    ]) {
+      const response = await postSummary(incomplete);
+      assert.equal(response.status, 400);
+      assert.equal(response.headers.get('cache-control'), 'private, no-store');
+      assert.equal((await response.json()).code, SENSOR_PROVENANCE_REQUIRED);
+    }
+
+    const tagWithMatFieldResponse = await postSummary({
+      ...validSummary,
+      ingestionId: randomUUID(),
+      matPresenceMinutes: 5,
     });
+    assert.equal(tagWithMatFieldResponse.status, 400);
+    assert.equal((await tagWithMatFieldResponse.json()).code, SENSOR_SOURCE_FIELDS_INVALID);
+
+    const matWithTagFieldResponse = await postSummary({
+      timestamp: new Date().toISOString(),
+      dogId,
+      ingestionId: randomUUID(),
+      deviceId: matDeviceId,
+      source: 'MAT',
+      activityMinutes: 5,
+      temperatureC: 19.2,
+    });
+    assert.equal(matWithTagFieldResponse.status, 400);
+    assert.equal((await matWithTagFieldResponse.json()).code, SENSOR_SOURCE_FIELDS_INVALID);
+
+    const createResponse = await postSummary(validSummary);
     assert.equal(createResponse.status, 201);
+    assert.equal(createResponse.headers.get('cache-control'), 'private, no-store');
     const created = await createResponse.json();
     assert.equal(created.summary.dogId, dogId);
     assert.equal(created.summary.deviceId, tagDeviceId);
@@ -107,32 +143,20 @@ test('sensor summaries persist while raw audio, exact location and non-durable p
       'server createdAt must remain distinct from producer event timestamp',
     );
 
-    const retryResponse = await app.request('/api/sensors/summaries', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(validSummary),
-    });
+    const retryResponse = await postSummary(validSummary);
     assert.equal(retryResponse.status, 200);
     const retried = await retryResponse.json();
     assert.equal(retried.idempotentReplay, true);
     assert.equal(retried.summary.id, created.summary.id);
 
-    const conflictingRetryResponse = await app.request('/api/sensors/summaries', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...validSummary, activityMinutes: 13.5 }),
-    });
+    const conflictingRetryResponse = await postSummary({ ...validSummary, activityMinutes: 13.5 });
     assert.equal(conflictingRetryResponse.status, 409);
     assert.equal(
       (await conflictingRetryResponse.json()).code,
       'SENSOR_INGESTION_ID_CONFLICT',
     );
 
-    const mismatchedDeviceResponse = await app.request('/api/sensors/summaries', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...validSummary, deviceId: matDeviceId }),
-    });
+    const mismatchedDeviceResponse = await postSummary({ ...validSummary, deviceId: matDeviceId });
     assert.equal(mismatchedDeviceResponse.status, 400);
     assert.equal(
       (await mismatchedDeviceResponse.json()).code,
@@ -142,6 +166,7 @@ test('sensor summaries persist while raw audio, exact location and non-durable p
 
     const listResponse = await app.request(`/api/sensors/summaries/${dogId}?range=24h`);
     assert.equal(listResponse.status, 200);
+    assert.equal(listResponse.headers.get('cache-control'), 'private, no-store');
     const listed = await listResponse.json();
     assert.ok(listed.summaries.some((summary) => summary.id === created.summary.id));
 
@@ -154,16 +179,13 @@ test('sensor summaries persist while raw audio, exact location and non-durable p
       { latitude: 48.581234, longitude: 2.294567 },
     ];
     for (const forbiddenPayload of forbiddenSensitivePayloads) {
-      const forbiddenResponse = await app.request('/api/sensors/summaries', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...validSummary, ...forbiddenPayload }),
-      });
+      const forbiddenResponse = await postSummary({ ...validSummary, ...forbiddenPayload });
       assert.equal(
         forbiddenResponse.status,
         400,
         'unknown raw-audio or exact-location sensor fields must be rejected at ingress',
       );
+      assert.equal(forbiddenResponse.headers.get('cache-control'), 'private, no-store');
     }
 
     const persistedAfterRejectedSensitivePayloads = await db
@@ -173,7 +195,7 @@ test('sensor summaries persist while raw audio, exact location and non-durable p
     assert.deepEqual(
       persistedAfterRejectedSensitivePayloads.map((row) => row.id),
       [created.summary.id],
-      'idempotent/conflicting retries and rejected sensitive payloads must not create duplicate summary rows',
+      'retries and rejected provenance/source/sensitive payloads must not create extra summary rows',
     );
 
     // Historical persisted rows are not an authoritative live ELI producer.
@@ -200,6 +222,7 @@ test('sensor summaries persist while raw audio, exact location and non-durable p
     });
     const baselineResponse = await app.request(`/api/sensors/baseline/${dogId}`);
     assert.equal(baselineResponse.status, 200);
+    assert.equal(baselineResponse.headers.get('cache-control'), 'private, no-store');
     const baselineBody = await baselineResponse.json();
     assert.equal(baselineBody.baseline.dogId, dogId);
     assert.equal(baselineBody.baseline.validHours, 24);
@@ -218,12 +241,14 @@ test('sensor summaries persist while raw audio, exact location and non-durable p
       }),
     });
     assert.equal(presenceResponse.status, 503);
+    assert.equal(presenceResponse.headers.get('cache-control'), 'private, no-store');
     const presenceBody = await presenceResponse.json();
     assert.equal(presenceBody.code, PRESENCE_PERSISTENCE_NOT_READY);
 
     currentUserId = otherUserId;
     const crossOwnerResponse = await app.request(`/api/sensors/summaries/${dogId}?range=24h`);
     assert.equal(crossOwnerResponse.status, 404);
+    assert.equal(crossOwnerResponse.headers.get('cache-control'), 'private, no-store');
     for (const path of [
       `/api/sensors/eli/${dogId}`, `/api/sensors/eli/${dogId}/history`,
       `/api/sensors/baseline/${dogId}`,
