@@ -1,4 +1,4 @@
-import { and, desc, eq, gte } from 'drizzle-orm';
+import { and, desc, eq, gte, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { PresenceEventCreateSchema, SensorSummaryCreateSchema } from '@emopet/shared';
@@ -145,6 +145,11 @@ sensors.post('/summaries', zValidator('json', SensorSummaryCreateSchema), async 
 
   try {
     const result = await db.transaction(async (tx) => {
+      // Authority locks are correctness boundaries, but a stale administrative
+      // transaction must not strand an ingestion request indefinitely.
+      await tx.execute(sql`SET LOCAL lock_timeout = '5s'`);
+      await tx.execute(sql`SET LOCAL statement_timeout = '10s'`);
+
       // Mutation authority must remain current until persistence commits. Holding
       // the dog row FOR SHARE serializes an ownership transfer against this ACK:
       // a transfer that already owns the row wins and this request rechecks the
