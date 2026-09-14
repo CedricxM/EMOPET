@@ -2,13 +2,17 @@ import { Hono } from 'hono';
 import { and, eq, sql, gte, lte, ilike, or } from 'drizzle-orm';
 import { db } from '../../db/index.js';
 import { localDirectory } from '../../db/schema/index.js';
+import { isLocalDirectoryProductionReleaseAuthorized } from '../../db/seeds/local-directory-release-authority.js';
 
 export const directory = new Hono();
 
 type DirectoryRuntimeMode = 'RELEASE_GO' | 'UNVERIFIED_DEMO' | 'HOLD';
 
 function getDirectoryRuntimeMode(): DirectoryRuntimeMode {
-  if (process.env['EMOPET_LOCAL_DIRECTORY_RELEASE_GATE'] === 'GO') {
+  if (
+    process.env['EMOPET_LOCAL_DIRECTORY_RELEASE_GATE'] === 'GO' &&
+    isLocalDirectoryProductionReleaseAuthorized()
+  ) {
     return 'RELEASE_GO';
   }
 
@@ -48,8 +52,11 @@ function sanitizeDemoEntry<T extends Record<string, unknown>>(entry: T) {
  *
  * The historical Lorient directory is under #116 HOLD. Runtime access therefore
  * fails closed unless either:
- * - EMOPET_LOCAL_DIRECTORY_RELEASE_GATE=GO, after controlled review; or
+ * - the deployment release gate is GO AND the separately reviewed repository
+ *   authority record is GO; or
  * - an explicit non-production demo gate is enabled.
+ *
+ * A deployment environment variable alone is never production-data authority.
  */
 directory.get('/search', async (c) => {
   const runtimeMode = getDirectoryRuntimeMode();
