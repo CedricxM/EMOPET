@@ -105,14 +105,14 @@ if (!featureProgressRoutes.includes("return persistenceUnavailable(c, 'record_co
 if (!mobileBle.includes("Omit<TagFrame['payload'], 'latitudeE6' | 'longitudeE6'>")) {
   fail('mobile BLE callback contract must omit exact TAG coordinates');
 }
-if (!mobileBle.includes('minimizeLocationForApp(parseSensorFrame(raw))')) {
-  fail('BLE notification boundary must minimize exact location before application publish');
+if (!mobileBle.includes('minimizeLocationForApp(parseProtocolVerifiedSensorFrame(raw))')) {
+  fail('BLE notification boundary must protocol-verify and minimize exact location before application publish');
 }
 if (!mobileBle.includes('const { latitudeE6, longitudeE6, ...payload } = frame.payload;')) {
   fail('location minimizer must explicitly discard exact TAG latitude/longitude');
 }
-if (/export\s*\{[^}]*parseSensorFrame/.test(mobileBle)) {
-  fail('mobile BLE service must not re-export the unsanitized protocol parser');
+if (/export\s*\{[^}]*(?:parseSensorFrame|parseProtocolVerifiedSensorFrame)/.test(mobileBle)) {
+  fail('mobile BLE service must not re-export an unsanitized protocol parser boundary');
 }
 
 const sensorValidatorStart = sharedValidators.indexOf('export const SensorSummaryCreateSchema = z.object({');
