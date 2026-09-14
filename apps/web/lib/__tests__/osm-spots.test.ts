@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 import {
+  getControlledOverpassEndpoint,
   isOverpassRuntimeAllowed,
   overpassElementsToOsmSpots,
   type OverpassElement,
@@ -10,27 +11,48 @@ import {
 
 const mapboxMapUrl = new URL('../../components/bretagne-map/MapboxMap.tsx', import.meta.url);
 
-function restoreGate(value: string | undefined) {
-  if (value === undefined) delete process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE;
-  else process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE = value;
+function restoreEnv(name: string, value: string | undefined) {
+  if (value === undefined) delete process.env[name];
+  else process.env[name] = value;
 }
 
-test('DATA-LIC-G4: Overpass rights gate is exact and default-off', () => {
-  const original = process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE;
+test('DATA-LIC-G4: Overpass activation requires exact GO plus an explicit HTTPS endpoint', () => {
+  const originalGate = process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE;
+  const originalEndpoint = process.env.NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT;
+
   try {
     delete process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE;
+    delete process.env.NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT;
     assert.equal(isOverpassRuntimeAllowed(), false);
-
-    process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE = '1';
-    assert.equal(isOverpassRuntimeAllowed(), false);
-
-    process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE = 'go';
-    assert.equal(isOverpassRuntimeAllowed(), false);
+    assert.equal(getControlledOverpassEndpoint(), null);
 
     process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE = 'GO';
+    assert.equal(isOverpassRuntimeAllowed(), false);
+
+    process.env.NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT = 'http://overpass-api.de/api/interpreter';
+    assert.equal(getControlledOverpassEndpoint(), null);
+
+    process.env.NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT = 'https://user:pass@example.com/api/interpreter';
+    assert.equal(getControlledOverpassEndpoint(), null);
+
+    process.env.NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT = 'https://overpass-api.de/api/interpreter?foo=bar';
+    assert.equal(getControlledOverpassEndpoint(), null);
+
+    process.env.NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT = 'https://overpass-api.de/api/interpreter#fragment';
+    assert.equal(getControlledOverpassEndpoint(), null);
+
+    process.env.NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT = 'https://overpass-api.de/api/interpreter';
+    assert.equal(
+      getControlledOverpassEndpoint(),
+      'https://overpass-api.de/api/interpreter',
+    );
     assert.equal(isOverpassRuntimeAllowed(), true);
+
+    process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE = 'go';
+    assert.equal(getControlledOverpassEndpoint(), null);
   } finally {
-    restoreGate(original);
+    restoreEnv('NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE', originalGate);
+    restoreEnv('NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT', originalEndpoint);
   }
 });
 
@@ -91,6 +113,40 @@ test('DATA-LIC-G4: Overpass projection carries source and licence provenance', (
       licenseUrl: 'https://www.openstreetmap.org/copyright',
     },
   ]);
+});
+
+test('DATA-LIC-G4: malformed upstream elements are dropped instead of receiving fabricated provenance', () => {
+  const elements: OverpassElement[] = [
+    {
+      type: 'area',
+      id: 12,
+      lat: 47.75,
+      lon: -3.36,
+      tags: { amenity: 'veterinary' },
+    },
+    {
+      type: 'node',
+      id: -1,
+      lat: 47.75,
+      lon: -3.36,
+      tags: { amenity: 'veterinary' },
+    },
+    {
+      type: 'node',
+      id: 13,
+      lat: 95,
+      lon: -3.36,
+      tags: { amenity: 'veterinary' },
+    },
+    {
+      type: 'way',
+      id: 14,
+      center: { lat: 47.75, lon: 181 },
+      tags: { shop: 'pet' },
+    },
+  ];
+
+  assert.deepEqual(overpassElementsToOsmSpots(elements), []);
 });
 
 test('DATA-LIC-G4: rendered OSM popup keeps source and licence links', async () => {

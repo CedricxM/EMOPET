@@ -4,7 +4,10 @@
  * RIGHTS CONTROL:
  * - public Overpass use is disabled by default;
  * - enabling it requires NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE=GO;
- * - the flag is an operator gate only, not legal clearance;
+ * - an explicit HTTPS endpoint must also be configured through
+ *   NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT;
+ * - the flag and endpoint are engineering/operator controls only, not legal
+ *   clearance or proof that a public service permits the intended traffic;
  * - persistent caching/export/derived-database use remains separately reviewable
  *   under #116.
  *
@@ -33,16 +36,39 @@ export interface Bounds {
   east: number;
 }
 
-const ENDPOINT = 'https://overpass-api.de/api/interpreter';
 const OSM_LICENSE_URL = 'https://www.openstreetmap.org/copyright' as const;
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const MAX_CACHE_ENTRIES = 40;
 
-export function isOverpassRuntimeAllowed(): boolean {
-  return process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE === 'GO';
+export function getControlledOverpassEndpoint(
+  rightsGate: string | undefined = process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE,
+  endpoint: string | undefined = process.env.NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT,
+): string | null {
+  if (rightsGate !== 'GO') return null;
+
+  const normalizedEndpoint = endpoint?.trim();
+  if (!normalizedEndpoint) return null;
+
+  try {
+    const url = new URL(normalizedEndpoint);
+    if (
+      url.protocol !== 'https:' ||
+      url.username !== '' ||
+      url.password !== '' ||
+      url.search !== '' ||
+      url.hash !== ''
+    ) {
+      return null;
+    }
+    return url.toString();
+  } catch {
+    return null;
+  }
 }
 
-const OVERPASS_RUNTIME_ALLOWED = isOverpassRuntimeAllowed();
+export function isOverpassRuntimeAllowed(): boolean {
+  return getControlledOverpassEndpoint() !== null;
+}
 
 /** Tag OSM → catégorie EMOPET. */
 function categoryFor(tags: Record<string, string>): SpotCategory | null {
@@ -107,30 +133,40 @@ function setCachedSpots(key: string, spots: OsmSpot[], now = Date.now()): void {
   }
 }
 
-function sourceElementUrl(el: OverpassElement): string {
-  const type = el.type === 'node' || el.type === 'way' || el.type === 'relation'
-    ? el.type
-    : 'node';
-  return `https://www.openstreetmap.org/${type}/${el.id}`;
+function isSupportedElementType(type: string): type is 'node' | 'way' | 'relation' {
+  return type === 'node' || type === 'way' || type === 'relation';
+}
+
+function isValidCoordinate(lat: number, lon: number): boolean {
+  return Number.isFinite(lat) && Number.isFinite(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
+}
+
+function sourceElementUrl(type: 'node' | 'way' | 'relation', id: number): string {
+  return `https://www.openstreetmap.org/${type}/${id}`;
 }
 
 /**
  * Convert raw Overpass elements into the bounded public POI projection used by
  * the map. Provenance is attached here so every returned OSM marker carries
  * its source element and attribution/licence pointers with it.
+ *
+ * Malformed or unsupported upstream elements are dropped rather than silently
+ * fabricating a source URL or accepting impossible coordinates.
  */
 export function overpassElementsToOsmSpots(elements: readonly OverpassElement[]): OsmSpot[] {
   const spots: OsmSpot[] = [];
   const seen = new Set<string>();
 
   for (const el of elements) {
+    if (!isSupportedElementType(el.type) || !Number.isSafeInteger(el.id) || el.id <= 0) continue;
+
     const tags = el.tags ?? {};
     const category = categoryFor(tags);
     if (!category) continue;
 
     const lat = el.lat ?? el.center?.lat;
     const lon = el.lon ?? el.center?.lon;
-    if (lat == null || lon == null) continue;
+    if (lat == null || lon == null || !isValidCoordinate(lat, lon)) continue;
 
     const id = `osm-${el.type}-${el.id}`;
     if (seen.has(id)) continue;
@@ -144,7 +180,7 @@ export function overpassElementsToOsmSpots(elements: readonly OverpassElement[])
       lat,
       fromOsm: true,
       sourceName: 'OpenStreetMap',
-      sourceElementUrl: sourceElementUrl(el),
+      sourceElementUrl: sourceElementUrl(el.type, el.id),
       attributionText: '© OpenStreetMap contributors',
       licenseUrl: OSM_LICENSE_URL,
     });
@@ -158,10 +194,12 @@ export function overpassElementsToOsmSpots(elements: readonly OverpassElement[])
  *
  * The cache is process/browser-memory only, capped at 40 bboxes and expires
  * entries after five minutes. No persistent OSM database or export is created
- * here. If the rights/service gate is not explicitly GO, fail closed.
+ * here. If either the rights gate or an explicit controlled HTTPS endpoint is
+ * missing, fail closed.
  */
 export async function fetchOsmSpots(b: Bounds, signal?: AbortSignal): Promise<OsmSpot[]> {
-  if (!OVERPASS_RUNTIME_ALLOWED) return [];
+  const endpoint = getControlledOverpassEndpoint();
+  if (!endpoint) return [];
 
   const key = bboxKey(b);
   const cached = getCachedSpots(key);
@@ -177,7 +215,9 @@ export async function fetchOsmSpots(b: Bounds, signal?: AbortSignal): Promise<Os
     `);out center 120;`;
 
   try {
-    const res = await fetch(`${ENDPOINT}?data=${encodeURIComponent(query)}`, {
+    const requestUrl = new URL(endpoint);
+    requestUrl.searchParams.set('data', query);
+    const res = await fetch(requestUrl.toString(), {
       method: 'GET',
       headers: { Accept: 'application/json' },
       signal,
