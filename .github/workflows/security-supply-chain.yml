@@ -11,6 +11,7 @@ permissions:
   actions: read
   checks: read
   pull-requests: read
+  security-events: read
 
 env:
   TURBO_TELEMETRY_DISABLED: '1'
@@ -225,10 +226,12 @@ jobs:
           node-version: '20'
       - name: Test CodeQL evidence gate
         run: node --test scripts/security/verify-codeql-default-setup.test.mjs
-      - name: Require successful GitHub CodeQL analysis, upload and findings check for this commit
+      - name: Require successful GitHub CodeQL analysis, upload and alert inventory for this commit
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CODEQL_EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          CODEQL_PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          CODEQL_REF: ${{ github.ref }}
         run: node scripts/security/verify-codeql-default-setup.mjs
       - name: Preserve verified CodeQL run evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

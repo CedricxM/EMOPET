@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  normalizePullRequestNumber,
+  requireCodeqlAlertInventory,
   requireCodeqlAnalysis,
-  requireCodeqlSecurityCheck,
   selectCodeqlRun,
-  selectCodeqlSecurityCheck,
 } from './verify-codeql-default-setup.mjs';
 
 const sha = 'a'.repeat(40);
@@ -16,20 +16,10 @@ const jobs = ['actions', 'c-cpp', 'javascript-typescript', 'python'].map((langua
   name: `Analyze (${language})`, status: 'completed', conclusion: 'success',
   steps: [{ name: 'Perform CodeQL Analysis', status: 'completed', conclusion: 'success' }],
 }));
-const findingsCheck = {
-  id: 20,
-  name: 'CodeQL',
-  head_sha: sha,
-  status: 'completed',
-  conclusion: 'success',
-  app: { slug: 'github-advanced-security' },
-};
 
-test('accepts complete default setup evidence and native findings for the exact commit', () => {
+test('accepts complete default setup evidence for the exact commit', () => {
   assert.equal(selectCodeqlRun([run], sha), run);
   assert.doesNotThrow(() => requireCodeqlAnalysis(run, jobs, sha));
-  assert.equal(selectCodeqlSecurityCheck([findingsCheck], sha), findingsCheck);
-  assert.equal(requireCodeqlSecurityCheck(findingsCheck, sha), findingsCheck);
 });
 
 test('other commits and similarly named custom workflows are not CodeQL analysis evidence', () => {
@@ -70,27 +60,31 @@ test('missing languages, skipped analysis and incomplete jobs fail closed', () =
   }
 });
 
-test('native findings evidence is bound to GitHub Advanced Security and the exact commit', () => {
-  const impostors = [
-    { ...findingsCheck, head_sha: 'b'.repeat(40) },
-    { ...findingsCheck, name: 'CodeQL / custom' },
-    { ...findingsCheck, app: { slug: 'actions' } },
-  ];
-  assert.equal(selectCodeqlSecurityCheck(impostors, sha), undefined);
-  for (const candidate of [undefined, ...impostors]) {
-    assert.throws(() => requireCodeqlSecurityCheck(candidate, sha));
+test('pull-request number parsing is strict and optional', () => {
+  assert.equal(normalizePullRequestNumber('224'), 224);
+  assert.equal(normalizePullRequestNumber(''), null);
+  assert.equal(normalizePullRequestNumber(undefined), null);
+  for (const invalid of ['0', '-1', '1.2', 'abc']) {
+    assert.throws(() => normalizePullRequestNumber(invalid));
   }
 });
 
-test('a previous native findings success cannot hide a newer blocking check', () => {
-  for (const latest of [
-    { ...findingsCheck, id: 21, conclusion: 'failure' },
-    { ...findingsCheck, id: 21, status: 'in_progress', conclusion: null },
-    { ...findingsCheck, id: 21, conclusion: 'cancelled' },
-    { ...findingsCheck, id: 21, conclusion: 'skipped' },
-  ]) {
-    const selected = selectCodeqlSecurityCheck([findingsCheck, latest], sha);
-    assert.equal(selected, latest);
-    assert.throws(() => requireCodeqlSecurityCheck(selected, sha));
-  }
+test('native open-alert inventory passes only when empty', () => {
+  assert.deepEqual(requireCodeqlAlertInventory([]), []);
+  const alert = {
+    number: 17,
+    state: 'open',
+    tool: { name: 'CodeQL' },
+    rule: { id: 'js/example' },
+  };
+  assert.throws(() => requireCodeqlAlertInventory([alert]), /1 open alert/);
+  assert.throws(() => requireCodeqlAlertInventory({}), /must be an array/);
+  assert.throws(
+    () => requireCodeqlAlertInventory([{ ...alert, state: 'dismissed' }]),
+    /Unexpected entry/,
+  );
+  assert.throws(
+    () => requireCodeqlAlertInventory([{ ...alert, tool: { name: 'Other' } }]),
+    /Unexpected entry/,
+  );
 });
