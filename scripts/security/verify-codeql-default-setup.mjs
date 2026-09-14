@@ -43,6 +43,16 @@ export function normalizePullRequestNumber(value) {
   return Number(value);
 }
 
+function formatCodeqlAlert(alert) {
+  const number = alert?.number ?? '?';
+  const rule = alert?.rule?.id ?? alert?.rule?.name ?? 'unknown-rule';
+  const location = alert?.most_recent_instance?.location;
+  const where = location?.path
+    ? `${location.path}:${location.start_line ?? '?'}`
+    : 'unknown-location';
+  return `#${number} ${rule} ${where}`;
+}
+
 export function requireCodeqlAlertInventory(alerts) {
   if (!Array.isArray(alerts)) throw new Error('CodeQL alert inventory must be an array.');
   for (const alert of alerts) {
@@ -53,7 +63,7 @@ export function requireCodeqlAlertInventory(alerts) {
   if (alerts.length > 0) {
     const details = alerts
       .slice(0, 10)
-      .map((alert) => `#${alert.number ?? '?'} ${alert.rule?.id ?? alert.rule?.name ?? 'unknown-rule'}`)
+      .map(formatCodeqlAlert)
       .join(', ');
     throw new Error(
       `CodeQL has ${alerts.length} open alert(s) in the verified target${details ? `: ${details}` : '.'}`,
