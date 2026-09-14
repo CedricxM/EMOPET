@@ -93,8 +93,41 @@ if (!mapbox.includes('attributionControl: true')) {
   fail('Mapbox renderer must keep attribution controls enabled');
 }
 
-if (!overpass.includes("process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE === 'GO'")) fail('Overpass must remain disabled unless its explicit rights gate is GO');
-if (!overpass.includes('if (!OVERPASS_RUNTIME_ALLOWED) return [];')) fail('Overpass must fail closed before querying the public endpoint');
+const overpassInventory = byId.get('osm-overpass-pois');
+if (
+  overpassInventory?.gate !==
+  'NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE=GO plus NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT explicit HTTPS endpoint'
+) {
+  fail('Overpass inventory must require both the rights gate and an explicit controlled HTTPS endpoint');
+}
+if (!Array.isArray(overpassInventory?.destinationHosts) || !overpassInventory.destinationHosts.includes('operator_configured_https_endpoint')) {
+  fail('Overpass inventory must not represent a hardcoded public operator as the production destination');
+}
+if (!overpass.includes('process.env.NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE')) {
+  fail('Overpass must retain the explicit rights gate input');
+}
+if (!overpass.includes('process.env.NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT')) {
+  fail('Overpass must require an explicit operator endpoint input');
+}
+if (!overpass.includes("if (rightsGate !== 'GO') return null;")) {
+  fail('Overpass endpoint helper must fail closed unless the explicit rights gate is exactly GO');
+}
+if (!overpass.includes("url.protocol !== 'https:'")) {
+  fail('Overpass endpoint helper must require HTTPS');
+}
+if (!overpass.includes("url.username !== ''") || !overpass.includes("url.password !== ''")) {
+  fail('Overpass endpoint helper must reject embedded credentials');
+}
+if (!overpass.includes("url.search !== ''") || !overpass.includes("url.hash !== ''")) {
+  fail('Overpass endpoint helper must reject preconfigured query strings and fragments');
+}
+if (overpass.includes("const ENDPOINT = 'https://overpass-api.de/api/interpreter'")) {
+  fail('Overpass runtime must not silently fall back to the historical public endpoint');
+}
+requireBefore(overpass, 'const endpoint = getControlledOverpassEndpoint();', 'const res = await fetch(requestUrl.toString()', 'Overpass');
+if (!overpass.includes('if (!endpoint) return [];')) {
+  fail('Overpass must fail closed before egress when the controlled endpoint is unavailable');
+}
 
 if (!providerConfig.includes('return readBoolEnv(flagKey, false);')) fail('provider framework flags must remain OFF by default');
 if (!providerConfig.includes('if (!isFlagEnabled(input.flagKey)) return { activable: false')) fail('provider framework must require an explicit per-provider activation flag');

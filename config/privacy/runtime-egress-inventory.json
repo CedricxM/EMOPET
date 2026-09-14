@@ -58,11 +58,12 @@
     {
       "id": "osm-overpass-pois",
       "kind": "direct_fetch",
-      "repositoryDefault": "DISABLED_BY_RIGHTS_GATE",
+      "repositoryDefault": "DISABLED_BY_RIGHTS_GATE_AND_MISSING_ENDPOINT",
       "surface": "web_client",
-      "destinationHosts": ["overpass-api.de"],
-      "gate": "NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE=GO",
+      "destinationHosts": ["operator_configured_https_endpoint"],
+      "gate": "NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE=GO plus NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT explicit HTTPS endpoint",
       "dataCategories": ["map_bounding_box", "public_poi_query"],
+      "currentUsageNote": "No default public Overpass operator is embedded as release authority. Deployment must select a reviewed HTTPS endpoint separately; provider policy, capacity and legal/service authority remain open under DATA-LIC-G4.",
       "evidencePaths": ["apps/web/lib/osm-spots.ts"]
     },
     {
