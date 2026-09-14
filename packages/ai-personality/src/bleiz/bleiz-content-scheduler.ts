@@ -452,10 +452,41 @@ export function filterGeneratedText(template: BleizTemplate, text: string): {
 }
 
 function interpolatePrompt(template: BleizTemplate, contexts: BleizContexts): string {
-  return template.prompt.replace(/\{\{([^}]+)\}\}/g, (_match: string, path: string) => {
-    const value = resolveField(path.trim(), contexts.sensor, contexts.dog, contexts.user, contexts.community);
-    return value === undefined || value === null ? '' : String(value);
-  });
+  const source = template.prompt;
+  let result = '';
+  let cursor = 0;
+
+  while (cursor < source.length) {
+    const start = source.indexOf('{{', cursor);
+    if (start === -1) {
+      result += source.slice(cursor);
+      break;
+    }
+
+    const end = source.indexOf('}}', start + 2);
+    if (end === -1) {
+      result += source.slice(cursor);
+      break;
+    }
+
+    result += source.slice(cursor, start);
+    const rawPath = source.slice(start + 2, end);
+    if (rawPath.length === 0 || rawPath.includes('}')) {
+      result += source.slice(start, end + 2);
+    } else {
+      const value = resolveField(
+        rawPath.trim(),
+        contexts.sensor,
+        contexts.dog,
+        contexts.user,
+        contexts.community,
+      );
+      result += value === undefined || value === null ? '' : String(value);
+    }
+    cursor = end + 2;
+  }
+
+  return result;
 }
 
 function resolveChannel(
