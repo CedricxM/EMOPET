@@ -1,0 +1,267 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+
+import { eq } from 'drizzle-orm';
+import { Hono } from 'hono';
+
+import {
+  sensors as sensorRoutes,
+  PRESENCE_PERSISTENCE_NOT_READY,
+  ELI_RUNTIME_NOT_IMPLEMENTED,
+  SENSOR_PROVENANCE_REQUIRED,
+  SENSOR_SOURCE_FIELDS_INVALID,
+} from '../dist/api/routes/sensors.js';
+import { db } from '../dist/db/index.js';
+import { baselines, devices, dogs, eliStates, sensorSummaries, users } from '../dist/db/schema/index.js';
+
+const integrationEnabled = process.env.EMOPET_DB_INTEGRATION_TEST === '1';
+
+test('sensor summaries persist while provenance, source and sensitive-data boundaries fail closed', { skip: !integrationEnabled }, async () => {
+  const ownerId = randomUUID();
+  const otherUserId = randomUUID();
+  const dogId = randomUUID();
+  const tagDeviceId = randomUUID();
+  const matDeviceId = randomUUID();
+  const ingestionId = randomUUID();
+  const suffix = randomUUID();
+
+  await db.insert(users).values([
+    {
+      id: ownerId,
+      email: `sensor-owner-${suffix}@example.test`,
+      passwordHash: 'integration-test-only',
+      name: 'Sensor Owner',
+    },
+    {
+      id: otherUserId,
+      email: `sensor-other-${suffix}@example.test`,
+      passwordHash: 'integration-test-only',
+      name: 'Sensor Other',
+    },
+  ]);
+  await db.insert(dogs).values({
+    id: dogId,
+    ownerId,
+    name: 'Moka',
+    breed: 'Mixed',
+    birthDate: '2021-05-01',
+    sex: 'male',
+    weight: 18.4,
+    furClass: 'FC2',
+  });
+  await db.insert(devices).values([
+    {
+      id: tagDeviceId,
+      dogId,
+      type: 'TAG',
+      macAddress: '02:00:00:00:00:01',
+      firmwareVersion: '1.2.3',
+    },
+    {
+      id: matDeviceId,
+      dogId,
+      type: 'MAT',
+      macAddress: '02:00:00:00:00:02',
+      firmwareVersion: '2.0.0',
+    },
+  ]);
+
+  let currentUserId = ownerId;
+  const app = new Hono();
+  app.use('*', async (c, next) => {
+    c.set('userId', currentUserId);
+    await next();
+  });
+  app.route('/api/sensors', sensorRoutes);
+
+  const postSummary = (body) => app.request('/api/sensors/summaries', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  try {
+    const validSummary = {
+      timestamp: new Date().toISOString(),
+      dogId,
+      ingestionId,
+      deviceId: tagDeviceId,
+      source: 'TAG',
+      activityMinutes: 12.5,
+      vocalEvents: 2,
+      vocalEnergyMean: 18.4,
+      agitationEvents: 1,
+      temperatureC: 19.2,
+      humidityPct: 63,
+    };
+
+    for (const incomplete of [
+      { ...validSummary, ingestionId: undefined },
+      { ...validSummary, deviceId: undefined },
+    ]) {
+      const response = await postSummary(incomplete);
+      assert.equal(response.status, 400);
+      assert.equal(response.headers.get('cache-control'), 'private, no-store');
+      assert.equal((await response.json()).code, SENSOR_PROVENANCE_REQUIRED);
+    }
+
+    const tagWithMatFieldResponse = await postSummary({
+      ...validSummary,
+      ingestionId: randomUUID(),
+      matPresenceMinutes: 5,
+    });
+    assert.equal(tagWithMatFieldResponse.status, 400);
+    assert.equal((await tagWithMatFieldResponse.json()).code, SENSOR_SOURCE_FIELDS_INVALID);
+
+    const matWithTagFieldResponse = await postSummary({
+      timestamp: new Date().toISOString(),
+      dogId,
+      ingestionId: randomUUID(),
+      deviceId: matDeviceId,
+      source: 'MAT',
+      activityMinutes: 5,
+      temperatureC: 19.2,
+    });
+    assert.equal(matWithTagFieldResponse.status, 400);
+    assert.equal((await matWithTagFieldResponse.json()).code, SENSOR_SOURCE_FIELDS_INVALID);
+
+    const createResponse = await postSummary(validSummary);
+    assert.equal(createResponse.status, 201);
+    assert.equal(createResponse.headers.get('cache-control'), 'private, no-store');
+    const created = await createResponse.json();
+    assert.equal(created.summary.dogId, dogId);
+    assert.equal(created.summary.deviceId, tagDeviceId);
+    assert.equal(created.summary.source, 'TAG');
+    assert.equal(created.summary.ingestionId, ingestionId);
+    assert.equal(created.summary.firmwareVersionAtIngest, '1.2.3');
+    assert.equal(created.idempotentReplay, false);
+    assert.ok(created.summary.createdAt, 'server persistence/receive timestamp must be present');
+    assert.notEqual(
+      created.summary.createdAt,
+      validSummary.timestamp,
+      'server createdAt must remain distinct from producer event timestamp',
+    );
+
+    const retryResponse = await postSummary(validSummary);
+    assert.equal(retryResponse.status, 200);
+    const retried = await retryResponse.json();
+    assert.equal(retried.idempotentReplay, true);
+    assert.equal(retried.summary.id, created.summary.id);
+
+    const conflictingRetryResponse = await postSummary({ ...validSummary, activityMinutes: 13.5 });
+    assert.equal(conflictingRetryResponse.status, 409);
+    assert.equal(
+      (await conflictingRetryResponse.json()).code,
+      'SENSOR_INGESTION_ID_CONFLICT',
+    );
+
+    const mismatchedDeviceResponse = await postSummary({ ...validSummary, deviceId: matDeviceId });
+    assert.equal(mismatchedDeviceResponse.status, 400);
+    assert.equal(
+      (await mismatchedDeviceResponse.json()).code,
+      'SENSOR_DEVICE_BINDING_INVALID',
+      'MAT device must not be accepted for a TAG summary',
+    );
+
+    const listResponse = await app.request(`/api/sensors/summaries/${dogId}?range=24h`);
+    assert.equal(listResponse.status, 200);
+    assert.equal(listResponse.headers.get('cache-control'), 'private, no-store');
+    const listed = await listResponse.json();
+    assert.ok(listed.summaries.some((summary) => summary.id === created.summary.id));
+
+    const rawAudioSentinel = `raw-household-audio-${randomUUID()}`;
+    const forbiddenSensitivePayloads = [
+      { rawAudio: rawAudioSentinel },
+      { audioBase64: Buffer.from(rawAudioSentinel).toString('base64') },
+      { pcm: [0, 1, -1, 32767] },
+      { latitudeE6: 48581234, longitudeE6: 2294567 },
+      { latitude: 48.581234, longitude: 2.294567 },
+    ];
+    for (const forbiddenPayload of forbiddenSensitivePayloads) {
+      const forbiddenResponse = await postSummary({ ...validSummary, ...forbiddenPayload });
+      assert.equal(
+        forbiddenResponse.status,
+        400,
+        'unknown raw-audio or exact-location sensor fields must be rejected at ingress',
+      );
+      assert.equal(forbiddenResponse.headers.get('cache-control'), 'private, no-store');
+    }
+
+    const persistedAfterRejectedSensitivePayloads = await db
+      .select({ id: sensorSummaries.id })
+      .from(sensorSummaries)
+      .where(eq(sensorSummaries.dogId, dogId));
+    assert.deepEqual(
+      persistedAfterRejectedSensitivePayloads.map((row) => row.id),
+      [created.summary.id],
+      'retries and rejected provenance/source/sensitive payloads must not create extra summary rows',
+    );
+
+    // Historical persisted rows are not an authoritative live ELI producer.
+    await db.insert(eliStates).values({
+      dogId, timestamp: new Date(), arousal: 0.7, valence: -0.4,
+      load: 72, confidence: 0.9, gateStatus: 'PUBLISH', sensorReliability: {},
+    });
+    for (const [path, operation] of [
+      [`/api/sensors/eli/${dogId}`, 'get_latest_eli_state'],
+      [`/api/sensors/eli/${dogId}/history`, 'list_eli_history'],
+    ]) {
+      const response = await app.request(path);
+      assert.equal(response.status, 501);
+      assert.equal(response.headers.get('cache-control'), 'private, no-store');
+      assert.deepEqual(await response.json(), {
+        error: 'eli_runtime_not_implemented', code: ELI_RUNTIME_NOT_IMPLEMENTED,
+        dogId, operation, maturity: 'NOT_IMPLEMENTED', retryable: false,
+      });
+    }
+
+    await db.insert(baselines).values({
+      dogId, startedAt: new Date(), validHours: 24, established: 1,
+      metrics: { valence: -0.4, nested: { internalOnly: 'must-not-be-disclosed' } },
+    });
+    const baselineResponse = await app.request(`/api/sensors/baseline/${dogId}`);
+    assert.equal(baselineResponse.status, 200);
+    assert.equal(baselineResponse.headers.get('cache-control'), 'private, no-store');
+    const baselineBody = await baselineResponse.json();
+    assert.equal(baselineBody.baseline.dogId, dogId);
+    assert.equal(baselineBody.baseline.validHours, 24);
+    assert.equal(baselineBody.baseline.metricsStatus, 'WITHHELD_PENDING_DISCLOSURE_AUTHORITY');
+    assert.equal('metrics' in baselineBody.baseline, false);
+    assert.equal(JSON.stringify(baselineBody).includes('must-not-be-disclosed'), false);
+
+    const presenceResponse = await app.request(`/api/sensors/presence/${dogId}/events`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        dogId,
+        phoneSeen: true,
+        timestamp: new Date().toISOString(),
+        source: 'phone_passive',
+      }),
+    });
+    assert.equal(presenceResponse.status, 503);
+    assert.equal(presenceResponse.headers.get('cache-control'), 'private, no-store');
+    const presenceBody = await presenceResponse.json();
+    assert.equal(presenceBody.code, PRESENCE_PERSISTENCE_NOT_READY);
+
+    currentUserId = otherUserId;
+    const crossOwnerResponse = await app.request(`/api/sensors/summaries/${dogId}?range=24h`);
+    assert.equal(crossOwnerResponse.status, 404);
+    assert.equal(crossOwnerResponse.headers.get('cache-control'), 'private, no-store');
+    for (const path of [
+      `/api/sensors/eli/${dogId}`, `/api/sensors/eli/${dogId}/history`,
+      `/api/sensors/baseline/${dogId}`,
+    ]) {
+      assert.equal((await app.request(path)).status, 404);
+    }
+  } finally {
+    await db.delete(baselines).where(eq(baselines.dogId, dogId));
+    await db.delete(eliStates).where(eq(eliStates.dogId, dogId));
+    await db.delete(sensorSummaries).where(eq(sensorSummaries.dogId, dogId));
+    await db.delete(devices).where(eq(devices.dogId, dogId));
+    await db.delete(dogs).where(eq(dogs.id, dogId));
+    await db.delete(users).where(eq(users.id, ownerId));
+    await db.delete(users).where(eq(users.id, otherUserId));
+  }
+});

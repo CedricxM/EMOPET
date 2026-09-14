@@ -19,6 +19,7 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="settings" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="progress" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="devices" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="add-dog" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="support" options={{ animation: 'slide_from_right' }} />
       </Stack>

@@ -195,9 +195,14 @@ function localCard(
           state: communityRulesAccepted ? 'done' : 'todo',
         },
         {
-          key: 'report_block',
-          label: 'Signalement et blocage disponibles',
+          key: 'report_durable',
+          label: 'Signalement persistant disponible',
           state: 'done',
+        },
+        {
+          key: 'block_enforcement',
+          label: 'Blocage applique aux surfaces Community',
+          state: 'blocked',
         },
         {
           key: 'moderation_ops',
@@ -260,9 +265,14 @@ function localCard(
                   state: communityRulesAccepted ? 'done' : 'todo',
                 },
                 {
-                  key: 'report_block',
-                  label: 'Blocage et signalement actifs',
+                  key: 'report_durable',
+                  label: 'Signalement persistant disponible',
                   state: 'done',
+                },
+                {
+                  key: 'block_enforcement',
+                  label: 'Blocage applique aux surfaces Community',
+                  state: 'blocked',
                 },
                 {
                   key: 'anti_harassment',
@@ -304,9 +314,14 @@ function localCard(
                         state: communityRulesAccepted ? 'done' : 'todo',
                       },
                       {
-                        key: 'report_block',
-                        label: 'Signalement et blocage disponibles',
+                        key: 'report_durable',
+                        label: 'Signalement persistant disponible',
                         state: 'done',
+                      },
+                      {
+                        key: 'block_enforcement',
+                        label: 'Blocage applique aux surfaces Community',
+                        state: 'blocked',
                       },
                       {
                         key: 'anti_fake',

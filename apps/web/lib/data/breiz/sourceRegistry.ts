@@ -17,6 +17,32 @@ export type BreizSourceUsagePolicy =
 
 export type BreizSourceAuthority = 'official' | 'institutional' | 'partner' | 'community';
 
+export type BreizRightsEvidenceState =
+  | 'SOURCE_CONFIRMED'
+  | 'REPOSITORY_FACT'
+  | 'RECEIPT_MISSING'
+  | 'UNVERIFIED_CLAIM'
+  | 'HOLD'
+  | 'OPEN';
+
+export type BreizReleaseDisposition = 'GO' | 'HOLD' | 'REMEDIATE';
+
+export interface BreizRightsEvidence {
+  /** Exact source or item version used by EMOPET. */
+  immutableVersion: string;
+  /** Repository-relative pointer to a controlled terms/licence/retrieval receipt. */
+  receiptPath: string;
+  /** Attribution text actually required for the intended use. */
+  attributionText: string;
+  /** Human-reviewed summary of the allowed transformation/use scope. */
+  permittedUseSummary: string;
+  reviewedAt: string;
+  reviewerRole: string;
+  recheckAt?: string | null;
+  evidenceState: BreizRightsEvidenceState;
+  disposition: BreizReleaseDisposition;
+}
+
 export interface BreizSourceDescriptor {
   id: string;
   name: string;
@@ -28,8 +54,16 @@ export interface BreizSourceDescriptor {
   usagePolicy: BreizSourceUsagePolicy[];
   license: string | null;
   freshnessHours: number | null;
+  /**
+   * Connector/catalogue switch only. `enabled` MUST NOT be interpreted as rights
+   * clearance or publication authority.
+   */
   enabled: boolean;
   notes: string;
+  /**
+   * Optional controlled rights evidence. Missing evidence fails closed for release.
+   */
+  rightsEvidence?: BreizRightsEvidence;
 }
 
 /**
@@ -173,4 +207,50 @@ export function canStoreFullText(source: BreizSourceDescriptor): boolean {
   return source.usagePolicy.includes('FULL_TEXT_ALLOWED') &&
     !source.usagePolicy.includes('NO_DERIVATIVES') &&
     !source.usagePolicy.includes('PARTNER_PERMISSION_REQUIRED');
+}
+
+function parseEvidenceTime(value: string): number | null {
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+/**
+ * Product-release readiness is deliberately stricter than catalogue enablement.
+ * Missing item-level evidence, an invalid/future review, an expired recheck or
+ * any non-GO disposition fails closed.
+ */
+export function isBreizSourceReleaseReady(
+  source: BreizSourceDescriptor,
+  nowMs: number = Date.now(),
+): boolean {
+  const evidence = source.rightsEvidence;
+  if (!source.enabled || !evidence) return false;
+
+  if (evidence.evidenceState !== 'SOURCE_CONFIRMED' || evidence.disposition !== 'GO') {
+    return false;
+  }
+
+  if (
+    evidence.immutableVersion.trim().length === 0 ||
+    evidence.receiptPath.trim().length === 0 ||
+    evidence.attributionText.trim().length === 0 ||
+    evidence.permittedUseSummary.trim().length === 0 ||
+    evidence.reviewerRole.trim().length === 0
+  ) {
+    return false;
+  }
+
+  const reviewedAt = parseEvidenceTime(evidence.reviewedAt);
+  if (reviewedAt == null || reviewedAt > nowMs) return false;
+
+  if (evidence.recheckAt != null) {
+    const recheckAt = parseEvidenceTime(evidence.recheckAt);
+    if (recheckAt == null || recheckAt <= nowMs) return false;
+  }
+
+  return true;
+}
+
+export function getBreizReleaseReadySources(nowMs: number = Date.now()): BreizSourceDescriptor[] {
+  return BREIZ_SOURCE_REGISTRY.filter((source) => isBreizSourceReleaseReady(source, nowMs));
 }

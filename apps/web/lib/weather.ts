@@ -3,6 +3,9 @@
  * Données © Open-Meteo (CC-BY 4.0).
  *
  * Sert au contexte des balades (carnet) et à l'affichage local.
+ * Runtime egress disabled by default; enabling requires
+ * NEXT_PUBLIC_EMOPET_OPEN_METEO_EGRESS_GATE=GO. Operator control only, not
+ * processor/transfer/legal clearance.
  */
 
 export interface CurrentWeather {
@@ -38,14 +41,17 @@ export function weatherLabel(code: number): string {
 }
 
 const BASE = 'https://api.open-meteo.com/v1/forecast';
+const OPEN_METEO_EGRESS_ALLOWED =
+  process.env.NEXT_PUBLIC_EMOPET_OPEN_METEO_EGRESS_GATE === 'GO';
 const currentCache = new Map<string, CurrentWeather>();
 
 function key(lat: number, lon: number): string {
   return `${lat.toFixed(2)},${lon.toFixed(2)}`;
 }
 
-/** Météo actuelle pour un point. Renvoie null en cas d'échec réseau. */
+/** Météo actuelle pour un point. Renvoie null si egress interdit ou échec réseau. */
 export async function fetchCurrentWeather(lat: number, lon: number, signal?: AbortSignal): Promise<CurrentWeather | null> {
+  if (!OPEN_METEO_EGRESS_ALLOWED) return null;
   const k = key(lat, lon);
   const cached = currentCache.get(k);
   if (cached) return cached;
@@ -69,8 +75,9 @@ export async function fetchCurrentWeather(lat: number, lon: number, signal?: Abo
   }
 }
 
-/** Prévisions journalières (N jours). Renvoie [] en cas d'échec. */
+/** Prévisions journalières (N jours). Renvoie [] si egress interdit ou échec. */
 export async function fetchForecast(lat: number, lon: number, days = 3, signal?: AbortSignal): Promise<DailyWeather[]> {
+  if (!OPEN_METEO_EGRESS_ALLOWED) return [];
   try {
     const url = `${BASE}?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=${days}`;
     const res = await fetch(url, { signal });

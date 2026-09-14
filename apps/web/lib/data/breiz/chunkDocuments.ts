@@ -55,6 +55,7 @@ export function exportChunksForVectorStore(chunks: BreizDocumentChunk[]) {
       title: chunk.title,
       source_name: chunk.metadata.source_name,
       source_url: chunk.metadata.source_url,
+      source_registry_id: chunk.metadata.source_registry_id ?? null,
       license: chunk.metadata.license,
       territory: chunk.metadata.territory,
       region: chunk.metadata.region,

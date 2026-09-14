@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, date, integer, real, serial, jsonb, primaryKey, uniqueIndex } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, date, integer, doublePrecision, serial, jsonb, primaryKey, unique, index } from 'drizzle-orm/pg-core';
 
 // ─── Dataset Governance ─────────────────────────────────────────────
 
@@ -41,7 +41,12 @@ export const breedCanonical = pgTable('breed_canonical', {
   provenance: jsonb('provenance').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-});
+}, (table) => [
+  // Historical 0001 carries this query-supporting index. The separate explicit
+  // breed_slug index is intentionally not duplicated here because the UNIQUE
+  // breed_slug contract already provides a btree index for that column.
+  index('idx_breed_canonical_fci').on(table.fciNumber),
+]);
 
 // ─── IMU Activity Profiles (Behavior Dataset) ──────────────────────
 
@@ -59,13 +64,15 @@ export const imuDiscriminationThresholds = pgTable('imu_discrimination_threshold
   activityA: text('activity_a').notNull(),
   activityB: text('activity_b').notNull(),
   featureName: text('feature_name').notNull(),
-  thresholdValue: real('threshold_value').notNull(),
-  confidence: real('confidence').notNull(),
+  // Historical SQL uses PostgreSQL FLOAT, which is float8/double precision.
+  // Keep fresh Drizzle storage at the same precision instead of narrowing it.
+  thresholdValue: doublePrecision('threshold_value').notNull(),
+  confidence: doublePrecision('confidence').notNull(),
   placement: text('placement').notNull(),
   sourceDataset: text('source_dataset').references(() => datasetRegistry.datasetId),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => [
-  uniqueIndex('uq_discrimination').on(table.activityA, table.activityB, table.featureName, table.placement),
+  unique('uq_discrimination').on(table.activityA, table.activityB, table.featureName, table.placement),
 ]);
 
 // ─── IMU Shake Filter (Posture Dataset) ─────────────────────────────
@@ -75,7 +82,7 @@ export const imuShakeFilter = pgTable('imu_shake_filter', {
   parameter: text('parameter').notNull().unique(),
   value: jsonb('value').notNull(),
   sourceDataset: text('source_dataset').references(() => datasetRegistry.datasetId),
-  confidence: real('confidence').notNull(),
+  confidence: doublePrecision('confidence').notNull(),
   notes: text('notes'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });

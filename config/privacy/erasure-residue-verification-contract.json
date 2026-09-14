@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "emopet-erasure-residue-verification-contract-v1",
+  "status": "TECHNICAL_NEGATIVE_RESIDUE_CONTRACT_NOT_ERASURE_POLICY",
+  "claimsResidueVerificationImplemented": false,
+  "snapshotTiming": "CAPTURE_REQUIRED_IDENTIFIERS_BEFORE_ANY_APPROVED_ERASURE_MUTATION",
+  "snapshotKeys": [
+    {
+      "key": "ACCOUNT_ID",
+      "source": "users.id",
+      "captureRule": "ACCOUNT_ERASURE_TARGET_ID"
+    },
+    {
+      "key": "DOG_IDS_SNAPSHOT",
+      "source": "dogs.id",
+      "captureRule": "FOR_ACCOUNT_SCOPE_CAPTURE_ALL_DOG_IDS_LINKED_BY_DOGS_OWNER_ID_BEFORE_MUTATION;_FOR_DOG_SCOPE_CAPTURE_TARGET_DOG_ID"
+    },
+    {
+      "key": "ASSESSMENT_IDS_SNAPSHOT",
+      "source": "behavioral_assessments.id",
+      "captureRule": "CAPTURE_IDS_LINKED_TO_DOG_IDS_SNAPSHOT_BEFORE_PARENT_ROWS_CAN_BE_DELETED_OR_DETACHED"
+    }
+  ],
+  "rootProbes": [
+    {
+      "subjectRoot": "users.id",
+      "table": "users",
+      "column": "id",
+      "snapshotKey": "ACCOUNT_ID",
+      "predicate": "COLUMN_EQUALS_SNAPSHOT_SCALAR"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "table": "dogs",
+      "column": "id",
+      "snapshotKey": "DOG_IDS_SNAPSHOT",
+      "predicate": "COLUMN_IN_SNAPSHOT_SET"
+    }
+  ],
+  "relationProbeRoutes": [
+    {
+      "subjectRoot": "users.id",
+      "relationTypes": ["DIRECT_FK", "UNCONSTRAINED_IDENTIFIER"],
+      "snapshotKey": "ACCOUNT_ID",
+      "predicate": "COLUMN_EQUALS_SNAPSHOT_SCALAR"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationTypes": ["DIRECT_FK", "UNCONSTRAINED_IDENTIFIER"],
+      "snapshotKey": "DOG_IDS_SNAPSHOT",
+      "predicate": "COLUMN_IN_SNAPSHOT_SET"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationTypes": ["TRANSITIVE_FK"],
+      "parentTable": "behavioral_assessments",
+      "snapshotKey": "ASSESSMENT_IDS_SNAPSHOT",
+      "predicate": "COLUMN_IN_SNAPSHOT_SET"
+    }
+  ],
+  "verificationByDisposition": {
+    "DELETE": {
+      "expectedOriginalSubjectLinkMatches": 0,
+      "rowMayRemain": false,
+      "additionalEvidence": []
+    },
+    "DETACH": {
+      "expectedOriginalSubjectLinkMatches": 0,
+      "rowMayRemain": true,
+      "additionalEvidence": ["DETACHMENT_MUTATION_EVIDENCE"]
+    },
+    "ANONYMIZE": {
+      "expectedOriginalSubjectLinkMatches": 0,
+      "rowMayRemain": true,
+      "additionalEvidence": ["APPROVED_ANONYMIZATION_ASSERTION", "ANONYMIZATION_TEST_EVIDENCE"]
+    },
+    "RETAIN_WITH_JUSTIFICATION": {
+      "expectedOriginalSubjectLinkMatches": "MAY_REMAIN",
+      "rowMayRemain": true,
+      "additionalEvidence": [
+        "APPROVED_RETENTION_JUSTIFICATION",
+        "ACCESS_RESTRICTION_EVIDENCE",
+        "EXPIRY_OR_HOLD_RELEASE_RULE",
+        "RETENTION_SCOPE_TEST_EVIDENCE"
+      ]
+    }
+  },
+  "nonSqlProbes": [
+    {
+      "surface": "OBJECT_MEDIA_STORAGE",
+      "probeStatus": "NOT_IMPLEMENTED",
+      "requiredEvidenceClass": "OBJECT_KEY_OR_MEDIA_REFERENCE_RESIDUE_PROOF"
+    },
+    {
+      "surface": "PROVIDER_HELD_COPIES",
+      "probeStatus": "NOT_IMPLEMENTED",
+      "requiredEvidenceClass": "PROVIDER_DELETE_OR_APPROVED_RETENTION_CONFIRMATION"
+    },
+    {
+      "surface": "CACHES_SEARCH_INDEXES",
+      "probeStatus": "NOT_IMPLEMENTED",
+      "requiredEvidenceClass": "CACHE_AND_INDEX_INVALIDATION_RESIDUE_PROOF"
+    },
+    {
+      "surface": "ANALYTICS_TELEMETRY",
+      "probeStatus": "NOT_IMPLEMENTED",
+      "requiredEvidenceClass": "TELEMETRY_SUBJECT_LINK_RESIDUE_PROOF"
+    },
+    {
+      "surface": "BACKUPS",
+      "probeStatus": "NOT_IMPLEMENTED",
+      "requiredEvidenceClass": "BACKUP_EXPIRY_OR_APPROVED_HOLD_EVIDENCE"
+    }
+  ],
+  "completionRule": "NO_COMPLETE_ERASURE_EVIDENCE_UNTIL_EVERY_APPROVED_DISPOSITION_HAS_THE_CORRECT_POST_CONDITION_PROOF_AND_EVERY_APPLICABLE_NON_SQL_SURFACE_HAS_EXECUTION_OR_EXPIRY_EVIDENCE",
+  "scopeLimitations": [
+    "This contract defines how future approved outcomes must be verified; it does not choose a disposition for any relation.",
+    "Identifiers needed for negative residue checks must be captured before parent deletion can destroy the join path used to discover descendants.",
+    "A surviving row is not automatically a failure for DETACH, ANONYMIZE or RETAIN_WITH_JUSTIFICATION; verification must follow the approved disposition-specific post-condition.",
+    "A zero-row SQL result cannot prove deletion from object storage, providers, caches, analytics or backups."
+  ]
+}

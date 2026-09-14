@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "emopet-user-subject-lineage-v1",
+  "status": "TECHNICAL_DIRECT_FK_TOPOLOGY_NOT_ERASURE_OR_DISCLOSURE_POLICY",
+  "subject": {
+    "table": "users",
+    "column": "id"
+  },
+  "lifecyclePolicyStatus": "TO_CONFIRM_BEFORE_ACCOUNT_ERASURE_OR_COMPLETE_ACCOUNT_EXPORT",
+  "unconstrainedIdentifierStatus": "MIGRATION_OR_EXPLICIT_LIFECYCLE_HANDLING_REQUIRED_BEFORE_ERASURE",
+  "scope": "Direct PostgreSQL foreign-key references to users.id plus persisted schema columns whose SQL name ends in user_id but lacks a direct users.id foreign key. Other non-FK identifiers, indirect dog-linked records, object storage, providers, caches, analytics and backups remain outside this mechanical registry and require separate lifecycle mapping.",
+  "directReferences": [
+    {
+      "table": "achievements",
+      "column": "user_id",
+      "source": "backend/db/schema/users.ts"
+    },
+    {
+      "table": "ai_messages",
+      "column": "target_user_id",
+      "source": "backend/db/schema/ai.ts"
+    },
+    {
+      "table": "auth_refresh_sessions",
+      "column": "user_id",
+      "source": "backend/db/schema/auth-sessions.ts"
+    },
+    {
+      "table": "behavioral_assessments",
+      "column": "respondent_user_id",
+      "source": "backend/db/schema/behavioral-assessments.ts"
+    },
+    {
+      "table": "comments",
+      "column": "author_id",
+      "source": "backend/db/schema/community.ts"
+    },
+    {
+      "table": "communities",
+      "column": "created_by",
+      "source": "backend/db/schema/community.ts"
+    },
+    {
+      "table": "community_events",
+      "column": "created_by",
+      "source": "backend/db/schema/community.ts"
+    },
+    {
+      "table": "community_members",
+      "column": "user_id",
+      "source": "backend/db/schema/community.ts"
+    },
+    {
+      "table": "community_reports",
+      "column": "reporter_user_id",
+      "source": "backend/db/schema/community.ts"
+    },
+    {
+      "table": "community_rules_acceptances",
+      "column": "user_id",
+      "source": "backend/db/schema/community.ts"
+    },
+    {
+      "table": "contact_requests",
+      "column": "requester_user_id",
+      "source": "backend/db/schema/contact.ts"
+    },
+    {
+      "table": "dogs",
+      "column": "owner_id",
+      "source": "backend/db/schema/dogs.ts"
+    },
+    {
+      "table": "posts",
+      "column": "author_id",
+      "source": "backend/db/schema/community.ts"
+    },
+    {
+      "table": "professional_share_grants",
+      "column": "owner_user_id",
+      "source": "backend/db/schema/professional-sharing.ts"
+    },
+    {
+      "table": "research_data_consents",
+      "column": "user_id",
+      "source": "backend/db/schema/behavioral-assessments.ts"
+    },
+    {
+      "table": "subscriptions",
+      "column": "user_id",
+      "source": "backend/db/schema/users.ts"
+    },
+    {
+      "table": "user_config",
+      "column": "user_id",
+      "source": "backend/db/schema/eli-v5.ts"
+    }
+  ],
+  "unconstrainedUserIdentifiers": [],
+  "scopeLimitations": [
+    "A direct foreign key proves relational linkage only; it does not authorize cascade deletion, disclosure, anonymization or retention.",
+    "An unconstrained user identifier must not be assumed to follow account deletion or identity changes automatically.",
+    "This registry does not establish legal basis, retention duration or a complete account export/erasure policy."
+  ]
+}

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import { ContentShell } from '../../components/content-shell';
@@ -15,12 +15,12 @@ import {
   monthSummary,
 } from '../../lib/journal';
 import type { JournalEntry } from '../../lib/journal';
-import { detectMilestones, milestoneToEntry } from '../../lib/milestones';
 import { useI18n } from '../../lib/i18n';
 import type { Locale } from '../../lib/i18n';
 import styles from '../../styles/living-pages.module.css';
 
-const STORAGE_ENTRIES = 'breiz-journal-user-entries';
+const JOURNAL_RUNTIME_UNAVAILABLE_MESSAGE = 'Carnet prototype indisponible : aucune persistance Product V1 n’est reliée.';
+type JournalRuntime = 'checking' | 'legacy-demo' | 'unavailable';
 
 function intlLocale(locale: Locale): string {
   return locale === 'fr' ? 'fr-FR' : 'en-US';
@@ -46,40 +46,52 @@ function formatMonthLabelLocale(key: string, locale: Locale): string {
 
 export default function JournalPage() {
   const { locale, t } = useI18n();
-  const [entries, setEntries] = useState<JournalEntry[]>(INITIAL_ENTRIES);
+  const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [month, setMonth] = useState<string>(() => monthKey(INITIAL_ENTRIES[0]!.occurredAt));
   const [editorOpen, setEditorOpen] = useState(false);
   const [exportEntry, setExportEntry] = useState<JournalEntry | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
+  const [journalRuntime, setJournalRuntime] = useState<JournalRuntime>('checking');
 
-  // Hydratation : baseline local (offline) puis serveur autoritaire (R3).
+  // The historical Journal route is demo-only. Browser storage is deliberately
+  // not a fallback Product V1 authority: unavailable server authority stays unavailable.
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_ENTRIES);
-      if (raw) {
-        const userEntries = JSON.parse(raw) as JournalEntry[];
-        setEntries((prev) => [...userEntries.filter((u) => !prev.some((p) => p.id === u.id)), ...prev]);
-      }
-    } catch {
-      /* localStorage indisponible */
-    }
-    (async () => {
+    let active = true;
+
+    void (async () => {
       try {
         const ownerToken = getJournalOwnerToken();
         const res = await fetch('/api/journal', {
+          cache: 'no-store',
           headers: ownerToken ? { [JOURNAL_OWNER_HEADER]: ownerToken } : undefined,
         });
-        if (res.ok) {
-          const data = (await res.json()) as { entries: JournalEntry[] };
-          if (data.entries?.length) {
-            setEntries(data.entries);
-            setMonth(monthKey(data.entries[0]!.occurredAt));
-          }
+        if (!res.ok) {
+          if (active) setJournalRuntime('unavailable');
+          return;
         }
+
+        const data = (await res.json()) as {
+          entries?: JournalEntry[];
+          authority?: string;
+        };
+        if (data.authority !== 'LEGACY_DEMO_ONLY') {
+          if (active) setJournalRuntime('unavailable');
+          return;
+        }
+
+        if (!active) return;
+        const nextEntries = Array.isArray(data.entries) ? data.entries : [];
+        setEntries(nextEntries);
+        if (nextEntries[0]) setMonth(monthKey(nextEntries[0].occurredAt));
+        setJournalRuntime('legacy-demo');
       } catch {
-        /* hors-ligne â†’ on conserve le baseline local */
+        if (active) setJournalRuntime('unavailable');
       }
     })();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const months = useMemo(() => availableMonths(entries), [entries]);
@@ -91,40 +103,45 @@ export default function JournalPage() {
   const olderMonth = monthIndex >= 0 && monthIndex < months.length - 1 ? months[monthIndex + 1] : null;
   const newerMonth = monthIndex > 0 ? months[monthIndex - 1] : null;
 
-  function persistUserEntries(all: JournalEntry[]) {
-    try {
-      const userEntries = all.filter((e) => e.id.startsWith('user-') || e.id.startsWith('milestone-'));
-      localStorage.setItem(STORAGE_ENTRIES, JSON.stringify(userEntries));
-    } catch {
-      /* quota / indisponible â€” on ignore */
-    }
+  function showRuntimeUnavailable() {
+    setFlash(JOURNAL_RUNTIME_UNAVAILABLE_MESSAGE);
+    setTimeout(() => setFlash(null), 4000);
   }
 
   function handleCreate(entry: JournalEntry) {
-    // Jalons Ã©ventuels (sujet : le propriÃ©taire).
-    const candidates = detectMilestones([entry, ...entries]);
-    const milestoneEntries = candidates.map((c) => milestoneToEntry(c));
-    const created = [...milestoneEntries, entry];
+    if (journalRuntime !== 'legacy-demo') {
+      showRuntimeUnavailable();
+      return;
+    }
 
-    setEntries((prev) => {
-      const next = [...created, ...prev];
-      persistUserEntries(next); // repli local (offline)
-      return next;
-    });
-    setFlash(candidates.length > 0 ? `${t('journal', 'milestoneUnlocked')} ${candidates[0]!.title}` : t('journal', 'entryAdded'));
-    setTimeout(() => setFlash(null), candidates.length > 0 ? 4500 : 3000);
-    setMonth(monthKey(entry.occurredAt));
-
-    // R3 : persistance serveur (best-effort ; le serveur prime au prochain chargement).
-    void Promise.all(
-      created.map((e) =>
-        fetch('/api/journal', {
+    void (async () => {
+      try {
+        const res = await fetch('/api/journal', {
           method: 'POST',
+          cache: 'no-store',
           headers: { 'content-type': 'application/json', [JOURNAL_OWNER_HEADER]: getJournalOwnerToken() },
-          body: JSON.stringify(e),
-        }).catch(() => undefined),
-      ),
-    );
+          body: JSON.stringify(entry),
+        });
+        if (!res.ok) throw new Error('journal_write_unavailable');
+
+        const data = (await res.json()) as {
+          entry?: JournalEntry;
+          authority?: string;
+        };
+        if (data.authority !== 'LEGACY_DEMO_ONLY' || !data.entry) {
+          throw new Error('journal_write_not_authoritative');
+        }
+
+        const savedEntry = data.entry;
+        setEntries((prev) => [savedEntry, ...prev.filter((existing) => existing.id !== savedEntry.id)]);
+        setFlash(`${t('journal', 'entryAdded')} · Aperçu prototype`);
+        setTimeout(() => setFlash(null), 3000);
+        setMonth(monthKey(savedEntry.occurredAt));
+      } catch {
+        setJournalRuntime('unavailable');
+        showRuntimeUnavailable();
+      }
+    })();
   }
 
   return (
@@ -138,11 +155,25 @@ export default function JournalPage() {
               <Lead>{t('journal', 'lead')}</Lead>
               <span className={styles.dogCue}>Carnet de lieux, sorties et observations declarees</span>
             </div>
-            <Button kind="primary" leading={<Icon name="plus" size={14} color="white" />} onClick={() => setEditorOpen(true)}>
+            <Button
+              kind="primary"
+              leading={<Icon name="plus" size={14} color="white" />}
+              onClick={() => journalRuntime === 'legacy-demo' ? setEditorOpen(true) : showRuntimeUnavailable()}
+            >
               {t('journal', 'addEntry')}
             </Button>
           </div>
         </header>
+
+        <Card tone="sunk">
+          <P2>
+            {journalRuntime === 'legacy-demo'
+              ? 'Aperçu prototype · stockage démo non Product V1. Aucune autorité de rétention, partage ou identité du propriétaire n’est déduite de cette démo.'
+              : journalRuntime === 'checking'
+                ? 'Vérification de l’autorité du Carnet…'
+                : 'Carnet prototype · la persistance historique est désactivée tant qu’une autorité Product V1 n’est pas reliée.'}
+          </P2>
+        </Card>
 
         {flash && (
           <div
@@ -161,7 +192,6 @@ export default function JournalPage() {
           </div>
         )}
 
-        {/* Navigation mensuelle + rÃ©sumÃ© */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
             <button
@@ -195,16 +225,15 @@ export default function JournalPage() {
           </div>
         </div>
 
-
         <div className={styles.memoryNote}>
           <P2>Les entrees gardent le ton carnet : moments notes, sorties, lieux et fenetres observees restent separes des interpretations.</P2>
         </div>
-        {/* Timeline */}
+
         {byDay.length === 0 ? (
           <Card tone="sunk">
             <div style={{ textAlign: 'center', padding: '32px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <span aria-hidden style={{ fontSize: 32, color: 'var(--terracotta-400)' }}>âŠ™</span>
-              <P2>{t('journal', 'empty')}</P2>
+              <span aria-hidden style={{ fontSize: 32, color: 'var(--terracotta-400)' }}>⊙</span>
+              <P2>{journalRuntime === 'legacy-demo' ? t('journal', 'empty') : 'Aucune donnée Product V1 chargée dans ce Carnet.'}</P2>
             </div>
           </Card>
         ) : (
@@ -237,10 +266,10 @@ export default function JournalPage() {
         )}
       </div>
 
-      {editorOpen && (
+      {editorOpen && journalRuntime === 'legacy-demo' && (
         <JournalEditor isOpen={editorOpen} onClose={() => setEditorOpen(false)} onCreate={handleCreate} />
       )}
-      {exportEntry && <ExportCardModal entry={exportEntry} onClose={() => setExportEntry(null)} />}
+      {exportEntry && journalRuntime === 'legacy-demo' && <ExportCardModal entry={exportEntry} onClose={() => setExportEntry(null)} />}
     </ContentShell>
   );
 }
@@ -282,4 +311,3 @@ function SummaryStat({ label, value }: { label: string; value: number }) {
     </div>
   );
 }
-

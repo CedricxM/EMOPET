@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "emopet-subject-transitive-lineage-v1",
+  "status": "TECHNICAL_TRANSITIVE_SUBJECT_LINEAGE_NOT_ERASURE_OR_DISCLOSURE_POLICY",
+  "scope": "Direct PostgreSQL foreign-key children of the current first-order subject-linked table set where the child table is not already first-order subject persistence.",
+  "directChildrenOfFirstOrder": [
+    {
+      "parentTable": "behavioral_assessments",
+      "childTable": "behavioral_factor_scores",
+      "column": "assessment_id",
+      "source": "backend/db/schema/behavioral-assessments.ts"
+    },
+    {
+      "parentTable": "behavioral_assessments",
+      "childTable": "behavioral_responses",
+      "column": "assessment_id",
+      "source": "backend/db/schema/behavioral-assessments.ts"
+    }
+  ],
+  "scopeLimitations": [
+    "This registry captures one FK hop beyond the tested first-order subject persistence set; it is not an arbitrary-depth graph closure.",
+    "A transitive FK proves technical lineage only and does not establish disclosure, legal basis, retention or erasure policy.",
+    "Children already present in the first-order subject set are intentionally not duplicated here.",
+    "Object/media storage, providers, caches, analytics, backups and non-FK transitive identifiers remain outside this registry."
+  ]
+}

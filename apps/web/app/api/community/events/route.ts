@@ -1,12 +1,15 @@
 /**
- * Événements de cercle — persistance SERVEUR (R3, tranche communauté).
- * GET  /api/community/events[?circleId=]   liste (seed des événements démo si vide)
- * POST /api/community/events               crée un événement (RDV → carte /local)
+ * Legacy Community events plane.
+ *
+ * Product V1 authority is Hono + durable persistence. This historical Next.js
+ * JSON-store route is disabled by default and may run only in an explicit
+ * non-production demo using EMOPET_ALLOW_LEGACY_COMMUNITY_DEMO=1.
  */
 
 import { NextResponse } from 'next/server';
 import { INITIAL_EVENTS, buildEvent, publicCommunityCoordinate, validateEventInput } from '../../../../lib/community';
 import type { CircleEvent, EventCreateInput } from '../../../../lib/community';
+import { legacyCommunityAuthorityGate } from '../../../../lib/server/community-authority';
 import { createFixedWindowRateLimiter } from '../../../../lib/server/rate-limit';
 import { cleanDisplayName, enforceRateLimit, readLimitedJson } from '../../../../lib/server/request-security';
 import { collection } from '../../../../lib/server/store';
@@ -28,6 +31,9 @@ function listSeeded(): CircleEvent[] {
 }
 
 export async function GET(req: Request) {
+  const authorityGate = legacyCommunityAuthorityGate();
+  if (authorityGate) return authorityGate;
+
   const limited = enforceRateLimit(req, eventsReadLimiter, 'community:events:get');
   if (limited) return limited;
 
@@ -37,6 +43,9 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const authorityGate = legacyCommunityAuthorityGate();
+  if (authorityGate) return authorityGate;
+
   const limited = enforceRateLimit(req, eventsWriteLimiter, 'community:events:post');
   if (limited) return limited;
   const parsed = await readLimitedJson<EventCreateInput>(req, EVENT_MAX_BODY_BYTES);

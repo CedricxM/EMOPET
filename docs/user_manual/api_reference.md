@@ -1,6 +1,6 @@
 # EMOPET — Référence de l'API Hono observée
 
-Cette référence décrit les routes montées par `backend/api/index.ts` au 2026-08-29. Elle n'est ni un contrat OpenAPI versionné ni une preuve de disponibilité en production.
+Cette référence décrit les routes montées par `backend/api/index.ts` sur la branche de durcissement au 2026-09-11. Elle n'est ni un contrat OpenAPI versionné ni une preuve de disponibilité en production.
 
 L'ancienne référence FastAPI (`/predict`, `/insights`, rapports CSV et extensions Python) ne correspond pas au serveur actif. Elle reste consultable dans l'historique Git.
 
@@ -8,11 +8,12 @@ L'ancienne référence FastAPI (`/predict`, `/insights`, rapports CSV et extensi
 
 - adresse par défaut : `http://127.0.0.1:3000` ;
 - surcharge du port : variable `PORT` ;
-- corps et réponses applicatives : JSON, sauf le rapport vétérinaire PDF.
+- corps et réponses applicatives : JSON, sauf le rapport vétérinaire PDF historique ;
+- `CORS_ORIGIN` est obligatoire en production ; hors production seulement, le fallback CORS est `*`.
 
 ## 2. Authentification et autorisation
 
-`GET /health` et le groupe `/api/auth` sont publics. Toutes les autres routes `/api/*` passent par le middleware JWT.
+`GET /health` et le groupe `/api/auth` sont publics, à l'exception de `/api/auth/logout-all` qui applique lui-même `authMiddleware`. Toutes les autres routes `/api/*` passent par le middleware JWT.
 
 Pour une route protégée :
 
@@ -20,23 +21,30 @@ Pour une route protégée :
 Authorization: Bearer <token>
 ```
 
-Limites importantes :
+État et limites importants :
 
-- `JWT_SECRET` est obligatoire hors `NODE_ENV=test` ;
-- le helper `signToken` émet des jetons HS256 à sept jours ; le middleware vérifie leur signature et toute expiration présente ;
-- `register`, `login` et `refresh` sont des stubs et ne fournissent pas encore de cycle d'identité utilisable ;
-- plusieurs routes chien/capteur appliquent `requireDogOwnership`, mais la couverture négative de toutes les routes n'est pas démontrée ;
-- un `share_token` signé peut donner un accès temporaire au PDF vétérinaire sans Bearer token ;
-- l'identité, la récupération, la révocation, la rotation et la suppression restent `OPEN / GATED`.
+- `JWT_SECRET` est obligatoire hors `NODE_ENV=test` et doit contenir au moins 32 caractères ; les tests sans secret explicite utilisent une clé aléatoire limitée au processus ;
+- `register` et `login` utilisent désormais PostgreSQL, des mots de passe hachés et des identités utilisateur UUID canoniques ;
+- `refresh` utilise des jetons opaques dont seul le hash est persisté, avec rotation et détection de réutilisation par famille ;
+- `logout` révoque la famille de la session présentée, y compris son successeur après rotation, et `logout-all` révoque les sessions de rafraîchissement actives de l'utilisateur authentifié ; les mutations sont sérialisées par compte pour qu'une rotation concurrente ne puisse échapper à la déconnexion ;
+- les jetons d'accès restent valides jusqu'à leur expiration bornée après une révocation de session de rafraîchissement ; aucune révocation instantanée de chaque JWT d'accès n'est revendiquée ;
+- plusieurs routes chien/capteur appliquent `requireDogOwnership`, avec non-divulgation cross-owner (`404`) sur les chemins couverts ;
+- le lien vétérinaire générique est bloqué en production et n'est disponible qu'avec l'opt-in explicite non-production `EMOPET_ALLOW_LEGACY_GENERIC_VET_SHARE=1` ;
+- le backend durable de partage professionnel recipient-bound reste ouvert ;
+- stockage sécurisé côté client, transport cookie/native, vérification e-mail, récupération de mot de passe, MFA/IdP, politique de secrets production, rétention et tests de sécurité de production restent `OPEN / GATED` sous AUTH-01/PRIV-01.
 
-## 3. Routes publiques
+## 3. Routes d'authentification
 
 | Méthode | Chemin | État observé |
 |---|---|---|
 | GET | `/health` | Probe `{ status, version }` |
-| POST | `/api/auth/register` | Validation d'entrée, inscription non implémentée |
-| POST | `/api/auth/login` | Validation d'entrée, vérification/émission JWT non implémentée |
-| POST | `/api/auth/refresh` | Renouvellement non implémenté |
+| POST | `/api/auth/register` | Création PostgreSQL + session de rafraîchissement ; `201` si succès, `409` sur compte existant |
+| POST | `/api/auth/login` | Vérification des credentials + émission access/refresh ; `401` générique si credentials invalides |
+| POST | `/api/auth/refresh` | Rotation du refresh token ; réutilisation/révocation/expiration échouent sans recréer une session valide |
+| POST | `/api/auth/logout` | Révocation de la famille du refresh token présenté, successeur compris ; `204` idempotent |
+| POST | `/api/auth/logout-all` | Protégé par bearer access token ; révoque les refresh sessions actives ; `204` |
+
+Ces routes constituent une implémentation candidate testée sur PostgreSQL jetable. Elles ne constituent pas à elles seules une autorisation d'authentification production.
 
 ## 4. Routes protégées
 
@@ -44,72 +52,128 @@ Limites importantes :
 
 | Méthode | Chemin | État observé |
 |---|---|---|
-| GET, POST | `/api/dogs` | Liste/création placeholder |
-| GET, PATCH, DELETE | `/api/dogs/:id` | Contrôle propriétaire, réponse encore partielle |
-| GET | `/api/dogs/:id/absence-comparison` | Comparaison présence/absence avec données DB ou fallback |
-| GET | `/api/dogs/:id/vet-report-link` | Création d'un lien temporaire signé |
-| GET | `/api/dogs/:id/vet-report` | PDF, via propriétaire ou `share_token` valide |
+| GET, POST | `/api/dogs` | Liste/création PostgreSQL, liées à l'utilisateur authentifié |
+| GET, PATCH, DELETE | `/api/dogs/:id` | PostgreSQL + contrôle propriétaire ; cross-owner non divulgué |
+| GET | `/api/dogs/:id/absence-comparison` | `503 ABSENCE_COMPARISON_PERSISTENCE_NOT_READY` tant que les événements de présence ne sont pas durables |
+| GET | `/api/dogs/:id/vet-report-link` | Bloqué en production (`RECIPIENT_BOUND_GRANT_REQUIRED`) ; compatibilité non-production uniquement |
+| GET | `/api/dogs/:id/vet-report` | Accès propriétaire ; ancien `share_token` accepté uniquement dans le mode legacy non-production explicite |
 
 ### Capteurs et ELI
 
 | Méthode | Chemin | État observé |
 |---|---|---|
-| POST | `/api/sensors/summaries` | Validation + contrôle propriétaire, persistance TODO |
-| GET | `/api/sensors/summaries/:dogId` | Résultats placeholder |
-| GET | `/api/sensors/eli/:dogId` | État ELI placeholder |
-| GET | `/api/sensors/eli/:dogId/history` | Historique placeholder |
-| GET | `/api/sensors/baseline/:dogId` | Baseline placeholder |
-| POST, GET | `/api/sensors/presence/:dogId/events` | Événements conservés en mémoire du processus |
+| POST | `/api/sensors/summaries` | Contrôle propriétaire + persistance PostgreSQL |
+| GET | `/api/sensors/summaries/:dogId` | Lecture PostgreSQL bornée par une plage validée ; erreur source distincte d'une lecture vide |
+| GET | `/api/sensors/eli/:dogId` | `501 ELI_RUNTIME_NOT_IMPLEMENTED` après contrôle propriétaire ; aucun état persistant n'est promu en résultat live sans producteur ELI autoritaire |
+| GET | `/api/sensors/eli/:dogId/history` | `501 ELI_RUNTIME_NOT_IMPLEMENTED` après contrôle propriétaire ; aucune API historique live n'est revendiquée |
+| GET | `/api/sensors/baseline/:dogId` | Lecture PostgreSQL de la baseline, projetée sur l'autorité Guardian ; le JSON `metrics` opaque est retenu hors réponse |
+| POST, GET | `/api/sensors/presence/:dogId/events` | `503 PRESENCE_PERSISTENCE_NOT_READY` ; aucun faux succès mémoire |
+
+**Frontière importante :** le parseur BLE produit `ParsedBleSensorFrame`, tandis que l'ELI consomme un `FeatureVector`/`EliInput`. Le transformateur physique device → feature extraction → ELI n'est pas démontré end-to-end par le dépôt actuel. La présence de types, de tables `eli_states` ou du parseur ne doit pas être interprétée comme une chaîne runtime validée. Le hook mobile v6 est explicitement `UNWIRED / authoritative=false / endpoint=null` et ne nomme aucun endpoint futur comme acquis.
 
 ### Communauté
 
+Le routeur Hono Community impose désormais une identité authentifiée au niveau du routeur, avant les validateurs de corps. Aucune route ne retombe sur `demo-user`. Le cœur durable candidat utilise PostgreSQL, mais seulement pour un périmètre membre volontairement borné.
+
 | Méthode | Chemin | État observé |
 |---|---|---|
-| GET | `/api/community` | Liste placeholder |
-| GET | `/api/community/:id` | Détail minimal |
-| GET | `/api/community/:id/feed` | Feed placeholder |
-| POST | `/api/community/rules/accept` | Acceptation conservée en mémoire |
-| POST | `/api/community/reports` | Signalement conservé en mémoire |
-| POST | `/api/community/blocks` | Blocage conservé en mémoire |
-| POST | `/api/community/posts` | Validation/règles/filtre, sans stockage durable observé |
-| POST | `/api/community/comments` | Validation/règles/filtre, sans stockage durable observé |
-| GET | `/api/community/:id/events` | Liste placeholder |
-| POST | `/api/community/events` | Validation/règles/filtre, sans stockage durable observé |
-| GET | `/api/community/copresence/:dogId` | Contrôle propriétaire, résultats placeholder |
+| GET | `/api/community` | Liste PostgreSQL des seules communautés où l'utilisateur authentifié possède déjà un `community_members` |
+| GET | `/api/community/:id` | Lecture membre uniquement ; un non-membre reçoit un `404` non énumérant |
+| GET | `/api/community/:id/feed` | Lecture durable bornée à six posts, membre + règles courantes requises ; suite explicite via `?cursor=…` |
+| POST | `/api/community/rules/accept` | Acceptation explicite et versionnée persistée dans PostgreSQL ; `accepted=false` est rejeté |
+| POST | `/api/community/posts` | Création PostgreSQL, auteur imposé côté serveur, membre + règles courantes requises ; lecture ultérieure possible via le feed |
+| POST | `/api/community/comments` | Création PostgreSQL liée à un post existant ; auteur imposé côté serveur et membership du parent vérifié |
+| GET, POST | `/api/community/:id/events`, `/api/community/events` | Lecture/création PostgreSQL, membre + règles courantes requises |
+| POST | `/api/community/reports`, `/api/community/blocks` | `503 COMMUNITY_PERSISTENCE_NOT_READY` ; aucune autorité durable de modération/blocage n'est encore revendiquée |
+| GET | `/api/community/copresence/:dogId` | contrôle propriétaire puis `503 COMMUNITY_PERSISTENCE_NOT_READY` |
+
+La version candidate des règles est contrôlée côté serveur (`community-rules-v1-candidate`) afin qu'une future version différente puisse échouer fermée jusqu'à nouvelle acceptation. Ce marqueur est une version technique candidate, pas une approbation juridique ni une publication définitive des règles.
+
+Le feed est ordonné par `createdAt DESC, id DESC` et renvoie au plus six posts par appel. Six est la taille candidate proposée sous #54, pas un optimum UX validé. La réponse ajoute `pagination: { pageSize: 6, hasMore, nextCursor }`. Le client peut demander explicitement le lot suivant en passant `nextCursor` comme unique paramètre `cursor` ; `hasMore=false` et `nextCursor=null` marquent la fin des résultats de cette requête, y compris pour une dernière page de six posts ou un flux vide. Un paramètre `limit` ne peut pas agrandir le lot. Aucune continuation automatique ni interface de recommandation n'est implémentée par ce contrat.
+
+Le curseur conserve la précision PostgreSQL à la microseconde et la clé UUID de départage, même si le `createdAt` public reste sérialisé à la milliseconde. Un curseur vide, dupliqué, mal formé ou réutilisé tel quel pour un autre compte ou une autre communauté renvoie `400 INVALID_FEED_CURSOR`, après les contrôles d'autorité. C'est un état de navigation non signé, pas une permission : chaque appel revérifie l'adhésion et l'acceptation des règles en base. La suppression du post servant de borne ne casse pas la suite ; un nouveau post plus récent que cette borne n'est visible qu'après un rafraîchissement explicite. Ce n'est pas un instantané immuable entre requêtes : les suppressions, insertions antidatées ou écritures tardivement validées peuvent modifier les résultats suivants. Voir [le contrat de flux borné candidat](../implementation/COMMUNITY_BOUNDED_FEED_2026-09-11.md).
+
+Les droits sont maintenant conservés dans la même transaction PostgreSQL que la lecture ou l'écriture. Un retrait ou une réaffectation d'adhésion déjà engagé est attendu puis revérifié ; une acceptation supprimée ou devenue obsolète bloque les opérations soumises aux règles. Pour un commentaire, le rattachement du post à la communauté est également revérifié et verrouillé. Une opération ayant acquis ses droits peut terminer avant un retrait ultérieur ; cette garantie ne retire pas des données déjà reçues. Les attentes de verrou sont limitées à 5 secondes et chaque instruction SQL à 10 secondes ; un échec renvoie `503 COMMUNITY_DATABASE_UNAVAILABLE`, sans détail SQL. Le cache privé est interdit également sur les erreurs de validation. Voir [le dossier de concurrence Community](../implementation/COMMUNITY_AUTHORITY_CONCURRENCY_2026-09-10.md).
+
+Les réponses utilisent des projections explicites. Un post expose `id`, `communityId`, `authorId`, `type`, `content`, `mediaUrls`, `mediaStatus` et `createdAt` ; les anciens `sensorOverlay` et `likeCount` ne sont pas publiés. `mediaStatus=URL_REFERENCES_ONLY` désigne uniquement une liste de références HTTP(S), sans identifiants intégrés dans l'URL ; ce n'est pas une validation du fichier ni de son accès. Des métadonnées média historiques invalides sont retenues avec `mediaStatus=WITHHELD_INVALID_METADATA` et `mediaUrls=[]`, ce qui ne signifie pas une absence d'anciennes pièces jointes. Une nouvelle liste média invalide est rejetée en `400` avant écriture.
+
+Les communautés et événements renvoient `locationDisclosure=WITHHELD_PENDING_LOCATION_AUTHORITY`. Les coordonnées et le rayon d'une communauté, ainsi que le champ `location` et les coordonnées d'un événement, sont omis. L'adhésion, le rôle social ou la création d'un événement ne remplacent pas les permissions de divulgation progressive prévues sous #55/#56. Les valeurs restent conservées en base ; un événement créé peut donc être durable sans que son lieu soit publié dans la réponse ou la liste. Aucune localisation approximative n'est inventée. Les textes libres et URL choisis restent du contenu utilisateur : cette projection ne remplace pas la modération ni le contrôle des fichiers. Voir [le contrat de divulgation Community](../implementation/COMMUNITY_DISCLOSURE_BOUNDARY_2026-09-11.md).
+
+Ce cœur ne crée pas encore de cycle join/leave/invite, d'autorité modérateur/admin, de découverte publique, de lifecycle reports/blocks, de politique de rétention/effacement/anonymisation, de lifecycle média ou de notification. Il reste donc `DRAFT / NOT RELEASE AUTHORITY` sous #98/#150/#223.
 
 ### Progression, consentements et waitlist
 
-| Méthode | Chemin | État observé |
-|---|---|---|
-| GET | `/api/feature-progress` | État calculé depuis les stores mémoire |
-| GET, POST | `/api/feature-progress/consents` | Consentements en mémoire |
-| POST | `/api/feature-progress/waitlist` | Waitlist en mémoire |
-
-### Journal dit « health »
+Le service mémoire historique reste utilisable comme preuve/prototype interne, mais il n'est plus exposé comme autorité de release.
 
 | Méthode | Chemin | État observé |
 |---|---|---|
-| GET | `/api/health/:dogId` | Contrôle propriétaire, entrées placeholder |
-| POST | `/api/health` | Validation + contrôle propriétaire, persistance non démontrée |
-| GET | `/api/health/:dogId/reminders` | Contrôle propriétaire, rappels placeholder |
+| GET | `/api/feature-progress` | `503 FEATURE_PROGRESS_PERSISTENCE_NOT_READY` après authentification |
+| GET, POST | `/api/feature-progress/consents` | `503` ; aucun consentement mémoire présenté comme durable |
+| POST | `/api/feature-progress/waitlist` | `503` tant que la waitlist n'a pas de persistance autoritaire |
 
-Ces routes portent un nom historique `health`, mais leurs sorties ne doivent pas être présentées comme un diagnostic.
+Les defaults sensibles de l'application mobile (`location_opt_in`, `community_opt_in`, `vet_export_opt_in`) sont `false` et vérifiés par un gate CI statique. Ce gate prouve uniquement le default client, pas une persistance serveur de consentement.
+
+### Journal historique dit « health »
+
+| Méthode | Chemin | État observé |
+|---|---|---|
+| GET | `/api/health/:dogId` | contrôle propriétaire puis `503 HEALTH_PERSISTENCE_NOT_READY` |
+| POST | `/api/health` | validation + contrôle propriétaire puis `503` ; aucun faux `201` |
+| GET | `/api/health/:dogId/reminders` | contrôle propriétaire puis `503` |
+
+Ces routes portent un nom historique `health`, mais aucune sortie ne doit être présentée comme diagnostic ou persistance disponible tant que le gate n'est pas fermé.
 
 ### Annuaire
 
+Les routes annuaire sont PostgreSQL, mais leur exposition reste soumise aux gates de droits/données de la branche.
+
 | Méthode | Chemin | État observé |
 |---|---|---|
-| GET | `/api/directory/search` | Recherche PostgreSQL, rayon borné à 50 km |
-| GET | `/api/directory/categories` | Catégories et comptes PostgreSQL |
-| GET | `/api/directory/:id` | Entrée PostgreSQL par identifiant |
+| GET | `/api/directory/search` | Recherche PostgreSQL, avec gate de release/démo côté route |
+| GET | `/api/directory/categories` | Catégories PostgreSQL sous la même autorité |
+| GET | `/api/directory/:id` | Entrée PostgreSQL par identifiant sous la même autorité |
+
+### Export de données
+
+`/api/data-export` est monté derrière le middleware JWT. Les exports sont owner-scoped et ne constituent pas, par leur présence dans le dépôt, une preuve de conformité juridique complète.
+
+État observé sur la branche :
+
+- `rawDataStatus = NOT_PERSISTED_BY_CURRENT_BACKEND_SCHEMA` plutôt que fabrication de flux MAT/TAG bruts ;
+- sorties ELI dérivées projetées sur une whitelist Guardian, avec variables internes retenues hors export ;
+- baseline exposée uniquement comme métadonnées de cycle de vie, avec `metricsStatus = WITHHELD_PENDING_DISCLOSURE_AUTHORITY` ;
+- les bornes `from` / `to` absentes peuvent rester ouvertes, mais une borne fournie invalide retourne `400 invalid_from` ou `400 invalid_to` ;
+- `from > to` retourne `400 invalid_interval` avant toute lecture d'export, afin qu'un filtre malformé ne puisse pas élargir silencieusement le périmètre demandé ;
+- JSON et CSV partagent les mêmes projections de publication.
+
+Les lectures d'export s'exécutent dans une transaction avec verrou partagé sur le chien : un transfert en cours est attendu, puis la propriété est revérifiée ; un transfert ultérieur attend la fin des lectures. Cela garantit l'autorité pendant la collecte, pas un instantané global de toutes les tables ni le retrait d'un fichier déjà téléchargé. Les observations et états ELI sont ordonnés par date puis identifiant ; les bornes temporelles s'appliquent à ces séries, tandis que profil, appareils et métadonnées de baseline décrivent l'état disponible.
+
+Une panne ou un délai de verrou dépassé retourne `503 DATA_EXPORT_UNAVAILABLE` sans fichier partiel ni détail SQL. Les réponses de ce routeur portent `Cache-Control: private, no-store` et `X-Content-Type-Options: nosniff`. Une identité de chien malformée est rejetée avant accès SQL.
+
+Dans le CSV émis, les champs texte commençant par un préfixe de formule reçoivent une apostrophe et sont entourés de guillemets, avec échappement des guillemets internes. Les nombres restent numériques et JSON conserve les textes d'origine. `capabilities.csvTextPolicy` décrit ce traitement. Il ne garantit pas le comportement de tous les tableurs après modification, sauvegarde et réouverture ; utiliser JSON pour préserver les valeurs littérales lors d'un traitement automatisé.
 
 ## 5. Plan API web distinct
 
 `apps/web/app/api/**` contient des Route Handlers Next.js pour Breiz, contact, journal, communauté, carte, races, contexte et administration. Ils ne sont pas montés dans l'application Hono et ne partagent pas automatiquement son middleware JWT/ownership.
 
-Certains de ces handlers écrivent dans `apps/web/.data` ou utilisent des replis navigateur. Ils constituent un plan prototype séparé, décrit dans `docs/APP_OVERVIEW.md`, pas l'autorité durable du backend.
+Les handlers Community historiques du plan Next.js restent un plan de démonstration non-production explicitement contenu par la branche ; ils ne constituent pas une seconde autorité Product V1 concurrente du cœur Hono/PostgreSQL.
 
-## 6. Source du contrat
+Les autres handlers web constituent toujours un plan runtime distinct. Toute route qui simule une persistance ou une identité doit être évaluée séparément avant d'être promue comme autorité Product V1.
+
+## 6. CI et niveau de preuve
+
+Sur la branche de durcissement, le workflow P0 DB exécute réellement :
+
+- migrations historiques et prérequis sur PostgreSQL jetable ;
+- répétabilité de schéma ;
+- génération/migration Drizzle isolée ;
+- intégration AUTH-01 sur la baseline générée ;
+- typecheck backend ;
+- tests backend d'intégration, dont les candidats Community lorsque `EMOPET_DB_INTEGRATION_TEST=1`.
+
+Ce résultat est une preuve de code et de migration jetable. Il ne constitue pas une migration production, un déploiement, une validation scientifique ELI ni une autorisation de release.
+
+## 7. Source du contrat
 
 En l'absence d'OpenAPI versionné, les sources observées sont :
 
@@ -117,6 +181,7 @@ En l'absence d'OpenAPI versionné, les sources observées sont :
 - `backend/api/routes/*` pour les routes ;
 - `backend/api/middleware/*` pour l'authentification et l'autorisation ;
 - `packages/shared/src` pour les schémas Zod partagés ;
-- `backend/test` pour la couverture disponible.
+- `backend/test` pour la couverture disponible ;
+- `.github/workflows/*` pour la preuve CI exécutable.
 
-Toute stabilisation du contrat nécessite un changement séparé avec tests de compatibilité et d'isolation.
+Toute stabilisation du contrat nécessite un changement séparé avec tests de compatibilité, d'isolation et de migration.

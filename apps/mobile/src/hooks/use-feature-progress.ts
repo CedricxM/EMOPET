@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import type { FeatureProgressCard, FeatureProgressCta } from '@emopet/shared';
+import type { ConsentPurpose, FeatureProgressCard, FeatureProgressCta } from '@emopet/shared';
 
 import {
   acceptCommunityRulesRequest,
@@ -20,6 +20,9 @@ export function useFeatureProgress() {
   const communityRulesAccepted = usePreferencesStore((state) => state.communityRulesAccepted);
   const waitlistedServiceIds = usePreferencesStore((state) => state.waitlistedServiceIds);
   const setConsent = usePreferencesStore((state) => state.setConsent);
+  const activateLocationConsentFromDurableAuthority = usePreferencesStore(
+    (state) => state.activateLocationConsentFromDurableAuthority,
+  );
   const setCommunityRulesAccepted = usePreferencesStore((state) => state.setCommunityRulesAccepted);
   const joinWaitlist = usePreferencesStore((state) => state.joinWaitlist);
   const setPassivePhoneDetectionEnabled = usePreferencesStore(
@@ -77,6 +80,60 @@ export function useFeatureProgress() {
     }
   }
 
+  async function persistConsentAndApply(
+    purpose: ConsentPurpose,
+    action: FeatureProgressCta,
+  ): Promise<void> {
+    const isLocationConsent = purpose === 'location_nearby_temp';
+
+    // Sensitive location/coproximity cannot be represented as an accepted
+    // local/demo consent. It must be durably bound to an authenticated
+    // principal before any local collection switch is enabled.
+    if (isLocationConsent && !token) {
+      setConsent('location_opt_in', false);
+      setPassivePhoneDetectionEnabled(false);
+      Alert.alert(
+        'Proximite indisponible',
+        'La proximite reste desactivee tant que le consentement ne peut pas etre enregistre durablement sur votre compte.',
+      );
+      return;
+    }
+
+    try {
+      await saveFeatureConsent(token, {
+        purpose,
+        status: 'accepted',
+        context: action.context,
+      });
+
+      // Local state changes only after durable consent recording succeeds.
+      if (purpose === 'community_opt_in') {
+        setConsent('community_opt_in', true);
+      }
+      if (isLocationConsent) {
+        activateLocationConsentFromDurableAuthority();
+        setPassivePhoneDetectionEnabled(true);
+      }
+
+      if (action.route) {
+        router.push(action.route as never);
+      }
+    } catch (reason: unknown) {
+      if (isLocationConsent) {
+        setConsent('location_opt_in', false);
+        setPassivePhoneDetectionEnabled(false);
+      }
+      Alert.alert(
+        isLocationConsent ? 'Proximite indisponible' : 'Consentement indisponible',
+        isLocationConsent
+          ? 'La proximite reste desactivee. Aucun consentement local ne remplace un enregistrement durable.'
+          : reason instanceof Error
+            ? reason.message
+            : 'Le consentement n a pas pu etre enregistre.',
+      );
+    }
+  }
+
   async function onAction(action: FeatureProgressCta, item: FeatureProgressCard): Promise<void> {
     if (action.type === 'open' || action.type === 'learn_more' || action.type === 'view_progress') {
       router.push((action.route ?? '/progress') as never);
@@ -114,23 +171,7 @@ export function useFeatureProgress() {
         {
           text: prompt.confirmLabel,
           onPress: () => {
-            if (purpose === 'community_opt_in') {
-              setConsent('community_opt_in', true);
-            }
-            if (purpose === 'location_nearby_temp') {
-              setConsent('location_opt_in', true);
-              setPassivePhoneDetectionEnabled(true);
-            }
-
-            void saveFeatureConsent(token, {
-              purpose,
-              status: 'accepted',
-              context: action.context,
-            });
-
-            if (action.route) {
-              router.push(action.route as never);
-            }
+            void persistConsentAndApply(purpose, action);
           },
         },
       ]);

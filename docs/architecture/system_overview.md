@@ -64,7 +64,7 @@ Certains services conservent présence, consentements, waitlist, règles communa
 
 ### Navigateur
 
-Plusieurs clients web ont des replis localStorage/sessionStorage et des identifiants prototype. Ces valeurs ne sont pas une identité Guardian contrôlée.
+Plusieurs clients web ont des replis localStorage/sessionStorage et des identifiants prototype. Ces valeurs ne constituent pas une identité de propriétaire contrôlée.
 
 ## 5. Frontières de sécurité et de confidentialité
 

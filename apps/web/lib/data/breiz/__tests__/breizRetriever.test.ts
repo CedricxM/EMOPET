@@ -1,9 +1,30 @@
-﻿import assert from 'node:assert/strict';
+import assert from 'node:assert/strict';
 import test from 'node:test';
+import type { BreizDocument } from '../breizDocument.schema';
 import { chunkBreizDocuments, exportChunksForVectorStore } from '../chunkDocuments';
 import { ingestBreizDocuments } from '../ingestDocuments';
 import { MOCK_BREIZ_DOCUMENTS } from '../mockDocuments';
 import { createBreizMockStore, retrieveBreizLocalKnowledge } from '../breizRetriever';
+
+const PUBLIC_SOURCE_FIXTURE: BreizDocument = {
+  id: 'verified-public-fixture',
+  title: 'Verified public source fixture',
+  source_name: 'Controlled test fixture',
+  source_url: 'https://example.invalid/controlled-fixture',
+  source_registry_id: 'region-bretagne-open-data',
+  license: 'Test fixture only',
+  territory: 'Bretagne',
+  region: 'Bretagne',
+  department: null,
+  commune: 'Lorient',
+  theme: 'test',
+  tags: ['controlled', 'fixture'],
+  summary: 'Fixture used only to prove the retriever public-answer filter.',
+  content: 'controlled-public-sentinel information must stay withheld without registry rights evidence',
+  reliability_level: 'source_verified',
+  last_checked_at: '2026-09-13',
+  allowed_usage: 'public_answer_with_source',
+};
 
 test('Breiz ingestion parses markdown and preserves source defaults', () => {
   const result = ingestBreizDocuments([
@@ -17,25 +38,69 @@ test('Breiz ingestion parses markdown and preserves source defaults', () => {
   assert.equal(result.documents[0]!.region, 'Bretagne');
 });
 
-test('Breiz chunks export vector-store-ready metadata', () => {
+test('Breiz local ingestion cannot self-authorize verified public answers', () => {
+  const result = ingestBreizDocuments([
+    {
+      filename: 'self-authorized.json',
+      content: JSON.stringify({
+        id: 'self-authorized',
+        title: 'Self authorization sentinel',
+        source_name: 'Unreviewed local payload',
+        source_url: 'https://example.invalid/unreviewed',
+        source_registry_id: 'region-bretagne-open-data',
+        license: 'CC-BY-4.0',
+        content: 'sentinel-rights-bypass should never become a public answer from raw import alone',
+        reliability_level: 'source_verified',
+        allowed_usage: 'public_answer_with_source',
+        last_checked_at: '2026-09-13',
+      }),
+    },
+  ]);
+
+  assert.equal(result.rejected.length, 0);
+  assert.equal(result.documents.length, 1);
+  assert.equal(result.documents[0]!.allowed_usage, 'retrieval_only');
+  assert.equal(result.documents[0]!.reliability_level, 'unknown');
+  assert.equal(result.documents[0]!.source_registry_id, undefined);
+
+  const store = createBreizMockStore(result.documents);
+  const answer = retrieveBreizLocalKnowledge('sentinel-rights-bypass', store);
+  assert.equal(answer.status, 'not_enough_information');
+  assert.equal(answer.chunks.length, 0);
+  assert.equal(answer.source_refs.length, 0);
+});
+
+test('Breiz chunks preserve source registry authority in vector-store metadata', () => {
+  const chunks = chunkBreizDocuments([PUBLIC_SOURCE_FIXTURE], { maxWords: 40, overlapWords: 5 });
+  const exported = exportChunksForVectorStore(chunks);
+  assert.ok(exported.length >= 1);
+  assert.equal(exported[0]!.metadata.region, 'Bretagne');
+  assert.equal(exported[0]!.metadata.source_registry_id, 'region-bretagne-open-data');
+  assert.equal(exported[0]!.metadata.allowed_usage, 'public_answer_with_source');
+});
+
+test('Breiz chunks export unbound mock metadata without inventing registry authority', () => {
   const chunks = chunkBreizDocuments(MOCK_BREIZ_DOCUMENTS, { maxWords: 40, overlapWords: 5 });
   const exported = exportChunksForVectorStore(chunks);
   assert.ok(exported.length >= MOCK_BREIZ_DOCUMENTS.length);
   assert.equal(exported[0]!.metadata.region, 'Bretagne');
+  assert.equal(exported[0]!.metadata.source_registry_id, null);
   assert.ok('source_name' in exported[0]!.metadata);
 });
 
-test('Breiz retrieval returns sourced chunks or not_enough_information', () => {
-  const store = createBreizMockStore(MOCK_BREIZ_DOCUMENTS);
-  const answer = retrieveBreizLocalKnowledge('Lorient harbor walk', store);
-  assert.equal(answer.status, 'answered_from_sources');
-  assert.ok(answer.source_refs.length > 0);
+test('Breiz public flags are insufficient without registry rightsEvidence + GO', () => {
+  const store = createBreizMockStore([PUBLIC_SOURCE_FIXTURE]);
+  const answer = retrieveBreizLocalKnowledge('controlled-public-sentinel', store);
+  assert.equal(answer.status, 'not_enough_information');
+  assert.equal(answer.chunks.length, 0);
+  assert.equal(answer.source_refs.length, 0);
+});
 
-  const missing = retrieveBreizLocalKnowledge('zzznomatch qqq void', store);
-  assert.equal(missing.status, 'not_enough_information');
-  assert.equal(missing.chunks.length, 0);
-  assert.equal(missing.source_refs.length, 0);
-  assert.ok(missing.note.includes('does not contain enough sourced information'));
+test('Breiz default mock corpus cannot produce public answers', () => {
+  const answer = retrieveBreizLocalKnowledge('Lorient harbor walk');
+  assert.equal(answer.status, 'not_enough_information');
+  assert.equal(answer.chunks.length, 0);
+  assert.equal(answer.source_refs.length, 0);
 });
 
 test('Breiz retrieval filters internal_reference chunks from public answers', () => {

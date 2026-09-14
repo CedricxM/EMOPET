@@ -11,7 +11,7 @@
     "build": "tsc",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
-    "test": "node --test test/bleiz.test.mjs"
+    "test": "node --test test/bleiz.test.mjs test/bleiz-release.test.mjs test/bleiz-release-output.test.mjs test/bleiz-package-authority.test.mjs"
   },
   "dependencies": {
     "@emopet/shared": "workspace:*"

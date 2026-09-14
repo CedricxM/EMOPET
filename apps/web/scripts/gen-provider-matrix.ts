@@ -22,7 +22,11 @@ const ADAPTER_FILE: Record<string, string> = {
   purgomalum: 'adapters/purgoMalum.ts',
 };
 
-const esc = (s: string): string => s.replace(/\|/g, '\\|');
+const esc = (s: string): string =>
+  s
+    .replace(/\|/g, '&#124;')
+    .replace(/\r/g, ' ')
+    .replace(/\n/g, ' ');
 
 const head = [
   '# API Provider Matrix — EMOPET',

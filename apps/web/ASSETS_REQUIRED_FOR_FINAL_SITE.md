@@ -17,7 +17,7 @@
 | **Orientation** | Landscape (16:9), must work cropped to portrait on mobile |
 | **Duration** | If video: 8–12s seamless loop |
 | **Resolution** | Desktop: 1920×1080 min / Mobile: 750×1334 min |
-| **Emotional objective** | Calm, attentive presence. The guardian feels this is about THEIR daily life, not a tech product. |
+| **Emotional objective** | Calm, attentive presence. The owner feels this is about THEIR daily life, not a tech product. |
 | **What must be visible** | A dog resting naturally in a domestic environment. Warm light (golden hour or soft interior). Shallow depth of field. The dog is at peace but alert — ears slightly turned, breathing visible. |
 | **What to absolutely avoid** | Studio lighting. Stock photo poses. Treats/toys in frame. Human hands in frame. Anything that looks "produced". Outdoor/park settings (this is the home). |
 | **Current placeholder** | `emopet-mat.png` at 20% opacity with cream gradient overlay |
@@ -62,9 +62,9 @@
 | **Format** | WebP or short MP4 (5–8s loop) |
 | **Orientation** | Square or portrait |
 | **Resolution** | Desktop: 600×600 min / Mobile: 400×400 min |
-| **Emotional objective** | Tenderness. The bond between guardian and dog. A quiet intimate moment. |
-| **What must be visible** | Dog and guardian together — could be a hand resting near a sleeping dog, walking together seen from behind, or a shared quiet moment. Warm, golden light. |
-| **What to absolutely avoid** | Face of guardian visible (too specific). "Happy family" stock vibes. Dog performing tricks. Excessive cuteness/comedy. |
+| **Emotional objective** | Tenderness. The bond between owner and dog. A quiet intimate moment. |
+| **What must be visible** | Dog and owner together — could be a hand resting near a sleeping dog, walking together seen from behind, or a shared quiet moment. Warm, golden light. |
+| **What to absolutely avoid** | Face of owner visible (too specific). "Happy family" stock vibes. Dog performing tricks. Excessive cuteness/comedy. |
 | **Current placeholder** | 🐕 emoji in cream circle with shadow |
 
 ---
@@ -139,9 +139,9 @@
 | **Format** | WebP or SVG illustration |
 | **Orientation** | Square or portrait |
 | **Resolution** | 400×400 min |
-| **Emotional objective** | Preparation, not anxiety. The guardian feels supported, not alarmed. |
+| **Emotional objective** | Preparation, not anxiety. The owner feels supported, not alarmed. |
 | **What must be visible** | Abstract representation of data being organized/shared (not medical charts). Warm hand-off visual. Subtle, minimal. |
-| **What to absolutely avoid** | Medical imagery (syringes, stethoscopes). Anxious dog/guardian. Clinical white. Anything that implies diagnosis or illness. |
+| **What to absolutely avoid** | Medical imagery (syringes, stethoscopes). Anxious dog/owner. Clinical white. Anything that implies diagnosis or illness. |
 | **Current placeholder** | Checklist UI card with green checkmarks |
 
 ---

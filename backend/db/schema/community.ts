@@ -1,5 +1,6 @@
-import { pgTable, uuid, varchar, timestamp, real, integer, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, timestamp, real, integer, jsonb, index } from 'drizzle-orm/pg-core';
 import { users } from './users.js';
+import { dogs } from './dogs.js';
 
 export const communities = pgTable('communities', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -21,6 +22,12 @@ export const communityMembers = pgTable('community_members', {
   joinedAt: timestamp('joined_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const communityRulesAcceptances = pgTable('community_rules_acceptances', {
+  userId: uuid('user_id').primaryKey().references(() => users.id),
+  rulesVersion: varchar('rules_version', { length: 64 }).notNull(),
+  acceptedAt: timestamp('accepted_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const posts = pgTable('posts', {
   id: uuid('id').primaryKey().defaultRandom(),
   communityId: uuid('community_id').notNull().references(() => communities.id),
@@ -31,7 +38,13 @@ export const posts = pgTable('posts', {
   sensorOverlay: jsonb('sensor_overlay'), // optional ELI context
   likeCount: integer('like_count').default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-});
+}, (table) => [
+  index('idx_posts_community_created_id').on(
+    table.communityId,
+    table.createdAt.desc().nullsFirst(),
+    table.id.desc().nullsFirst(),
+  ),
+]);
 
 export const comments = pgTable('comments', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -40,6 +53,29 @@ export const comments = pgTable('comments', {
   content: varchar('content', { length: 1000 }).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
+
+export const communityReports = pgTable('community_reports', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  reporterUserId: uuid('reporter_user_id').notNull().references(() => users.id),
+  contentType: varchar('content_type', { length: 20 }).notNull().default('post'),
+  contentId: uuid('content_id').notNull(),
+  communityId: uuid('community_id').notNull(),
+  reason: varchar('reason', { length: 20 }).notNull(),
+  details: varchar('details', { length: 500 }),
+  status: varchar('status', { length: 20 }).notNull().default('open'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  index('idx_community_reports_reporter_created').on(
+    table.reporterUserId,
+    table.createdAt.desc().nullsFirst(),
+    table.id.desc().nullsFirst(),
+  ),
+  index('idx_community_reports_content').on(
+    table.contentType,
+    table.contentId,
+    table.createdAt.desc().nullsFirst(),
+  ),
+]);
 
 export const communityEvents = pgTable('community_events', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -56,8 +92,8 @@ export const communityEvents = pgTable('community_events', {
 
 export const copresenceEvents = pgTable('copresence_events', {
   id: uuid('id').primaryKey().defaultRandom(),
-  dogAId: uuid('dog_a_id').notNull(),
-  dogBId: uuid('dog_b_id').notNull(),
+  dogAId: uuid('dog_a_id').notNull().references(() => dogs.id),
+  dogBId: uuid('dog_b_id').notNull().references(() => dogs.id),
   latitude: real('latitude'),
   longitude: real('longitude'),
   occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull(),

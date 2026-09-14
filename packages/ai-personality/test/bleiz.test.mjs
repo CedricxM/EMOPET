@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 
 import {
   AI_TONE_PROFILE_IDS,
-  BLEIZ_TEMPLATE_STATS,
-  BLEIZ_TEMPLATES,
+  LEGACY_BLEIZ_TEMPLATE_STATS,
+  LEGACY_BLEIZ_TEMPLATES,
   evaluateTrigger,
   filterGeneratedText,
   filterPrompt,
@@ -52,20 +52,20 @@ function buildBaseContexts() {
   };
 }
 
-test('Bleiz template catalog keeps the expected V1 size', () => {
-  assert.equal(BLEIZ_TEMPLATE_STATS.total, 79);
-  assert.equal(BLEIZ_TEMPLATE_STATS.by_category.behavior, 4);
-  assert.equal(BLEIZ_TEMPLATE_STATS.by_category.relationship, 4);
-  assert.equal(BLEIZ_TEMPLATE_STATS.by_category.eli_v5, 7);
-  assert.equal(BLEIZ_TEMPLATE_STATS.by_category.separation, 12);
-  assert.equal(BLEIZ_TEMPLATE_STATS.by_category.noise, 6);
-  assert.equal(BLEIZ_TEMPLATE_STATS.by_category.thermal, 8);
-  assert.equal(BLEIZ_TEMPLATE_STATS.by_category.multi_sensor, 10);
-  assert.equal(BLEIZ_TEMPLATE_STATS.by_category.allostatic, 4);
+test('historical Bleiz catalog keeps the expected V1 size for migration regression', () => {
+  assert.equal(LEGACY_BLEIZ_TEMPLATE_STATS.total, 79);
+  assert.equal(LEGACY_BLEIZ_TEMPLATE_STATS.by_category.behavior, 4);
+  assert.equal(LEGACY_BLEIZ_TEMPLATE_STATS.by_category.relationship, 4);
+  assert.equal(LEGACY_BLEIZ_TEMPLATE_STATS.by_category.eli_v5, 7);
+  assert.equal(LEGACY_BLEIZ_TEMPLATE_STATS.by_category.separation, 12);
+  assert.equal(LEGACY_BLEIZ_TEMPLATE_STATS.by_category.noise, 6);
+  assert.equal(LEGACY_BLEIZ_TEMPLATE_STATS.by_category.thermal, 8);
+  assert.equal(LEGACY_BLEIZ_TEMPLATE_STATS.by_category.multi_sensor, 10);
+  assert.equal(LEGACY_BLEIZ_TEMPLATE_STATS.by_category.allostatic, 4);
 });
 
 test('sensor template with missing required_fields never triggers', () => {
-  const template = BLEIZ_TEMPLATES.find((item) => item.id === 'BHV_ANXIETY_PATTERN');
+  const template = LEGACY_BLEIZ_TEMPLATES.find((item) => item.id === 'BHV_ANXIETY_PATTERN');
   assert.ok(template);
 
   const contexts = buildBaseContexts();
@@ -97,7 +97,7 @@ test('sensor template with missing required_fields never triggers', () => {
 });
 
 test('community-only template can trigger without sensor payload', () => {
-  const template = BLEIZ_TEMPLATES.find((item) => item.id === 'COM_COPRESENCE_HINT');
+  const template = LEGACY_BLEIZ_TEMPLATES.find((item) => item.id === 'COM_COPRESENCE_HINT');
   assert.ok(template);
 
   const contexts = buildBaseContexts();
@@ -132,8 +132,8 @@ test('community-only template can trigger without sensor payload', () => {
 });
 
 test('free tier without hardware never schedules sensor-driven templates', () => {
-  const sensorTemplate = BLEIZ_TEMPLATES.find((item) => item.id === 'BHV_ABSENCE_AGITATION');
-  const communityTemplate = BLEIZ_TEMPLATES.find((item) => item.id === 'COM_COPRESENCE_HINT');
+  const sensorTemplate = LEGACY_BLEIZ_TEMPLATES.find((item) => item.id === 'BHV_ABSENCE_AGITATION');
+  const communityTemplate = LEGACY_BLEIZ_TEMPLATES.find((item) => item.id === 'COM_COPRESENCE_HINT');
   assert.ok(sensorTemplate);
   assert.ok(communityTemplate);
 
@@ -179,7 +179,7 @@ test('free tier without hardware never schedules sensor-driven templates', () =>
 });
 
 test('resting RR health template degrades without enough baseline and never stays as push', () => {
-  const template = BLEIZ_TEMPLATES.find((item) => item.id === 'HBR_BRACHY_REST_BREATHING');
+  const template = LEGACY_BLEIZ_TEMPLATES.find((item) => item.id === 'HBR_BRACHY_REST_BREATHING');
   assert.ok(template);
 
   const contexts = buildBaseContexts();
@@ -207,7 +207,7 @@ test('resting RR health template degrades without enough baseline and never stay
 });
 
 test('safety filter blocks forbidden words in prompts and generated output', () => {
-  const template = BLEIZ_TEMPLATES.find((item) => item.id === 'BHV_BARK_SMALL');
+  const template = LEGACY_BLEIZ_TEMPLATES.find((item) => item.id === 'BHV_BARK_SMALL');
   assert.ok(template);
 
   const prompt = filterPrompt(template, 'This prompt contains diagnostic stress and punir.');

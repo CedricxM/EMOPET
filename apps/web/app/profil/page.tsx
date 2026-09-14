@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -16,16 +16,15 @@ import { DonneesSection } from './DonneesSection';
 import styles from '../../styles/living-pages.module.css';
 
 const SETTINGS = [
-  { id: 's1', label: 'IA & tonalitÃ©', meta: 'Breiz Â· calme', icon: 'chat' as const },
-  { id: 's2', label: 'Mode prudence', meta: 'ActivÃ©', icon: 'info' as const },
-  { id: 's3', label: 'Suivi vÃ©tÃ©rinaire', meta: 'Cabinet du Ter', icon: 'profile' as const },
-  { id: 's4', label: 'ConfidentialitÃ©', meta: 'DonnÃ©es locales', icon: 'signal' as const },
-  { id: 's5', label: "Ã€ propos d'EMOPET", meta: 'v6.0.0', icon: 'info' as const },
+  { id: 's1', label: 'IA & tonalité', meta: 'Breiz · calme', icon: 'chat' as const },
+  { id: 's2', label: 'Mode prudence', meta: 'Activé', icon: 'info' as const },
+  { id: 's3', label: 'Suivi vétérinaire', meta: 'Cabinet du Ter', icon: 'profile' as const },
+  { id: 's4', label: 'Confidentialité', meta: 'Données locales', icon: 'signal' as const },
+  { id: 's5', label: "À propos d'EMOPET", meta: 'v6.0.0', icon: 'info' as const },
 ];
 
-// Refonte : la PROGRESSION (badges/niveaux) quitte le profil pour le World
-// (Ã©conomie unique). Le profil = gÃ©rer : compte, chien(s), prÃ©fÃ©rences, donnÃ©es.
-// L'apprentissage (contenu pÃ©dagogique) reste accessible ici.
+// Global points/badges/levels are no longer release-authorized. The profile is a
+// management surface. Learning keeps only read/unread resume state.
 const TABS = ['Compte', 'Apprentissage'] as const;
 type Tab = (typeof TABS)[number];
 const TAB_KEY: Record<Tab, keyof Dict['profil'] & string> = {
@@ -34,14 +33,15 @@ const TAB_KEY: Record<Tab, keyof Dict['profil'] & string> = {
 };
 
 export default function ProfilPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [counters, setCounters] = useState<Counters>(() => computeCounters());
   const [tab, setTab] = useState<Tab>('Compte');
   const [readerCard, setReaderCard] = useState<KnowledgeCard | null>(null);
   const [readerAlready, setReaderAlready] = useState(false);
 
   useEffect(() => {
-    // Compteurs dÃ©rivÃ©s des vraies donnÃ©es serveur (alimentent le World).
+    // Compatibility API now returns reading-state only. It intentionally does not
+    // derive progression from journal, walks, Community, MAT/TAG or ELI.
     let cancelled = false;
     void fetchServerCounters().then((c) => { if (!cancelled) setCounters(c); });
     return () => { cancelled = true; };
@@ -57,6 +57,18 @@ export default function ProfilPage() {
     }
   }
 
+  const safeLead = locale === 'en'
+    ? 'Manage your account, dog profile, sensors, preferences, privacy and optional learning resources.'
+    : 'Gérez votre compte, le profil du chien, les capteurs, vos préférences, la confidentialité et les ressources d’apprentissage optionnelles.';
+
+  const worldBridge = locale === 'en'
+    ? 'My Dog World is an optional playful space with its own state. It is not powered by Care/ELI or real-dog performance.'
+    : 'Mon monde est un espace ludique optionnel avec son propre état. Il n’est pas alimenté par Care/ELI ni par les performances réelles du chien.';
+
+  const learningIntro = locale === 'en'
+    ? 'Short, sourced, non-medical cards. Read status only helps you resume later. It earns no points, level, rank or product rights.'
+    : 'Des fiches courtes, sourcées et non médicales. Le statut lu/non lu sert seulement à reprendre plus tard. Il ne donne aucun point, niveau, rang ni droit produit.';
+
   return (
     <ContentShell>
       <div className={styles.pageFlow}>
@@ -65,14 +77,13 @@ export default function ProfilPage() {
             <div className={styles.heroCopy}>
               <Eyebrow>{t('profil', 'eyebrow')}</Eyebrow>
               <H1>{t('profil', 'title')}</H1>
-              <Lead>{t('profil', 'lead')}</Lead>
-              <span className={styles.dogCue}>Fiche de Gus Â· profil, capteurs et preferences</span>
+              <Lead>{safeLead}</Lead>
+              <span className={styles.dogCue}>Fiche de Gus · profil, capteurs et préférences</span>
             </div>
             <div className={styles.sceneStamp} aria-hidden />
           </div>
         </header>
 
-        {/* Onglets */}
         <div style={{ display: 'flex', gap: 8, padding: 6, background: 'var(--bg-sunk)', borderRadius: 'var(--radius-pill)', width: 'fit-content', flexWrap: 'wrap' }}>
           {TABS.map((tb) => {
             const active = tab === tb;
@@ -84,17 +95,16 @@ export default function ProfilPage() {
           })}
         </div>
 
-        {/* Passerelle douce vers le World (progression unique). */}
         <Card tone="accent2Soft">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-            <P2 style={{ color: 'var(--lichen-700)' }}>{t('profil', 'worldBridge')}</P2>
+            <P2 style={{ color: 'var(--lichen-700)' }}>{worldBridge}</P2>
             <Link href="/world" style={{ textDecoration: 'none' }}><Button kind="accent2" size="sm">{t('profil', 'worldCta')}</Button></Link>
           </div>
         </Card>
 
         {tab === 'Apprentissage' && (
           <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <P2>Des fiches courtes, sourcÃ©es et non mÃ©dicales. Lire une fiche fait progresser votre niveau.</P2>
+            <P2>{learningIntro}</P2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
               {PATHWAYS.map((p) => (
                 <PathwayCard key={p.id} pathway={p} readIds={counters.knowledgeCardsRead} onOpen={openCard} />
@@ -112,8 +122,8 @@ export default function ProfilPage() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, minWidth: 220 }}>
                   <H2>{MOCK_DOG.name}</H2>
-                  <P2 style={{ fontFeatureSettings: 'var(--ff-tabular)' }}>{MOCK_DOG.breed} Â· {MOCK_DOG.ageYears} ans Â· {MOCK_DOG.weightKg} kg</P2>
-                  <span className={styles.dogCue}>MAT, TAG et carnet relies au meme profil</span>
+                  <P2 style={{ fontFeatureSettings: 'var(--ff-tabular)' }}>{MOCK_DOG.breed} · {MOCK_DOG.ageYears} ans · {MOCK_DOG.weightKg} kg</P2>
+                  <span className={styles.dogCue}>MAT, TAG et carnet reliés au même profil</span>
                 </div>
                 <Button kind="ghost" size="sm">Modifier</Button>
               </div>
@@ -144,7 +154,7 @@ export default function ProfilPage() {
                         <Pill state={s.state} />
                       </div>
                       <Meter value={s.coverage} tone={s.state === 'valid' ? 'accent2' : 'degraded'} />
-                      <P2 style={{ fontFeatureSettings: 'var(--ff-tabular)' }}>Couverture {s.coverage}% Â· firmware {s.firmware}</P2>
+                      <P2 style={{ fontFeatureSettings: 'var(--ff-tabular)' }}>Couverture {s.coverage}% · firmware {s.firmware}</P2>
                     </div>
                   </Card>
                 ))}
@@ -152,7 +162,7 @@ export default function ProfilPage() {
             </section>
 
             <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <Eyebrow>ParamÃ¨tres</Eyebrow>
+              <Eyebrow>Paramètres</Eyebrow>
               <Card padding={0}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   {SETTINGS.map((s, i) => (
@@ -169,7 +179,6 @@ export default function ProfilPage() {
               </Card>
             </section>
 
-            {/* Mes donnÃ©es (fusion /donnees) â€” RGPD : contrÃ´le utilisateur */}
             <DonneesSection />
           </>
         )}
@@ -179,4 +188,3 @@ export default function ProfilPage() {
     </ContentShell>
   );
 }
-

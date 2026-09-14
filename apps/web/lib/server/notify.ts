@@ -1,8 +1,9 @@
 /**
  * Notification de l'équipe (Resend) — point d'extension du §6 « remontée équipe ».
  *
- * Env-gated : si RESEND_API_KEY + TEAM_EMAIL sont définis, envoie un email à
- * l'équipe quand une demande de contact arrive. Sinon, no-op (log serveur).
+ * Env-gated : un email ne peut partir que si RESEND_API_KEY + TEAM_EMAIL sont
+ * définis ET EMOPET_RESEND_EGRESS_GATE=GO. Le gate est un contrôle opérateur,
+ * pas une clearance juridique du fournisseur.
  * La coordonnée de l'utilisateur n'est PAS incluse en clair dans le sujet.
  *
  * ⚠ Server-only.
@@ -20,11 +21,15 @@ export async function notifyTeamOfContactRequest(req: ContactRequest): Promise<N
   const apiKey = process.env['RESEND_API_KEY'];
   const to = process.env['TEAM_EMAIL'];
   const from = process.env['RESEND_FROM'] ?? 'emopet <onboarding@resend.dev>';
+  const resendEgressAllowed = process.env['EMOPET_RESEND_EGRESS_GATE'] === 'GO';
 
   if (!apiKey || !to) {
-    // Pas configuré : la demande reste visible dans la file admin. On journalise.
     console.info(`[contact] nouvelle demande ${req.id} (${req.channel}/${req.reason}) — Resend non configuré, pas d'email.`);
     return { sent: false, reason: 'resend_not_configured' };
+  }
+  if (!resendEgressAllowed) {
+    console.info(`[contact] nouvelle demande ${req.id} (${req.channel}/${req.reason}) — egress Resend non autorisé, pas d'email.`);
+    return { sent: false, reason: 'resend_egress_not_authorized' };
   }
 
   const slots = req.proposedSlots.map((s) => `• ${formatSlot(s)}`).join('\n');

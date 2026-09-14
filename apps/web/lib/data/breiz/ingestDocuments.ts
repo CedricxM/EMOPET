@@ -19,6 +19,30 @@ function normalizeTags(tags: string[] | string | undefined): string[] {
   return [];
 }
 
+/**
+ * Generic/local ingestion is not release authority.
+ *
+ * A source payload may ask for a more restrictive usage mode, but it cannot
+ * self-promote to `public_answer_with_source`. Public-answer authority requires
+ * the separate Breiz source-rights evidence gate and a reviewed GO disposition.
+ */
+function normalizeIngestedUsage(value: BreizDocument['allowed_usage'] | undefined): BreizDocument['allowed_usage'] {
+  if (value === 'do_not_answer') return 'do_not_answer';
+  if (value === 'internal_reference') return 'internal_reference';
+  return 'retrieval_only';
+}
+
+/**
+ * Likewise, an imported file cannot declare itself source-verified. That state
+ * belongs to a controlled verification/promotion step outside this parser.
+ */
+function normalizeIngestedReliability(
+  value: BreizDocument['reliability_level'] | undefined,
+): BreizDocument['reliability_level'] {
+  if (value === 'community_pending') return 'community_pending';
+  return 'unknown';
+}
+
 function withDefaults(raw: PartialDocument, sourceName: string): BreizDocument {
   const now = new Date().toISOString().slice(0, 10);
   const title = raw.title?.trim() || sourceName.replace(/\.[^.]+$/, '');
@@ -36,9 +60,9 @@ function withDefaults(raw: PartialDocument, sourceName: string): BreizDocument {
     tags: normalizeTags(raw.tags),
     summary: raw.summary?.trim() || title,
     content: raw.content?.trim() || '',
-    reliability_level: raw.reliability_level ?? 'unknown',
+    reliability_level: normalizeIngestedReliability(raw.reliability_level),
     last_checked_at: raw.last_checked_at?.trim() || now,
-    allowed_usage: raw.allowed_usage ?? 'retrieval_only',
+    allowed_usage: normalizeIngestedUsage(raw.allowed_usage),
   };
 }
 

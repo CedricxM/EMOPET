@@ -1,6 +1,7 @@
 # EMOPET — Care UI Migration Map
 
 **Control date:** 2026-09-07  
+**Canonical terminology revision:** 2026-09-11 under DOMAIN-TERM #245  
 **Status:** `PRODUCT RECONCILIATION MAP / NOT IMPLEMENTATION AUTHORITY`  
 **Primary source:** `EMOPET_CARE_PRODUCT_MASTER_v0.1.md`  
 **Related audit:** `../records/memory/CURRENT_UI_ELI_PRODUCT_DRIFT_AUDIT_2026-09-07.md`
@@ -47,7 +48,7 @@ This map classifies the existing UI before any destructive refactor. It does not
 | Family numeric scores | `GATE / REFRAME` | may be internal feature/inference summaries; do not publish as wellbeing verdicts by default |
 | Expandable proxy details | `KEEP / REFRAME` | useful explainability pattern if proxy names, source, quality, reference and limits are controlled |
 | Confidence badges | `KEEP` | compatible with evidence-quality UX |
-| Declared contexts | `KEEP` | strongly compatible with Care context doctrine, provided Guardian declaration is clearly distinguished from system observation |
+| Declared contexts | `KEEP` | strongly compatible with Care context doctrine, provided Owner declaration is clearly distinguished from system observation |
 | Veto/context chips | `KEEP` | compatible when they explain why evidence is qualified/suppressed rather than pretending certainty |
 | Scientific footer / provenance concepts | `KEEP` | useful for model/version/source/limits disclosure |
 | Recovery numeric summary | `GATE` | requires current observable/publication authority |
@@ -68,7 +69,7 @@ REFERENCE
 which individual/contextual baseline or prior window
 
 SOURCE / PROVENANCE
-MAT / TAG / Guardian declaration / derived feature
+MAT / TAG / Owner declaration / derived feature
 
 QUALITY / PUBLICATION STATE
 valid / degraded / suppressed / insufficient evidence
@@ -113,11 +114,11 @@ When the publication gate is not satisfied, prefer a first-class no-result state
 
 The system may still show device/signal state separately, but must not convert missing evidence into a pseudo-observation.
 
-## Guardian-note separation
+## Owner-note separation
 
 Any declared context or journal entry must retain source identity:
 
-- `Tu as noté …` = Guardian-authored context;
+- `Tu as noté …` = Owner-authored context;
 - `EMOPET a observé …` = system-derived eligible observation.
 
 Do not blend them into one apparent biological ground truth.
