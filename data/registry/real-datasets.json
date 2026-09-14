@@ -1,5 +1,5 @@
 {
-  "registryVersion": "2026-09-13-rights-evidence-v3",
+  "registryVersion": "2026-09-14-rights-evidence-v4",
   "datasets": [
     {
       "datasetId": "dog-movement-vxhx934tbn-v4",
@@ -18,7 +18,18 @@
       "prohibitedShortcut": "Do not convert research-dataset labels directly into claims about an EMOPET dog's internal state.",
       "evidenceState": "RECEIPT_MISSING",
       "receiptPath": null,
-      "checksumSha256": null
+      "checksumSha256": null,
+      "retrievedAt": null,
+      "payloadFileName": null,
+      "storageLocation": null,
+      "allowedUseSummary": null,
+      "transformationsAllowedSummary": null,
+      "commercialUseAllowed": null,
+      "derivativeWorksAllowed": null,
+      "reviewerRole": null,
+      "reviewedAt": null,
+      "rightsReviewEvidencePath": null,
+      "rightsDisposition": "HOLD"
     },
     {
       "datasetId": "dog-posture-mpph6bmn7g-v1",
@@ -37,7 +48,18 @@
       "prohibitedShortcut": "Do not copy code from the associated GitHub repository unless its code licence is explicitly established.",
       "evidenceState": "RECEIPT_MISSING",
       "receiptPath": null,
-      "checksumSha256": null
+      "checksumSha256": null,
+      "retrievedAt": null,
+      "payloadFileName": null,
+      "storageLocation": null,
+      "allowedUseSummary": null,
+      "transformationsAllowedSummary": null,
+      "commercialUseAllowed": null,
+      "derivativeWorksAllowed": null,
+      "reviewerRole": null,
+      "reviewedAt": null,
+      "rightsReviewEvidencePath": null,
+      "rightsDisposition": "HOLD"
     },
     {
       "datasetId": "vbo-ontology",
@@ -57,6 +79,17 @@
       "evidenceState": "RECEIPT_MISSING_IMMUTABLE_UPSTREAM_MATCH_PROVEN",
       "receiptPath": null,
       "checksumSha256": null,
+      "retrievedAt": null,
+      "payloadFileName": null,
+      "storageLocation": null,
+      "allowedUseSummary": null,
+      "transformationsAllowedSummary": null,
+      "commercialUseAllowed": null,
+      "derivativeWorksAllowed": null,
+      "reviewerRole": null,
+      "reviewedAt": null,
+      "rightsReviewEvidencePath": null,
+      "rightsDisposition": "HOLD",
       "payloadPath": "data/vbo/vbo.json",
       "provenanceEvidencePath": "data/vbo/committed-snapshot-evidence.json",
       "provenancePayloadSha256": "09da44412ed43ee271e407a83401275ada85483e2199273203c8404b84c093de",
@@ -81,7 +114,18 @@
       "prohibitedShortcut": "Reference data must not be used to recommend, prescribe, diagnose or alter treatment without a veterinarian.",
       "evidenceState": "RECEIPT_MISSING_VERSION_NOT_IMMUTABLE",
       "receiptPath": null,
-      "checksumSha256": null
+      "checksumSha256": null,
+      "retrievedAt": null,
+      "payloadFileName": null,
+      "storageLocation": null,
+      "allowedUseSummary": null,
+      "transformationsAllowedSummary": null,
+      "commercialUseAllowed": null,
+      "derivativeWorksAllowed": null,
+      "reviewerRole": null,
+      "reviewedAt": null,
+      "rightsReviewEvidencePath": null,
+      "rightsDisposition": "HOLD"
     }
   ]
 }
