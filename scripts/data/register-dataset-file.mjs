@@ -40,13 +40,27 @@ if (!existsSync(filePath) || !statSync(filePath).isFile()) {
   process.exit(2);
 }
 
+const storageLocation = relative(process.cwd(), filePath).replaceAll('\\', '/');
+if (
+  storageLocation === '..' ||
+  storageLocation.startsWith('../') ||
+  storageLocation.startsWith('/')
+) {
+  console.error(
+    'Controlled dataset registration requires the landed payload to be inside the EMOPET working tree ' +
+    '(normally under gitignored data/external/). Absolute/external machine paths are not accepted as evidence.',
+  );
+  process.exit(4);
+}
+
 const hash = createHash('sha256');
 const stream = createReadStream(filePath);
 for await (const chunk of stream) hash.update(chunk);
 const checksumSha256 = hash.digest('hex');
+const retrievedAt = new Date().toISOString();
 
 const receipt = {
-  schemaVersion: 'emopet-dataset-receipt-v2',
+  schemaVersion: 'emopet-dataset-receipt-v3',
   evidenceState: 'RECEIPT_CAPTURED_NOT_RIGHTS_CLEARED',
   datasetId: dataset.datasetId,
   name: dataset.name,
@@ -57,8 +71,9 @@ const receipt = {
   licenseId: dataset.licenseId,
   licenseUrl: dataset.licenseUrl,
   attributionText: dataset.attributionText,
-  retrievedAt: new Date().toISOString(),
+  retrievedAt,
   localFileName: basename(filePath),
+  storageLocation,
   byteSize: statSync(filePath).size,
   checksumSha256,
   recordCount: recordCountArg ? Number(recordCountArg) : null,
@@ -67,6 +82,11 @@ const receipt = {
   rightsReview: {
     reviewerRole: null,
     reviewedAt: null,
+    allowedUseSummary: null,
+    transformationsAllowedSummary: null,
+    commercialUseAllowed: null,
+    derivativeWorksAllowed: null,
+    evidencePath: null,
     disposition: 'HOLD',
     notes: 'Receipt proves identity/integrity only. Exact intended use and obligations still require review.',
   },
@@ -82,8 +102,24 @@ writeFileSync(outputPath, `${JSON.stringify(receipt, null, 2)}\n`, 'utf8');
 const repoRelativeReceiptPath = relative(process.cwd(), outputPath).replaceAll('\\', '/');
 dataset.checksumSha256 = checksumSha256;
 dataset.receiptPath = repoRelativeReceiptPath;
+dataset.retrievedAt = retrievedAt;
+dataset.payloadFileName = receipt.localFileName;
+dataset.storageLocation = storageLocation;
 dataset.evidenceState = 'RECEIPT_CAPTURED_NOT_RIGHTS_CLEARED';
-registry.registryVersion = `2026-09-06-rights-evidence-v1+receipt`;
+
+// A newly landed payload invalidates any earlier use review. Registration may
+// capture identity/integrity evidence, but it must never manufacture product-use
+// authority from a licence label or an older review.
+dataset.allowedUseSummary = null;
+dataset.transformationsAllowedSummary = null;
+dataset.commercialUseAllowed = null;
+dataset.derivativeWorksAllowed = null;
+dataset.reviewerRole = null;
+dataset.reviewedAt = null;
+dataset.rightsReviewEvidencePath = null;
+dataset.rightsDisposition = 'HOLD';
+
+registry.registryVersion = '2026-09-14-rights-evidence-v4+receipt';
 writeFileSync(registryPath, `${JSON.stringify(registry, null, 2)}\n`, 'utf8');
 
 console.log(JSON.stringify({
@@ -92,6 +128,8 @@ console.log(JSON.stringify({
   datasetId,
   checksumSha256,
   byteSize: receipt.byteSize,
+  retrievedAt,
+  storageLocation,
   evidenceState: receipt.evidenceState,
-  rightsDisposition: receipt.rightsReview.disposition,
+  rightsDisposition: dataset.rightsDisposition,
 }, null, 2));
