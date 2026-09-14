@@ -141,6 +141,8 @@ const dbAuthority = requireText('backend/api/services/professional-share-db-auth
   'hasCurrentOwnerAuthority',
   'eq(dogs.ownerId, ownerUserId)',
   'resolveVerifiedRecipient',
+  'VerifiedProfessionalRecipient',
+  'provider-neutral',
 ]);
 if (dbAuthority.includes('guardianUserId') || dbAuthority.includes('hasCurrentGuardianAuthority')) {
   failures.push('DB authority still exposes Guardian terminology');
@@ -150,11 +152,36 @@ const accessPolicy = requireText('backend/api/services/professional-share-access
   'hasCurrentOwnerAuthority',
   'grant.ownerUserId',
   'OWNER_AUTHORITY_MISMATCH',
+  'VerifiedProfessionalRecipient',
+  "status: 'VERIFIED'",
+  "method: 'PROVIDER_ASSERTION'",
+  'issuer: string',
+  'evidenceId: string',
+  'verifiedAt: string',
+  'expiresAt: string',
+  'parseVerifiedProfessionalRecipient',
+  'RECIPIENT_VERIFICATION_NOT_READY',
 ]);
 if (accessPolicy.includes('hasCurrentGuardianAuthority') ||
     accessPolicy.includes('grant.guardianUserId') ||
     accessPolicy.includes('GUARDIAN_AUTHORITY_MISMATCH')) {
   failures.push('active professional-share access policy still exposes Guardian terminology');
+}
+if (!accessPolicy.includes('expiresAt <= now') || !accessPolicy.includes('verifiedAt > now')) {
+  failures.push('professional recipient evidence must be time-bounded and reject future verification timestamps');
+}
+if (!accessPolicy.includes('resolveVerifiedRecipient(): Promise<unknown>')) {
+  failures.push('provider identity output must cross an explicit runtime-validation boundary');
+}
+
+const accessTests = requireText('backend/test/professional-share-access.test.mjs', [
+  'fixture-professional-idp',
+  'RECIPIENT_VERIFICATION_NOT_READY',
+  'invalid provider evidence must fail before durable grant reads',
+  'recipient verification expiry is re-evaluated after asynchronous audit',
+]);
+if (!accessTests.includes("method: 'PROVIDER_ASSERTION'")) {
+  failures.push('professional-share policy tests do not exercise the provider evidence envelope');
 }
 
 const projection = requireText('backend/api/services/professional-share-projection.ts', [
@@ -283,4 +310,4 @@ if (failures.length > 0) {
 }
 
 console.log('Professional sharing authority audit PASS.');
-console.log('PASS proves static authority invariants only; it is not security/privacy validation.');
+console.log('PASS proves static authority invariants only; it is not identity-provider, credential-proofing, security or privacy validation.');
