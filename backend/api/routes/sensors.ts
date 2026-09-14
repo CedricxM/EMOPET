@@ -4,8 +4,8 @@ import { zValidator } from '@hono/zod-validator';
 import { PresenceEventCreateSchema, SensorSummaryCreateSchema } from '@emopet/shared';
 
 import { db } from '../../db/index.js';
-import { baselines, devices, sensorSummaries } from '../../db/schema/index.js';
-import { requireDogOwnership } from '../middleware/authorization.js';
+import { baselines, devices, dogs, sensorSummaries } from '../../db/schema/index.js';
+import { getCurrentUserId, requireDogOwnership } from '../middleware/authorization.js';
 import { toOwnerAuthorizedBaselineExport } from '../services/data-export-policy.js';
 import { parseLookbackWindow } from '../utils/temporal-window.js';
 
@@ -140,119 +140,145 @@ function eliRuntimeUnavailable(
 
 sensors.post('/summaries', zValidator('json', SensorSummaryCreateSchema), async (c) => {
   const body = c.req.valid('json');
-  const denied = await requireDogOwnership(c, body.dogId);
-  if (denied) return denied;
+  const userId = getCurrentUserId(c);
+  if (!userId) return c.json({ error: 'unauthorized' }, 401);
 
   try {
-    let boundDevice: { id: string; firmwareVersion: string | null } | null = null;
-    if (body.deviceId) {
-      const [device] = await db
-        .select({
-          id: devices.id,
-          firmwareVersion: devices.firmwareVersion,
-        })
-        .from(devices)
-        .where(and(
-          eq(devices.id, body.deviceId),
-          eq(devices.dogId, body.dogId),
-          eq(devices.type, body.source),
-        ))
+    const result = await db.transaction(async (tx) => {
+      // Mutation authority must remain current until persistence commits. Holding
+      // the dog row FOR SHARE serializes an ownership transfer against this ACK:
+      // a transfer that already owns the row wins and this request rechecks the
+      // new Owner after waiting; otherwise the transfer waits for this mutation.
+      const [dog] = await tx
+        .select({ ownerId: dogs.ownerId })
+        .from(dogs)
+        .where(eq(dogs.id, body.dogId))
+        .for('share')
         .limit(1);
 
-      if (!device) {
-        return c.json({
-          error: 'device_id is not bound to this dog/source',
-          code: 'SENSOR_DEVICE_BINDING_INVALID',
-        }, 400);
-      }
-      boundDevice = device;
-    }
-
-    const values = {
-      dogId: body.dogId,
-      ingestionId: body.ingestionId,
-      deviceId: boundDevice?.id,
-      timestamp: body.timestamp,
-      source: body.source,
-      firmwareVersionAtIngest: boundDevice?.firmwareVersion,
-      matPresenceMinutes: body.matPresenceMinutes,
-      respiratoryRateMean: body.respiratoryRate?.mean,
-      respiratoryRateStd: body.respiratoryRate?.std,
-      respiratoryRateConfidence: body.respiratoryRate?.confidence,
-      weightKg: body.weightKg,
-      positionChanges: body.positionChanges,
-      activityMinutes: body.activityMinutes,
-      distanceKm: body.distanceKm,
-      vocalEvents: body.vocalEvents,
-      vocalEnergyMean: body.vocalEnergyMean,
-      postureDistribution: body.postureDistribution,
-      agitationEvents: body.agitationEvents,
-      temperatureC: body.temperatureC,
-      humidityPct: body.humidityPct,
-    };
-
-    const [created] = body.ingestionId
-      ? await db
-          .insert(sensorSummaries)
-          .values(values)
-          .onConflictDoNothing({ target: sensorSummaries.ingestionId })
-          .returning()
-      : await db
-          .insert(sensorSummaries)
-          .values(values)
-          .returning();
-
-    if (!created && body.ingestionId) {
-      const [existing] = await db
-        .select()
-        .from(sensorSummaries)
-        .where(and(
-          eq(sensorSummaries.ingestionId, body.ingestionId),
-          eq(sensorSummaries.dogId, body.dogId),
-        ))
-        .limit(1);
-
-      if (!existing) {
-        return c.json({
-          error: 'ingestion_id already belongs to another summary',
-          code: 'SENSOR_INGESTION_ID_CONFLICT',
-        }, 409);
+      if (!dog || dog.ownerId !== userId) {
+        return { kind: 'not_found' as const };
       }
 
-      const expectedFingerprint = summaryRetryFingerprint({
+      let boundDevice: { id: string; firmwareVersion: string | null } | null = null;
+      if (body.deviceId) {
+        // Keep device↔dog/source binding and the firmware snapshot stable through
+        // the insert for the same reason. Request data never supplies firmware.
+        const [device] = await tx
+          .select({
+            id: devices.id,
+            firmwareVersion: devices.firmwareVersion,
+          })
+          .from(devices)
+          .where(and(
+            eq(devices.id, body.deviceId),
+            eq(devices.dogId, body.dogId),
+            eq(devices.type, body.source),
+          ))
+          .for('share')
+          .limit(1);
+
+        if (!device) return { kind: 'invalid_device' as const };
+        boundDevice = device;
+      }
+
+      const values = {
         dogId: body.dogId,
-        deviceId: boundDevice?.id ?? null,
+        ingestionId: body.ingestionId,
+        deviceId: boundDevice?.id,
         timestamp: body.timestamp,
         source: body.source,
-        matPresenceMinutes: body.matPresenceMinutes ?? null,
-        respiratoryRateMean: body.respiratoryRate?.mean ?? null,
-        respiratoryRateStd: body.respiratoryRate?.std ?? null,
-        respiratoryRateConfidence: body.respiratoryRate?.confidence ?? null,
-        weightKg: body.weightKg ?? null,
-        positionChanges: body.positionChanges ?? null,
-        activityMinutes: body.activityMinutes ?? null,
-        distanceKm: body.distanceKm ?? null,
-        vocalEvents: body.vocalEvents ?? null,
-        vocalEnergyMean: body.vocalEnergyMean ?? null,
-        postureDistribution: body.postureDistribution ?? null,
-        agitationEvents: body.agitationEvents ?? null,
-        temperatureC: body.temperatureC ?? null,
-        humidityPct: body.humidityPct ?? null,
-      });
+        firmwareVersionAtIngest: boundDevice?.firmwareVersion,
+        matPresenceMinutes: body.matPresenceMinutes,
+        respiratoryRateMean: body.respiratoryRate?.mean,
+        respiratoryRateStd: body.respiratoryRate?.std,
+        respiratoryRateConfidence: body.respiratoryRate?.confidence,
+        weightKg: body.weightKg,
+        positionChanges: body.positionChanges,
+        activityMinutes: body.activityMinutes,
+        distanceKm: body.distanceKm,
+        vocalEvents: body.vocalEvents,
+        vocalEnergyMean: body.vocalEnergyMean,
+        postureDistribution: body.postureDistribution,
+        agitationEvents: body.agitationEvents,
+        temperatureC: body.temperatureC,
+        humidityPct: body.humidityPct,
+      };
 
-      const actualFingerprint = summaryRetryFingerprint(existing);
-      if (actualFingerprint !== expectedFingerprint) {
-        return c.json({
-          error: 'ingestion_id was reused with a different summary payload',
-          code: 'SENSOR_INGESTION_ID_CONFLICT',
-        }, 409);
+      const [created] = body.ingestionId
+        ? await tx
+            .insert(sensorSummaries)
+            .values(values)
+            .onConflictDoNothing({ target: sensorSummaries.ingestionId })
+            .returning()
+        : await tx
+            .insert(sensorSummaries)
+            .values(values)
+            .returning();
+
+      if (!created && body.ingestionId) {
+        const [existing] = await tx
+          .select()
+          .from(sensorSummaries)
+          .where(and(
+            eq(sensorSummaries.ingestionId, body.ingestionId),
+            eq(sensorSummaries.dogId, body.dogId),
+          ))
+          .limit(1);
+
+        if (!existing) return { kind: 'ingestion_conflict' as const };
+
+        const expectedFingerprint = summaryRetryFingerprint({
+          dogId: body.dogId,
+          deviceId: boundDevice?.id ?? null,
+          timestamp: body.timestamp,
+          source: body.source,
+          matPresenceMinutes: body.matPresenceMinutes ?? null,
+          respiratoryRateMean: body.respiratoryRate?.mean ?? null,
+          respiratoryRateStd: body.respiratoryRate?.std ?? null,
+          respiratoryRateConfidence: body.respiratoryRate?.confidence ?? null,
+          weightKg: body.weightKg ?? null,
+          positionChanges: body.positionChanges ?? null,
+          activityMinutes: body.activityMinutes ?? null,
+          distanceKm: body.distanceKm ?? null,
+          vocalEvents: body.vocalEvents ?? null,
+          vocalEnergyMean: body.vocalEnergyMean ?? null,
+          postureDistribution: body.postureDistribution ?? null,
+          agitationEvents: body.agitationEvents ?? null,
+          temperatureC: body.temperatureC ?? null,
+          humidityPct: body.humidityPct ?? null,
+        });
+
+        const actualFingerprint = summaryRetryFingerprint(existing);
+        if (actualFingerprint !== expectedFingerprint) {
+          return { kind: 'ingestion_conflict' as const };
+        }
+
+        return { kind: 'replay' as const, summary: existing };
       }
 
-      return c.json({ summary: existing, idempotentReplay: true }, 200);
-    }
+      if (!created) return { kind: 'unavailable' as const };
+      return { kind: 'created' as const, summary: created };
+    });
 
-    if (!created) return databaseUnavailable(c, 'create_sensor_summary');
-    return c.json({ summary: created, idempotentReplay: false }, 201);
+    if (result.kind === 'not_found') return c.json({ error: 'not_found' }, 404);
+    if (result.kind === 'invalid_device') {
+      return c.json({
+        error: 'device_id is not bound to this dog/source',
+        code: 'SENSOR_DEVICE_BINDING_INVALID',
+      }, 400);
+    }
+    if (result.kind === 'ingestion_conflict') {
+      return c.json({
+        error: 'ingestion_id was reused with a different summary payload',
+        code: 'SENSOR_INGESTION_ID_CONFLICT',
+      }, 409);
+    }
+    if (result.kind === 'unavailable') return databaseUnavailable(c, 'create_sensor_summary');
+    return c.json({
+      summary: result.summary,
+      idempotentReplay: result.kind === 'replay',
+    }, result.kind === 'replay' ? 200 : 201);
   } catch {
     return databaseUnavailable(c, 'create_sensor_summary');
   }
