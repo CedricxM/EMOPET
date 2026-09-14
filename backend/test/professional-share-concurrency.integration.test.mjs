@@ -58,6 +58,17 @@ test('Owner sharing serializes ownership and concurrent revocation', {
   const dogId = randomUUID();
   const grantId = randomUUID();
   const principalId = `fixture-vet-${randomUUID()}`;
+  const verifiedRecipient = () => ({
+    principalId,
+    verification: {
+      status: 'VERIFIED',
+      method: 'PROVIDER_ASSERTION',
+      issuer: 'fixture-professional-idp',
+      evidenceId: `fixture-${principalId}`,
+      verifiedAt: '2026-09-01T00:00:00.000Z',
+      expiresAt: '2099-01-01T00:00:00.000Z',
+    },
+  });
   const lockConnection = postgres(process.env.DATABASE_URL, { max: 1 });
   const requests = [];
 
@@ -158,7 +169,7 @@ test('Owner sharing serializes ownership and concurrent revocation', {
 
   await t.test('two waiting revokes return the same durable first revocation', async () => {
     const check = createProfessionalShareAccessChecker(
-      createProfessionalShareDbAuthority(async () => ({ principalId })),
+      createProfessionalShareDbAuthority(async () => verifiedRecipient()),
     );
     const intent = {
       grantId, dogId, purpose: shareBody.purpose, scopes: shareBody.scopes,

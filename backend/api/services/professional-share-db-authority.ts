@@ -6,11 +6,12 @@ import {
   professionalShareAccessAudits,
   professionalShareGrants,
 } from '../../db/schema/index.js';
-import type { ProfessionalShareAccessAuthority } from './professional-share-access.js';
+import type {
+  ProfessionalShareAccessAuthority,
+  VerifiedProfessionalRecipient,
+} from './professional-share-access.js';
 
-export type VerifiedProfessionalRecipientResolver = () => Promise<{
-  principalId: string;
-} | null>;
+export type VerifiedProfessionalRecipientResolver = () => Promise<VerifiedProfessionalRecipient | null>;
 
 function toAccessRecord(row: typeof professionalShareGrants.$inferSelect): unknown {
   return {
@@ -45,8 +46,10 @@ function toAccessRecord(row: typeof professionalShareGrants.$inferSelect): unkno
  * Compose the fail-closed sharing policy with durable grant/audit persistence.
  *
  * Recipient verification stays injected because the repository has no approved
- * professional identity provider. This adapter must not be used as evidence
- * that recipient identity, delivery or a production sharing route is complete.
+ * professional identity provider. The resolver must return the provider-neutral
+ * evidence envelope consumed and runtime-validated by the access policy. This
+ * adapter must not be used as evidence that credential proofing, delivery or a
+ * production sharing route is complete.
  */
 export function createProfessionalShareDbAuthority(
   resolveVerifiedRecipient: VerifiedProfessionalRecipientResolver,

@@ -26,9 +26,27 @@ type UnavailableReason =
   | 'AUTHORITY_UNAVAILABLE'
   | 'INVALID_STORED_GRANT'
   | 'RECIPIENT_POLICY_NOT_READY'
+  | 'RECIPIENT_VERIFICATION_NOT_READY'
   | 'SCOPE_POLICY_NOT_READY'
   | 'RESEARCH_CONSENT_NOT_READY'
   | 'AUDIT_UNAVAILABLE';
+
+export interface VerifiedProfessionalRecipient {
+  /** Stable provider-side subject bound to the durable professional-share grant. */
+  principalId: string;
+  /**
+   * Provider-neutral evidence envelope. This is an assertion contract only:
+   * it does not select an identity provider or claim that credential proofing is implemented.
+   */
+  verification: {
+    status: 'VERIFIED';
+    method: 'PROVIDER_ASSERTION';
+    issuer: string;
+    evidenceId: string;
+    verifiedAt: string;
+    expiresAt: string;
+  };
+}
 
 export type ProfessionalShareReadDecision =
   | { allowed: false; status: 'DENIED'; reason: DenialReason }
@@ -56,13 +74,13 @@ export interface ProfessionalShareAccessAudit {
 
 /**
  * Server adapters only. None is wired to a production route yet (#64).
- * readGrant must load current durable state on every call. A recipient ID must
- * come from verified server identity, never a request body or an email label.
+ * readGrant must load current durable state on every call. Recipient identity
+ * must come from server-side provider evidence, never a request body/email label.
  * recordDecision must acknowledge a durable, sanitized audit write with true.
  */
 export interface ProfessionalShareAccessAuthority {
   readGrant(grantId: string, dogId: string): Promise<unknown>;
-  resolveVerifiedRecipient(): Promise<{ principalId: string } | null>;
+  resolveVerifiedRecipient(): Promise<unknown>;
   hasCurrentOwnerAuthority(ownerUserId: string, dogId: string): Promise<boolean>;
   recordDecision(event: ProfessionalShareAccessAudit): Promise<boolean>;
 }
@@ -73,6 +91,56 @@ const deny = (reason: DenialReason): ProfessionalShareReadDecision => ({
 const unavailable = (reason: UnavailableReason): ProfessionalShareReadDecision => ({
   allowed: false, status: 'UNAVAILABLE', reason,
 });
+
+function nonBlank(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+/**
+ * Runtime verification is mandatory even when a TypeScript adapter promises the
+ * shape. Provider responses cross a trust boundary and can be stale or malformed.
+ */
+export function parseVerifiedProfessionalRecipient(
+  raw: unknown,
+  now: number,
+): VerifiedProfessionalRecipient | null {
+  if (!Number.isFinite(now) || typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
+    return null;
+  }
+
+  const candidate = raw as Record<string, unknown>;
+  if (!nonBlank(candidate.principalId)) return null;
+  if (typeof candidate.verification !== 'object' || candidate.verification === null ||
+      Array.isArray(candidate.verification)) {
+    return null;
+  }
+
+  const verification = candidate.verification as Record<string, unknown>;
+  if (verification.status !== 'VERIFIED' || verification.method !== 'PROVIDER_ASSERTION' ||
+      !nonBlank(verification.issuer) || !nonBlank(verification.evidenceId) ||
+      !nonBlank(verification.verifiedAt) || !nonBlank(verification.expiresAt)) {
+    return null;
+  }
+
+  const verifiedAt = Date.parse(verification.verifiedAt);
+  const expiresAt = Date.parse(verification.expiresAt);
+  if (!Number.isFinite(verifiedAt) || !Number.isFinite(expiresAt) ||
+      verifiedAt > now || expiresAt <= now || expiresAt <= verifiedAt) {
+    return null;
+  }
+
+  return {
+    principalId: candidate.principalId.trim(),
+    verification: {
+      status: 'VERIFIED',
+      method: 'PROVIDER_ASSERTION',
+      issuer: verification.issuer.trim(),
+      evidenceId: verification.evidenceId.trim(),
+      verifiedAt: new Date(verifiedAt).toISOString(),
+      expiresAt: new Date(expiresAt).toISOString(),
+    },
+  };
+}
 
 function evaluateGrant(grant: Grant, intent: Intent, now: number): ProfessionalShareReadDecision {
   if (!Number.isFinite(now)) return unavailable('AUTHORITY_UNAVAILABLE');
@@ -137,10 +205,11 @@ export function createProfessionalShareAccessChecker(
     }
 
     try {
-      const recipient = await authority.resolveVerifiedRecipient();
-      if (!recipient || typeof recipient.principalId !== 'string' || !recipient.principalId.trim()) {
-        return audited(deny('RECIPIENT_MISMATCH'));
-      }
+      const rawRecipient = await authority.resolveVerifiedRecipient();
+      if (rawRecipient == null) return audited(deny('RECIPIENT_MISMATCH'));
+      const recipient = parseVerifiedProfessionalRecipient(rawRecipient, clock());
+      if (!recipient) return audited(unavailable('RECIPIENT_VERIFICATION_NOT_READY'));
+
       const rawGrant = await authority.readGrant(intent.grantId, intent.dogId);
       if (rawGrant == null) return audited(deny('GRANT_NOT_FOUND'));
       const stored = ProfessionalShareAccessRecordSchema.safeParse(rawGrant);
@@ -154,8 +223,12 @@ export function createProfessionalShareAccessChecker(
         return audited(deny('OWNER_AUTHORITY_MISMATCH'));
       }
       const decision = await audited(evaluateGrant(grant, intent, clock()));
-      // A slow audit must not authorize access after the grant expires.
+      // Slow provider/audit work must not leave stale recipient evidence or an
+      // expired grant authorized after the durable decision was recorded.
       if (decision.allowed) {
+        if (!parseVerifiedProfessionalRecipient(rawRecipient, clock())) {
+          return audited(unavailable('RECIPIENT_VERIFICATION_NOT_READY'));
+        }
         const afterAudit = evaluateGrant(grant, intent, clock());
         if (!afterAudit.allowed) return audited(afterAudit);
       }

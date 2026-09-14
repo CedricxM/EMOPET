@@ -141,7 +141,17 @@ test('professional recipient read rechecks authority before publication', {
     dataFrom: '2026-09-02T00:00:00.000Z',
     dataTo: '2026-09-07T00:00:00.000Z',
   };
-  const resolveRecipient = async () => ({ principalId });
+  const resolveRecipient = async () => ({
+    principalId,
+    verification: {
+      status: 'VERIFIED',
+      method: 'PROVIDER_ASSERTION',
+      issuer: 'fixture-professional-idp',
+      evidenceId: `fixture-${principalId}`,
+      verifiedAt: '2026-09-01T00:00:00.000Z',
+      expiresAt: '2200-01-01T00:00:00.000Z',
+    },
+  });
 
   await t.test('publishes only the scope whitelist after a final durable check', async () => {
     await clearAudits();

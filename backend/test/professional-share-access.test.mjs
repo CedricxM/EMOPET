@@ -32,15 +32,29 @@ function intent() {
   };
 }
 
+function verifiedRecipient(principalId = 'professional-a') {
+  return {
+    principalId,
+    verification: {
+      status: 'VERIFIED',
+      method: 'PROVIDER_ASSERTION',
+      issuer: 'fixture-professional-idp',
+      evidenceId: 'fixture-evidence-1',
+      verifiedAt: '2026-09-09T11:00:00.000Z',
+      expiresAt: '2026-09-10T13:00:00.000Z',
+    },
+  };
+}
+
 // Synthetic adapters exercise the policy only. They are not persistence,
 // recipient-verification or audit-durability evidence.
 function fixture() {
-  const state = { grant: grant(), principalId: 'professional-a', ownerCurrent: true, now: NOW };
+  const state = { grant: grant(), recipient: verifiedRecipient(), ownerCurrent: true, now: NOW };
   const reads = [];
   const audits = [];
   const authority = {
     async readGrant(...args) { reads.push(args); return state.grant; },
-    async resolveVerifiedRecipient() { return state.principalId ? { principalId: state.principalId } : null; },
+    async resolveVerifiedRecipient() { return state.recipient; },
     async hasCurrentOwnerAuthority(userId, dogId) {
       return state.ownerCurrent && userId === 'owner-a' && dogId === DOG_ID;
     },
@@ -68,7 +82,7 @@ test('valid authority returns only the requested projection and a sanitized poli
     status: 'AUTHORIZED', reason: 'ACTIVE_GRANT',
   }]);
   const exposed = JSON.stringify({ result, audits: f.audits });
-  for (const forbidden of ['never-return', 'owner-a', 'professional-a', 'displayName', 'tokenId']) {
+  for (const forbidden of ['never-return', 'owner-a', 'professional-a', 'displayName', 'tokenId', 'fixture-evidence']) {
     assert.equal(exposed.includes(forbidden), false);
   }
 });
@@ -90,10 +104,29 @@ test('rejects malformed or widened intent before calling authority adapters', as
 });
 
 test('recipient identity must be server-verified, bound and current', async () => {
-  for (const principalId of [null, '', '   ', 'professional-b', 'owner-a']) {
-    const f = fixture(); f.state.principalId = principalId;
+  const absent = fixture(); absent.state.recipient = null;
+  assert.equal((await absent.check(intent())).reason, 'RECIPIENT_MISMATCH');
+
+  for (const principalId of ['professional-b', 'owner-a']) {
+    const f = fixture(); f.state.recipient = verifiedRecipient(principalId);
     assert.equal((await f.check(intent())).reason, 'RECIPIENT_MISMATCH');
   }
+
+  for (const recipient of [
+    { principalId: 'professional-a' },
+    verifiedRecipient(''),
+    { ...verifiedRecipient(), verification: { ...verifiedRecipient().verification, status: 'PENDING' } },
+    { ...verifiedRecipient(), verification: { ...verifiedRecipient().verification, evidenceId: '' } },
+    { ...verifiedRecipient(), verification: { ...verifiedRecipient().verification, expiresAt: '2026-09-09T12:00:00.000Z' } },
+    { ...verifiedRecipient(), verification: { ...verifiedRecipient().verification, verifiedAt: '2026-09-09T13:00:00.000Z' } },
+  ]) {
+    const f = fixture(); f.state.recipient = recipient;
+    const result = await f.check(intent());
+    assert.equal(result.status, 'UNAVAILABLE');
+    assert.equal(result.reason, 'RECIPIENT_VERIFICATION_NOT_READY');
+    assert.equal(f.reads.length, 0, 'invalid provider evidence must fail before durable grant reads');
+  }
+
   const emailOnly = fixture();
   emailOnly.state.grant.recipient = { displayName: 'Recipient', type: 'VETERINARIAN', email: 'vet@example.test' };
   assert.equal((await emailOnly.check(intent())).reason, 'RECIPIENT_POLICY_NOT_READY');
@@ -143,6 +176,20 @@ test('expiry is exclusive and evaluated again after asynchronous audit', async (
   };
   assert.equal((await slow.check(intent())).reason, 'GRANT_EXPIRED');
   assert.equal(slow.audits.at(-1).status, 'DENIED');
+});
+
+test('recipient verification expiry is re-evaluated after asynchronous audit', async () => {
+  const f = fixture();
+  f.state.recipient.verification.expiresAt = '2026-09-09T12:01:00.000Z';
+  f.authority.recordDecision = async (event) => {
+    f.audits.push(event);
+    if (event.status === 'AUTHORIZED') f.state.now = Date.parse('2026-09-09T12:01:00.000Z');
+    return true;
+  };
+  const result = await f.check(intent());
+  assert.equal(result.status, 'UNAVAILABLE');
+  assert.equal(result.reason, 'RECIPIENT_VERIFICATION_NOT_READY');
+  assert.equal(f.audits.at(-1).reason, 'RECIPIENT_VERIFICATION_NOT_READY');
 });
 
 test('rejects purpose, scope and data-window widening independently of expiry', async () => {

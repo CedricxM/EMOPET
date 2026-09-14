@@ -88,9 +88,21 @@ test('professional share policy reloads durable grant state and records sanitize
     dataTo: '2026-09-08T00:00:00Z',
   };
 
-  const authority = createProfessionalShareDbAuthority(async () => ({
-    principalId: professionalPrincipalId,
-  }));
+  const verifiedRecipient = (principalId) => ({
+    principalId,
+    verification: {
+      status: 'VERIFIED',
+      method: 'PROVIDER_ASSERTION',
+      issuer: 'fixture-professional-idp',
+      evidenceId: `fixture-${principalId}`,
+      verifiedAt: '2026-09-10T11:00:00.000Z',
+      expiresAt: '2099-01-01T00:00:00.000Z',
+    },
+  });
+
+  const authority = createProfessionalShareDbAuthority(async () => (
+    verifiedRecipient(professionalPrincipalId)
+  ));
   const check = createProfessionalShareAccessChecker(authority, () => policyNow);
 
   try {
@@ -100,9 +112,9 @@ test('professional share policy reloads durable grant state and records sanitize
     assert.equal(authorized.reason, 'ACTIVE_GRANT');
     assert.deepEqual(authorized.scopes, ['VETERINARY_SUMMARY']);
 
-    const wrongRecipientAuthority = createProfessionalShareDbAuthority(async () => ({
-      principalId: `other-${randomUUID()}`,
-    }));
+    const wrongRecipientAuthority = createProfessionalShareDbAuthority(async () => (
+      verifiedRecipient(`other-${randomUUID()}`)
+    ));
     const wrongRecipient = await createProfessionalShareAccessChecker(
       wrongRecipientAuthority,
       () => policyNow,
@@ -144,6 +156,7 @@ test('professional share policy reloads durable grant state and records sanitize
       assert.equal(row.event, 'PROFESSIONAL_SHARE_POLICY_DECISION');
       assert.equal(JSON.stringify(row).includes(professionalPrincipalId), false);
       assert.equal(JSON.stringify(row).includes('vet@example.test'), false);
+      assert.equal(JSON.stringify(row).includes('fixture-professional-idp'), false);
     }
 
     const missingAudits = await db
