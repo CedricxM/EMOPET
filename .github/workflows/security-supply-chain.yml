@@ -9,7 +9,6 @@ on:
 permissions:
   contents: read
   pull-requests: read
-  security-events: write
 
 env:
   TURBO_TELEMETRY_DISABLED: '1'
@@ -140,16 +139,10 @@ jobs:
           SEMGREP_EXIT: ${{ steps.semgrep.outputs.exit_code }}
         run: test "$SEMGREP_EXIT" -eq 0
 
-  codeql:
-    name: CodeQL JavaScript/TypeScript (best effort)
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: github/codeql-action/init@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
-        with:
-          languages: javascript-typescript
-      - uses: github/codeql-action/analyze@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
+  # CodeQL analysis is intentionally not run from this workflow.
+  # GitHub CodeQL default setup is the analysis owner for this repository.
+  # Running github/codeql-action init/analyze here creates an advanced/default
+  # setup collision and GitHub rejects the submitted SARIF after analysis.
 
   sbom:
     name: Generate CycloneDX/SPDX SBOM
