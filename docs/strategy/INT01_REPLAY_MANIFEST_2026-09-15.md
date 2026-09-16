@@ -359,11 +359,17 @@ printed these **blocking** high-severity advisories:
 
 | Module | GHSA | Path | Patched |
 |---|---|---|---|
-| `@xmldom/xmldom` | `GHSA-c7q8-3ch8-vqpv`, `GHSA-27p8-2357-5qqv`, `GHSA-8344-3jmq-59r6`, `GHSA-x4fp-j954-r2f4`, `GHSA-965w-775f-mr7g`, `GHSA-93r5-fhx6-vmg9` (+ one requiring ≥0.8.14) | `apps__mobile>expo>@expo/cli>@expo/plist>@xmldom/xmldom` | ≥0.8.15 |
+| `@xmldom/xmldom` (8 advisories) | needing ≥0.8.14: `GHSA-w2rr-34g9-rvrj`, `GHSA-4w3w-2rp5-g8jm` · needing ≥0.8.15: `GHSA-c7q8-3ch8-vqpv`, `GHSA-27p8-2357-5qqv`, `GHSA-8344-3jmq-59r6`, `GHSA-x4fp-j954-r2f4`, `GHSA-965w-775f-mr7g`, `GHSA-93r5-fhx6-vmg9` | `apps__mobile>expo>@expo/cli>@expo/plist>@xmldom/xmldom` | ≥0.8.15 covers all 8 |
 | `sharp` | `GHSA-rgj7-g3m4-5g8c` | `apps__web>next>sharp` | ≥0.35.4 |
 | `js-yaml` | `GHSA-2883-xcg3-v3hh` | `apps__mobile>expo>@expo/cli>@expo/xcpretty>js-yaml` | ≥4.3.2 |
 
 and accepted the two path-bounded, expiring `image-size` exceptions.
+
+*Enumeration note:* the initial draft of this table listed six `@xmldom/xmldom` advisories plus
+"one requiring ≥0.8.14", from a truncated log tail. The complete set is **eight**, fully
+enumerated above, confirmed on run `35056526071` job `104667780589`. The remediation is
+unchanged — the single override `@xmldom/xmldom: 0.8.15` closes all eight — so no disposition,
+slice assignment or Step 0 content changes. Corrected for evidence accuracy.
 
 **The remediation is not in `package.json`.** `package.json` is byte-identical between `main` and
 the candidate — same scripts (minus the nine audit scripts), same `devDependencies`, same
