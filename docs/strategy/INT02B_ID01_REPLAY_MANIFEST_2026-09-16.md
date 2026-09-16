@@ -626,3 +626,47 @@ dependency or runtime file, and did not modify #249, #254 or #255. It establishe
 migration, security, scientific, physical or release authority. The `NO ACTION` finding in §12.2 is
 evidence about this repository's generated DDL on the candidate head — it is not a claim that any
 deletion *policy* has been decided; that remains PRIV-01 #69.
+
+---
+
+### 12.8 `G-ID-01-MIGRATION` relocated to repository-wide gate #258 — 2026-09-16
+
+Recorded after §12.3 was written. §12.3 is left intact; this subsection supersedes its *status*, not
+its analysis.
+
+**What changed.** The project owner opened **#258 — "P0 DB: define active migration ledger authority
+for integration slices"**, `G-DB-MIGRATION-LEDGER = OPEN`, and stated on #256 that the migration
+numbering question moves there. Verified directly against issue #258, not from the comment alone.
+
+**Disposition.** `G-ID-01-MIGRATION` is **no longer an INT-02B gate**. It is subsumed by
+`G-DB-MIGRATION-LEDGER` (#258), which correctly scopes it as an integration-ledger authority problem
+rather than an ID-01 implementation defect. #258's *Trigger* section adopts the four §12.3 findings
+verbatim as its evidence base: 0013's independence from 0006–0012, its 0003/0004 table lineage, the
+false-lineage problem, the 0006 collision, and the structural unavailability of the `0000c` draft
+precedent.
+
+**Interim rule now binding on INT-02B** (quoted from #258, *Interim rule while OPEN*):
+
+- do not replay `0013_eli_canonical_identity.sql` unchanged onto a chain ending at `0005`;
+- do not opportunistically renumber it to `0006`;
+- **do not invent a new ALTER-draft convention inside INT-02B**;
+- preserve its SQL/provenance as evidence only;
+- future DB slices must explicitly identify whether they introduce an active migration or only
+  fresh-baseline schema authority.
+
+**Effect on §12.3's two options.** Option **(a)** (provenance-only until the ledger closes) is now
+the binding interim rule. Option **(b)** (a new draft directory for ALTER deltas) is **explicitly
+prohibited inside INT-02B** and relocated to #258 *Decision 3*, where it belongs — a repository-wide
+convention was never INT-02B's to create. The §12.3 recommendation therefore stands, but it is no
+longer presented here as an open choice awaiting a decision.
+
+**Effect on the replay matrix.** §3 row 5 (`0013_eli_canonical_identity.sql`) changes disposition
+from `OPEN GATE` to **`EVIDENCE ONLY — provenance preserved, blocked by #258`**. The blob
+(`470a5811a8e0bfef44dc2d09cb158f0ef0c1f7ff`, commit `babadd9`) remains the provenance record, which
+satisfies #258 *Decision 2*'s requirement that provenance survive any later renumbering.
+
+**Effect on §12.5.** Sub-gate **E4** (existing-database migration) keeps its owner as a human
+decision, now precisely located: **#258**, not INT-02B and not #70.
+
+**Unchanged.** No file in `backend/db/` is touched by this record; nothing is replayed, renumbered
+or promoted. The §8 three-file boundary is unaffected — it never contained a migration.
