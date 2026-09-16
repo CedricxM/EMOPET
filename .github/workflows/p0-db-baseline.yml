@@ -19,6 +19,7 @@ on:
       - 'backend/api/routes/community.ts'
       - 'backend/api/services/community-*.ts'
       - 'backend/test/auth-*.test.mjs'
+      - 'backend/test/*.integration.test.mjs'
       - 'backend/test/dog-crud.integration.test.mjs'
       - 'backend/test/professional-share-*.test.mjs'
       - 'backend/test/sensor-runtime.integration.test.mjs'
