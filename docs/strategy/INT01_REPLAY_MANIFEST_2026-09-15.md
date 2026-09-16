@@ -93,8 +93,19 @@ The four `p0-db-*` jobs did not run: their `on.pull_request.paths` filters did n
 docs-only change.
 
 **Consequence for INT-01:** `main`'s "Security supply chain" workflow is **red today, on `main`'s
-own content, for three independent reasons.** Any INT-01 replay branch inherits all three unless
-they are addressed. This is the single most important planning fact in this manifest.
+own content, for at least two deterministic reasons.** Any INT-01 replay branch inherits them
+unless they are addressed. This is the single most important planning fact in this manifest.
+
+**Reproduced independently (added after initial drafting).** This manifest's own PR (#254, head
+`86c13bc0bc01116f39b3178387e06fffaeece3c5`, a one-Markdown-file diff from `main`) produced run
+`35056251880`: `dependency-audit` `104666962583` **FAILURE** with the identical blocking advisory
+set, and `CodeQL JavaScript/TypeScript (best effort)` `104666962723` **FAILURE** with the
+byte-identical configuration-conflict error. Everything else was green.
+
+That third run also **corrects the SBOM row above**: `Generate CycloneDX/SPDX SBOM` `104666962821`
+**passed** on this `main`-derived head with the same action pin. The SBOM failure on the #247 head
+was therefore transient rather than a standing `main` defect (§9), so `main`'s standing failure set
+is **two**, not three. `dependency-audit` and the legacy `codeql` job are the deterministic ones.
 
 ---
 
@@ -157,7 +168,7 @@ dispositions and must not be replayed as one unit.
 |---|---|
 | Change between main and candidate | **None.** `git diff` shows no hunk touching these jobs. |
 | Candidate commits | n/a — byte-identical at both SHAs |
-| **Disposition** | **EVIDENCE_ONLY** — nothing to replay. `dependency-audit` is red on `main` because of *lockfile content*, not workflow content (§7.1). The SBOM job is red on `main` for an *external* reason (§9). |
+| **Disposition** | **EVIDENCE_ONLY** — nothing to replay. `dependency-audit` is red on `main` because of *lockfile content*, not workflow content (§7.1). The SBOM job failed once for an *external* reason and has since passed twice on the same pin (§9). |
 
 #### 5.1.5 Job `codeql` — legacy advanced path → managed-evidence verification
 
@@ -524,9 +535,21 @@ CodeQL default setup is **enabled**, with `actions`, `c-cpp`, `javascript-typesc
 Evidence: the four named managed jobs above, plus GitHub's rejection message which asserts default
 setup is enabled.
 
+**Corroborated on a `main`-derived head (added after initial drafting).** This manifest's own PR
+(#254, head `86c13bc0bc01116f39b3178387e06fffaeece3c5`, a one-Markdown-file diff from `main`)
+produced managed run `35056246000` with the same four language jobs — `Analyze (actions)`
+`104666947212`, `Analyze (c-cpp)` `104666947022`, `Analyze (python)` `104666947220`,
+`Analyze (javascript-typescript)` `104666947239` — **all success**, while the legacy advanced job
+`104666962723` on the same head failed with the byte-identical configuration-conflict error.
+
+This establishes two things that candidate-head evidence alone could not: default setup is enabled
+with the **same four languages** for `main`-derived branches, and the legacy path's conflict is not
+specific to candidate content. It does **not** establish the remaining items below.
+
 **UNKNOWN from repository evidence:**
 - when default setup was enabled, and by whom;
-- whether its language selection is identical for `main`-based branches and PR-head branches;
+- whether the language selection is stable over time, or differs for `push` events on `main`
+  (only `pull_request` heads have been observed);
 - whether `CodeQL JavaScript/TypeScript` is configured as a **required** status check on `main`
   (branch-protection settings are not in git and were not queried);
 - whether managed CodeQL is configured to run on `push` to `main` as well as on `pull_request`.
@@ -697,7 +720,7 @@ Ordered. Each step is independently reviewable. Nothing here is applied by this 
 | Replay | `pnpm-workspace.yaml` hunks from `fa756ca`, `629801d`, `f93e874`, `b4390be` (workspace hunk only), `f6d1a3a`, `90ebdb5`; then `pnpm-lock.yaml` from `776b45c` and `63f21eb` |
 | **Do not replay** | `b4390be`'s `backend/test/**` hunks; `.github/workflows/lockfile-refresh.yml` (`SUPERSEDED`, §5.8) |
 | Verification before push | `pnpm install --frozen-lockfile` must succeed **locally**, then `node tools/security/evaluate-pnpm-audit.mjs` must report zero blocking advisories |
-| Rationale | Without this, three jobs are red and every later step is unmeasurable (§7.1) |
+| Rationale | Without this, `dependency-audit` stays red and every later step is unmeasurable (§7.1) |
 | Risk | Highest-risk step in INT-01: it changes the resolved dependency graph. The candidate proves these exact overrides resolve — but on candidate content, not on `main` content. |
 
 ### Step 1 — CodeQL alignment
@@ -768,7 +791,7 @@ These runs are evidence **about `7e0d90445a3cf03b094d7037aa6addbfa6f2cc19` only*
 | GitHub-managed CodeQL | `34870076326` | success | Yes — 4/4 language jobs success |
 
 **These are not evidence that `main` is green, that any replay will be green, or that any control
-works on `main` content.** §4.1 shows `main`'s own posture is red on three counts.
+works on `main` content.** §4.1 shows `main`'s own posture is red on two deterministic counts.
 
 ### 13.2 Required on the INT-01 replay head
 
@@ -806,7 +829,7 @@ This record does **not** claim, and must not be cited as claiming:
 1. That any change is approved for merge. Everything here is `DRAFT / UNMERGED / NOT RELEASE AUTHORITY`.
 2. That PR #224 is safe to merge. Issue #246 forbids it; nothing here relaxes that.
 3. That the INT-01 replay set will pass CI. No replay has been executed or validated.
-4. That `main` is currently green. §4.1 proves the opposite on three counts.
+4. That `main` is currently green. §4.1 proves the opposite on two deterministic counts.
 5. That the candidate's green runs transfer to `main`. They do not (§13.1).
 6. That zero CodeQL alerts means the code is secure. It means one tool found nothing open at one
    commit, with that tool's suite and limits.
@@ -837,7 +860,7 @@ This record does **not** claim, and must not be cited as claiming:
 
 | # | Unknown |
 |---|---|
-| U1 | When CodeQL default setup was enabled, by whom, and whether its language list is identical for `main` and for PR heads |
+| U1 | When CodeQL default setup was enabled and by whom. **Partially resolved** (§8.6): the same four languages are confirmed green on a `main`-derived PR head, run `35056246000`. Stability over time, and behaviour on `push` to `main`, remain UNKNOWN. |
 | U2 | Whether `CodeQL JavaScript/TypeScript` is a **required** status check on `main` (branch protection not in git, not queried) |
 | U3 | Whether managed CodeQL runs on `push` to `main`, or only on `pull_request` |
 | U4 | Default setup's query suite (`default` vs `security-extended`) and whether it matches the legacy advanced configuration's effective coverage for `javascript-typescript` |
@@ -888,6 +911,10 @@ the full name adopted only when all nine steps land. **Confirm naming.**
 |---|---|---|
 | Run `34870082065`, jobs `104063518593`–`104063519031` | 9/9 security jobs green on candidate head | §13.1 |
 | Run `34870076326`, jobs `104063499028`/`104063499420`/`104063499435`/`104063499634` | 4/4 managed CodeQL language jobs green on candidate head | §8.4, §13.1 |
+| Run `35056246000`, jobs `104666947212`/`104666947022`/`104666947220`/`104666947239` | 4/4 managed CodeQL language jobs green on a **`main`-derived** head | §8.6, U1 |
+| Run `35056251880`, job `104666962723` | legacy CodeQL fails with the identical configuration conflict on a `main`-derived head | §8.6 |
+| Run `35056251880`, job `104666962583` | `main` dependency gate blocking reproduced on a second `main`-derived head | §4.1, §7.1 |
+| Run `35056251880`, job `104666962821` | SBOM **green** on a `main`-derived head, same action pin — third data point for the transient finding | §9.3 |
 | Run `34954885132`, job `104334429358` | Legacy CodeQL rejected: default setup conflict, `configuration error` | §8.2, §8.3 |
 | Run `34954885132`, job `104334429405` | SBOM: HTTP 500 on GitHub release asset, Syft install failed | §9.1, §9.2 |
 | Run `34954885132`, job `104334429273` | `main` dependency gate blocking on xmldom/sharp/js-yaml | §7.1 |
