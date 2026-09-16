@@ -45,7 +45,15 @@ export interface PreInferenceHook {
   execute: (ctx: InferenceContext) => PreInferenceResult;
 }
 
-export interface InferenceResult {
+/**
+ * Engine-local candidate passed to post-inference hooks.
+ *
+ * This is intentionally not named `InferenceResult`: the cross-surface
+ * transport/domain `InferenceResult` is owned by `@emopet/shared`. This type
+ * contains only the intermediate fields required by the hook pipeline and is
+ * not an API/mobile/web persistence contract.
+ */
+export interface PostInferenceCandidate {
   confidence: number;
   eli_score: number;
   components: Record<string, number>;
@@ -61,7 +69,7 @@ export interface PostInferenceResult {
 export interface PostInferenceHook {
   id: string;
   priority: number;
-  execute: (result: InferenceResult, ctx: InferenceContext) => PostInferenceResult;
+  execute: (result: PostInferenceCandidate, ctx: InferenceContext) => PostInferenceResult;
 }
 
 // ─── Pre-Inference Hooks (Context Vetoes) ───────────────────────────
@@ -223,7 +231,7 @@ export function runPreInferenceHooks(
 }
 
 export function runPostInferenceHooks(
-  result: InferenceResult,
+  result: PostInferenceCandidate,
   ctx: InferenceContext,
   hooks: PostInferenceHook[] = POST_INFERENCE_HOOKS,
 ): HookPipelineResult {
