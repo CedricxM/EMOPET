@@ -903,6 +903,39 @@ This record does **not** claim, and must not be cited as claiming:
 15. That green CI proves product, scientific, physical or legal validity. Per `CLAUDE.md`:
     code present ≠ physical proof; synthetic test ≠ bench validation; bench ≠ animal validation.
 
+### 14.1 What PR #249's green exact-head evidence does NOT prove
+
+Added with the §16 reconciliation. #249 being green is now the most over-readable fact in this
+document, so its limits are stated as explicitly as the rest.
+
+Two boundaries govern everything below:
+
+> **candidate evidence ≠ promoted `main` state**
+>
+> **green CI ≠ release authority**
+
+A green exact head on #249 does **not** establish:
+
+1. production security, or the absence of vulnerabilities — it establishes that the configured
+   gates passed on one commit, with those tools' suites and limits;
+2. that `main` is or will be green. #249 is DRAFT and UNMERGED; stage 2 of Q3 (fresh post-merge
+   verification of `main`) is untested by construction;
+3. physical-device, MAT/TAG hardware, scientific or animal validity — no such evidence exists in
+   any CI run cited here;
+4. legal clearance or third-party rights clearance;
+5. CRA operational or human readiness. #248 places CRA human readiness out of INT-01 scope
+   entirely (Q6);
+6. branch-protection correctness, which remains unverified — sharpened by the check-name
+   divergence in §16.3 (**U2**);
+7. that PR #224 is safe to merge. #246's freeze is unchanged by anything in this record;
+8. release or production readiness, or any merge authorisation. Both #249 and #254 remain
+   `DRAFT / UNMERGED / NOT RELEASE AUTHORITY`.
+
+The two remaining HIGH advisories on #249 are **explicit, path-bounded, expiring risk
+acceptances** (`GHSA-w3rx-r6r6-pgpr`, `GHSA-5p2g-fcmc-qvqq`, expiring
+`2026-11-30T23:59:59Z`) — they are **not** claimed as fixed, and they begin blocking after that
+date with no code change (§5.6, **U7**).
+
 ---
 
 ## 15. Unknowns and questions requiring human decision
@@ -1026,6 +1059,7 @@ mention, it is recorded too (§16.3).
 | Focused changed-file boundary | PR API | 5 files, 6 commits, +568/−202 |
 | Security supply chain run `35014465139` PASS | run + job API | `conclusion: success`, **7/7 jobs success** |
 | Managed CodeQL run `35014460005` PASS | run API | `conclusion: success`, `path: dynamic/github-code-scanning/codeql`, `head_sha` matches |
+| All four managed CodeQL languages pass | jobs API, verified individually | `Analyze (actions)` `104534259376`, `Analyze (c-cpp)` `104534259333`, `Analyze (javascript-typescript)` `104534259369`, `Analyze (python)` `104534259038` — 4/4 success, each with `Perform CodeQL Analysis` successful on `21cf495c…`. Checked per-job rather than inferred from the run-level conclusion, since Q1's fail-closed decision rests on the four-language set specifically. |
 | 0 open CodeQL alerts | job `104534273287` | verifier step success; the verifier fails closed on any open alert, so success *is* the evidence |
 | Dependency audit HIGH 2 / CRITICAL 0 / blocking 0 | job `104534273182` log | `Dependency vulnerability gate: PASS`, two accepted `image-size` exceptions, no blocking list |
 | CycloneDX + SPDX both pass | job `104534273160` | both Syft steps success, artifact uploaded |
@@ -1083,6 +1117,7 @@ All six §15 questions are now resolved. Still open:
 | Run `35014465139`, job `104534273160` | CycloneDX + SPDX both pass on #249's head | §9.3, Q4 |
 | Run `35014465139`, job `104534273287` | managed-CodeQL evidence verifier passes fail-closed | §16.2 |
 | Run `35014460005` | managed CodeQL success on `21cf495c…`, `pr=249` | §16.2, Q1 |
+| Run `35014460005`, jobs `104534259376`/`104534259333`/`104534259369`/`104534259038` | 4/4 managed CodeQL languages (`actions`, `c-cpp`, `javascript-typescript`, `python`) pass on #249's exact head | §16.2, Q1 |
 | Issue #248 | INT-01 scope = CodeQL + dependency + SBOM; CRA human readiness is Non-scope | Q6, §11 Step 3 |
 | Run `34954885132`, job `104334429358` | Legacy CodeQL rejected: default setup conflict, `configuration error` | §8.2, §8.3 |
 | Run `34954885132`, job `104334429405` | SBOM: HTTP 500 on GitHub release asset, Syft install failed | §9.1, §9.2 |
