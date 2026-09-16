@@ -12,13 +12,15 @@ blockExoticSubdeps: true
 trustPolicy: no-downgrade
 # Exact provenance-gap exceptions used only while regenerating this controlled
 # lock baseline. semver@6.3.1 is required by Babel's legacy 6.x range.
-# undici-types@6.21.0 and eslint-import-resolver-typescript@3.10.1 are already
-# present in the pre-INT-01 lockfile; pnpm flags them only when it re-resolves
-# the full graph. Keep every exception exact rather than weakening trust checks.
+# undici-types@6.21.0, eslint-import-resolver-typescript@3.10.1 and
+# ua-parser-js@1.0.41 are already present in the pre-INT-01 lockfile; pnpm flags
+# them only when it re-resolves the full graph. Keep every exception exact rather
+# than weakening trust checks globally.
 trustPolicyExclude:
   - semver@6.3.1
   - undici-types@6.21.0
   - eslint-import-resolver-typescript@3.10.1
+  - ua-parser-js@1.0.41
 minimumReleaseAgeExclude:
   - fast-uri@3.1.7
   - browserslist@4.28.7
