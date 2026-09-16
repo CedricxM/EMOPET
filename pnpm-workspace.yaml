@@ -12,12 +12,13 @@ blockExoticSubdeps: true
 trustPolicy: no-downgrade
 # Exact provenance-gap exceptions used only while regenerating this controlled
 # lock baseline. semver@6.3.1 is the known permanent legacy Babel exception.
-# The other exact versions below already exist in the pre-INT-01 lockfile and
-# are admitted only so pnpm can re-resolve that controlled graph; they will be
-# removed again after the lockfile is regenerated.
+# semver@5.7.2 and the other exact versions below already exist in the
+# pre-INT-01 lockfile and are admitted only so pnpm can re-resolve that
+# controlled graph; temporary entries will be removed after lock regeneration.
+# pnpm selectors for multiple versions of the same package belong in one
+# disjunction entry.
 trustPolicyExclude:
-  - semver@6.3.1
-  - semver@5.7.2
+  - 'semver@5.7.2 || 6.3.1'
   - undici-types@6.21.0
   - eslint-import-resolver-typescript@3.10.1
   - ua-parser-js@1.0.41
