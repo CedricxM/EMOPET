@@ -385,10 +385,11 @@ fast-uri: 3.1.5 → 3.1.7
 minimumReleaseAgeExclude: [js-yaml@4.3.1] → [fast-uri@3.1.7, browserslist@4.28.7]
 ```
 
-**Direct evidence that lockfile-only replay fails.** The in-flight INT-01 branch
-`chore/int-01-security-baseline-2026-09-15` (PR #249) replayed `776b45c` and then `63f21eb` as
-lockfile-only commits. Result, run `34957448675`, head `921928d8c383b1f370f9de4d5734e1cf7e217e36`,
-`2026-09-15T10:21:03Z`:
+**Direct evidence that lockfile-only replay fails.** *Historical — 2026-09-15 morning. See the
+resolution note at the end of this subsection for the current state of PR #249.* The INT-01 branch
+`chore/int-01-security-baseline-2026-09-15` (PR #249) at that time replayed `776b45c` and then
+`63f21eb` as lockfile-only commits. Result, run `34957448675`, head
+`921928d8c383b1f370f9de4d5734e1cf7e217e36`, `2026-09-15T10:21:03Z`:
 
 - job `104342811266` `dependency-audit` — step `Install exact locked dependency graph`
   (`pnpm install --frozen-lockfile`) **FAILURE**;
@@ -403,6 +404,16 @@ lockfile without the paired overrides produces a lockfile that does not satisfy
 failure into a *meaningless* install failure — strictly worse, because the audit no longer runs at
 all. This is recorded as a finding, not as an instruction to edit either file; neither
 `package.json` nor `pnpm-lock.yaml` was touched by this record.
+
+**Resolved on 2026-09-15 evening — PR #249 is no longer failing.** #249 subsequently reconciled
+`pnpm-workspace.yaml` and `pnpm-lock.yaml` atomically, replaying each lockfile commit only after
+verifying its parent lock blob matched the target state, and aligned the workspace overrides to the
+15 September advisory floors (`@xmldom/xmldom` `0.8.15`, `sharp` `0.35.4`, `js-yaml` `4.3.2`,
+`fast-uri` `3.1.7`, `browserslist` `4.28.7`). On head `21cf495c517a292bea072fde7b8ea4e6d558ac00`,
+frozen-lockfile install, the dependency gate and the full regression job all pass
+(run `35014465139`). The three failing runs above are **historical evidence for why the atomic
+pairing is required** — they are not the current state of #249, and nothing in this document should
+be read as saying #249 is still failing.
 
 ### 7.2 `authority-gates` coupling, step by step
 
@@ -717,6 +728,13 @@ jobs are red on `main` today for reasons that are **not** in workflow content (�
 
 ## 11. Proposed minimal INT-01 replay set
 
+> **Reconciliation status (added 2026-09-16, see §16).** This section records the replay set
+> *proposed by the forensic pass*. PR #249 has since implemented the INT-01 slice and is green on
+> its exact head. Steps 0 and 1 are **implemented there**; Steps 2 and 3 are **out of INT-01 scope**
+> per issue #248 and the resolved §15 Q6. The per-step analysis is retained as provenance — it is
+> the rationale for what #249 carries and what it deliberately excludes — but it is no longer a
+> to-do list. Current implementation authority is #249, not this section.
+
 Ordered. Each step is independently reviewable. Nothing here is applied by this record.
 
 ### Step 0 — Precondition: unblock `pnpm install --frozen-lockfile`
@@ -728,16 +746,33 @@ Ordered. Each step is independently reviewable. Nothing here is applied by this 
 | Verification before push | `pnpm install --frozen-lockfile` must succeed **locally**, then `node tools/security/evaluate-pnpm-audit.mjs` must report zero blocking advisories |
 | Rationale | Without this, `dependency-audit` stays red and every later step is unmeasurable (§7.1) |
 | Risk | Highest-risk step in INT-01: it changes the resolved dependency graph. The candidate proves these exact overrides resolve — but on candidate content, not on `main` content. |
+| **Status** | **IMPLEMENTED in PR #249** at head `21cf495c517a292bea072fde7b8ea4e6d558ac00`. The risk noted above was discharged on `main` content: `pnpm install --frozen-lockfile` and the dependency gate both pass (run `35014465139`, job `104534273182` — *Dependency vulnerability gate: PASS*, 2 accepted `image-size` exceptions, 0 blocking). |
 
 ### Step 1 — CodeQL alignment
 
 Replay `scripts/security/verify-codeql-default-setup.mjs` and its `.test.mjs` at their `e64b117`
-state; replace the `codeql` job body; apply the permissions change. **Preserve the check name
-`CodeQL JavaScript/TypeScript`.** Delete nothing. Requires the §15 Q1 decision first.
+state; replace the `codeql` job body; apply the permissions change. Delete nothing.
+
+**Status: IMPLEMENTED in PR #249**, which replays both verifier files by exact candidate blob and
+keeps read-only permissions (`actions: read`, `security-events: read`). Verified green: run
+`35014465139` job `104534273287`, plus managed run `35014460005` on the same head.
+
+**Observed divergence, recorded for review.** The forensic pass recommended preserving the check
+name `CodeQL JavaScript/TypeScript`, because candidate commit `5171c5d` preserved it deliberately
+and a renamed check can silently drop a required status check. #249's job is named
+**`CodeQL default setup evidence`**. That is a defensible, more accurate name for what the job now
+does, and the rename is not a defect — but whether any branch-protection rule still references the
+old name is **U2**, which remains UNKNOWN. Worth confirming before INT-01 is promoted.
 
 ### Step 2 — Dependency licence evidence inventory
 
 Replay the `dependency-license-inventory` job at its `9f40a3d` state. No other change.
+
+**Status: NOT IN INT-01.** Issue #248 scopes INT-01 to CodeQL ownership (INT-01A), dependency
+remediation (INT-01B) and SBOM resilience (INT-01C). A licence evidence inventory is none of those.
+The finding stands on its own merits — the job is genuinely independent of product code (§5.1.2) —
+and is available to whichever slice later takes up licence evidence. Do not enlarge a green INT-01
+to absorb it.
 
 ### Step 3 — CRA SRP readiness gate
 
@@ -746,9 +781,19 @@ Replay from `c199d23` + `af4268f`: `scripts/security/cra-srp-readiness-audit.mjs
 `authority-gates` job containing only `cra-srp:audit`. The job name must be honest — the
 candidate's name enumerates nine gate families and would be false with one step.
 
+**Status: NOT IN INT-01 — superseded by resolved §15 Q6.** Issue #248 lists *CRA human readiness*
+under explicit **Non-scope**. The forensic finding is unchanged and remains valuable: `cra-srp:audit`
+is the one `authority-gates` step with zero application-code coupling (§5.4, §7.2), so it is
+replayable whenever its owning slice runs. It is preserved here as **evidence for the dedicated CRA
+work tracked under #239**, not as INT-01 work. Do not add it to a now-green INT-01 implementation.
+
 ### Step 4 — Fresh CI, then stop
 
 Run the full matrix (§13) on the INT-01 head. Do not add scope to reach green.
+
+**Status: SATISFIED for stage 1** (see resolved §15 Q3). Run `35014465139` is green 7/7 on
+`21cf495c517a292bea072fde7b8ea4e6d558ac00`. Stage 2 — `main` green after merge — is untested and
+remains a precondition for promotion, not for acceptance.
 
 ### Explicitly NOT in the minimal set
 
@@ -867,47 +912,158 @@ This record does **not** claim, and must not be cited as claiming:
 | # | Unknown |
 |---|---|
 | U1 | When CodeQL default setup was enabled and by whom. **Partially resolved** (§8.6): the same four languages are confirmed green on a `main`-derived PR head, run `35056246000`. Stability over time, and behaviour on `push` to `main`, remain UNKNOWN. |
-| U2 | Whether `CodeQL JavaScript/TypeScript` is a **required** status check on `main` (branch protection not in git, not queried) |
+| U2 | Whether `CodeQL JavaScript/TypeScript` is a **required** status check on `main` (branch protection not in git, not queried). **Sharper after the reconciliation pass:** PR #249 names its job `CodeQL default setup evidence`, so if the old name is a required check anywhere, the rename must be reflected in branch protection before promotion. Still UNKNOWN. |
 | U3 | Whether managed CodeQL runs on `push` to `main`, or only on `pull_request` |
 | U4 | Default setup's query suite (`default` vs `security-extended`) and whether it matches the legacy advanced configuration's effective coverage for `javascript-typescript` |
 | U5 | Whether the `@xmldom/xmldom` / `sharp` / `js-yaml` override bumps introduce behavioural change in `expo` or `next` on **`main`'s** dependency graph — proven only on candidate content |
 | U6 | Whether Syft's SBOM output covers all pnpm workspace packages correctly |
 | U7 | Whether the `image-size` risk acceptance has an owner and a renewal process before its 2026-11-30 expiry |
-| U8 | Exact relationship between this manifest's INT-01 scope and the in-flight branch `chore/int-01-security-baseline-2026-09-15` / PR #249 (observed failing, runs `34957247090`, `34957354575`, `34957448675`) |
+| U8 | ~~Exact relationship between this manifest's INT-01 scope and PR #249~~ — **RESOLVED 2026-09-16, see §16.** #254 is the forensic record (provenance, rationale, exclusions); #249 is the canonical focused INT-01 implementation candidate carrying exact-head evidence. They are complementary; neither supersedes the other. #249 is DRAFT / OPEN / UNMERGED at head `21cf495c517a292bea072fde7b8ea4e6d558ac00`, green on run `35014465139`. The earlier failing runs `34957247090` / `34957354575` / `34957448675` are historical (§7.1), not current. |
 | U9 | Whether GitHub's release-asset 500 (§9) correlates with a published incident — no status-page evidence was gathered |
 
 ### Questions requiring a human decision
 
-**Q1 — CodeQL language-list coupling.** `requiredJobs` hard-codes four languages. If default setup
-is reconfigured, the gate fails closed on a configuration change. Options: (a) keep hard-coded
-fail-closed; (b) require only `javascript-typescript`, matching the legacy path's actual coverage;
-(c) derive the list from the managed run. **Recommendation: (a)**, since a silent coverage
-reduction is the worse failure mode — but this is a founder/CTO call, and U1–U4 should be resolved
-first.
+> **All six resolved on 2026-09-16** by the PR author, recorded in §16. Each entry below states the
+> decision and keeps the original analysis beneath it, so the reasoning that produced the question
+> stays auditable alongside the answer.
 
-**Q2 — Step 0 sequencing.** The override + lockfile replay is the riskiest part of INT-01 and is
-arguably a dependency change rather than a CI change. Options: (a) include in INT-01, since three
-jobs are red without it; (b) split into its own reviewable PR, INT-01a, with INT-01 depending on
-it. **Recommendation: (b)** — it isolates the only INT-01 change that can alter runtime behaviour,
-and the failure of PR #249 shows this change deserves review on its own.
+**Q1 — CodeQL language-list coupling. RESOLVED 2026-09-16 — option (a).** Keep the verifier
+fail-closed on all four configured languages (`actions`, `c-cpp`, `javascript-typescript`,
+`python`). Rationale of record: a future intentional Default Setup change *should* make the verifier
+fail until the coverage change is explicitly reviewed, rather than silently reducing coverage.
+Supporting evidence: all four managed jobs pass on `main`-derived heads — run `35014460005` (#249)
+and run `35056246000` (#254). U4 (query-suite equivalence) is not resolved by this decision.
 
-**Q3 — Does `main` being red block INT-01 acceptance?** `main` is red on `dependency-audit`,
+*Original analysis, retained:* options were (a) keep hard-coded fail-closed; (b) require only
+`javascript-typescript`, matching the legacy path's actual coverage; (c) derive the list from the
+managed run. The forensic pass recommended (a) for the same reason it was chosen.
+
+**Q2 — Step 0 sequencing. RESOLVED 2026-09-16 — do not split.** Dependency remediation stays
+inside INT-01; no separate INT-01a PR is to be created.
+
+*The forensic pass recommended splitting, and that recommendation is now obsolete.* It rested on
+#249 being unable to reconcile the lockfile — which was true of the 2026-09-15 morning state and is
+no longer true. #249 has since demonstrated that `pnpm-workspace.yaml` and `pnpm-lock.yaml` can be
+reconciled atomically alongside the CodeQL ownership work while preserving frozen-lockfile
+reproducibility and earning fresh green CI (run `35014465139`). Re-splitting work already
+demonstrated green would add process without adding evidence.
+
+**Q3 — Does `main` being red block INT-01 acceptance? RESOLVED 2026-09-16 — two-stage
+definition.**
+
+1. **Technical acceptance:** exact-head PR green, evaluated before any merge decision.
+2. **Promotion effectiveness:** if INT-01 is later promoted, `main` must be re-verified after merge
+   and green post-merge before promotion counts as effective.
+
+PR #249 currently satisfies **stage 1 only** and remains DRAFT / UNMERGED. Stage 2 is untested.
+
+*Original framing, retained:* `main` is red on `dependency-audit`,
 `codeql` and `sbom` today (§4.1). Is INT-01 accepted when it is green on its own head, or must
 `main` be green post-merge? This changes the definition of done. **Needs an explicit decision.**
 
-**Q4 — SBOM installer fragility.** A transient GitHub 500 reds the gate (§9). Options: (a) accept,
-re-run manually; (b) add a bounded retry; (c) pin/vendor the Syft binary by checksum.
-**No recommendation made** — (b) and (c) are themselves supply-chain decisions requiring their own
-review, and the standing instruction forbids weakening the gate. Recorded for decision, not acted
-on.
+**Q4 — SBOM installer fragility. RESOLVED 2026-09-16 — option (a), no change.** Treat the
+Anchore/Syft HTTP 500 as transient evidence unless repetition establishes a deterministic problem.
+Add no custom retry, no vendoring and no weakening now.
 
-**Q5 — Relationship to PR #249.** A branch named for INT-01 already exists and is failing for
-exactly the reason identified in §7.1. Does this manifest supersede it, inform a fix to it, or run
-alongside it? **Coordination decision required before any implementation.**
+Evidence supporting the classification: the same pinned action has passed on every subsequent
+observed run — candidate head (`34870082065`), #249 (`35014465139`, job `104534273160`, both
+CycloneDX and SPDX), and repeatedly on #254's heads (`35056251880`, `35056526071`, `35056656025`).
+One failure, many successes, no configuration difference between them.
 
-**Q6 — `authority-gates` job naming.** Replaying one of nine steps under the candidate's job name
-would misrepresent coverage. Proposal: a distinct, honest name for the INT-01 single-step job, with
-the full name adopted only when all nine steps land. **Confirm naming.**
+*Original framing, retained:* options were (a) accept, re-run manually; (b) add a bounded retry;
+(c) pin/vendor the Syft binary by checksum. (b) and (c) are themselves supply-chain decisions
+requiring their own review; the standing instruction forbids weakening the gate.
+
+**Q5 — Relationship to PR #249. RESOLVED 2026-09-16 — complementary, neither supersedes the
+other.**
+
+| PR | Role |
+|---|---|
+| **#254** (this record) | forensic record: provenance, rationale, dependency coupling, exclusions |
+| **#249** | canonical focused INT-01 implementation candidate, carrying exact-head evidence |
+
+#254 does **not** supersede #249, and #249 does not make #254 redundant: the manifest is what
+explains *why* #249 carries what it carries and excludes what it excludes. Both remain DRAFT.
+
+*The original framing — "a branch named for INT-01 already exists and is failing" — described the
+2026-09-15 morning state and is superseded.* #249 is green on its exact head (§7.1 resolution note,
+§16).
+
+**Q6 — `authority-gates` / CRA. RESOLVED 2026-09-16 — do not add either to INT-01.** The naming
+question is moot because the job is not being added: issue #248 scopes INT-01 to CodeQL ownership,
+dependency remediation and SBOM, and lists *CRA human readiness* under explicit **Non-scope**.
+
+The forensic finding is preserved rather than discarded: `cra-srp:audit` is the single
+`authority-gates` step with no application-code coupling (§5.4, §7.2), which makes it cleanly
+replayable by its owning slice. It is retained as **evidence for the dedicated CRA work tracked
+under #239**. Do not enlarge a now-green INT-01 implementation after acceptance.
+
+*Original framing, retained:* replaying one of nine steps under the candidate's nine-family job name
+would misrepresent coverage, so a single-step job would have needed an honest distinct name.
+
+---
+
+## 16. Reconciliation pass — 2026-09-16
+
+### 16.1 Why this section exists
+
+§15 was written during the forensic pass on 2026-09-15, when PR #249 was failing. #249 advanced the
+same day, which made parts of §15 stale. This pass reconciles the record to the verified current
+state, on request from the PR author (comment `5692236762` on #254), and is **documentation-only**.
+
+Per §4's anti-fabrication rule, none of the state below was transcribed from that request. Every
+claim was re-verified against the GitHub API before being written here. Where the request and the
+primary source agreed, the source is cited; where the pass found something the request did not
+mention, it is recorded too (§16.3).
+
+### 16.2 Verified current state of PR #249
+
+| Claim | Verification | Result |
+|---|---|---|
+| DRAFT / OPEN / UNMERGED | PR API | `state: open`, `draft: true`, `merged: false`, `mergeable_state: clean` |
+| Head `21cf495c517a292bea072fde7b8ea4e6d558ac00` | PR API `head.sha` | confirmed |
+| Base is exact `main` | PR API `base.sha` | `51bfdde694903c7f0e4b759ae8914c1d18f15810` — confirmed |
+| Focused changed-file boundary | PR API | 5 files, 6 commits, +568/−202 |
+| Security supply chain run `35014465139` PASS | run + job API | `conclusion: success`, **7/7 jobs success** |
+| Managed CodeQL run `35014460005` PASS | run API | `conclusion: success`, `path: dynamic/github-code-scanning/codeql`, `head_sha` matches |
+| 0 open CodeQL alerts | job `104534273287` | verifier step success; the verifier fails closed on any open alert, so success *is* the evidence |
+| Dependency audit HIGH 2 / CRITICAL 0 / blocking 0 | job `104534273182` log | `Dependency vulnerability gate: PASS`, two accepted `image-size` exceptions, no blocking list |
+| CycloneDX + SPDX both pass | job `104534273160` | both Syft steps success, artifact uploaded |
+| Issue #248 scopes INT-01 and excludes CRA | issue API | INT-01A/B/C = CodeQL, dependency, SBOM; *CRA human readiness* listed under **Non-scope** |
+
+All ten verified. The `image-size` exceptions remain explicit, path-bounded, expiring risk
+acceptances — not claimed fixes, and they still block after `2026-11-30T23:59:59Z` (§5.6, U7).
+
+### 16.3 Found during verification, not stated in the request
+
+**#249's CodeQL check is named `CodeQL default setup evidence`,** not `CodeQL JavaScript/TypeScript`.
+The forensic pass had recommended preserving the old name because candidate commit `5171c5d`
+preserved it deliberately, specifically so a rename could not silently drop a required status check.
+The new name is more accurate for what the job now does and is not a defect — but it sharpens **U2**:
+if the old name is referenced by any branch-protection rule, that rule needs updating before
+promotion. Recorded in §11 Step 1 and in the U2 row.
+
+### 16.4 What this pass did NOT change
+
+- No forensic history was rewritten. The 2026-09-15 failing runs remain in §7.1 as the evidence for
+  *why* the workspace/lockfile pairing must be atomic, explicitly marked historical.
+- No disposition in §5, no coupling finding in §7, and no CodeQL or SBOM conclusion in §8–§9 was
+  altered — the reconciliation touched §7.1's framing, §11's status, §15, and this section.
+- The non-claims in §14 stand unchanged, including that green CI proves no product, scientific,
+  physical or legal validity, and that no repository setting has been verified.
+- Nothing was merged, and no workflow, dependency, lockfile or runtime file was modified.
+
+### 16.5 Remaining open items after this pass
+
+All six §15 questions are now resolved. Still open:
+
+- **U1** (partial), **U2**, **U3**, **U4** — repository settings and CodeQL query-suite equivalence;
+- **U5** — behavioural effect of the override bumps on `main`'s graph, now evidenced by #249's green
+  typecheck/tests/web build but not by runtime observation;
+- **U6** — Syft coverage of the pnpm workspace;
+- **U7** — owner and renewal process for the `image-size` acceptance before 2026-11-30;
+- **U9** — whether the release-asset 500 correlates with a published incident;
+- **Stage 2 of Q3** — `main` green post-merge, untested by construction.
 
 ---
 
@@ -921,6 +1077,13 @@ the full name adopted only when all nine steps land. **Confirm naming.**
 | Run `35056251880`, job `104666962723` | legacy CodeQL fails with the identical configuration conflict on a `main`-derived head | §8.6 |
 | Run `35056251880`, job `104666962583` | `main` dependency gate blocking reproduced on a second `main`-derived head | §4.1, §7.1 |
 | Run `35056251880`, job `104666962821` | SBOM **green** on a `main`-derived head, same action pin — third data point for the transient finding | §9.3 |
+| PR #249 API: `draft: true`, `mergeable_state: clean`, head `21cf495c…`, 5 files | #249 is DRAFT/UNMERGED and focused | §16.2, U8 |
+| Run `35014465139`, 7/7 jobs success on `21cf495c…` | INT-01 implementation green on its exact head | §7.1, §11, §16.2 |
+| Run `35014465139`, job `104534273182` | `Dependency vulnerability gate: PASS`, 0 blocking, 2 `image-size` exceptions | §7.1, §16.2 |
+| Run `35014465139`, job `104534273160` | CycloneDX + SPDX both pass on #249's head | §9.3, Q4 |
+| Run `35014465139`, job `104534273287` | managed-CodeQL evidence verifier passes fail-closed | §16.2 |
+| Run `35014460005` | managed CodeQL success on `21cf495c…`, `pr=249` | §16.2, Q1 |
+| Issue #248 | INT-01 scope = CodeQL + dependency + SBOM; CRA human readiness is Non-scope | Q6, §11 Step 3 |
 | Run `34954885132`, job `104334429358` | Legacy CodeQL rejected: default setup conflict, `configuration error` | §8.2, §8.3 |
 | Run `34954885132`, job `104334429405` | SBOM: HTTP 500 on GitHub release asset, Syft install failed | §9.1, §9.2 |
 | Run `34954885132`, job `104334429273` | `main` dependency gate blocking on xmldom/sharp/js-yaml | §7.1 |
