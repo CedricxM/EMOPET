@@ -357,6 +357,7 @@ test('dog CRUD and Owner professional-share lifecycle remain owner scoped', { sk
     assert.equal(deletion.retryable, false);
     assert.equal(deletion.maturity, 'NOT_IMPLEMENTED');
     assert.equal(deletion.gate, 'G-PRIV-ERASURE');
+
     const [stillPersisted] = await db
       .select({ id: dogsTable.id, ownerId: dogsTable.ownerId })
       .from(dogsTable)
