@@ -14,6 +14,7 @@ import {
   WQI_DIMENSIONS,
   indicatorStateMessage,
 } from '../catalog';
+import { ELI_WEB_MOCK_NOTICE, ELI_WEB_MOCK_PROVENANCE } from '../mock-provenance';
 import { freezeBaseline, gateOf, generateSnapshots, summarize } from '../mock';
 
 const FORBIDDEN = ['san' + 'té', 'mala' + 'die', 'anxi' + 'été', 'str' + 'ess', 'dépres' + 'sion', 'heu' + 'reux', 'tri' + 'ste', 'joyeux', 'bon' + 'heur', 'diag' + 'nostic', 'arthrose', 'dysplasie', 'patholog'];
@@ -60,4 +61,15 @@ test('summarize : structure cohérente (wellbeing distinct de WQI, RSI présent)
   assert.ok('exercise' in s.wqi && 'exploration' in s.wqi && 'social' in s.wqi);
   assert.equal(s.subBaselines.length, 5);
   assert.ok(['GOLD', 'SILVER', 'BRONZE', 'REJECTED'].includes(s.tier));
+});
+
+test('provenance web : le moteur local reste explicitement DEMO_MOCK_ONLY et non autoritatif', () => {
+  assert.equal(ELI_WEB_MOCK_PROVENANCE.classification, 'DEMO_MOCK_ONLY');
+  assert.equal(ELI_WEB_MOCK_PROVENANCE.authoritative, false);
+  assert.equal(ELI_WEB_MOCK_PROVENANCE.sourceModule, 'apps/web/lib/eli/mock.ts');
+  assert.equal(ELI_WEB_MOCK_PROVENANCE.matTagObservationSource, false);
+  assert.equal(ELI_WEB_MOCK_PROVENANCE.backendInferenceSource, false);
+  assert.match(ELI_WEB_MOCK_NOTICE, /données simulées/i);
+  assert.match(ELI_WEB_MOCK_NOTICE, /MAT\/TAG/);
+  assert.match(ELI_WEB_MOCK_NOTICE, /backend/i);
 });
