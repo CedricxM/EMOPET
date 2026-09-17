@@ -126,6 +126,33 @@
   --font-sans: var(--emopet-font-sora), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: var(--emopet-font-jetbrains), 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
 
+  /* --------------------------------------------------------------
+     Réparation de référence — PAS une décision de marque.
+
+     `app/page.tsx` et `components/landing/*` consomment `--font-fraunces`
+     et `--font-source-sans` sur ~90 sites d'appel. Ces deux variables
+     n'étaient définies NULLE PART dans le dépôt (aucun `next/font`, aucun
+     `@font-face`, aucune déclaration CSS). Chaque
+     `style={{ fontFamily: 'var(--font-fraunces)' }}` produisait donc une
+     valeur invalide, la déclaration était ignorée, et l'élément héritait de
+     `html, body { font-family: var(--font-sans) }` — c'est-à-dire Sora.
+
+     Les alias ci-dessous les font pointer vers les familles RÉELLEMENT
+     livrées. Le rendu est donc strictement identique à avant : ces 90
+     déclarations résolvaient déjà vers Sora par héritage. Le seul effet est
+     qu'elles deviennent valides et pilotables depuis un seul endroit.
+
+     ⚠ Ne PAS « corriger » ceci en chargeant Fraunces / Source Sans via
+     Google Fonts ou next/font : ce serait une migration visuelle non
+     revue. La typographie contrôlée (Fraunces / Instrument Sans /
+     JetBrains Mono) est définie par
+     docs/brand/BRAND-AUTHORITY-001_..._2026-08-25.md et son application
+     exige pilote + QA. Voir
+     docs/records/memory/CURRENT_REPO_AUTHORITY_CONFLICT_AUDIT_2026-09-17.md
+     -------------------------------------------------------------- */
+  --font-fraunces: var(--font-serif);
+  --font-source-sans: var(--font-sans);
+
   --ff-tabular: 'tnum' 1, 'lnum' 1;
   --ff-normal: 'kern' 1, 'liga' 1;
 
