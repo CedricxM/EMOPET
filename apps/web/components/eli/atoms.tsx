@@ -4,6 +4,7 @@
 
 import { CONFIDENCE_META, RGPD_NOTICE, SCIENTIFIC_FOOTER } from '../../lib/eli/catalog';
 import type { ConfidenceState } from '../../lib/eli/catalog';
+import { ELI_WEB_MOCK_NOTICE } from '../../lib/eli/mock-provenance';
 
 export function ConfidenceBadge({ state, size = 'md' }: { state: ConfidenceState; size?: 'sm' | 'md' }) {
   const m = CONFIDENCE_META[state];
@@ -27,7 +28,7 @@ export function ConfidenceBadge({ state, size = 'md' }: { state: ConfidenceState
       }}
     >
       <span aria-hidden style={{ width: 7, height: 7, borderRadius: '50%', background: m.color }} />
-      {m.label}
+      DÉMO · {m.label}
     </span>
   );
 }
@@ -43,7 +44,7 @@ export function Gauge({ value, baseline, color = 'var(--terracotta-500)', label 
   const baseAngle = baseline != null ? (-90 + (Math.max(0, Math.min(100, baseline)) / 100) * 360) * (Math.PI / 180) : null;
   const tick = baseAngle != null ? { x1: cx + (r - 7) * Math.cos(baseAngle), y1: cx + (r - 7) * Math.sin(baseAngle), x2: cx + (r + 7) * Math.cos(baseAngle), y2: cx + (r + 7) * Math.sin(baseAngle) } : null;
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`${label ?? 'Indicateur'} : ${value.toFixed(1)} sur 100`}>
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`Démonstration — ${label ?? 'Indicateur'} : ${value.toFixed(1)} sur 100`}>
       <circle cx={cx} cy={cx} r={r} fill="none" stroke="var(--cream-300)" strokeWidth="10" />
       <circle
         cx={cx}
@@ -60,8 +61,8 @@ export function Gauge({ value, baseline, color = 'var(--terracotta-500)', label 
       <text x={cx} y={cx - 2} textAnchor="middle" fontFamily="var(--font-serif)" fontSize="32" fill="var(--fg-strong)">
         {value.toFixed(0)}
       </text>
-      <text x={cx} y={cx + 18} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="9" letterSpacing="0.12em" fill="var(--fg-muted)">
-        /100
+      <text x={cx} y={cx + 16} textAnchor="middle" fontFamily="var(--font-mono)" fontSize="8" letterSpacing="0.12em" fill="var(--fg-muted)">
+        DÉMO · /100
       </text>
     </svg>
   );
@@ -97,6 +98,9 @@ export function DeltaText({ delta }: { delta: number }) {
 export function ScientificFooter() {
   return (
     <footer style={{ display: 'flex', flexDirection: 'column', gap: 8, borderTop: '1px solid var(--divider)', paddingTop: 16, marginTop: 8 }}>
+      <p style={{ margin: 0, padding: '10px 12px', background: 'var(--prudence-bg)', borderLeft: '6px solid var(--terracotta-500)', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-sans)', fontSize: 12, lineHeight: 1.55, color: 'var(--prudence-ink)', fontWeight: 600 }}>
+        {ELI_WEB_MOCK_NOTICE}
+      </p>
       <p style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: 11, lineHeight: 1.6, color: 'var(--fg-muted)', letterSpacing: '0.02em' }}>
         {SCIENTIFIC_FOOTER}
       </p>
