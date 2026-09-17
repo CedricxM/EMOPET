@@ -1,0 +1,20 @@
+metric,count,interpretation
+CONTROLLED_MATRIX_ROWS,444,"444 register occurrences; this is the controlled denominator, not 410."
+IMMUTABLE_SOURCE_ZIP_MEMBERS,430,Exact source corpus members.
+DISCOVERY_CLOSURE_INPUTS,4,Controlled closure decisions added after discovery.
+POST_DISCOVERY_WORK_INPUTS,10,Controlled Work inputs/checkpoints added after discovery.
+LOGICAL_DOCUMENT_IDS_NONBLANK,206,Unique nonblank logical document identifiers; not a release count.
+INTERNAL_REVIEW_CANDIDATE_WITH_CONTROLS,287,May be shown in controlled internal review with status and caveats visible.
+INTERNAL_INCLUSION_DECISION_OPEN,157,Founder or named authority must decide inclusion before review-pack assembly.
+SOURCE_VISUAL_QA_PASS_WITH_LIMITS,27,Source-level visual QA only; never final v2 publication QA.
+FINAL_EXTERNAL_PUBLICATION_APPROVED,0,No matrix row has explicit final publication approval; OPEN-DOC-005 and release approvals remain open.
+PILOT_QA_OUTPUTS_OUTSIDE_MATRIX,9,Seven PDFs and two XLSX outputs remain immutable PASS_WITH_NOTES / NOT RELEASED evidence.
+MOKO_R1_6_PAYLOADS,46,Exact current candidate content set; PREPARED_NOT_SENT / NOT RELEASED.
+INTERNAL_CANDIDATE_BATCH_0,57,Subset of the 287 controlled internal-review candidates.
+INTERNAL_CANDIDATE_BATCH_1,18,Subset of the 287 controlled internal-review candidates.
+INTERNAL_CANDIDATE_BATCH_4,69,Subset of the 287 controlled internal-review candidates.
+INTERNAL_CANDIDATE_BATCH_5,22,Subset of the 287 controlled internal-review candidates.
+INTERNAL_CANDIDATE_BATCH_6,14,Subset of the 287 controlled internal-review candidates.
+INTERNAL_CANDIDATE_BATCH_7,6,Subset of the 287 controlled internal-review candidates.
+INTERNAL_CANDIDATE_BATCH_8,52,Subset of the 287 controlled internal-review candidates.
+INTERNAL_CANDIDATE_BATCH_9,49,Subset of the 287 controlled internal-review candidates.
