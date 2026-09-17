@@ -68,7 +68,7 @@ Discovered while verifying §1.3.
 
 ### 2.1 Observed
 
-- The two variables are consumed at **~90 call sites**: `apps/web/app/page.tsx` and every `apps/web/components/landing/*.tsx`, as inline `style={{ fontFamily: 'var(--font-fraunces)' }}`.
+- The two variables are consumed at **87 call sites**: `apps/web/app/page.tsx` and every `apps/web/components/landing/*.tsx`, as inline `style={{ fontFamily: 'var(--font-fraunces)' }}`.
 - They were **defined nowhere** in the repository: no CSS declaration, no `@font-face`, and **zero `next/font` imports anywhere in `apps/web`**.
 - `apps/web/app/layout.tsx:7` asserts *"Font stacks are defined in tokens.css"*. `tokens.css` defined `--emopet-font-sora`, `--emopet-font-jetbrains`, `--font-serif`, `--font-sans`, `--font-mono` — not those two.
 
@@ -76,22 +76,28 @@ Discovered while verifying §1.3.
 
 An unresolvable `var()` with no fallback makes the declaration invalid; the browser drops it and the element inherits. `globals.css:19-24` sets `html, body { font-family: var(--font-sans) }` → Sora.
 
-**So the entire public landing page already rendered in Sora, and all ~90 explicit font declarations were inert.** `apps/web/SMOKE.md:28` carries a regression check for precisely this failure mode.
+**So the entire public landing page already rendered in Sora, and all 87 explicit font declarations were inert.** `apps/web/SMOKE.md:28` carries a regression check for precisely this failure mode.
 
 ### 2.3 Action taken
 
-Two aliases added in `tokens.css`, pointing at the families actually shipped:
+The two variables are now defined in `tokens.css`, pointing at the families actually shipped, and renamed **by role** rather than by font family:
 
 ```css
---font-fraunces: var(--font-serif);
---font-source-sans: var(--font-sans);
+--font-display: var(--font-serif);
+--font-body:    var(--font-sans);
 ```
 
-**This is a provable visual no-op** — those declarations already resolved to Sora by inheritance. The effect is that they become valid and steerable from one place.
+All **87** call sites across `app/page.tsx` and the seven `components/landing/*.tsx` were updated in the same change. Counts verified before and after: 87 old references, 0 remaining, 87 new.
+
+**This is a provable visual no-op** — those declarations already resolved to Sora by inheritance, and the new names resolve to the same stacks. The effect is that they become valid and steerable from one place.
+
+Renaming was deliberate: a font family embedded in a variable name (`--font-fraunces` pointing at Sora) is false the moment the shipped family differs from the intended one, which is exactly the state this repository was in. Role names survive a migration; family names do not.
 
 ### 2.4 Explicit non-action
 
-The repair deliberately does **not** load Fraunces or Source Sans. Doing so would be an unreviewed visual migration. Applying the controlled typography (Fraunces / Instrument Sans / JetBrains Mono) requires pilot + QA and is not closed by this record.
+The repair deliberately does **not** load Fraunces, Source Sans or Instrument Sans. Doing so would be an unreviewed visual migration. Applying the controlled typography (Fraunces display / Instrument Sans body / JetBrains Mono technical) requires pilot + QA and is not closed by this record.
+
+What the repair does leave behind is a **single switch point**: when that migration is decided, `--font-display` and `--font-body` are the two lines to change, instead of 87 inline declarations.
 
 ---
 

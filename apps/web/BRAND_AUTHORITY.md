@@ -74,8 +74,14 @@ The following hex values belonged to the pre-2026 palette and must never appear 
 > - **Current authority** (BRAND-AUTHORITY-001): Fraunces (display) / **Instrument Sans**
 >   (body) / **JetBrains Mono** (technical, data, metadata).
 > - **Shipped in `apps/web`**: `--emopet-font-sora` and `--emopet-font-jetbrains`
->   (`styles/tokens.css:123-124`). Neither `--font-fraunces` nor `--font-source-sans`
->   exists in the codebase.
+>   (`styles/tokens.css`).
+>
+> The CSS variables named in the table below, `--font-fraunces` and `--font-source-sans`,
+> were consumed at 87 call sites but **defined nowhere**, so every one of those
+> declarations was invalid and dropped. They have since been defined and renamed by role
+> to `--font-display` / `--font-body` — a font family in a variable name goes stale at the
+> first migration. The table rows below are left at their original wording as historical
+> record; they no longer name anything in the codebase.
 >
 > Retained as a historical record of the August 8 intent only.
 
