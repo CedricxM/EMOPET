@@ -13,6 +13,7 @@ import { db } from '../../db/index.js';
 import {
   dogs as dogsTable,
   professionalShareGrants,
+  users,
 } from '../../db/schema/index.js';
 import {
   buildVetReportPdf,
@@ -20,7 +21,7 @@ import {
   loadVetReportSummary,
   verifyVetReportShareToken,
 } from '../services/vet-report.js';
-import { requireDogOwnership } from '../middleware/authorization.js';
+import { isCanonicalUuid, requireDogOwnership } from '../middleware/authorization.js';
 import { parseLookbackWindow } from '../utils/temporal-window.js';
 
 const dogs = new Hono();
@@ -42,7 +43,7 @@ function parseReportDays(value: string | undefined): number | null {
 
 function getUserId(c: unknown): string | undefined {
   const value = (c as { get: (key: string) => unknown }).get('userId');
-  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+  return isCanonicalUuid(value) ? value : undefined;
 }
 
 function requireUserId(c: { json: (value: unknown, status?: number) => Response } & unknown): string | Response {
@@ -144,23 +145,33 @@ dogs.post('/', zValidator('json', DogCreateSchema), async (c) => {
   const body = c.req.valid('json');
 
   try {
-    const [created] = await db
-      .insert(dogsTable)
-      .values({
-        ownerId: userId,
-        name: body.name,
-        breed: body.breed,
-        breedFciNumber: body.breedFciNumber,
-        birthDate: toDbDate(body.birthDate),
-        sex: body.sex,
-        weight: body.weight,
-        furClass: body.furClass,
-        photoUrl: body.photo,
-      })
-      .returning();
+    const created = await db.transaction(async (tx) => {
+      const [guardian] = await tx
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+      if (!guardian) return null;
 
-    if (!created) return databaseUnavailable(c, 'create_dog');
-    return c.json({ dog: created }, 201);
+      const [row] = await tx
+        .insert(dogsTable)
+        .values({
+          ownerId: userId,
+          name: body.name,
+          breed: body.breed,
+          breedFciNumber: body.breedFciNumber,
+          birthDate: toDbDate(body.birthDate),
+          sex: body.sex,
+          weight: body.weight,
+          furClass: body.furClass,
+          photoUrl: body.photo,
+        })
+        .returning();
+      return row ?? null;
+    });
+
+    if (!created) return c.json({ error: 'unauthorized' }, 401);
+    return c.json({ dog: { ...created, photo: created.photoUrl } }, 201);
   } catch {
     return databaseUnavailable(c, 'create_dog');
   }
@@ -443,9 +454,7 @@ dogs.patch('/:id', zValidator('json', DogUpdateSchema), async (c) => {
 
   const userId = getUserId(c)!;
   const body = c.req.valid('json');
-  const values: Partial<typeof dogsTable.$inferInsert> = {
-    updatedAt: new Date(),
-  };
+  const values: Partial<typeof dogsTable.$inferInsert> = {};
   if (body.name !== undefined) values.name = body.name;
   if (body.breed !== undefined) values.breed = body.breed;
   if (body.breedFciNumber !== undefined) values.breedFciNumber = body.breedFciNumber;
@@ -455,6 +464,11 @@ dogs.patch('/:id', zValidator('json', DogUpdateSchema), async (c) => {
   if (body.furClass !== undefined) values.furClass = body.furClass;
   if (body.photo !== undefined) values.photoUrl = body.photo;
 
+  if (Object.keys(values).length === 0) {
+    return c.json({ error: 'no_updates' }, 400);
+  }
+  values.updatedAt = new Date();
+
   try {
     const [updated] = await db
       .update(dogsTable)
@@ -462,7 +476,7 @@ dogs.patch('/:id', zValidator('json', DogUpdateSchema), async (c) => {
       .where(and(eq(dogsTable.id, id), eq(dogsTable.ownerId, userId)))
       .returning();
     if (!updated) return c.json({ error: 'not_found' }, 404);
-    return c.json({ dog: updated });
+    return c.json({ dog: { ...updated, photo: updated.photoUrl } });
   } catch {
     return databaseUnavailable(c, 'update_dog');
   }
