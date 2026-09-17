@@ -94,7 +94,7 @@ test('dog CRUD and Owner professional-share lifecycle remain owner scoped', { sk
     assert.equal(persistedCreate.birthDate, '2022-04-12');
     assert.equal(persistedCreate.photoUrl, 'https://example.test/nala.jpg');
 
-    currentUserId = 'guardian-a';
+    currentUserId = 'invalid-owner-id';
     const nonCanonicalCreateResponse = await app.request('/api/dogs', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
