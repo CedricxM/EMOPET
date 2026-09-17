@@ -19,10 +19,13 @@
 > lichen and granit, which BRAND-AUTHORITY-001 **prescribes**. Do not execute that
 > instruction. See the audit record for the full evidence.
 >
-> Nothing in this file is changed other than this header. No token, component or rendered
-> pixel is modified by this supersession. Per `docs/records/memory/INDEX.md`
-> (*Current-over-history rule*): the historical record and its date are preserved, the
-> superseding authority is identified, and the two are not blended.
+> **What changed in this file, exactly:** this header, plus a `SUPERSEDED` marker on
+> three sections — *Legacy Colors*, *Typography*, and Rule 1 (struck through, annotated
+> `do not execute`). No table row, hex value, file-map entry or other original line was
+> edited or deleted. No token, component or rendered pixel is modified by this
+> supersession. Per `docs/records/memory/INDEX.md` (*Current-over-history rule*): the
+> historical record and its date are preserved, the superseding authority is identified,
+> and the two are not blended.
 
 ---
 
