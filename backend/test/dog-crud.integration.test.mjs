@@ -22,7 +22,11 @@ test('dog CRUD and Owner professional-share lifecycle remain owner scoped', { sk
 
   const ownerId = randomUUID();
   const otherUserId = randomUUID();
+  const missingUserId = randomUUID();
+  const missingDogId = randomUUID();
   const suffix = randomUUID();
+  const invalidIdentityDogName = `Invalid Identity ${suffix}`;
+  const missingUserDogName = `Missing User ${suffix}`;
 
   await db.insert(users).values([
     {
@@ -51,23 +55,76 @@ test('dog CRUD and Owner professional-share lifecycle remain owner scoped', { sk
   let dogId;
   let shareGrantId;
   try {
+    const createBody = {
+      name: 'Nala',
+      breed: 'Labrador Retriever',
+      birthDate: '2022-04-12',
+      sex: 'female',
+      weight: 24.5,
+      furClass: 'FC2',
+      photo: 'https://example.test/nala.jpg',
+    };
+
     const createResponse = await app.request('/api/dogs', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: 'Nala',
-        breed: 'Labrador Retriever',
-        birthDate: '2022-04-12',
-        sex: 'female',
-        weight: 24.5,
-        furClass: 'FC2',
-      }),
+      body: JSON.stringify(createBody),
     });
     assert.equal(createResponse.status, 201);
     const created = await createResponse.json();
     dogId = created.dog.id;
     assert.equal(created.dog.ownerId, ownerId);
     assert.equal(created.dog.name, 'Nala');
+    assert.equal(created.dog.photo, 'https://example.test/nala.jpg');
+
+    const [persistedCreate] = await db
+      .select({
+        ownerId: dogsTable.ownerId,
+        name: dogsTable.name,
+        birthDate: dogsTable.birthDate,
+        photoUrl: dogsTable.photoUrl,
+        updatedAt: dogsTable.updatedAt,
+      })
+      .from(dogsTable)
+      .where(eq(dogsTable.id, dogId))
+      .limit(1);
+    assert.ok(persistedCreate);
+    assert.equal(persistedCreate.ownerId, ownerId);
+    assert.equal(persistedCreate.name, 'Nala');
+    assert.equal(persistedCreate.birthDate, '2022-04-12');
+    assert.equal(persistedCreate.photoUrl, 'https://example.test/nala.jpg');
+
+    currentUserId = 'guardian-a';
+    const nonCanonicalCreateResponse = await app.request('/api/dogs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...createBody, name: invalidIdentityDogName }),
+    });
+    assert.equal(nonCanonicalCreateResponse.status, 401);
+
+    currentUserId = missingUserId;
+    const missingUserCreateResponse = await app.request('/api/dogs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...createBody, name: missingUserDogName }),
+    });
+    assert.equal(missingUserCreateResponse.status, 401);
+
+    const [invalidIdentityDog] = await db
+      .select({ id: dogsTable.id })
+      .from(dogsTable)
+      .where(eq(dogsTable.name, invalidIdentityDogName))
+      .limit(1);
+    assert.equal(invalidIdentityDog, undefined);
+
+    const [missingUserDog] = await db
+      .select({ id: dogsTable.id })
+      .from(dogsTable)
+      .where(eq(dogsTable.name, missingUserDogName))
+      .limit(1);
+    assert.equal(missingUserDog, undefined);
+
+    currentUserId = ownerId;
 
     const baseShareBody = {
       recipient: {
@@ -216,14 +273,73 @@ test('dog CRUD and Owner professional-share lifecycle remain owner scoped', { sk
     assert.equal(healthBody.dogId, dogId);
     assert.deepEqual(healthBody.entries, []);
 
+    const [beforePatch] = await db
+      .select({ name: dogsTable.name, weight: dogsTable.weight, updatedAt: dogsTable.updatedAt })
+      .from(dogsTable)
+      .where(eq(dogsTable.id, dogId))
+      .limit(1);
+    assert.ok(beforePatch);
+
+    currentUserId = otherUserId;
+    const crossOwnerPatchResponse = await app.request(`/api/dogs/${dogId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Hijacked' }),
+    });
+    assert.equal(crossOwnerPatchResponse.status, 404);
+
+    const [afterCrossOwnerPatch] = await db
+      .select({ name: dogsTable.name, weight: dogsTable.weight })
+      .from(dogsTable)
+      .where(eq(dogsTable.id, dogId))
+      .limit(1);
+    assert.ok(afterCrossOwnerPatch);
+    assert.equal(afterCrossOwnerPatch.name, beforePatch.name);
+    assert.equal(Number(afterCrossOwnerPatch.weight), Number(beforePatch.weight));
+
+    currentUserId = ownerId;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
     const patchResponse = await app.request(`/api/dogs/${dogId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ weight: 25.2 }),
+      body: JSON.stringify({ name: 'Nala Updated', weight: 25.2 }),
     });
     assert.equal(patchResponse.status, 200);
     const patched = await patchResponse.json();
+    assert.equal(patched.dog.name, 'Nala Updated');
     assert.equal(patched.dog.weight, 25.2);
+
+    const [persistedPatch] = await db
+      .select({ name: dogsTable.name, weight: dogsTable.weight, updatedAt: dogsTable.updatedAt })
+      .from(dogsTable)
+      .where(eq(dogsTable.id, dogId))
+      .limit(1);
+    assert.ok(persistedPatch);
+    assert.equal(persistedPatch.name, 'Nala Updated');
+    assert.equal(Number(persistedPatch.weight), 25.2);
+    assert.ok(new Date(persistedPatch.updatedAt).getTime() > new Date(beforePatch.updatedAt).getTime());
+
+    const rereadPatchedResponse = await app.request(`/api/dogs/${dogId}`);
+    assert.equal(rereadPatchedResponse.status, 200);
+    const rereadPatched = await rereadPatchedResponse.json();
+    assert.equal(rereadPatched.dog.name, 'Nala Updated');
+    assert.equal(rereadPatched.dog.weight, 25.2);
+
+    const missingPatchResponse = await app.request(`/api/dogs/${missingDogId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Ghost Dog' }),
+    });
+    assert.equal(missingPatchResponse.status, 404);
+
+    const emptyPatchResponse = await app.request(`/api/dogs/${dogId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    assert.equal(emptyPatchResponse.status, 400);
+    assert.deepEqual(await emptyPatchResponse.json(), { error: 'no_updates' });
 
     currentUserId = otherUserId;
     const crossOwnerResponse = await app.request(`/api/dogs/${dogId}`);
