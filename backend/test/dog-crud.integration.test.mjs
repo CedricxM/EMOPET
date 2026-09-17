@@ -25,7 +25,7 @@ test('dog CRUD and Owner professional-share lifecycle remain owner scoped', { sk
   const missingUserId = randomUUID();
   const missingDogId = randomUUID();
   const suffix = randomUUID();
-  const invalidIdentityDogName = `Invalid Identity ${suffix}`;
+  const invalidIdentityDogName = `Invalid ${suffix}`;
   const missingUserDogName = `Missing User ${suffix}`;
 
   await db.insert(users).values([
@@ -357,7 +357,6 @@ test('dog CRUD and Owner professional-share lifecycle remain owner scoped', { sk
     assert.equal(deletion.retryable, false);
     assert.equal(deletion.maturity, 'NOT_IMPLEMENTED');
     assert.equal(deletion.gate, 'G-PRIV-ERASURE');
-
     const [stillPersisted] = await db
       .select({ id: dogsTable.id, ownerId: dogsTable.ownerId })
       .from(dogsTable)
