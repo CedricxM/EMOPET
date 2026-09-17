@@ -1,9 +1,9 @@
 /**
  * Route serveur de l'assistant régional (Breiz).
  *
- * Assemble le prompt système via le MOTEUR régional (commun + profil + savoir
- * filtré) et appelle l'API Anthropic SI `ANTHROPIC_API_KEY` est défini. Sinon,
- * renvoie un signal de repli : le client utilise la base RAG locale (R4).
+ * Assemble le prompt système via le moteur régional (garde-fous + dictionnaire
+ * contrôlé + profil + savoir filtré) et appelle l'API Anthropic SI
+ * `ANTHROPIC_API_KEY` est défini. Sinon, le client utilise la base RAG locale.
  *
  * La clé reste côté serveur (jamais exposée au client). Prompt caching activé
  * sur le prompt système (cache_control ephemeral).
@@ -18,7 +18,7 @@ import { enforceRateLimit, readLimitedJson } from '../../../lib/server/request-s
 
 export const runtime = 'nodejs';
 
-const ELI_TERMS = /(eli|indicateur|bien-?[êe]tre|repos|sommeil|activit[ée]|baseline|confiance|score|wqi|rsi|veto)/i;
+const ELI_TERMS = /(eli|indicateur|bien-?[êe]tre|repos|sommeil|activit[ée]|activation|arousal|valence|incertitude|confiance|baseline|score|wqi|rsi|veto)/i;
 const BREIZ_RATE_LIMIT_MAX = 20;
 const BREIZ_RATE_LIMIT_WINDOW_MS = 60_000;
 const BREIZ_MAX_BODY_BYTES = 8 * 1024;

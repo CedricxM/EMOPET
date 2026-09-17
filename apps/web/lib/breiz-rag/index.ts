@@ -4,7 +4,8 @@
  * SANS modèle entraîné. Intentions spéciales : demande vétérinaire → renvoi vétérinaire ;
  * météo → données réelles Open-Meteo.
  *
- * ⚠ Invariants : aucune affirmation médicale, aucune émotion humaine du chien.
+ * ⚠ Invariants : aucune affirmation médicale, aucun score de santé, aucune
+ * émotion certaine attribuée au chien à partir des données EMOPET.
  */
 
 import { fetchCurrentWeather } from '../weather';
@@ -34,10 +35,10 @@ const LORIENT = { lat: 47.7482, lon: -3.3702 };
 
 function leadFor(tags: string[]): string {
   if (tags.includes('race')) return '';
-  if (tags.includes('comportement') || tags.includes('éducation')) return 'Côté comportement — ';
-  if (tags.includes('bien-être')) return 'Pour le bien-être au quotidien — ';
-  if (tags.includes('bretagne')) return 'En Bretagne — ';
-  if (tags.includes('emopet') || tags.includes('eli')) return '';
+  if (tags.includes('comportement') || tags.includes('éducation')) return 'Pour poser un repère sans surinterpréter — ';
+  if (tags.includes('bien-être')) return 'Dans la cadence du quotidien — ';
+  if (tags.includes('bretagne')) return 'Comme repère local — ';
+  if (tags.includes('emopet') || tags.includes('eli')) return 'Côté lecture des signaux — ';
   return '';
 }
 
@@ -50,9 +51,9 @@ export async function askBreiz(query: string): Promise<BreizAnswer> {
   if (isVetRequest) {
     return {
       text:
-        "Je ne suis pas un outil médical et je ne peux pas évaluer une situation qui demande un avis vétérinaire. " +
-        "Pour tout signe inhabituel ou persistant, le bon réflexe est de prendre rendez-vous avec votre vétérinaire, qui pourra examiner le contexte. " +
-        "Je peux en revanche vous aider sur le comportement, les balades, les races ou la lecture de vos indicateurs ELI.",
+        "Là, je m'arrête sur l'interprétation : cette question demande un regard vétérinaire, pas une inférence EMOPET. " +
+        "Si le signe est inhabituel, persistant ou préoccupant, le bon repère est votre vétérinaire, qui pourra examiner le chien et le contexte réel. " +
+        "Je peux ensuite vous aider à remettre vos observations dans une chronologie claire, sans les transformer en diagnostic.",
       sources: ['EMOPET — cadre non médical', 'Renvoi vétérinaire systématique'],
     };
   }
@@ -65,9 +66,9 @@ export async function askBreiz(query: string): Promise<BreizAnswer> {
     if (w) {
       return {
         text:
-          `À Lorient en ce moment : ${w.tempC}°, ${w.label.toLowerCase()}, vent ${w.windKph} km/h. ` +
+          `Repère local à Lorient : ${w.tempC}°, ${w.label.toLowerCase()}, vent ${w.windKph} km/h. ` +
           (advice ? advice.text : '') +
-          (w.tempC >= 24 ? ' Avec cette chaleur, privilégiez les heures fraîches et de l’eau.' : ''),
+          (w.tempC >= 24 ? " Avec cette chaleur, décalez plutôt la balade vers une fenêtre plus fraîche et gardez de l'eau disponible." : ''),
         sources: ['Open-Meteo — météo Lorient (temps réel)', ...(advice ? [advice.source] : [])],
       };
     }
@@ -96,9 +97,9 @@ export async function askBreiz(query: string): Promise<BreizAnswer> {
   if (hits.length === 0) {
     return {
       text:
-        "Je n’ai pas encore de fiche sur ce sujet précis. Je peux vous renseigner sur le comportement canin " +
-        "(signaux d’apaisement, renforcement positif), le bien-être (exercice, repos, chaleur), les races, " +
-        "la Bretagne (plages, météo) ou le fonctionnement d’ELI. Reformulez si vous voulez.",
+        "Je n'ai pas encore de provenance assez solide pour répondre précisément à ce sujet. " +
+        "On peut changer de piste : comportement canin, rythmes de repos et d'activité, races, repères bretons, météo ou fonctionnement d'ELI. " +
+        "Si vous reformulez avec un lieu, une fenêtre de temps ou le motif que vous avez remarqué, je pourrai chercher plus finement.",
       sources: ['Corpus de connaissances Breiz'],
     };
   }

@@ -26,6 +26,8 @@ const ITEMS: NavItem[] = [
 export function Sidebar() {
   const pathname = usePathname();
   const { t } = useI18n();
+  const demoActive = pathname === '/demo' || pathname.startsWith('/demo/');
+
   return (
     <aside
       style={{
@@ -71,6 +73,28 @@ export function Sidebar() {
       </div>
 
       <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Link
+          href="/demo"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            padding: '10px 12px',
+            marginBottom: 8,
+            borderRadius: 'var(--radius-md)',
+            color: demoActive ? 'var(--accent-press)' : 'var(--fg-strong)',
+            background: demoActive ? 'var(--accent-soft)' : 'var(--bg-sunk)',
+            border: '1px solid var(--border)',
+            fontFamily: 'var(--font-sans)',
+            fontSize: 'var(--text-sm)',
+            fontWeight: 'var(--weight-semi)',
+            textDecoration: 'none',
+          }}
+        >
+          <Icon name="wave" size={18} />
+          Démo MVP
+        </Link>
+
         {ITEMS.map((item) => {
           const active = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
           return (
@@ -111,7 +135,7 @@ export function Sidebar() {
             fontWeight: 'var(--weight-semi)',
           }}
         >
-          v6.0 · ELI gated
+          MVP DEMO FREEZE · ELI gated
         </div>
       </div>
     </aside>

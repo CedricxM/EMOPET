@@ -4,10 +4,12 @@ import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { Sidebar } from './sidebar';
 import { BreizDock } from './breiz/BreizDock';
+import { DemoBanner } from './demo-banner';
 
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isLanding = pathname === '/';
+  const isDemo = pathname === '/demo' || pathname.startsWith('/demo/');
 
   if (isLanding) {
     return (
@@ -17,10 +19,22 @@ export function AppFrame({ children }: { children: ReactNode }) {
     );
   }
 
+  if (isDemo) {
+    return (
+      <main style={{ minWidth: 0, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <DemoBanner />
+        {children}
+      </main>
+    );
+  }
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar />
-      <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>{children}</main>
+      <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+        <DemoBanner />
+        {children}
+      </main>
       {/* Breiz compagnon : accès global sur toutes les pages applicatives (pas la landing). */}
       <BreizDock />
     </div>
