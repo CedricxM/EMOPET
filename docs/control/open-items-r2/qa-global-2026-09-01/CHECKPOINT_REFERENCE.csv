@@ -1,0 +1,2 @@
+artifact,size_bytes,sha256,github_binary_included,status,handling
+EMOPET_GLOBAL_CORPUS_QA_CHECKPOINT_2026-09-01_NOT_RELEASED.zip,389995,adf74ba1fc8440796831c18bad2e7f52c34bc1d9017f56cc2b950d0ce0c9d57f,False,PASS_WITH_NOTES / NOT_RELEASED,REFERENCE_ONLY; exact QA ZIP delivered separately; do not infer release
