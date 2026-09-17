@@ -1,10 +1,11 @@
 /**
- * Assemblage du prompt système (Section 5 + PATCH 1/2).
- * Moteur commun (constant) + identité régionale (profil) + connaissance
+ * Assemblage du prompt système régional.
+ * Moteur commun + garde-fous sémantiques + identité régionale + connaissance
  * régionale filtrée par pertinence (jamais toute la base, jamais d'entrée
  * non vérifiée, sous MAX_KNOWLEDGE_TOKENS).
  */
 
+import { semanticEnvelopeSummary, isEvidenceRestricted } from '../language/types';
 import { COMMON_ENGINE_BLOCKS, ELI_LOCKED_BLOCK } from './engine';
 import { MAX_KNOWLEDGE_TOKENS, estimateTokens, filterRelevantKnowledge } from './filter-knowledge';
 import type { CultureEntry, GeographyEntry, RegionalKnowledgeBase } from './knowledge-types';
@@ -23,11 +24,13 @@ export interface BuiltPrompt {
   knowledgeTokens: number;
   usedGeography: number;
   usedCulture: number;
+  semanticLock: boolean;
 }
 
 /**
- * Assemble le prompt système régional. `context.touchesEliData` ajoute le
- * bloc verrouillé. La connaissance est filtrée et plafonnée.
+ * Assemble le prompt système régional. Une enveloppe sémantique structurée fait
+ * autorité lorsqu'elle existe. Le flag lexical historique reste une défense
+ * secondaire pour compatibilité.
  */
 export function buildAssistantSystemPrompt(
   profile: RegionalProfile,
@@ -37,12 +40,30 @@ export function buildAssistantSystemPrompt(
 ): BuiltPrompt {
   const blocks: string[] = [...COMMON_ENGINE_BLOCKS];
 
-  // Chemin verrouillé si la réponse touche une donnée ELI.
-  if (context.touchesEliData) blocks.push(ELI_LOCKED_BLOCK);
+  const semanticLock = isEvidenceRestricted(context.semanticEnvelope) || context.touchesEliData;
+  if (semanticLock) blocks.push(ELI_LOCKED_BLOCK);
 
-  // Identité régionale (depuis le profil).
+  if (context.semanticEnvelope) {
+    const envelope = context.semanticEnvelope;
+    blocks.push(
+      `# Enveloppe sémantique autorisée\n${semanticEnvelopeSummary(envelope)}\n` +
+        `Versions: ELS=${envelope.semanticVersions.els}; MotsPet=${envelope.semanticVersions.motspet}; ClaimGuard=${envelope.semanticVersions.claimGuard}.\n` +
+        `N'augmente jamais la force de cette enveloppe. Les allowedClaims autorisent au maximum, les blockedClaims interdisent explicitement.`,
+    );
+    if (envelope.allowedClaims?.length) {
+      blocks.push(`# Claims autorisés\n${envelope.allowedClaims.map((claim) => `- ${claim}`).join('\n')}`);
+    }
+    if (envelope.blockedClaims?.length) {
+      blocks.push(`# Claims bloqués\n${envelope.blockedClaims.map((claim) => `- ${claim}`).join('\n')}`);
+    }
+    if (envelope.provenance?.length) {
+      blocks.push(`# Provenance\n${envelope.provenance.map((source) => `- ${source}`).join('\n')}`);
+    }
+  }
+
+  // Identité régionale (depuis le profil). Le terme Guardian reste le terme produit contrôlé.
   blocks.push(
-    `# Identité\nTu t'appelles ${profile.assistantName} (${profile.assistantNameOrigin}). Tu accompagnes les propriétaires de la région « ${profile.regionId} » (départements : ${profile.departments.join(', ')}).`,
+    `# Identité\nTu t'appelles ${profile.assistantName} (${profile.assistantNameOrigin}). Tu accompagnes les Guardians et leurs chiens dans la région « ${profile.regionId} » (départements : ${profile.departments.join(', ')}).`,
   );
 
   // Connaissance régionale filtrée par pertinence (jamais toute la base).
@@ -51,8 +72,6 @@ export function buildAssistantSystemPrompt(
     maxEntries: options.maxEntries ?? 6,
   });
 
-  // Plafond DUR (PATCH 2) appliqué sur le texte RÉELLEMENT rendu : on ajoute
-  // les lignes tant qu'on reste sous MAX_KNOWLEDGE_TOKENS, géo puis culture.
   const keptGeo: string[] = [];
   const keptCult: string[] = [];
   let used = 0;
@@ -80,7 +99,7 @@ export function buildAssistantSystemPrompt(
   const knowledgeTokens = knowledgeText ? estimateTokens(knowledgeText) : 0;
 
   if (knowledgeText) {
-    blocks.push(`# Connaissance régionale (à mobiliser seulement si pertinent et exact)\n${knowledgeText}`);
+    blocks.push(`# Connaissance régionale (EXTERNAL_CONTEXT uniquement)\n${knowledgeText}\n\nCette connaissance ne constitue jamais une mesure de l'état du chien et ne doit pas être utilisée comme preuve causale.`);
   } else {
     blocks.push(`# Connaissance régionale\nAucune entrée vérifiée pertinente pour cette requête. Réponds utilement sans inventer de référence régionale.`);
   }
@@ -90,6 +109,7 @@ export function buildAssistantSystemPrompt(
     knowledgeTokens,
     usedGeography,
     usedCulture,
+    semanticLock,
   };
 }
 
