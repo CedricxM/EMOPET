@@ -5,6 +5,9 @@ on:
     paths:
       - 'backend/db/**'
       - 'backend/test/migration-baseline-static.test.mjs'
+      - 'backend/test/data-export-postgres-runtime.test.mjs'
+      - 'backend/api/routes/data-export.ts'
+      - 'backend/api/services/data-export-policy.ts'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:
 
