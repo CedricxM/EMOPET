@@ -8,6 +8,8 @@ import { sensorSummaries } from '../../db/schema/index.js';
 import {
   computePresenceComparison,
   getPresenceEventsForDog,
+  PresenceComparisonDataUnavailableError,
+  readPresenceComparisonSource,
 } from '../services/presence.js';
 import {
   buildVetReportPdf,
@@ -16,6 +18,7 @@ import {
   verifyVetReportShareToken,
 } from '../services/vet-report.js';
 import { requireDogOwnership } from '../middleware/authorization.js';
+import { parseLookbackWindow } from '../utils/temporal-window.js';
 
 const dogs = new Hono();
 
@@ -44,19 +47,30 @@ dogs.get('/:id/absence-comparison', async (c) => {
   const denied = await requireDogOwnership(c, id);
   if (denied) return denied;
 
-  const days = Number(c.req.query('days') ?? '14');
-  const since = new Date();
-  since.setDate(since.getDate() - days);
+  const window = parseLookbackWindow(c.req.query('days'));
+  if (!window) {
+    return c.json({ error: 'invalid_presence_window', parameter: 'days' }, 400);
+  }
+  const { days, since } = window;
 
-  let summaries: Array<typeof sensorSummaries.$inferSelect> = [];
+  let summaries: Array<typeof sensorSummaries.$inferSelect>;
   try {
-    summaries = await db
-      .select()
-      .from(sensorSummaries)
-      .where(and(eq(sensorSummaries.dogId, id), gte(sensorSummaries.timestamp, since)))
-      .orderBy(sensorSummaries.timestamp);
-  } catch {
-    summaries = [];
+    summaries = await readPresenceComparisonSource(() =>
+      db
+        .select()
+        .from(sensorSummaries)
+        .where(and(eq(sensorSummaries.dogId, id), gte(sensorSummaries.timestamp, since)))
+        .orderBy(sensorSummaries.timestamp),
+    );
+  } catch (error) {
+    if (error instanceof PresenceComparisonDataUnavailableError) {
+      c.header('Cache-Control', 'private, max-age=0, no-store');
+      return c.json(
+        { error: error.code },
+        503,
+      );
+    }
+    throw error;
   }
 
   const presenceEvents = getPresenceEventsForDog(id, since);
