@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'backend/db/**'
+      - 'backend/api/middleware/auth.ts'
+      - 'backend/test/auth-error-boundary.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:
