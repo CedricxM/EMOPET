@@ -145,11 +145,24 @@ jobs:
         run: pnpm exec drizzle-kit migrate --config=db/drizzle.p0-baseline.config.ts
 
       - name: Verify generated table inventory
+        id: generated_inventory
+        continue-on-error: true
         env:
           GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: |
           psql "$GENERATED_DATABASE_URL" -Atc "select tablename from pg_tables where schemaname='public' order by tablename" > /tmp/tables-generated.txt
           diff -u /tmp/tables-a.txt /tmp/tables-generated.txt
+
+      - name: INT-04A PostgreSQL runtime export acceptance
+        working-directory: backend
+        run: node --test test/data-export-postgres-runtime.test.mjs
+
+      - name: Preserve pre-existing P0 inventory gate
+        if: steps.generated_inventory.outcome != 'success'
+        run: |
+          echo 'Generated table inventory drift remains present.'
+          echo 'INT-04A runtime evidence ran independently; this step preserves the existing P0 failure.'
+          exit 1
 
       - name: Verify generated snapshot is stable
         working-directory: backend
@@ -169,10 +182,6 @@ jobs:
 
       - name: Backend typecheck
         run: pnpm --filter @emopet/api typecheck
-
-      - name: INT-04A PostgreSQL runtime export acceptance
-        working-directory: backend
-        run: node --test test/data-export-postgres-runtime.test.mjs
 
       - name: Backend tests
         env:
