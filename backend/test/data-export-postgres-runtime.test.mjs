@@ -7,8 +7,12 @@ import postgres from 'postgres';
 const databaseUrl = process.env.DATABASE_URL;
 const runtimeTest = databaseUrl ? test : test.skip;
 
-async function loadRoute() {
-  return (await import('../dist/api/routes/data-export.js')).dataExport;
+async function loadRuntime() {
+  const [{ dataExport }, { db }] = await Promise.all([
+    import('../dist/api/routes/data-export.js'),
+    import('../dist/db/index.js'),
+  ]);
+  return { dataExport, db };
 }
 
 function appFor(dataExport, userId) {
@@ -23,7 +27,7 @@ function appFor(dataExport, userId) {
 
 runtimeTest('INT-04A runtime export enforces ownership, publication projection, CSV parity and temporal fail-closed behavior', async (t) => {
   const sql = postgres(databaseUrl, { max: 1 });
-  t.after(async () => { await sql.end({ timeout: 1 }); });
+  let runtimeDb;
 
   const ownerA = randomUUID();
   const ownerB = randomUUID();
@@ -52,14 +56,22 @@ runtimeTest('INT-04A runtime export enforces ownership, publication projection, 
   });
 
   t.after(async () => {
-    await sql`delete from baselines where dog_id = ${dogA}`;
-    await sql`delete from eli_states where dog_id = ${dogA}`;
-    await sql`delete from dogs where id in (${dogA}, ${dogB})`;
-    await sql`delete from users where id in (${ownerA}, ${ownerB})`;
+    try {
+      await sql`delete from baselines where dog_id = ${dogA}`;
+      await sql`delete from eli_states where dog_id = ${dogA}`;
+      await sql`delete from dogs where id in (${dogA}, ${dogB})`;
+      await sql`delete from users where id in (${ownerA}, ${ownerB})`;
+    } finally {
+      await Promise.allSettled([
+        sql.end({ timeout: 2 }),
+        runtimeDb?.$client?.end?.({ timeout: 2 }),
+      ]);
+    }
   });
 
-  const dataExport = await loadRoute();
-  const app = appFor(dataExport, ownerA);
+  const runtime = await loadRuntime();
+  runtimeDb = runtime.db;
+  const app = appFor(runtime.dataExport, ownerA);
 
   const jsonRes = await app.request(`/api/data-export?dog_id=${dogA}`);
   assert.equal(jsonRes.status, 200);
