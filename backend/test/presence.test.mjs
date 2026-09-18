@@ -5,7 +5,10 @@ import { readFileSync } from 'node:fs';
 import {
   buildPresenceSegments,
   computePresenceComparison,
+  PresenceComparisonDataUnavailableError,
+  readPresenceComparisonSource,
 } from '../dist/api/services/presence.js';
+import { parseLookbackWindow } from '../dist/api/utils/temporal-window.js';
 
 test('buildPresenceSegments aggregates phone events into present/absence spans', () => {
   const segments = buildPresenceSegments([
@@ -51,9 +54,51 @@ test('computePresenceComparison fails closed when no real evidence exists', () =
   assert.deepEqual(comparison.segments, []);
 });
 
-test('authenticated absence-comparison route cannot reintroduce synthetic sensor fallbacks', () => {
+test('presence lookback parser fails closed without inventing a product maximum', () => {
+  const now = new Date('2026-09-18T12:00:00.000Z');
+
+  assert.equal(parseLookbackWindow(undefined, now)?.days, 14);
+  assert.equal(parseLookbackWindow('31', now)?.days, 31);
+  assert.equal(parseLookbackWindow('365', now)?.days, 365);
+
+  for (const raw of ['0', '-1', '1.5', '1e2', '', 'not-a-number', String(Number.MAX_SAFE_INTEGER + 1)]) {
+    assert.equal(parseLookbackWindow(raw, now), null, raw);
+  }
+});
+
+test('presence source boundary preserves successful empty evidence', async () => {
+  const summaries = await readPresenceComparisonSource(async () => []);
+  assert.deepEqual(summaries, []);
+});
+
+test('presence source boundary classifies thrown reader errors separately', async () => {
+  const sourceFailure = new Error('test-only database detail');
+
+  await assert.rejects(
+    () => readPresenceComparisonSource(async () => {
+      throw sourceFailure;
+    }),
+    (error) => {
+      assert.ok(error instanceof PresenceComparisonDataUnavailableError);
+      assert.equal(error.code, 'presence_comparison_data_unavailable');
+      assert.equal(error.sourceCause, sourceFailure);
+      assert.doesNotMatch(error.message, /database detail/);
+      return true;
+    },
+  );
+});
+
+test('absence-comparison route preserves input/source truth and no synthetic fallback', () => {
   const routeSource = readFileSync(new URL('../api/routes/dogs.ts', import.meta.url), 'utf8');
 
   assert.doesNotMatch(routeSource, /buildFallback(?:Summaries|PresenceEvents)/);
   assert.doesNotMatch(routeSource, /fallback-[123]/);
+  assert.doesNotMatch(routeSource, /catch\s*\{\s*summaries\s*=\s*\[\]/);
+  assert.match(routeSource, /parseLookbackWindow\(c\.req\.query\('days'\)\)/);
+  assert.match(routeSource, /readPresenceComparisonSource/);
+  assert.match(routeSource, /PresenceComparisonDataUnavailableError/);
+  assert.match(routeSource, /presence_comparison_data_unavailable/);
+  assert.match(routeSource, /private, max-age=0, no-store/);
+  assert.match(routeSource, /503/);
 });
+
