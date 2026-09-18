@@ -5,6 +5,9 @@ on:
     paths:
       - 'backend/db/**'
       - 'backend/test/migration-baseline-static.test.mjs'
+      - 'backend/test/data-export-postgres-runtime.test.mjs'
+      - 'backend/api/routes/data-export.ts'
+      - 'backend/api/services/data-export-policy.ts'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:
 
@@ -77,6 +80,7 @@ jobs:
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0002_freemium_foundation.sql
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0003_architecture_upgrade.sql
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0004_v6_additions.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0005_behavioral_assessment_provenance.sql
 
       - name: Capture first schema
         run: |
@@ -99,6 +103,7 @@ jobs:
           psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0002_freemium_foundation.sql
           psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0003_architecture_upgrade.sql
           psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0004_v6_additions.sql
+          psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0005_behavioral_assessment_provenance.sql
           pg_dump --schema-only --no-owner --no-privileges "$REPEAT_DATABASE_URL" > /tmp/schema-b.sql
           psql "$REPEAT_DATABASE_URL" -Atc "select tablename from pg_tables where schemaname='public' order by tablename" > /tmp/tables-b.txt
 
@@ -142,11 +147,24 @@ jobs:
         run: pnpm exec drizzle-kit migrate --config=db/drizzle.p0-baseline.config.ts
 
       - name: Verify generated table inventory
+        id: generated_inventory
+        continue-on-error: true
         env:
           GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: |
           psql "$GENERATED_DATABASE_URL" -Atc "select tablename from pg_tables where schemaname='public' order by tablename" > /tmp/tables-generated.txt
           diff -u /tmp/tables-a.txt /tmp/tables-generated.txt
+
+      - name: INT-04A PostgreSQL runtime export acceptance
+        working-directory: backend
+        run: node --test test/data-export-postgres-runtime.test.mjs
+
+      - name: Preserve pre-existing P0 inventory gate
+        if: steps.generated_inventory.outcome != 'success'
+        run: |
+          echo 'Generated table inventory drift remains present.'
+          echo 'INT-04A runtime evidence ran independently; this step preserves the existing P0 failure.'
+          exit 1
 
       - name: Verify generated snapshot is stable
         working-directory: backend
@@ -168,6 +186,8 @@ jobs:
         run: pnpm --filter @emopet/api typecheck
 
       - name: Backend tests
+        env:
+          DATABASE_URL: ''
         run: pnpm --filter @emopet/api test
 
       - name: Maturity boundary
