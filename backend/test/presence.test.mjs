@@ -1,10 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 import {
   buildPresenceSegments,
   computePresenceComparison,
+  PresenceComparisonDataUnavailableError,
+  readPresenceComparisonSource,
 } from '../dist/api/services/presence.js';
+import { parseLookbackWindow } from '../dist/api/utils/temporal-window.js';
 
 test('buildPresenceSegments aggregates phone events into present/absence spans', () => {
   const segments = buildPresenceSegments([
@@ -37,3 +41,64 @@ test('computePresenceComparison rejects output when coverage is still too thin',
   assert.equal(comparison.present_vocal_events_per_hour, 1);
   assert.equal(comparison.absent_vocal_events_per_hour, 4);
 });
+
+
+test('computePresenceComparison fails closed when no real evidence exists', () => {
+  const comparison = computePresenceComparison([], []);
+
+  assert.equal(comparison.gate, 'REJECT');
+  assert.equal(comparison.confidence, 0);
+  assert.equal(comparison.effect_size, 0);
+  assert.equal(comparison.valid_presence_hours, 0);
+  assert.equal(comparison.valid_absence_hours, 0);
+  assert.deepEqual(comparison.segments, []);
+});
+
+test('presence lookback parser fails closed without inventing a product maximum', () => {
+  const now = new Date('2026-09-18T12:00:00.000Z');
+
+  assert.equal(parseLookbackWindow(undefined, now)?.days, 14);
+  assert.equal(parseLookbackWindow('31', now)?.days, 31);
+  assert.equal(parseLookbackWindow('365', now)?.days, 365);
+
+  for (const raw of ['0', '-1', '1.5', '1e2', '', 'not-a-number', String(Number.MAX_SAFE_INTEGER + 1)]) {
+    assert.equal(parseLookbackWindow(raw, now), null, raw);
+  }
+});
+
+test('presence source boundary preserves successful empty evidence', async () => {
+  const summaries = await readPresenceComparisonSource(async () => []);
+  assert.deepEqual(summaries, []);
+});
+
+test('presence source boundary classifies thrown reader errors separately', async () => {
+  const sourceFailure = new Error('test-only database detail');
+
+  await assert.rejects(
+    () => readPresenceComparisonSource(async () => {
+      throw sourceFailure;
+    }),
+    (error) => {
+      assert.ok(error instanceof PresenceComparisonDataUnavailableError);
+      assert.equal(error.code, 'presence_comparison_data_unavailable');
+      assert.equal(error.sourceCause, sourceFailure);
+      assert.doesNotMatch(error.message, /database detail/);
+      return true;
+    },
+  );
+});
+
+test('absence-comparison route preserves input/source truth and no synthetic fallback', () => {
+  const routeSource = readFileSync(new URL('../api/routes/dogs.ts', import.meta.url), 'utf8');
+
+  assert.doesNotMatch(routeSource, /buildFallback(?:Summaries|PresenceEvents)/);
+  assert.doesNotMatch(routeSource, /fallback-[123]/);
+  assert.doesNotMatch(routeSource, /catch\s*\{\s*summaries\s*=\s*\[\]/);
+  assert.match(routeSource, /parseLookbackWindow\(c\.req\.query\('days'\)\)/);
+  assert.match(routeSource, /readPresenceComparisonSource/);
+  assert.match(routeSource, /PresenceComparisonDataUnavailableError/);
+  assert.match(routeSource, /error:\s*error\.code/);
+  assert.match(routeSource, /private, max-age=0, no-store/);
+  assert.match(routeSource, /503/);
+});
+

@@ -8,7 +8,8 @@ import { sensorSummaries } from '../../db/schema/index.js';
 import {
   computePresenceComparison,
   getPresenceEventsForDog,
-  type PresenceEventInput,
+  PresenceComparisonDataUnavailableError,
+  readPresenceComparisonSource,
 } from '../services/presence.js';
 import {
   buildVetReportPdf,
@@ -17,86 +18,9 @@ import {
   verifyVetReportShareToken,
 } from '../services/vet-report.js';
 import { requireDogOwnership } from '../middleware/authorization.js';
+import { parseLookbackWindow } from '../utils/temporal-window.js';
 
 const dogs = new Hono();
-
-function buildFallbackPresenceEvents(): PresenceEventInput[] {
-  const now = new Date();
-  return [
-    { phoneSeen: true, timestamp: new Date(now.getTime() - 12 * 60 * 60 * 1000) },
-    { phoneSeen: false, timestamp: new Date(now.getTime() - 8 * 60 * 60 * 1000) },
-    { phoneSeen: true, timestamp: new Date(now.getTime() - 4 * 60 * 60 * 1000) },
-  ];
-}
-
-function buildFallbackSummaries(dogId: string): Array<typeof sensorSummaries.$inferSelect> {
-  const now = Date.now();
-  return [
-    {
-      id: 'fallback-1',
-      dogId,
-      timestamp: new Date(now - 11 * 60 * 60 * 1000),
-      source: 'TAG',
-      matPresenceMinutes: 28,
-      respiratoryRateMean: null,
-      respiratoryRateStd: null,
-      respiratoryRateConfidence: null,
-      weightKg: null,
-      positionChanges: null,
-      activityMinutes: 22,
-      distanceKm: 1.8,
-      vocalEvents: 3,
-      vocalEnergyMean: null,
-      postureDistribution: null,
-      agitationEvents: 2,
-      temperatureC: 15,
-      humidityPct: 74,
-      createdAt: new Date(),
-    },
-    {
-      id: 'fallback-2',
-      dogId,
-      timestamp: new Date(now - 7 * 60 * 60 * 1000),
-      source: 'TAG',
-      matPresenceMinutes: 12,
-      respiratoryRateMean: null,
-      respiratoryRateStd: null,
-      respiratoryRateConfidence: null,
-      weightKg: null,
-      positionChanges: null,
-      activityMinutes: 16,
-      distanceKm: 1.4,
-      vocalEvents: 7,
-      vocalEnergyMean: null,
-      postureDistribution: null,
-      agitationEvents: 5,
-      temperatureC: 17,
-      humidityPct: 68,
-      createdAt: new Date(),
-    },
-    {
-      id: 'fallback-3',
-      dogId,
-      timestamp: new Date(now - 3 * 60 * 60 * 1000),
-      source: 'MAT',
-      matPresenceMinutes: 36,
-      respiratoryRateMean: 22,
-      respiratoryRateStd: 1.2,
-      respiratoryRateConfidence: 0.8,
-      weightKg: 24.8,
-      positionChanges: 4,
-      activityMinutes: 10,
-      distanceKm: 0.8,
-      vocalEvents: 2,
-      vocalEnergyMean: null,
-      postureDistribution: null,
-      agitationEvents: 1,
-      temperatureC: 18,
-      humidityPct: 65,
-      createdAt: new Date(),
-    },
-  ];
-}
 
 function getUserId(c: unknown): string | undefined {
   return (c as { get: (key: string) => unknown }).get('userId') as string | undefined;
@@ -123,23 +47,35 @@ dogs.get('/:id/absence-comparison', async (c) => {
   const denied = await requireDogOwnership(c, id);
   if (denied) return denied;
 
-  const days = Number(c.req.query('days') ?? '14');
-  const since = new Date();
-  since.setDate(since.getDate() - days);
+  const window = parseLookbackWindow(c.req.query('days'));
+  if (!window) {
+    return c.json({ error: 'invalid_presence_window', parameter: 'days' }, 400);
+  }
+  const { days, since } = window;
 
-  let summaries: Array<typeof sensorSummaries.$inferSelect> = [];
+  let summaries: Array<typeof sensorSummaries.$inferSelect>;
   try {
-    summaries = await db
-      .select()
-      .from(sensorSummaries)
-      .where(and(eq(sensorSummaries.dogId, id), gte(sensorSummaries.timestamp, since)))
-      .orderBy(sensorSummaries.timestamp);
-  } catch {
-    summaries = [];
+    summaries = await readPresenceComparisonSource(() =>
+      db
+        .select()
+        .from(sensorSummaries)
+        .where(and(eq(sensorSummaries.dogId, id), gte(sensorSummaries.timestamp, since)))
+        .orderBy(sensorSummaries.timestamp),
+    );
+  } catch (error) {
+    if (error instanceof PresenceComparisonDataUnavailableError) {
+      c.header('Cache-Control', 'private, max-age=0, no-store');
+      return c.json(
+        { error: error.code },
+        503,
+      );
+    }
+    throw error;
   }
 
+  const presenceEvents = getPresenceEventsForDog(id, since);
   const comparison = computePresenceComparison(
-    (summaries.length > 0 ? summaries : buildFallbackSummaries(id)).map((item) => ({
+    summaries.map((item) => ({
       timestamp: item.timestamp,
       matPresenceMinutes: item.matPresenceMinutes ?? undefined,
       vocalEvents: item.vocalEvents ?? undefined,
@@ -148,9 +84,7 @@ dogs.get('/:id/absence-comparison', async (c) => {
       respiratoryRateConfidence: item.respiratoryRateConfidence ?? undefined,
       weightKg: item.weightKg ?? undefined,
     })),
-    getPresenceEventsForDog(id, since).length > 0
-      ? getPresenceEventsForDog(id, since)
-      : buildFallbackPresenceEvents(),
+    presenceEvents,
   );
 
   return c.json({
