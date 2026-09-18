@@ -46,9 +46,11 @@ Limites importantes :
 |---|---|---|
 | GET, POST | `/api/dogs` | Liste/création placeholder |
 | GET, PATCH, DELETE | `/api/dogs/:id` | Contrôle propriétaire, réponse encore partielle |
-| GET | `/api/dogs/:id/absence-comparison` | Comparaison présence/absence depuis les données réelles disponibles ; `REJECT` si elles sont insuffisantes, sans fallback physiologique synthétique côté serveur |
+| GET | `/api/dogs/:id/absence-comparison` | Comparaison présence/absence depuis les données réelles disponibles ; fenêtre `days` validée fail-closed ; `REJECT` si la lecture réussit mais les données sont insuffisantes ; `503 presence_comparison_data_unavailable` si la source PostgreSQL est indisponible ; aucun fallback physiologique synthétique côté serveur |
 | GET | `/api/dogs/:id/vet-report-link` | Création d'un lien temporaire signé |
 | GET | `/api/dogs/:id/vet-report` | PDF, via propriétaire ou `share_token` valide |
+
+Le paramètre `days` de la comparaison présence/absence est contrôlé après l'autorisation propriétaire : omission = 14 jours ; valeur fournie = entier décimal positif sûr et représentable comme date, sinon `400 invalid_presence_window`. Aucun plafond métier n'est choisi ici. Une lecture PostgreSQL réussie sans ligne reste un état d'absence de données ; une erreur de lecture reste une indisponibilité distincte (`503`, réponse `private, no-store`).
 
 Le mode démo sans token de l'application mobile peut construire une comparaison locale explicitement étiquetée comme telle ; il ne constitue pas une source de données backend et ne doit pas être confondu avec une mesure du chien.
 
