@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Hono } from 'hono';
+import { readFileSync } from 'node:fs';
 
 process.env.NODE_ENV = 'test';
 process.env.REPORT_SHARE_SECRET = 'test-only-vet-report-period-contract-secret';
@@ -25,14 +26,11 @@ for (const invalidDays of ['0', '-1', '1.5', 'not-a-number', '']) {
   });
 }
 
-test('vet-report link and report use the same normalized positive integer period', async () => {
-  const app = makeApp();
-
-  const linkInvalid = await app.request(`/dogs/${DOG_ID}/vet-report-link?days=1.5`);
-  assert.equal(linkInvalid.status, 400);
-  assert.deepEqual(await linkInvalid.json(), { error: 'invalid_report_period' });
-
-  const reportInvalid = await app.request(`/dogs/${DOG_ID}/vet-report?days=1.5`);
-  assert.equal(reportInvalid.status, 400);
-  assert.deepEqual(await reportInvalid.json(), { error: 'invalid_report_period' });
+test('vet-report link and report share the same validated period helper', () => {
+  const source = readFileSync(new URL('../api/routes/dogs.ts', import.meta.url), 'utf8');
+  const uses = source.match(/parseVetReportDays\(c\.req\.query\('days'\)\)/g) ?? [];
+  assert.equal(uses.length, 2);
+  assert.match(source, /createVetReportShareToken\(userId, id, days\)/);
+  assert.match(source, /verifyVetReportShareToken\(shareToken, id, days\)/);
+  assert.match(source, /loadVetReportSummary\(id, days\)/);
 });
