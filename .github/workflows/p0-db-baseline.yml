@@ -170,7 +170,13 @@ jobs:
       - name: Backend typecheck
         run: pnpm --filter @emopet/api typecheck
 
+      - name: INT-04A PostgreSQL runtime export acceptance
+        working-directory: backend
+        run: node --test test/data-export-postgres-runtime.test.mjs
+
       - name: Backend tests
+        env:
+          DATABASE_URL: ''
         run: pnpm --filter @emopet/api test
 
       - name: Maturity boundary
