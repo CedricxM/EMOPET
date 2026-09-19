@@ -29,6 +29,14 @@ export interface WaitlistResponse {
   joinedAt: string;
 }
 
+function requireFeatureMutationToken(token: string | null | undefined): string {
+  const normalized = token?.trim();
+  if (!normalized) {
+    throw new Error('Connexion requise pour enregistrer cette action.');
+  }
+  return normalized;
+}
+
 function progressFromSteps(steps: FeatureProgressStep[]): FeatureProgressCard['progress'] {
   if (steps.length === 0) {
     return { pct: 100, steps };
@@ -371,20 +379,11 @@ export async function saveFeatureConsent(
   token: string | null | undefined,
   input: ConsentCreateInput,
 ): Promise<ConsentRecord> {
-  if (!token) {
-    return {
-      userId: 'demo-user',
-      purpose: input.purpose,
-      status: input.status ?? 'accepted',
-      timestamp: new Date().toISOString(),
-      context: input.context,
-    };
-  }
-
+  const authToken = requireFeatureMutationToken(token);
   return apiRequest<ConsentRecord>('/api/feature-progress/consents', {
     method: 'POST',
     body: input,
-    token,
+    token: authToken,
   });
 }
 
@@ -392,35 +391,22 @@ export async function joinFeatureWaitlistRequest(
   token: string | null | undefined,
   serviceId: string,
 ): Promise<WaitlistResponse> {
-  if (!token) {
-    return {
-      serviceId,
-      channel: 'in_app',
-      joinedAt: new Date().toISOString(),
-    };
-  }
-
+  const authToken = requireFeatureMutationToken(token);
   return apiRequest<WaitlistResponse>('/api/feature-progress/waitlist', {
     method: 'POST',
     body: { serviceId },
-    token,
+    token: authToken,
   });
 }
 
 export async function acceptCommunityRulesRequest(
   token: string | null | undefined,
 ): Promise<{ userId: string; acceptedAt: string }> {
-  if (!token) {
-    return {
-      userId: 'demo-user',
-      acceptedAt: new Date().toISOString(),
-    };
-  }
-
+  const authToken = requireFeatureMutationToken(token);
   return apiRequest<{ userId: string; acceptedAt: string }>('/api/community/rules/accept', {
     method: 'POST',
     body: { accepted: true },
-    token,
+    token: authToken,
   });
 }
 
