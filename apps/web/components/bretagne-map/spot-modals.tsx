@@ -87,19 +87,34 @@ export function SpotDetailModal({
 }: {
   spot: CommunitySpot | null;
   onClose: () => void;
-  onAddComment: (spotId: string, content: string) => void;
+  onAddComment: (spotId: string, content: string) => boolean | Promise<boolean>;
   onFlag: (spotId: string) => void;
 }) {
   const [draft, setDraft] = useState('');
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
   const open = spot !== null;
   const meta = spot ? categoryMeta(spot.category) : null;
 
-  function submitComment() {
-    if (!spot) return;
+  async function submitComment() {
+    if (!spot || commentSubmitting) return;
     const trimmed = draft.trim();
     if (trimmed.length < 5) return;
-    onAddComment(spot.id, trimmed);
-    setDraft('');
+
+    setCommentSubmitting(true);
+    setCommentError(null);
+    try {
+      const saved = await onAddComment(spot.id, trimmed);
+      if (saved) {
+        setDraft('');
+        return;
+      }
+      setCommentError('Impossible de publier pour le moment. Votre texte est conservé.');
+    } catch {
+      setCommentError('Impossible de publier pour le moment. Votre texte est conservé.');
+    } finally {
+      setCommentSubmitting(false);
+    }
   }
 
   const directionsHref = spot
@@ -107,7 +122,7 @@ export function SpotDetailModal({
     : '#';
 
   return (
-    <Modal isOpen={open} onOpenChange={(o) => { if (!o) { setDraft(''); onClose(); } }}>
+    <Modal isOpen={open} onOpenChange={(o) => { if (!o) { setDraft(''); setCommentError(null); onClose(); } }}>
       <Modal.Backdrop>
         <Modal.Container placement="center" size="md">
           <Modal.Dialog>
@@ -189,15 +204,20 @@ export function SpotDetailModal({
                           aria-label="Votre commentaire"
                           style={{ ...FIELD_STYLE, resize: 'vertical' }}
                         />
+                        {commentError && (
+                          <span role="alert" style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--terracotta-700)' }}>
+                            {commentError}
+                          </span>
+                        )}
                         <button
                           type="button"
                           onClick={submitComment}
-                          disabled={draft.trim().length < 5}
+                          disabled={draft.trim().length < 5 || commentSubmitting}
                           style={{
                             ...PRIMARY_BTN,
                             alignSelf: 'flex-end',
-                            opacity: draft.trim().length < 5 ? 0.5 : 1,
-                            cursor: draft.trim().length < 5 ? 'not-allowed' : 'pointer',
+                            opacity: draft.trim().length < 5 || commentSubmitting ? 0.5 : 1,
+                            cursor: draft.trim().length < 5 || commentSubmitting ? 'not-allowed' : 'pointer',
                           }}
                         >
                           Publier
@@ -251,7 +271,7 @@ export function AddSpotModal({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (input: NewSpotInput) => void;
+  onCreate: (input: NewSpotInput) => boolean | Promise<boolean>;
   /** Spots restants dans le quota journalier (anti-spam, 5/jour). */
   remainingToday: number;
 }) {
@@ -259,6 +279,8 @@ export function AddSpotModal({
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const quotaReached = remainingToday <= 0;
   const nameValid = name.trim().length >= 3 && name.trim().length <= 120;
@@ -268,12 +290,26 @@ export function AddSpotModal({
     setName('');
     setDescription('');
     setIsAnonymous(true);
+    setSubmitError(null);
   }
 
-  function submit() {
-    if (!nameValid || quotaReached) return;
-    onCreate({ category, name: name.trim(), description: description.trim(), isAnonymous });
-    reset();
+  async function submit() {
+    if (!nameValid || quotaReached || submitting) return;
+
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const saved = await onCreate({ category, name: name.trim(), description: description.trim(), isAnonymous });
+      if (saved) {
+        reset();
+        return;
+      }
+      setSubmitError('Impossible d’enregistrer ce spot pour le moment. Vos informations sont conservées.');
+    } catch {
+      setSubmitError('Impossible d’enregistrer ce spot pour le moment. Vos informations sont conservées.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -356,6 +392,11 @@ export function AddSpotModal({
                     </span>
                   </label>
 
+                  {submitError && (
+                    <span role="alert" style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--terracotta-700)' }}>
+                      {submitError}
+                    </span>
+                  )}
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-muted)' }}>
                     {remainingToday} ajout{remainingToday > 1 ? 's' : ''} restant{remainingToday > 1 ? 's' : ''} aujourdâ€™hui
                   </span>
@@ -367,8 +408,8 @@ export function AddSpotModal({
                 <button
                   type="button"
                   onClick={submit}
-                  disabled={!nameValid}
-                  style={{ ...PRIMARY_BTN, width: '100%', opacity: nameValid ? 1 : 0.5, cursor: nameValid ? 'pointer' : 'not-allowed' }}
+                  disabled={!nameValid || submitting}
+                  style={{ ...PRIMARY_BTN, width: '100%', opacity: nameValid && !submitting ? 1 : 0.5, cursor: nameValid && !submitting ? 'pointer' : 'not-allowed' }}
                 >
                   Ajouter le spot
                 </button>
@@ -380,4 +421,3 @@ export function AddSpotModal({
     </Modal>
   );
 }
-
