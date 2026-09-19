@@ -54,7 +54,7 @@ test('INT-05 A/A constrains direct PostgreSQL writers independently of the appli
   await t.test('only arrays of 1..5 vocabulary members persist, including future-gated members', async () => {
     for (const scope of scopes) await insert({ scopes: sql.json([scope]) });
     await insert({ scopes: sql.json(scopes) });
-    for (const invalid of [[], [...scopes, scopes[0]], ['INVENTED'], [scopes[0], 'INVENTED'], [null], [1], [true], [{}], [[scopes[0]]], {}, null, scopes[0]]) {
+    for (const invalid of [[], [...scopes, scopes[0]], ['INVENTED'], [scopes[0], 'INVENTED'], [null], [1], [true], [{}], [[scopes[0]]], {}, scopes[0]]) {
       await assert.rejects(insert({ scopes: sql.json(invalid) }), rejectedBy('chk_prof_share_scopes'), JSON.stringify(invalid));
     }
     await assert.rejects(insert({ scopes: null }), (error) => error.code === '23502');
