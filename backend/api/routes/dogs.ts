@@ -29,7 +29,7 @@ function buildFallbackPresenceEvents(): PresenceEventInput[] {
   ];
 }
 
-function buildFallbackSummaries(dogId: string): Array<typeof sensorSummaries.$inferSelect> {
+function buildFallbackSummaries(dogId: string) {
   const now = Date.now();
   return [
     {
