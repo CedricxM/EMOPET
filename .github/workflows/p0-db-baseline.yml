@@ -20,6 +20,7 @@ on:
       - 'backend/test/sensor-ingestion-authority-concurrency.integration.test.mjs'
       - 'backend/test/subject-discovery-postgres.test.mjs'
       - 'backend/test/privacy-erasure-topology.integration.test.mjs'
+      - 'backend/test/professional-share-persistence.integration.test.mjs'
       - 'config/privacy/**'
       - 'backend/api/services/subject-discovery.ts'
       - 'backend/api/services/subject-access.ts'
@@ -204,6 +205,13 @@ jobs:
           EMOPET_DB_INTEGRATION_TEST: '1'
         run: node --test test/sensor-summary-ingestion.integration.test.mjs test/sensor-ingestion-authority-concurrency.integration.test.mjs
 
+      - name: INT-05A professional-share persistence authority
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          PROFESSIONAL_SHARE_DB_INTEGRATION: '1'
+        run: node --test test/professional-share-persistence.integration.test.mjs
+
       - name: PRIV-DISC-01 transactional subject discovery
         working-directory: backend
         env:
@@ -257,5 +265,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY and INT-04A bounded export authority.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY and INT-04A bounded export authority, and INT-05A professional-share persistence with privacy visibility.'
           echo 'It does not authorize production migration, deployment, identity-provider selection, email verification, MFA, or release.'
