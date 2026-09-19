@@ -149,7 +149,7 @@ dataExport.get('/', async (c) => {
       .orderBy(asc(eliStates.timestamp), asc(eliStates.id));
     const baselineRows = await tx.select().from(baselines).where(eq(baselines.dogId, dogId));
     return { ownedDog, deviceRows, summaryRows, eliRows, baselineRows };
-  }, { isolationLevel: 'read committed' });
+  }, { isolationLevel: 'repeatable read' });
 
   let exportedRows: Awaited<ReturnType<typeof readExport>>;
   try {
