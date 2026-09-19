@@ -156,6 +156,24 @@
       ]
     },
     {
+      "table": "professional_share_access_audits",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": [
+        "professional sharing security/audit evidence",
+        "denied or authorized access decision metadata"
+      ]
+    },
+    {
+      "table": "professional_share_grants",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": [
+        "professional sharing grant authority",
+        "recipient contact and access metadata"
+      ]
+    },
+    {
       "table": "recovery_events",
       "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
       "inventoryCategories": [],
