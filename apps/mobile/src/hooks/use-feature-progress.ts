@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import type { FeatureProgressCard, FeatureProgressCta } from '@emopet/shared';
+import type { ConsentPurpose, FeatureProgressCard, FeatureProgressCta } from '@emopet/shared';
 
 import {
   acceptCommunityRulesRequest,
@@ -77,6 +77,45 @@ export function useFeatureProgress() {
     }
   }
 
+  async function persistConsentAndApply(
+    purpose: ConsentPurpose,
+    action: FeatureProgressCta,
+  ): Promise<void> {
+    const isLocationConsent = purpose === 'location_nearby_temp';
+
+    try {
+      await saveFeatureConsent(token, {
+        purpose,
+        status: 'accepted',
+        context: action.context,
+      });
+
+      // Positive local state mirrors durable authority only after the server ACK.
+      if (purpose === 'community_opt_in') {
+        setConsent('community_opt_in', true);
+      }
+      if (isLocationConsent) {
+        setConsent('location_opt_in', true);
+        setPassivePhoneDetectionEnabled(true);
+      }
+
+      if (action.route) {
+        router.push(action.route as never);
+      }
+    } catch (reason: unknown) {
+      if (isLocationConsent) {
+        setConsent('location_opt_in', false);
+        setPassivePhoneDetectionEnabled(false);
+      }
+      Alert.alert(
+        isLocationConsent ? 'Proximite indisponible' : 'Consentement indisponible',
+        reason instanceof Error
+          ? reason.message
+          : 'Le consentement n a pas pu etre enregistre.',
+      );
+    }
+  }
+
   async function onAction(action: FeatureProgressCta, item: FeatureProgressCard): Promise<void> {
     if (action.type === 'open' || action.type === 'learn_more' || action.type === 'view_progress') {
       router.push((action.route ?? '/progress') as never);
@@ -84,24 +123,38 @@ export function useFeatureProgress() {
     }
 
     if (action.type === 'join_waitlist') {
-      joinWaitlist(item.serviceId);
-      await joinFeatureWaitlistRequest(token, item.serviceId);
-      Alert.alert(
-        'Liste rejointe',
-        `${item.title} reste visible ici, et vous serez prioritaire pour la beta.`,
-      );
+      try {
+        await joinFeatureWaitlistRequest(token, item.serviceId);
+        joinWaitlist(item.serviceId);
+        Alert.alert(
+          'Liste rejointe',
+          `${item.title} reste visible ici, et vous serez prioritaire pour la beta.`,
+        );
+      } catch (reason: unknown) {
+        Alert.alert(
+          'Liste indisponible',
+          reason instanceof Error ? reason.message : 'Impossible de rejoindre la liste pour le moment.',
+        );
+      }
       return;
     }
 
     if (action.type === 'accept_rules') {
-      await acceptCommunityRulesRequest(token);
-      setCommunityRulesAccepted(true);
-      Alert.alert(
-        'Regles acceptees',
-        'Vous pouvez maintenant avancer vers les fonctions communautaires qui demandent une base de moderation claire.',
-      );
-      if (action.route) {
-        router.push(action.route as never);
+      try {
+        await acceptCommunityRulesRequest(token);
+        setCommunityRulesAccepted(true);
+        Alert.alert(
+          'Regles acceptees',
+          'Vous pouvez maintenant avancer vers les fonctions communautaires qui demandent une base de moderation claire.',
+        );
+        if (action.route) {
+          router.push(action.route as never);
+        }
+      } catch (reason: unknown) {
+        Alert.alert(
+          'Acceptation indisponible',
+          reason instanceof Error ? reason.message : 'Impossible d enregistrer l acceptation pour le moment.',
+        );
       }
       return;
     }
@@ -114,23 +167,7 @@ export function useFeatureProgress() {
         {
           text: prompt.confirmLabel,
           onPress: () => {
-            if (purpose === 'community_opt_in') {
-              setConsent('community_opt_in', true);
-            }
-            if (purpose === 'location_nearby_temp') {
-              setConsent('location_opt_in', true);
-              setPassivePhoneDetectionEnabled(true);
-            }
-
-            void saveFeatureConsent(token, {
-              purpose,
-              status: 'accepted',
-              context: action.context,
-            });
-
-            if (action.route) {
-              router.push(action.route as never);
-            }
+            void persistConsentAndApply(purpose, action);
           },
         },
       ]);
