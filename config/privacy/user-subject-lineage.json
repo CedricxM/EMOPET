@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "emopet-user-subject-lineage-v1",
+  "status": "TECHNICAL_SLICE_LOCAL_RELATIONAL_LINEAGE_NOT_ERASURE_OR_DISCLOSURE_POLICY",
+  "subject": {
+    "table": "users",
+    "column": "id"
+  },
+  "lifecyclePolicyStatus": "TO_CONFIRM_BEFORE_ACCOUNT_ERASURE_OR_COMPLETE_ACCOUNT_EXPORT",
+  "directReferences": [
+    {
+      "table": "achievements",
+      "column": "user_id",
+      "source": "backend/db/schema/users.ts"
+    },
+    {
+      "table": "ai_messages",
+      "column": "target_user_id",
+      "source": "backend/db/schema/ai.ts"
+    },
+    {
+      "table": "auth_refresh_sessions",
+      "column": "user_id",
+      "source": "backend/db/schema/auth-sessions.ts"
+    },
+    {
+      "table": "behavioral_assessments",
+      "column": "respondent_user_id",
+      "source": "backend/db/schema/behavioral-assessments.ts"
+    },
+    {
+      "table": "comments",
+      "column": "author_id",
+      "source": "backend/db/schema/community.ts"
+    },
+    {
+      "table": "communities",
+      "column": "created_by",
+      "source": "backend/db/schema/community.ts"
+    },
+    {
+      "table": "community_events",
+      "column": "created_by",
+      "source": "backend/db/schema/community.ts"
+    },
+    {
+      "table": "community_members",
+      "column": "user_id",
+      "source": "backend/db/schema/community.ts"
+    },
+    {
+      "table": "dogs",
+      "column": "owner_id",
+      "source": "backend/db/schema/dogs.ts"
+    },
+    {
+      "table": "posts",
+      "column": "author_id",
+      "source": "backend/db/schema/community.ts"
+    },
+    {
+      "table": "research_data_consents",
+      "column": "user_id",
+      "source": "backend/db/schema/behavioral-assessments.ts"
+    },
+    {
+      "table": "subscriptions",
+      "column": "user_id",
+      "source": "backend/db/schema/users.ts"
+    },
+    {
+      "table": "user_config",
+      "column": "user_id",
+      "source": "backend/db/schema/eli-v5.ts"
+    }
+  ],
+  "unconstrainedUserIdentifiers": [],
+  "scopeLimitations": [
+    "This registry mirrors direct users.id foreign keys physically present on the INT-04C integration base. Presence here does not promote the owning runtime slice.",
+    "Relational linkage does not authorize deletion, anonymisation, disclosure or retention.",
+    "Dog descendants, transitive descendants and non-SQL copies require separate topology/residue evidence."
+  ]
+}

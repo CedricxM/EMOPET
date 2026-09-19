@@ -19,6 +19,8 @@ on:
       - 'backend/test/sensor-summary-ingestion.integration.test.mjs'
       - 'backend/test/sensor-ingestion-authority-concurrency.integration.test.mjs'
       - 'backend/test/subject-discovery-postgres.test.mjs'
+      - 'backend/test/privacy-erasure-topology.integration.test.mjs'
+      - 'config/privacy/**'
       - 'backend/api/services/subject-discovery.ts'
       - 'backend/api/services/subject-access.ts'
       - '.github/workflows/p0-db-baseline.yml'
@@ -205,6 +207,13 @@ jobs:
           NODE_ENV: test
         run: node --test test/subject-discovery-postgres.test.mjs
 
+      - name: PRIV-ERASURE-TOPOLOGY generated database parity
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          PRIVACY_ERASURE_TOPOLOGY_DB_INTEGRATION: '1'
+        run: node --test test/privacy-erasure-topology.integration.test.mjs
+
       - name: Verify generated snapshot is stable
         working-directory: backend
         run: |
@@ -230,5 +239,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, and read-only PRIV-DISC-01 subject discovery.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, read-only PRIV-DISC-01 subject discovery, and fail-closed PRIV-ERASURE-TOPOLOGY parity.'
           echo 'It does not authorize production migration, deployment, identity-provider selection, email verification, MFA, or release.'
