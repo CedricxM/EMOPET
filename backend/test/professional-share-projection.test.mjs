@@ -9,6 +9,12 @@ test('professional share projection publishes only fields mapped to authorized s
 
   const privateOwnerNote = 'PRIVATE_OWNER_NOTE_MUST_NOT_ESCAPE';
   const hiddenRawSensorPayload = 'RAW_SENSOR_MUST_NOT_ESCAPE';
+  const latentAffectiveSentinels = {
+    arousal: 0.73,
+    valence: -0.41,
+    peakArousal: 0.91,
+    sensorReliability: { internal: 'PRIVATE_RELIABILITY_MUST_NOT_ESCAPE' },
+  };
   const snapshot = {
     dogId: 'dog-1',
     dogName: 'Nala',
@@ -18,6 +24,7 @@ test('professional share projection publishes only fields mapped to authorized s
     trends: [{ label: 'Activite', value: '4 km', coverage: 'stable' }],
     ownerNotes: [privateOwnerNote],
     hiddenRawSensorPayload,
+    ...latentAffectiveSentinels,
   };
 
   const summary = projectProfessionalShareSnapshot(
@@ -34,6 +41,11 @@ test('professional share projection publishes only fields mapped to authorized s
   });
   assert.equal(JSON.stringify(summary).includes(privateOwnerNote), false);
   assert.equal(JSON.stringify(summary).includes(hiddenRawSensorPayload), false);
+  for (const key of ['arousal', 'valence', 'peakArousal', 'sensorReliability']) {
+    assert.equal(Object.hasOwn(summary, key), false);
+    assert.equal(JSON.stringify(summary).includes(`"${key}"`), false);
+  }
+  assert.equal(JSON.stringify(summary).includes('PRIVATE_RELIABILITY_MUST_NOT_ESCAPE'), false);
   assert.equal('qualifiedLongitudinalObservations' in summary, false);
   assert.equal('dataCoverageAndConfidence' in summary, false);
 
@@ -56,6 +68,11 @@ test('professional share projection publishes only fields mapped to authorized s
   });
   assert.equal(JSON.stringify(combined).includes(privateOwnerNote), false);
   assert.equal(JSON.stringify(combined).includes(hiddenRawSensorPayload), false);
+  for (const key of ['arousal', 'valence', 'peakArousal', 'sensorReliability']) {
+    assert.equal(Object.hasOwn(combined, key), false);
+    assert.equal(JSON.stringify(combined).includes(`"${key}"`), false);
+  }
+  assert.equal(JSON.stringify(combined).includes('PRIVATE_RELIABILITY_MUST_NOT_ESCAPE'), false);
 
   for (const scope of ['OWNER_SELECTED_NOTES', 'DECLARED_CONTEXT']) {
     assert.throws(
