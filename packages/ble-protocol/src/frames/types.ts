@@ -1,5 +1,13 @@
 /**
- * BLE SensorFrame binary protocol types.
+ * BLE binary protocol contracts.
+ *
+ * Boundary names are intentionally explicit:
+ * - BleWireFrame: raw notification bytes on the BLE characteristic.
+ * - ParsedBleSensorFrame: validated MAT/TAG protocol object after parsing.
+ * - VerifiedParsedBleFrame: opaque compile-time proof that bytes passed the
+ *   canonical BLE parser before entering a downstream feature boundary.
+ *
+ * Neither parsed-frame type is a FeatureVector and neither is an ELI input.
  *
  * Frame layout (little-endian unless noted):
  * ┌─────────┬─────────┬────────┬──────┬─────────┬─────────────┬────┐
@@ -15,6 +23,9 @@
  * payload = source-dependent sensor data
  * crc     = XOR of all preceding bytes (simple integrity check)
  */
+
+/** Raw bytes received from or serialized onto the BLE transport. */
+export type BleWireFrame = Uint8Array;
 
 // ── Source Identifiers ──────────────────────────────────────────
 
@@ -64,7 +75,7 @@ export interface MatPayload {
 }
 
 // ── TAG Payload ─────────────────────────────────────────────────
-// Total payload: 22 bytes
+// Total payload: 25 bytes
 
 export interface TagPayload {
   /** IMU activity magnitude × 1000 (uint16, in milli-g). */
@@ -111,7 +122,27 @@ export interface TagFrame {
   payload: TagPayload;
 }
 
-export type SensorFrame = MatFrame | TagFrame;
+/** Canonical parsed BLE boundary after header/version/length/CRC validation. */
+export type ParsedBleSensorFrame = MatFrame | TagFrame;
+
+/**
+ * Opaque proof carried only by the canonical verification wrapper after the
+ * raw BLE bytes have passed header/version/source/length/CRC parsing.
+ *
+ * This proof is deliberately narrow. It does NOT attest physical-device
+ * identity, dog binding, firmware trust, wall-clock correctness, calibration,
+ * sample quality, feature extraction correctness, or scientific validity.
+ */
+declare const verifiedParsedBleFrameBrand: unique symbol;
+export type VerifiedParsedBleFrame = ParsedBleSensorFrame & {
+  readonly [verifiedParsedBleFrameBrand]: true;
+};
+
+/**
+ * @deprecated Use ParsedBleSensorFrame. Kept temporarily to avoid a flag-day
+ * rename while callers migrate to the explicit ELI-IO boundary names.
+ */
+export type SensorFrame = ParsedBleSensorFrame;
 
 // ── Frame Sizes ─────────────────────────────────────────────────
 
@@ -120,9 +151,9 @@ export const HEADER_SIZE = 8;
 /** MAT payload size in bytes. */
 export const MAT_PAYLOAD_SIZE = 28;
 /** TAG payload size in bytes. */
-export const TAG_PAYLOAD_SIZE = 22;
+export const TAG_PAYLOAD_SIZE = 25;
 /** CRC size = 1 byte. */
 export const CRC_SIZE = 1;
 
 export const MAT_FRAME_SIZE = HEADER_SIZE + MAT_PAYLOAD_SIZE + CRC_SIZE; // 37
-export const TAG_FRAME_SIZE = HEADER_SIZE + TAG_PAYLOAD_SIZE + CRC_SIZE; // 31
+export const TAG_FRAME_SIZE = HEADER_SIZE + TAG_PAYLOAD_SIZE + CRC_SIZE; // 34

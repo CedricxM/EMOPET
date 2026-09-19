@@ -77,14 +77,38 @@ export interface FeatureVector {
 }
 
 /**
- * SensorFrame — a raw or summarized multi-sensor snapshot from firmware.
- * Unchanged vs v5: it carries windowed sensor data from which FeatureVector
- * is derived. Kept here as a type for protocol clarity.
+ * Semantic name for the result of a feature-extraction stage.
+ *
+ * This is intentionally an alias, not a branded validation/trust state.
  */
-export interface SensorFrame {
+export type FeatureExtractionResult = FeatureVector;
+
+/**
+ * Semantic name for the feature object consumed by a future canonical ELI
+ * orchestration path.
+ *
+ * This is intentionally an alias, not evidence that extraction, calibration,
+ * quality gating or scientific validation occurred.
+ */
+export type EliInput = FeatureVector;
+
+/**
+ * Application/backend envelope around extracted features.
+ *
+ * This is not a BLE wire frame or parsed BLE protocol object. The outer
+ * dogId/timestamp duplicate identity/time already present inside FeatureVector
+ * and are NOT type-coupled today. No runtime consumer may treat either copy as
+ * authoritative until a future producer/validator explicitly proves coherence.
+ */
+export interface FeatureIngestionEnvelope {
   timestamp: Date;
   dogId: string;
   deviceId: string;
   windowSeconds: number;
-  featureVector: FeatureVector;
+  featureVector: FeatureExtractionResult;
 }
+
+/**
+ * @deprecated Historical ambiguous name. Use FeatureIngestionEnvelope.
+ */
+export type SensorFrame = FeatureIngestionEnvelope;
