@@ -99,9 +99,9 @@ Ces routes portent un nom historique `health`, mais leurs sorties ne doivent pas
 
 | Méthode | Chemin | État observé |
 |---|---|---|
-| GET | `/api/directory/search` | Recherche PostgreSQL, rayon borné à 50 km |
-| GET | `/api/directory/categories` | Catégories et comptes PostgreSQL |
-| GET | `/api/directory/:id` | Entrée PostgreSQL par identifiant |
+| GET | `/api/directory/search` | Production : `503 DATA_RIGHTS_GATE_HOLD` tant que l’autorité revue reste HOLD ; démo explicite uniquement hors production |
+| GET | `/api/directory/categories` | Même gate de droits : HOLD par défaut ; aucune publication par simple flag d’environnement |
+| GET | `/api/directory/:id` | Même gate de droits ; démo non-production sanitise les claims de rating/vérification/provenance |
 
 ## 5. Plan API web distinct
 
