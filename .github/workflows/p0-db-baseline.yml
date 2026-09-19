@@ -20,6 +20,10 @@ on:
       - 'backend/test/sensor-ingestion-authority-concurrency.integration.test.mjs'
       - 'backend/test/subject-discovery-postgres.test.mjs'
       - 'backend/test/privacy-erasure-topology.integration.test.mjs'
+      - 'backend/test/data-export-postgres-runtime.test.mjs'
+      - 'backend/test/data-export-authority.test.mjs'
+      - 'backend/api/routes/data-export.ts'
+      - 'backend/api/services/data-export-policy.ts'
       - 'config/privacy/**'
       - 'backend/api/services/subject-discovery.ts'
       - 'backend/api/services/subject-access.ts'
@@ -214,6 +218,10 @@ jobs:
           PRIVACY_ERASURE_TOPOLOGY_DB_INTEGRATION: '1'
         run: node --test test/privacy-erasure-topology.integration.test.mjs
 
+      - name: INT-04A PostgreSQL runtime export acceptance
+        working-directory: backend
+        run: node --test test/data-export-postgres-runtime.test.mjs
+
       - name: Verify generated snapshot is stable
         working-directory: backend
         run: |
@@ -239,5 +247,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, read-only PRIV-DISC-01 subject discovery, and fail-closed PRIV-ERASURE-TOPOLOGY parity.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, read-only PRIV-DISC-01 subject discovery, and fail-closed PRIV-ERASURE-TOPOLOGY parity, and bounded INT-04A Owner export.'
           echo 'It does not authorize production migration, deployment, identity-provider selection, email verification, MFA, or release.'
