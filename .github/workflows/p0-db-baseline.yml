@@ -12,6 +12,8 @@ on:
       - 'backend/test/auth-*.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
       - 'backend/test/id-01-referential-integrity.sql'
+      - 'config/privacy/**'
+      - 'backend/test/privacy-erasure-topology.integration.test.mjs'
       - 'backend/test/subject-discovery-postgres.test.mjs'
       - 'backend/api/services/subject-discovery.ts'
       - 'backend/api/services/subject-access.ts'
@@ -205,6 +207,14 @@ jobs:
           NODE_ENV: test
         run: node --test test/subject-discovery-postgres.test.mjs
 
+      - name: PRIV-ERASURE-TOPOLOGY generated database parity
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          PRIVACY_TOPOLOGY_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/privacy-erasure-topology.integration.test.mjs
+
       - name: Verify generated snapshot is stable
         working-directory: backend
         run: |
@@ -230,5 +240,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B composition, and read-only PRIV-DISC-01 subject discovery.'
+          echo 'This workflow validates disposable P0 database behavior plus AUTH-01, ID-01, INT-03A/03B, PRIV-DISC-01, and fail-closed privacy topology controls.'
           echo 'It does not authorize production migration, deployment, identity-provider selection, email verification, MFA, or release.'
