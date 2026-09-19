@@ -149,6 +149,10 @@ export function useFeatureProgress() {
                   router.push(action.route as never);
                 }
               } catch (reason: unknown) {
+                if (purpose === 'location_nearby_temp') {
+                  setConsent('location_opt_in', false);
+                  setPassivePhoneDetectionEnabled(false);
+                }
                 setError(actionErrorMessage(reason));
               }
             })();
