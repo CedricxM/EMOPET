@@ -17,6 +17,8 @@ import {
   eliBehavioralPriors,
   eliStates,
   healthEntries,
+  professionalShareAccessAudits,
+  professionalShareGrants,
   recoveryEvents,
   researchDataConsents,
   routineStability,
@@ -166,6 +168,10 @@ export async function discoverSubjectData(
         researchDataConsents: counted(
           await countWhere(tx, researchDataConsents, eq(researchDataConsents.userId, userId)),
         ),
+        professionalShareGrantsAsOwner: counted(
+          await countWhere(tx, professionalShareGrants, eq(professionalShareGrants.ownerUserId, userId)),
+          { note: 'Count only. Recipient contact/principal metadata is not disclosed by subject discovery.' },
+        ),
         userConfig: counted(await countWhere(tx, userConfig, eq(userConfig.userId, userId))),
       };
 
@@ -188,6 +194,8 @@ export async function discoverSubjectData(
         behavioralFactorScores: 0,
         eliBehavioralPriors: 0,
         researchDataConsents: 0,
+        professionalShareGrants: 0,
+        professionalShareAccessAudits: 0,
       };
 
       if (selectedDogIds.length > 0) {
@@ -220,6 +228,8 @@ export async function discoverSubjectData(
             : 0,
           eliBehavioralPriors: await countWhere(tx, eliBehavioralPriors, inArray(eliBehavioralPriors.dogId, selectedDogIds)),
           researchDataConsents: await countWhere(tx, researchDataConsents, inArray(researchDataConsents.dogId, selectedDogIds)),
+          professionalShareGrants: await countWhere(tx, professionalShareGrants, inArray(professionalShareGrants.dogId, selectedDogIds)),
+          professionalShareAccessAudits: await countWhere(tx, professionalShareAccessAudits, inArray(professionalShareAccessAudits.dogId, selectedDogIds)),
         };
       }
 
@@ -251,15 +261,19 @@ export async function discoverSubjectData(
           behavioralFactorScores: counted(dogCounts.behavioralFactorScores),
           eliBehavioralPriors: counted(dogCounts.eliBehavioralPriors),
           researchDataConsents: counted(dogCounts.researchDataConsents),
+          professionalShareGrants: counted(dogCounts.professionalShareGrants),
+          professionalShareAccessAudits: counted(dogCounts.professionalShareAccessAudits, {
+            note: 'Count only. Sanitized policy-decision audit contents are not disclosed by subject discovery.',
+          }),
         },
         externalOrUnresolved: {
           community: unresolved(
             'INTEGRATION_DEFERRED',
             'Community subject-linked persistence is owned by INT-06 and is not reported as absent by INT-04B.',
           ),
-          professionalSharing: unresolved(
+          professionalSharingRecipientRuntime: unresolved(
             'INTEGRATION_DEFERRED',
-            'Professional-sharing persistence is owned by INT-05 and is not reported as absent by INT-04B.',
+            'INT-05A persistence is integrated, but recipient identity proofing, activation and publication runtime remain deferred.',
           ),
           journal: unresolved(
             'NOT_PERSISTED_BY_CURRENT_BACKEND',
