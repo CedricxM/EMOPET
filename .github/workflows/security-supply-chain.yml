@@ -8,14 +8,26 @@ on:
 
 permissions:
   contents: read
+  actions: read
   pull-requests: read
-  security-events: write
+  security-events: read
 
 env:
   TURBO_TELEMETRY_DISABLED: '1'
   NEXT_TELEMETRY_DISABLED: '1'
 
 jobs:
+  dependency-audit-contract:
+    name: Dependency audit report contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '20'
+      - name: Reject unavailable or incomplete audit evidence
+        run: node --test tools/security/evaluate-pnpm-audit.test.mjs
+
   dependency-audit:
     runs-on: ubuntu-latest
     steps:
@@ -141,15 +153,33 @@ jobs:
         run: test "$SEMGREP_EXIT" -eq 0
 
   codeql:
-    name: CodeQL JavaScript/TypeScript (best effort)
+    # GitHub default setup owns analysis and SARIF upload. This repository job
+    # verifies the managed run for the exact PR head instead of submitting a
+    # competing advanced-configuration SARIF payload.
+    name: CodeQL default setup evidence
     runs-on: ubuntu-latest
-    continue-on-error: true
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: github/codeql-action/init@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          languages: javascript-typescript
-      - uses: github/codeql-action/analyze@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
+          node-version: '20'
+      - name: Test CodeQL evidence gate
+        run: node --test scripts/security/verify-codeql-default-setup.test.mjs
+      - name: Require successful GitHub CodeQL analysis, upload and alert inventory for this commit
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CODEQL_EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          CODEQL_PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          CODEQL_REF: ${{ github.ref }}
+        run: node scripts/security/verify-codeql-default-setup.mjs
+      - name: Preserve verified CodeQL run evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: codeql-default-setup-${{ github.event.pull_request.head.sha || github.sha }}-attempt-${{ github.run_attempt }}
+          path: codeql-default-setup-evidence.json
+          if-no-files-found: error
+          retention-days: 14
 
   sbom:
     name: Generate CycloneDX/SPDX SBOM
