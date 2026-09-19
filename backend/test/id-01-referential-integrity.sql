@@ -157,7 +157,7 @@ VALUES (
 );
 
 -- NO ACTION must prevent silently orphaning ELI rows when a referenced dog is deleted.
-DO $
+DO $$
 BEGIN
   BEGIN
     DELETE FROM dogs
@@ -167,9 +167,9 @@ BEGIN
     WHEN foreign_key_violation THEN
       NULL;
   END;
-END $;
+END $$;
 
-DO $
+DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1
@@ -178,6 +178,6 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'ID-01 referenced dog disappeared after blocked delete';
   END IF;
-END $;
+END $$;
 
 ROLLBACK;
