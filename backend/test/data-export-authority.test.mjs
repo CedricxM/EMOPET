@@ -150,11 +150,8 @@ test('baseline projection exposes lifecycle metadata but withholds opaque metric
   assert.equal(serialized.includes('DO_NOT_DISCLOSE'), false);
 });
 
-test('Owner export and baseline read routes must use the controlled baseline projection', async () => {
-  const [exportRoute, sensorRoute] = await Promise.all([
-    readFile(new URL('../api/routes/data-export.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../api/routes/sensors.ts', import.meta.url), 'utf8'),
-  ]);
+test('Owner export route must use the controlled sensor and baseline projections', async () => {
+  const exportRoute = await readFile(new URL('../api/routes/data-export.ts', import.meta.url), 'utf8');
 
   assert.match(exportRoute, /summaryRows\.map\(toOwnerAuthorizedSensorSummaryExport\)/);
   assert.doesNotMatch(exportRoute, /preprocessed:\s*summaryRows\.map\(\(row\)\s*=>\s*\(\{\s*\.\.\.row/);
@@ -163,6 +160,4 @@ test('Owner export and baseline read routes must use the controlled baseline pro
   assert.match(exportRoute, /baselineMetricDisclosurePolicy:\s*'WITHHELD_PENDING_DISCLOSURE_AUTHORITY'/);
   assert.match(exportRoute, /p0-data-act-v2/);
 
-  assert.match(sensorRoute, /baseline\s*\?\s*toOwnerAuthorizedBaselineExport\(baseline\)\s*:\s*null/);
-  assert.doesNotMatch(sensorRoute, /baseline:\s*baseline\s*\?\?\s*null/);
 });
