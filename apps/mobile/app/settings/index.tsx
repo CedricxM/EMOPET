@@ -1,20 +1,60 @@
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
-import { usePreferencesStore } from '../../src/store';
+import { useAuthStore, usePreferencesStore } from '../../src/store';
 import { FirmwareVersionRow } from '../../src/components/firmware-version-row';
 import { useV6Insights } from '../../src/hooks/use-v6-insights';
+import { saveFeatureConsent } from '../../src/services/feature-progress';
 
 const TIERS: Array<'free' | 'trial' | 'kit' | 'premium'> = ['free', 'trial', 'kit', 'premium'];
 
 export default function SettingsScreen() {
+  const token = useAuthStore((state) => state.token);
   const subscriptionTier = usePreferencesStore((state) => state.subscriptionTier);
   const hardwareLinked = usePreferencesStore((state) => state.hardwareLinked);
   const consents = usePreferencesStore((state) => state.consents);
   const setSubscriptionTier = usePreferencesStore((state) => state.setSubscriptionTier);
   const setHardwareLinked = usePreferencesStore((state) => state.setHardwareLinked);
   const setConsent = usePreferencesStore((state) => state.setConsent);
+  const activateCommunityConsentFromDurableAuthority = usePreferencesStore(
+    (state) => state.activateCommunityConsentFromDurableAuthority,
+  );
   const insights = useV6Insights();
+
+  function onLocationConsentChange(value: boolean): void {
+    if (!value) {
+      setConsent('location_opt_in', false);
+      return;
+    }
+
+    Alert.alert(
+      'Activation protegee',
+      'La localisation ne peut pas etre activee par un simple switch local. Utilisez le parcours Proximite quand l enregistrement durable du consentement est disponible.',
+    );
+  }
+
+  async function onCommunityConsentChange(value: boolean): Promise<void> {
+    if (!value) {
+      setConsent('community_opt_in', false);
+      return;
+    }
+
+    try {
+      await saveFeatureConsent(token, {
+        purpose: 'community_opt_in',
+        status: 'accepted',
+        context: 'settings_community_opt_in',
+      });
+      activateCommunityConsentFromDurableAuthority();
+    } catch (reason: unknown) {
+      Alert.alert(
+        'Communaute indisponible',
+        reason instanceof Error
+          ? reason.message
+          : 'Le consentement Communaute n a pas pu etre enregistre durablement.',
+      );
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -77,12 +117,16 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Consentements</Text>
+        <Text style={styles.sectionTitle}>Preferences & consentements</Text>
+        <Text style={styles.helper}>
+          Localisation et Communaute ne peuvent devenir actives qu apres enregistrement durable.
+          Le souhait de partage veterinaire reste une preference locale et ne donne acces a aucune clinique.
+        </Text>
         <View style={styles.row}>
           <Text style={styles.label}>Localisation passive</Text>
           <Switch
             value={consents.location_opt_in}
-            onValueChange={(value) => setConsent('location_opt_in', value)}
+            onValueChange={onLocationConsentChange}
             trackColor={{ false: '#3B4D73', true: '#E94560' }}
           />
         </View>
@@ -90,12 +134,14 @@ export default function SettingsScreen() {
           <Text style={styles.label}>Communaute</Text>
           <Switch
             value={consents.community_opt_in}
-            onValueChange={(value) => setConsent('community_opt_in', value)}
+            onValueChange={(value) => {
+              void onCommunityConsentChange(value);
+            }}
             trackColor={{ false: '#3B4D73', true: '#E94560' }}
           />
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>Export veterinaire</Text>
+          <Text style={styles.label}>Souhait de partage veterinaire (preference locale)</Text>
           <Switch
             value={consents.vet_export_opt_in}
             onValueChange={(value) => setConsent('vet_export_opt_in', value)}
