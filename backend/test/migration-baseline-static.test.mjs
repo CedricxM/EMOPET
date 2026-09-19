@@ -119,7 +119,7 @@ test('active migration numeric prefixes are unique', () => {
 
   for (const migration of migrations) {
     const previous = seen.get(migration.prefix);
-    if (previous) duplicates.push(\`${previous} and ${migration.name} share prefix ${migration.prefix}\`);
+    if (previous) duplicates.push(`${previous} and ${migration.name} share prefix ${migration.prefix}`);
     else seen.set(migration.prefix, migration.name);
   }
 
@@ -134,6 +134,6 @@ test('active migration numeric prefixes are contiguous from 0001', () => {
   assert.deepEqual(
     actual,
     expected,
-    \`Active migration prefixes must be contiguous from 0001; found: ${migrations.map((migration) => migration.name).join(', ')}\`,
+    `Active migration prefixes must be contiguous from 0001; found: ${migrations.map((migration) => migration.name).join(', ')}`,
   );
 });
