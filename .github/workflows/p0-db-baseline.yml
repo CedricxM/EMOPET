@@ -11,6 +11,9 @@ on:
       - 'backend/test/auth-*.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
       - 'backend/test/id-01-referential-integrity.sql'
+      - 'backend/test/subject-discovery-postgres.test.mjs'
+      - 'backend/api/services/subject-discovery.ts'
+      - 'backend/api/services/subject-access.ts'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:
 
@@ -169,6 +172,14 @@ jobs:
           EMOPET_DB_INTEGRATION_TEST: '0'
         run: node --test test/auth-routes-postgres.test.mjs test/auth-session-concurrency.test.mjs
 
+      - name: PRIV-DISC-01 transactional subject discovery
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          SUBJECT_DISCOVERY_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/subject-discovery-postgres.test.mjs
+
       - name: Verify generated snapshot is stable
         working-directory: backend
         run: |
@@ -194,5 +205,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior and the focused AUTH-01 session candidate.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, and read-only PRIV-DISC-01 subject-discovery authority.'
           echo 'It does not authorize production migration, deployment, identity-provider selection, email verification, MFA, or release.'
