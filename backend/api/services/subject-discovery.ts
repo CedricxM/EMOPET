@@ -135,8 +135,8 @@ export async function discoverSubjectData(
       if (!userRow) return { ok: false, error: 'user_not_found' } as const;
 
       // Lock the complete current owned-dog set before any dog-linked count.
-      // Under READ COMMITTED, a concurrent transfer that wins first is
-      // rechecked after the wait and no longer appears as owned by this user.
+      // Under REPEATABLE READ, a concurrent authority change either precedes
+      // this snapshot or causes fail-closed serialization/unavailability.
       const ownedDogs = await tx
         .select({ id: dogs.id })
         .from(dogs)
