@@ -77,6 +77,8 @@ test('Owner data export preserves authorization and disclosure through JSON/CSV 
   const dogId = randomUUID();
   const otherDogId = randomUUID();
   const emptyDogId = randomUUID();
+  const summaryDeviceId = randomUUID();
+  const otherSummaryDeviceId = randomUUID();
   const requests = [];
   const pendingTransfers = [];
 
@@ -107,19 +109,34 @@ test('Owner data export preserves authorization and disclosure through JSON/CSV 
       VALUES (${id}, ${owner}, ${name}, 'Mixed', '2021-01-01', 'female', 18, 'FC2')`;
   }
 
+  await sql`INSERT INTO devices (id, dog_id, type, mac_address, firmware_version)
+    VALUES
+      (${summaryDeviceId}, ${dogId}, 'TAG', ${randomBytes(6).toString('hex').match(/../g).join(':')}, 'summary-fw-1.0'),
+      (${otherSummaryDeviceId}, ${otherDogId}, 'MAT', ${randomBytes(6).toString('hex').match(/../g).join(':')}, 'other-fw-1.0')`;
+
   const from = '2026-09-01T00:00:00.000Z';
   const to = '2026-09-03T00:00:00.000Z';
   const summaryIds = [];
   const outsideIds = [];
   for (const timestamp of ['2026-08-31T23:59:59Z', from, '2026-09-02T00:00:00Z', to, '2026-09-03T00:00:01Z']) {
     const id = randomUUID();
-    await sql`INSERT INTO sensor_summaries (id, dog_id, timestamp, source, activity_minutes, temperature_c)
-      VALUES (${id}, ${dogId}, ${timestamp}, 'TAG', 12.5, -1.5)`;
+    await sql`INSERT INTO sensor_summaries (
+      id, dog_id, ingestion_id, device_id, timestamp, source,
+      firmware_version_at_ingest, activity_minutes, temperature_c
+    ) VALUES (
+      ${id}, ${dogId}, ${randomUUID()}, ${summaryDeviceId}, ${timestamp}, 'TAG',
+      'summary-fw-1.0', 12.5, -1.5
+    )`;
     (new Date(timestamp) >= new Date(from) && new Date(timestamp) <= new Date(to) ? summaryIds : outsideIds).push(id);
   }
   const otherSummaryId = randomUUID();
-  await sql`INSERT INTO sensor_summaries (id, dog_id, timestamp, source, activity_minutes)
-    VALUES (${otherSummaryId}, ${otherDogId}, ${from}, 'MAT', 999)`;
+  await sql`INSERT INTO sensor_summaries (
+    id, dog_id, ingestion_id, device_id, timestamp, source,
+    firmware_version_at_ingest, activity_minutes
+  ) VALUES (
+    ${otherSummaryId}, ${otherDogId}, ${randomUUID()}, ${otherSummaryDeviceId}, ${from}, 'MAT',
+    'other-fw-1.0', 999
+  )`;
 
   const eliIds = new Map();
   for (const [index, gate] of ['PUBLISH', 'DEGRADE', 'REJECT', 'FUTURE'].entries()) {
