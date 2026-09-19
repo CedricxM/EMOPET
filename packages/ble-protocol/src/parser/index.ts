@@ -7,13 +7,14 @@
 
 import { BLE_FRAME_HEADER, BLE_FRAME_VERSION } from '@emopet/shared';
 import {
+  type BleWireFrame,
   type FrameHeader,
   type FrameSource,
   type MatPayload,
   type TagPayload,
   type MatFrame,
   type TagFrame,
-  type SensorFrame,
+  type ParsedBleSensorFrame,
   SOURCE_MAT,
   SOURCE_TAG,
   HEADER_SIZE,
@@ -41,7 +42,7 @@ export class BleParseError extends Error {
 // ── CRC ─────────────────────────────────────────────────────────
 
 /** Compute XOR checksum of all bytes in the range [0, length). */
-export function computeCrc(data: Uint8Array, length: number): number {
+export function computeCrc(data: BleWireFrame, length: number): number {
   let crc = 0;
   for (let i = 0; i < length; i++) {
     crc ^= data[i]!;
@@ -164,10 +165,10 @@ function parseTagPayload(view: DataView, offset: number): TagPayload {
 // ── Public API ──────────────────────────────────────────────────
 
 /**
- * Parse a raw BLE notification into a typed SensorFrame.
+ * Parse raw BLE notification bytes into the canonical parsed BLE boundary.
  * Validates header, version, source, length, and CRC.
  */
-export function parseSensorFrame(raw: Uint8Array): SensorFrame {
+export function parseSensorFrame(raw: BleWireFrame): ParsedBleSensorFrame {
   if (raw.length < HEADER_SIZE + 1) {
     throw new BleParseError(
       `Frame too short: ${raw.length} bytes`,
@@ -205,14 +206,14 @@ export function parseSensorFrame(raw: Uint8Array): SensorFrame {
 /**
  * Check if a frame is from the MAT.
  */
-export function isMatFrame(frame: SensorFrame): frame is MatFrame {
+export function isMatFrame(frame: ParsedBleSensorFrame): frame is MatFrame {
   return frame.header.source === SOURCE_MAT;
 }
 
 /**
  * Check if a frame is from the TAG.
  */
-export function isTagFrame(frame: SensorFrame): frame is TagFrame {
+export function isTagFrame(frame: ParsedBleSensorFrame): frame is TagFrame {
   return frame.header.source === SOURCE_TAG;
 }
 
@@ -264,8 +265,8 @@ function writeTagPayload(view: DataView, offset: number, p: TagPayload): void {
   view.setUint8(o, p.gpsReliability);
 }
 
-/** Serialize a MatFrame to a Uint8Array with CRC. */
-export function serializeMatFrame(frame: MatFrame): Uint8Array {
+/** Serialize a MAT frame to BLE wire bytes with CRC. */
+export function serializeMatFrame(frame: MatFrame): BleWireFrame {
   const buf = new Uint8Array(MAT_FRAME_SIZE);
   const view = new DataView(buf.buffer);
   writeHeader(view, frame.header);
@@ -274,8 +275,8 @@ export function serializeMatFrame(frame: MatFrame): Uint8Array {
   return buf;
 }
 
-/** Serialize a TagFrame to a Uint8Array with CRC. */
-export function serializeTagFrame(frame: TagFrame): Uint8Array {
+/** Serialize a TAG frame to BLE wire bytes with CRC. */
+export function serializeTagFrame(frame: TagFrame): BleWireFrame {
   const buf = new Uint8Array(TAG_FRAME_SIZE);
   const view = new DataView(buf.buffer);
   writeHeader(view, frame.header);
@@ -284,8 +285,8 @@ export function serializeTagFrame(frame: TagFrame): Uint8Array {
   return buf;
 }
 
-/** Serialize any SensorFrame. */
-export function serializeFrame(frame: SensorFrame): Uint8Array {
+/** Serialize any parsed BLE frame. */
+export function serializeFrame(frame: ParsedBleSensorFrame): BleWireFrame {
   if (isMatFrame(frame)) return serializeMatFrame(frame);
   return serializeTagFrame(frame as TagFrame);
 }
