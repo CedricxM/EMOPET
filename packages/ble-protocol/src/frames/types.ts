@@ -75,7 +75,7 @@ export interface MatPayload {
 }
 
 // ── TAG Payload ─────────────────────────────────────────────────
-// Total payload: 22 bytes
+// Total payload: 25 bytes
 
 export interface TagPayload {
   /** IMU activity magnitude × 1000 (uint16, in milli-g). */
@@ -151,9 +151,9 @@ export const HEADER_SIZE = 8;
 /** MAT payload size in bytes. */
 export const MAT_PAYLOAD_SIZE = 28;
 /** TAG payload size in bytes. */
-export const TAG_PAYLOAD_SIZE = 22;
+export const TAG_PAYLOAD_SIZE = 25;
 /** CRC size = 1 byte. */
 export const CRC_SIZE = 1;
 
 export const MAT_FRAME_SIZE = HEADER_SIZE + MAT_PAYLOAD_SIZE + CRC_SIZE; // 37
-export const TAG_FRAME_SIZE = HEADER_SIZE + TAG_PAYLOAD_SIZE + CRC_SIZE; // 31
+export const TAG_FRAME_SIZE = HEADER_SIZE + TAG_PAYLOAD_SIZE + CRC_SIZE; // 34
