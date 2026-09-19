@@ -23,6 +23,11 @@
       "key": "FACTOR_SCORE_IDS_SNAPSHOT",
       "source": "behavioral_factor_scores.id",
       "captureRule": "CAPTURE_IDS_FOR_TARGET_ASSESSMENTS_BEFORE_PARENT_MUTATION"
+    },
+    {
+      "key": "PROFESSIONAL_SHARE_GRANT_IDS_SNAPSHOT",
+      "source": "professional_share_grants.id",
+      "captureRule": "CAPTURE_GRANTS_LINKED_TO_TARGET_OWNER_OR_DOGS_BEFORE_PARENT_MUTATION"
     }
   ],
   "relationProbeRoutes": [
@@ -49,6 +54,14 @@
         "TRANSITIVE_FK"
       ],
       "snapshotKey": "ASSESSMENT_IDS_SNAPSHOT_OR_FACTOR_SCORE_IDS_SNAPSHOT",
+      "probeStatus": "NOT_IMPLEMENTED"
+    },
+    {
+      "subjectRoot": "professional_share_grants.id",
+      "relationTypes": [
+        "UNCONSTRAINED_IDENTIFIER"
+      ],
+      "snapshotKey": "PROFESSIONAL_SHARE_GRANT_IDS_SNAPSHOT",
       "probeStatus": "NOT_IMPLEMENTED"
     }
   ],
@@ -83,6 +96,7 @@
   "scopeLimitations": [
     "This contract describes future verification requirements only; it does not execute erasure.",
     "A zero-row PostgreSQL result cannot prove deletion from non-SQL surfaces.",
-    "Snapshot identifiers must be captured before future parent mutations destroy traversal paths."
+    "Snapshot identifiers must be captured before future parent mutations destroy traversal paths.",
+    "Audits of unknown grant/dog attempts can outlive any canonical root; these identifiers do not establish complete subject attribution or a retention policy."
   ]
 }

@@ -1,0 +1,25 @@
+{
+  "status": "FRESH_BASELINE_ONLY_NO_ACTIVE_MIGRATION",
+  "authorityIssue": 258,
+  "ownerIssue": 261,
+  "baseCommit": "ebffaaf595877cc49642b996ea1dbdf09715509e",
+  "sourceCommit": "7e0d90445a3cf03b094d7037aa6addbfa6f2cc19",
+  "tables": [
+    "professional_share_access_audits",
+    "professional_share_grants"
+  ],
+  "schemaSource": "backend/db/schema/professional-sharing.ts",
+  "historicalSqlProvenance": [
+    {
+      "path": "backend/db/migrations/0006_professional_share_authority.sql",
+      "blob": "9ec1ebabc87c3048feb3029a9f1ac96441f4b312",
+      "disposition": "PROVENANCE_ONLY_NOT_REPLAYED"
+    },
+    {
+      "path": "backend/db/migrations/0009_professional_share_owner_terminology.sql",
+      "blob": "9ec91d597bd6cbdf3fa97591d61788a297b208b9",
+      "disposition": "PROVENANCE_ONLY_NOT_REPLAYED"
+    }
+  ],
+  "claimsExistingDatabaseUpgradeReady": false
+}

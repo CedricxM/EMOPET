@@ -58,6 +58,11 @@
       "source": "backend/db/schema/community.ts"
     },
     {
+      "table": "professional_share_grants",
+      "column": "owner_user_id",
+      "source": "backend/db/schema/professional-sharing.ts"
+    },
+    {
       "table": "research_data_consents",
       "column": "user_id",
       "source": "backend/db/schema/behavioral-assessments.ts"
@@ -77,6 +82,7 @@
   "scopeLimitations": [
     "This registry mirrors direct users.id foreign keys physically present on the INT-04C integration base. Presence here does not promote the owning runtime slice.",
     "Relational linkage does not authorize deletion, anonymisation, disclosure or retention.",
-    "Dog descendants, transitive descendants and non-SQL copies require separate topology/residue evidence."
+    "Dog descendants, transitive descendants and non-SQL copies require separate topology/residue evidence.",
+    "INT-05 extends the actual composed schema. professional_share_access_audits.grant_id and dog_id intentionally lack FKs; audit retention, deletion and attribution of unknown attempts remain unresolved."
   ]
 }

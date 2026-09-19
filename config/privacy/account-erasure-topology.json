@@ -80,6 +80,13 @@
       "erasureDisposition": "TO_CONFIRM"
     },
     {
+      "table": "professional_share_grants",
+      "column": "owner_user_id",
+      "source": "backend/db/schema/professional-sharing.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
       "table": "research_data_consents",
       "column": "user_id",
       "source": "backend/db/schema/behavioral-assessments.ts",
@@ -106,6 +113,7 @@
   "scopeLimitations": [
     "NO_ACTION means PostgreSQL will not silently erase these dependent rows with the account root.",
     "This topology records mechanics only. Every relation remains TO_CONFIRM.",
-    "External/object/cache/analytics/backup copies remain blockers to any complete-erasure claim."
+    "External/object/cache/analytics/backup copies remain blockers to any complete-erasure claim.",
+    "INT-05 extends the actual composed schema. professional_share_access_audits.grant_id and dog_id intentionally lack FKs; audit retention, deletion and attribution of unknown attempts remain unresolved."
   ]
 }

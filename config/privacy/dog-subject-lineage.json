@@ -59,6 +59,11 @@
       "source": "backend/db/schema/dogs.ts"
     },
     {
+      "table": "professional_share_grants",
+      "column": "dog_id",
+      "source": "backend/db/schema/professional-sharing.ts"
+    },
+    {
       "table": "recovery_events",
       "column": "dog_id",
       "source": "backend/db/schema/eli-v5.ts"
@@ -99,6 +104,11 @@
       "table": "copresence_events",
       "column": "dog_b_id",
       "source": "backend/db/schema/community.ts"
+    },
+    {
+      "table": "professional_share_access_audits",
+      "column": "dog_id",
+      "source": "backend/db/schema/professional-sharing.ts"
     }
   ],
   "transitiveDescendants": [
@@ -138,6 +148,17 @@
   "scopeLimitations": [
     "Canonical foreign keys and unconstrained dog-like identifiers are technical persistence mechanics, not lifecycle policy.",
     "Community relations already present in the base schema remain visible here even while INT-06 runtime integration is deferred.",
-    "Object/media storage, providers, caches, analytics and backups remain outside PostgreSQL lineage."
+    "Object/media storage, providers, caches, analytics and backups remain outside PostgreSQL lineage.",
+    "INT-05 extends the actual composed schema. professional_share_access_audits.grant_id and dog_id intentionally lack FKs; audit retention, deletion and attribution of unknown attempts remain unresolved."
+  ],
+  "unconstrainedGrantIdentifiers": [
+    {
+      "table": "professional_share_access_audits",
+      "column": "grant_id",
+      "references": "professional_share_grants.id",
+      "source": "backend/db/schema/professional-sharing.ts",
+      "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED",
+      "erasureDisposition": "TO_CONFIRM"
+    }
   ]
 }

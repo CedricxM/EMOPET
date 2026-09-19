@@ -76,10 +76,14 @@ test('PRIV-ERASURE-TOPOLOGY static controls remain fail closed', () => {
     assert.equal(probe.probeStatus, 'NOT_IMPLEMENTED');
   }
 
+  assert.deepEqual(dogLineage.unconstrainedGrantIdentifiers, dogTopology.unconstrainedGrantIdentifiers);
+  assert.deepEqual(dogTopology.unconstrainedGrantIdentifiers.map((row) => `${row.table}.${row.column}`), ['professional_share_access_audits.grant_id']);
+
   const expectedMatrix = [
     ...accountTopology.directUserReferences.map((row) => relationKey('users.id', 'DIRECT_FK', row)),
     ...dogTopology.canonicalForeignKeys.map((row) => relationKey('dogs.id', 'DIRECT_FK', row)),
     ...dogTopology.unconstrainedDogIdentifiers.map((row) => relationKey('dogs.id', 'UNCONSTRAINED_IDENTIFIER', row)),
+    ...dogTopology.unconstrainedGrantIdentifiers.map((row) => relationKey('professional_share_grants.id', 'UNCONSTRAINED_IDENTIFIER', row)),
     ...dogTopology.transitiveDescendants.map((row) => relationKey('dogs.id', 'TRANSITIVE_FK', row)),
   ];
   const actualMatrix = matrix.entries.map((row) => relationKey(row.subjectRoot, row.relationType, row));
@@ -238,6 +242,9 @@ test('PRIV-ERASURE-TOPOLOGY matches generated PostgreSQL FK/delete mechanics', {
     userLineage.unconstrainedUserIdentifiers.map((row) => `${row.table}|${row.column}`).sort(),
     'unconstrained user identifiers drifted from generated PostgreSQL',
   );
+
+  const auditFks = await sql`SELECT conname FROM pg_constraint WHERE contype = 'f' AND conrelid = 'professional_share_access_audits'::regclass`;
+  assert.equal(auditFks.length, 0, 'audit grant_id and dog_id deliberately remain unconstrained; topology must not imply FK lifecycle');
 
   for (const expected of dogTopology.transitiveDescendants) {
     const [parentTable, parentColumn] = expected.references.split('.');

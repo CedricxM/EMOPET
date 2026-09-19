@@ -28,6 +28,14 @@ on:
       - 'backend/test/data-export-*.test.mjs'
       - 'backend/test/privacy-dog-export-coverage.test.mjs'
       - 'config/privacy/dog-export-coverage.json'
+      - 'backend/api/routes/dogs.ts'
+      - 'backend/api/services/professional-share-*.ts'
+      - 'backend/test/professional-share-*.test.mjs'
+      - 'packages/shared/src/types/professional-share.ts'
+      - 'packages/shared/src/types/index.ts'
+      - 'packages/shared/src/validators/professional-share.ts'
+      - 'scripts/security/professional-share-authority-audit.mjs'
+      - 'scripts/db/verify-fresh-table-inventory.mjs'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:
 
@@ -187,7 +195,7 @@ jobs:
           GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: |
           psql "$GENERATED_DATABASE_URL" -Atc "select tablename from pg_tables where schemaname='public' order by tablename" > /tmp/tables-generated.txt
-          diff -u /tmp/tables-a.txt /tmp/tables-generated.txt
+          node scripts/db/verify-fresh-table-inventory.mjs /tmp/tables-a.txt /tmp/tables-generated.txt
 
       - name: AUTH-01 route integration on generated baseline
         working-directory: backend
@@ -216,7 +224,7 @@ jobs:
         working-directory: backend
         env:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
-          PRIVACY_ERASURE_TOPOLOGY_DB_INTEGRATION: '1'
+          PRIVACY_TOPOLOGY_DB_INTEGRATION: '1'
         run: node --test test/privacy-erasure-topology.integration.test.mjs
 
       - name: INT-04A bounded Owner export authority
@@ -231,6 +239,13 @@ jobs:
             test/data-export-summary-window.test.mjs \
             test/privacy-dog-export-coverage.test.mjs \
             test/data-export-runtime.integration.test.mjs
+
+      - name: INT-05 recipient-bound professional sharing
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          EMOPET_DB_INTEGRATION_TEST: '1'
+        run: node --test test/professional-share-*.test.mjs
 
       - name: Verify generated snapshot is stable
         working-directory: backend
@@ -257,5 +272,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY and INT-04A bounded export authority.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, INT-04A bounded export authority, and INT-05 recipient-bound backend contracts.'
           echo 'It does not authorize production migration, deployment, identity-provider selection, email verification, MFA, or release.'

@@ -17,6 +17,8 @@ import {
   eliBehavioralPriors,
   eliStates,
   healthEntries,
+  professionalShareGrants,
+  professionalShareAccessAudits,
   recoveryEvents,
   researchDataConsents,
   routineStability,
@@ -133,8 +135,8 @@ export async function discoverSubjectData(
       if (!userRow) return { ok: false, error: 'user_not_found' } as const;
 
       // Lock the complete current owned-dog set before any dog-linked count.
-      // Under READ COMMITTED, a concurrent transfer that wins first is
-      // rechecked after the wait and no longer appears as owned by this user.
+      // A transfer that wins after this snapshot causes a serialization failure;
+      // the caller receives the retryable, fail-closed result below.
       const ownedDogs = await tx
         .select({ id: dogs.id })
         .from(dogs)
@@ -154,6 +156,9 @@ export async function discoverSubjectData(
       const guardian = {
         account: counted(1, { ids: [userRow.id] }),
         ownedDogs: counted(ownedDogIds.length, { ids: ownedDogIds }),
+        professionalShareGrantsOwned: counted(
+          await countWhere(tx, professionalShareGrants, eq(professionalShareGrants.ownerUserId, userId)),
+        ),
         subscriptions: counted(await countWhere(tx, subscriptions, eq(subscriptions.userId, userId))),
         achievements: counted(await countWhere(tx, achievements, eq(achievements.userId, userId))),
         aiMessagesTargetingUser: counted(await countWhere(tx, aiMessages, eq(aiMessages.targetUserId, userId))),
@@ -170,6 +175,8 @@ export async function discoverSubjectData(
       };
 
       let dogCounts = {
+        professionalShareGrants: 0,
+        professionalShareAccessAudits: 0,
         devices: 0,
         healthEntries: 0,
         sensorSummaries: 0,
@@ -198,6 +205,8 @@ export async function discoverSubjectData(
         const assessmentIds = assessmentRows.map((row) => row.id);
 
         dogCounts = {
+          professionalShareGrants: await countWhere(tx, professionalShareGrants, inArray(professionalShareGrants.dogId, selectedDogIds)),
+          professionalShareAccessAudits: await countWhere(tx, professionalShareAccessAudits, inArray(professionalShareAccessAudits.dogId, selectedDogIds)),
           devices: await countWhere(tx, devices, inArray(devices.dogId, selectedDogIds)),
           healthEntries: await countWhere(tx, healthEntries, inArray(healthEntries.dogId, selectedDogIds)),
           sensorSummaries: await countWhere(tx, sensorSummaries, inArray(sensorSummaries.dogId, selectedDogIds)),
@@ -233,6 +242,10 @@ export async function discoverSubjectData(
         guardian,
         dog: {
           profiles: counted(selectedDogIds.length, { ids: selectedDogIds }),
+          professionalShareGrants: counted(dogCounts.professionalShareGrants),
+          professionalShareAccessAudits: counted(dogCounts.professionalShareAccessAudits, {
+            note: 'Counts by requested dog ID only; audit identifiers have no FK and do not prove grant attribution or lifecycle completeness.',
+          }),
           devices: counted(dogCounts.devices),
           healthEntries: counted(dogCounts.healthEntries),
           sensorSummaries: counted(dogCounts.sensorSummaries),
@@ -258,8 +271,8 @@ export async function discoverSubjectData(
             'Community subject-linked persistence is owned by INT-06 and is not reported as absent by INT-04B.',
           ),
           professionalSharing: unresolved(
-            'INTEGRATION_DEFERRED',
-            'Professional-sharing persistence is owned by INT-05 and is not reported as absent by INT-04B.',
+            'POLICY_AUTHORITY_OPEN',
+            'INT-05 grants and dog-linked audits are counted only. Unconstrained audit grant/dog identifiers, retention, deletion, provider copies and delivery remain unresolved.',
           ),
           journal: unresolved(
             'NOT_PERSISTED_BY_CURRENT_BACKEND',

@@ -53,7 +53,7 @@ function orderedSqlSources() {
   ];
 }
 
-test('draft baseline plus historical migrations define every current Drizzle table name', () => {
+test('historical table inventory differs only by explicitly declared fresh-baseline additions', () => {
   const expected = schemaTableNames();
   const created = new Set();
 
@@ -66,8 +66,8 @@ test('draft baseline plus historical migrations define every current Drizzle tab
   const missing = [...expected].filter((table) => !created.has(table)).sort();
   assert.deepEqual(
     missing,
-    [],
-    `Current Drizzle tables without any CREATE TABLE in draft+history: ${missing.join(', ')}`,
+    JSON.parse(read(join(dbDir, 'fresh-baseline-only-tables.json'))).tables,
+    `Undeclared historical/fresh table delta: ${missing.join(', ')}`,
   );
 });
 

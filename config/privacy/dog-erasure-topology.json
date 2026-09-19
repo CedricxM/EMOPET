@@ -80,6 +80,13 @@
       "erasureDisposition": "TO_CONFIRM"
     },
     {
+      "table": "professional_share_grants",
+      "column": "dog_id",
+      "source": "backend/db/schema/professional-sharing.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
       "table": "recovery_events",
       "column": "dog_id",
       "source": "backend/db/schema/eli-v5.ts",
@@ -136,6 +143,13 @@
       "source": "backend/db/schema/community.ts",
       "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED",
       "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "professional_share_access_audits",
+      "column": "dog_id",
+      "source": "backend/db/schema/professional-sharing.ts",
+      "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED",
+      "erasureDisposition": "TO_CONFIRM"
     }
   ],
   "transitiveDescendants": [
@@ -176,6 +190,17 @@
     "NO_ACTION means deleting dogs.id cannot be assumed to cascade through the listed canonical foreign keys.",
     "NO_FK_LIFECYCLE_NOT_ENFORCED means PostgreSQL cannot guarantee cleanup for that dog-like identifier.",
     "CASCADE mechanics on behavioral child rows do not constitute an approved erasure policy.",
-    "Non-SQL copies remain separate blockers."
+    "Non-SQL copies remain separate blockers.",
+    "INT-05 extends the actual composed schema. professional_share_access_audits.grant_id and dog_id intentionally lack FKs; audit retention, deletion and attribution of unknown attempts remain unresolved."
+  ],
+  "unconstrainedGrantIdentifiers": [
+    {
+      "table": "professional_share_access_audits",
+      "column": "grant_id",
+      "references": "professional_share_grants.id",
+      "source": "backend/db/schema/professional-sharing.ts",
+      "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED",
+      "erasureDisposition": "TO_CONFIRM"
+    }
   ]
 }
