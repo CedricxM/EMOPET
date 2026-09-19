@@ -5,6 +5,7 @@ on:
     paths:
       - 'backend/db/**'
       - 'backend/test/migration-baseline-static.test.mjs'
+      - 'backend/test/community-membership-canonicality.test.mjs'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:
 
@@ -62,7 +63,7 @@ jobs:
 
       - name: Repository-only migration checks
         working-directory: backend
-        run: node --test test/migration-baseline-static.test.mjs
+        run: node --test test/migration-baseline-static.test.mjs test/community-membership-canonicality.test.mjs
 
       - name: Apply all draft prerequisites in order
         run: |
