@@ -1,0 +1,111 @@
+{
+  "schemaVersion": "emopet-account-erasure-topology-v1",
+  "status": "TECHNICAL_DATABASE_ERASURE_TOPOLOGY_NOT_ERASURE_POLICY",
+  "claimsCompleteAccountErasure": false,
+  "claimsExecutableErasure": false,
+  "subject": {
+    "table": "users",
+    "column": "id"
+  },
+  "promotionGate": "BLOCK_COMPLETE_ACCOUNT_ERASURE_CLAIM_UNTIL_ALL_RELATIONS_AND_NON_SQL_SURFACES_HAVE_APPROVED_DISPOSITION_IMPLEMENTED_EXECUTION_AND_RESIDUE_EVIDENCE",
+  "directUserReferences": [
+    {
+      "table": "achievements",
+      "column": "user_id",
+      "source": "backend/db/schema/users.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "ai_messages",
+      "column": "target_user_id",
+      "source": "backend/db/schema/ai.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "auth_refresh_sessions",
+      "column": "user_id",
+      "source": "backend/db/schema/auth-sessions.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "behavioral_assessments",
+      "column": "respondent_user_id",
+      "source": "backend/db/schema/behavioral-assessments.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "comments",
+      "column": "author_id",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "communities",
+      "column": "created_by",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "community_events",
+      "column": "created_by",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "community_members",
+      "column": "user_id",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "dogs",
+      "column": "owner_id",
+      "source": "backend/db/schema/dogs.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM_DOG_AND_DESCENDANT_LIFECYCLE"
+    },
+    {
+      "table": "posts",
+      "column": "author_id",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "research_data_consents",
+      "column": "user_id",
+      "source": "backend/db/schema/behavioral-assessments.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "subscriptions",
+      "column": "user_id",
+      "source": "backend/db/schema/users.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "user_config",
+      "column": "user_id",
+      "source": "backend/db/schema/eli-v5.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    }
+  ],
+  "unconstrainedUserIdentifiers": [],
+  "dogDescendantAuthority": "config/privacy/dog-erasure-topology.json",
+  "scopeLimitations": [
+    "NO_ACTION means PostgreSQL will not silently erase these dependent rows with the account root.",
+    "This topology records mechanics only. Every relation remains TO_CONFIRM.",
+    "External/object/cache/analytics/backup copies remain blockers to any complete-erasure claim."
+  ]
+}
