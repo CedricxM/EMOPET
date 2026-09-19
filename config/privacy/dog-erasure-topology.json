@@ -80,6 +80,13 @@
       "erasureDisposition": "TO_CONFIRM"
     },
     {
+      "table": "professional_share_grants",
+      "column": "dog_id",
+      "source": "backend/db/schema/professional-sharing.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
       "table": "recovery_events",
       "column": "dog_id",
       "source": "backend/db/schema/eli-v5.ts",
@@ -136,6 +143,13 @@
       "source": "backend/db/schema/community.ts",
       "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED",
       "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "professional_share_access_audits",
+      "column": "dog_id",
+      "source": "backend/db/schema/professional-sharing.ts",
+      "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED",
+      "erasureDisposition": "TO_CONFIRM_AUDIT_RETENTION_EXCEPTION_OR_SANITIZED_DELETION"
     }
   ],
   "transitiveDescendants": [
