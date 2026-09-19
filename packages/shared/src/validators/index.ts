@@ -257,3 +257,5 @@ export const VetReportQuerySchema = z.object({
   days: z.coerce.number().int().min(1).max(30).default(14),
   share: StrictBooleanQuerySchema,
 });
+
+export * from './professional-share.js';
