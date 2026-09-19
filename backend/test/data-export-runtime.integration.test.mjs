@@ -263,9 +263,19 @@ test('Owner data export preserves authorization and disclosure through JSON/CSV 
         await waitForBlockedOperations(tx, pid, 2);
       });
       for (const response of await Promise.all(pending)) {
-        assert.equal(response.status, 404);
+        assert.ok(
+          response.status === 404 || response.status === 503,
+          `former Owner export must fail closed after a winning transfer, got ${response.status}`,
+        );
         assert.equal(response.headers.get('cache-control'), 'private, no-store');
         assert.equal(response.headers.get('content-disposition'), null);
+        if (response.status === 503) {
+          assert.deepEqual(await response.json(), {
+            error: 'data_export_unavailable',
+            code: 'DATA_EXPORT_UNAVAILABLE',
+            retryable: true,
+          });
+        }
       }
       assert.equal((await request(dogId, 'json', otherToken)).status, 200);
     } finally {
