@@ -7,10 +7,13 @@ on:
       - 'backend/api/routes/auth.ts'
       - 'backend/api/middleware/auth.ts'
       - 'backend/api/services/auth-*.ts'
+      - 'backend/api/routes/sensors.ts'
       - 'packages/shared/src/validators/index.ts'
       - 'backend/test/auth-*.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
       - 'backend/test/id-01-referential-integrity.sql'
+      - 'backend/test/sensor-summary-ingestion.integration.test.mjs'
+      - 'backend/test/sensor-ingestion-authority-concurrency.integration.test.mjs'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:
 
@@ -169,6 +172,13 @@ jobs:
           EMOPET_DB_INTEGRATION_TEST: '0'
         run: node --test test/auth-routes-postgres.test.mjs test/auth-session-concurrency.test.mjs
 
+      - name: INT-03A sensor-summary provenance integration
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          EMOPET_DB_INTEGRATION_TEST: '1'
+        run: node --test test/sensor-summary-ingestion.integration.test.mjs test/sensor-ingestion-authority-concurrency.integration.test.mjs
+
       - name: Verify generated snapshot is stable
         working-directory: backend
         run: |
@@ -194,5 +204,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior and the focused AUTH-01 session candidate.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, and INT-03A sensor provenance candidates.'
           echo 'It does not authorize production migration, deployment, identity-provider selection, email verification, MFA, or release.'
