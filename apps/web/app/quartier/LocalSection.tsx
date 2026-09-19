@@ -374,10 +374,10 @@ export function LocalSection() {
     return false;
   }
 
-  function handleFlagSpot(_spotId: string) {
-    setSelectedSpotId(null);
-    setFlashNotice(t('local', 'spotFlagged'));
-    setTimeout(() => setFlashNotice(null), 4000);
+  async function handleFlagSpot(_spotId: string): Promise<boolean> {
+    // Aucun endpoint de signalement de spot n'existe actuellement. Ne jamais
+    // transformer ce vide d'autorité en faux accusé de réception.
+    return false;
   }
 
   const [filter, setFilter] = useState<FilterId>('all');
