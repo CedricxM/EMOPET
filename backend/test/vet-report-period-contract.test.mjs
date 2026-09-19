@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Hono } from 'hono';
 import { readFileSync } from 'node:fs';
-import { readFileSync } from 'node:fs';
 
 process.env.NODE_ENV = 'test';
 process.env.REPORT_SHARE_SECRET = 'test-only-vet-report-period-contract-secret';
