@@ -1,8 +1,8 @@
 export interface PersistedSensorSummaryForExport {
   id: string;
   dogId: string;
-  ingestionId: string | null;
-  deviceId: string | null;
+  ingestionId: string;
+  deviceId: string;
   timestamp: Date;
   source: string;
   firmwareVersionAtIngest: string | null;
@@ -26,7 +26,7 @@ export interface PersistedSensorSummaryForExport {
 export interface OwnerAuthorizedSensorSummaryExport {
   id: string;
   dogId: string;
-  deviceId: string | null;
+  deviceId: string;
   timestamp: Date;
   source: string;
   firmwareVersionAtIngest: string | null;
@@ -65,7 +65,7 @@ export interface OwnerAuthorizedSensorSummaryExport {
   provenance: {
     level: 'preprocessed';
     deviceSource: string;
-    deviceBinding: 'SERVER_VERIFIED_REGISTRY_BINDING' | 'UNBOUND';
+    deviceBinding: 'SERVER_VERIFIED_REGISTRY_BINDING';
     eventTimeField: 'timestamp';
     receiveTimeField: 'createdAt';
     firmwareSnapshotSource: 'SERVER_DEVICE_REGISTRY' | 'UNAVAILABLE';
@@ -130,7 +130,7 @@ export function toOwnerAuthorizedSensorSummaryExport(
     provenance: {
       level: 'preprocessed',
       deviceSource: row.source,
-      deviceBinding: row.deviceId ? 'SERVER_VERIFIED_REGISTRY_BINDING' : 'UNBOUND',
+      deviceBinding: 'SERVER_VERIFIED_REGISTRY_BINDING',
       eventTimeField: 'timestamp',
       receiveTimeField: 'createdAt',
       firmwareSnapshotSource: row.firmwareVersionAtIngest ? 'SERVER_DEVICE_REGISTRY' : 'UNAVAILABLE',
