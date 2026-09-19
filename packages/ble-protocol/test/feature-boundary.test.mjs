@@ -9,6 +9,8 @@ import {
   parseSensorFrame,
   serializeMatFrame,
   serializeTagFrame,
+  MAT_FRAME_SIZE,
+  TAG_FRAME_SIZE,
 } from '../dist/index.js';
 
 const matFrame = {
@@ -75,6 +77,7 @@ test('protocol-verified wrapper accepts valid MAT and TAG frames without changin
     [tagFrame, serializeTagFrame],
   ]) {
     const wire = serialize(frame);
+    assert.equal(wire.length, frame.header.source === SOURCE_MAT ? MAT_FRAME_SIZE : TAG_FRAME_SIZE);
     const parsed = parseSensorFrame(wire);
     const verified = parseProtocolVerifiedSensorFrame(wire);
 
