@@ -61,4 +61,9 @@ test('INT-09E1 positive consent is applied only after durable save', () => {
     hookSource,
     /setConsent\([^\n]+true\)[\s\S]{0,300}void saveFeatureConsent/,
   );
+
+  const locationFailureReset = hookSource.indexOf("setConsent('location_opt_in', false)", save);
+  const passiveFailureReset = hookSource.indexOf('setPassivePhoneDetectionEnabled(false)', save);
+  assert.ok(locationFailureReset > save);
+  assert.ok(passiveFailureReset > save);
 });
