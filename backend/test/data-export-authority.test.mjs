@@ -160,4 +160,6 @@ test('Owner export route uses controlled sensor, ELI and baseline projections', 
   assert.doesNotMatch(exportRoute, /baselines:\s*baselineRows[,\n]/);
   assert.match(exportRoute, /baselineMetricDisclosurePolicy:\s*'WITHHELD_PENDING_DISCLOSURE_AUTHORITY'/);
   assert.match(exportRoute, /p0-data-act-v2/);
+  assert.match(exportRoute, /isolationLevel:\s*'repeatable read'/);
+  assert.doesNotMatch(exportRoute, /isolationLevel:\s*'read committed'/);
 });
