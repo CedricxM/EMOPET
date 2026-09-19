@@ -16,6 +16,9 @@
  * crc     = XOR of all preceding bytes (simple integrity check)
  */
 
+/** Raw bytes received from or serialized onto the BLE transport. */
+export type BleWireFrame = Uint8Array;
+
 // ── Source Identifiers ──────────────────────────────────────────
 
 export const SOURCE_MAT = 0x01 as const;
@@ -111,7 +114,25 @@ export interface TagFrame {
   payload: TagPayload;
 }
 
-export type SensorFrame = MatFrame | TagFrame;
+/** Canonical parsed BLE boundary after header/version/length/CRC validation. */
+export type ParsedBleSensorFrame = MatFrame | TagFrame;
+
+/**
+ * Opaque compile-time proof attached only after canonical protocol parsing.
+ *
+ * This proves protocol validation only. It does not prove physical-device
+ * identity, dog binding, firmware trust, clock correctness, calibration,
+ * feature extraction correctness or scientific validity.
+ */
+declare const verifiedParsedBleFrameBrand: unique symbol;
+export type VerifiedParsedBleFrame = ParsedBleSensorFrame & {
+  readonly [verifiedParsedBleFrameBrand]: true;
+};
+
+/**
+ * @deprecated Use ParsedBleSensorFrame.
+ */
+export type SensorFrame = ParsedBleSensorFrame;
 
 // ── Frame Sizes ─────────────────────────────────────────────────
 
