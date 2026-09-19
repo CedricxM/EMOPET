@@ -100,6 +100,13 @@
       "projectionAuthority": "TO_CONFIRM_HEALTH_RECORD_ACCESS_PROJECTION"
     },
     {
+      "table": "professional_share_grants",
+      "column": "dog_id",
+      "routeSymbol": "professionalShareGrants",
+      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT",
+      "projectionAuthority": "TO_CONFIRM_SHARE_GRANT_ACCESS_PROJECTION"
+    },
+    {
       "table": "recovery_events",
       "column": "dog_id",
       "routeSymbol": "recoveryEvents",
@@ -156,6 +163,13 @@
       "routeSymbol": "copresenceEvents",
       "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT_UNCONSTRAINED_IDENTIFIER",
       "projectionAuthority": "TO_CONFIRM_COMMUNITY_LOCATION_ACCESS_POLICY"
+    },
+    {
+      "table": "professional_share_access_audits",
+      "column": "dog_id",
+      "routeSymbol": "professionalShareAccessAudits",
+      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT_UNCONSTRAINED_IDENTIFIER",
+      "projectionAuthority": "TO_CONFIRM_SECURITY_AUDIT_DISCLOSURE_AND_RETENTION"
     }
   ],
   "knownOutOfScopeForThisPostgresRouteMatrix": [
