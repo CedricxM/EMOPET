@@ -88,11 +88,13 @@ export function SpotDetailModal({
   spot: CommunitySpot | null;
   onClose: () => void;
   onAddComment: (spotId: string, content: string) => boolean | Promise<boolean>;
-  onFlag: (spotId: string) => void;
+  onFlag: (spotId: string) => boolean | Promise<boolean>;
 }) {
   const [draft, setDraft] = useState('');
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [commentError, setCommentError] = useState<string | null>(null);
+  const [flagSubmitting, setFlagSubmitting] = useState(false);
+  const [flagError, setFlagError] = useState<string | null>(null);
   const open = spot !== null;
   const meta = spot ? categoryMeta(spot.category) : null;
 
@@ -117,12 +119,28 @@ export function SpotDetailModal({
     }
   }
 
+  async function submitFlag() {
+    if (!spot || flagSubmitting) return;
+    setFlagSubmitting(true);
+    setFlagError(null);
+    try {
+      const submitted = await onFlag(spot.id);
+      if (!submitted) {
+        setFlagError('Le signalement de spot n’est pas encore disponible. Rien n’a été transmis.');
+      }
+    } catch {
+      setFlagError('Le signalement de spot n’est pas encore disponible. Rien n’a été transmis.');
+    } finally {
+      setFlagSubmitting(false);
+    }
+  }
+
   const directionsHref = spot
     ? `https://www.google.com/maps/dir/?api=1&destination=${spot.lat},${spot.lon}`
     : '#';
 
   return (
-    <Modal isOpen={open} onOpenChange={(o) => { if (!o) { setDraft(''); setCommentError(null); onClose(); } }}>
+    <Modal isOpen={open} onOpenChange={(o) => { if (!o) { setDraft(''); setCommentError(null); setFlagError(null); onClose(); } }}>
       <Modal.Backdrop>
         <Modal.Container placement="center" size="md">
           <Modal.Dialog>
@@ -227,21 +245,30 @@ export function SpotDetailModal({
                   </div>
                 </Modal.Body>
                 <Modal.Footer>
-                  <button
-                    type="button"
-                    onClick={() => onFlag(spot.id)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--fg-muted)',
-                      fontFamily: 'var(--font-sans)',
-                      fontSize: 12,
-                      cursor: 'pointer',
-                      textDecoration: 'underline',
-                    }}
-                  >
-                    Signaler ce spot
-                  </button>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
+                    {flagError && (
+                      <span role="alert" style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--terracotta-700)' }}>
+                        {flagError}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={submitFlag}
+                      disabled={flagSubmitting}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--fg-muted)',
+                        fontFamily: 'var(--font-sans)',
+                        fontSize: 12,
+                        cursor: flagSubmitting ? 'not-allowed' : 'pointer',
+                        textDecoration: 'underline',
+                        opacity: flagSubmitting ? 0.6 : 1,
+                      }}
+                    >
+                      {flagSubmitting ? 'Vérification…' : 'Signaler ce spot'}
+                    </button>
+                  </div>
                 </Modal.Footer>
               </>
             )}
