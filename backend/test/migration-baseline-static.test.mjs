@@ -39,6 +39,17 @@ function sqlEvents(sql) {
   return events.sort((a, b) => a.index - b.index);
 }
 
+
+function activeMigrationPrefixes() {
+  return readdirSync(migrationsDir)
+    .filter((name) => /^\d+.*\.sql$/.test(name))
+    .sort()
+    .map((name) => ({
+      name,
+      prefix: Number.parseInt(name.match(/^(\d+)/)?.[1] ?? '', 10),
+    }));
+}
+
 function orderedSqlSources() {
   const draftFiles = readdirSync(draftDir)
     .filter((name) => /^\d+.*\.sql$/.test(name))
@@ -98,4 +109,31 @@ test('all candidate draft SQL stays outside the active migrations directory', ()
   for (const file of draftFiles) {
     assert.equal(activeFiles.has(file), false, `${file} must remain outside db/migrations`);
   }
+});
+
+
+test('active migration numeric prefixes are unique', () => {
+  const migrations = activeMigrationPrefixes();
+  const seen = new Map();
+  const duplicates = [];
+
+  for (const migration of migrations) {
+    const previous = seen.get(migration.prefix);
+    if (previous) duplicates.push(\`${previous} and ${migration.name} share prefix ${migration.prefix}\`);
+    else seen.set(migration.prefix, migration.name);
+  }
+
+  assert.deepEqual(duplicates, [], duplicates.join('\n'));
+});
+
+test('active migration numeric prefixes are contiguous from 0001', () => {
+  const migrations = activeMigrationPrefixes();
+  const actual = migrations.map((migration) => migration.prefix);
+  const expected = Array.from({ length: actual.length }, (_, index) => index + 1);
+
+  assert.deepEqual(
+    actual,
+    expected,
+    \`Active migration prefixes must be contiguous from 0001; found: ${migrations.map((migration) => migration.name).join(', ')}\`,
+  );
 });
