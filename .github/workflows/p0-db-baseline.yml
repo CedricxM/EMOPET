@@ -220,6 +220,8 @@ jobs:
 
       - name: INT-04A PostgreSQL runtime export acceptance
         working-directory: backend
+        env:
+          EMOPET_DB_INTEGRATION_TEST: '1'
         run: node --test test/data-export-postgres-runtime.test.mjs
 
       - name: Verify generated snapshot is stable
