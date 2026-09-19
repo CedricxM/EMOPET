@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, timestamp, real, integer, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, timestamp, real, integer, jsonb, uniqueIndex } from 'drizzle-orm/pg-core';
 import { users } from './users.js';
 
 export const communities = pgTable('communities', {
@@ -19,7 +19,9 @@ export const communityMembers = pgTable('community_members', {
   userId: uuid('user_id').notNull().references(() => users.id),
   role: varchar('role', { length: 20 }).notNull().default('member'), // member, moderator, referent
   joinedAt: timestamp('joined_at', { withTimezone: true }).defaultNow().notNull(),
-});
+}, (table) => [
+  uniqueIndex('uq_community_members_community_user').on(table.communityId, table.userId),
+]);
 
 export const posts = pgTable('posts', {
   id: uuid('id').primaryKey().defaultRandom(),
