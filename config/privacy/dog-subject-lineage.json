@@ -59,6 +59,11 @@
       "source": "backend/db/schema/dogs.ts"
     },
     {
+      "table": "professional_share_grants",
+      "column": "dog_id",
+      "source": "backend/db/schema/professional-sharing.ts"
+    },
+    {
       "table": "recovery_events",
       "column": "dog_id",
       "source": "backend/db/schema/eli-v5.ts"
@@ -99,6 +104,11 @@
       "table": "copresence_events",
       "column": "dog_b_id",
       "source": "backend/db/schema/community.ts"
+    },
+    {
+      "table": "professional_share_access_audits",
+      "column": "dog_id",
+      "source": "backend/db/schema/professional-sharing.ts"
     }
   ],
   "transitiveDescendants": [
