@@ -183,6 +183,36 @@ test('Owner data export preserves authorization and disclosure through JSON/CSV 
     return response;
   }
 
+  await t.test('malformed identity and temporal bounds fail before attachment delivery', async () => {
+    const invalidDog = await app.request('/api/data-export?dog_id=not-a-uuid', {
+      headers: { Authorization: `Bearer ${ownerToken}` },
+    });
+    assert.equal(invalidDog.status, 400);
+    assert.equal(invalidDog.headers.get('content-disposition'), null);
+    assert.deepEqual(await invalidDog.json(), { error: 'invalid_dog_id' });
+
+    for (const query of [
+      `dog_id=${dogId}&from=not-a-date`,
+      `dog_id=${dogId}&to=not-a-date`,
+    ]) {
+      const response = await app.request(`/api/data-export?${query}`, {
+        headers: { Authorization: `Bearer ${ownerToken}` },
+      });
+      assert.equal(response.status, 400);
+      assert.equal(response.headers.get('content-disposition'), null);
+    }
+
+    const reversed = await app.request(
+      `/api/data-export?dog_id=${dogId}&from=2026-09-03T00:00:00.000Z&to=2026-09-01T00:00:00.000Z`,
+      { headers: { Authorization: `Bearer ${ownerToken}` } },
+    );
+    assert.equal(reversed.status, 400);
+    assert.deepEqual(await reversed.json(), {
+      error: 'invalid_interval',
+      reason: 'from_after_to',
+    });
+  });
+
   await t.test('actual JSON and CSV enforce the same window, identity and publication projection', async () => {
     const jsonResponse = await request();
     assert.equal(jsonResponse.status, 200);
