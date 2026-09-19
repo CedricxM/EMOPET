@@ -107,19 +107,41 @@ test('Owner data export preserves authorization and disclosure through JSON/CSV 
       VALUES (${id}, ${owner}, ${name}, 'Mixed', '2021-01-01', 'female', 18, 'FC2')`;
   }
 
+  const primaryTagDeviceId = randomUUID();
+  const otherMatDeviceId = randomUUID();
+  await sql`INSERT INTO devices (id, dog_id, type, mac_address, firmware_version)
+    VALUES
+      (${primaryTagDeviceId}, ${dogId}, 'TAG', ${randomBytes(6).toString('hex').match(/../g).join(':')}, 'export-fixture-tag'),
+      (${otherMatDeviceId}, ${otherDogId}, 'MAT', ${randomBytes(6).toString('hex').match(/../g).join(':')}, 'export-fixture-mat')`;
+
   const from = '2026-09-01T00:00:00.000Z';
   const to = '2026-09-03T00:00:00.000Z';
   const summaryIds = [];
+  const summaryIngestionIds = [];
   const outsideIds = [];
   for (const timestamp of ['2026-08-31T23:59:59Z', from, '2026-09-02T00:00:00Z', to, '2026-09-03T00:00:01Z']) {
     const id = randomUUID();
-    await sql`INSERT INTO sensor_summaries (id, dog_id, timestamp, source, activity_minutes, temperature_c)
-      VALUES (${id}, ${dogId}, ${timestamp}, 'TAG', 12.5, -1.5)`;
+    const ingestionId = randomUUID();
+    summaryIngestionIds.push(ingestionId);
+    await sql`INSERT INTO sensor_summaries (
+      id, dog_id, ingestion_id, device_id, timestamp, source,
+      firmware_version_at_ingest, activity_minutes, temperature_c
+    ) VALUES (
+      ${id}, ${dogId}, ${ingestionId}, ${primaryTagDeviceId}, ${timestamp}, 'TAG',
+      'export-fixture-tag', 12.5, -1.5
+    )`;
     (new Date(timestamp) >= new Date(from) && new Date(timestamp) <= new Date(to) ? summaryIds : outsideIds).push(id);
   }
   const otherSummaryId = randomUUID();
-  await sql`INSERT INTO sensor_summaries (id, dog_id, timestamp, source, activity_minutes)
-    VALUES (${otherSummaryId}, ${otherDogId}, ${from}, 'MAT', 999)`;
+  const otherSummaryIngestionId = randomUUID();
+  summaryIngestionIds.push(otherSummaryIngestionId);
+  await sql`INSERT INTO sensor_summaries (
+    id, dog_id, ingestion_id, device_id, timestamp, source,
+    firmware_version_at_ingest, activity_minutes
+  ) VALUES (
+    ${otherSummaryId}, ${otherDogId}, ${otherSummaryIngestionId}, ${otherMatDeviceId}, ${from}, 'MAT',
+    'export-fixture-mat', 999
+  )`;
 
   const eliIds = new Map();
   for (const [index, gate] of ['PUBLISH', 'DEGRADE', 'REJECT', 'FUTURE'].entries()) {
@@ -208,7 +230,7 @@ test('Owner data export preserves authorization and disclosure through JSON/CSV 
       assert.equal(csv.find((row) => row.id === fixture.id).firmwareVersion, expected);
     }
     for (const output of [JSON.stringify(json), csvText]) {
-      for (const forbidden of [...outsideIds, excludedEliId, otherSummaryId, otherDogId, 'PRIVATE-MODEL-STATE', 'PRIVATE-BASELINE-METRICS', 'PRIVATE-PASSWORD-FIXTURE', ...deviceFixtures.map((row) => row.mac)]) {
+      for (const forbidden of [...outsideIds, ...summaryIngestionIds, excludedEliId, otherSummaryId, otherDogId, 'PRIVATE-MODEL-STATE', 'PRIVATE-BASELINE-METRICS', 'PRIVATE-PASSWORD-FIXTURE', ...deviceFixtures.map((row) => row.mac)]) {
         assert.equal(output.includes(forbidden), false, `must not disclose ${forbidden}`);
       }
     }
