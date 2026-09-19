@@ -11,123 +11,6 @@
   ],
   "entries": [
     {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "achievements",
-      "column": "user_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "ai_messages",
-      "column": "target_user_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "auth_refresh_sessions",
-      "column": "user_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "behavioral_assessments",
-      "column": "respondent_user_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "comments",
-      "column": "author_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "communities",
-      "column": "created_by",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "community_events",
-      "column": "created_by",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "community_members",
-      "column": "user_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "dogs",
-      "column": "owner_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "posts",
-      "column": "author_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "research_data_consents",
-      "column": "user_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "subscriptions",
-      "column": "user_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "user_config",
-      "column": "user_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
       "subjectRoot": "dogs.id",
       "relationType": "DIRECT_FK",
       "table": "ai_messages",
@@ -220,6 +103,15 @@
     {
       "subjectRoot": "dogs.id",
       "relationType": "DIRECT_FK",
+      "table": "professional_share_grants",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
       "table": "recovery_events",
       "column": "dog_id",
       "disposition": "TO_CONFIRM",
@@ -273,26 +165,8 @@
     },
     {
       "subjectRoot": "dogs.id",
-      "relationType": "UNCONSTRAINED_IDENTIFIER",
-      "table": "copresence_events",
-      "column": "dog_a_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "UNCONSTRAINED_IDENTIFIER",
-      "table": "copresence_events",
-      "column": "dog_b_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
       "relationType": "TRANSITIVE_FK",
-      "table": "behavioral_responses",
+      "table": "behavioral_factor_scores",
       "column": "assessment_id",
       "references": "behavioral_assessments.id",
       "disposition": "TO_CONFIRM",
@@ -302,7 +176,7 @@
     {
       "subjectRoot": "dogs.id",
       "relationType": "TRANSITIVE_FK",
-      "table": "behavioral_factor_scores",
+      "table": "behavioral_responses",
       "column": "assessment_id",
       "references": "behavioral_assessments.id",
       "disposition": "TO_CONFIRM",
@@ -325,6 +199,159 @@
       "table": "eli_behavioral_priors",
       "column": "factor_score_id",
       "references": "behavioral_factor_scores.id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "UNCONSTRAINED_IDENTIFIER",
+      "table": "copresence_events",
+      "column": "dog_a_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "UNCONSTRAINED_IDENTIFIER",
+      "table": "copresence_events",
+      "column": "dog_b_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "UNCONSTRAINED_IDENTIFIER",
+      "table": "professional_share_access_audits",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "achievements",
+      "column": "user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "ai_messages",
+      "column": "target_user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "auth_refresh_sessions",
+      "column": "user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "behavioral_assessments",
+      "column": "respondent_user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "comments",
+      "column": "author_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "communities",
+      "column": "created_by",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "community_events",
+      "column": "created_by",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "community_members",
+      "column": "user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "dogs",
+      "column": "owner_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "posts",
+      "column": "author_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "professional_share_grants",
+      "column": "owner_user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "research_data_consents",
+      "column": "user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "subscriptions",
+      "column": "user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "user_config",
+      "column": "user_id",
       "disposition": "TO_CONFIRM",
       "executionStatus": "NOT_IMPLEMENTED",
       "testEvidence": "NONE"
