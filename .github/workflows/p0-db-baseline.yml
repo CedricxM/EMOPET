@@ -4,7 +4,23 @@ on:
   pull_request:
     paths:
       - 'backend/db/**'
+      - 'backend/api/routes/auth.ts'
+      - 'backend/api/middleware/auth.ts'
+      - 'backend/api/services/auth-*.ts'
+      - 'backend/api/routes/sensors.ts'
+      - 'packages/shared/src/validators/index.ts'
+      - 'backend/test/auth-*.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
+      - 'backend/test/id-01-referential-integrity.sql'
+      - 'backend/test/subject-discovery-postgres.test.mjs'
+      - 'backend/api/services/subject-discovery.ts'
+      - 'backend/api/services/subject-access.ts'
+      - 'backend/test/dataset-writer-authority.sql'
+      - 'scripts/ingest_vbo.ts'
+      - 'scripts/data/vbo-committed-snapshot-audit.mjs'
+      - 'data/vbo/**'
+      - 'backend/test/sensor-summary-ingestion.integration.test.mjs'
+      - 'backend/test/sensor-ingestion-authority-concurrency.integration.test.mjs'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:
 
@@ -77,6 +93,7 @@ jobs:
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0002_freemium_foundation.sql
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0003_architecture_upgrade.sql
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0004_v6_additions.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0005_behavioral_assessment_provenance.sql
 
       - name: Capture first schema
         run: |
@@ -99,6 +116,7 @@ jobs:
           psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0002_freemium_foundation.sql
           psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0003_architecture_upgrade.sql
           psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0004_v6_additions.sql
+          psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0005_behavioral_assessment_provenance.sql
           pg_dump --schema-only --no-owner --no-privileges "$REPEAT_DATABASE_URL" > /tmp/schema-b.sql
           psql "$REPEAT_DATABASE_URL" -Atc "select tablename from pg_tables where schemaname='public' order by tablename" > /tmp/tables-b.txt
 
@@ -141,12 +159,51 @@ jobs:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: pnpm exec drizzle-kit migrate --config=db/drizzle.p0-baseline.config.ts
 
+      - name: INT-03B VBO writer and traceability contract
+        run: |
+          grep -Fq "updated_at = NOW()" scripts/ingest_vbo.ts
+          grep -Fq "RAISE EXCEPTION" data/vbo/breed_canonical_insert.sql
+          node scripts/data/vbo-committed-snapshot-audit.mjs
+
+      - name: INT-03B writer-owned dataset timestamp
+        env:
+          GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+        run: psql "$GENERATED_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/dataset-writer-authority.sql
+
+      - name: ID-01 canonical identity and FK checks
+        env:
+          GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+        run: psql "$GENERATED_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/id-01-referential-integrity.sql
+
       - name: Verify generated table inventory
         env:
           GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: |
           psql "$GENERATED_DATABASE_URL" -Atc "select tablename from pg_tables where schemaname='public' order by tablename" > /tmp/tables-generated.txt
           diff -u /tmp/tables-a.txt /tmp/tables-generated.txt
+
+      - name: AUTH-01 route integration on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          AUTH_DB_INTEGRATION: '1'
+          EMOPET_DB_INTEGRATION_TEST: '0'
+        run: node --test test/auth-routes-postgres.test.mjs test/auth-session-concurrency.test.mjs
+
+      - name: INT-03A sensor-summary provenance integration
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          EMOPET_DB_INTEGRATION_TEST: '1'
+        run: node --test test/sensor-summary-ingestion.integration.test.mjs test/sensor-ingestion-authority-concurrency.integration.test.mjs
+
+      - name: PRIV-DISC-01 transactional subject discovery
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          SUBJECT_DISCOVERY_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/subject-discovery-postgres.test.mjs
 
       - name: Verify generated snapshot is stable
         working-directory: backend
@@ -173,5 +230,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates only disposable P0 database behavior.'
-          echo 'It does not authorize production migration, deployment, or release.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B composition, and read-only PRIV-DISC-01 subject discovery.'
+          echo 'It does not authorize production migration, deployment, identity-provider selection, email verification, MFA, or release.'

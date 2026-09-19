@@ -1,9 +1,11 @@
-import { pgTable, text, timestamp, date, integer, real, boolean, jsonb, serial, index, primaryKey } from 'drizzle-orm/pg-core';
+import { pgTable, text, uuid, timestamp, date, integer, real, boolean, jsonb, serial, index, primaryKey } from 'drizzle-orm/pg-core';
+import { dogs } from './dogs.js';
+import { users } from './users.js';
 
 // ─── Dog Sub-Baselines ────────────────────────────────────────────
 
 export const dogSubBaselines = pgTable('dog_sub_baselines', {
-  dogId: text('dog_id').notNull(),
+  dogId: uuid('dog_id').notNull().references(() => dogs.id),
   slot: text('slot').notNull(), // deep_rest_mat, light_rest_mat, owner_present, owner_absent, daytime_active
   rrMean: real('rr_mean'),
   rrStd: real('rr_std'),
@@ -31,7 +33,7 @@ export const dogSubBaselines = pgTable('dog_sub_baselines', {
 // ─── Recovery Events (v6 — migration 0004) ────────────────────────
 export const recoveryEvents = pgTable('recovery_events', {
   id: serial('id').primaryKey(),
-  dogId: text('dog_id').notNull(),
+  dogId: uuid('dog_id').notNull().references(() => dogs.id),
   slot: text('slot').notNull(),
   startedAt: timestamp('started_at', { withTimezone: true }).notNull(),
   returnedToBaselineAt: timestamp('returned_to_baseline_at', { withTimezone: true }).notNull(),
@@ -45,7 +47,7 @@ export const recoveryEvents = pgTable('recovery_events', {
 // ─── Anticipation Events (v6 — migration 0004) ────────────────────
 export const anticipationEvents = pgTable('anticipation_events', {
   id: serial('id').primaryKey(),
-  dogId: text('dog_id').notNull(),
+  dogId: uuid('dog_id').notNull().references(() => dogs.id),
   eventType: text('event_type').notNull(),
   predictedEventTime: timestamp('predicted_event_time', { withTimezone: true }).notNull(),
   preEventWindowStart: timestamp('pre_event_window_start', { withTimezone: true }).notNull(),
@@ -61,7 +63,7 @@ export const anticipationEvents = pgTable('anticipation_events', {
 // ─── Baseline Drift Monitor ──────────────────────────────────────
 
 export const baselineDriftMonitor = pgTable('baseline_drift_monitor', {
-  dogId: text('dog_id').primaryKey(),
+  dogId: uuid('dog_id').primaryKey().references(() => dogs.id),
   longTermRrMean: real('long_term_rr_mean'),
   longTermActivityMean: real('long_term_activity_mean'),
   longTermMatMinutesMean: real('long_term_mat_minutes_mean'),
@@ -81,7 +83,7 @@ export const baselineDriftMonitor = pgTable('baseline_drift_monitor', {
 
 export const walkQuality = pgTable('walk_quality', {
   id: serial('id').primaryKey(),
-  dogId: text('dog_id').notNull(),
+  dogId: uuid('dog_id').notNull().references(() => dogs.id),
   walkDate: date('walk_date').notNull(),
   startTime: timestamp('start_time', { withTimezone: true }),
   endTime: timestamp('end_time', { withTimezone: true }),
@@ -101,7 +103,7 @@ export const walkQuality = pgTable('walk_quality', {
 // ─── Routine Stability ────────────────────────────────────────────
 
 export const routineStability = pgTable('routine_stability', {
-  dogId: text('dog_id').notNull(),
+  dogId: uuid('dog_id').notNull().references(() => dogs.id),
   date: date('date').notNull(),
   activityPattern: jsonb('activity_pattern'),
   matPattern: jsonb('mat_pattern'),
@@ -116,8 +118,8 @@ export const routineStability = pgTable('routine_stability', {
 // ─── User Config ──────────────────────────────────────────────────
 
 export const userConfig = pgTable('user_config', {
-  userId: text('user_id').notNull(),
-  dogId: text('dog_id').notNull(),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  dogId: uuid('dog_id').notNull().references(() => dogs.id),
   configKey: text('config_key').notNull(),
   configValue: jsonb('config_value').notNull(),
   source: text('source'), // system, breed, learned, user
