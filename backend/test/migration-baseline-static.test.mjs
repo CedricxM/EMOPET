@@ -47,7 +47,7 @@ function activeMigrationPrefixes() {
     .map((name) => ({
       name,
       path: join(migrationsDir, name),
-      prefix: Number.parseInt(name.match(/^(\\d+)/)?.[1] ?? '', 10),
+      prefix: Number.parseInt(name.match(/^(\d+)/)?.[1] ?? '', 10),
     }));
 }
 
