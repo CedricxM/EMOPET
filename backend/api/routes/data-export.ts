@@ -4,6 +4,7 @@ import { and, eq, gte, lte } from 'drizzle-orm';
 import { db } from '../../db/index.js';
 import { dogs, devices } from '../../db/schema/dogs.js';
 import { baselines, eliStates, sensorSummaries } from '../../db/schema/sensors.js';
+import { toOwnerAuthorizedBaselineExport, toOwnerAuthorizedEliExport } from '../services/data-export-policy.js';
 
 interface Variables {
   userId: string;
@@ -61,10 +62,15 @@ dataExport.get('/', async (c) => {
   const userId = c.get('userId');
   const dogId = c.req.query('dog_id');
   const format = c.req.query('format') === 'csv' ? 'csv' : 'json';
-  const from = parseDate(c.req.query('from'));
-  const to = parseDate(c.req.query('to'));
+  const fromRaw = c.req.query('from');
+  const toRaw = c.req.query('to');
+  const from = parseDate(fromRaw);
+  const to = parseDate(toRaw);
 
   if (!dogId) return c.json({ error: 'dog_id is required' }, 400);
+  if (fromRaw !== undefined && !from) return c.json({ error: 'invalid_from' }, 400);
+  if (toRaw !== undefined && !to) return c.json({ error: 'invalid_to' }, 400);
+  if (from && to && from.getTime() > to.getTime()) return c.json({ error: 'invalid_interval' }, 400);
 
   const ownedDog = await db.query.dogs.findFirst({
     where: and(eq(dogs.id, dogId), eq(dogs.ownerId, userId)),
@@ -138,14 +144,8 @@ dataExport.get('/', async (c) => {
         level: 'preprocessed',
       },
     })),
-    inferred: eliRows.map((row) => ({
-      ...row,
-      provenance: {
-        level: 'inferred',
-        warning: 'Derived ELI output; do not treat as raw sensor data or a veterinary diagnosis.',
-      },
-    })),
-    baselines: baselineRows,
+    inferred: eliRows.map(toOwnerAuthorizedEliExport),
+    baselines: baselineRows.map(toOwnerAuthorizedBaselineExport),
     devices: deviceRows.map((row) => ({
       id: row.id,
       dogId: row.dogId,
