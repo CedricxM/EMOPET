@@ -18,6 +18,8 @@ const PRIOR_A = randomUUID();
 const CONSENT_A = randomUUID();
 const SESSION_A = randomUUID();
 const MESSAGE_A = randomUUID();
+const GRANT_A = randomUUID();
+const AUDIT_A = randomUUID();
 
 let sql = null;
 let lockConnection = null;
@@ -38,6 +40,8 @@ if (enabled) {
 
 after(async () => {
   if (sql) {
+    await sql`DELETE FROM professional_share_access_audits WHERE id = ${AUDIT_A}`;
+    await sql`DELETE FROM professional_share_grants WHERE id = ${GRANT_A}`;
     await sql`DELETE FROM eli_behavioral_priors WHERE id = ${PRIOR_A}`;
     await sql`DELETE FROM behavioral_factor_scores WHERE id = ${FACTOR_A}`;
     await sql`DELETE FROM behavioral_responses WHERE id = ${RESPONSE_A}`;
@@ -81,7 +85,9 @@ async function snapshot() {
       (SELECT count(*)::int FROM behavioral_factor_scores WHERE id = ${FACTOR_A}) AS factors,
       (SELECT count(*)::int FROM eli_behavioral_priors WHERE id = ${PRIOR_A}) AS priors,
       (SELECT count(*)::int FROM research_data_consents WHERE id = ${CONSENT_A}) AS consents,
-      (SELECT count(*)::int FROM auth_refresh_sessions WHERE id = ${SESSION_A}) AS sessions
+      (SELECT count(*)::int FROM auth_refresh_sessions WHERE id = ${SESSION_A}) AS sessions,
+      (SELECT count(*)::int FROM professional_share_grants WHERE id = ${GRANT_A}) AS grants,
+      (SELECT count(*)::int FROM professional_share_access_audits WHERE id = ${AUDIT_A}) AS audits
   `;
   return row;
 }
@@ -102,6 +108,26 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
     VALUES
       (${DOG_A}, ${USER_A}, 'Dog A', 'Test', '2020-01-01', 'female', 20.0, 'FC2'),
       (${DOG_B}, ${USER_B}, 'Dog B', 'Test', '2021-01-01', 'male', 22.0, 'FC2')
+  `;
+
+  await sql`
+    INSERT INTO professional_share_grants (
+      id, owner_user_id, dog_id, recipient_display_name, recipient_type,
+      recipient_email, purpose, scopes, data_from, data_to, access_expires_at
+    ) VALUES (
+      ${GRANT_A}, ${USER_A}, ${DOG_A}, 'Dr Test', 'VETERINARIAN',
+      'recipient@example.test', 'VETERINARY_CONSULTATION',
+      '["VETERINARY_SUMMARY"]'::jsonb,
+      now() - interval '1 day', now(), now() + interval '1 day'
+    )
+  `;
+  await sql`
+    INSERT INTO professional_share_access_audits (
+      id, grant_id, dog_id, event, decision_status, reason
+    ) VALUES (
+      ${AUDIT_A}, ${GRANT_A}, ${DOG_A},
+      'PROFESSIONAL_SHARE_POLICY_DECISION', 'DENIED', 'TEST_ONLY'
+    )
   `;
 
   await sql`
@@ -183,6 +209,7 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
     assert.equal(first.guardian.behavioralAssessmentsAsRespondent.count, 1);
     assert.equal(first.guardian.researchDataConsents.count, 1);
     assert.equal(first.guardian.userConfig.count, 1);
+    assert.equal(first.guardian.professionalShareGrantsAsOwner.count, 1);
 
     assert.equal(first.dog.aiMessagesTargetingDog.count, 1);
     assert.equal(first.dog.eliUserConfig.count, 1);
@@ -191,9 +218,11 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
     assert.equal(first.dog.behavioralFactorScores.count, 1);
     assert.equal(first.dog.eliBehavioralPriors.count, 1);
     assert.equal(first.dog.researchDataConsents.count, 1);
+    assert.equal(first.dog.professionalShareGrants.count, 1);
+    assert.equal(first.dog.professionalShareAccessAudits.count, 1);
 
     assert.equal(first.externalOrUnresolved.community.status, 'INTEGRATION_DEFERRED');
-    assert.equal(first.externalOrUnresolved.professionalSharing.status, 'INTEGRATION_DEFERRED');
+    assert.equal(first.externalOrUnresolved.professionalSharingRecipientRuntime.status, 'INTEGRATION_DEFERRED');
     assert.equal(first.externalOrUnresolved.erasureDisposition.status, 'POLICY_AUTHORITY_OPEN');
 
     const second = await discoverSubjectData(USER_A, DOG_A);
@@ -272,6 +301,8 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
       priors: 1,
       consents: 1,
       sessions: 1,
+      grants: 1,
+      audits: 1,
     });
   });
 });
