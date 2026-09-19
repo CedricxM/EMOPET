@@ -12,6 +12,10 @@ import {
 } from '../services/feature-progress';
 import { useAuthStore, usePreferencesStore } from '../store';
 
+function actionErrorMessage(reason: unknown): string {
+  return reason instanceof Error ? reason.message : 'Action impossible pour le moment.';
+}
+
 export function useFeatureProgress() {
   const router = useRouter();
   const token = useAuthStore((state) => state.token);
@@ -84,24 +88,34 @@ export function useFeatureProgress() {
     }
 
     if (action.type === 'join_waitlist') {
-      joinWaitlist(item.serviceId);
-      await joinFeatureWaitlistRequest(token, item.serviceId);
-      Alert.alert(
-        'Liste rejointe',
-        `${item.title} reste visible ici, et vous serez prioritaire pour la beta.`,
-      );
+      try {
+        await joinFeatureWaitlistRequest(token, item.serviceId);
+        joinWaitlist(item.serviceId);
+        setError(null);
+        Alert.alert(
+          'Liste rejointe',
+          `${item.title} reste visible ici, et vous serez prioritaire pour la beta.`,
+        );
+      } catch (reason: unknown) {
+        setError(actionErrorMessage(reason));
+      }
       return;
     }
 
     if (action.type === 'accept_rules') {
-      await acceptCommunityRulesRequest(token);
-      setCommunityRulesAccepted(true);
-      Alert.alert(
-        'Regles acceptees',
-        'Vous pouvez maintenant avancer vers les fonctions communautaires qui demandent une base de moderation claire.',
-      );
-      if (action.route) {
-        router.push(action.route as never);
+      try {
+        await acceptCommunityRulesRequest(token);
+        setCommunityRulesAccepted(true);
+        setError(null);
+        Alert.alert(
+          'Regles acceptees',
+          'Vous pouvez maintenant avancer vers les fonctions communautaires qui demandent une base de moderation claire.',
+        );
+        if (action.route) {
+          router.push(action.route as never);
+        }
+      } catch (reason: unknown) {
+        setError(actionErrorMessage(reason));
       }
       return;
     }
@@ -114,23 +128,30 @@ export function useFeatureProgress() {
         {
           text: prompt.confirmLabel,
           onPress: () => {
-            if (purpose === 'community_opt_in') {
-              setConsent('community_opt_in', true);
-            }
-            if (purpose === 'location_nearby_temp') {
-              setConsent('location_opt_in', true);
-              setPassivePhoneDetectionEnabled(true);
-            }
+            void (async () => {
+              try {
+                await saveFeatureConsent(token, {
+                  purpose,
+                  status: 'accepted',
+                  context: action.context,
+                });
 
-            void saveFeatureConsent(token, {
-              purpose,
-              status: 'accepted',
-              context: action.context,
-            });
+                if (purpose === 'community_opt_in') {
+                  setConsent('community_opt_in', true);
+                }
+                if (purpose === 'location_nearby_temp') {
+                  setConsent('location_opt_in', true);
+                  setPassivePhoneDetectionEnabled(true);
+                }
 
-            if (action.route) {
-              router.push(action.route as never);
-            }
+                setError(null);
+                if (action.route) {
+                  router.push(action.route as never);
+                }
+              } catch (reason: unknown) {
+                setError(actionErrorMessage(reason));
+              }
+            })();
           },
         },
       ]);
