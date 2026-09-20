@@ -58,12 +58,14 @@ Le mode démo sans token de l'application mobile peut construire une comparaison
 
 | Méthode | Chemin | État observé |
 |---|---|---|
-| POST | `/api/sensors/summaries` | Validation + contrôle propriétaire, persistance TODO |
+| POST | `/api/sensors/summaries` | Validation + contrôle propriétaire ; `501 sensor_summary_ingestion_not_implemented` tant qu'aucune persistance durable n'est implémentée |
 | GET | `/api/sensors/summaries/:dogId` | Résultats placeholder |
 | GET | `/api/sensors/eli/:dogId` | État ELI placeholder |
 | GET | `/api/sensors/eli/:dogId/history` | Historique placeholder |
 | GET | `/api/sensors/baseline/:dogId` | Baseline placeholder |
 | POST, GET | `/api/sensors/presence/:dogId/events` | Événements conservés en mémoire du processus |
+
+Le `POST /api/sensors/summaries` n'accuse volontairement aucune ingestion tant qu'aucun stockage ou mécanisme durable n'existe. Un succès de validation/autorisation ne doit pas être confondu avec une persistance, une mise en file ou une acceptation de données.
 
 ### Communauté
 
@@ -96,7 +98,7 @@ Les contrôles de règles et de modération déterminent uniquement si une requ�
 | Méthode | Chemin | État observé |
 |---|---|---|
 | GET | `/api/health/:dogId` | Contrôle propriétaire, entrées placeholder |
-| POST | `/api/health` | Validation + contrôle propriétaire, persistance non démontrée |
+| POST | `/api/health` | Validation + contrôle propriétaire ; `501 health_entry_persistence_not_implemented` tant qu'aucun writer durable n'est actif |
 | GET | `/api/health/:dogId/reminders` | Contrôle propriétaire, rappels placeholder |
 
 Ces routes portent un nom historique `health`, mais leurs sorties ne doivent pas être présentées comme un diagnostic.
