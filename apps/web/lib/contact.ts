@@ -92,6 +92,10 @@ const OWNER_TOKEN_KEY = 'breiz-contact-owner-token';
 /* ------------------------------------------------------------------ */
 
 const PHONE_RE = /^(\+?\d[\d\s.\-]{7,17})$/;
+const MAX_CONTACT_VALUE_LENGTH = 254;
+const MAX_MESSAGE_LENGTH = 500;
+const MAX_OWNER_TOKEN_LENGTH = 128;
+const MAX_SLOT_TIMESTAMP_LENGTH = 64;
 
 function isValidEmail(value: string): boolean {
   if (value.length === 0 || value.length > 254) return false;
@@ -125,6 +129,62 @@ export interface NewContactInput {
   ownerToken?: string;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isBoundedString(value: unknown, maxLength: number): value is string {
+  return typeof value === 'string' && value.length <= maxLength;
+}
+
+function isContactChannel(value: unknown): value is ContactChannel {
+  return value === 'phone' || value === 'video';
+}
+
+function isContactReason(value: unknown): value is ContactReason {
+  return typeof value === 'string' && Object.prototype.hasOwnProperty.call(REASON_LABELS, value);
+}
+
+function parseTimeSlot(value: unknown): TimeSlot | null {
+  if (!isRecord(value)) return null;
+  if (!isBoundedString(value.start, MAX_SLOT_TIMESTAMP_LENGTH)) return null;
+  if (!isBoundedString(value.end, MAX_SLOT_TIMESTAMP_LENGTH)) return null;
+  return { start: value.start, end: value.end };
+}
+
+/**
+ * Validate the current web Contact shape before domain logic. Unknown fields
+ * are discarded; ownerToken remains part of this existing contract (#219).
+ */
+export function parseNewContactInput(value: unknown): NewContactInput | null {
+  if (!isRecord(value)) return null;
+  if (!isContactChannel(value.channel)) return null;
+  if (!isContactReason(value.reason)) return null;
+  if (!isBoundedString(value.contactValue, MAX_CONTACT_VALUE_LENGTH)) return null;
+  if (typeof value.consentGiven !== 'boolean') return null;
+  if (!Array.isArray(value.proposedSlots) || value.proposedSlots.length > 5) return null;
+
+  const proposedSlots: TimeSlot[] = [];
+  for (const candidate of value.proposedSlots) {
+    const slot = parseTimeSlot(candidate);
+    if (!slot) return null;
+    proposedSlots.push(slot);
+  }
+
+  if (value.message !== undefined && !isBoundedString(value.message, MAX_MESSAGE_LENGTH)) return null;
+  if (value.ownerToken !== undefined && !isBoundedString(value.ownerToken, MAX_OWNER_TOKEN_LENGTH)) return null;
+
+  return {
+    channel: value.channel,
+    reason: value.reason,
+    ...(value.message !== undefined ? { message: value.message } : {}),
+    contactValue: value.contactValue,
+    proposedSlots,
+    consentGiven: value.consentGiven,
+    ...(value.ownerToken !== undefined ? { ownerToken: value.ownerToken } : {}),
+  };
+}
+
 export function validateContactInput(input: NewContactInput, now: Date = new Date()): string[] {
   const errors: string[] = [];
   if (input.channel !== 'phone' && input.channel !== 'video') errors.push('Canal invalide.');
@@ -141,7 +201,7 @@ export function validateContactInput(input: NewContactInput, now: Date = new Dat
     if (new Date(s.start).getTime() <= now.getTime()) errors.push('Les créneaux doivent être dans le futur.');
     if (new Date(s.end).getTime() <= new Date(s.start).getTime()) errors.push('Fin de créneau avant le début.');
   }
-  if (input.message && input.message.length > 500) errors.push('Message trop long (500 max).');
+  if (input.message && input.message.length > MAX_MESSAGE_LENGTH) errors.push('Message trop long (500 max).');
   if (input.consentGiven !== true) errors.push('Le consentement est obligatoire.');
   return errors;
 }

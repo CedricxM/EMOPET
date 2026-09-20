@@ -54,19 +54,39 @@ export async function readLimitedJson<T>(req: Request, maxBytes: number): Promis
   if (rawContentLength) {
     const contentLength = Number(rawContentLength);
     if (Number.isFinite(contentLength) && contentLength > maxBytes) {
+      void req.body?.cancel().catch(() => {});
       return { ok: false, status: 413, error: 'payload_too_large' };
     }
   }
 
-  let text: string;
+  let text = '';
   try {
-    text = await req.text();
+    if (req.bodyUsed) return { ok: false, status: 400, error: 'invalid_request_body' };
+    if (req.body) {
+      const reader = req.body.getReader();
+      const chunks: Uint8Array[] = [];
+      let bytes = 0;
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          bytes += value.byteLength;
+          if (bytes > maxBytes) {
+            // Stop consuming immediately, even if Content-Length was absent or
+            // understated. Transport cancellation must not delay the response.
+            void reader.cancel().catch(() => {});
+            return { ok: false, status: 413, error: 'payload_too_large' };
+          }
+          chunks.push(value);
+        }
+      } finally {
+        reader.releaseLock();
+      }
+      // Decode once so multibyte UTF-8 characters split across chunks survive.
+      text = new TextDecoder().decode(Buffer.concat(chunks, bytes));
+    }
   } catch {
     return { ok: false, status: 400, error: 'invalid_request_body' };
-  }
-
-  if (Buffer.byteLength(text, 'utf8') > maxBytes) {
-    return { ok: false, status: 413, error: 'payload_too_large' };
   }
 
   try {
