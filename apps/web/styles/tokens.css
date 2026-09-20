@@ -26,9 +26,9 @@
      dans l'autorité : ils sont DÉRIVÉS par interpolation depuis les valeurs
      prescrites, et signalés comme tels. Ils n'ont pas d'autorité propre.
 
-     Les anciens alias --emopet-navy / -orange / -teal sont retirés : ils
-     nommaient le profil superseded et n'étaient consommés que par ces
-     échelles. La grise --emopet-gray est remplacée par Ardoise.
+     Les anciens alias --emopet-navy / -orange / -teal / -cream / -gray sont
+     conservés pour les composants existants et repointés vers la palette
+     contrôlée. Voir la couche de compatibilité ci-dessous.
      ============================================================ */
 
   /* Alias de marque — nommés d'après BRAND-AUTHORITY-001. */
@@ -69,8 +69,10 @@
   --granit-300: #BABEC3; /* dérivé */
   --granit-200: #DBDDE0; /* dérivé */
 
-  /* Terre cuite — accent. ⚠ --terracotta-500 ne porte JAMAIS de texte normal :
-     2.84:1 sur sable. Pour du texte, utiliser 600 (Terre cuite sombre) ou 700. */
+  /* Terre cuite — accent. Sur sable, 500 (2.84:1) et 600 (4.27:1) échouent
+     pour du texte normal ; utiliser 700 comme texte sur ce fond.
+     La paire blanc sur FOND 600 atteint 4.89:1 : elle convient aux boutons.
+     Toujours vérifier la paire texte/fond réellement utilisée. */
   --terracotta-700: #814931; /* dérivé */
   --terracotta-600: #A65E3F; /* Terre cuite sombre — prescrit */
   --terracotta-500: #C97B5A; /* Terre cuite        — prescrit */
@@ -170,30 +172,22 @@
   --font-mono: var(--f-mono), 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
 
   /* --------------------------------------------------------------
-     Rôles typographiques de la landing — PAS une décision de marque.
+     Rôles typographiques de la landing.
 
-     `app/page.tsx` et `components/landing/*` consomment ces deux variables
-     sur 87 sites d'appel, sous leurs anciens noms `--font-fraunces` et
-     `--font-source-sans`. Ces noms n'étaient définis NULLE PART dans le
-     dépôt (aucun `next/font`, aucun `@font-face`, aucune déclaration CSS).
-     Chaque `style={{ fontFamily: 'var(--font-fraunces)' }}` produisait donc
-     une valeur invalide, la déclaration était ignorée, et l'élément héritait
-     de `html, body { font-family: var(--font-sans) }` — c'est-à-dire Sora.
+     Historique (#363) : les 87 références à --font-fraunces et
+     --font-source-sans, alors non définies, ont été renommées par rôle.
+     Cette réparation seule ne changeait pas le rendu : les familles
+     déclarées n'étaient pas livrées et le navigateur utilisait ses fallbacks.
 
-     Les variables sont désormais définies, et renommées par RÔLE plutôt que
-     par nom de fonte : un nom de famille dans un nom de variable redevient
-     faux à la première migration. Le rendu est strictement identique à
-     avant — ces 87 déclarations résolvaient déjà vers Sora par héritage. Le
-     seul effet est qu'elles sont valides et pilotables depuis un seul
-     endroit.
+     État de cette branche (#365) : la bascule typographique autorisée charge
+     Fraunces / Instrument Sans / JetBrains Mono dans app/layout.tsx via
+     next/font. Ces alias héritent maintenant des familles auto-hébergées.
+     L'ancien avertissement interdisant de les charger décrivait l'état
+     antérieur ; il ne décrit plus cette implémentation.
 
-     ⚠ Ne PAS « corriger » ceci en chargeant Fraunces / Instrument Sans via
-     Google Fonts ou next/font : ce serait une migration visuelle non revue.
-     La typographie contrôlée (Fraunces display / Instrument Sans corps /
-     JetBrains Mono technique) est définie par
-     docs/brand/BRAND-AUTHORITY-001_..._2026-08-25.md et son application
-     exige pilote + QA. Le jour où elle est décidée, ces deux lignes sont le
-     point de bascule. Voir
+     L'autorité reste BRAND-AUTHORITY-001. Le build et les ratios de contraste
+     ne remplacent pas la QA du rendu, du mobile et des interactions.
+     Provenance de la réparation :
      docs/records/memory/CURRENT_REPO_AUTHORITY_CONFLICT_AUDIT_2026-09-17.md
      -------------------------------------------------------------- */
   --font-display: var(--font-serif);
