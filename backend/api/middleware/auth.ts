@@ -49,18 +49,20 @@ export const authMiddleware = createMiddleware<{
   }
 
   const token = header.slice(7);
+  let auth: AuthPayload;
   try {
     const { payload } = await jose.jwtVerify(token, JWT_SECRET);
-    const auth = payload as unknown as AuthPayload;
+    auth = payload as unknown as AuthPayload;
     if (typeof auth.sub !== 'string' || !auth.sub.trim()) {
-      return c.json({ error: 'Invalid or expired token' }, 401);
+      throw new Error('Invalid access token claims');
     }
-    c.set('userId', auth.sub);
-    c.set('authPayload', auth);
-    await next();
   } catch {
     return c.json({ error: 'Invalid or expired token' }, 401);
   }
+
+  c.set('userId', auth.sub);
+  c.set('authPayload', auth);
+  await next();
 });
 
 /**
