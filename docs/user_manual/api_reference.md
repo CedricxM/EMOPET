@@ -71,11 +71,13 @@ Limites importantes :
 | POST | `/api/community/rules/accept` | Acceptation conservée en mémoire |
 | POST | `/api/community/reports` | Signalement conservé en mémoire |
 | POST | `/api/community/blocks` | Blocage conservé en mémoire |
-| POST | `/api/community/posts` | Validation/règles/filtre, sans stockage durable observé |
-| POST | `/api/community/comments` | Validation/règles/filtre, sans stockage durable observé |
+| POST | `/api/community/posts` | Validation/règles/filtre puis `501 community_post_persistence_not_implemented`; aucun succès de création tant qu'aucun writer Hono n'est prouvé |
+| POST | `/api/community/comments` | Validation/règles/filtre puis `501 community_comment_persistence_not_implemented`; aucun succès de création tant qu'aucun writer Hono n'est prouvé |
 | GET | `/api/community/:id/events` | Liste placeholder |
-| POST | `/api/community/events` | Validation/règles/filtre, sans stockage durable observé |
+| POST | `/api/community/events` | Validation/règles/filtre puis `501 community_event_persistence_not_implemented`; aucun succès de création tant qu'aucun writer Hono n'est prouvé |
 | GET | `/api/community/copresence/:dogId` | Contrôle propriétaire, résultats placeholder |
+
+Les contrôles de règles et de modération déterminent uniquement si une requête est autorisée à poursuivre. Ils ne constituent pas une preuve qu'un post, commentaire ou événement a été créé ou persisté.
 
 ### Progression, consentements et waitlist
 
@@ -107,7 +109,9 @@ Ces routes portent un nom historique `health`, mais leurs sorties ne doivent pas
 
 `apps/web/app/api/**` contient des Route Handlers Next.js pour Breiz, contact, journal, communauté, carte, races, contexte et administration. Ils ne sont pas montés dans l'application Hono et ne partagent pas automatiquement son middleware JWT/ownership.
 
-Certains de ces handlers écrivent dans `apps/web/.data` ou utilisent des replis navigateur. Ils constituent un plan prototype séparé, décrit dans `docs/APP_OVERVIEW.md`, pas l'autorité durable du backend.
+Le web possède notamment un plan Community Next.js sous des chemins publics ressemblant à `/api/community/*`. Le fait qu'un handler Next.js persiste actuellement du contenu ne rend pas le handler Hono homonyme persistant, et les deux plans ne doivent pas être présentés comme un contrat unique tant que l'autorité Community n'a pas été explicitement choisie et consolidée.
+
+Certains handlers web écrivent dans `apps/web/.data` ou utilisent des replis navigateur. Ils constituent un plan prototype séparé, décrit dans `docs/APP_OVERVIEW.md`, pas l'autorité durable du backend par simple existence.
 
 ## 6. Source du contrat
 
