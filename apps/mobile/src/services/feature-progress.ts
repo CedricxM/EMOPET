@@ -197,7 +197,7 @@ function localCard(
         {
           key: 'report_block',
           label: 'Signalement et blocage disponibles',
-          state: 'done',
+          state: 'blocked',
         },
         {
           key: 'moderation_ops',
@@ -262,7 +262,7 @@ function localCard(
                 {
                   key: 'report_block',
                   label: 'Blocage et signalement actifs',
-                  state: 'done',
+                  state: 'blocked',
                 },
                 {
                   key: 'anti_harassment',
@@ -306,7 +306,7 @@ function localCard(
                       {
                         key: 'report_block',
                         label: 'Signalement et blocage disponibles',
-                        state: 'done',
+                        state: 'blocked',
                       },
                       {
                         key: 'anti_fake',
