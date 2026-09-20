@@ -45,6 +45,20 @@
       "erasureDisposition": "TO_CONFIRM_WITH_TRANSITIVE_ASSESSMENT_DESCENDANTS"
     },
     {
+      "table": "copresence_events",
+      "column": "dog_a_id",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "copresence_events",
+      "column": "dog_b_id",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
       "table": "devices",
       "column": "dog_id",
       "source": "backend/db/schema/dogs.ts",
@@ -122,22 +136,7 @@
       "erasureDisposition": "TO_CONFIRM"
     }
   ],
-  "unconstrainedDogIdentifiers": [
-    {
-      "table": "copresence_events",
-      "column": "dog_a_id",
-      "source": "backend/db/schema/community.ts",
-      "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED",
-      "erasureDisposition": "TO_CONFIRM"
-    },
-    {
-      "table": "copresence_events",
-      "column": "dog_b_id",
-      "source": "backend/db/schema/community.ts",
-      "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED",
-      "erasureDisposition": "TO_CONFIRM"
-    }
-  ],
+  "unconstrainedDogIdentifiers": [],
   "transitiveDescendants": [
     {
       "table": "behavioral_responses",
@@ -174,7 +173,7 @@
   ],
   "scopeLimitations": [
     "NO_ACTION means deleting dogs.id cannot be assumed to cascade through the listed canonical foreign keys.",
-    "NO_FK_LIFECYCLE_NOT_ENFORCED means PostgreSQL cannot guarantee cleanup for that dog-like identifier.",
+    "Any remaining NO_FK_LIFECYCLE_NOT_ENFORCED identifier is outside canonical dog FK enforcement; copresence dog identifiers are now NO_ACTION canonical FKs and still require explicit lifecycle policy.",
     "CASCADE mechanics on behavioral child rows do not constitute an approved erasure policy.",
     "Non-SQL copies remain separate blockers."
   ]

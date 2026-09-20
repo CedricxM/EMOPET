@@ -273,7 +273,7 @@
     },
     {
       "subjectRoot": "dogs.id",
-      "relationType": "UNCONSTRAINED_IDENTIFIER",
+      "relationType": "DIRECT_FK",
       "table": "copresence_events",
       "column": "dog_a_id",
       "disposition": "TO_CONFIRM",
@@ -282,7 +282,7 @@
     },
     {
       "subjectRoot": "dogs.id",
-      "relationType": "UNCONSTRAINED_IDENTIFIER",
+      "relationType": "DIRECT_FK",
       "table": "copresence_events",
       "column": "dog_b_id",
       "disposition": "TO_CONFIRM",
