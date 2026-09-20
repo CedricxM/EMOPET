@@ -7,7 +7,7 @@ import { after, before, beforeEach, mock, test } from 'node:test';
 import type { ContactRequest, NewContactInput } from '../../contact';
 
 const originalCwd = process.cwd();
-const envKeys = ['EMOPET_TRUST_PROXY_HEADERS', 'RESEND_API_KEY', 'TEAM_EMAIL'] as const;
+const envKeys = ['EMOPET_TRUST_PROXY_HEADERS', 'EMOPET_ALLOW_LEGACY_CONTACT_DEMO', 'RESEND_API_KEY', 'TEAM_EMAIL'] as const;
 const originalEnv = Object.fromEntries(envKeys.map((key) => [key, process.env[key]]));
 const sandbox = mkdtempSync(join(tmpdir(), 'emopet-contact-post-'));
 const dataDir = join(sandbox, '.data');
@@ -21,6 +21,7 @@ before(async () => {
   // directory, and intercept notification fetches before loading the route.
   process.chdir(sandbox);
   process.env['EMOPET_TRUST_PROXY_HEADERS'] = 'true';
+  process.env['EMOPET_ALLOW_LEGACY_CONTACT_DEMO'] = '1';
   process.env['RESEND_API_KEY'] = 'test-only-not-a-real-key';
   process.env['TEAM_EMAIL'] = 'team@example.test';
   mock.method(globalThis, 'fetch', async () => {
