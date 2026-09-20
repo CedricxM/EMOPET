@@ -50,6 +50,17 @@ export const fr = {
     confidence: 'Confiance',
     partialCapture:
       'Capture partielle cette nuit — interprétation prudente. Les détails sont affichés mais non consolidés.',
+    restReferenceLabel: 'Référence',
+    restReferenceText:
+      '{nights} dernières nuits — médiane {interruptions} interruptions, {duration} min.',
+    restSourceLabel: 'Source',
+    restSourceText: '{device}, fenêtre nocturne {start} → {end}.',
+    restConfidenceLabel: 'Pourquoi cette confiance',
+    restConfidenceText:
+      '{unusable} min de la fenêtre inexploitables : absence détectée sur le tapis.',
+    restLimitsLabel: 'Ce qu’on ne peut pas conclure',
+    restLimitsText:
+      'Ni la qualité du sommeil, ni une cause. Les interruptions sont comptées, pas interprétées.',
     recovery: 'Récupération',
     recoveryIntro: "Aujourd'hui,",
     recoveryMiddle: 'a mis',
@@ -265,6 +276,17 @@ export const en: Dict = {
     confidence: 'Confidence',
     partialCapture:
       'Partial capture overnight — interpret carefully. Details are shown but not consolidated.',
+    restReferenceLabel: 'Reference',
+    restReferenceText:
+      'Last {nights} nights — median {interruptions} interruptions, {duration} min.',
+    restSourceLabel: 'Source',
+    restSourceText: '{device}, night window {start} → {end}.',
+    restConfidenceLabel: 'Why this confidence',
+    restConfidenceText:
+      '{unusable} min of the window unusable: absence detected on the mat.',
+    restLimitsLabel: 'What cannot be concluded',
+    restLimitsText:
+      'Neither sleep quality nor a cause. Interruptions are counted, not interpreted.',
     recovery: 'Recovery',
     recoveryIntro: 'Today,',
     recoveryMiddle: 'took',

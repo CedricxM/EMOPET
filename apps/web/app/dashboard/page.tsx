@@ -20,13 +20,20 @@ import {
   MOCK_RECOVERY,
   MOCK_REPOS,
 } from '../../lib/mock-data';
-import { formatDateLocale, useI18n } from '../../lib/i18n';
+import { ELI_WEB_MOCK_PROVENANCE } from '../../lib/eli/mock-provenance';
+import { ELI_DEMO_PREFIX, isAuthoritativeEliProvenance } from '../../lib/narration';
+import { fillTemplate, formatDateLocale, useI18n } from '../../lib/i18n';
 import { useState } from 'react';
 import { BienEtreSection } from './BienEtreSection';
 import styles from '../../styles/living-pages.module.css';
 
 export default function DashboardPage() {
   const { locale, t } = useI18n();
+
+  // Fail-closed : tant qu'aucune source MAT/TAG ou backend n'est déclarée, la
+  // provenance affichée porte le marqueur. Le jour où une source réelle existe,
+  // le helper rend `true` et le marqueur disparaît sans retoucher ce fichier.
+  const eliAuthoritative = isAuthoritativeEliProvenance(ELI_WEB_MOCK_PROVENANCE);
   const today = formatDateLocale(new Date().toISOString(), locale, { day: 'numeric', month: 'short' });
   const [eliOpen, setEliOpen] = useState(false);
   return (
@@ -93,6 +100,40 @@ export default function DashboardPage() {
               <P2>
                 {t('dashboard', 'partialCapture')}
               </P2>
+
+              {/* Les quatre attributs que Care §4 exige et que la carte ne portait
+                  pas : à quoi l'observation se compare, d'où elle vient, ce qui
+                  explique la confiance partielle, et ce qu'elle ne permet pas de
+                  conclure. Registre factuel — aucune interprétation ajoutée. */}
+              <dl style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: 0 }}>
+                <ObservationFact
+                  label={t('dashboard', 'restReferenceLabel')}
+                  value={fillTemplate(t('dashboard', 'restReferenceText'), {
+                    nights: MOCK_REPOS.reference.nights,
+                    interruptions: MOCK_REPOS.reference.medianInterruptions,
+                    duration: MOCK_REPOS.reference.medianDurationMinutes,
+                  })}
+                />
+                <ObservationFact
+                  label={t('dashboard', 'restSourceLabel')}
+                  value={fillTemplate(t('dashboard', 'restSourceText'), {
+                    device: MOCK_REPOS.source.device,
+                    start: MOCK_REPOS.source.windowStart,
+                    end: MOCK_REPOS.source.windowEnd,
+                  })}
+                  prefix={eliAuthoritative ? undefined : ELI_DEMO_PREFIX}
+                />
+                <ObservationFact
+                  label={t('dashboard', 'restConfidenceLabel')}
+                  value={fillTemplate(t('dashboard', 'restConfidenceText'), {
+                    unusable: MOCK_REPOS.unusableMinutes,
+                  })}
+                />
+                <ObservationFact
+                  label={t('dashboard', 'restLimitsLabel')}
+                  value={t('dashboard', 'restLimitsText')}
+                />
+              </dl>
             </div>
           </Card>
 
@@ -152,6 +193,42 @@ export default function DashboardPage() {
         <Disclaimer />
       </div>
     </ContentShell>
+  );
+}
+
+/**
+ * Une ligne d'attribut d'observation : l'intitulé, puis la valeur.
+ *
+ * `prefix` porte le marqueur `DÉMO · ` sur la provenance. Il est placé sur la
+ * SOURCE et nulle part ailleurs : c'est la source qui est fictive, pas le
+ * raisonnement. Le marquer ailleurs laisserait croire que la référence ou les
+ * limites sont, elles aussi, de la fiction.
+ */
+function ObservationFact({ label, value, prefix }: { label: string; value: string; prefix?: string }) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 8px', alignItems: 'baseline' }}>
+      <dt
+        style={{
+          fontFamily: 'var(--font-sans)',
+          fontSize: 'var(--text-xxs)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+          color: 'var(--fg-muted)',
+          fontWeight: 'var(--weight-semi)',
+          margin: 0,
+        }}
+      >
+        {label}
+      </dt>
+      <dd style={{ margin: 0, fontFamily: 'var(--font-sans)', fontSize: 'var(--text-sm)', color: 'var(--fg-2)', lineHeight: 1.5 }}>
+        {prefix && (
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xxs)', letterSpacing: '0.12em', color: 'var(--fg-muted)' }}>
+            {prefix}
+          </span>
+        )}
+        {value}
+      </dd>
+    </div>
   );
 }
 
