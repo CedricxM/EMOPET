@@ -2,7 +2,9 @@ import type { ReactNode } from 'react';
 
 export type PillState = 'valid' | 'degraded' | 'suppressed';
 
-const LABELS: Record<PillState, string> = {
+/** Exporté pour que la carte ELI du tableau de bord puisse préfixer le libellé
+ *  sans redéclarer la table. Aucun changement de comportement. */
+export const PILL_LABELS: Record<PillState, string> = {
   valid: 'Valide',
   degraded: 'Dégradé',
   suppressed: 'Supprimé',
@@ -52,7 +54,7 @@ export function Pill({ state, label, showDot = true }: PillProps) {
           }}
         />
       )}
-      {label ?? LABELS[state]}
+      {label ?? PILL_LABELS[state]}
     </span>
   );
 }

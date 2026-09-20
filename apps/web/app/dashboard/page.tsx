@@ -23,6 +23,9 @@ import {
   MOCK_REPOS,
   MOCK_TREND_14D,
 } from '../../lib/mock-data';
+import { PILL_LABELS } from '../../components/ui/pill';
+import { ELI_WEB_MOCK_PROVENANCE } from '../../lib/eli/mock-provenance';
+import { ELI_DEMO_PREFIX, isAuthoritativeEliProvenance } from '../../lib/narration';
 import { formatDateLocale, useI18n } from '../../lib/i18n';
 import { useState } from 'react';
 import { BienEtreSection } from './BienEtreSection';
@@ -30,6 +33,24 @@ import styles from '../../styles/living-pages.module.css';
 
 export default function DashboardPage() {
   const { locale, t } = useI18n();
+
+  // Fail-closed, et temporaire par construction.
+  //
+  // `MOCK_ELI` vient de `lib/eli/mock.ts`, dont l'en-tête dit « Données SIMULÉES
+  // — PRNG déterministe ». La carte publiait pourtant la valeur avec un badge de
+  // fiabilité, une tendance et une jauge, sans rien dire de sa provenance :
+  // l'avis « Mode démonstration » n'existe que dans `ScientificFooter`, replié
+  // derrière « Comprendre les indicateurs ».
+  //
+  // Le dépôt avait déjà écrit la règle pour l'autre chemin de publication —
+  // `lib/narration.ts`, « une source non autoritative est marquée DÉMO · »,
+  // verrouillée par le test « jamais un nombre nu ». Elle s'applique ici, sur la
+  // surface la plus visible, avec le même helper et le même marqueur.
+  //
+  // Le jour où une source MAT/TAG ou backend sera déclarée, le helper rendra
+  // `true` et le marquage disparaîtra sans qu'on y retouche. Gate : #118.
+  const eliAuthoritative = isAuthoritativeEliProvenance(ELI_WEB_MOCK_PROVENANCE);
+
   const today = formatDateLocale(new Date().toISOString(), locale, { day: 'numeric', month: 'short' });
   const [eliOpen, setEliOpen] = useState(false);
   return (
@@ -80,7 +101,14 @@ export default function DashboardPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <Pill state={MOCK_ELI.state} />
+                  <Pill
+                    state={MOCK_ELI.state}
+                    label={
+                      eliAuthoritative
+                        ? undefined
+                        : `${ELI_DEMO_PREFIX}${PILL_LABELS[MOCK_ELI.state]}`
+                    }
+                  />
                   <Eyebrow>{t('dashboard', 'balanceIndex')}</Eyebrow>
                 </div>
                 <span
@@ -96,6 +124,19 @@ export default function DashboardPage() {
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
                 <DataXL>{MOCK_ELI.value}</DataXL>
+                {!eliAuthoritative && (
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 'var(--text-xxs)',
+                      letterSpacing: '0.12em',
+                      color: 'var(--fg-muted)',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {ELI_DEMO_PREFIX}/100
+                  </span>
+                )}
                 <span
                   style={{
                     fontFamily: 'var(--font-sans)',
