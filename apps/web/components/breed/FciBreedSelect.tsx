@@ -8,10 +8,10 @@ import { estimateSignalConstraintsFromDogProfile } from '../../lib/data/eli/dogP
 import type { SignalConstraintNote } from '../../lib/data/eli/dogProfile.schema';
 
 const NOTE_LABELS: Record<SignalConstraintNote, string> = {
-  possible_fur_related_signal_damping: 'Pelage : verifier la qualite de couplage lors de la mise en place.',
-  size_requires_mat_variant_check: 'Gabarit : verifier que la variante MAT correspond au chien.',
+  possible_fur_related_signal_damping: 'Pelage : vérifier la qualité de couplage lors de la mise en place.',
+  size_requires_mat_variant_check: 'Gabarit : vérifier que la variante MAT correspond au chien.',
   morphology_requires_positioning_validation: 'Morphologie : confirmer le positionnement pendant la configuration.',
-  no_constraint_known: 'Aucune contrainte technique connue avec les donnees disponibles.',
+  no_constraint_known: 'Aucune contrainte technique connue avec les données disponibles.',
 };
 
 export interface FciBreedSelectProps {
@@ -49,7 +49,7 @@ export function FciBreedSelect({
     <Card tone="sunk">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <Eyebrow tone="accent2">Referentiel FCI</Eyebrow>
+          <Eyebrow tone="accent2">Référentiel FCI</Eyebrow>
           <H2>Race et configuration capteurs</H2>
           <P2>
             La race sert a l onboarding, aux cohortes de validation et aux contraintes techniques de signal.

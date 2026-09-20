@@ -15,16 +15,16 @@ const CATEGORY_BY_TYPE: Record<MapPlaceType, SpotCategory> = {
 };
 
 const STATUS_LABELS: Record<VerifiedStatus, string> = {
-  verified: 'verifie',
-  pending_review: 'verification en attente',
-  community_unverified: 'contribution non verifiee',
-  source_imported: 'source importee',
+  verified: 'vérifié',
+  pending_review: 'vérification en attente',
+  community_unverified: 'contribution non vérifiée',
+  source_imported: 'source importée',
 };
 
 const PRIVACY_LABELS: Record<PrivacyLevel, string> = {
-  public: 'donnee publique',
+  public: 'donnée publique',
   community_opt_in: 'contribution communautaire opt-in',
-  private_owner_only: 'donnee privee non publiee',
+  private_owner_only: 'donnée privée non publiée',
 };
 
 export function mapPlaceToCommunitySpot(place: MapPlace): CommunitySpot | null {
