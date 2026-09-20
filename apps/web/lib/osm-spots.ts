@@ -6,6 +6,11 @@
  * Données ouvertes © contributeurs OpenStreetMap (ODbL).
  *
  * ⚠ Invariants : aucune donnée médicale/émotionnelle. Ce sont des POI publics.
+ *
+ * RÈGLE DE VÉRITÉ : « source indisponible » n'est pas « aucun POI ».
+ * Un chargement réussi peut légitimement produire zéro résultat. Une erreur
+ * HTTP/réseau ou une réponse Overpass invalide reste un état distinct et n'est
+ * jamais mise en cache comme une zone vide.
  */
 
 import type { SpotCategory } from '../components/bretagne-map/spots';
@@ -26,6 +31,10 @@ export interface Bounds {
   north: number;
   east: number;
 }
+
+export type OsmSpotLoadResult =
+  | { status: 'ok'; spots: OsmSpot[] }
+  | { status: 'unavailable' };
 
 const ENDPOINT = 'https://overpass-api.de/api/interpreter';
 
@@ -61,13 +70,13 @@ function bboxKey(b: Bounds): string {
 }
 
 /**
- * Récupère les POI réels dans une zone. Mis en cache par bbox arrondie.
- * Renvoie [] en cas d'échec réseau (la carte reste utilisable).
+ * Récupère les POI réels dans une zone. Seuls les chargements réussis sont mis
+ * en cache, y compris un résultat légitimement vide. Une panne reste réessayable.
  */
-export async function fetchOsmSpots(b: Bounds, signal?: AbortSignal): Promise<OsmSpot[]> {
+export async function fetchOsmSpots(b: Bounds, signal?: AbortSignal): Promise<OsmSpotLoadResult> {
   const key = bboxKey(b);
   const cached = cache.get(key);
-  if (cached) return cached;
+  if (cached) return { status: 'ok', spots: cached };
 
   const bbox = `(${b.south},${b.west},${b.north},${b.east})`;
   const query = `[out:json][timeout:20];(` +
@@ -84,11 +93,21 @@ export async function fetchOsmSpots(b: Bounds, signal?: AbortSignal): Promise<Os
       headers: { Accept: 'application/json' },
       signal,
     });
-    if (!res.ok) return [];
-    const json = (await res.json()) as { elements?: OverpassElement[] };
+    if (!res.ok) return { status: 'unavailable' };
+
+    const json = (await res.json()) as unknown;
+    if (
+      !json ||
+      typeof json !== 'object' ||
+      !Array.isArray((json as { elements?: unknown }).elements)
+    ) {
+      return { status: 'unavailable' };
+    }
+
+    const elements = (json as { elements: OverpassElement[] }).elements;
     const spots: OsmSpot[] = [];
     const seen = new Set<string>();
-    for (const el of json.elements ?? []) {
+    for (const el of elements) {
       const tags = el.tags ?? {};
       const category = categoryFor(tags);
       if (!category) continue;
@@ -100,9 +119,15 @@ export async function fetchOsmSpots(b: Bounds, signal?: AbortSignal): Promise<Os
       seen.add(id);
       spots.push({ id, category, name: tags.name ?? FALLBACK_NAMES[category], lon, lat, fromOsm: true });
     }
+
     cache.set(key, spots);
-    return spots;
+    return { status: 'ok', spots };
   } catch {
-    return [];
+    return { status: 'unavailable' };
   }
+}
+
+/** Réinitialise le cache mémoire. Réservé aux tests. */
+export function resetOsmSpotCacheForTests(): void {
+  cache.clear();
 }

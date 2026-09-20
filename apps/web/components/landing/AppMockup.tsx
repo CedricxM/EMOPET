@@ -59,13 +59,13 @@ export default function AppMockup() {
         <div className="space-y-3 mb-8">
           <p
             className="text-[#141C25] text-lg font-medium"
-            style={{ fontFamily: 'var(--font-fraunces)' }}
+            style={{ fontFamily: 'var(--font-display)' }}
           >
             Bonjour.
           </p>
           <div
             className="space-y-1.5 text-[#4A5766] text-sm leading-relaxed"
-            style={{ fontFamily: 'var(--font-source-sans)' }}
+            style={{ fontFamily: 'var(--font-body)' }}
           >
             <p>Nala a passé une nuit plutôt stable.</p>
             <p>Elle s&apos;est réveillée plusieurs fois vers la fin de la nuit.</p>
@@ -95,7 +95,7 @@ export default function AppMockup() {
                 </span>
                 <span
                   className="text-[#2E3A48] text-xs font-semibold tracking-wide uppercase"
-                  style={{ fontFamily: 'var(--font-source-sans)' }}
+                  style={{ fontFamily: 'var(--font-body)' }}
                 >
                   {card.label}
                 </span>
