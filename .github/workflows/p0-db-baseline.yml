@@ -18,6 +18,7 @@ on:
       - 'backend/test/*.integration.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
       - 'backend/test/id-01-referential-integrity.sql'
+      - 'backend/test/copresence-identity-fingerprint.sql'
       - 'backend/test/subject-discovery-postgres.test.mjs'
       - 'backend/test/privacy-erasure-topology.integration.test.mjs'
       - 'config/privacy/**'
@@ -207,6 +208,14 @@ jobs:
           EMOPET_DB_INTEGRATION_TEST: '1'
         run: node --test test/sensor-summary-ingestion.integration.test.mjs test/sensor-ingestion-authority-concurrency.integration.test.mjs
 
+      - name: INT-06F canonical copresence dog identity
+        env:
+          GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+        run: |
+          psql "$GENERATED_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/copresence-identity-fingerprint.sql | tee /tmp/copresence-fingerprint.txt
+          grep -Fq 'COPRESENCE_FK|dog_a_id|dogs|id|a' /tmp/copresence-fingerprint.txt
+          grep -Fq 'COPRESENCE_FK|dog_b_id|dogs|id|a' /tmp/copresence-fingerprint.txt
+
       - name: PRIV-DISC-01 transactional subject discovery
         working-directory: backend
         env:
@@ -260,5 +269,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY and INT-04A bounded export authority.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06F copresence identity, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY and INT-04A bounded export authority.'
           echo 'It does not authorize production migration, deployment, or release.'

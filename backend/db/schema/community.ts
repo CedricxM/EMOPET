@@ -1,5 +1,6 @@
 import { pgTable, uuid, varchar, timestamp, real, integer, jsonb, uniqueIndex } from 'drizzle-orm/pg-core';
 import { users } from './users.js';
+import { dogs } from './dogs.js';
 
 export const communities = pgTable('communities', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -58,8 +59,8 @@ export const communityEvents = pgTable('community_events', {
 
 export const copresenceEvents = pgTable('copresence_events', {
   id: uuid('id').primaryKey().defaultRandom(),
-  dogAId: uuid('dog_a_id').notNull(),
-  dogBId: uuid('dog_b_id').notNull(),
+  dogAId: uuid('dog_a_id').notNull().references(() => dogs.id),
+  dogBId: uuid('dog_b_id').notNull().references(() => dogs.id),
   latitude: real('latitude'),
   longitude: real('longitude'),
   occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull(),

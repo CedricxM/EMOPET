@@ -65,6 +65,20 @@
       "projectionAuthority": "TO_CONFIRM_BEHAVIORAL_ACCESS_PROJECTION"
     },
     {
+      "table": "copresence_events",
+      "column": "dog_a_id",
+      "routeSymbol": "copresenceEvents",
+      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT",
+      "projectionAuthority": "TO_CONFIRM_COMMUNITY_LOCATION_ACCESS_POLICY"
+    },
+    {
+      "table": "copresence_events",
+      "column": "dog_b_id",
+      "routeSymbol": "copresenceEvents",
+      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT",
+      "projectionAuthority": "TO_CONFIRM_COMMUNITY_LOCATION_ACCESS_POLICY"
+    },
+    {
       "table": "devices",
       "column": "dog_id",
       "routeSymbol": "devices",
@@ -142,22 +156,7 @@
       "projectionAuthority": "TO_CONFIRM_ELI_V5_DISCLOSURE"
     }
   ],
-  "unconstrainedDogIdentifiers": [
-    {
-      "table": "copresence_events",
-      "column": "dog_a_id",
-      "routeSymbol": "copresenceEvents",
-      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT_UNCONSTRAINED_IDENTIFIER",
-      "projectionAuthority": "TO_CONFIRM_COMMUNITY_LOCATION_ACCESS_POLICY"
-    },
-    {
-      "table": "copresence_events",
-      "column": "dog_b_id",
-      "routeSymbol": "copresenceEvents",
-      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT_UNCONSTRAINED_IDENTIFIER",
-      "projectionAuthority": "TO_CONFIRM_COMMUNITY_LOCATION_ACCESS_POLICY"
-    }
-  ],
+  "unconstrainedDogIdentifiers": [],
   "knownOutOfScopeForThisPostgresRouteMatrix": [
     "raw high-rate MAT/TAG streams not persisted by the current backend schema",
     "object/media storage",

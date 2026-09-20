@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-dog-subject-lineage-v1",
-  "status": "TECHNICAL_SLICE_LOCAL_DOG_LINEAGE_NOT_ERASURE_OR_DISCLOSURE_POLICY",
+  "status": "TECHNICAL_SLICE_LOCAL_DOG_LINEAGE_WITH_CANONICAL_COPRESENCE_IDENTITY_NOT_ERASURE_OR_DISCLOSURE_POLICY",
   "subject": {
     "table": "dogs",
     "column": "id",
@@ -32,6 +32,16 @@
       "table": "behavioral_assessments",
       "column": "dog_id",
       "source": "backend/db/schema/behavioral-assessments.ts"
+    },
+    {
+      "table": "copresence_events",
+      "column": "dog_a_id",
+      "source": "backend/db/schema/community.ts"
+    },
+    {
+      "table": "copresence_events",
+      "column": "dog_b_id",
+      "source": "backend/db/schema/community.ts"
     },
     {
       "table": "devices",
@@ -89,18 +99,7 @@
       "source": "backend/db/schema/eli-v5.ts"
     }
   ],
-  "unconstrainedDogIdentifiers": [
-    {
-      "table": "copresence_events",
-      "column": "dog_a_id",
-      "source": "backend/db/schema/community.ts"
-    },
-    {
-      "table": "copresence_events",
-      "column": "dog_b_id",
-      "source": "backend/db/schema/community.ts"
-    }
-  ],
+  "unconstrainedDogIdentifiers": [],
   "transitiveDescendants": [
     {
       "table": "behavioral_responses",
@@ -136,7 +135,7 @@
     }
   ],
   "scopeLimitations": [
-    "Canonical foreign keys and unconstrained dog-like identifiers are technical persistence mechanics, not lifecycle policy.",
+    "Canonical foreign keys are technical persistence mechanics, not lifecycle policy; copresence dog identifiers are now canonical but remain non-disclosable without separate location authority.",
     "Community relations already present in the base schema remain visible here even while INT-06 runtime integration is deferred.",
     "Object/media storage, providers, caches, analytics and backups remain outside PostgreSQL lineage."
   ]
