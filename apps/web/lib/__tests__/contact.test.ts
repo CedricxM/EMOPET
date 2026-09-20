@@ -1,12 +1,12 @@
 /**
  * Tests contact — validation : consentement obligatoire, motif vétérinaire absent,
- * créneaux futurs, format coordonnée selon canal.
+ * créneaux futurs, format coordonnée selon canal, structure runtime hostile.
  */
 
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { REASON_LABELS, buildRequest, validateContactInput } from '../contact';
+import { REASON_LABELS, buildRequest, parseNewContactInput, validateContactInput } from '../contact';
 import type { NewContactInput } from '../contact';
 
 const future = new Date(Date.now() + 86_400_000).toISOString();
@@ -18,6 +18,80 @@ function base(): NewContactInput {
 
 test('valide : demande téléphone correcte', () => {
   assert.deepEqual(validateContactInput(base()), []);
+});
+
+test('parser : conserve le contrat web et écarte les champs inconnus, y compris dans les créneaux', () => {
+  const input = { ...base(), ownerToken: 'owner-existing', message: ' Message facultatif ' };
+  const payload = {
+    ...input,
+    requesterUserId: 'untrusted-user',
+    extra: 'ignored',
+    status: 'completed',
+    proposedSlots: [{ ...input.proposedSlots[0]!, extra: 'ignored' }],
+  };
+  assert.deepEqual(parseNewContactInput(payload), input);
+  assert.equal(payload.extra, 'ignored', 'le parser ne modifie pas le payload');
+  assert.notEqual(parseNewContactInput(payload)?.proposedSlots, payload.proposedSlots);
+});
+
+test('parser : rejette les structures hostiles et les types incorrects avant la validation métier', () => {
+  for (const payload of [
+    null, [], 'contact', 42, true, {},
+    { ...base(), channel: 'sms' },
+    { ...base(), reason: 'sante_chien' },
+    { ...base(), reason: 'toString' },
+    { ...base(), reason: '__proto__' },
+    { ...base(), reason: 7 },
+    { ...base(), contactValue: undefined },
+    { ...base(), contactValue: 123 },
+    { ...base(), proposedSlots: undefined },
+    { ...base(), proposedSlots: {} },
+    { ...base(), proposedSlots: [null] },
+    { ...base(), proposedSlots: [{ start: future }] },
+    { ...base(), proposedSlots: [{ start: 123, end: futureEnd }] },
+    { ...base(), proposedSlots: Array.from({ length: 6 }, () => ({ start: future, end: futureEnd })) },
+    { ...base(), consentGiven: 'true' },
+    { ...base(), message: 123 },
+    { ...base(), message: null },
+    { ...base(), ownerToken: 123 },
+    { ...base(), ownerToken: null },
+  ]) {
+    assert.equal(parseNewContactInput(payload), null, JSON.stringify(payload));
+  }
+});
+
+test('parser : bornes inclusives des textes, sans perdre les champs reconnus', () => {
+  for (const [field, limit] of [['contactValue', 254], ['message', 500], ['ownerToken', 128]] as const) {
+    assert.notEqual(parseNewContactInput({ ...base(), [field]: 'x'.repeat(limit) }), null);
+    assert.equal(parseNewContactInput({ ...base(), [field]: 'x'.repeat(limit + 1) }), null);
+  }
+  for (const field of ['start', 'end'] as const) {
+    assert.notEqual(parseNewContactInput({
+      ...base(), proposedSlots: [{ start: future, end: futureEnd, [field]: 'x'.repeat(64) }],
+    }), null);
+    assert.equal(parseNewContactInput({
+      ...base(), proposedSlots: [{ start: future, end: futureEnd, [field]: 'x'.repeat(65) }],
+    }), null);
+  }
+});
+
+test('parser : le message reste facultatif et sa normalisation appartient à buildRequest', () => {
+  for (const message of [undefined, '', '   ', '  Message  ']) {
+    const input = { ...base(), message };
+    const parsed = parseNewContactInput(input);
+    assert.notEqual(parsed, null);
+    assert.deepEqual(validateContactInput(parsed!), []);
+    assert.equal(buildRequest(parsed!).message, message?.trim() || undefined);
+  }
+});
+
+test('parser : consentement et minimum de créneaux restent des règles métier', () => {
+  const noSlots = parseNewContactInput({ ...base(), proposedSlots: [] });
+  assert.notEqual(noSlots, null);
+  assert.ok(validateContactInput(noSlots!).some((error) => /1 à 5/.test(error)));
+  const noConsent = parseNewContactInput({ ...base(), consentGiven: false });
+  assert.notEqual(noConsent, null);
+  assert.ok(validateContactInput(noConsent!).some((error) => /consentement/i.test(error)));
 });
 
 test('consentement obligatoire', () => {
