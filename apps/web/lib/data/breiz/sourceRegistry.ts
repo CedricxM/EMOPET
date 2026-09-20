@@ -169,8 +169,65 @@ export function getBreizSource(id: string): BreizSourceDescriptor | undefined {
   return BREIZ_SOURCE_REGISTRY.find((source) => source.id === id);
 }
 
+/** Raison pour laquelle une source ne peut pas être ingérée. Une liste vide vaut autorisation. */
+export type BreizSourceRightsBlocker =
+  | 'SOURCE_DISABLED'
+  | 'NO_LICENCE_RECEIPT'
+  | 'NO_RECHECK_RULE'
+  | 'PARTNER_PERMISSION_REQUIRED';
+
+export interface BreizSourceRightsVerdict {
+  sourceId: string;
+  ingestionPermitted: boolean;
+  fullTextPermitted: boolean;
+  blockers: BreizSourceRightsBlocker[];
+}
+
+/**
+ * Contrôle fail-closed des droits d'une source — gate DATA-LIC-G6 de #116.
+ *
+ * Le registre décrivait les droits sans jamais les faire appliquer : `license`
+ * valait `null` sur huit entrées sur neuf, dont deux `enabled: true`, et rien
+ * dans le code ne lisait ce champ. La décision par défaut était donc permissive
+ * par omission.
+ *
+ * Ici l'absence de preuve bloque. Une source n'est ingérable que si elle est
+ * activée, porte un reçu de licence non vide, déclare une règle de re-contrôle
+ * (l'`expiry/recheck rule` exigée par G6) et n'attend pas un accord partenaire.
+ *
+ * Ce verdict est un contrôle technique, pas un avis juridique : il constate
+ * qu'une preuve est présente, jamais qu'elle est suffisante. #116 reste ouverte.
+ */
+export function evaluateBreizSourceRights(source: BreizSourceDescriptor): BreizSourceRightsVerdict {
+  const blockers: BreizSourceRightsBlocker[] = [];
+
+  if (!source.enabled) blockers.push('SOURCE_DISABLED');
+  if (source.license === null || source.license.trim() === '') blockers.push('NO_LICENCE_RECEIPT');
+  if (source.freshnessHours === null) blockers.push('NO_RECHECK_RULE');
+  if (source.usagePolicy.includes('PARTNER_PERMISSION_REQUIRED')) blockers.push('PARTNER_PERMISSION_REQUIRED');
+
+  const ingestionPermitted = blockers.length === 0;
+
+  return {
+    sourceId: source.id,
+    ingestionPermitted,
+    fullTextPermitted:
+      ingestionPermitted &&
+      source.usagePolicy.includes('FULL_TEXT_ALLOWED') &&
+      !source.usagePolicy.includes('NO_DERIVATIVES'),
+    blockers,
+  };
+}
+
+/**
+ * Conserve la signature d'origine, mais ne décide plus sans reçu de licence.
+ *
+ * La version précédente ne lisait que `usagePolicy` : une source marquée
+ * `FULL_TEXT_ALLOWED` sans aucune licence aurait été autorisée à stocker du
+ * texte intégral. Aucune entrée du registre ne porte ce drapeau aujourd'hui,
+ * donc le défaut n'était pas encore atteignable — il attendait la première
+ * source qui l'activerait.
+ */
 export function canStoreFullText(source: BreizSourceDescriptor): boolean {
-  return source.usagePolicy.includes('FULL_TEXT_ALLOWED') &&
-    !source.usagePolicy.includes('NO_DERIVATIVES') &&
-    !source.usagePolicy.includes('PARTNER_PERMISSION_REQUIRED');
+  return evaluateBreizSourceRights(source).fullTextPermitted;
 }

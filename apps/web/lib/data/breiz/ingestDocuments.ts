@@ -4,6 +4,15 @@ import { validateBreizDocument } from './breizDocument.schema';
 export interface LocalDocumentSource {
   filename: string;
   content: string;
+  /**
+   * Reçu de licence couvrant ce fichier, quand le format n'a pas de champ pour
+   * le porter — c'est le cas du markdown, qui ne transporte que titre et texte.
+   *
+   * Sans ce reçu, et sans licence dans l'enregistrement lui-même, le document
+   * part en `rejected`. L'opérateur déclare la preuve ; le code ne l'invente
+   * pas à sa place.
+   */
+  license?: string;
 }
 
 export interface IngestResult {
@@ -19,15 +28,23 @@ function normalizeTags(tags: string[] | string | undefined): string[] {
   return [];
 }
 
-function withDefaults(raw: PartialDocument, sourceName: string): BreizDocument {
+function withDefaults(raw: PartialDocument, source: LocalDocumentSource): BreizDocument {
   const now = new Date().toISOString().slice(0, 10);
-  const title = raw.title?.trim() || sourceName.replace(/\.[^.]+$/, '');
+  const title = raw.title?.trim() || source.filename.replace(/\.[^.]+$/, '');
   return {
     id: raw.id?.trim() || `local-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`,
     title,
     source_name: raw.source_name?.trim() || 'Local file',
     source_url: raw.source_url ?? null,
-    license: raw.license?.trim() || 'License review required before public use',
+    // Une licence absente reste absente.
+    //
+    // La valeur par défaut d'origine était la phrase « License review required
+    // before public use ». Elle rendait le champ non vide, donc la règle
+    // `license is required` de `validateBreizDocument` ne pouvait plus jamais
+    // se déclencher sur ce chemin : tout document sans licence était accepté,
+    // porteur d'une phrase occupant la place d'un reçu. Laisser le champ vide
+    // rend cette règle à son office et envoie le document dans `rejected`.
+    license: raw.license?.trim() || source.license?.trim() || '',
     territory: raw.territory?.trim() || 'Bretagne',
     region: raw.region?.trim() || 'Bretagne',
     department: raw.department ?? null,
@@ -84,7 +101,7 @@ export function ingestBreizDocuments(sources: LocalDocumentSource[]): IngestResu
     try {
       const records = parseLocalDocumentSource(source);
       for (const raw of records) {
-        const document = withDefaults(raw, source.filename);
+        const document = withDefaults(raw, source);
         const errors = validateBreizDocument(document);
         if (errors.length) rejected.push({ source: source.filename, errors });
         else documents.push(document);
