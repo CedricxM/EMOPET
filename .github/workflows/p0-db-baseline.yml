@@ -14,6 +14,8 @@ on:
       - 'packages/shared/src/validators/index.ts'
       - 'backend/api/routes/data-export.ts'
       - 'backend/api/routes/community.ts'
+      - 'backend/test/community-*.test.mjs'
+      - 'backend/api/services/community-*.ts'
       - 'backend/api/routes/directory.ts'
       - 'backend/test/*.integration.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
@@ -186,12 +188,16 @@ jobs:
           GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: psql "$GENERATED_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/dataset-writer-authority.sql
 
-      - name: Verify generated table inventory
+      - name: Verify generated table inventory with explicit fresh-only authority
         env:
           GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: |
           psql "$GENERATED_DATABASE_URL" -Atc "select tablename from pg_tables where schemaname='public' order by tablename" > /tmp/tables-generated.txt
-          diff -u /tmp/tables-a.txt /tmp/tables-generated.txt
+          comm -23 /tmp/tables-a.txt /tmp/tables-generated.txt > /tmp/missing-from-generated.txt
+          test ! -s /tmp/missing-from-generated.txt
+          comm -13 /tmp/tables-a.txt /tmp/tables-generated.txt > /tmp/fresh-only.txt
+          printf 'community_reports\ncommunity_rules_acceptances\n' > /tmp/expected-fresh-only.txt
+          diff -u /tmp/expected-fresh-only.txt /tmp/fresh-only.txt
 
       - name: AUTH-01 route integration on generated baseline
         working-directory: backend
@@ -207,6 +213,21 @@ jobs:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
           EMOPET_DB_INTEGRATION_TEST: '1'
         run: node --test test/sensor-summary-ingestion.integration.test.mjs test/sensor-ingestion-authority-concurrency.integration.test.mjs
+
+      - name: INT-06 durable Community core
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          EMOPET_DB_INTEGRATION_TEST: '1'
+        run: |
+          node --test test/community-feed-cursor.test.mjs
+          for file in \
+            test/community-persistence.integration.test.mjs \
+            test/community-feed.integration.test.mjs \
+            test/community-authority-concurrency.integration.test.mjs \
+            test/community-disclosure.integration.test.mjs; do
+            node --test "$file"
+          done
 
       - name: INT-06F canonical copresence dog identity
         env:
@@ -269,5 +290,6 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06F copresence identity, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY and INT-04A bounded export authority.'
-          echo 'It does not authorize production migration, deployment, or release.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY and INT-04A bounded export authority.'
+          echo 'Community rules/reports are explicit fresh-baseline-only tables under Model A / NO_EXISTING_DB_TO_PRESERVE; no active migration number or existing-DB upgrade authority is claimed.'
+          echo 'It does not authorize production migration, deployment, moderation adjudication, location release, or product release.'

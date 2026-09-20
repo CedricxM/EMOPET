@@ -18,6 +18,12 @@ const PRIOR_A = randomUUID();
 const CONSENT_A = randomUUID();
 const SESSION_A = randomUUID();
 const MESSAGE_A = randomUUID();
+const COMMUNITY_A = randomUUID();
+const POST_A = randomUUID();
+const COMMENT_A = randomUUID();
+const EVENT_A = randomUUID();
+const REPORT_A = randomUUID();
+const COPRESENCE_A = randomUUID();
 
 let sql = null;
 let lockConnection = null;
@@ -38,6 +44,14 @@ if (enabled) {
 
 after(async () => {
   if (sql) {
+    await sql`DELETE FROM community_reports WHERE id = ${REPORT_A}`;
+    await sql`DELETE FROM comments WHERE id = ${COMMENT_A}`;
+    await sql`DELETE FROM posts WHERE id = ${POST_A}`;
+    await sql`DELETE FROM community_events WHERE id = ${EVENT_A}`;
+    await sql`DELETE FROM community_rules_acceptances WHERE user_id = ${USER_A}`;
+    await sql`DELETE FROM community_members WHERE community_id = ${COMMUNITY_A}`;
+    await sql`DELETE FROM communities WHERE id = ${COMMUNITY_A}`;
+    await sql`DELETE FROM copresence_events WHERE id = ${COPRESENCE_A}`;
     await sql`DELETE FROM eli_behavioral_priors WHERE id = ${PRIOR_A}`;
     await sql`DELETE FROM behavioral_factor_scores WHERE id = ${FACTOR_A}`;
     await sql`DELETE FROM behavioral_responses WHERE id = ${RESPONSE_A}`;
@@ -169,6 +183,42 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
     )
   `;
 
+  await sql`
+    INSERT INTO communities (id, name, description, type, created_by)
+    VALUES (${COMMUNITY_A}, 'Discovery Community', 'privacy composition fixture', 'activity', ${USER_A})
+  `;
+  await sql`
+    INSERT INTO community_members (community_id, user_id, role)
+    VALUES (${COMMUNITY_A}, ${USER_A}, 'member')
+  `;
+  await sql`
+    INSERT INTO community_rules_acceptances (user_id, rules_version)
+    VALUES (${USER_A}, 'community-rules-v1-candidate')
+  `;
+  await sql`
+    INSERT INTO posts (id, community_id, author_id, type, content, media_urls)
+    VALUES (${POST_A}, ${COMMUNITY_A}, ${USER_A}, 'moment', 'discovery community post', '[]'::jsonb)
+  `;
+  await sql`
+    INSERT INTO comments (id, post_id, author_id, content)
+    VALUES (${COMMENT_A}, ${POST_A}, ${USER_A}, 'discovery community comment')
+  `;
+  await sql`
+    INSERT INTO community_events (id, community_id, created_by, title, description, location, starts_at)
+    VALUES (${EVENT_A}, ${COMMUNITY_A}, ${USER_A}, 'Discovery event', 'test', 'withheld-test-location', '2099-01-01T10:00:00Z')
+  `;
+  await sql`
+    INSERT INTO community_reports (
+      id, reporter_user_id, content_type, content_id, community_id, reason, details
+    ) VALUES (
+      ${REPORT_A}, ${USER_A}, 'post', ${POST_A}, ${COMMUNITY_A}, 'spam', 'discovery report fixture'
+    )
+  `;
+  await sql`
+    INSERT INTO copresence_events (id, dog_a_id, dog_b_id, occurred_at)
+    VALUES (${COPRESENCE_A}, ${DOG_A}, ${DOG_B}, now())
+  `;
+
   await t.test('stable discovery counts current core, AUTH and behavioral surfaces and marks later slices deferred', async () => {
     const before = await snapshot();
     const first = await discoverSubjectData(USER_A, DOG_A);
@@ -178,6 +228,13 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
     assert.equal(first.guardian.ownedDogs.count, 1);
     assert.equal(first.guardian.subscriptions.count, 1);
     assert.equal(first.guardian.achievements.count, 1);
+    assert.equal(first.guardian.communityMemberships.count, 1);
+    assert.equal(first.guardian.communitiesCreated.count, 1);
+    assert.equal(first.guardian.communityRulesAcceptances.count, 1);
+    assert.equal(first.guardian.postsAuthored.count, 1);
+    assert.equal(first.guardian.commentsAuthored.count, 1);
+    assert.equal(first.guardian.communityEventsCreated.count, 1);
+    assert.equal(first.guardian.communityReportsSubmitted.count, 1);
     assert.equal(first.guardian.aiMessagesTargetingUser.count, 1);
     assert.equal(first.guardian.authRefreshSessions.count, 1);
     assert.equal(first.guardian.behavioralAssessmentsAsRespondent.count, 1);
@@ -191,8 +248,9 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
     assert.equal(first.dog.behavioralFactorScores.count, 1);
     assert.equal(first.dog.eliBehavioralPriors.count, 1);
     assert.equal(first.dog.researchDataConsents.count, 1);
+    assert.equal(first.dog.copresenceEvents.count, 1);
 
-    assert.equal(first.externalOrUnresolved.community.status, 'INTEGRATION_DEFERRED');
+    assert.equal(first.externalOrUnresolved.community, undefined);
     assert.equal(first.externalOrUnresolved.professionalSharing.status, 'INTEGRATION_DEFERRED');
     assert.equal(first.externalOrUnresolved.erasureDisposition.status, 'POLICY_AUTHORITY_OPEN');
 

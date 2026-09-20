@@ -76,16 +76,16 @@ Le `POST /api/sensors/summaries` persiste désormais dans PostgreSQL uniquement 
 
 | Méthode | Chemin | État observé |
 |---|---|---|
-| GET | `/api/community` | `503 COMMUNITY_PERSISTENCE_NOT_READY` tant que la liste durable member-scoped n’est pas intégrée |
-| GET | `/api/community/:id` | `503 COMMUNITY_PERSISTENCE_NOT_READY` tant que le détail durable n’est pas intégré |
-| GET | `/api/community/:id/feed` | `503 COMMUNITY_PERSISTENCE_NOT_READY` tant que le feed durable n’est pas intégré |
-| POST | `/api/community/rules/accept` | Acceptation conservée en mémoire |
-| POST | `/api/community/reports` | Signalement conservé en mémoire |
-| POST | `/api/community/blocks` | Blocage conservé en mémoire |
-| POST | `/api/community/posts` | Validation/règles/filtre puis `501 community_post_persistence_not_implemented`; aucun succès de création tant qu'aucun writer Hono n'est prouvé |
-| POST | `/api/community/comments` | Validation/règles/filtre puis `501 community_comment_persistence_not_implemented`; aucun succès de création tant qu'aucun writer Hono n'est prouvé |
-| GET | `/api/community/:id/events` | `503 COMMUNITY_PERSISTENCE_NOT_READY` tant que la lecture durable des événements n’est pas intégrée |
-| POST | `/api/community/events` | Validation/règles/filtre puis `501 community_event_persistence_not_implemented`; aucun succès de création tant qu'aucun writer Hono n'est prouvé |
+| GET | `/api/community` | Liste PostgreSQL des communautés dont l’utilisateur authentifié est membre ; projection bornée, `private, no-store` |
+| GET | `/api/community/:id` | Détail PostgreSQL member-scoped ; non-membre et communauté absente restent non-énumérants |
+| GET | `/api/community/:id/feed` | Feed PostgreSQL member-scoped + règles courantes ; pagination keyset par curseur de navigation non-autorisant |
+| POST | `/api/community/rules/accept` | Acceptation durable PostgreSQL de la version serveur courante ; upsert par utilisateur |
+| POST | `/api/community/reports` | Intake durable PostgreSQL d’un signalement sur un post persistant ; ceci ne constitue pas un workflow de modération/adjudication |
+| POST | `/api/community/blocks` | `503 COMMUNITY_PERSISTENCE_NOT_READY` ; aucun blocage n’est affirmé tant que ses effets runtime ne sont pas implémentés |
+| POST | `/api/community/posts` | Création PostgreSQL durable après membership + acceptation des règles ; auteur imposé par l’identité serveur et projection publique bornée |
+| POST | `/api/community/comments` | Création PostgreSQL durable après verrouillage du post parent, membership + règles ; auteur imposé par le serveur |
+| GET | `/api/community/:id/events` | Lecture PostgreSQL member-scoped + règles ; lieu/coordonnées privés restent withheld |
+| POST | `/api/community/events` | Création PostgreSQL durable member-scoped + règles ; `createdBy` est serveur et le lieu précis n’est pas publié |
 | GET | `/api/community/copresence/:dogId` | Contrôle propriétaire puis `503 COMMUNITY_PERSISTENCE_NOT_READY` tant que le runtime de coprésence n’est pas implémenté ; aucun `200` vide n’est utilisé pour simuler l’absence de correspondances |
 
 Les contrôles de règles et de modération déterminent uniquement si une requête est autorisée à poursuivre. Ils ne constituent pas une preuve qu'un post, commentaire ou événement a été créé ou persisté.
@@ -120,7 +120,7 @@ Ces routes portent un nom historique `health`, mais leurs sorties ne doivent pas
 
 `apps/web/app/api/**` contient des Route Handlers Next.js pour Breiz, contact, journal, communauté, carte, races, contexte et administration. Ils ne sont pas montés dans l'application Hono et ne partagent pas automatiquement son middleware JWT/ownership.
 
-Le web possède notamment un plan Community Next.js sous des chemins publics ressemblant à `/api/community/*`. Le fait qu'un handler Next.js persiste actuellement du contenu ne rend pas le handler Hono homonyme persistant, et les deux plans ne doivent pas être présentés comme un contrat unique tant que l'autorité Community n'a pas été explicitement choisie et consolidée.
+L’autorité Community canonique côté serveur est désormais le routeur Hono + PostgreSQL. Le plan Next.js/file-backed historique reste un plan legacy contenu par `legacyCommunityAuthorityGate()` et ne doit pas être présenté comme une seconde autorité de production.
 
 Certains handlers web écrivent dans `apps/web/.data` ou utilisent des replis navigateur. Ils constituent un plan prototype séparé, décrit dans `docs/APP_OVERVIEW.md`, pas l'autorité durable du backend par simple existence.
 

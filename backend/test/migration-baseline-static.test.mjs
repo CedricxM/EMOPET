@@ -76,10 +76,20 @@ test('draft baseline plus historical migrations define every current Drizzle tab
   }
 
   const missing = [...expected].filter((table) => !created.has(table)).sort();
+  const unexpectedMissing = missing.filter((table) => !FRESH_BASELINE_ONLY_TABLES.has(table));
+  const staleAllowlist = [...FRESH_BASELINE_ONLY_TABLES]
+    .filter((table) => !missing.includes(table))
+    .sort();
+
   assert.deepEqual(
-    missing,
+    unexpectedMissing,
     [],
-    `Current Drizzle tables without any CREATE TABLE in draft+history: ${missing.join(', ')}`,
+    `Current Drizzle tables without CREATE TABLE authority or explicit Model-A fresh-only authority: ${unexpectedMissing.join(', ')}`,
+  );
+  assert.deepEqual(
+    staleAllowlist,
+    [],
+    `Model-A fresh-only allowlist entries no longer fresh-only and must be removed: ${staleAllowlist.join(', ')}`,
   );
 });
 

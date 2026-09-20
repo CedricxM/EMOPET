@@ -1,4 +1,4 @@
-import { eq, inArray, sql } from 'drizzle-orm';
+import { eq, inArray, or, sql } from 'drizzle-orm';
 
 import { db } from '../../db/index.js';
 import {
@@ -11,6 +11,13 @@ import {
   behavioralAssessments,
   behavioralFactorScores,
   behavioralResponses,
+  comments,
+  communities,
+  communityEvents,
+  communityMembers,
+  communityReports,
+  communityRulesAcceptances,
+  copresenceEvents,
   devices,
   dogSubBaselines,
   dogs,
@@ -18,6 +25,7 @@ import {
   eliStates,
   healthEntries,
   recoveryEvents,
+  posts,
   researchDataConsents,
   routineStability,
   sensorSummaries,
@@ -156,6 +164,13 @@ export async function discoverSubjectData(
         ownedDogs: counted(ownedDogIds.length, { ids: ownedDogIds }),
         subscriptions: counted(await countWhere(tx, subscriptions, eq(subscriptions.userId, userId))),
         achievements: counted(await countWhere(tx, achievements, eq(achievements.userId, userId))),
+        communityMemberships: counted(await countWhere(tx, communityMembers, eq(communityMembers.userId, userId))),
+        communitiesCreated: counted(await countWhere(tx, communities, eq(communities.createdBy, userId))),
+        communityRulesAcceptances: counted(await countWhere(tx, communityRulesAcceptances, eq(communityRulesAcceptances.userId, userId))),
+        postsAuthored: counted(await countWhere(tx, posts, eq(posts.authorId, userId))),
+        commentsAuthored: counted(await countWhere(tx, comments, eq(comments.authorId, userId))),
+        communityEventsCreated: counted(await countWhere(tx, communityEvents, eq(communityEvents.createdBy, userId))),
+        communityReportsSubmitted: counted(await countWhere(tx, communityReports, eq(communityReports.reporterUserId, userId))),
         aiMessagesTargetingUser: counted(await countWhere(tx, aiMessages, eq(aiMessages.targetUserId, userId))),
         authRefreshSessions: counted(await countWhere(tx, authRefreshSessions, eq(authRefreshSessions.userId, userId)), {
           note: 'Count only. Refresh token hashes and session internals are not disclosed.',
@@ -188,6 +203,7 @@ export async function discoverSubjectData(
         behavioralFactorScores: 0,
         eliBehavioralPriors: 0,
         researchDataConsents: 0,
+        copresenceEvents: 0,
       };
 
       if (selectedDogIds.length > 0) {
@@ -220,6 +236,14 @@ export async function discoverSubjectData(
             : 0,
           eliBehavioralPriors: await countWhere(tx, eliBehavioralPriors, inArray(eliBehavioralPriors.dogId, selectedDogIds)),
           researchDataConsents: await countWhere(tx, researchDataConsents, inArray(researchDataConsents.dogId, selectedDogIds)),
+          copresenceEvents: await countWhere(
+            tx,
+            copresenceEvents,
+            or(
+              inArray(copresenceEvents.dogAId, selectedDogIds),
+              inArray(copresenceEvents.dogBId, selectedDogIds),
+            ),
+          ),
         };
       }
 
@@ -251,12 +275,11 @@ export async function discoverSubjectData(
           behavioralFactorScores: counted(dogCounts.behavioralFactorScores),
           eliBehavioralPriors: counted(dogCounts.eliBehavioralPriors),
           researchDataConsents: counted(dogCounts.researchDataConsents),
+          copresenceEvents: counted(dogCounts.copresenceEvents, {
+            note: 'Canonical copresence dog foreign keys are counted across dog_a_id and dog_b_id; this does not authorize location disclosure.',
+          }),
         },
         externalOrUnresolved: {
-          community: unresolved(
-            'INTEGRATION_DEFERRED',
-            'Community subject-linked persistence is owned by INT-06 and is not reported as absent by INT-04B.',
-          ),
           professionalSharing: unresolved(
             'INTEGRATION_DEFERRED',
             'Professional-sharing persistence is owned by INT-05 and is not reported as absent by INT-04B.',
