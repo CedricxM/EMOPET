@@ -9,6 +9,7 @@ on:
       - 'backend/api/routes/dogs.ts'
       - 'backend/api/routes/health.ts'
       - 'backend/api/routes/sensors.ts'
+      - 'packages/shared/src/validators/index.ts'
       - 'backend/api/routes/data-export.ts'
       - 'backend/api/routes/community.ts'
       - 'backend/api/routes/directory.ts'
@@ -159,6 +160,13 @@ jobs:
           psql "$GENERATED_DATABASE_URL" -Atc "select tablename from pg_tables where schemaname='public' order by tablename" > /tmp/tables-generated.txt
           diff -u /tmp/tables-a.txt /tmp/tables-generated.txt
 
+      - name: INT-03A sensor-summary provenance integration
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          EMOPET_DB_INTEGRATION_TEST: '1'
+        run: node --test test/sensor-summary-ingestion.integration.test.mjs test/sensor-ingestion-authority-concurrency.integration.test.mjs
+
       - name: Verify generated snapshot is stable
         working-directory: backend
         run: |
@@ -184,5 +192,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates only disposable P0 database behavior.'
+          echo 'This workflow validates disposable P0 database behavior plus the focused INT-03A sensor-provenance reconstruction.'
           echo 'It does not authorize production migration, deployment, or release.'
