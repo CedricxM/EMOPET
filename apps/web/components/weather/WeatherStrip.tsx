@@ -3,17 +3,20 @@
 /**
  * Bandeau météo réelle (Réalité R2) — Open-Meteo, actuel + 3 jours.
  * Contexte des balades. Données ouvertes, aucune interprétation médicale.
+ *
+ * Trois états distincts, jamais deux : chargement, données, indisponible. Une
+ * source qui n'a pas répondu se dit ; elle ne reste pas en « Chargement… ».
  */
 
 import { useEffect, useState } from 'react';
-import { fetchCurrentWeather, fetchForecast } from '../../lib/weather';
-import type { CurrentWeather, DailyWeather } from '../../lib/weather';
+import { fetchCurrentWeather, fetchForecast, settleCurrentWeather, settleForecast } from '../../lib/weather';
+import type { CurrentWeather, DailyWeather, SettledWeather } from '../../lib/weather';
 
 const DAYS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
 
 export function WeatherStrip({ lat, lon, placeLabel }: { lat: number; lon: number; placeLabel: string }) {
-  const [current, setCurrent] = useState<CurrentWeather | null>(null);
-  const [forecast, setForecast] = useState<DailyWeather[]>([]);
+  const [current, setCurrent] = useState<SettledWeather<CurrentWeather> | null>(null);
+  const [forecast, setForecast] = useState<SettledWeather<DailyWeather[]> | null>(null);
 
   useEffect(() => {
     // Pas d'abort : Open-Meteo répond vite et l'annulation fausse le résultat
@@ -24,8 +27,8 @@ export function WeatherStrip({ lat, lon, placeLabel }: { lat: number; lon: numbe
       fetchForecast(lat, lon, 3),
     ]).then(([c, f]) => {
       if (cancelled) return;
-      setCurrent(c);
-      setForecast(f);
+      setCurrent(settleCurrentWeather(c));
+      setForecast(settleForecast(f));
     });
     return () => { cancelled = true; };
   }, [lat, lon]);
@@ -42,17 +45,21 @@ export function WeatherStrip({ lat, lon, placeLabel }: { lat: number; lon: numbe
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--terracotta-700)' }}>
           ⊙ Météo · {placeLabel}
         </span>
-        {current ? (
+        {current === null ? (
+          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 14, color: 'var(--fg-muted)' }}>Chargement…</span>
+        ) : current.status === 'ok' ? (
           <span style={{ fontFamily: 'var(--font-sans)', fontSize: 15, color: 'var(--fg-strong)' }}>
-            <strong style={{ fontFamily: 'var(--font-serif)', fontSize: 22 }}>{current.tempC}°</strong> · {current.label} · vent {current.windKph} km/h
+            <strong style={{ fontFamily: 'var(--font-serif)', fontSize: 22 }}>{current.data.tempC}°</strong> · {current.data.label} · vent {current.data.windKph} km/h
           </span>
         ) : (
-          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 14, color: 'var(--fg-muted)' }}>Chargement…</span>
+          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 14, color: 'var(--fg-muted)' }}>
+            Météo indisponible pour le moment.
+          </span>
         )}
       </div>
-      {forecast.length > 0 && (
+      {forecast?.status === 'ok' && (
         <div style={{ display: 'flex', gap: 14, marginLeft: 'auto' }}>
-          {forecast.map((d) => {
+          {forecast.data.map((d) => {
             const day = DAYS[new Date(`${d.date}T12:00`).getDay()];
             return (
               <div key={d.date} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>

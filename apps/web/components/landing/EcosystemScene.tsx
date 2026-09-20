@@ -61,14 +61,14 @@ export default function EcosystemScene() {
             <div className="w-20 h-12 md:w-28 md:h-16 rounded-lg bg-[#E3EAE4] border border-[#A8BCAC] flex items-center justify-center">
               <span
                 className="text-[#1E9A90] text-xs md:text-sm font-semibold"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
+                style={{ fontFamily: 'var(--font-body)' }}
               >
                 MAT
               </span>
             </div>
             <span
               className="text-[#4A5766] text-xs md:text-sm"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               À la maison.
             </span>
@@ -87,14 +87,14 @@ export default function EcosystemScene() {
             <div className="w-14 h-14 md:w-18 md:h-18 rounded-full bg-[#F7E5DA] border border-[#E5B29D] flex items-center justify-center">
               <span
                 className="text-[#9B5A3E] text-xs md:text-sm font-semibold"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
+                style={{ fontFamily: 'var(--font-body)' }}
               >
                 TAG
               </span>
             </div>
             <span
               className="text-[#4A5766] text-xs md:text-sm"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               En mouvement.
             </span>
@@ -111,14 +111,14 @@ export default function EcosystemScene() {
             <div className="w-14 h-14 md:w-18 md:h-18 rounded-lg bg-[#FAF7F1] border border-[#DDD4C2] flex items-center justify-center">
               <span
                 className="text-[#141C25] text-xs md:text-sm font-semibold"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
+                style={{ fontFamily: 'var(--font-body)' }}
               >
                 APP
               </span>
             </div>
             <span
               className="text-[#4A5766] text-xs md:text-sm"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               Avec vous.
             </span>
@@ -150,7 +150,7 @@ export default function EcosystemScene() {
         className={`text-center text-[#2E3A48] text-lg md:text-xl mt-8 transition-all duration-700 ${
           phase >= 4 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
         }`}
-        style={{ fontFamily: 'var(--font-fraunces)' }}
+        style={{ fontFamily: 'var(--font-display)' }}
       >
         Un système. Pas trois gadgets.
       </p>
