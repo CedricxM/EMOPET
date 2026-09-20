@@ -236,7 +236,7 @@ export function DeleteModal({
               {step === 1 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <p style={{ margin: 0, fontFamily: 'var(--font-sans)', fontSize: 14, color: 'var(--fg)' }}>
-                    Cette action <strong>supprime définitivement</strong> :
+                    Cette maquette <strong>simule une demande de suppression</strong> pour :
                   </p>
                   <ul style={{ margin: 0, paddingLeft: 22, listStyleType: 'disc', fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--fg-2)', lineHeight: 1.7 }}>
                     <li>Toutes les mesures EMOPET de Capitaine (~1 247 sur 30 j)</li>
@@ -244,8 +244,8 @@ export function DeleteModal({
                     <li>Ton compte de la communauté Veute</li>
                   </ul>
                   <p style={{ margin: 0, fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 13, color: 'var(--fg-muted)' }}>
-                    Les contributions anonymisées déjà versées aux études scientifiques resteront,
-                    mais sans aucun lien avec ton compte.
+                    Cette simulation ne décide pas du traitement d'éventuelles contributions de recherche.
+                    Leur cycle de vie dépendra des règles de conservation et d'effacement validées avant activation.
                   </p>
                 </div>
               ) : (
@@ -327,7 +327,7 @@ export function DeleteModal({
                       cursor: confirmText.trim().toUpperCase() === 'SUPPRIMER' ? 'pointer' : 'not-allowed',
                     }}
                   >
-                    Supprimer définitivement
+                    Simuler la confirmation
                   </button>
                 )}
               </div>
@@ -357,9 +357,9 @@ export function DeletedToastModal({ isOpen, onClose }: { isOpen: boolean; onClos
             </Modal.Header>
             <Modal.Body>
               <p style={{ margin: 0, fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 14, color: 'var(--fg-2)', lineHeight: 1.5 }}>
-                Maquette uniquement — aucune donnée n'a été supprimée. Dans la version
-                production, l'effacement serait propagé au serveur EMOPET et aux
-                études anonymisées sous 30 jours.
+                Maquette uniquement — aucune demande d'effacement n'a été envoyée et aucune donnée
+                n'a été supprimée. Les délais, la propagation et le traitement d'éventuelles
+                contributions de recherche seront définis et validés avant activation.
               </p>
             </Modal.Body>
           </Modal.Dialog>
