@@ -1,7 +1,7 @@
 ﻿'use client';
 
 /**
- * Modals de la communautÃ© (Sprint 04). Style alignÃ© sur les autres modals
+ * Modals de la communauté (Sprint 04). Style aligné sur les autres modals
  * (HeroUI compound + inline-styles tokens).
  */
 
@@ -66,26 +66,26 @@ export function CircleJoinDialog({
       <Modal.Body>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={LABEL}>Votre prÃ©nom (visible par les membres)</span>
+            <span style={LABEL}>Votre prénom (visible par les membres)</span>
             <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={80} style={FIELD} placeholder="Camille" />
           </label>
           <div style={{ background: 'var(--prudence-bg)', borderRadius: 'var(--radius-md)', padding: 14 }}>
             <p style={{ margin: 0, fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--prudence-ink)', fontWeight: 600 }}>Ce que les membres verront :</p>
             <ul style={{ margin: '8px 0 0', paddingLeft: 18, fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--prudence-ink)', lineHeight: 1.6 }}>
-              <li>Votre prÃ©nom choisi ci-dessus</li>
+              <li>Votre prénom choisi ci-dessus</li>
               <li>Votre ville ({circle.city}), jamais votre adresse exacte</li>
-              <li>Vos publications et participations aux Ã©vÃ©nements</li>
+              <li>Vos publications et participations aux événements</li>
             </ul>
             <p style={{ margin: '8px 0 0', fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--prudence-ink)' }}>
-              Jamais partagÃ©s : votre position GPS exacte, les donnÃ©es de bien-Ãªtre de votre chien, votre email.
+              Jamais partagés : votre position GPS exacte, les données de bien-être de votre chien, votre email.
             </p>
           </div>
           <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer' }}>
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} style={{ marginTop: 3 }} />
             <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--fg-2)', lineHeight: 1.5 }}>
-              Jâ€™accepte la{' '}
+              J’accepte la{' '}
               <button type="button" onClick={onOpenCharter} style={{ background: 'none', border: 'none', padding: 0, color: 'var(--terracotta-700)', textDecoration: 'underline', cursor: 'pointer', font: 'inherit' }}>charte communautaire</button>
-              {' '}et le partage de mon prÃ©nom et ma ville avec les membres du cercle.
+              {' '}et le partage de mon prénom et ma ville avec les membres du cercle.
             </span>
           </label>
         </div>
@@ -99,7 +99,7 @@ export function CircleJoinDialog({
   );
 }
 
-/* ---------------- CrÃ©er un post ---------------- */
+/* ---------------- Créer un post ---------------- */
 
 export function CreatePostDialog({
   circleName, isOpen, onClose, onCreate,
@@ -116,14 +116,14 @@ export function CreatePostDialog({
   function submit() {
     if (!valid) return;
     const check = containsForbiddenContent(`${title} ${content}`);
-    if (check.blocked) { setError(check.reason ?? 'Contenu non autorisÃ©.'); return; }
+    if (check.blocked) { setError(check.reason ?? 'Contenu non autorisé.'); return; }
     onCreate({ type, title: title.trim() || undefined, content: content.trim() });
     setType('discussion'); setTitle(''); setContent(''); setError(null);
   }
 
   return (
     <Shell isOpen={isOpen} onClose={onClose}>
-      <Modal.Header><Heading kicker={`âŠ™ ${circleName}`} title="Nouvelle publication" /><Modal.CloseTrigger aria-label="Fermer" /></Modal.Header>
+      <Modal.Header><Heading kicker={`⊙ ${circleName}`} title="Nouvelle publication" /><Modal.CloseTrigger aria-label="Fermer" /></Modal.Header>
       <Modal.Body>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -138,7 +138,7 @@ export function CreatePostDialog({
           </label>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <span style={LABEL}>Message</span>
-            <textarea value={content} onChange={(e) => { setContent(e.target.value); setError(null); }} maxLength={2000} rows={4} style={{ ...FIELD, resize: 'vertical' }} placeholder="Votre question ou messageâ€¦" />
+            <textarea value={content} onChange={(e) => { setContent(e.target.value); setError(null); }} maxLength={2000} rows={4} style={{ ...FIELD, resize: 'vertical' }} placeholder="Votre question ou message…" />
           </label>
           {error && <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--rouge)' }}>{error}</span>}
         </div>
@@ -150,7 +150,7 @@ export function CreatePostDialog({
   );
 }
 
-/* ---------------- CrÃ©er un Ã©vÃ©nement ---------------- */
+/* ---------------- Créer un événement ---------------- */
 
 export function CreateEventDialog({
   circle, isOpen, onClose, onCreate,
@@ -173,7 +173,7 @@ export function CreateEventDialog({
 
   return (
     <Shell isOpen={isOpen} onClose={onClose}>
-      <Modal.Header><Heading kicker={`âŠ™ ${circle.name}`} title="Organiser un Ã©vÃ©nement" /><Modal.CloseTrigger aria-label="Fermer" /></Modal.Header>
+      <Modal.Header><Heading kicker={`⊙ ${circle.name}`} title="Organiser un événement" /><Modal.CloseTrigger aria-label="Fermer" /></Modal.Header>
       <Modal.Body>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -191,7 +191,7 @@ export function CreateEventDialog({
             <input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} style={FIELD} />
           </label>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={LABEL}>Point de RDV (apparaÃ®t sur la carte)</span>
+            <span style={LABEL}>Point de RDV (apparaît sur la carte)</span>
             <input value={meetingPointName} onChange={(e) => setMeetingPointName(e.target.value)} maxLength={200} style={FIELD} />
           </label>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -199,12 +199,12 @@ export function CreateEventDialog({
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} rows={2} style={{ ...FIELD, resize: 'vertical' }} />
           </label>
           <p style={{ margin: 0, fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--fg-muted)' }}>
-            Le point de RDV sera ajoutÃ© Ã  la carte de Bretagne (Veute) comme Ã©vÃ©nement Ã  venir.
+            Le point de RDV sera ajouté à la carte de Bretagne (Veute) comme événement à venir.
           </p>
         </div>
       </Modal.Body>
       <Modal.Footer>
-        <button type="button" disabled={!valid} onClick={submit} style={{ ...PRIMARY, opacity: valid ? 1 : 0.5, cursor: valid ? 'pointer' : 'not-allowed' }}>CrÃ©er lâ€™Ã©vÃ©nement</button>
+        <button type="button" disabled={!valid} onClick={submit} style={{ ...PRIMARY, opacity: valid ? 1 : 0.5, cursor: valid ? 'pointer' : 'not-allowed' }}>Créer l’événement</button>
       </Modal.Footer>
     </Shell>
   );
@@ -213,7 +213,7 @@ export function CreateEventDialog({
 /* ---------------- Signaler ---------------- */
 
 const REPORT_REASONS: Array<{ id: string; label: string }> = [
-  { id: 'inapproprie', label: 'Contenu inappropriÃ©' },
+  { id: 'inapproprie', label: 'Contenu inapproprié' },
   { id: 'spam', label: 'Spam' },
   { id: 'inexact', label: 'Information inexacte' },
   { id: 'doublon', label: 'Doublon' },
@@ -232,7 +232,7 @@ export function ReportDialog({ isOpen, onClose, onReport }: { isOpen: boolean; o
           </select>
         </label>
         <p style={{ margin: '12px 0 0', fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--fg-muted)' }}>
-          Un contenu signalÃ© plusieurs fois est masquÃ© automatiquement et passe en revue de modÃ©ration.
+          Un contenu signalé plusieurs fois est masqué automatiquement et passe en revue de modération.
         </p>
       </Modal.Body>
       <Modal.Footer>
@@ -247,7 +247,7 @@ export function ReportDialog({ isOpen, onClose, onReport }: { isOpen: boolean; o
 export function CommunityCharterModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   return (
     <Shell isOpen={isOpen} onClose={onClose}>
-      <Modal.Header><Heading kicker="âŠ™ CommunautÃ© Breiz" title="Charte communautaire" /><Modal.CloseTrigger aria-label="Fermer" /></Modal.Header>
+      <Modal.Header><Heading kicker="⊙ Communauté Breiz" title="Charte communautaire" /><Modal.CloseTrigger aria-label="Fermer" /></Modal.Header>
       <Modal.Body>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {CHARTER_RULES.map((r, i) => (

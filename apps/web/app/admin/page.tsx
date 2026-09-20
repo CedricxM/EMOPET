@@ -61,16 +61,16 @@ export default function AdminPage() {
     <ContentShell>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 720 }}>
         <header style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <Eyebrow tone="accent">âŠ™ Ã‰quipe Â· modÃ©ration</Eyebrow>
-          <H1>File de modÃ©ration</H1>
-          <Lead>Demandes de contact Ã  traiter et publications signalÃ©es.</Lead>
+          <Eyebrow tone="accent">⊙ Équipe · modération</Eyebrow>
+          <H1>File de modération</H1>
+          <Lead>Demandes de contact à traiter et publications signalées.</Lead>
         </header>
 
         {/* Gate token */}
         <Card tone="sunk" bordered={false}>
           <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}>
             <label style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, minWidth: 200 }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--fg-muted)' }}>Token admin (si configurÃ©)</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--fg-muted)' }}>Token admin (si configuré)</span>
               <input value={token} onChange={(e) => setToken(e.target.value)} placeholder="x-admin-token" style={{ padding: '10px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--surface)', fontFamily: 'var(--font-mono)', fontSize: 13 }} />
             </label>
             <Button kind="secondary" onClick={saveToken}>Charger</Button>
@@ -91,15 +91,15 @@ export default function AdminPage() {
                 <Card key={r.id}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-                      <Eyebrow tone="accent2">{REASON_LABELS[r.reason]} Â· {CHANNEL_LABELS[r.channel]}</Eyebrow>
+                      <Eyebrow tone="accent2">{REASON_LABELS[r.reason]} · {CHANNEL_LABELS[r.channel]}</Eyebrow>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-2)', textTransform: 'uppercase' }}>{STATUS_LABELS[r.status]}</span>
                     </div>
                     <P><strong>{r.contactValue}</strong></P>
                     {r.message && <P2>{r.message}</P2>}
-                    <P2>{r.proposedSlots.map((s) => formatSlot(s)).join(' Â· ')}</P2>
+                    <P2>{r.proposedSlots.map((s) => formatSlot(s)).join(' · ')}</P2>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      <Button kind="secondary" size="sm" onClick={() => setStatus(r, 'scheduled')}>Programmer (1er crÃ©neau)</Button>
-                      <Button kind="accent2" size="sm" onClick={() => setStatus(r, 'completed')}>TerminÃ©</Button>
+                      <Button kind="secondary" size="sm" onClick={() => setStatus(r, 'scheduled')}>Programmer (1er créneau)</Button>
+                      <Button kind="accent2" size="sm" onClick={() => setStatus(r, 'completed')}>Terminé</Button>
                       <Button kind="ghost" size="sm" onClick={() => setStatus(r, 'cancelled')}>Annuler</Button>
                     </div>
                   </div>
@@ -108,20 +108,20 @@ export default function AdminPage() {
             </section>
 
             <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <H2 style={{ fontSize: 'var(--text-xl)' }}>Publications signalÃ©es ({data.flaggedPosts.length})</H2>
+              <H2 style={{ fontSize: 'var(--text-xl)' }}>Publications signalées ({data.flaggedPosts.length})</H2>
               {data.flaggedPosts.length === 0 && <P2>Aucun signalement.</P2>}
               {data.flaggedPosts.map((p) => (
                 <Card key={p.id} tone={p.isHidden ? 'suppressed' : 'surface'}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                      <Eyebrow>{POST_TYPE_LABELS[p.type]} Â· {p.authorName}</Eyebrow>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--rouge)' }}>{p.flagCount} signalement{p.flagCount > 1 ? 's' : ''}{p.isHidden ? ' Â· masquÃ©' : ''}</span>
+                      <Eyebrow>{POST_TYPE_LABELS[p.type]} · {p.authorName}</Eyebrow>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--rouge)' }}>{p.flagCount} signalement{p.flagCount > 1 ? 's' : ''}{p.isHidden ? ' · masqué' : ''}</span>
                     </div>
                     {p.title && <P style={{ fontWeight: 'var(--weight-semi)' }}>{p.title}</P>}
                     <P2>{p.content}</P2>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       {!p.isHidden && <Button kind="secondary" size="sm" onClick={() => moderate(p.id, 'hide')}>Masquer</Button>}
-                      {p.isHidden && <Button kind="secondary" size="sm" onClick={() => moderate(p.id, 'unhide')}>RÃ©-afficher</Button>}
+                      {p.isHidden && <Button kind="secondary" size="sm" onClick={() => moderate(p.id, 'unhide')}>Ré-afficher</Button>}
                       <Button kind="ghost" size="sm" onClick={() => moderate(p.id, 'dismiss')}>Rejeter les signalements</Button>
                     </div>
                   </div>

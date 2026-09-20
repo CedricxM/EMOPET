@@ -16,16 +16,16 @@ import { DonneesSection } from './DonneesSection';
 import styles from '../../styles/living-pages.module.css';
 
 const SETTINGS = [
-  { id: 's1', label: 'IA & tonalitÃ©', meta: 'Breiz Â· calme', icon: 'chat' as const },
-  { id: 's2', label: 'Mode prudence', meta: 'ActivÃ©', icon: 'info' as const },
-  { id: 's3', label: 'Suivi vÃ©tÃ©rinaire', meta: 'Cabinet du Ter', icon: 'profile' as const },
-  { id: 's4', label: 'ConfidentialitÃ©', meta: 'DonnÃ©es locales', icon: 'signal' as const },
-  { id: 's5', label: "Ã€ propos d'EMOPET", meta: 'v6.0.0', icon: 'info' as const },
+  { id: 's1', label: 'IA & tonalité', meta: 'Breiz · calme', icon: 'chat' as const },
+  { id: 's2', label: 'Mode prudence', meta: 'Activé', icon: 'info' as const },
+  { id: 's3', label: 'Suivi vétérinaire', meta: 'Cabinet du Ter', icon: 'profile' as const },
+  { id: 's4', label: 'Confidentialité', meta: 'Données locales', icon: 'signal' as const },
+  { id: 's5', label: "À propos d'EMOPET", meta: 'v6.0.0', icon: 'info' as const },
 ];
 
 // Refonte : la PROGRESSION (badges/niveaux) quitte le profil pour le World
-// (Ã©conomie unique). Le profil = gÃ©rer : compte, chien(s), prÃ©fÃ©rences, donnÃ©es.
-// L'apprentissage (contenu pÃ©dagogique) reste accessible ici.
+// (économie unique). Le profil = gérer : compte, chien(s), préférences, données.
+// L'apprentissage (contenu pédagogique) reste accessible ici.
 const TABS = ['Compte', 'Apprentissage'] as const;
 type Tab = (typeof TABS)[number];
 const TAB_KEY: Record<Tab, keyof Dict['profil'] & string> = {
@@ -41,7 +41,7 @@ export default function ProfilPage() {
   const [readerAlready, setReaderAlready] = useState(false);
 
   useEffect(() => {
-    // Compteurs dÃ©rivÃ©s des vraies donnÃ©es serveur (alimentent le World).
+    // Compteurs dérivés des vraies données serveur (alimentent le World).
     let cancelled = false;
     void fetchServerCounters().then((c) => { if (!cancelled) setCounters(c); });
     return () => { cancelled = true; };
@@ -66,7 +66,7 @@ export default function ProfilPage() {
               <Eyebrow>{t('profil', 'eyebrow')}</Eyebrow>
               <H1>{t('profil', 'title')}</H1>
               <Lead>{t('profil', 'lead')}</Lead>
-              <span className={styles.dogCue}>Fiche de Gus Â· profil, capteurs et preferences</span>
+              <span className={styles.dogCue}>Fiche de Gus · profil, capteurs et preferences</span>
             </div>
             <div className={styles.sceneStamp} aria-hidden />
           </div>
@@ -94,7 +94,7 @@ export default function ProfilPage() {
 
         {tab === 'Apprentissage' && (
           <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <P2>Des fiches courtes, sourcÃ©es et non mÃ©dicales. Lire une fiche fait progresser votre niveau.</P2>
+            <P2>Des fiches courtes, sourcées et non médicales. Lire une fiche fait progresser votre niveau.</P2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
               {PATHWAYS.map((p) => (
                 <PathwayCard key={p.id} pathway={p} readIds={counters.knowledgeCardsRead} onOpen={openCard} />
@@ -112,7 +112,7 @@ export default function ProfilPage() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, minWidth: 220 }}>
                   <H2>{MOCK_DOG.name}</H2>
-                  <P2 style={{ fontFeatureSettings: 'var(--ff-tabular)' }}>{MOCK_DOG.breed} Â· {MOCK_DOG.ageYears} ans Â· {MOCK_DOG.weightKg} kg</P2>
+                  <P2 style={{ fontFeatureSettings: 'var(--ff-tabular)' }}>{MOCK_DOG.breed} · {MOCK_DOG.ageYears} ans · {MOCK_DOG.weightKg} kg</P2>
                   <span className={styles.dogCue}>MAT, TAG et carnet relies au meme profil</span>
                 </div>
                 <Button kind="ghost" size="sm">Modifier</Button>
@@ -144,7 +144,7 @@ export default function ProfilPage() {
                         <Pill state={s.state} />
                       </div>
                       <Meter value={s.coverage} tone={s.state === 'valid' ? 'accent2' : 'degraded'} />
-                      <P2 style={{ fontFeatureSettings: 'var(--ff-tabular)' }}>Couverture {s.coverage}% Â· firmware {s.firmware}</P2>
+                      <P2 style={{ fontFeatureSettings: 'var(--ff-tabular)' }}>Couverture {s.coverage}% · firmware {s.firmware}</P2>
                     </div>
                   </Card>
                 ))}
@@ -152,7 +152,7 @@ export default function ProfilPage() {
             </section>
 
             <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <Eyebrow>ParamÃ¨tres</Eyebrow>
+              <Eyebrow>Paramètres</Eyebrow>
               <Card padding={0}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   {SETTINGS.map((s, i) => (
@@ -169,7 +169,7 @@ export default function ProfilPage() {
               </Card>
             </section>
 
-            {/* Mes donnÃ©es (fusion /donnees) â€” RGPD : contrÃ´le utilisateur */}
+            {/* Mes données (fusion /donnees) — RGPD : contrôle utilisateur */}
             <DonneesSection />
           </>
         )}

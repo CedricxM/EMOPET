@@ -40,7 +40,7 @@ const STORAGE_FILTERS = 'breiz-map-filters';
 const DATA_LAYER_SPOTS = mapPlacesToCommunitySpots(MOCK_MAP_PLACES);
 const INITIAL_SPOTS_WITH_DATA_LAYER = mergeCommunitySpots(INITIAL_SPOTS, DATA_LAYER_SPOTS);
 
-/* Modals lazy-loadÃ©s (HeroUI / React Aria ~50 kB, payÃ©s uniquement Ã  l'ouverture). */
+/* Modals lazy-loadés (HeroUI / React Aria ~50 kB, payés uniquement à l'ouverture). */
 const CityModal = dynamic(
   () => import('../../components/bretagne-map/modals').then((m) => m.CityModal),
   { ssr: false },
@@ -103,7 +103,7 @@ function LighthouseSwatch() {
   );
 }
 
-/** Chip de filtre catÃ©gorie de spot â€” pastille colorÃ©e + libellÃ©, toggle actif. */
+/** Chip de filtre catégorie de spot — pastille colorée + libellé, toggle actif. */
 function SpotChip({
   label,
   color,
@@ -157,9 +157,9 @@ function SpotChip({
 type FilterId = 'all' | 'vets' | 'parks' | 'trainers' | 'open247';
 const FILTERS: Array<{ id: FilterId; labelKey: keyof Dict['local'] & string; kind: string | null }> = [
   { id: 'all', labelKey: 'all', kind: null },
-  { id: 'vets', labelKey: 'filterVets', kind: 'VÃ©tÃ©rinaire' },
+  { id: 'vets', labelKey: 'filterVets', kind: 'Vétérinaire' },
   { id: 'parks', labelKey: 'filterParks', kind: 'Parc' },
-  { id: 'trainers', labelKey: 'filterTrainers', kind: 'Ã‰ducateur' },
+  { id: 'trainers', labelKey: 'filterTrainers', kind: 'Éducateur' },
   { id: 'open247', labelKey: 'filterOpen247', kind: 'Urgence' },
 ];
 
@@ -176,7 +176,7 @@ const SPOT_CATEGORY_LABEL_KEYS: Record<SpotCategory, keyof Dict['local'] & strin
 
 export function LocalSection() {
   const { t } = useI18n();
-  // === Ã‰tat interactions carte (Ã‰tape 5) ===
+  // === État interactions carte (Étape 5) ===
   const [selectedCityId, setSelectedCityId] = useState<CityId | null>(null);
   const [selectedLighthouseId, setSelectedLighthouseId] = useState<LighthouseId | null>(null);
   const [eventOpen, setEventOpen] = useState(false);
@@ -198,7 +198,7 @@ export function LocalSection() {
   const [flashNotice, setFlashNotice] = useState<string | null>(null);
   const [communityEvents, setCommunityEvents] = useState<CircleEvent[]>([]);
 
-  // Hydratation client : spots ajoutÃ©s localement + quota du jour + filtres.
+  // Hydratation client : spots ajoutés localement + quota du jour + filtres.
   useEffect(() => {
     try {
       const rawSpots = localStorage.getItem(STORAGE_SPOTS);
@@ -214,9 +214,9 @@ export function LocalSection() {
       const rawFilters = localStorage.getItem(STORAGE_FILTERS);
       if (rawFilters) setActiveCategories(new Set(JSON.parse(rawFilters) as SpotCategory[]));
     } catch {
-      /* localStorage indisponible â€” on ignore. */
+      /* localStorage indisponible — on ignore. */
     }
-    // Ã‰vÃ©nements communautaires (Sprint 04) â†’ RDV sur la carte. Serveur autoritaire.
+    // Événements communautaires (Sprint 04) → RDV sur la carte. Serveur autoritaire.
     setCommunityEvents(upcomingEvents(loadAllEvents())); // baseline local
     (async () => {
       try {
@@ -225,10 +225,10 @@ export function LocalSection() {
           const data = (await res.json()) as { events: CircleEvent[] };
           if (data.events?.length) setCommunityEvents(upcomingEvents(data.events));
         }
-      } catch { /* hors-ligne â†’ baseline local */ }
+      } catch { /* hors-ligne → baseline local */ }
     })();
-    // R3 : source autoritaire = le serveur (seed des spots de dÃ©mo si vide).
-    // Si la route rÃ©pond, elle prime sur le baseline local ci-dessus.
+    // R3 : source autoritaire = le serveur (seed des spots de démo si vide).
+    // Si la route répond, elle prime sur le baseline local ci-dessus.
     (async () => {
       try {
         const res = await fetch('/api/map/spots');
@@ -237,7 +237,7 @@ export function LocalSection() {
           if (data.spots?.length) setSpots(mergeCommunitySpots(data.spots, DATA_LAYER_SPOTS));
         }
       } catch {
-        /* hors-ligne â†’ on conserve le baseline local */
+        /* hors-ligne → on conserve le baseline local */
       }
     })();
   }, []);
@@ -250,7 +250,7 @@ export function LocalSection() {
   function handleEventClick(id: string) {
     const ev = communityEvents.find((e) => e.id === id);
     if (!ev) return;
-    setFlashNotice(`${ev.title} Â· ${formatEventDate(ev.startsAt)} Â· ${ev.meetingPointName}`);
+    setFlashNotice(`${ev.title} · ${formatEventDate(ev.startsAt)} · ${ev.meetingPointName}`);
     setTimeout(() => setFlashNotice(null), 5000);
   }
 
@@ -390,7 +390,7 @@ export function LocalSection() {
   return (
     <>
       <div className={styles.pageFlow}>
-      {/* === Carte Bretagne (Veute / communautÃ©) === */}
+      {/* === Carte Bretagne (Veute / communauté) === */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <header style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <Eyebrow tone="accent">{t('local', 'mapEyebrow')}</Eyebrow>
@@ -400,7 +400,7 @@ export function LocalSection() {
 
         <WeatherStrip lat={47.7482} lon={-3.3702} placeLabel="Lorient" />
 
-        {/* Filtres catÃ©gories de spots (Sprint 01) */}
+        {/* Filtres catégories de spots (Sprint 01) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             <SpotChip
@@ -547,7 +547,7 @@ export function LocalSection() {
         </div>
       </section>
 
-      {/* Modals (lazy-loaded â€” montÃ©s Ã  la premiÃ¨re ouverture) */}
+      {/* Modals (lazy-loaded — montés à la première ouverture) */}
       {selectedCity && (
         <CityModal city={selectedCity} onClose={() => setSelectedCityId(null)} />
       )}
@@ -574,7 +574,7 @@ export function LocalSection() {
         />
       )}
 
-      {/* === Annuaire local existant (vÃ©tÃ©rinaires, parcs, Ã©ducateurs, urgences) === */}
+      {/* === Annuaire local existant (vétérinaires, parcs, éducateurs, urgences) === */}
       <header id="local-annuaire" style={{ display: 'flex', flexDirection: 'column', gap: 6, scrollMarginTop: 24 }}>
         <Eyebrow>{t('local', 'nearbyEyebrow')}</Eyebrow>
         <H1>{t('local', 'nearbyTitle')}</H1>

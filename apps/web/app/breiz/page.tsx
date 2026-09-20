@@ -18,10 +18,10 @@ type Conversation = {
 type Message = BreizMessage;
 
 const CONVERSATIONS: Conversation[] = [
-  { id: 'c1', title: "RÃ©veils matinaux de Gus", preview: "Il semble anticiper vos dÃ©partsâ€¦", date: "Auj.", active: true },
-  { id: 'c2', title: 'Sorties plus courtes ?', preview: 'Sur 7 jours la moyenne baisse un peuâ€¦', date: 'Hier' },
-  { id: 'c3', title: 'Nuit du 14 avril', preview: 'Interruptions de repos entre 2 h et 4 hâ€¦', date: '14 avr.' },
-  { id: 'c4', title: 'Retour au calme', preview: "Gus met 8 Ã  14 min Ã  revenirâ€¦", date: '10 avr.' },
+  { id: 'c1', title: "Réveils matinaux de Gus", preview: "Il semble anticiper vos départs…", date: "Auj.", active: true },
+  { id: 'c2', title: 'Sorties plus courtes ?', preview: 'Sur 7 jours la moyenne baisse un peu…', date: 'Hier' },
+  { id: 'c3', title: 'Nuit du 14 avril', preview: 'Interruptions de repos entre 2 h et 4 h…', date: '14 avr.' },
+  { id: 'c4', title: 'Retour au calme', preview: "Gus met 8 à 14 min à revenir…", date: '10 avr.' },
 ];
 
 const MESSAGES: Message[] = [
@@ -35,8 +35,8 @@ const MESSAGES: Message[] = [
     from: 'bleiz',
     tone: 'calm',
     text:
-      "Sur les 6 derniers matins, une courte phase d'Ã©veil de Gus est observÃ©e entre 7 h 40 et 7 h 55 â€” juste avant votre sortie habituelle Ã  8 h. C'est une observation de rythme, pas une Ã©valuation vÃ©tÃ©rinaire.",
-    sources: ['MAT Â· fenÃªtre 7 h 30 â€“ 8 h 00', 'ELI valide Â· capture 142 min'],
+      "Sur les 6 derniers matins, une courte phase d'éveil de Gus est observée entre 7 h 40 et 7 h 55 — juste avant votre sortie habituelle à 8 h. C'est une observation de rythme, pas une évaluation vétérinaire.",
+    sources: ['MAT · fenêtre 7 h 30 – 8 h 00', 'ELI valide · capture 142 min'],
   },
   {
     id: 'm3',
@@ -48,14 +48,14 @@ const MESSAGES: Message[] = [
     from: 'bleiz',
     tone: 'calm',
     text:
-      "Je ne peux pas interprÃ©ter un Ã©tat Ã©motionnel. Ce que j'observe : une rÃ©pÃ©tition du motif sur plusieurs jours, sans pic d'activitÃ© inhabituel ni variation marquÃ©e du repos. Si vous souhaitez approfondir, un vÃ©tÃ©rinaire pourra examiner le contexte.",
-    sources: ['Motif rÃ©pÃ©tÃ© â‰¥ 6 j', 'Pas de veto levÃ©'],
+      "Je ne peux pas interpréter un état émotionnel. Ce que j'observe : une répétition du motif sur plusieurs jours, sans pic d'activité inhabituel ni variation marquée du repos. Si vous souhaitez approfondir, un vétérinaire pourra examiner le contexte.",
+    sources: ['Motif répété ≥ 6 j', 'Pas de veto levé'],
   },
 ];
 
 export default function BreizPage() {
   const [draft, setDraft] = useState('');
-  // Logique d'Ã©change partagÃ©e avec le panneau flottant (mÃªmes garde-fous).
+  // Logique d'échange partagée avec le panneau flottant (mêmes garde-fous).
   const { messages, thinking, send: sendMessage } = useBreizChat(MESSAGES);
 
   async function send() {
@@ -176,7 +176,7 @@ export default function BreizPage() {
                   fontWeight: 'var(--weight-semi)',
                 }}
               >
-                TonalitÃ© calme Â· observations non-mÃ©dicales
+                Tonalité calme · observations non-médicales
               </span>
             </div>
             <div style={{ marginLeft: 'auto' }}>
@@ -216,7 +216,7 @@ export default function BreizPage() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {m.eli && (
                       <span style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '2px 9px', borderRadius: 'var(--radius-pill)', background: 'var(--bg-sunk)', border: '1px solid var(--border)', fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--fg-muted)' }}>
-                        âŠ™ DonnÃ©e ELI Â· ton factuel verrouillÃ©
+                        ⊙ Donnée ELI · ton factuel verrouillé
                       </span>
                     )}
                     <P>{m.text}</P>
@@ -240,7 +240,7 @@ export default function BreizPage() {
                               color: 'var(--fg-muted)',
                             }}
                           >
-                            â€” {s}
+                            — {s}
                           </span>
                         ))}
                       </div>
@@ -269,7 +269,7 @@ export default function BreizPage() {
                   <Icon name="wave" size={14} />
                 </div>
                 <span style={{ fontFamily: 'var(--font-sans)', fontSize: 'var(--text-sm)', color: 'var(--fg-muted)', fontStyle: 'italic' }}>
-                  Breiz consulte ses fichesâ€¦
+                  Breiz consulte ses fiches…
                 </span>
               </div>
             )}
@@ -292,8 +292,8 @@ export default function BreizPage() {
             <input
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="Posez une question Ã  Breizâ€¦"
-              aria-label="Votre message Ã  Breiz"
+              placeholder="Posez une question à Breiz…"
+              aria-label="Votre message à Breiz"
               style={{
                 flex: 1,
                 height: 40,
@@ -319,7 +319,7 @@ export default function BreizPage() {
               textAlign: 'center',
             }}
           >
-            Breiz ne formule pas d'Ã©valuation vÃ©tÃ©rinaire. Il rappelle ce qui est observÃ©, dÃ©clarÃ©, ou interprÃ©tÃ©.
+            Breiz ne formule pas d'évaluation vétérinaire. Il rappelle ce qui est observé, déclaré, ou interprété.
           </P2>
         </div>
       </Card>

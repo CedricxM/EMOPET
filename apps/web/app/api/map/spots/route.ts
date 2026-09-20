@@ -1,11 +1,11 @@
 ﻿/**
- * Spots de la carte communautaire â€” persistance SERVEUR (R3, tranche carte).
+ * Spots de la carte communautaire — persistance SERVEUR (R3, tranche carte).
  *
- * GET  /api/map/spots   liste tous les spots (seed des spots de dÃ©mo si vide)
- * POST /api/map/spots   crÃ©e un spot (validation dÃ©terministe, bornes Bretagne)
+ * GET  /api/map/spots   liste tous les spots (seed des spots de démo si vide)
+ * POST /api/map/spots   crée un spot (validation déterministe, bornes Bretagne)
  *
- * DonnÃ©e intrinsÃ¨quement communautaire â†’ doit vivre cÃ´tÃ© serveur (â‰  par appareil).
- * Store fichier JSON (lib/server/store), remplaÃ§able par Drizzle/Postgres.
+ * Donnée intrinsèquement communautaire → doit vivre côté serveur (≠ par appareil).
+ * Store fichier JSON (lib/server/store), remplaçable par Drizzle/Postgres.
  */
 
 import { NextResponse } from 'next/server';

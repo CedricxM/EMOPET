@@ -6,10 +6,10 @@ import { DOGS_BY_CITY } from './data';
 import { CityPicto } from './pictograms';
 
 /**
- * Modal de ville (Ã‰tape 5).
+ * Modal de ville (Étape 5).
  *
  * Contient : illustration picto agrandie, nom, nombre de chiens EMOPET,
- * mention d'Ã©vÃ©nement le cas Ã©chÃ©ant, CTA "Rejoindre la veute locale".
+ * mention d'événement le cas échéant, CTA "Rejoindre la veute locale".
  */
 export function CityModal({
   city,
@@ -56,13 +56,13 @@ export function CityModal({
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.18em', color: 'var(--terracotta-700)', textTransform: 'uppercase' }}>
-                        âŠ™ DÃ©partement {city.dept}
+                        ⊙ Département {city.dept}
                       </span>
                       <p style={{ margin: 0, fontFamily: 'var(--font-sans)', color: 'var(--fg)' }}>
                         <strong style={{ fontFamily: 'var(--font-serif)', fontSize: 18, color: 'var(--fg-strong)' }}>
                           {dogs?.count ?? 0}
                         </strong>{' '}
-                        chiens EMOPET dans cette ville{dogs?.hasActive ? ' â€” dont Capitaine' : ''}.
+                        chiens EMOPET dans cette ville{dogs?.hasActive ? ' — dont Capitaine' : ''}.
                       </p>
                     </div>
 
@@ -78,13 +78,13 @@ export function CityModal({
                           fontSize: 13,
                         }}
                       >
-                        <strong style={{ fontFamily: 'var(--font-serif)' }}>Balade aux GlÃ©nan</strong> Â· Dimanche 25 mai 10h Â· 12 inscrits.
+                        <strong style={{ fontFamily: 'var(--font-serif)' }}>Balade aux Glénan</strong> · Dimanche 25 mai 10h · 12 inscrits.
                       </div>
                     )}
 
                     <p style={{ margin: 0, fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 15, color: 'var(--fg-2)', lineHeight: 1.5 }}>
-                      Rejoins la veute locale : balades collectives, Ã©changes avec d'autres
-                      propriÃ©taires{city.dept === '56' || city.dept === '29' ? ' bretons' : ''}, observations comparÃ©es.
+                      Rejoins la veute locale : balades collectives, échanges avec d'autres
+                      propriétaires{city.dept === '56' || city.dept === '29' ? ' bretons' : ''}, observations comparées.
                     </p>
                   </div>
                 </Modal.Body>
@@ -119,7 +119,7 @@ export function CityModal({
 }
 
 /**
- * Modal phare â€” minimal, faÃ§on tooltip enrichi.
+ * Modal phare — minimal, façon tooltip enrichi.
  */
 export function LighthouseModal({
   lighthouse,
@@ -157,7 +157,7 @@ export function LighthouseModal({
 }
 
 /**
- * Modal dÃ©taillÃ©e de l'Ã©vÃ©nement Balade aux GlÃ©nan (Concarneau).
+ * Modal détaillée de l'événement Balade aux Glénan (Concarneau).
  */
 export function EventModal({
   isOpen,
@@ -174,10 +174,10 @@ export function EventModal({
             <Modal.Header>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.18em', color: 'var(--terracotta-700)', textTransform: 'uppercase' }}>
-                  âŠ™ Ã‰vÃ©nement
+                  ⊙ Événement
                 </span>
                 <Modal.Heading style={{ fontFamily: 'var(--font-serif)', fontSize: 22, color: 'var(--fg-strong)', margin: 0 }}>
-                  Balade aux GlÃ©nan
+                  Balade aux Glénan
                 </Modal.Heading>
               </div>
               <Modal.CloseTrigger aria-label="Fermer" />
@@ -194,14 +194,14 @@ export function EventModal({
                     gap: 10,
                   }}
                 >
-                  <DetailRow label="Quand"    value="Dimanche 25 mai Â· 10h" />
-                  <DetailRow label="OÃ¹"       value="Port de Concarneau (29)" />
-                  <DetailRow label="Inscrits" value="12 propriÃ©taires" />
+                  <DetailRow label="Quand"    value="Dimanche 25 mai · 10h" />
+                  <DetailRow label="Où"       value="Port de Concarneau (29)" />
+                  <DetailRow label="Inscrits" value="12 propriétaires" />
                   <DetailRow label="Tarif"    value="Gratuit" />
                 </ul>
                 <p style={{ margin: 0, fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 14, color: 'var(--fg-2)', lineHeight: 1.5 }}>
-                  Sortie en mer accompagnÃ©e d'un Ã©ducateur canin. DÃ©couverte de l'archipel
-                  des GlÃ©nan en compagnie d'autres labradors, border collies et golden de
+                  Sortie en mer accompagnée d'un éducateur canin. Découverte de l'archipel
+                  des Glénan en compagnie d'autres labradors, border collies et golden de
                   la veute morbihannaise.
                 </p>
               </div>
@@ -224,7 +224,7 @@ export function EventModal({
                   width: '100%',
                 }}
               >
-                M'inscrire Ã  la balade
+                M'inscrire à la balade
               </button>
             </Modal.Footer>
           </Modal.Dialog>

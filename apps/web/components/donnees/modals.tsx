@@ -7,13 +7,13 @@ import type { CategoryId, LevelId } from './data';
 import { buildMockRows } from './export';
 
 /* ============================================================
-   Modal "Voir mes donnÃ©es" â€” table scrollable
+   Modal "Voir mes données" — table scrollable
    ============================================================ */
 
 interface ViewDataModalProps {
   isOpen: boolean;
   onClose: () => void;
-  /** CatÃ©gorie ciblÃ©e â€” null pour vue d'ensemble multi-catÃ©gories. */
+  /** Catégorie ciblée — null pour vue d'ensemble multi-catégories. */
   focusedCategory: CategoryId | null;
   categoryState: Record<CategoryId, { on: boolean; level: LevelId }>;
 }
@@ -24,8 +24,8 @@ export function ViewDataModal({
   focusedCategory,
   categoryState: _categoryState,
 }: ViewDataModalProps) {
-  // Ã‰vite de regÃ©nÃ©rer 150 lignes Ã  chaque render du parent.
-  // Ne gÃ©nÃ¨re que quand le modal s'ouvre vraiment.
+  // Évite de regénérer 150 lignes à chaque render du parent.
+  // Ne génère que quand le modal s'ouvre vraiment.
   const allRows = useMemo(() => (isOpen ? buildMockRows() : []), [isOpen]);
   const rows = focusedCategory
     ? allRows.filter((r) => r.cat === CATEGORIES.find((c) => c.id === focusedCategory)?.name)
@@ -39,7 +39,7 @@ export function ViewDataModal({
             <Modal.Header>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.18em', color: 'var(--terracotta-700)', textTransform: 'uppercase' }}>
-                  âŠ™ Mes donnÃ©es
+                  ⊙ Mes données
                 </span>
                 <Modal.Heading style={{ fontFamily: 'var(--font-serif)', fontSize: 22, color: 'var(--fg-strong)', margin: 0 }}>
                   {focusedCategory
@@ -47,7 +47,7 @@ export function ViewDataModal({
                     : 'Toutes mes mesures'}
                 </Modal.Heading>
                 <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--fg-muted)' }}>
-                  30 derniers jours Â· {rows.length} mesures
+                  30 derniers jours · {rows.length} mesures
                 </span>
               </div>
               <Modal.CloseTrigger aria-label="Fermer" />
@@ -65,8 +65,8 @@ export function ViewDataModal({
                   <thead style={{ background: 'var(--bg-sunk)', position: 'sticky', top: 0 }}>
                     <tr>
                       <Th>Date</Th>
-                      <Th>CatÃ©gorie</Th>
-                      <Th>Valeur observÃ©e</Th>
+                      <Th>Catégorie</Th>
+                      <Th>Valeur observée</Th>
                       <Th>Niveau</Th>
                     </tr>
                   </thead>
@@ -83,7 +83,7 @@ export function ViewDataModal({
                 </table>
               </div>
               <p style={{ marginTop: 12, fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--fg-muted)' }}>
-                AperÃ§u des 60 derniÃ¨res mesures. Pour l'intÃ©gralitÃ©, utilise "Exporter mes donnÃ©es".
+                Aperçu des 60 dernières mesures. Pour l'intégralité, utilise "Exporter mes données".
               </p>
             </Modal.Body>
           </Modal.Dialog>
@@ -126,7 +126,7 @@ function Td({ children, mono }: { children: React.ReactNode; mono?: boolean }) {
 }
 
 /* ============================================================
-   Modal "Voir les utilisations" â€” Ã©tudes scientifiques
+   Modal "Voir les utilisations" — études scientifiques
    ============================================================ */
 
 export function UsagesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -138,10 +138,10 @@ export function UsagesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
             <Modal.Header>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.18em', color: 'var(--terracotta-700)', textTransform: 'uppercase' }}>
-                  âŠ™* Utilisations scientifiques
+                  ⊙* Utilisations scientifiques
                 </span>
                 <Modal.Heading style={{ fontFamily: 'var(--font-serif)', fontSize: 22, color: 'var(--fg-strong)', margin: 0 }}>
-                  Ã‰tudes en cours
+                  Études en cours
                 </Modal.Heading>
               </div>
               <Modal.CloseTrigger aria-label="Fermer" />
@@ -149,8 +149,8 @@ export function UsagesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
             <Modal.Body>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <p style={{ margin: 0, fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 14, color: 'var(--fg-2)' }}>
-                  Si tu as activÃ© le niveau "Recherche scientifique", Capitaine contribue
-                  anonymement aux Ã©tudes suivantes.
+                  Si tu as activé le niveau "Recherche scientifique", Capitaine contribue
+                  anonymement aux études suivantes.
                 </p>
                 {STUDIES.map((s) => (
                   <div
@@ -169,10 +169,10 @@ export function UsagesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                       {s.title}
                     </h4>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.14em', color: 'var(--fg-muted)' }}>
-                      {s.lab.toUpperCase()} Â· {s.year}
+                      {s.lab.toUpperCase()} · {s.year}
                     </span>
                     <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--fg-2)' }}>
-                      {s.participants.toLocaleString('fr-FR')} chiens â€” <em>dont Capitaine</em>
+                      {s.participants.toLocaleString('fr-FR')} chiens — <em>dont Capitaine</em>
                     </span>
                   </div>
                 ))}
@@ -186,7 +186,7 @@ export function UsagesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
 }
 
 /* ============================================================
-   Modal "Supprimer mes donnÃ©es" â€” double confirmation
+   Modal "Supprimer mes données" — double confirmation
    ============================================================ */
 
 export function DeleteModal({
@@ -224,10 +224,10 @@ export function DeleteModal({
             <Modal.Header>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.18em', color: 'var(--rouge)', textTransform: 'uppercase' }}>
-                  âœ• Suppression
+                  ✕ Suppression
                 </span>
                 <Modal.Heading style={{ fontFamily: 'var(--font-serif)', fontSize: 22, color: 'var(--fg-strong)', margin: 0 }}>
-                  {step === 1 ? 'Es-tu sÃ»rÂ·e ?' : 'Confirmer la suppression'}
+                  {step === 1 ? 'Es-tu sûr·e ?' : 'Confirmer la suppression'}
                 </Modal.Heading>
               </div>
               <Modal.CloseTrigger aria-label="Fermer" />
@@ -236,22 +236,22 @@ export function DeleteModal({
               {step === 1 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <p style={{ margin: 0, fontFamily: 'var(--font-sans)', fontSize: 14, color: 'var(--fg)' }}>
-                    Cette action <strong>supprime dÃ©finitivement</strong> :
+                    Cette action <strong>supprime définitivement</strong> :
                   </p>
                   <ul style={{ margin: 0, paddingLeft: 22, listStyleType: 'disc', fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--fg-2)', lineHeight: 1.7 }}>
                     <li>Toutes les mesures EMOPET de Capitaine (~1 247 sur 30 j)</li>
                     <li>Le profil chien et l'historique</li>
-                    <li>Ton compte de la communautÃ© Veute</li>
+                    <li>Ton compte de la communauté Veute</li>
                   </ul>
                   <p style={{ margin: 0, fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 13, color: 'var(--fg-muted)' }}>
-                    Les contributions anonymisÃ©es dÃ©jÃ  versÃ©es aux Ã©tudes scientifiques resteront,
+                    Les contributions anonymisées déjà versées aux études scientifiques resteront,
                     mais sans aucun lien avec ton compte.
                   </p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <p style={{ margin: 0, fontFamily: 'var(--font-sans)', fontSize: 14, color: 'var(--fg)' }}>
-                    Pour confirmer, Ã©cris <code style={{ background: 'var(--bg-sunk)', padding: '2px 8px', borderRadius: 4, fontFamily: 'var(--font-mono)' }}>SUPPRIMER</code> ci-dessous :
+                    Pour confirmer, écris <code style={{ background: 'var(--bg-sunk)', padding: '2px 8px', borderRadius: 4, fontFamily: 'var(--font-mono)' }}>SUPPRIMER</code> ci-dessous :
                   </p>
                   <input
                     type="text"
@@ -327,7 +327,7 @@ export function DeleteModal({
                       cursor: confirmText.trim().toUpperCase() === 'SUPPRIMER' ? 'pointer' : 'not-allowed',
                     }}
                   >
-                    Supprimer dÃ©finitivement
+                    Supprimer définitivement
                   </button>
                 )}
               </div>
@@ -340,7 +340,7 @@ export function DeleteModal({
 }
 
 /* ============================================================
-   Modal "Suppression effectuÃ©e" â€” toast simple
+   Modal "Suppression effectuée" — toast simple
    ============================================================ */
 
 export function DeletedToastModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -351,15 +351,15 @@ export function DeletedToastModal({ isOpen, onClose }: { isOpen: boolean; onClos
           <Modal.Dialog>
             <Modal.Header>
               <Modal.Heading style={{ fontFamily: 'var(--font-serif)', fontSize: 18, color: 'var(--fg-strong)', margin: 0 }}>
-                âŠ™ Suppression simulÃ©e
+                ⊙ Suppression simulée
               </Modal.Heading>
               <Modal.CloseTrigger aria-label="Fermer" />
             </Modal.Header>
             <Modal.Body>
               <p style={{ margin: 0, fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 14, color: 'var(--fg-2)', lineHeight: 1.5 }}>
-                Maquette uniquement â€” aucune donnÃ©e n'a Ã©tÃ© supprimÃ©e. Dans la version
-                production, l'effacement serait propagÃ© au serveur EMOPET et aux
-                Ã©tudes anonymisÃ©es sous 30 jours.
+                Maquette uniquement — aucune donnée n'a été supprimée. Dans la version
+                production, l'effacement serait propagé au serveur EMOPET et aux
+                études anonymisées sous 30 jours.
               </p>
             </Modal.Body>
           </Modal.Dialog>
@@ -389,17 +389,17 @@ export function ExportModal({
           <Modal.Dialog>
             <Modal.Header>
               <Modal.Heading style={{ fontFamily: 'var(--font-serif)', fontSize: 20, color: 'var(--fg-strong)', margin: 0 }}>
-                â†“ Exporter mes donnÃ©es
+                ↓ Exporter mes données
               </Modal.Heading>
               <Modal.CloseTrigger aria-label="Fermer" />
             </Modal.Header>
             <Modal.Body>
               <p style={{ margin: '0 0 14px 0', fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--fg-2)' }}>
-                Choisis le format. Le fichier sera tÃ©lÃ©chargÃ© immÃ©diatement.
+                Choisis le format. Le fichier sera téléchargé immédiatement.
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <FormatButton label="CSV" hint="tableur Â· Excel" onClick={() => { onExport('csv'); onClose(); }} />
-                <FormatButton label="JSON" hint="structurÃ© Â· code" onClick={() => { onExport('json'); onClose(); }} />
+                <FormatButton label="CSV" hint="tableur · Excel" onClick={() => { onExport('csv'); onClose(); }} />
+                <FormatButton label="JSON" hint="structuré · code" onClick={() => { onExport('json'); onClose(); }} />
               </div>
             </Modal.Body>
           </Modal.Dialog>

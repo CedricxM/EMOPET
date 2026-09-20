@@ -1,11 +1,11 @@
 ﻿'use client';
 
 /**
- * Ã‰diteur de nouvelle entrÃ©e du carnet (Sprint 02).
- * Wizard 2 Ã©tapes : choix du type â†’ contenu. Types couverts :
- * souvenir photo+texte, observation courte, balade (saisie manuelle), visite vÃ©to.
+ * Éditeur de nouvelle entrée du carnet (Sprint 02).
+ * Wizard 2 étapes : choix du type → contenu. Types couverts :
+ * souvenir photo+texte, observation courte, balade (saisie manuelle), visite véto.
  *
- * Frontend-first : pas d'upload S3, les photos sont lues en data URL cÃ´tÃ© client.
+ * Frontend-first : pas d'upload S3, les photos sont lues en data URL côté client.
  */
 
 import { Modal } from '@/lib/heroui-compat';
@@ -49,8 +49,8 @@ const PRIMARY_BTN: CSSProperties = {
 const TYPE_CHOICES: Array<{ type: Exclude<EntryType, 'milestone'>; label: string; hint: string }> = [
   { type: 'photo_text', label: 'Souvenir', hint: 'Photo + texte libre' },
   { type: 'observation', label: 'Observation', hint: 'Note courte (280 car.)' },
-  { type: 'walk_recorded', label: 'Balade', hint: 'DurÃ©e, distance' },
-  { type: 'vet_visit', label: 'Visite vÃ©tÃ©rinaire', hint: 'Type, note (non mÃ©dicale)' },
+  { type: 'walk_recorded', label: 'Balade', hint: 'Durée, distance' },
+  { type: 'vet_visit', label: 'Visite vétérinaire', hint: 'Type, note (non médicale)' },
 ];
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -73,7 +73,7 @@ export function JournalEditor({
 }) {
   const [type, setType] = useState<Exclude<EntryType, 'milestone'> | null>(null);
 
-  // Champs partagÃ©s / spÃ©cifiques
+  // Champs partagés / spécifiques
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [activityTag, setActivityTag] = useState<ActivityTag>('balade');
@@ -85,7 +85,7 @@ export function JournalEditor({
   const [vetName, setVetName] = useState('');
   const [weather, setWeather] = useState<{ tempC: number; conditions: string } | null>(null);
 
-  // Capture mÃ©tÃ©o rÃ©elle (Open-Meteo, Lorient) Ã  l'ouverture d'une balade.
+  // Capture météo réelle (Open-Meteo, Lorient) à l'ouverture d'une balade.
   useEffect(() => {
     if (type !== 'walk_recorded' || weather) return;
     let cancelled = false;
@@ -163,9 +163,9 @@ export function JournalEditor({
           <Modal.Dialog>
             <Modal.Header>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
-                <span style={{ ...LABEL, color: 'var(--terracotta-700)' }}>âŠ™ Carnet</span>
+                <span style={{ ...LABEL, color: 'var(--terracotta-700)' }}>⊙ Carnet</span>
                 <Modal.Heading style={{ fontFamily: 'var(--font-serif)', fontSize: 22, color: 'var(--fg-strong)', margin: 0 }}>
-                  {type ? 'Nouvelle entrÃ©e' : 'Que voulez-vous ajouter ?'}
+                  {type ? 'Nouvelle entrée' : 'Que voulez-vous ajouter ?'}
                 </Modal.Heading>
               </div>
               <Modal.CloseTrigger aria-label="Fermer" />
@@ -217,9 +217,9 @@ export function JournalEditor({
                         </div>
                       )}
                       <Field label="Texte">
-                        <textarea value={content} onChange={(e) => setContent(e.target.value)} maxLength={1000} rows={3} style={{ ...FIELD, resize: 'vertical' }} placeholder="Ce que vous avez observÃ©â€¦" />
+                        <textarea value={content} onChange={(e) => setContent(e.target.value)} maxLength={1000} rows={3} style={{ ...FIELD, resize: 'vertical' }} placeholder="Ce que vous avez observé…" />
                       </Field>
-                      <Field label="ActivitÃ©">
+                      <Field label="Activité">
                         <select value={activityTag} onChange={(e) => setActivityTag(e.target.value as ActivityTag)} style={FIELD}>
                           {(Object.keys(ACTIVITY_LABELS) as ActivityTag[]).map((t) => (
                             <option key={t} value={t}>{ACTIVITY_LABELS[t]}</option>
@@ -234,14 +234,14 @@ export function JournalEditor({
 
                   {type === 'observation' && (
                     <Field label={`Observation (${content.length}/280)`}>
-                      <textarea value={content} onChange={(e) => setContent(e.target.value.slice(0, 280))} rows={3} style={{ ...FIELD, resize: 'vertical' }} placeholder="Une note courte sur ce que vous avez remarquÃ©â€¦" />
+                      <textarea value={content} onChange={(e) => setContent(e.target.value.slice(0, 280))} rows={3} style={{ ...FIELD, resize: 'vertical' }} placeholder="Une note courte sur ce que vous avez remarqué…" />
                     </Field>
                   )}
 
                   {type === 'walk_recorded' && (
                     <>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                        <Field label="DurÃ©e (min)">
+                        <Field label="Durée (min)">
                           <input type="number" min={1} value={durationMin} onChange={(e) => setDurationMin(e.target.value)} style={FIELD} />
                         </Field>
                         <Field label="Distance (km)">
@@ -250,7 +250,7 @@ export function JournalEditor({
                       </div>
                       {weather && (
                         <span style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 'var(--radius-pill)', background: 'var(--accent-2-soft)', color: 'var(--lichen-700)', fontFamily: 'var(--font-sans)', fontSize: 12 }}>
-                          âŠ™ MÃ©tÃ©o capturÃ©e : {weather.tempC}Â° Â· {weather.conditions}
+                          ⊙ Météo capturée : {weather.tempC}° · {weather.conditions}
                         </span>
                       )}
                       <Field label="Lieu (optionnel)">
@@ -268,15 +268,15 @@ export function JournalEditor({
                         <select value={visitType} onChange={(e) => setVisitType(e.target.value as typeof visitType)} style={FIELD}>
                           <option value="annual">Visite annuelle</option>
                           <option value="vaccine">Vaccin</option>
-                          <option value="control">ContrÃ´le</option>
+                          <option value="control">Contrôle</option>
                           <option value="other">Autre</option>
                         </select>
                       </Field>
-                      <Field label="VÃ©tÃ©rinaire (optionnel)">
+                      <Field label="Vétérinaire (optionnel)">
                         <input value={vetName} onChange={(e) => setVetName(e.target.value)} maxLength={120} style={FIELD} />
                       </Field>
-                      <Field label="Note (non mÃ©dicale, optionnelle)">
-                        <textarea value={content} onChange={(e) => setContent(e.target.value)} maxLength={500} rows={2} style={{ ...FIELD, resize: 'vertical' }} placeholder="Ex : rappels Ã  jour, prochaine visite programmÃ©eâ€¦" />
+                      <Field label="Note (non médicale, optionnelle)">
+                        <textarea value={content} onChange={(e) => setContent(e.target.value)} maxLength={500} rows={2} style={{ ...FIELD, resize: 'vertical' }} placeholder="Ex : rappels à jour, prochaine visite programmée…" />
                       </Field>
                     </>
                   )}

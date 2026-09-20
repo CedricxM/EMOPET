@@ -1,13 +1,13 @@
 ﻿'use client';
 
 /**
- * Modals des spots communautaires (Sprint 01 â€” Couche B).
+ * Modals des spots communautaires (Sprint 01 — Couche B).
  *
- * - SpotDetailModal : fiche d'un spot + statistiques + itinÃ©raire + commentaires.
- * - AddSpotModal    : formulaire d'ajout (catÃ©gorie, nom, description, anonymat).
+ * - SpotDetailModal : fiche d'un spot + statistiques + itinéraire + commentaires.
+ * - AddSpotModal    : formulaire d'ajout (catégorie, nom, description, anonymat).
  *
- * Style alignÃ© sur `modals.tsx` (HeroUI Modal compound + inline-styles tokens).
- * âš  Invariants : aucun terme mÃ©dical/Ã©motionnel dans les libellÃ©s.
+ * Style aligné sur `modals.tsx` (HeroUI Modal compound + inline-styles tokens).
+ * ⚠ Invariants : aucun terme médical/émotionnel dans les libellés.
  */
 
 import { Modal } from '@/lib/heroui-compat';
@@ -69,14 +69,14 @@ function Stars({ rating }: { rating: number | null }) {
   const rounded = Math.round(rating);
   return (
     <span aria-label={`Note moyenne ${rating.toFixed(1)} sur 5`} style={{ color: 'var(--terracotta-500)', letterSpacing: '0.08em' }}>
-      {'â˜…'.repeat(rounded)}
-      <span style={{ color: 'var(--fg-hint)' }}>{'â˜…'.repeat(5 - rounded)}</span>
+      {'★'.repeat(rounded)}
+      <span style={{ color: 'var(--fg-hint)' }}>{'★'.repeat(5 - rounded)}</span>
     </span>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* Fiche dÃ©tail d'un spot                                              */
+/* Fiche détail d'un spot                                              */
 /* ------------------------------------------------------------------ */
 
 export function SpotDetailModal({
@@ -190,15 +190,15 @@ export function SpotDetailModal({
                         fontWeight: 600,
                       }}
                     >
-                      ItinÃ©raire â†—
+                      Itinéraire ↗
                     </a>
 
                     {/* Commentaires */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, borderTop: '1px solid var(--divider)', paddingTop: 14 }}>
-                      <span style={LABEL_STYLE}>âŠ™ Retours de la veute</span>
+                      <span style={LABEL_STYLE}>⊙ Retours de la veute</span>
                       {spot.comments.length === 0 && (
                         <p style={{ margin: 0, fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 14, color: 'var(--fg-muted)' }}>
-                          Aucun commentaire pour lâ€™instant. Soyez le premier Ã  partager votre retour.
+                          Aucun commentaire pour l’instant. Soyez le premier à partager votre retour.
                         </p>
                       )}
                       {spot.comments.map((c) => (
@@ -218,7 +218,7 @@ export function SpotDetailModal({
                           onChange={(e) => setDraft(e.target.value)}
                           maxLength={500}
                           rows={2}
-                          placeholder="Partager un retour (5 Ã  500 caractÃ¨res)â€¦"
+                          placeholder="Partager un retour (5 à 500 caractères)…"
                           aria-label="Votre commentaire"
                           style={{ ...FIELD_STYLE, resize: 'vertical' }}
                         />
@@ -346,9 +346,9 @@ export function AddSpotModal({
           <Modal.Dialog>
             <Modal.Header>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
-                <span style={{ ...LABEL_STYLE, color: 'var(--terracotta-700)' }}>âŠ™ Partager un spot</span>
+                <span style={{ ...LABEL_STYLE, color: 'var(--terracotta-700)' }}>⊙ Partager un spot</span>
                 <Modal.Heading style={{ fontFamily: 'var(--font-serif)', fontSize: 22, color: 'var(--fg-strong)', margin: 0 }}>
-                  Ajouter un spot Ã  la carte
+                  Ajouter un spot à la carte
                 </Modal.Heading>
               </div>
               <Modal.CloseTrigger aria-label="Fermer" />
@@ -366,12 +366,12 @@ export function AddSpotModal({
                     fontSize: 14,
                   }}
                 >
-                  Vous avez dÃ©jÃ  ajoutÃ© 5 spots aujourdâ€™hui. Revenez demain&nbsp;!
+                  Vous avez déjà ajouté 5 spots aujourd’hui. Revenez demain&nbsp;!
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <span style={LABEL_STYLE}>CatÃ©gorie</span>
+                    <span style={LABEL_STYLE}>Catégorie</span>
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value as SpotCategory)}
@@ -384,12 +384,12 @@ export function AddSpotModal({
                   </label>
 
                   <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <span style={LABEL_STYLE}>Nom du spot (3 Ã  120 caractÃ¨res)</span>
+                    <span style={LABEL_STYLE}>Nom du spot (3 à 120 caractères)</span>
                     <input
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       maxLength={120}
-                      placeholder="Ex : Plage de Toulhars â€” Larmor-Plage"
+                      placeholder="Ex : Plage de Toulhars — Larmor-Plage"
                       style={FIELD_STYLE}
                     />
                   </label>
@@ -401,7 +401,7 @@ export function AddSpotModal({
                       onChange={(e) => setDescription(e.target.value)}
                       maxLength={500}
                       rows={3}
-                      placeholder="Pourquoi ce spot est utile pour les chiens ? (accÃ¨s, sol, frÃ©quentationâ€¦)"
+                      placeholder="Pourquoi ce spot est utile pour les chiens ? (accès, sol, fréquentation…)"
                       style={{ ...FIELD_STYLE, resize: 'vertical' }}
                     />
                   </label>
@@ -414,8 +414,8 @@ export function AddSpotModal({
                       style={{ marginTop: 3 }}
                     />
                     <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--fg-2)', lineHeight: 1.5 }}>
-                      Partager sous mon prÃ©nom. Sinon, le spot sera affichÃ© comme Â«&nbsp;Anonyme&nbsp;Â» â€” votre identitÃ©
-                      nâ€™est jamais liÃ©e publiquement au point (RGPD).
+                      Partager sous mon prénom. Sinon, le spot sera affiché comme «&nbsp;Anonyme&nbsp;» — votre identité
+                      n’est jamais liée publiquement au point (RGPD).
                     </span>
                   </label>
 
@@ -425,7 +425,7 @@ export function AddSpotModal({
                     </span>
                   )}
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-muted)' }}>
-                    {remainingToday} ajout{remainingToday > 1 ? 's' : ''} restant{remainingToday > 1 ? 's' : ''} aujourdâ€™hui
+                    {remainingToday} ajout{remainingToday > 1 ? 's' : ''} restant{remainingToday > 1 ? 's' : ''} aujourd’hui
                   </span>
                 </div>
               )}

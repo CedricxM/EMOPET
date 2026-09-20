@@ -1,8 +1,8 @@
 ﻿'use client';
 
 /**
- * DÃ©tail d'un proxy ELI v6 (Sprint 03) : graphe historique + baseline + bande Â±2Ïƒ.
- * Graphe SVG maison (pas de Recharts â€” zÃ©ro dÃ©pendance ajoutÃ©e).
+ * Détail d'un proxy ELI v6 (Sprint 03) : graphe historique + baseline + bande ±2σ.
+ * Graphe SVG maison (pas de Recharts — zéro dépendance ajoutée).
  */
 
 import { Modal } from '@/lib/heroui-compat';
@@ -56,7 +56,7 @@ export function ProxyChartModal({
             <Modal.Header>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--terracotta-700)' }}>
-                  âŠ™ {proxy.id} Â· {proxy.unit}
+                  ⊙ {proxy.id} · {proxy.unit}
                 </span>
                 <Modal.Heading style={{ fontFamily: 'var(--font-serif)', fontSize: 20, color: 'var(--fg-strong)', margin: 0 }}>
                   {proxy.label}
@@ -71,7 +71,7 @@ export function ProxyChartModal({
                 </p>
 
                 <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={`Historique de ${proxy.label}`} style={{ background: 'var(--surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                  {/* Bande Â±2Ïƒ baseline */}
+                  {/* Bande ±2σ baseline */}
                   <rect x={PAD.left} y={yOf(bandHi)} width={plotW} height={Math.max(0, yOf(bandLo) - yOf(bandHi))} fill="var(--cream-300)" opacity={0.4} />
                   {/* Ligne baseline */}
                   <line x1={PAD.left} y1={yOf(baseline.mean)} x2={W - PAD.right} y2={yOf(baseline.mean)} stroke="var(--granit-500)" strokeWidth="1" strokeDasharray="4 3" />
@@ -81,24 +81,24 @@ export function ProxyChartModal({
                   <text x={PAD.left - 6} y={yOf(lo) + 3} textAnchor="end" fontFamily="var(--font-mono)" fontSize="9" fill="var(--fg-muted)">{lo.toFixed(1)}</text>
                   {/* Courbe */}
                   <polyline points={linePts} fill="none" stroke="var(--terracotta-500)" strokeWidth="2" strokeLinejoin="round" />
-                  {/* Points colorÃ©s par confiance */}
+                  {/* Points colorés par confiance */}
                   {history.map((h, i) => (
                     <circle key={h.date} cx={xOf(i)} cy={yOf(h.value)} r={2.6} fill={CONFIDENCE_META[h.confidenceState].color}>
-                      <title>{`${h.date} Â· ${h.value} (${CONFIDENCE_META[h.confidenceState].label})`}</title>
+                      <title>{`${h.date} · ${h.value} (${CONFIDENCE_META[h.confidenceState].label})`}</title>
                     </circle>
                   ))}
-                  {/* Axe X premiÃ¨res/derniÃ¨res dates */}
+                  {/* Axe X premières/dernières dates */}
                   <text x={PAD.left} y={H - 8} fontFamily="var(--font-mono)" fontSize="9" fill="var(--fg-muted)">{history[0]?.date.slice(5)}</text>
                   <text x={W - PAD.right} y={H - 8} textAnchor="end" fontFamily="var(--font-mono)" fontSize="9" fill="var(--fg-muted)">{history[history.length - 1]?.date.slice(5)}</text>
                 </svg>
 
                 <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--fg-2)' }}>
-                  <span><strong style={{ color: 'var(--fg-strong)' }}>Baseline</strong> : {baseline.mean} Â± {baseline.std} ({proxy.unit})</span>
-                  <span><strong style={{ color: 'var(--fg-strong)' }}>Capteurs</strong> : MAT Â· TAG</span>
+                  <span><strong style={{ color: 'var(--fg-strong)' }}>Baseline</strong> : {baseline.mean} ± {baseline.std} ({proxy.unit})</span>
+                  <span><strong style={{ color: 'var(--fg-strong)' }}>Capteurs</strong> : MAT · TAG</span>
                 </div>
 
                 <p style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-muted)' }}>
-                  RÃ©fÃ©rence : {proxy.reference}
+                  Référence : {proxy.reference}
                 </p>
               </div>
             </Modal.Body>
