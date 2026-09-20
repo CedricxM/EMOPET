@@ -101,7 +101,7 @@ runtimeTest('dog CRUD is durable, owner scoped, and erasure remains fail closed'
   assert.ok(persistedA);
   assert.equal(persistedA.owner_id, ownerA);
   assert.equal(persistedA.name, 'Nala');
-  assert.equal(String(persistedA.birth_date), '2022-04-12');
+  assert.equal(new Date(persistedA.birth_date).toISOString().slice(0, 10), '2022-04-12');
   assert.equal(persistedA.photo_url, createBody.photo);
 
   currentUserId = ownerB;
