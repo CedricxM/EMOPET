@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@emopet/eli-engine": "workspace:*",
+    "@emopet/privileged-auth": "workspace:*",
     "@emopet/shared": "workspace:*",
     "@hono/node-server": "^1.19.13",
     "@hono/zod-validator": "^0.8.0",
