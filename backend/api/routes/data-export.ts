@@ -4,6 +4,7 @@ import { and, eq, gte, lte } from 'drizzle-orm';
 import { db } from '../../db/index.js';
 import { dogs, devices } from '../../db/schema/dogs.js';
 import { baselines, eliStates, sensorSummaries } from '../../db/schema/sensors.js';
+import { parseExportInterval } from '../utils/export-interval.js';
 
 interface Variables {
   userId: string;
@@ -54,12 +55,6 @@ export const EMPTY_RESULT_MEANING = 'ABSENCE_OF_WRITER_NOT_ABSENCE_OF_ACTIVITY';
 
 export const dataExport = new Hono<{ Variables: Variables }>();
 
-function parseDate(value: string | undefined): Date | null {
-  if (!value) return null;
-  const date = new Date(value);
-  return Number.isFinite(date.getTime()) ? date : null;
-}
-
 function csvField(value: unknown): string {
   const text = typeof value === 'string' ? value : JSON.stringify(value ?? null);
   return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
@@ -97,10 +92,12 @@ dataExport.get('/', async (c) => {
   const userId = c.get('userId');
   const dogId = c.req.query('dog_id');
   const format = c.req.query('format') === 'csv' ? 'csv' : 'json';
-  const from = parseDate(c.req.query('from'));
-  const to = parseDate(c.req.query('to'));
+  const interval = parseExportInterval(c.req.query('from'), c.req.query('to'));
 
   if (!dogId) return c.json({ error: 'dog_id is required' }, 400);
+  if (!interval.ok) return c.json({ error: interval.error }, 400);
+
+  const { from, to } = interval;
 
   const ownedDog = await db.query.dogs.findFirst({
     where: and(eq(dogs.id, dogId), eq(dogs.ownerId, userId)),
