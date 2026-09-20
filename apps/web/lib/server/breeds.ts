@@ -8,6 +8,13 @@
  *
  * ⚠ Le référentiel n'est PAS complet (335/354 races FCI) : un import partiel mais
  * juste vaut mieux qu'un import complet mais faux.
+ *
+ * RÈGLE DE VÉRITÉ : « référentiel illisible » n'est pas « aucune race ».
+ * Le même principe que l'absence d'invention de valeurs : si la source ne peut
+ * pas être lue, on le dit, au lieu d'affirmer une liste vide. Un échec n'est
+ * jamais mis en cache — sinon une indisponibilité passagère au premier appel
+ * condamnerait tout le processus à répondre « aucune race » jusqu'à son
+ * redémarrage, même une fois la source revenue.
  */
 
 import { readFileSync } from 'node:fs';
@@ -25,6 +32,18 @@ interface RawBreed {
   fci_group?: number;
   country_origin?: string;
   morphology?: { size_class?: string; coat_type?: string; is_brachycephalic?: boolean };
+}
+
+/**
+ * Le référentiel n'a pas pu être chargé. Distinct d'un référentiel vide : un
+ * appelant peut dire « aucun résultat » pour une recherche infructueuse, jamais
+ * pour un référentiel dont l'état n'a pas pu être établi.
+ */
+export class BreedReferenceUnavailableError extends Error {
+  constructor(reason: string, options?: { cause?: unknown }) {
+    super(`Référentiel des races indisponible : ${reason}. État inconnu, pas vide.`, options);
+    this.name = 'BreedReferenceUnavailableError';
+  }
 }
 
 let cache: Breed[] | null = null;
@@ -55,14 +74,38 @@ function normalize(r: RawBreed): Breed {
 
 export function listBreeds(): Breed[] {
   if (cache) return cache;
+
+  const path = join(process.cwd(), '..', '..', 'data', 'breed_profiles.json');
+
+  let contents: string;
   try {
-    const path = join(process.cwd(), '..', '..', 'data', 'breed_profiles.json');
-    const raw = JSON.parse(readFileSync(path, 'utf8')) as RawBreed[];
-    cache = raw.map(normalize).sort((a, b) => a.nameOfficial.localeCompare(b.nameOfficial, 'fr'));
-  } catch {
-    cache = [];
+    contents = readFileSync(path, 'utf8');
+  } catch (cause) {
+    throw new BreedReferenceUnavailableError('source illisible', { cause });
   }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(contents);
+  } catch (cause) {
+    throw new BreedReferenceUnavailableError('source JSON invalide', { cause });
+  }
+
+  if (!Array.isArray(parsed)) {
+    throw new BreedReferenceUnavailableError('la source n’est pas un tableau');
+  }
+
+  // Le cache n'est renseigné que sur un chargement réussi : un échec reste
+  // réessayable au prochain appel.
+  cache = (parsed as RawBreed[])
+    .map(normalize)
+    .sort((a, b) => a.nameOfficial.localeCompare(b.nameOfficial, 'fr'));
   return cache;
+}
+
+/** Réinitialise le cache mémoire. Réservé aux tests. */
+export function resetBreedCacheForTests(): void {
+  cache = null;
 }
 
 export function getBreed(id: string): Breed | undefined {

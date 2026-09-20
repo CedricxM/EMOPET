@@ -47,7 +47,7 @@ export default function LandingNav() {
               className={`font-semibold text-lg tracking-tight transition-colors duration-300 ${
                 scrolled ? 'text-[#141C25]' : 'text-[#141C25]'
               }`}
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               EMOPET
             </span>
@@ -62,7 +62,7 @@ export default function LandingNav() {
                 className={`text-sm font-medium transition-colors duration-200 hover:text-[#B46A4A] ${
                   scrolled ? 'text-[#2E3A48]' : 'text-[#2E3A48]'
                 }`}
-                style={{ fontFamily: 'var(--font-source-sans)' }}
+                style={{ fontFamily: 'var(--font-body)' }}
               >
                 {link.label}
               </a>
@@ -70,7 +70,7 @@ export default function LandingNav() {
             <a
               href="#decouvrir"
               className="inline-flex items-center gap-1 px-5 py-2.5 bg-[#B46A4A] text-white text-sm font-semibold rounded-full hover:bg-[#9B5A3E] transition-colors duration-200"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               Découvrir
               <span aria-hidden="true">→</span>
@@ -112,7 +112,7 @@ export default function LandingNav() {
               href={link.href}
               onClick={() => setMobileOpen(false)}
               className="block text-base font-medium text-[#2E3A48] py-2"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               {link.label}
             </a>
@@ -121,7 +121,7 @@ export default function LandingNav() {
             href="#decouvrir"
             onClick={() => setMobileOpen(false)}
             className="inline-flex items-center gap-1 px-5 py-3 bg-[#B46A4A] text-white text-base font-semibold rounded-full w-full justify-center mt-2"
-            style={{ fontFamily: 'var(--font-source-sans)' }}
+            style={{ fontFamily: 'var(--font-body)' }}
           >
             Découvrir EMOPET
             <span aria-hidden="true">→</span>
