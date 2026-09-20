@@ -1,4 +1,4 @@
-import { apiRequest, getApiBaseUrl } from './api';
+import { apiRequest } from './api';
 
 export interface AbsenceComparisonPayload {
   dogId: string;
@@ -17,12 +17,6 @@ export interface AbsenceComparisonPayload {
   message: string;
 }
 
-export interface VetReportLinkPayload {
-  dogId: string;
-  days: number;
-  expiresInMinutes: number;
-  url: string;
-}
 
 export async function fetchAbsenceComparison(
   dogId: string,
@@ -52,20 +46,9 @@ export async function fetchAbsenceComparison(
   });
 }
 
-export async function createVetReportShareLink(
-  dogId: string,
-  token?: string | null,
-): Promise<VetReportLinkPayload> {
-  if (!token) {
-    return {
-      dogId,
-      days: 14,
-      expiresInMinutes: 30,
-      url: `${getApiBaseUrl()}/api/dogs/${dogId}/vet-report?days=14`,
-    };
-  }
-
-  return apiRequest<VetReportLinkPayload>(`/api/dogs/${dogId}/vet-report-link?days=14`, {
-    token,
-  });
-}
+/**
+ * Generic bearer-link generation is retired from the mobile release path.
+ * Professional sharing must use a recipient-bound durable grant once that
+ * backend authority exists.
+ */
+export const PROFESSIONAL_SHARE_STATUS = 'RECIPIENT_BOUND_GRANT_REQUIRED' as const;
