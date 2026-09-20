@@ -4,6 +4,15 @@ on:
   pull_request:
     paths:
       - 'backend/db/**'
+      - 'backend/api/routes/auth.ts'
+      - 'backend/api/middleware/auth.ts'
+      - 'backend/api/routes/dogs.ts'
+      - 'backend/api/routes/health.ts'
+      - 'backend/api/routes/sensors.ts'
+      - 'backend/api/routes/data-export.ts'
+      - 'backend/api/routes/community.ts'
+      - 'backend/api/routes/directory.ts'
+      - 'backend/test/*.integration.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:
@@ -42,7 +51,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Node 20
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '20'
 
@@ -77,6 +86,7 @@ jobs:
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0002_freemium_foundation.sql
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0003_architecture_upgrade.sql
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0004_v6_additions.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0005_behavioral_assessment_provenance.sql
 
       - name: Capture first schema
         run: |
@@ -99,6 +109,7 @@ jobs:
           psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0002_freemium_foundation.sql
           psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0003_architecture_upgrade.sql
           psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0004_v6_additions.sql
+          psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0005_behavioral_assessment_provenance.sql
           pg_dump --schema-only --no-owner --no-privileges "$REPEAT_DATABASE_URL" > /tmp/schema-b.sql
           psql "$REPEAT_DATABASE_URL" -Atc "select tablename from pg_tables where schemaname='public' order by tablename" > /tmp/tables-b.txt
 
