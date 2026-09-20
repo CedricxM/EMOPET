@@ -8,14 +8,33 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import {
+  ELI_DEMO_PREFIX,
+  isAuthoritativeEliProvenance,
   lockedEliStatement,
   narrateBreedStory,
   narrateCoatConfirmation,
   narrateContextualObservation,
   narrateSignupBreedIntro,
 } from '../narration';
+import type { EliStatementProvenance } from '../narration';
 import type { Breed } from '../breeds';
 import { interpretWithContext } from '../eli/breed-aware-interpretation';
+
+/** Provenance actuelle du web : aucun producteur canonique n'existe (#118 G1/G5). */
+const DEMO_PROVENANCE: EliStatementProvenance = {
+  classification: 'DEMO_MOCK_ONLY',
+  authoritative: false,
+  matTagObservationSource: false,
+  backendInferenceSource: false,
+};
+
+/** Fixture d'une source réelle — n'existe pas encore dans le dépôt. */
+const MAT_TAG_PROVENANCE: EliStatementProvenance = {
+  classification: 'MAT_TAG_OBSERVED',
+  authoritative: true,
+  matTagObservationSource: true,
+  backendInferenceSource: false,
+};
 
 const MEDICAL = ['mala' + 'die', 'patholog', 'coup de chaleur', 'déshydrat', 'hyperthermie', 'arthrose', 'diag' + 'nostic'];
 const EMOTION = ['heu' + 'reux', 'tri' + 'ste', 'anxieux', 'déprim', ' jo' + 'ie', 'bon' + 'heur'];
@@ -53,7 +72,7 @@ test('VERIFIED uniquement : race non vérifiée → honnêteté, pas d’inventi
 });
 
 test('registre verrouillé : énoncé ELI factuel avec confiance', () => {
-  const s = lockedEliStatement('activite', 64, 'DEGRADED');
+  const s = lockedEliStatement('activite', 64, 'DEGRADED', DEMO_PROVENANCE);
   assert.match(s, /Activité/);
   assert.match(s, /64\/100/);
   assert.match(s, /confiance partielle/);
@@ -61,9 +80,44 @@ test('registre verrouillé : énoncé ELI factuel avec confiance', () => {
 
 test('contextualisation : récit chaleureux + énoncé verrouillé séparés, non médical', () => {
   const interp = interpretWithContext({ value: 58, confidenceState: 'VALID', metric: 'activite', deviation: 'below' }, { furType: 'long', ambientTempC: 26 });
-  const n = narrateContextualObservation('Gus', 'activite', 58, 'VALID', interp);
+  const n = narrateContextualObservation('Gus', 'activite', 58, 'VALID', interp, DEMO_PROVENANCE);
   clean(n.narrative);
   assert.match(n.narrative, /frais|lève le pied/i);
   assert.match(n.eli, /58\/100/); // la donnée reste dans l'énoncé verrouillé
   clean(n.eli);
+});
+
+/* ------------------------------------------------------------------ */
+/* Provenance obligatoire — second chemin de publication ELI (#118 G1) */
+/* ------------------------------------------------------------------ */
+
+test('provenance non autoritative : l’énoncé est marqué DÉMO, jamais un nombre nu', () => {
+  const s = lockedEliStatement('repos', 72, 'VALID', DEMO_PROVENANCE);
+  assert.ok(s.startsWith(ELI_DEMO_PREFIX), `énoncé non marqué : ${s}`);
+  assert.match(s, /72\/100/);
+});
+
+test('une source autoritative doit s’appuyer sur MAT/TAG ou sur le backend', () => {
+  // `authoritative: true` seul ne suffit pas : fail-closed.
+  assert.equal(isAuthoritativeEliProvenance({ ...DEMO_PROVENANCE, authoritative: true }), false);
+  assert.ok(lockedEliStatement('repos', 72, 'VALID', { ...DEMO_PROVENANCE, authoritative: true }).startsWith(ELI_DEMO_PREFIX));
+
+  assert.equal(isAuthoritativeEliProvenance(MAT_TAG_PROVENANCE), true);
+  assert.ok(!lockedEliStatement('repos', 72, 'VALID', MAT_TAG_PROVENANCE).startsWith(ELI_DEMO_PREFIX));
+});
+
+test('la narration contextualisée transporte la provenance jusqu’à l’affichage', () => {
+  const interp = interpretWithContext({ value: 58, confidenceState: 'VALID', metric: 'activite', deviation: 'below' }, { furType: 'long', ambientTempC: 26 });
+  const n = narrateContextualObservation('Gus', 'activite', 58, 'VALID', interp, DEMO_PROVENANCE);
+  assert.equal(n.authoritative, false);
+  assert.equal(n.provenance.classification, 'DEMO_MOCK_ONLY');
+  assert.ok(n.eli.startsWith(ELI_DEMO_PREFIX));
+});
+
+test('la convention de provenance reste alignée sur celle du tableau de bord (G3)', () => {
+  // Même forme que `ELI_WEB_MOCK_PROVENANCE` : une seule convention web.
+  for (const key of ['classification', 'authoritative', 'matTagObservationSource', 'backendInferenceSource']) {
+    assert.ok(key in DEMO_PROVENANCE, `clé de provenance manquante : ${key}`);
+  }
+  assert.equal(ELI_DEMO_PREFIX.trim(), 'DÉMO ·');
 });

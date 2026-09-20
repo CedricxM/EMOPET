@@ -9,6 +9,11 @@
  * Invariants : aucune émotion prêtée au chien, aucun glissement médical
  * (« cherche le frais » oui, « hyperthermie » non), une SEULE forme d'implication
  * par récit. Données de race VERIFIED uniquement ; sinon honnêteté (pas d'invention).
+ *
+ * Provenance : tout énoncé d'indicateur exige une `EliStatementProvenance` explicite.
+ * C'est le second chemin de publication ELI du web, à côté du tableau de bord —
+ * voir l'inventaire ELI-ARCH-G1 de #118. Aucune valeur ne peut être énoncée sans
+ * déclarer sa source, et une source non autoritative est marquée `DÉMO ·`.
  */
 
 import type { Breed } from './breeds';
@@ -18,6 +23,43 @@ import type { ContextualInterpretation } from './eli/breed-aware-interpretation'
 
 export type Register = 'recit' | 'donnee_eli';
 export type HookKind = 'question' | 'action' | 'confirmation';
+
+/**
+ * Provenance OBLIGATOIRE de toute donnée ELI énoncée par la narration.
+ *
+ * Même vocabulaire que la quarantaine du tableau de bord (`ELI_WEB_MOCK_PROVENANCE`,
+ * ELI-ARCH-G3 / #118) afin qu'il n'existe qu'UNE seule convention de provenance web :
+ * l'objet exporté par `lib/eli/mock-provenance` satisfait structurellement ce type.
+ *
+ * L'argument est requis par construction : il doit être impossible de publier un
+ * indicateur sans déclarer d'où il vient. Le moteur canonique `@emopet/eli-engine`
+ * n'étant câblé à aucun module runtime, il n'existe aujourd'hui aucune source
+ * autoritative — voir ELI-ARCH-G1/G5 (#118).
+ */
+export interface EliStatementProvenance {
+  /** `DEMO_MOCK_ONLY` tant qu'aucun producteur canonique n'existe. */
+  readonly classification: string;
+  /** `false` interdit toute présentation de la valeur comme observation. */
+  readonly authoritative: boolean;
+  /** La valeur provient-elle d'une observation capteur MAT/TAG ? */
+  readonly matTagObservationSource: boolean;
+  /** La valeur provient-elle d'une inférence ELI backend ? */
+  readonly backendInferenceSource: boolean;
+}
+
+/** Marqueur visible, identique à celui des atomes du tableau de bord (#118 / G3). */
+export const ELI_DEMO_PREFIX = 'DÉMO · ';
+
+/**
+ * Fail-closed : une provenance n'est autoritative que si elle le déclare ET
+ * s'appuie sur une source réelle. Toute autre combinaison est traitée comme démo.
+ */
+export function isAuthoritativeEliProvenance(provenance: EliStatementProvenance): boolean {
+  return (
+    provenance.authoritative === true &&
+    (provenance.matTagObservationSource === true || provenance.backendInferenceSource === true)
+  );
+}
 
 export interface Narration {
   register: 'recit';
@@ -42,9 +84,19 @@ const METRIC_LABEL: Record<string, string> = {
 /**
  * Registre VERROUILLÉ : énoncé factuel d'un indicateur ELI, avec sa confiance.
  * Aucune chaleur, aucune interprétation médicale ou émotionnelle.
+ *
+ * `provenance` est requis : tant qu'elle n'est pas autoritative, l'énoncé est
+ * préfixé `DÉMO · ` pour qu'aucune valeur simulée ne puisse être lue comme une
+ * observation. Le nombre n'est jamais publié nu.
  */
-export function lockedEliStatement(metric: string, value: number, confidence: ConfidenceState): string {
-  return `${METRIC_LABEL[metric] ?? metric} : ${value.toFixed(0)}/100 (${CONF_LABEL[confidence]}).`;
+export function lockedEliStatement(
+  metric: string,
+  value: number,
+  confidence: ConfidenceState,
+  provenance: EliStatementProvenance,
+): string {
+  const statement = `${METRIC_LABEL[metric] ?? metric} : ${value.toFixed(0)}/100 (${CONF_LABEL[confidence]}).`;
+  return isAuthoritativeEliProvenance(provenance) ? statement : `${ELI_DEMO_PREFIX}${statement}`;
 }
 
 function originClause(breed: Breed): string {
@@ -116,6 +168,10 @@ export interface ContextualNarration {
   narrative: string;
   /** Énoncé de l'indicateur — registre VERROUILLÉ (factuel + confiance). */
   eli: string;
+  /** Provenance de la donnée énoncée, transportée jusqu'à la surface d'affichage. */
+  provenance: EliStatementProvenance;
+  /** `false` tant qu'aucune source MAT/TAG ou backend n'alimente la valeur. */
+  authoritative: boolean;
   hook?: { kind: HookKind; text: string };
 }
 
@@ -129,6 +185,7 @@ export function narrateContextualObservation(
   value: number,
   confidence: ConfidenceState,
   interpretation: ContextualInterpretation,
+  provenance: EliStatementProvenance,
 ): ContextualNarration {
   const factors = interpretation.contextFactors;
   let narrative: string;
@@ -140,7 +197,9 @@ export function narrateContextualObservation(
   }
   return {
     narrative,
-    eli: lockedEliStatement(metric, value, confidence),
+    eli: lockedEliStatement(metric, value, confidence, provenance),
+    provenance,
+    authoritative: isAuthoritativeEliProvenance(provenance),
     hook: interpretation.expectedGivenProfile
       ? { kind: 'action', text: `Tu veux que je te montre les coins où il aime se poser quand la température grimpe ?` }
       : undefined,

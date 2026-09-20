@@ -78,7 +78,7 @@ export default function HomePage() {
           <div className="relative z-10 max-w-3xl mx-auto px-4 text-center py-32">
             <h1
               className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-[#141C25] leading-tight mb-8"
-              style={{ fontFamily: 'var(--font-fraunces)' }}
+              style={{ fontFamily: 'var(--font-display)' }}
             >
               Vous connaissez votre chien.
               <br />
@@ -89,7 +89,7 @@ export default function HomePage() {
 
             <p
               className="text-[#4A5766] text-base md:text-lg max-w-lg mx-auto mb-10 leading-relaxed"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               Un système attentif qui aide les gardiens à mieux comprendre
               le quotidien de leur compagnon.
@@ -99,14 +99,14 @@ export default function HomePage() {
               <a
                 href="#decouvrir"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-[#B46A4A] text-white text-base font-semibold rounded-full hover:bg-[#9B5A3E] transition-colors duration-200 shadow-lg shadow-[#B46A4A]/20"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
+                style={{ fontFamily: 'var(--font-body)' }}
               >
                 Découvrir EMOPET
               </a>
               <a
                 href="#comment-ca-marche"
                 className="inline-flex items-center gap-2 px-8 py-4 border-2 border-[#DDD4C2] text-[#2E3A48] text-base font-semibold rounded-full hover:bg-[#F4EFE6] transition-colors duration-200"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
+                style={{ fontFamily: 'var(--font-body)' }}
               >
                 Voir comment ça fonctionne
               </a>
@@ -116,7 +116,7 @@ export default function HomePage() {
             <div className="mt-12">
               <span
                 className="inline-flex items-center gap-2 px-4 py-2 bg-[#E3EAE4] text-[#1E9A90] text-xs font-medium rounded-full"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
+                style={{ fontFamily: 'var(--font-body)' }}
               >
                 <span className="w-2 h-2 rounded-full bg-[#2CB7AB] animate-pulse" />
                 Projet en développement · Lorient, Bretagne
@@ -166,13 +166,13 @@ export default function HomePage() {
           <div className="text-center mb-12">
             <h2
               className="text-2xl md:text-4xl text-[#141C25] mb-4"
-              style={{ fontFamily: 'var(--font-fraunces)' }}
+              style={{ fontFamily: 'var(--font-display)' }}
             >
               Un seul environnement
             </h2>
             <p
               className="text-[#4A5766] text-base md:text-lg max-w-md mx-auto"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               Trois éléments qui travaillent ensemble pour un même objectif.
             </p>
@@ -203,17 +203,17 @@ export default function HomePage() {
                 <div className="w-full max-w-md aspect-[16/9] rounded-2xl border-2 border-dashed border-[#A8BCAC]/40" />
               </div>
             </div>
-            <p className="text-center text-[#A8BCAC] text-[10px] tracking-[0.2em] uppercase mt-2" style={{ fontFamily: 'var(--font-source-sans)' }}>CONCEPT VISUAL</p>
+            <p className="text-center text-[#A8BCAC] text-[10px] tracking-[0.2em] uppercase mt-2" style={{ fontFamily: 'var(--font-body)' }}>CONCEPT VISUAL</p>
 
             <h2
               className="text-2xl md:text-4xl text-[#141C25] mb-4"
-              style={{ fontFamily: 'var(--font-fraunces)' }}
+              style={{ fontFamily: 'var(--font-display)' }}
             >
               D&apos;abord, un endroit confortable.
             </h2>
             <p
               className="text-[#4A5766] text-base md:text-lg max-w-md mx-auto leading-relaxed mb-6"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               Il se repose.
               <br />
@@ -221,14 +221,14 @@ export default function HomePage() {
             </p>
             <p
               className="text-[#6B7684] text-sm max-w-sm mx-auto"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               Capteurs non invasifs intégrés dans une surface pensée
               pour le confort de votre chien.
             </p>
             <span
               className="inline-block mt-4 px-3 py-1 bg-[#F7E5DA] text-[#9B5A3E] text-xs font-medium rounded-full"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               EN DÉVELOPPEMENT
             </span>
@@ -259,16 +259,16 @@ export default function HomePage() {
               </svg>
             </div>
 
-            <p className="text-center text-[#C6BBA4] text-[10px] tracking-[0.2em] uppercase mb-6" style={{ fontFamily: 'var(--font-source-sans)' }}>CONCEPT VISUAL</p>
+            <p className="text-center text-[#C6BBA4] text-[10px] tracking-[0.2em] uppercase mb-6" style={{ fontFamily: 'var(--font-body)' }}>CONCEPT VISUAL</p>
             <h2
               className="text-2xl md:text-4xl text-[#141C25] mb-4"
-              style={{ fontFamily: 'var(--font-fraunces)' }}
+              style={{ fontFamily: 'var(--font-display)' }}
             >
               La continuité, dehors.
             </h2>
             <p
               className="text-[#4A5766] text-base md:text-lg max-w-md mx-auto leading-relaxed mb-6"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               Quand votre chien explore, le Tag fournit du contexte.
               <br />
@@ -276,14 +276,14 @@ export default function HomePage() {
             </p>
             <p
               className="text-[#6B7684] text-sm max-w-sm mx-auto"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               Mouvement, environnement, habitudes de promenade.
               Le Tag aide à compléter l&apos;image du quotidien.
             </p>
             <span
               className="inline-block mt-4 px-3 py-1 bg-[#F7E5DA] text-[#9B5A3E] text-xs font-medium rounded-full"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               EN DÉVELOPPEMENT
             </span>
@@ -300,13 +300,13 @@ export default function HomePage() {
           <div className="text-center mb-12">
             <h2
               className="text-2xl md:text-4xl text-[#141C25] mb-4"
-              style={{ fontFamily: 'var(--font-fraunces)' }}
+              style={{ fontFamily: 'var(--font-display)' }}
             >
               Une voix calme dans votre journée.
             </h2>
             <p
               className="text-[#4A5766] text-base md:text-lg max-w-md mx-auto"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               L&apos;application rend l&apos;information compréhensible,
               sans bruit ni alarmes.
@@ -316,7 +316,7 @@ export default function HomePage() {
           <div className="text-center mt-8">
             <span
               className="inline-block px-3 py-1 bg-[#F7E5DA] text-[#9B5A3E] text-xs font-medium rounded-full"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               EN DÉVELOPPEMENT
             </span>
@@ -334,13 +334,13 @@ export default function HomePage() {
           <div className="text-center mb-12">
             <h2
               className="text-2xl md:text-4xl text-[#141C25] mb-4"
-              style={{ fontFamily: 'var(--font-fraunces)' }}
+              style={{ fontFamily: 'var(--font-display)' }}
             >
               Une présence qui comprend votre histoire.
             </h2>
             <p
               className="text-[#4A5766] text-base md:text-lg max-w-md mx-auto"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               Breiz apprend de votre relation pour proposer,
               jamais pour imposer.
@@ -350,7 +350,7 @@ export default function HomePage() {
           <div className="text-center mt-8">
             <span
               className="inline-block px-3 py-1 bg-[#F7E5DA] text-[#9B5A3E] text-xs font-medium rounded-full"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               EN DÉVELOPPEMENT
             </span>
@@ -367,7 +367,7 @@ export default function HomePage() {
           <div className="max-w-3xl mx-auto px-4 text-center">
             <h2
               className="text-2xl md:text-4xl text-[#141C25] mb-4"
-              style={{ fontFamily: 'var(--font-fraunces)' }}
+              style={{ fontFamily: 'var(--font-display)' }}
             >
               Né quelque part.
               <br />
@@ -375,7 +375,7 @@ export default function HomePage() {
             </h2>
             <p
               className="text-[#4A5766] text-base md:text-lg max-w-md mx-auto mb-12"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               Chaque lieu a ses sentiers, ses rythmes, ses particularités.
               EMOPET s&apos;adapte.
@@ -389,7 +389,7 @@ export default function HomePage() {
                     key={place}
                     className="inline-flex items-center gap-1 px-4 py-2 rounded-full border transition-all duration-300"
                     style={{
-                      fontFamily: 'var(--font-source-sans)',
+                      fontFamily: 'var(--font-body)',
                       borderColor: index === 0 ? '#B46A4A' : '#DDD4C2',
                       backgroundColor: index === 0 ? '#F7E5DA' : '#FAF7F1',
                       color: index === 0 ? '#9B5A3E' : '#4A5766',
@@ -407,7 +407,7 @@ export default function HomePage() {
 
             <span
               className="inline-block mt-8 px-3 py-1 bg-[#E3EAE4] text-[#1E9A90] text-xs font-medium rounded-full"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               PRÉVU
             </span>
@@ -425,7 +425,7 @@ export default function HomePage() {
             <div className="text-center mb-10">
               <h2
                 className="text-2xl md:text-4xl text-[#141C25] mb-4"
-                style={{ fontFamily: 'var(--font-fraunces)' }}
+                style={{ fontFamily: 'var(--font-display)' }}
               >
                 Des connexions qui font sens.
               </h2>
@@ -435,13 +435,13 @@ export default function HomePage() {
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#ECE5D7]">
               <p
                 className="text-[#141C25] text-base mb-2 font-medium"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
+                style={{ fontFamily: 'var(--font-body)' }}
               >
                 Une balade tranquille dimanche matin ?
               </p>
               <p
                 className="text-[#6B7684] text-sm mb-6"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
+                style={{ fontFamily: 'var(--font-body)' }}
               >
                 Vous aimez tous les deux les promenades près de la côte.
               </p>
@@ -449,14 +449,14 @@ export default function HomePage() {
               <div className="flex gap-3">
                 <button
                   className="flex-1 px-4 py-3 bg-[#2CB7AB] text-white text-sm font-medium rounded-xl hover:bg-[#1E9A90] transition-colors duration-200"
-                  style={{ fontFamily: 'var(--font-source-sans)' }}
+                  style={{ fontFamily: 'var(--font-body)' }}
                   aria-label="Voir la proposition"
                 >
                   Voir la proposition
                 </button>
                 <button
                   className="flex-1 px-4 py-3 border border-[#DDD4C2] text-[#4A5766] text-sm font-medium rounded-xl hover:bg-[#F4EFE6] transition-colors duration-200"
-                  style={{ fontFamily: 'var(--font-source-sans)' }}
+                  style={{ fontFamily: 'var(--font-body)' }}
                   aria-label="Pas maintenant"
                 >
                   Pas maintenant
@@ -466,7 +466,7 @@ export default function HomePage() {
 
             <p
               className="text-center text-[#6B7684] text-xs mt-6"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               Pas de score de compatibilité. Pas de localisation précise.
               <br />
@@ -476,7 +476,7 @@ export default function HomePage() {
             <div className="text-center mt-6">
               <span
                 className="inline-block px-3 py-1 bg-[#E3EAE4] text-[#1E9A90] text-xs font-medium rounded-full"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
+                style={{ fontFamily: 'var(--font-body)' }}
               >
                 PRÉVU
               </span>
@@ -494,13 +494,13 @@ export default function HomePage() {
           <div className="max-w-4xl mx-auto px-4 text-center">
             <h2
               className="text-2xl md:text-4xl text-[#141C25] mb-4"
-              style={{ fontFamily: 'var(--font-fraunces)' }}
+              style={{ fontFamily: 'var(--font-display)' }}
             >
               Ensemble, localement.
             </h2>
             <p
               className="text-[#4A5766] text-base md:text-lg max-w-md mx-auto mb-12"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               Pas un réseau social. Un tissu de proximité.
             </p>
@@ -524,7 +524,7 @@ export default function HomePage() {
                   </span>
                   <span
                     className="text-[#2E3A48] text-sm font-medium"
-                    style={{ fontFamily: 'var(--font-source-sans)' }}
+                    style={{ fontFamily: 'var(--font-body)' }}
                   >
                     {item.label}
                   </span>
@@ -534,7 +534,7 @@ export default function HomePage() {
 
             <p
               className="text-[#6B7684] text-sm mt-8 max-w-sm mx-auto"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               Empathie · aide · participation locale
             </p>
@@ -542,7 +542,7 @@ export default function HomePage() {
             <div className="mt-6">
               <span
                 className="inline-block px-3 py-1 bg-[#E3EAE4] text-[#1E9A90] text-xs font-medium rounded-full"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
+                style={{ fontFamily: 'var(--font-body)' }}
               >
                 PRÉVU
               </span>
@@ -562,13 +562,13 @@ export default function HomePage() {
             <div className="text-center mb-10">
               <h2
                 className="text-2xl md:text-4xl text-[#141C25] mb-4"
-                style={{ fontFamily: 'var(--font-fraunces)' }}
+                style={{ fontFamily: 'var(--font-display)' }}
               >
                 Préparer, pas diagnostiquer.
               </h2>
               <p
                 className="text-[#4A5766] text-base md:text-lg"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
+                style={{ fontFamily: 'var(--font-body)' }}
               >
                 Vous gardez le contrôle de ce que vous partagez.
               </p>
@@ -578,7 +578,7 @@ export default function HomePage() {
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#ECE5D7] mb-6">
               <p
                 className="text-[#141C25] font-medium mb-4"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
+                style={{ fontFamily: 'var(--font-body)' }}
               >
                 Préparer la consultation de Nala
               </p>
@@ -617,7 +617,7 @@ export default function HomePage() {
                     </div>
                     <span
                       className="text-[#2E3A48] text-sm"
-                      style={{ fontFamily: 'var(--font-source-sans)' }}
+                      style={{ fontFamily: 'var(--font-body)' }}
                     >
                       {item.label}
                     </span>
@@ -627,7 +627,7 @@ export default function HomePage() {
 
               <button
                 className="w-full mt-6 px-4 py-3 bg-[#2CB7AB] text-white text-sm font-medium rounded-xl hover:bg-[#1E9A90] transition-colors duration-200"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
+                style={{ fontFamily: 'var(--font-body)' }}
                 aria-label="Partager avec mon vétérinaire"
               >
                 Partager avec mon vétérinaire
@@ -636,7 +636,7 @@ export default function HomePage() {
 
             <p
               className="text-center text-[#6B7684] text-xs mt-6"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               EMOPET propose des informations, pas des diagnostics.
               <br />
@@ -656,13 +656,13 @@ export default function HomePage() {
           <div className="text-center mb-12">
             <h2
               className="text-2xl md:text-4xl text-[#141C25] mb-4"
-              style={{ fontFamily: 'var(--font-fraunces)' }}
+              style={{ fontFamily: 'var(--font-display)' }}
             >
               Vos données restent les vôtres.
             </h2>
             <p
               className="text-[#4A5766] text-base md:text-lg max-w-md mx-auto"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               Pas de revente. Pas de partage non consenti.
               Vous décidez, toujours.
@@ -682,13 +682,13 @@ export default function HomePage() {
           <div className="max-w-md mx-auto px-4 text-center">
             <h2
               className="text-2xl md:text-4xl text-[#141C25] mb-4"
-              style={{ fontFamily: 'var(--font-fraunces)' }}
+              style={{ fontFamily: 'var(--font-display)' }}
             >
               Prenez part.
             </h2>
             <p
               className="text-[#4A5766] text-base md:text-lg max-w-sm mx-auto mb-10 leading-relaxed"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               Rejoignez les premiers gardiens qui testent EMOPET.
             </p>
@@ -700,19 +700,19 @@ export default function HomePage() {
                   placeholder="Votre email"
                   aria-label="Adresse email"
                   className="w-full px-4 py-3 rounded-xl border border-[#DDD4C2] text-[#2E3A48] placeholder-[#C6BBA4] focus:outline-none focus:ring-2 focus:ring-[#2CB7AB]/50"
-                  style={{ fontFamily: 'var(--font-source-sans)' }}
+                  style={{ fontFamily: 'var(--font-body)' }}
                 />
                 <button
                   type="submit"
                   className="w-full px-4 py-3 bg-[#B46A4A] text-white text-base font-semibold rounded-xl hover:bg-[#9B5A3E] transition-colors duration-200 shadow-lg shadow-[#B46A4A]/20"
-                  style={{ fontFamily: 'var(--font-source-sans)' }}
+                  style={{ fontFamily: 'var(--font-body)' }}
                 >
                   Je veux participer
                 </button>
               </form>
               <p
                 className="text-[#A8BCAC] text-xs mt-4"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
+                style={{ fontFamily: 'var(--font-body)' }}
               >
                 Pas de spam. Juste des nouvelles quand c&apos;est prêt.
               </p>
