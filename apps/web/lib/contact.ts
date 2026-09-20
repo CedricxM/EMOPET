@@ -97,7 +97,7 @@ function isValidEmail(value: string): boolean {
   let atIndex = -1;
 
   for (let index = 0; index < value.length; index += 1) {
-    const char = value[index];
+    const char = value.charAt(index);
     if (char.trim().length === 0) return false;
     if (char === '@') {
       if (atIndex !== -1) return false;
