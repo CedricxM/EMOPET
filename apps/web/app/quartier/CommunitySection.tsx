@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   CircleJoinDialog,
   CommunityCharterModal,
@@ -10,14 +10,11 @@ import {
 } from '../../components/community';
 import { Button, Card, Eyebrow, H1, H2, Icon, Lead, P, P2 } from '../../components/ui';
 import {
-  AUTO_HIDE_FLAG_THRESHOLD,
   EVENT_TYPE_LABELS,
   INITIAL_CIRCLES,
   INITIAL_EVENTS,
   INITIAL_POSTS,
-  LS_KEYS,
   POST_TYPE_LABELS,
-  containsForbiddenContent,
   formatEventDate,
   relativeTime,
   upcomingEvents,
@@ -25,9 +22,13 @@ import {
 import type { Circle, CircleEvent, CirclePost, Participation } from '../../lib/community';
 import { useI18n } from '../../lib/i18n';
 
+const COMMUNITY_RUNTIME_UNAVAILABLE_MESSAGE =
+  'Aperçu prototype : les actions communautaires partagées restent indisponibles tant qu une autorité Product V1 n est pas intégrée.';
+
+
 export function CommunitySection() {
   const circles = INITIAL_CIRCLES;
-  const [memberships, setMemberships] = useState<Record<string, string>>({});
+  const [memberships] = useState<Record<string, string>>({});
   const { t } = useI18n();
   const [posts, setPosts] = useState<CirclePost[]>(INITIAL_POSTS);
   const [events, setEvents] = useState<CircleEvent[]>(INITIAL_EVENTS);
@@ -40,38 +41,9 @@ export function CommunitySection() {
   const [charterOpen, setCharterOpen] = useState(false);
   const [flash, setFlash] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Memberships : restent locales (par appareil) tant qu'il n'y a pas d'auth.
-    try {
-      const m = localStorage.getItem(LS_KEYS.memberships);
-      if (m) setMemberships(JSON.parse(m) as Record<string, string>);
-      const p = localStorage.getItem(LS_KEYS.posts);
-      if (p) setPosts((prev) => [...(JSON.parse(p) as CirclePost[]).filter((u) => !prev.some((x) => x.id === u.id)), ...prev]);
-      const e = localStorage.getItem(LS_KEYS.events);
-      if (e) setEvents((prev) => [...prev, ...(JSON.parse(e) as CircleEvent[]).filter((u) => !prev.some((x) => x.id === u.id))]);
-    } catch { /* indisponible */ }
-    // R3 : posts + événements = serveur autoritaire (données communautaires partagées).
-    (async () => {
-      try {
-        const [pr, er] = await Promise.all([fetch('/api/community/posts'), fetch('/api/community/events')]);
-        if (pr.ok) { const d = (await pr.json()) as { posts: CirclePost[] }; if (d.posts?.length) setPosts(d.posts); }
-        if (er.ok) { const d = (await er.json()) as { events: CircleEvent[] }; if (d.events?.length) setEvents(d.events); }
-      } catch { /* hors-ligne → baseline local */ }
-    })();
-  }, []);
-
   function notify(msg: string) {
     setFlash(msg);
     setTimeout(() => setFlash(null), 4000);
-  }
-  function persistMemberships(next: Record<string, string>) {
-    try { localStorage.setItem(LS_KEYS.memberships, JSON.stringify(next)); } catch {}
-  }
-  function persistUserPosts(all: CirclePost[]) {
-    try { localStorage.setItem(LS_KEYS.posts, JSON.stringify(all.filter((p) => p.id.startsWith('user-')))); } catch {}
-  }
-  function persistUserEvents(all: CircleEvent[]) {
-    try { localStorage.setItem(LS_KEYS.events, JSON.stringify(all.filter((e) => e.id.startsWith('user-')))); } catch {}
   }
 
   const joinedCircles = circles.filter((c) => memberships[c.id]);
@@ -86,96 +58,41 @@ export function CommunitySection() {
   const circlePosts = selectedCircle ? posts.filter((p) => p.circleId === selectedCircle.id && !p.isHidden) : [];
   const circleEvents = selectedCircle ? upcomingEvents(events.filter((e) => e.circleId === selectedCircle.id)) : [];
 
-  /* Handlers */
-  function joinCircle(displayName: string) {
-    if (!joinTarget) return;
-    const next = { ...memberships, [joinTarget.id]: displayName };
-    setMemberships(next);
-    persistMemberships(next);
-    notify(`Vous avez rejoint ${joinTarget.name}.`);
-    setSelectedCircleId(joinTarget.id);
+  /* Handlers — fail closed until canonical Community authority is integrated. */
+  function joinCircle(_displayName: string) {
+    notify(COMMUNITY_RUNTIME_UNAVAILABLE_MESSAGE);
     setJoinTarget(null);
   }
-  async function createPost(input: { type: CirclePost['type']; title?: string; content: string }) {
-    if (!selectedCircle) return;
-    const authorName = memberships[selectedCircle.id] ?? 'Vous';
-    try {
-      const res = await fetch('/api/community/posts', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ circleId: selectedCircle.id, ...input, authorName }) });
-      const data = (await res.json()) as { ok: boolean; post?: CirclePost; errors?: string[] };
-      if (res.ok && data.ok && data.post) { setPosts((prev) => [data.post!, ...prev]); setPostOpen(false); notify('Publication ajoutée au cercle.'); return; }
-      if (data.errors?.length) { notify(data.errors[0]!); return; }
-    } catch { /* repli local */ }
-    const post: CirclePost = { id: `user-${Date.now()}`, circleId: selectedCircle.id, type: input.type, authorName, title: input.title, content: input.content, replies: [], flagCount: 0, isHidden: false, createdAt: new Date().toISOString() };
-    setPosts((prev) => { const n = [post, ...prev]; persistUserPosts(n); return n; });
-    setPostOpen(false);
-    notify('Publication ajoutée au cercle.');
+
+  async function createPost(_input: {
+    type: CirclePost['type'];
+    title?: string;
+    content: string;
+  }) {
+    notify(COMMUNITY_RUNTIME_UNAVAILABLE_MESSAGE);
   }
-  async function addReply(postId: string, content: string) {
-    const check = containsForbiddenContent(content);
-    if (check.blocked) { notify(check.reason ?? 'Contenu non autorisé.'); return; }
-    try {
-      const res = await fetch(`/api/community/posts/${postId}/replies`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ content, authorName: 'Vous' }) });
-      const data = (await res.json()) as { ok: boolean; reply?: CirclePost['replies'][number]; errors?: string[] };
-      if (res.ok && data.ok && data.reply) { setPosts((prev) => prev.map((p) => (p.id === postId ? { ...p, replies: [...p.replies, data.reply!] } : p))); return; }
-      if (data.errors?.length) { notify(data.errors[0]!); return; }
-    } catch { /* repli local */ }
-    setPosts((prev) => {
-      const n = prev.map((p) => p.id === postId ? { ...p, replies: [...p.replies, { id: `r-${Date.now()}`, authorName: 'Vous', content, createdAt: new Date().toISOString() }] } : p);
-      persistUserPosts(n);
-      return n;
-    });
+
+  async function addReply(_postId: string, _content: string) {
+    notify(COMMUNITY_RUNTIME_UNAVAILABLE_MESSAGE);
   }
+
   async function flagPost(_reason: string) {
-    if (!reportPostId) return;
-    const id = reportPostId;
     setReportPostId(null);
-    try {
-      const res = await fetch(`/api/community/posts/${id}/flag`, { method: 'POST' });
-      const data = (await res.json()) as { ok: boolean; flagCount?: number; isHidden?: boolean };
-      if (res.ok && data.ok) {
-        setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, flagCount: data.flagCount ?? p.flagCount, isHidden: data.isHidden ?? p.isHidden } : p)));
-        notify(data.isHidden ? 'Contenu masqué et transmis à la modération.' : 'Merci, votre signalement a été enregistré.');
-        return;
-      }
-    } catch { /* repli local */ }
-    let nowHidden = false;
-    setPosts((prev) => {
-      const n = prev.map((p) => { if (p.id !== id) return p; const flagCount = p.flagCount + 1; nowHidden = flagCount >= AUTO_HIDE_FLAG_THRESHOLD; return { ...p, flagCount, isHidden: nowHidden }; });
-      persistUserPosts(n);
-      return n;
-    });
-    notify(nowHidden ? 'Contenu masqué et transmis à la modération.' : 'Merci, votre signalement a été enregistré.');
+    notify(COMMUNITY_RUNTIME_UNAVAILABLE_MESSAGE);
   }
-  async function createEvent(input: { type: CircleEvent['type']; title: string; description?: string; startsAt: string; meetingPointName: string }) {
-    if (!selectedCircle) return;
-    const organizerName = memberships[selectedCircle.id] ?? 'Vous';
-    const payload = { circleId: selectedCircle.id, ...input, lat: selectedCircle.lat, lon: selectedCircle.lon, organizerName };
-    try {
-      const res = await fetch('/api/community/events', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
-      const data = (await res.json()) as { ok: boolean; event?: CircleEvent; errors?: string[] };
-      if (res.ok && data.ok && data.event) { setEvents((prev) => [...prev, data.event!]); setEventOpen(false); notify('Événement créé — le point de RDV apparaît sur la carte (Veute).'); return; }
-      if (data.errors?.length) { notify(data.errors[0]!); return; }
-    } catch { /* repli local */ }
-    const ev: CircleEvent = { id: `user-${Date.now()}`, circleId: selectedCircle.id, type: input.type, organizerName, title: input.title, description: input.description, startsAt: input.startsAt, meetingPointName: input.meetingPointName, lat: selectedCircle.lat, lon: selectedCircle.lon, participants: 1, myStatus: 'going' };
-    setEvents((prev) => { const n = [...prev, ev]; persistUserEvents(n); return n; });
-    setEventOpen(false);
-    notify('Événement créé — le point de RDV apparaît sur la carte (Veute).');
+
+  async function createEvent(_input: {
+    type: CircleEvent['type'];
+    title: string;
+    description?: string;
+    startsAt: string;
+    meetingPointName: string;
+  }) {
+    notify(COMMUNITY_RUNTIME_UNAVAILABLE_MESSAGE);
   }
-  function participate(eventId: string, status: Participation) {
-    setEvents((prev) => {
-      const n = prev.map((e) => {
-        if (e.id !== eventId) return e;
-        const was = e.myStatus;
-        let participants = e.participants;
-        const countedBefore = was === 'going';
-        const countedNow = status === 'going';
-        if (countedBefore && !countedNow) participants -= 1;
-        if (!countedBefore && countedNow) participants += 1;
-        return { ...e, myStatus: status, participants };
-      });
-      persistUserEvents(n);
-      return n;
-    });
+
+  function participate(_eventId: string, _status: Participation) {
+    notify(COMMUNITY_RUNTIME_UNAVAILABLE_MESSAGE);
   }
 
   return (
@@ -186,6 +103,10 @@ export function CommunitySection() {
             {flash}
           </div>
         )}
+
+        <div role="status" style={{ padding: '12px 14px', background: 'var(--bg-sunk)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--fg-2)' }}>
+          Aperçu prototype : le contenu affiché est démonstratif. Adhésion, publication, réponse, participation, événement et signalement restent désactivés tant que la persistance Product V1 n’est pas intégrée.
+        </div>
 
         {!selectedCircle ? (
           <>
@@ -208,7 +129,7 @@ export function CommunitySection() {
               <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <H2 style={{ fontSize: 'var(--text-xl)' }}>Mes cercles</H2>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-                  {joinedCircles.map((c) => <CircleCard key={c.id} circle={c} isMember onOpen={() => setSelectedCircleId(c.id)} onJoin={() => setJoinTarget(c)} />)}
+                  {joinedCircles.map((c) => <CircleCard key={c.id} circle={c} isMember onOpen={() => setSelectedCircleId(c.id)} onJoin={() => notify(COMMUNITY_RUNTIME_UNAVAILABLE_MESSAGE)} />)}
                 </div>
               </section>
             )}
@@ -239,11 +160,11 @@ export function CommunitySection() {
               </div>
               {isMember ? (
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <Button kind="secondary" size="sm" leading={<Icon name="plus" size={14} />} onClick={() => setPostOpen(true)}>Publier</Button>
-                  <Button kind="primary" size="sm" leading={<Icon name="calendar" size={14} color="white" />} onClick={() => setEventOpen(true)}>Événement</Button>
+                  <Button kind="secondary" size="sm" leading={<Icon name="plus" size={14} />} onClick={() => notify(COMMUNITY_RUNTIME_UNAVAILABLE_MESSAGE)}>Publier</Button>
+                  <Button kind="primary" size="sm" leading={<Icon name="calendar" size={14} color="white" />} onClick={() => notify(COMMUNITY_RUNTIME_UNAVAILABLE_MESSAGE)}>Événement</Button>
                 </div>
               ) : (
-                <Button kind="primary" onClick={() => setJoinTarget(selectedCircle)}>Rejoindre</Button>
+                <Button kind="primary" onClick={() => notify(COMMUNITY_RUNTIME_UNAVAILABLE_MESSAGE)}>Rejoindre</Button>
               )}
             </header>
 
@@ -251,7 +172,7 @@ export function CommunitySection() {
               <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <H2 style={{ fontSize: 'var(--text-lg)' }}>Événements à venir</H2>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
-                  {circleEvents.map((e) => <EventCard key={e.id} event={e} circles={circles} onParticipate={isMember ? participate : undefined} />)}
+                  {circleEvents.map((e) => <EventCard key={e.id} event={e} circles={circles} onParticipate={undefined} />)}
                 </div>
               </section>
             )}
@@ -260,7 +181,7 @@ export function CommunitySection() {
               <H2 style={{ fontSize: 'var(--text-lg)' }}>Fil du cercle</H2>
               {circlePosts.length === 0 && <P2>Aucune publication pour l’instant.</P2>}
               {circlePosts.map((p) => (
-                <PostCard key={p.id} post={p} canReply={isMember} onReply={addReply} onReport={() => setReportPostId(p.id)} />
+                <PostCard key={p.id} post={p} canReply={false} onReply={addReply} onReport={() => notify(COMMUNITY_RUNTIME_UNAVAILABLE_MESSAGE)} />
               ))}
             </section>
           </>

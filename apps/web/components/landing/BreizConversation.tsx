@@ -68,20 +68,20 @@ export default function BreizConversation() {
         <div className="w-8 h-8 rounded-full bg-[#E3EAE4] flex items-center justify-center">
           <span
             className="text-[#1E9A90] text-xs font-bold"
-            style={{ fontFamily: 'var(--font-source-sans)' }}
+            style={{ fontFamily: 'var(--font-body)' }}
           >
             B
           </span>
         </div>
         <span
           className="text-[#1E9A90] text-sm font-semibold"
-          style={{ fontFamily: 'var(--font-source-sans)' }}
+          style={{ fontFamily: 'var(--font-body)' }}
         >
           Breiz
         </span>
         <span
           className="text-[#6B7684] text-xs"
-          style={{ fontFamily: 'var(--font-source-sans)' }}
+          style={{ fontFamily: 'var(--font-body)' }}
         >
           · compagnon IA
         </span>
@@ -109,7 +109,7 @@ export default function BreizConversation() {
             >
               <p
                 className="text-sm leading-relaxed"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
+                style={{ fontFamily: 'var(--font-body)' }}
               >
                 {msg.text}
               </p>
@@ -125,7 +125,7 @@ export default function BreizConversation() {
             ? 'opacity-100'
             : 'opacity-0'
         }`}
-        style={{ fontFamily: 'var(--font-source-sans)' }}
+        style={{ fontFamily: 'var(--font-body)' }}
       >
         Pas un chatbot flottant. Une présence narrative.
       </p>
