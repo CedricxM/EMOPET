@@ -10,6 +10,7 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import type { CirclePost } from '../../../../../lib/community';
 import { collection } from '../../../../../lib/server/store';
+import { adminPostMutationForAction, parseAdminPostPatchRequest } from '../../../../../lib/server/admin-post-patch';
 import { canonicalPrivilegedAuthorizationVerifier } from '../../../../../lib/server/canonical-privileged-verifier';
 import { legacyCommunityAuthorityGate } from '../../../../../lib/server/community-authority';
 import { evaluatePrivilegedMutationOrigin } from '../../../../../lib/server/privileged-mutation-origin';
@@ -17,12 +18,10 @@ import { authorizePrivilegedSessionToken } from '../../../../../lib/server/privi
 import { PRIVILEGED_SESSION_COOKIE } from '../../../../../lib/server/privileged-session';
 import { resolvePrivilegedWebOrigin } from '../../../../../lib/server/privileged-web-origin-config';
 import { createFixedWindowRateLimiter } from '../../../../../lib/server/rate-limit';
-import { enforceRateLimit, readLimitedJson } from '../../../../../lib/server/request-security';
+import { enforceRateLimit } from '../../../../../lib/server/request-security';
 
 export const runtime = 'nodejs';
 const adminLimiter = createFixedWindowRateLimiter({ limit: 30, windowMs: 60_000 });
-const MAX_ADMIN_POST_PATCH_BYTES = 8 * 1024;
-const ADMIN_POST_ACTIONS = new Set(['hide', 'unhide', 'dismiss'] as const);
 
 function demoJson(body: Record<string, unknown>, status = 200): NextResponse {
   return NextResponse.json(
@@ -76,7 +75,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   }
 
   const { id } = await ctx.params;
-  const parsed = await readLimitedJson<unknown>(req, MAX_ADMIN_POST_PATCH_BYTES);
+  const parsed = await parseAdminPostPatchRequest(req);
   if (!parsed.ok) {
     return demoJson(
       { ok: false, errors: [parsed.status === 413 ? 'Requête trop volumineuse.' : 'Requête invalide.'] },
@@ -84,20 +83,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     );
   }
 
-  const body = parsed.data;
-  if (body === null || typeof body !== 'object' || Array.isArray(body)) {
-    return demoJson({ ok: false, errors: ['Requête invalide.'] }, 400);
-  }
-
-  const action = (body as Record<string, unknown>)['action'];
-  if (typeof action !== 'string' || !ADMIN_POST_ACTIONS.has(action as 'hide' | 'unhide' | 'dismiss')) {
-    return demoJson({ ok: false, errors: ['Action invalide.'] }, 400);
-  }
-
-  const patch: Partial<CirclePost> =
-    action === 'hide' ? { isHidden: true }
-      : action === 'unhide' ? { isHidden: false }
-        : { isHidden: false, flagCount: 0 };
+  const patch: Partial<CirclePost> = adminPostMutationForAction(parsed.action);
   const updated = collection<CirclePost>('community-posts').update(id, patch);
   if (!updated) return demoJson({ ok: false, errors: ['Post introuvable.'] }, 404);
   return demoJson({ ok: true, post: updated });
