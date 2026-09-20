@@ -102,11 +102,11 @@ Le core Community Hono est désormais durable pour membership-scoped list/detail
 
 | Méthode | Chemin | État observé |
 |---|---|---|
-| GET | `/api/health/:dogId` | Contrôle propriétaire ; `501 health_entry_read_not_implemented` tant qu’aucun lecteur autoritatif n’est câblé |
-| POST | `/api/health` | Validation + contrôle propriétaire ; `501 health_entry_persistence_not_implemented` tant qu'aucun writer durable n'est actif |
-| GET | `/api/health/:dogId/reminders` | Contrôle propriétaire ; `501 health_reminder_read_not_implemented` tant que la lecture/sémantique des rappels n’est pas implémentée |
+| GET | `/api/health/:dogId` | Lecture PostgreSQL owner-scoped du journal ; réponse `private, no-store` ; panne DB => `503 HEALTH_DATABASE_UNAVAILABLE` |
+| POST | `/api/health` | Validation + contrôle propriétaire + insertion PostgreSQL durable ; succès `201` avec la ligne persistée ; panne DB => `503 HEALTH_DATABASE_UNAVAILABLE` |
+| GET | `/api/health/:dogId/reminders` | Contrôle propriétaire puis `503 HEALTH_REMINDER_POLICY_NOT_READY` ; aucune sémantique de rappel n’est inventée |
 
-Ces routes portent un nom historique `health`, mais leurs sorties ne doivent pas être présentées comme un diagnostic.
+Ces routes portent un nom historique `health`. Le journal create/read est désormais une persistance déclarative owner-scoped, pas un diagnostic ni une validation clinique. La politique de rappels reste séparément gated.
 
 ### Annuaire
 

@@ -7,16 +7,19 @@ import postgres from 'postgres';
 const databaseUrl = process.env.DATABASE_URL;
 const runtimeTest = databaseUrl ? test : test.skip;
 
-test('health route source does not acknowledge discarded journal entries', async () => {
+test('health route only acknowledges journal creation after a durable PostgreSQL insert', async () => {
   const { readFileSync } = await import('node:fs');
   const source = readFileSync(new URL('../api/routes/health.ts', import.meta.url), 'utf8');
 
-  assert.match(source, /health_entry_persistence_not_implemented/);
-  assert.match(source, /},\s*501\s*\);/s);
+  assert.match(source, /\.insert\(healthEntries\)/);
+  assert.match(source, /\.returning\(\)/);
+  assert.match(source, /HEALTH_DATABASE_UNAVAILABLE/);
+  assert.match(source, /databaseUnavailable\(c, 'create_entry'\)/);
+  assert.doesNotMatch(source, /health_entry_persistence_not_implemented/);
   assert.doesNotMatch(source, /message:\s*['"]entry_created['"]/);
 });
 
-runtimeTest('validated owner health POST fails honestly and persists no row', async (t) => {
+runtimeTest('validated owner health POST persists exactly one recoverable row before returning 201', async (t) => {
   const sql = postgres(databaseUrl, { max: 1 });
   const ownerId = randomUUID();
   const dogId = randomUUID();
@@ -61,18 +64,31 @@ runtimeTest('validated owner health POST fails honestly and persists no row', as
       type: 'note',
       date: '2026-09-18T00:00:00.000Z',
       title: 'Test-only journal entry',
-      details: 'Must not be acknowledged as persisted.',
+      details: 'Must be recoverable from PostgreSQL before the route acknowledges it.',
     }),
   });
 
-  assert.equal(response.status, 501);
-  assert.deepEqual(await response.json(), {
-    error: 'health_entry_persistence_not_implemented',
-    dogId,
-  });
+  assert.equal(response.status, 201);
+  assert.equal(response.headers.get('cache-control'), 'private, no-store');
+  const body = await response.json();
+  assert.equal(body.entry.dogId, dogId);
+  assert.equal(body.entry.type, 'note');
+  assert.equal(body.entry.date, '2026-09-18');
+  assert.equal(body.entry.title, 'Test-only journal entry');
 
-  const [{ count }] = await sql`
-    select count(*)::int as count from health_entries where dog_id = ${dogId}
+  const rows = await sql`
+    select id::text, dog_id::text, type, date::text, title, details
+      from health_entries
+     where dog_id = ${dogId}
   `;
-  assert.equal(count, 0);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].id, body.entry.id);
+  assert.equal(rows[0].dog_id, dogId);
+  assert.equal(rows[0].type, 'note');
+  assert.equal(rows[0].date, '2026-09-18');
+  assert.equal(rows[0].title, 'Test-only journal entry');
+  assert.equal(
+    rows[0].details,
+    'Must be recoverable from PostgreSQL before the route acknowledges it.',
+  );
 });
