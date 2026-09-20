@@ -86,7 +86,7 @@ Le `POST /api/sensors/summaries` persiste désormais dans PostgreSQL uniquement 
 | POST | `/api/community/comments` | Validation/règles/filtre puis `501 community_comment_persistence_not_implemented`; aucun succès de création tant qu'aucun writer Hono n'est prouvé |
 | GET | `/api/community/:id/events` | Liste placeholder |
 | POST | `/api/community/events` | Validation/règles/filtre puis `501 community_event_persistence_not_implemented`; aucun succès de création tant qu'aucun writer Hono n'est prouvé |
-| GET | `/api/community/copresence/:dogId` | Contrôle propriétaire, résultats placeholder |
+| GET | `/api/community/copresence/:dogId` | Contrôle propriétaire puis `503 COMMUNITY_PERSISTENCE_NOT_READY` tant que le runtime de coprésence n’est pas implémenté ; aucun `200` vide n’est utilisé pour simuler l’absence de correspondances |
 
 Les contrôles de règles et de modération déterminent uniquement si une requête est autorisée à poursuivre. Ils ne constituent pas une preuve qu'un post, commentaire ou événement a été créé ou persisté.
 
