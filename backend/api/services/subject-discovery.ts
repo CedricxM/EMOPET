@@ -1,4 +1,4 @@
-import { eq, inArray, sql } from 'drizzle-orm';
+import { eq, inArray, or, sql } from 'drizzle-orm';
 
 import { db } from '../../db/index.js';
 import {
@@ -17,6 +17,7 @@ import {
   communityMembers,
   communityReports,
   communityRulesAcceptances,
+  copresenceEvents,
   devices,
   dogSubBaselines,
   dogs,
@@ -39,6 +40,7 @@ export type DiscoveryStatus =
   | 'DISCOVERED'
   | 'NONE_FOUND'
   | 'INTEGRATION_DEFERRED'
+  | 'UNRESOLVED_IDENTITY_MAPPING'
   | 'EXTERNAL_DELETION_NOT_PROVEN'
   | 'NOT_PERSISTED_BY_CURRENT_BACKEND'
   | 'POLICY_AUTHORITY_OPEN';
@@ -202,6 +204,7 @@ export async function discoverSubjectData(
         behavioralFactorScores: 0,
         eliBehavioralPriors: 0,
         researchDataConsents: 0,
+        copresenceEvents: 0,
       };
 
       if (selectedDogIds.length > 0) {
@@ -234,6 +237,14 @@ export async function discoverSubjectData(
             : 0,
           eliBehavioralPriors: await countWhere(tx, eliBehavioralPriors, inArray(eliBehavioralPriors.dogId, selectedDogIds)),
           researchDataConsents: await countWhere(tx, researchDataConsents, inArray(researchDataConsents.dogId, selectedDogIds)),
+          copresenceEvents: await countWhere(
+            tx,
+            copresenceEvents,
+            or(
+              inArray(copresenceEvents.dogAId, selectedDogIds),
+              inArray(copresenceEvents.dogBId, selectedDogIds),
+            ),
+          ),
         };
       }
 
@@ -265,11 +276,16 @@ export async function discoverSubjectData(
           behavioralFactorScores: counted(dogCounts.behavioralFactorScores),
           eliBehavioralPriors: counted(dogCounts.eliBehavioralPriors),
           researchDataConsents: counted(dogCounts.researchDataConsents),
+          copresenceEvents: counted(dogCounts.copresenceEvents),
         },
         externalOrUnresolved: {
           professionalSharing: unresolved(
             'INTEGRATION_DEFERRED',
             'Professional-sharing persistence is owned by INT-05 and is not reported as absent by INT-04B.',
+          ),
+          contactRequests: unresolved(
+            'UNRESOLVED_IDENTITY_MAPPING',
+            'Contact request storage uses a non-SQL owner-token mapping; PostgreSQL discovery cannot canonically bind or enumerate it yet.',
           ),
           journal: unresolved(
             'NOT_PERSISTED_BY_CURRENT_BACKEND',
