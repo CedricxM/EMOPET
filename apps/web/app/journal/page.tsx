@@ -77,7 +77,7 @@ export default function JournalPage() {
           }
         }
       } catch {
-        /* hors-ligne â†’ on conserve le baseline local */
+        /* hors-ligne → on conserve le baseline local */
       }
     })();
   }, []);
@@ -96,12 +96,12 @@ export default function JournalPage() {
       const userEntries = all.filter((e) => e.id.startsWith('user-') || e.id.startsWith('milestone-'));
       localStorage.setItem(STORAGE_ENTRIES, JSON.stringify(userEntries));
     } catch {
-      /* quota / indisponible â€” on ignore */
+      /* quota / indisponible — on ignore */
     }
   }
 
   function handleCreate(entry: JournalEntry) {
-    // Jalons Ã©ventuels (sujet : le propriÃ©taire).
+    // Jalons éventuels (sujet : le propriétaire).
     const candidates = detectMilestones([entry, ...entries]);
     const milestoneEntries = candidates.map((c) => milestoneToEntry(c));
     const created = [...milestoneEntries, entry];
@@ -161,7 +161,7 @@ export default function JournalPage() {
           </div>
         )}
 
-        {/* Navigation mensuelle + rÃ©sumÃ© */}
+        {/* Navigation mensuelle + résumé */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
             <button
@@ -203,7 +203,7 @@ export default function JournalPage() {
         {byDay.length === 0 ? (
           <Card tone="sunk">
             <div style={{ textAlign: 'center', padding: '32px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <span aria-hidden style={{ fontSize: 32, color: 'var(--terracotta-400)' }}>âŠ™</span>
+              <span aria-hidden style={{ fontSize: 32, color: 'var(--terracotta-400)' }}>⊙</span>
               <P2>{t('journal', 'empty')}</P2>
             </div>
           </Card>

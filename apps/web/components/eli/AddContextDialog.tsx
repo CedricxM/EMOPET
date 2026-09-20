@@ -1,9 +1,9 @@
 ﻿'use client';
 
 /**
- * DÃ©clarer un contexte particulier (Sprint 03).
- * Le propriÃ©taire signale une pÃ©riode (voyage, convalescenceâ€¦) pour qu'ELI
- * Ã©largisse la tolÃ©rance des Ã©carts sur les familles concernÃ©es.
+ * Déclarer un contexte particulier (Sprint 03).
+ * Le propriétaire signale une période (voyage, convalescence…) pour qu'ELI
+ * élargisse la tolérance des écarts sur les familles concernées.
  */
 
 import { Modal } from '@/lib/heroui-compat';
@@ -70,14 +70,14 @@ export function AddContextDialog({
           <Modal.Dialog>
             <Modal.Header>
               <Modal.Heading style={{ fontFamily: 'var(--font-serif)', fontSize: 20, color: 'var(--fg-strong)', margin: 0 }}>
-                DÃ©clarer un contexte particulier
+                Déclarer un contexte particulier
               </Modal.Heading>
               <Modal.CloseTrigger aria-label="Fermer" />
             </Modal.Header>
             <Modal.Body>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <p style={{ margin: 0, fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--fg-2)', lineHeight: 1.5 }}>
-                  Si une pÃ©riode particuliÃ¨re survient (voyage, convalescenceâ€¦), indiquez-le pour quâ€™ELI
+                  Si une période particulière survient (voyage, convalescence…), indiquez-le pour qu’ELI
                   en tienne compte dans ses indicateurs.
                 </p>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -90,7 +90,7 @@ export function AddContextDialog({
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <span style={LABEL}>DÃ©but</span>
+                    <span style={LABEL}>Début</span>
                     <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={FIELD} />
                   </label>
                   <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -100,9 +100,9 @@ export function AddContextDialog({
                 </div>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <span style={LABEL}>Note (optionnelle)</span>
-                  <textarea value={reason} onChange={(e) => setReason(e.target.value)} maxLength={500} rows={2} style={{ ...FIELD, resize: 'vertical' }} placeholder="Ex : revient de chez le vÃ©to, repos une semaine" />
+                  <textarea value={reason} onChange={(e) => setReason(e.target.value)} maxLength={500} rows={2} style={{ ...FIELD, resize: 'vertical' }} placeholder="Ex : revient de chez le véto, repos une semaine" />
                 </label>
-                {!valid && <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--rouge)' }}>La date de fin doit Ãªtre aprÃ¨s le dÃ©but.</span>}
+                {!valid && <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--rouge)' }}>La date de fin doit être après le début.</span>}
               </div>
             </Modal.Body>
             <Modal.Footer>

@@ -1,5 +1,5 @@
 ﻿/**
- * RÃ©ponse Ã  un post â€” persistance SERVEUR (R3). Filtre modÃ©ration appliquÃ©.
+ * Réponse à un post — persistance SERVEUR (R3). Filtre modération appliqué.
  * POST /api/community/posts/:id/replies
  */
 
@@ -28,9 +28,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   }
   const body = parsed.data;
   const content = (body.content ?? '').trim();
-  if (content.length < 2) return NextResponse.json({ ok: false, errors: ['RÃ©ponse trop courte.'] }, { status: 400 });
+  if (content.length < 2) return NextResponse.json({ ok: false, errors: ['Réponse trop courte.'] }, { status: 400 });
   if (content.length > REPLY_MAX_CONTENT_LENGTH) return NextResponse.json({ ok: false, errors: ['Reponse trop volumineuse.'] }, { status: 400 });
-  if (containsForbiddenContent(content).blocked) return NextResponse.json({ ok: false, errors: ['Contenu non autorisÃ© dÃ©tectÃ©.'] }, { status: 400 });
+  if (containsForbiddenContent(content).blocked) return NextResponse.json({ ok: false, errors: ['Contenu non autorisé détecté.'] }, { status: 400 });
 
   const post = posts.list().find((p) => p.id === id);
   if (!post) return NextResponse.json({ ok: false, errors: ['Post introuvable.'] }, { status: 404 });

@@ -38,16 +38,16 @@ export default function DashboardPage() {
         <header className={styles.livingHero}>
           <div className={styles.heroInner}>
             <div className={styles.heroCopy}>
-              <Eyebrow>{t('dashboard', 'today')} Â· {today}</Eyebrow>
-              <H1>{t('dashboard', 'title')} â€” {MOCK_DOG.name}</H1>
+              <Eyebrow>{t('dashboard', 'today')} · {today}</Eyebrow>
+              <H1>{t('dashboard', 'title')} — {MOCK_DOG.name}</H1>
               <Lead>{t('dashboard', 'lead')}</Lead>
-              <span className={styles.dogCue}>Observatoire de Gus Â· routines et signaux fiables</span>
+              <span className={styles.dogCue}>Observatoire de Gus · routines et signaux fiables</span>
             </div>
             <div className={`${styles.sceneStamp} ${styles.softPulse}`} aria-hidden />
           </div>
         </header>
 
-        {/* Signature Â« confiance Â» : la capture insuffisante est assumÃ©e, pas masquÃ©e. */}
+        {/* Signature « confiance » : la capture insuffisante est assumée, pas masquée. */}
         {MOCK_ELI.captureMinutes < 60 && (
           <div
             role="status"
@@ -91,7 +91,7 @@ export default function DashboardPage() {
                     fontFeatureSettings: 'var(--ff-tabular)',
                   }}
                 >
-                  {MOCK_ELI.captureMinutes} {t('dashboard', 'captureSummary')} Â· {t('dashboard', 'captureContext')}
+                  {MOCK_ELI.captureMinutes} {t('dashboard', 'captureSummary')} · {t('dashboard', 'captureContext')}
                 </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
@@ -187,7 +187,7 @@ export default function DashboardPage() {
           </Card>
         </section>
 
-        {/* Tendances ELI v6 + Â« Comprendre les indicateurs Â» (fusion /bien-etre) */}
+        {/* Tendances ELI v6 + « Comprendre les indicateurs » (fusion /bien-etre) */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <Button
             kind="secondary"
@@ -260,7 +260,7 @@ function TrendChart({
             style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}
           >
             <div
-              title={`${dayShort}${d.day} Â· ELI ${d.eli}`}
+              title={`${dayShort}${d.day} · ELI ${d.eli}`}
               style={{
                 width: '100%',
                 height: h,
