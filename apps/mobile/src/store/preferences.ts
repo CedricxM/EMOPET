@@ -4,6 +4,8 @@ import { create } from 'zustand';
 export type MobileSubscriptionTier = 'free' | 'trial' | 'kit' | 'premium';
 export type MobileAiToneProfile = AIToneProfile;
 
+type SensitiveConsentKey = 'location_opt_in' | 'community_opt_in' | 'vet_export_opt_in';
+
 interface PreferencesState {
   subscriptionTier: MobileSubscriptionTier;
   hardwareLinked: boolean;
@@ -18,21 +20,19 @@ interface PreferencesState {
     community_opt_in: boolean;
     vet_export_opt_in: boolean;
   };
-  setSubscriptionTier: (tier: MobileSubscriptionTier) => void;
-  setHardwareLinked: (linked: boolean) => void;
   setCommunityAiToneProfileDefault: (profile: MobileAiToneProfile) => void;
   setAiToneProfile: (profile: MobileAiToneProfile | null) => void;
   setCommunityRulesAccepted: (accepted: boolean) => void;
   joinWaitlist: (serviceId: string) => void;
   setPassivePhoneDetectionEnabled: (enabled: boolean) => void;
   setManualPresenceOverride: (state: 'present' | 'absence' | null) => void;
-  setConsent: (
-    key: 'location_opt_in' | 'community_opt_in' | 'vet_export_opt_in',
-    value: boolean,
-  ) => void;
+  setConsent: (key: SensitiveConsentKey, value: boolean) => void;
+  activateLocationConsentFromDurableAuthority: () => void;
+  activateCommunityConsentFromDurableAuthority: () => void;
 }
 
 export const usePreferencesStore = create<PreferencesState>((set) => ({
+  // Read-only placeholders until canonical account/device authority is wired.
   subscriptionTier: 'free',
   hardwareLinked: false,
   communityAiToneProfileDefault: 'BREIZ',
@@ -43,11 +43,9 @@ export const usePreferencesStore = create<PreferencesState>((set) => ({
   manualPresenceOverride: null,
   consents: {
     location_opt_in: false,
-    community_opt_in: true,
-    vet_export_opt_in: true,
+    community_opt_in: false,
+    vet_export_opt_in: false,
   },
-  setSubscriptionTier: (subscriptionTier) => set({ subscriptionTier }),
-  setHardwareLinked: (hardwareLinked) => set({ hardwareLinked }),
   setCommunityAiToneProfileDefault: (communityAiToneProfileDefault) => set({ communityAiToneProfileDefault }),
   setAiToneProfile: (aiToneProfile) => set({ aiToneProfile }),
   setCommunityRulesAccepted: (communityRulesAccepted) => set({ communityRulesAccepted }),
@@ -57,14 +55,50 @@ export const usePreferencesStore = create<PreferencesState>((set) => ({
         ? state.waitlistedServiceIds
         : [...state.waitlistedServiceIds, serviceId],
     })),
-  setPassivePhoneDetectionEnabled: (passivePhoneDetectionEnabled) =>
-    set({ passivePhoneDetectionEnabled }),
+  // Passive detection may only be enabled when durable location authority is
+  // already reflected in the local consent mirror.
+  setPassivePhoneDetectionEnabled: (enabled) =>
+    set((state) => ({
+      passivePhoneDetectionEnabled: enabled && state.consents.location_opt_in,
+    })),
   setManualPresenceOverride: (manualPresenceOverride) => set({ manualPresenceOverride }),
   setConsent: (key, value) =>
+    set((state) => {
+      if ((key === 'location_opt_in' || key === 'community_opt_in') && value) {
+        // Generic/local state may revoke sensitive authority, but it cannot
+        // manufacture a positive server-backed consent.
+        return {};
+      }
+
+      if (key === 'location_opt_in') {
+        return {
+          consents: {
+            ...state.consents,
+            location_opt_in: false,
+          },
+          passivePhoneDetectionEnabled: false,
+        };
+      }
+
+      return {
+        consents: {
+          ...state.consents,
+          [key]: value,
+        },
+      };
+    }),
+  activateLocationConsentFromDurableAuthority: () =>
     set((state) => ({
       consents: {
         ...state.consents,
-        [key]: value,
+        location_opt_in: true,
+      },
+    })),
+  activateCommunityConsentFromDurableAuthority: () =>
+    set((state) => ({
+      consents: {
+        ...state.consents,
+        community_opt_in: true,
       },
     })),
 }));

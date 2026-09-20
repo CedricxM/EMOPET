@@ -57,13 +57,13 @@ export default function PrivacyControls() {
             <div className="flex-1 mr-4">
               <p
                 className="text-[#141C25] text-sm font-medium"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
+                style={{ fontFamily: 'var(--font-body)' }}
               >
                 {control.label}
               </p>
               <p
                 className="text-[#6B7684] text-xs mt-0.5"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
+                style={{ fontFamily: 'var(--font-body)' }}
               >
                 {control.description}
               </p>
@@ -91,14 +91,14 @@ export default function PrivacyControls() {
       <div className="flex flex-wrap gap-3">
         <button
           className="px-4 py-2.5 text-sm text-[#4A5766] border border-[#DDD4C2] rounded-lg hover:bg-[#F4EFE6] transition-colors duration-200"
-          style={{ fontFamily: 'var(--font-source-sans)' }}
+          style={{ fontFamily: 'var(--font-body)' }}
           aria-label="Supprimer une préférence"
         >
           Supprimer une préférence
         </button>
         <button
           className="px-4 py-2.5 text-sm text-[#4A5766] border border-[#DDD4C2] rounded-lg hover:bg-[#F4EFE6] transition-colors duration-200"
-          style={{ fontFamily: 'var(--font-source-sans)' }}
+          style={{ fontFamily: 'var(--font-body)' }}
           aria-label="Exporter mes données"
         >
           Exporter mes données
