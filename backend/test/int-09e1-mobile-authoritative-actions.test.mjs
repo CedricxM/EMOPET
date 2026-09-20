@@ -18,8 +18,8 @@ test('INT-09E1 durable mutations require an authenticated token', () => {
   const demoUserOccurrences = serviceSource.match(/['"]demo-user['"]/g) ?? [];
   assert.equal(
     demoUserOccurrences.length,
-    1,
-    'demo-user may remain only in local explanatory progress, never mutation results',
+    0,
+    'INT-09E3 removes the last local demo-user subject fallback entirely',
   );
 
   for (const fn of [
