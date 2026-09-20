@@ -9,6 +9,13 @@ on:
       - 'backend/api/services/auth-*.ts'
       - 'packages/shared/src/validators/index.ts'
       - 'backend/test/auth-*.test.mjs'
+      - 'backend/api/routes/dogs.ts'
+      - 'backend/api/routes/health.ts'
+      - 'backend/api/routes/sensors.ts'
+      - 'backend/api/routes/data-export.ts'
+      - 'backend/api/routes/community.ts'
+      - 'backend/api/routes/directory.ts'
+      - 'backend/test/*.integration.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:
@@ -188,5 +195,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior and the focused AUTH-01 session candidate.'
-          echo 'It does not authorize production migration, deployment, identity-provider selection, email verification, MFA, or release.'
+          echo 'This workflow validates only disposable P0 database behavior.'
+          echo 'It does not authorize production migration, deployment, or release.'

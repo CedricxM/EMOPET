@@ -24,6 +24,12 @@ export function useFeatureProgress() {
   const communityRulesAccepted = usePreferencesStore((state) => state.communityRulesAccepted);
   const waitlistedServiceIds = usePreferencesStore((state) => state.waitlistedServiceIds);
   const setConsent = usePreferencesStore((state) => state.setConsent);
+  const activateLocationConsentFromDurableAuthority = usePreferencesStore(
+    (state) => state.activateLocationConsentFromDurableAuthority,
+  );
+  const activateCommunityConsentFromDurableAuthority = usePreferencesStore(
+    (state) => state.activateCommunityConsentFromDurableAuthority,
+  );
   const setCommunityRulesAccepted = usePreferencesStore((state) => state.setCommunityRulesAccepted);
   const joinWaitlist = usePreferencesStore((state) => state.joinWaitlist);
   const setPassivePhoneDetectionEnabled = usePreferencesStore(
@@ -137,10 +143,10 @@ export function useFeatureProgress() {
                 });
 
                 if (purpose === 'community_opt_in') {
-                  setConsent('community_opt_in', true);
+                  activateCommunityConsentFromDurableAuthority();
                 }
                 if (purpose === 'location_nearby_temp') {
-                  setConsent('location_opt_in', true);
+                  activateLocationConsentFromDurableAuthority();
                   setPassivePhoneDetectionEnabled(true);
                 }
 

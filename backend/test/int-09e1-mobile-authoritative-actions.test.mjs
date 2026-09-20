@@ -18,8 +18,8 @@ test('INT-09E1 durable mutations require an authenticated token', () => {
   const demoUserOccurrences = serviceSource.match(/['"]demo-user['"]/g) ?? [];
   assert.equal(
     demoUserOccurrences.length,
-    1,
-    'demo-user may remain only in local explanatory progress, never mutation results',
+    0,
+    'INT-09E3 removes the last local demo-user subject fallback entirely',
   );
 
   for (const fn of [
@@ -48,14 +48,22 @@ test('INT-09E1 waitlist and rules local state follow server success', () => {
 
 test('INT-09E1 positive consent is applied only after durable save', () => {
   const save = hookSource.indexOf('await saveFeatureConsent(token');
-  const communityLocal = hookSource.indexOf("setConsent('community_opt_in', true)", save);
-  const locationLocal = hookSource.indexOf("setConsent('location_opt_in', true)", save);
+  const communityLocal = hookSource.indexOf(
+    'activateCommunityConsentFromDurableAuthority()',
+    save,
+  );
+  const locationLocal = hookSource.indexOf(
+    'activateLocationConsentFromDurableAuthority()',
+    save,
+  );
   const passiveLocal = hookSource.indexOf('setPassivePhoneDetectionEnabled(true)', save);
 
   assert.ok(save >= 0);
   assert.ok(communityLocal > save);
   assert.ok(locationLocal > save);
   assert.ok(passiveLocal > save);
+  assert.doesNotMatch(hookSource, /setConsent\('community_opt_in', true\)/);
+  assert.doesNotMatch(hookSource, /setConsent\('location_opt_in', true\)/);
 
   assert.doesNotMatch(
     hookSource,
