@@ -18,6 +18,15 @@ on:
       - 'backend/test/*.integration.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
       - 'backend/test/id-01-referential-integrity.sql'
+      - 'backend/test/subject-discovery-postgres.test.mjs'
+      - 'backend/test/privacy-erasure-topology.integration.test.mjs'
+      - 'config/privacy/**'
+      - 'backend/api/services/subject-discovery.ts'
+      - 'backend/api/services/subject-access.ts'
+      - 'backend/api/services/data-export-policy.ts'
+      - 'backend/test/data-export-*.test.mjs'
+      - 'backend/test/privacy-dog-export-coverage.test.mjs'
+      - 'config/privacy/dog-export-coverage.json'
       - 'backend/test/dataset-writer-authority.sql'
       - 'scripts/ingest_vbo.ts'
       - 'scripts/data/vbo-committed-snapshot-audit.mjs'
@@ -198,6 +207,34 @@ jobs:
           EMOPET_DB_INTEGRATION_TEST: '1'
         run: node --test test/sensor-summary-ingestion.integration.test.mjs test/sensor-ingestion-authority-concurrency.integration.test.mjs
 
+      - name: PRIV-DISC-01 transactional subject discovery
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          SUBJECT_DISCOVERY_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/subject-discovery-postgres.test.mjs
+
+      - name: PRIV-ERASURE-TOPOLOGY generated database parity
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          PRIVACY_ERASURE_TOPOLOGY_DB_INTEGRATION: '1'
+        run: node --test test/privacy-erasure-topology.integration.test.mjs
+
+      - name: INT-04A bounded Owner export authority
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          EMOPET_DB_INTEGRATION_TEST: '1'
+        run: |
+          node --test \
+            test/data-export-authority.test.mjs \
+            test/data-export-interval-contract.test.mjs \
+            test/data-export-summary-window.test.mjs \
+            test/privacy-dog-export-coverage.test.mjs \
+            test/data-export-runtime.integration.test.mjs
+
       - name: Verify generated snapshot is stable
         working-directory: backend
         run: |
@@ -223,5 +260,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus focused INT-03A sensor-provenance and INT-03B dataset-writer authority.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY and INT-04A bounded export authority.'
           echo 'It does not authorize production migration, deployment, or release.'

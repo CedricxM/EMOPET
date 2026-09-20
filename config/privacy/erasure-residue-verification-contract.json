@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "emopet-erasure-residue-verification-contract-v1",
+  "status": "NEGATIVE_RESIDUE_VERIFICATION_NOT_IMPLEMENTED",
+  "claimsExecutableErasure": false,
+  "claimsCompleteErasure": false,
+  "snapshotKeys": [
+    {
+      "key": "ACCOUNT_ID",
+      "source": "users.id",
+      "captureRule": "CAPTURE_TARGET_ACCOUNT_ID_BEFORE_ANY_FUTURE_MUTATION"
+    },
+    {
+      "key": "DOG_IDS_SNAPSHOT",
+      "source": "dogs.id",
+      "captureRule": "CAPTURE_ALL_TARGET_DOG_IDS_BEFORE_ANY_FUTURE_MUTATION"
+    },
+    {
+      "key": "ASSESSMENT_IDS_SNAPSHOT",
+      "source": "behavioral_assessments.id",
+      "captureRule": "CAPTURE_IDS_FOR_TARGET_DOGS_BEFORE_PARENT_MUTATION"
+    },
+    {
+      "key": "FACTOR_SCORE_IDS_SNAPSHOT",
+      "source": "behavioral_factor_scores.id",
+      "captureRule": "CAPTURE_IDS_FOR_TARGET_ASSESSMENTS_BEFORE_PARENT_MUTATION"
+    }
+  ],
+  "relationProbeRoutes": [
+    {
+      "subjectRoot": "users.id",
+      "relationTypes": [
+        "DIRECT_FK"
+      ],
+      "snapshotKey": "ACCOUNT_ID",
+      "probeStatus": "NOT_IMPLEMENTED"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationTypes": [
+        "DIRECT_FK",
+        "UNCONSTRAINED_IDENTIFIER"
+      ],
+      "snapshotKey": "DOG_IDS_SNAPSHOT",
+      "probeStatus": "NOT_IMPLEMENTED"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationTypes": [
+        "TRANSITIVE_FK"
+      ],
+      "snapshotKey": "ASSESSMENT_IDS_SNAPSHOT_OR_FACTOR_SCORE_IDS_SNAPSHOT",
+      "probeStatus": "NOT_IMPLEMENTED"
+    }
+  ],
+  "nonSqlProbes": [
+    {
+      "surface": "OBJECT_MEDIA_STORAGE",
+      "probeStatus": "NOT_IMPLEMENTED",
+      "requiredEvidenceClass": "OBJECT_MEDIA_STORAGE_RESIDUE_OR_APPROVED_RETENTION_EVIDENCE"
+    },
+    {
+      "surface": "PROVIDER_HELD_COPIES",
+      "probeStatus": "NOT_IMPLEMENTED",
+      "requiredEvidenceClass": "PROVIDER_HELD_COPIES_RESIDUE_OR_APPROVED_RETENTION_EVIDENCE"
+    },
+    {
+      "surface": "CACHES_SEARCH_INDEXES",
+      "probeStatus": "NOT_IMPLEMENTED",
+      "requiredEvidenceClass": "CACHES_SEARCH_INDEXES_RESIDUE_OR_APPROVED_RETENTION_EVIDENCE"
+    },
+    {
+      "surface": "ANALYTICS_TELEMETRY",
+      "probeStatus": "NOT_IMPLEMENTED",
+      "requiredEvidenceClass": "ANALYTICS_TELEMETRY_RESIDUE_OR_APPROVED_RETENTION_EVIDENCE"
+    },
+    {
+      "surface": "BACKUPS",
+      "probeStatus": "NOT_IMPLEMENTED",
+      "requiredEvidenceClass": "BACKUPS_RESIDUE_OR_APPROVED_RETENTION_EVIDENCE"
+    }
+  ],
+  "completionRule": "NO_COMPLETE_ERASURE_EVIDENCE_UNTIL_EVERY_APPROVED_RELATIONAL_DISPOSITION_HAS_POST_CONDITION_PROOF_AND_EVERY_APPLICABLE_NON_SQL_SURFACE_HAS EXECUTION_OR_EXPIRY_EVIDENCE",
+  "scopeLimitations": [
+    "This contract describes future verification requirements only; it does not execute erasure.",
+    "A zero-row PostgreSQL result cannot prove deletion from non-SQL surfaces.",
+    "Snapshot identifiers must be captured before future parent mutations destroy traversal paths."
+  ]
+}
