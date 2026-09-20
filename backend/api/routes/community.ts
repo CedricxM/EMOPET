@@ -20,6 +20,8 @@ import { requireDogOwnership } from '../middleware/authorization.js';
 
 const community = new Hono();
 
+const COMMUNITY_PERSISTENCE_NOT_READY = 'COMMUNITY_PERSISTENCE_NOT_READY' as const;
+
 function readUserId(c: unknown): string | null {
   const userId = (c as { get: (key: string) => unknown }).get('userId');
   return typeof userId === 'string' && userId.trim() ? userId : null;
@@ -143,8 +145,13 @@ community.get('/copresence/:dogId', async (c) => {
   const denied = await requireDogOwnership(c, dogId);
   if (denied) return denied;
 
-  // TODO: return copresence matches
-  return c.json({ dogId, matches: [] });
+  c.header('Cache-Control', 'private, no-store');
+  return c.json({
+    error: 'Community copresence runtime is not available.',
+    code: COMMUNITY_PERSISTENCE_NOT_READY,
+    operation: 'read_copresence',
+    retryable: false,
+  }, 503);
 });
 
 export { community };
