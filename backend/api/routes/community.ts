@@ -22,6 +22,22 @@ const community = new Hono();
 
 const COMMUNITY_PERSISTENCE_NOT_READY = 'COMMUNITY_PERSISTENCE_NOT_READY' as const;
 
+function communityPersistenceUnavailable(
+  c: {
+    header: (name: string, value: string) => void;
+    json: (value: unknown, status?: number) => Response;
+  },
+  operation: string,
+): Response {
+  c.header('Cache-Control', 'private, no-store');
+  return c.json({
+    error: 'Community durable runtime is not available for this operation.',
+    code: COMMUNITY_PERSISTENCE_NOT_READY,
+    operation,
+    retryable: false,
+  }, 503);
+}
+
 function readUserId(c: unknown): string | null {
   const userId = (c as { get: (key: string) => unknown }).get('userId');
   return typeof userId === 'string' && userId.trim() ? userId : null;
@@ -63,19 +79,15 @@ function requireCommunityRules(c: { json: (value: unknown, status?: number) => R
 // ── Communities ─────────────────────────────────────────────────
 
 community.get('/', async (c) => {
-  // TODO: list communities user belongs to
-  return c.json({ communities: [] });
+  return communityPersistenceUnavailable(c, 'list_communities');
 });
 
 community.get('/:id', async (c) => {
-  const id = c.req.param('id');
-  return c.json({ id });
+  return communityPersistenceUnavailable(c, 'get_community');
 });
 
 community.get('/:id/feed', async (c) => {
-  const id = c.req.param('id');
-  // TODO: paginated feed
-  return c.json({ communityId: id, posts: [] });
+  return communityPersistenceUnavailable(c, 'read_feed');
 });
 
 community.post('/rules/accept', zValidator('json', CommunityRulesAcceptSchema), async (c) => {
@@ -122,8 +134,7 @@ community.post('/comments', zValidator('json', CommentCreateSchema), async (c) =
 // ── Events ──────────────────────────────────────────────────────
 
 community.get('/:id/events', async (c) => {
-  const id = c.req.param('id');
-  return c.json({ communityId: id, events: [] });
+  return communityPersistenceUnavailable(c, 'list_events');
 });
 
 community.post('/events', zValidator('json', EventCreateSchema), async (c) => {
@@ -145,13 +156,7 @@ community.get('/copresence/:dogId', async (c) => {
   const denied = await requireDogOwnership(c, dogId);
   if (denied) return denied;
 
-  c.header('Cache-Control', 'private, no-store');
-  return c.json({
-    error: 'Community copresence runtime is not available.',
-    code: COMMUNITY_PERSISTENCE_NOT_READY,
-    operation: 'read_copresence',
-    retryable: false,
-  }, 503);
+  return communityPersistenceUnavailable(c, 'read_copresence');
 });
 
 export { community };

@@ -76,15 +76,15 @@ Le `POST /api/sensors/summaries` persiste désormais dans PostgreSQL uniquement 
 
 | Méthode | Chemin | État observé |
 |---|---|---|
-| GET | `/api/community` | Liste placeholder |
-| GET | `/api/community/:id` | Détail minimal |
-| GET | `/api/community/:id/feed` | Feed placeholder |
+| GET | `/api/community` | `503 COMMUNITY_PERSISTENCE_NOT_READY` tant que la liste durable member-scoped n’est pas intégrée |
+| GET | `/api/community/:id` | `503 COMMUNITY_PERSISTENCE_NOT_READY` tant que le détail durable n’est pas intégré |
+| GET | `/api/community/:id/feed` | `503 COMMUNITY_PERSISTENCE_NOT_READY` tant que le feed durable n’est pas intégré |
 | POST | `/api/community/rules/accept` | Acceptation conservée en mémoire |
 | POST | `/api/community/reports` | Signalement conservé en mémoire |
 | POST | `/api/community/blocks` | Blocage conservé en mémoire |
 | POST | `/api/community/posts` | Validation/règles/filtre puis `501 community_post_persistence_not_implemented`; aucun succès de création tant qu'aucun writer Hono n'est prouvé |
 | POST | `/api/community/comments` | Validation/règles/filtre puis `501 community_comment_persistence_not_implemented`; aucun succès de création tant qu'aucun writer Hono n'est prouvé |
-| GET | `/api/community/:id/events` | Liste placeholder |
+| GET | `/api/community/:id/events` | `503 COMMUNITY_PERSISTENCE_NOT_READY` tant que la lecture durable des événements n’est pas intégrée |
 | POST | `/api/community/events` | Validation/règles/filtre puis `501 community_event_persistence_not_implemented`; aucun succès de création tant qu'aucun writer Hono n'est prouvé |
 | GET | `/api/community/copresence/:dogId` | Contrôle propriétaire puis `503 COMMUNITY_PERSISTENCE_NOT_READY` tant que le runtime de coprésence n’est pas implémenté ; aucun `200` vide n’est utilisé pour simuler l’absence de correspondances |
 
