@@ -350,7 +350,7 @@ export function buildLocalFeatureProgress(
   context: FeatureProgressLocalContext,
 ): FeatureProgressResponse {
   return {
-    userId: context.userId ?? 'demo-user',
+    userId: context.userId ?? null,
     generatedAt: new Date().toISOString(),
     services: FEATURE_PROGRESS_CATALOG.map((entry) => localCard(entry, context)),
   };
