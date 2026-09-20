@@ -16,6 +16,42 @@ interface ExportProvenance {
   notes: string[];
 }
 
+/**
+ * Producer status of each publication level, on the backend as it currently stands.
+ *
+ * A persistence schema is not a producer. `sensor_summaries`, `eli_states`,
+ * `baselines` and `devices` are declared in `db/schema/` and are read here, but
+ * no module under `api/` writes to any of them: `POST /sensors/summaries` still
+ * returns `ingested` from a `TODO` stub without persisting.
+ *
+ * `inferred` is the structural case rather than a work-in-progress one. The
+ * canonical engine `@emopet/eli-engine` is a declared dependency of this package
+ * and is imported by no backend module, so nothing produces `eli_states` rows.
+ * That gate is ELI-ARCH-01 (#118) and is still open.
+ *
+ * Consequence for portability: an empty export from this endpoint means "this
+ * backend has no writer for that level", NOT "nothing was observed about this
+ * dog". Those two statements are not interchangeable and the envelope must not
+ * let a reader confuse them.
+ *
+ * Maturity: `NO_PERSISTING_WRITER_OBSERVED` is an observation dated below, not a
+ * product decision about which levels should exist; update the matching entry in
+ * the same change that lands an ingestion writer.
+ */
+export const EXPORT_LEVEL_PRODUCER_STATUS = {
+  raw: 'NOT_PERSISTED_BY_CURRENT_BACKEND_SCHEMA',
+  preprocessed: 'NO_PERSISTING_WRITER_OBSERVED',
+  inferred: 'NO_CANONICAL_ELI_PRODUCER',
+  device_metadata: 'NO_PERSISTING_WRITER_OBSERVED',
+  baseline: 'NO_PERSISTING_WRITER_OBSERVED',
+} as const;
+
+/** Date the statuses above were observed. Dateless status claims go stale silently. */
+export const PRODUCER_STATUS_OBSERVED_AT = '2026-09-19';
+
+/** What an empty array for a given level is allowed to be read as. */
+export const EMPTY_RESULT_MEANING = 'ABSENCE_OF_WRITER_NOT_ABSENCE_OF_ACTIVITY';
+
 export const dataExport = new Hono<{ Variables: Variables }>();
 
 function parseDate(value: string | undefined): Date | null {
@@ -94,6 +130,7 @@ dataExport.get('/', async (c) => {
       'This export contains only records currently persisted by the EMOPET backend.',
       'Raw high-rate MAT/TAG streams are not persisted by the current backend schema and are therefore not fabricated.',
       'ELI states are inferred/derived data and are separated from preprocessed sensor summaries.',
+      'No level exported here has a persisting writer in this backend at the declared observation date: an empty result declares the absence of a producer, not the absence of activity. See levelProducerStatus.',
     ],
   };
 
@@ -118,6 +155,9 @@ dataExport.get('/', async (c) => {
     },
     raw: [],
     rawDataStatus: 'NOT_PERSISTED_BY_CURRENT_BACKEND_SCHEMA',
+    levelProducerStatus: EXPORT_LEVEL_PRODUCER_STATUS,
+    producerStatusObservedAt: PRODUCER_STATUS_OBSERVED_AT,
+    emptyResultMeaning: EMPTY_RESULT_MEANING,
     preprocessed: summaryRows.map((row) => ({
       ...row,
       units: {
@@ -180,5 +220,10 @@ dataExport.get('/capabilities', (c) => c.json({
   filters: ['dog_id', 'from', 'to'],
   directThirdPartyDelegation: 'GATED_AUTH_BASELINE_REQUIRED',
   rawHighRateStreams: 'NOT_PERSISTED_BY_CURRENT_BACKEND_SCHEMA',
+  // Levels this endpoint can shape. Whether anything currently produces them is a
+  // separate question, answered by levelProducerStatus rather than left implicit.
   availableLevels: ['preprocessed', 'inferred', 'device_metadata', 'baseline'],
+  levelProducerStatus: EXPORT_LEVEL_PRODUCER_STATUS,
+  producerStatusObservedAt: PRODUCER_STATUS_OBSERVED_AT,
+  emptyResultMeaning: EMPTY_RESULT_MEANING,
 }));

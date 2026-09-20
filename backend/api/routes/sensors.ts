@@ -8,11 +8,16 @@ import { appendPresenceEvents, getPresenceEventsForDog } from '../services/prese
 const sensors = new Hono();
 
 sensors.post('/summaries', zValidator('json', SensorSummaryCreateSchema), async (c) => {
-  // TODO: ingest hourly sensor summary from mobile app
   const body = c.req.valid('json');
   const denied = await requireDogOwnership(c, body.dogId);
   if (denied) return denied;
-  return c.json({ message: 'ingested', dogId: body.dogId }, 201);
+
+  // Durable sensor-summary ingestion is not implemented yet. Do not acknowledge
+  // persistence, acceptance or enqueue success until a real data-plane contract exists.
+  return c.json({
+    error: 'sensor_summary_ingestion_not_implemented',
+    dogId: body.dogId,
+  }, 501);
 });
 
 sensors.get('/summaries/:dogId', async (c) => {
