@@ -8,8 +8,6 @@ import type { ContactRequest, ContactStatus } from '../../lib/contact';
 import { POST_TYPE_LABELS } from '../../lib/community';
 import type { CirclePost } from '../../lib/community';
 
-const TOKEN_KEY = 'breiz-admin-token';
-
 interface ModerationData {
   adminConfigured: boolean;
   contactRequests: ContactRequest[];
@@ -17,43 +15,47 @@ interface ModerationData {
 }
 
 export default function AdminPage() {
-  const [token, setToken] = useState('');
   const [data, setData] = useState<ModerationData | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    try { const t = sessionStorage.getItem(TOKEN_KEY); if (t) setToken(t); } catch {}
-  }, []);
-
-  const headers = useCallback((): HeadersInit => (token ? { 'x-admin-token': token, 'content-type': 'application/json' } : { 'content-type': 'application/json' }), [token]);
 
   const load = useCallback(async () => {
     setError(null);
     try {
-      const res = await fetch('/api/admin/moderation', { headers: headers() });
-      if (res.status === 401) { setError('Token admin requis ou invalide.'); setData(null); return; }
-      if (res.ok) { setData((await res.json()) as ModerationData); }
-    } catch { setError('Serveur injoignable.'); }
-  }, [headers]);
+      const res = await fetch('/api/admin/moderation', { cache: 'no-store' });
+      if (res.status === 401) {
+        setError('Session privilégiée requise ou invalide.');
+        setData(null);
+        return;
+      }
+      if (res.status === 503) {
+        setError('Autorisation privilégiée ou data plane démo indisponible.');
+        setData(null);
+        return;
+      }
+      if (!res.ok) {
+        setError('Impossible de charger la file de modération.');
+        setData(null);
+        return;
+      }
+      setData((await res.json()) as ModerationData);
+    } catch {
+      setError('Serveur injoignable.');
+      setData(null);
+    }
+  }, []);
 
   useEffect(() => { void load(); }, [load]);
 
   async function setStatus(r: ContactRequest, status: ContactStatus) {
     const body: Record<string, unknown> = { status };
     if (status === 'scheduled' && r.proposedSlots[0]) body.scheduledSlot = r.proposedSlots[0];
-    await fetch(`/api/admin/contact/${r.id}`, { method: 'PATCH', headers: headers(), body: JSON.stringify(body) });
+    const res = await fetch(`/api/admin/contact/${r.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    if (!res.ok) setError('Mutation Contact refusée ou indisponible.');
     void load();
   }
   async function moderate(id: string, action: 'hide' | 'unhide' | 'dismiss') {
-    await fetch(`/api/admin/posts/${id}`, { method: 'PATCH', headers: headers(), body: JSON.stringify({ action }) });
-    void load();
-  }
-
-  function saveToken() {
-    try {
-      sessionStorage.setItem(TOKEN_KEY, token);
-      document.cookie = `${TOKEN_KEY}=${encodeURIComponent(token)}; path=/admin; sameSite=strict`;
-    } catch {}
+    const res = await fetch(`/api/admin/posts/${id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action }) });
+    if (!res.ok) setError('Mutation de modération refusée ou indisponible.');
     void load();
   }
 
@@ -66,18 +68,10 @@ export default function AdminPage() {
           <Lead>Demandes de contact à traiter et publications signalées.</Lead>
         </header>
 
-        {/* Gate token */}
         <Card tone="sunk" bordered={false}>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, minWidth: 200 }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--fg-muted)' }}>Token admin (si configuré)</span>
-              <input value={token} onChange={(e) => setToken(e.target.value)} placeholder="x-admin-token" style={{ padding: '10px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--surface)', fontFamily: 'var(--font-mono)', fontSize: 13 }} />
-            </label>
-            <Button kind="secondary" onClick={saveToken}>Charger</Button>
-          </div>
-          {data && !data.adminConfigured && (
-            <P2 style={{ color: 'var(--orange-pro)', marginTop: 8 }}>ADMIN_TOKEN non configure : les routes admin restent fermees. Definissez-le avant usage equipe.</P2>
-          )}
+          <P2>
+            Accès par session privilégiée server-side uniquement. Aucun token administrateur n’est stocké ou manipulé par le navigateur.
+          </P2>
         </Card>
 
         {error && <P2 style={{ color: 'var(--rouge)' }}>{error}</P2>}
