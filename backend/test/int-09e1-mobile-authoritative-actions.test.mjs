@@ -48,14 +48,22 @@ test('INT-09E1 waitlist and rules local state follow server success', () => {
 
 test('INT-09E1 positive consent is applied only after durable save', () => {
   const save = hookSource.indexOf('await saveFeatureConsent(token');
-  const communityLocal = hookSource.indexOf("setConsent('community_opt_in', true)", save);
-  const locationLocal = hookSource.indexOf("setConsent('location_opt_in', true)", save);
+  const communityLocal = hookSource.indexOf(
+    'activateCommunityConsentFromDurableAuthority()',
+    save,
+  );
+  const locationLocal = hookSource.indexOf(
+    'activateLocationConsentFromDurableAuthority()',
+    save,
+  );
   const passiveLocal = hookSource.indexOf('setPassivePhoneDetectionEnabled(true)', save);
 
   assert.ok(save >= 0);
   assert.ok(communityLocal > save);
   assert.ok(locationLocal > save);
   assert.ok(passiveLocal > save);
+  assert.doesNotMatch(hookSource, /setConsent\('community_opt_in', true\)/);
+  assert.doesNotMatch(hookSource, /setConsent\('location_opt_in', true\)/);
 
   assert.doesNotMatch(
     hookSource,
