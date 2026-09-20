@@ -12,10 +12,12 @@ import { collection } from '../../../../../lib/server/store';
 import { isAdmin } from '../../../../../lib/server/admin';
 import { legacyCommunityAuthorityGate } from '../../../../../lib/server/community-authority';
 import { createFixedWindowRateLimiter } from '../../../../../lib/server/rate-limit';
-import { enforceRateLimit } from '../../../../../lib/server/request-security';
+import { enforceRateLimit, readLimitedJson } from '../../../../../lib/server/request-security';
 
 export const runtime = 'nodejs';
 const adminLimiter = createFixedWindowRateLimiter({ limit: 30, windowMs: 60_000 });
+const MAX_ADMIN_POST_PATCH_BYTES = 8 * 1024;
+const ADMIN_POST_ACTIONS = new Set(['hide', 'unhide', 'dismiss'] as const);
 
 function demoJson(body: Record<string, unknown>, status = 200): NextResponse {
   return NextResponse.json(
@@ -39,18 +41,28 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
 
   if (!isAdmin(req)) return demoJson({ ok: false, error: 'unauthorized' }, 401);
   const { id } = await ctx.params;
-  let body: { action?: 'hide' | 'unhide' | 'dismiss' };
-  try {
-    body = (await req.json()) as typeof body;
-  } catch {
+  const parsed = await readLimitedJson<unknown>(req, MAX_ADMIN_POST_PATCH_BYTES);
+  if (!parsed.ok) {
+    return demoJson(
+      { ok: false, errors: [parsed.status === 413 ? 'Requête trop volumineuse.' : 'Requête invalide.'] },
+      parsed.status,
+    );
+  }
+
+  const body = parsed.data;
+  if (body === null || typeof body !== 'object' || Array.isArray(body)) {
     return demoJson({ ok: false, errors: ['Requête invalide.'] }, 400);
   }
+
+  const action = (body as Record<string, unknown>)['action'];
+  if (typeof action !== 'string' || !ADMIN_POST_ACTIONS.has(action as 'hide' | 'unhide' | 'dismiss')) {
+    return demoJson({ ok: false, errors: ['Action invalide.'] }, 400);
+  }
+
   const patch: Partial<CirclePost> =
-    body.action === 'hide' ? { isHidden: true }
-      : body.action === 'unhide' ? { isHidden: false }
-        : body.action === 'dismiss' ? { isHidden: false, flagCount: 0 }
-          : {};
-  if (Object.keys(patch).length === 0) return demoJson({ ok: false, errors: ['Action invalide.'] }, 400);
+    action === 'hide' ? { isHidden: true }
+      : action === 'unhide' ? { isHidden: false }
+        : { isHidden: false, flagCount: 0 };
   const updated = collection<CirclePost>('community-posts').update(id, patch);
   if (!updated) return demoJson({ ok: false, errors: ['Post introuvable.'] }, 404);
   return demoJson({ ok: true, post: updated });
