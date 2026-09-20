@@ -46,20 +46,26 @@ Limites importantes :
 |---|---|---|
 | GET, POST | `/api/dogs` | Liste/création placeholder |
 | GET, PATCH, DELETE | `/api/dogs/:id` | Contrôle propriétaire, réponse encore partielle |
-| GET | `/api/dogs/:id/absence-comparison` | Comparaison présence/absence avec données DB ou fallback |
+| GET | `/api/dogs/:id/absence-comparison` | Comparaison présence/absence depuis les données réelles disponibles ; fenêtre `days` validée fail-closed ; `REJECT` si la lecture réussit mais les données sont insuffisantes ; `503 presence_comparison_data_unavailable` si la source PostgreSQL est indisponible ; aucun fallback physiologique synthétique côté serveur |
 | GET | `/api/dogs/:id/vet-report-link` | Création d'un lien temporaire signé |
 | GET | `/api/dogs/:id/vet-report` | PDF, via propriétaire ou `share_token` valide |
+
+Le paramètre `days` de la comparaison présence/absence est contrôlé après l'autorisation propriétaire : omission = 14 jours ; valeur fournie = entier décimal positif sûr et représentable comme date, sinon `400 invalid_presence_window`. Aucun plafond métier n'est choisi ici. Une lecture PostgreSQL réussie sans ligne reste un état d'absence de données ; une erreur de lecture reste une indisponibilité distincte (`503`, réponse `private, no-store`).
+
+Le mode démo sans token de l'application mobile peut construire une comparaison locale explicitement étiquetée comme telle ; il ne constitue pas une source de données backend et ne doit pas être confondu avec une mesure du chien.
 
 ### Capteurs et ELI
 
 | Méthode | Chemin | État observé |
 |---|---|---|
-| POST | `/api/sensors/summaries` | Validation + contrôle propriétaire, persistance TODO |
+| POST | `/api/sensors/summaries` | Validation + contrôle propriétaire ; `501 sensor_summary_ingestion_not_implemented` tant qu'aucune persistance durable n'est implémentée |
 | GET | `/api/sensors/summaries/:dogId` | Résultats placeholder |
 | GET | `/api/sensors/eli/:dogId` | État ELI placeholder |
 | GET | `/api/sensors/eli/:dogId/history` | Historique placeholder |
 | GET | `/api/sensors/baseline/:dogId` | Baseline placeholder |
 | POST, GET | `/api/sensors/presence/:dogId/events` | Événements conservés en mémoire du processus |
+
+Le `POST /api/sensors/summaries` n'accuse volontairement aucune ingestion tant qu'aucun stockage ou mécanisme durable n'existe. Un succès de validation/autorisation ne doit pas être confondu avec une persistance, une mise en file ou une acceptation de données.
 
 ### Communauté
 
@@ -71,11 +77,13 @@ Limites importantes :
 | POST | `/api/community/rules/accept` | Acceptation conservée en mémoire |
 | POST | `/api/community/reports` | Signalement conservé en mémoire |
 | POST | `/api/community/blocks` | Blocage conservé en mémoire |
-| POST | `/api/community/posts` | Validation/règles/filtre, sans stockage durable observé |
-| POST | `/api/community/comments` | Validation/règles/filtre, sans stockage durable observé |
+| POST | `/api/community/posts` | Validation/règles/filtre puis `501 community_post_persistence_not_implemented`; aucun succès de création tant qu'aucun writer Hono n'est prouvé |
+| POST | `/api/community/comments` | Validation/règles/filtre puis `501 community_comment_persistence_not_implemented`; aucun succès de création tant qu'aucun writer Hono n'est prouvé |
 | GET | `/api/community/:id/events` | Liste placeholder |
-| POST | `/api/community/events` | Validation/règles/filtre, sans stockage durable observé |
+| POST | `/api/community/events` | Validation/règles/filtre puis `501 community_event_persistence_not_implemented`; aucun succès de création tant qu'aucun writer Hono n'est prouvé |
 | GET | `/api/community/copresence/:dogId` | Contrôle propriétaire, résultats placeholder |
+
+Les contrôles de règles et de modération déterminent uniquement si une requête est autorisée à poursuivre. Ils ne constituent pas une preuve qu'un post, commentaire ou événement a été créé ou persisté.
 
 ### Progression, consentements et waitlist
 
@@ -90,7 +98,7 @@ Limites importantes :
 | Méthode | Chemin | État observé |
 |---|---|---|
 | GET | `/api/health/:dogId` | Contrôle propriétaire, entrées placeholder |
-| POST | `/api/health` | Validation + contrôle propriétaire, persistance non démontrée |
+| POST | `/api/health` | Validation + contrôle propriétaire ; `501 health_entry_persistence_not_implemented` tant qu'aucun writer durable n'est actif |
 | GET | `/api/health/:dogId/reminders` | Contrôle propriétaire, rappels placeholder |
 
 Ces routes portent un nom historique `health`, mais leurs sorties ne doivent pas être présentées comme un diagnostic.
@@ -107,7 +115,9 @@ Ces routes portent un nom historique `health`, mais leurs sorties ne doivent pas
 
 `apps/web/app/api/**` contient des Route Handlers Next.js pour Breiz, contact, journal, communauté, carte, races, contexte et administration. Ils ne sont pas montés dans l'application Hono et ne partagent pas automatiquement son middleware JWT/ownership.
 
-Certains de ces handlers écrivent dans `apps/web/.data` ou utilisent des replis navigateur. Ils constituent un plan prototype séparé, décrit dans `docs/APP_OVERVIEW.md`, pas l'autorité durable du backend.
+Le web possède notamment un plan Community Next.js sous des chemins publics ressemblant à `/api/community/*`. Le fait qu'un handler Next.js persiste actuellement du contenu ne rend pas le handler Hono homonyme persistant, et les deux plans ne doivent pas être présentés comme un contrat unique tant que l'autorité Community n'a pas été explicitement choisie et consolidée.
+
+Certains handlers web écrivent dans `apps/web/.data` ou utilisent des replis navigateur. Ils constituent un plan prototype séparé, décrit dans `docs/APP_OVERVIEW.md`, pas l'autorité durable du backend par simple existence.
 
 ## 6. Source du contrat
 

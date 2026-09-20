@@ -83,13 +83,17 @@ export function markCardRead(cardId: string): boolean {
   return true;
 }
 
-async function getJSON<T>(url: string, fallback: T, headers?: HeadersInit): Promise<T> {
+type JSONFetchResult<T> =
+  | { status: 'ok'; data: T }
+  | { status: 'unavailable' };
+
+async function getJSON<T>(url: string, headers?: HeadersInit): Promise<JSONFetchResult<T>> {
   try {
     const res = await fetch(url, { headers });
-    if (!res.ok) return fallback;
-    return (await res.json()) as T;
+    if (!res.ok) return { status: 'unavailable' };
+    return { status: 'ok', data: (await res.json()) as T };
   } catch {
-    return fallback;
+    return { status: 'unavailable' };
   }
 }
 
@@ -97,20 +101,34 @@ async function getJSON<T>(url: string, fallback: T, headers?: HeadersInit): Prom
  * Compteurs dérivés des VRAIES données serveur (R3) : spots, carnet, événements.
  * Les contenus de démo (seed) ne comptent pas — seuls les ajouts réels du
  * propriétaire (préfixes srv-/user-/evt-/milestone-) incrémentent la progression.
- * Repli sur `computeCounters()` (localStorage) en cas d'échec réseau.
+ * Repli sur `computeCounters()` (localStorage) si l'une des sources serveur est
+ * indisponible. Une réponse 200 réellement vide reste, elle, un succès vide.
  */
 export async function fetchServerCounters(): Promise<Counters> {
   if (typeof window === 'undefined') return BASE_COUNTERS;
   const journalOwnerToken = getJournalOwnerToken();
-  const [spotsRes, journalRes, eventsRes] = await Promise.all([
-    getJSON<{ spots: Array<{ id: string }> }>('/api/map/spots', { spots: [] }),
+  const [spotsResult, journalResult, eventsResult] = await Promise.all([
+    getJSON<{ spots: Array<{ id: string }> }>('/api/map/spots'),
     getJSON<{ entries: Array<{ id: string; type: string; photoUrls?: string[] }> }>(
       '/api/journal',
-      { entries: [] },
       journalOwnerToken ? { [JOURNAL_OWNER_HEADER]: journalOwnerToken } : undefined,
     ),
-    getJSON<{ events: Array<{ id: string }> }>('/api/community/events', { events: [] }),
+    getJSON<{ events: Array<{ id: string }> }>('/api/community/events'),
   ]);
+
+  // Le fallback documenté doit rester un vrai fallback : une API indisponible
+  // n'est jamais interprétée comme « zéro activité serveur ».
+  if (
+    spotsResult.status === 'unavailable' ||
+    journalResult.status === 'unavailable' ||
+    eventsResult.status === 'unavailable'
+  ) {
+    return computeCounters();
+  }
+
+  const spotsRes = spotsResult.data;
+  const journalRes = journalResult.data;
+  const eventsRes = eventsResult.data;
 
   const isUser = (id: string) => id.startsWith('srv-') || id.startsWith('user-') || id.startsWith('evt-') || id.startsWith('milestone-');
   const userSpots = spotsRes.spots.filter((s) => isUser(s.id)).length;
