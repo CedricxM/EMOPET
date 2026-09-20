@@ -4,6 +4,7 @@ import { PresenceEventCreateSchema, SensorSummaryCreateSchema } from '@emopet/sh
 
 import { requireDogOwnership } from '../middleware/authorization.js';
 import { appendPresenceEvents, getPresenceEventsForDog } from '../services/presence.js';
+import { parseLookbackWindow } from '../utils/temporal-window.js';
 
 const sensors = new Hono();
 
@@ -26,8 +27,9 @@ sensors.get('/summaries/:dogId', async (c) => {
   if (denied) return denied;
 
   const range = c.req.query('range') ?? '24h';
-  // TODO: return sensor summaries for dog within time range
-  return c.json({ dogId, range, summaries: [] });
+  // No authoritative reader/projection is wired on this route yet. Returning
+  // an empty array would falsely claim that the source was queried successfully.
+  return c.json({ error: 'sensor_summary_read_not_implemented', dogId, range }, 501);
 });
 
 sensors.get('/eli/:dogId', async (c) => {
@@ -35,8 +37,9 @@ sensors.get('/eli/:dogId', async (c) => {
   const denied = await requireDogOwnership(c, dogId);
   if (denied) return denied;
 
-  // TODO: return latest ELI state for dog
-  return c.json({ dogId, eli: null });
+  // No canonical ELI producer/runtime is wired. Do not represent
+  // NOT_IMPLEMENTED as an authoritative successful no-result.
+  return c.json({ error: 'eli_runtime_not_implemented', dogId }, 501);
 });
 
 sensors.get('/eli/:dogId/history', async (c) => {
@@ -45,8 +48,9 @@ sensors.get('/eli/:dogId/history', async (c) => {
   if (denied) return denied;
 
   const range = c.req.query('range') ?? '7d';
-  // TODO: return ELI history
-  return c.json({ dogId, range, history: [] });
+  // Keep the requested range visible as request context without claiming it
+  // was queried against an authoritative ELI runtime.
+  return c.json({ error: 'eli_runtime_not_implemented', dogId, range }, 501);
 });
 
 sensors.get('/baseline/:dogId', async (c) => {
@@ -54,8 +58,9 @@ sensors.get('/baseline/:dogId', async (c) => {
   const denied = await requireDogOwnership(c, dogId);
   if (denied) return denied;
 
-  // TODO: return baseline state / progress
-  return c.json({ dogId, baseline: null });
+  // Baseline persistence exists, but no authoritative Owner-facing projection
+  // is wired here. Do not represent NOT_IMPLEMENTED as a successful null read.
+  return c.json({ error: 'baseline_read_not_implemented', dogId }, 501);
 });
 
 sensors.post('/presence/:dogId/events', zValidator('json', PresenceEventCreateSchema), async (c) => {
@@ -81,10 +86,12 @@ sensors.get('/presence/:dogId/events', async (c) => {
   const denied = await requireDogOwnership(c, dogId);
   if (denied) return denied;
 
-  const days = Number(c.req.query('days') ?? '14');
-  const since = new Date();
-  since.setDate(since.getDate() - days);
-  return c.json({ dogId, events: getPresenceEventsForDog(dogId, since) });
+  const window = parseLookbackWindow(c.req.query('days'));
+  if (!window) {
+    return c.json({ error: 'invalid_presence_window', parameter: 'days' }, 400);
+  }
+
+  return c.json({ dogId, events: getPresenceEventsForDog(dogId, window.since) });
 });
 
 export { sensors };

@@ -11,8 +11,9 @@ health.get('/:dogId', async (c) => {
   const denied = await requireDogOwnership(c, dogId);
   if (denied) return denied;
 
-  // TODO: return health journal entries for dog
-  return c.json({ dogId, entries: [] });
+  // No authoritative journal reader is wired on this route yet. Returning an
+  // empty array would falsely claim that the source was queried successfully.
+  return c.json({ error: 'health_entry_read_not_implemented', dogId }, 501);
 });
 
 health.post('/', zValidator('json', HealthEntryCreateSchema), async (c) => {
@@ -28,8 +29,9 @@ health.get('/:dogId/reminders', async (c) => {
   const denied = await requireDogOwnership(c, dogId);
   if (denied) return denied;
 
-  // TODO: return upcoming health reminders (nextDueDate)
-  return c.json({ dogId, reminders: [] });
+  // Reminder scheduling/read semantics are not implemented. Do not represent
+  // that maturity gap as a successful empty reminder query.
+  return c.json({ error: 'health_reminder_read_not_implemented', dogId }, 501);
 });
 
 export { health };
