@@ -131,6 +131,40 @@ test('community-only template can trigger without sensor payload', () => {
   );
 });
 
+test('prompt interpolation is deterministic and preserves malformed placeholders', () => {
+  const source = BLEIZ_TEMPLATES.find((item) => item.id === 'COM_COPRESENCE_HINT');
+  assert.ok(source);
+
+  const template = {
+    ...source,
+    id: 'TEST_LINEAR_INTERPOLATION',
+    prompt: 'Dog={{dog.name}} Locale={{user.locale}} Missing={{dog.unknown}} Broken={{dog.name}x}} Empty={{}}',
+  };
+
+  const contexts = buildBaseContexts();
+  contexts.sensor = {};
+  contexts.community = {
+    city: 'Lorient',
+    copresence_count: 4,
+    otherDogName: 'Malo',
+    otherDogBreed: 'berger',
+  };
+
+  const jobs = scheduleBleizContent({
+    templates: [template],
+    contexts,
+    history: [],
+    now: new Date('2026-03-30T09:00:00Z'),
+  });
+
+  assert.equal(jobs.length, 1);
+  assert.match(jobs[0].prompt, /Dog=Naya/);
+  assert.match(jobs[0].prompt, /Locale=fr-FR/);
+  assert.match(jobs[0].prompt, /Missing=/);
+  assert.ok(jobs[0].prompt.includes('{{dog.name}x}}'));
+  assert.ok(jobs[0].prompt.includes('{{}}'));
+});
+
 test('free tier without hardware never schedules sensor-driven templates', () => {
   const sensorTemplate = BLEIZ_TEMPLATES.find((item) => item.id === 'BHV_ABSENCE_AGITATION');
   const communityTemplate = BLEIZ_TEMPLATES.find((item) => item.id === 'COM_COPRESENCE_HINT');
