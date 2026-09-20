@@ -100,5 +100,8 @@ test('absence-comparison route preserves input/source truth and no synthetic fal
   assert.match(routeSource, /error:\s*error\.code/);
   assert.match(routeSource, /private, max-age=0, no-store/);
   assert.match(routeSource, /503/);
+  assert.match(routeSource, /PROTOTYPE_SEMANTICS_UNVALIDATED/);
+  assert.match(routeSource, /publishable:\s*false/);
+  assert.match(routeSource, /controllingGate:\s*'SCI-PRES-01'/);
+  assert.match(routeSource, /syntheticFallback:\s*false/);
 });
-
