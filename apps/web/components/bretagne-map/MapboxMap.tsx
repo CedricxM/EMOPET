@@ -78,6 +78,7 @@ export function MapboxMap({ spots, events, selectedSpotId, onSpotClick, onEventC
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [osmSpots, setOsmSpots] = useState<OsmSpot[]>([]);
+  const [osmUnavailable, setOsmUnavailable] = useState(false);
   const [ready, setReady] = useState(false);
 
   // Init carte (une fois)
@@ -102,7 +103,21 @@ export function MapboxMap({ spots, events, selectedSpotId, onSpotClick, onEventC
     const loadOsm = () => {
       const b = map.getBounds();
       if (!b) return;
-      void fetchOsmSpots({ south: b.getSouth(), west: b.getWest(), north: b.getNorth(), east: b.getEast() }).then(setOsmSpots);
+      setOsmUnavailable(false);
+      void fetchOsmSpots({
+        south: b.getSouth(),
+        west: b.getWest(),
+        north: b.getNorth(),
+        east: b.getEast(),
+      }).then((result) => {
+        if (result.status === 'ok') {
+          setOsmSpots(result.spots);
+          setOsmUnavailable(false);
+          return;
+        }
+        setOsmSpots([]);
+        setOsmUnavailable(true);
+      });
     };
     map.on('load', () => { setReady(true); loadOsm(); });
     map.on('moveend', loadOsm);
@@ -149,9 +164,32 @@ export function MapboxMap({ spots, events, selectedSpotId, onSpotClick, onEventC
   }, [spots, events, osmSpots, selectedSpotId, ready, onSpotClick, onEventClick]);
 
   return (
-    <div
-      ref={containerRef}
-      style={{ width: '100%', height: 480, borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border)' }}
-    />
+    <div style={{ position: 'relative', width: '100%' }}>
+      <div
+        ref={containerRef}
+        style={{ width: '100%', height: 480, borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border)' }}
+      />
+      {osmUnavailable && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: 'absolute',
+            left: 12,
+            bottom: 12,
+            padding: '6px 9px',
+            borderRadius: 'var(--radius-sm)',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            color: 'var(--fg-muted)',
+            fontFamily: 'var(--font-sans)',
+            fontSize: 12,
+            boxShadow: '0 1px 3px rgba(20,18,58,0.15)',
+          }}
+        >
+          Points OpenStreetMap indisponibles pour le moment.
+        </div>
+      )}
+    </div>
   );
 }

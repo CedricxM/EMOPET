@@ -34,8 +34,10 @@ export const breedKnowledge = pgTable('breed_knowledge', {
   dailyWalkKmMax: real('daily_walk_km_max'),
   exerciseTypePreference: jsonb('exercise_type_preference').default([]),
 
-  // Behavior (C-BARQ simplified)
-  separationAnxietyTendency: text('separation_anxiety_tendency'), // low, moderate, high
+  // Breed-level behavioral context heuristics only.
+  // These are NOT C-BARQ scores, NOT an individual behavioral assessment, and
+  // must never be fed into ELI as if they were owner-reported instrument data.
+  separationAnxietyTendency: text('separation_anxiety_tendency'), // legacy field name; low, moderate, high
   vocalizationTendency: text('vocalization_tendency'), // quiet, moderate, vocal, very_vocal
   sociabilityDogs: text('sociability_dogs'), // low, moderate, high
   sociabilityHumans: text('sociability_humans'), // reserved, moderate, friendly, very_friendly

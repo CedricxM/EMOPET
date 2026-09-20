@@ -8,8 +8,9 @@ on:
 
 permissions:
   contents: read
+  actions: read
   pull-requests: read
-  security-events: write
+  security-events: read
 
 env:
   TURBO_TELEMETRY_DISABLED: '1'
@@ -19,11 +20,11 @@ jobs:
   dependency-audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
         with:
           version: 10.33.0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '20'
           cache: pnpm
@@ -50,11 +51,11 @@ jobs:
     name: Dependency remediation regression
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
         with:
           version: 10.33.0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '20'
           cache: pnpm
@@ -112,7 +113,7 @@ jobs:
     name: Semgrep SAST
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
@@ -141,21 +142,39 @@ jobs:
         run: test "$SEMGREP_EXIT" -eq 0
 
   codeql:
-    name: CodeQL JavaScript/TypeScript (best effort)
+    # GitHub default setup owns analysis and SARIF upload. This repository job
+    # verifies the managed run for the exact PR head instead of submitting a
+    # competing advanced-configuration SARIF payload.
+    name: CodeQL default setup evidence
     runs-on: ubuntu-latest
-    continue-on-error: true
+    timeout-minutes: 12
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: github/codeql-action/init@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          languages: javascript-typescript
-      - uses: github/codeql-action/analyze@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
+          node-version: '20'
+      - name: Test CodeQL evidence gate
+        run: node --test scripts/security/verify-codeql-default-setup.test.mjs
+      - name: Require successful GitHub CodeQL analysis, upload and alert inventory for this commit
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CODEQL_EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          CODEQL_PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          CODEQL_REF: ${{ github.ref }}
+        run: node scripts/security/verify-codeql-default-setup.mjs
+      - name: Preserve verified CodeQL run evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: codeql-default-setup-${{ github.event.pull_request.head.sha || github.sha }}-attempt-${{ github.run_attempt }}
+          path: codeql-default-setup-evidence.json
+          if-no-files-found: error
+          retention-days: 14
 
   sbom:
     name: Generate CycloneDX/SPDX SBOM
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Generate CycloneDX SBOM with Syft
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
@@ -180,7 +199,7 @@ jobs:
     name: Secret scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - name: Gitleaks
@@ -192,6 +211,6 @@ jobs:
     name: Release provenance gate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Assert release signing policy exists
         run: test -f docs/security/SUPPLY_CHAIN_SECURITY.md

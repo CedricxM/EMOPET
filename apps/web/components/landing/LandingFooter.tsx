@@ -42,14 +42,14 @@ export default function LandingFooter() {
               />
               <span
                 className="text-white font-semibold text-lg tracking-tight"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
+                style={{ fontFamily: 'var(--font-body)' }}
               >
                 EMOPET
               </span>
             </div>
             <p
               className="text-sm text-[#6B7684] leading-relaxed max-w-xs"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               Lorient, Bretagne
               <br />
@@ -62,7 +62,7 @@ export default function LandingFooter() {
             <div key={group.title}>
               <h3
                 className="text-white text-sm font-semibold mb-4 uppercase tracking-wider"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
+                style={{ fontFamily: 'var(--font-body)' }}
               >
                 {group.title}
               </h3>
@@ -72,7 +72,7 @@ export default function LandingFooter() {
                     <a
                       href={link.href}
                       className="text-sm text-[#6B7684] hover:text-[#FE502D] transition-colors duration-200"
-                      style={{ fontFamily: 'var(--font-source-sans)' }}
+                      style={{ fontFamily: 'var(--font-body)' }}
                     >
                       {link.label}
                     </a>
@@ -87,13 +87,13 @@ export default function LandingFooter() {
         <div className="border-t border-[#2E3A48] pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p
             className="text-xs text-[#6B7684]"
-            style={{ fontFamily: 'var(--font-source-sans)' }}
+            style={{ fontFamily: 'var(--font-body)' }}
           >
             © 2025 EMOPET · Lorient, Bretagne
           </p>
           <p
             className="text-xs text-[#6B7684] italic"
-            style={{ fontFamily: 'var(--font-source-sans)' }}
+            style={{ fontFamily: 'var(--font-body)' }}
           >
             Projet en développement
           </p>

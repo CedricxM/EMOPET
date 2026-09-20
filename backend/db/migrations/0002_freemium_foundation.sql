@@ -35,7 +35,9 @@ CREATE TABLE IF NOT EXISTS breed_knowledge (
   daily_walk_km_max REAL,
   exercise_type_preference JSONB DEFAULT '[]',
 
-  -- Behavior (C-BARQ simplified)
+  -- Breed-level behavioral context heuristics only.
+  -- NOT C-BARQ scores and NOT individual assessment data. These fields must
+  -- never be treated as owner-reported instrument evidence or direct ELI priors.
   separation_anxiety_tendency TEXT CHECK (separation_anxiety_tendency IN ('low','moderate','high')),
   vocalization_tendency TEXT CHECK (vocalization_tendency IN ('quiet','moderate','vocal','very_vocal')),
   sociability_dogs TEXT CHECK (sociability_dogs IN ('low','moderate','high')),
