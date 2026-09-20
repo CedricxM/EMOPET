@@ -16,15 +16,19 @@ export interface AuthorizationResult {
   error: 'invalid_dog_id' | 'unauthorized' | 'not_found';
 }
 
+export function isCanonicalUuid(value: unknown): value is string {
+  return typeof value === 'string' && UUID_RE.test(value);
+}
+
 export function getCurrentUserId(c: Context): string | null {
   const userId = c.get('userId');
-  return typeof userId === 'string' && userId.trim() ? userId : null;
+  return isCanonicalUuid(userId) ? userId : null;
 }
 
 export function createDogOwnershipAuthorizer(lookup: DogOwnershipLookup) {
   return async function assertUserOwnsDog(userId: string | null, dogId: string): Promise<AuthorizationResult> {
-    if (!userId) return { ok: false, status: 401, error: 'unauthorized' };
-    if (!UUID_RE.test(dogId)) return { ok: false, status: 400, error: 'invalid_dog_id' };
+    if (!isCanonicalUuid(userId)) return { ok: false, status: 401, error: 'unauthorized' };
+    if (!isCanonicalUuid(dogId)) return { ok: false, status: 400, error: 'invalid_dog_id' };
 
     const ownerId = await lookup.findDogOwnerId(dogId);
     if (!ownerId || ownerId !== userId) return { ok: false, status: 404, error: 'not_found' };
