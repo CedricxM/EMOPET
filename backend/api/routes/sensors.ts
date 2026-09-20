@@ -6,10 +6,11 @@ import { PresenceEventCreateSchema, SensorSummaryCreateSchema } from '@emopet/sh
 import { db } from '../../db/index.js';
 import { devices, dogs, sensorSummaries } from '../../db/schema/index.js';
 import { getCurrentUserId, requireDogOwnership } from '../middleware/authorization.js';
-import { appendPresenceEvents, getPresenceEventsForDog } from '../services/presence.js';
 import { parseLookbackWindow } from '../utils/temporal-window.js';
 
 const sensors = new Hono();
+
+const PRESENCE_PERSISTENCE_NOT_READY = 'PRESENCE_PERSISTENCE_NOT_READY' as const;
 
 const SENSOR_PROVENANCE_REQUIRED = 'SENSOR_PROVENANCE_REQUIRED' as const;
 const SENSOR_SOURCE_FIELDS_INVALID = 'SENSOR_SOURCE_FIELDS_INVALID' as const;
@@ -29,6 +30,22 @@ const TAG_ONLY_SUMMARY_FIELDS = [
   'postureDistribution',
   'agitationEvents',
 ] as const;
+
+function presencePersistenceUnavailable(
+  c: {
+    header: (name: string, value: string) => void;
+    json: (value: unknown, status?: number) => Response;
+  },
+  operation: 'create_presence_event' | 'list_presence_events',
+): Response {
+  c.header('Cache-Control', 'private, no-store');
+  return c.json({
+    error: 'Presence events do not yet have a durable Product V1 persistence authority.',
+    code: PRESENCE_PERSISTENCE_NOT_READY,
+    operation,
+    retryable: false,
+  }, 503);
+}
 
 function databaseUnavailable(
   c: {
@@ -356,13 +373,8 @@ sensors.post('/presence/:dogId/events', zValidator('json', PresenceEventCreateSc
   if (body.dogId !== dogId) {
     return c.json({ error: 'dog_id_mismatch' }, 400);
   }
-  appendPresenceEvents(dogId, [{
-    phoneSeen: body.phoneSeen,
-    timestamp: body.timestamp,
-    rssi: body.rssi,
-    source: body.source,
-  }]);
-  return c.json({ message: 'presence_event_recorded', dogId }, 201);
+
+  return presencePersistenceUnavailable(c, 'create_presence_event');
 });
 
 sensors.get('/presence/:dogId/events', async (c) => {
@@ -375,7 +387,7 @@ sensors.get('/presence/:dogId/events', async (c) => {
     return c.json({ error: 'invalid_presence_window', parameter: 'days' }, 400);
   }
 
-  return c.json({ dogId, events: getPresenceEventsForDog(dogId, window.since) });
+  return presencePersistenceUnavailable(c, 'list_presence_events');
 });
 
 export { sensors, SENSOR_PROVENANCE_REQUIRED, SENSOR_SOURCE_FIELDS_INVALID };

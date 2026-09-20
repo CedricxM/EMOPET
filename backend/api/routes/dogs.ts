@@ -1,4 +1,4 @@
-import { and, eq, gte } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { DogCreateSchema, DogUpdateSchema } from '@emopet/shared';
@@ -6,15 +6,8 @@ import { DogCreateSchema, DogUpdateSchema } from '@emopet/shared';
 import { db } from '../../db/index.js';
 import {
   dogs as dogsTable,
-  sensorSummaries,
   users,
 } from '../../db/schema/index.js';
-import {
-  computePresenceComparison,
-  getPresenceEventsForDog,
-  PresenceComparisonDataUnavailableError,
-  readPresenceComparisonSource,
-} from '../services/presence.js';
 import {
   buildVetReportPdf,
   createVetReportShareToken,
@@ -27,15 +20,10 @@ import { parseLookbackWindow } from '../utils/temporal-window.js';
 
 const dogs = new Hono();
 
+export const ABSENCE_COMPARISON_PERSISTENCE_CODE =
+  'ABSENCE_COMPARISON_PERSISTENCE_NOT_READY' as const;
 export const DOG_ERASURE_LIFECYCLE_CODE =
   'DOG_ERASURE_LIFECYCLE_NOT_READY' as const;
-
-const PRESENCE_COMPARISON_AUTHORITY = {
-  status: 'PROTOTYPE_SEMANTICS_UNVALIDATED' as const,
-  publishable: false,
-  controllingGate: 'SCI-PRES-01' as const,
-  syntheticFallback: false,
-};
 
 function getUserId(c: unknown): string | undefined {
   const value = (c as { get: (key: string) => unknown }).get('userId');
@@ -168,57 +156,16 @@ dogs.get('/:id/absence-comparison', async (c) => {
   if (!window) {
     return c.json({ error: 'invalid_presence_window', parameter: 'days' }, 400);
   }
-  const { days, since } = window;
 
-  let summaries: Array<typeof sensorSummaries.$inferSelect>;
-  try {
-    summaries = await readPresenceComparisonSource(() =>
-      db
-        .select()
-        .from(sensorSummaries)
-        .where(and(eq(sensorSummaries.dogId, id), gte(sensorSummaries.timestamp, since)))
-        .orderBy(sensorSummaries.timestamp),
-    );
-  } catch (error) {
-    if (error instanceof PresenceComparisonDataUnavailableError) {
-      c.header('Cache-Control', 'private, max-age=0, no-store');
-      return c.json(
-        {
-          error: error.code,
-          authority: PRESENCE_COMPARISON_AUTHORITY,
-        },
-        503,
-      );
-    }
-    throw error;
-  }
-
-  const presenceEvents = getPresenceEventsForDog(id, since);
-  const comparison = computePresenceComparison(
-    summaries.map((item) => ({
-      timestamp: item.timestamp,
-      matPresenceMinutes: item.matPresenceMinutes ?? undefined,
-      vocalEvents: item.vocalEvents ?? undefined,
-      agitationEvents: item.agitationEvents ?? undefined,
-      respiratoryRateMean: item.respiratoryRateMean ?? undefined,
-      respiratoryRateConfidence: item.respiratoryRateConfidence ?? undefined,
-      weightKg: item.weightKg ?? undefined,
-    })),
-    presenceEvents,
-  );
-
+  c.header('Cache-Control', 'private, no-store');
   return c.json({
-    dogId: id,
-    days,
-    comparison,
-    authority: PRESENCE_COMPARISON_AUTHORITY,
-    message:
-      comparison.gate === 'REJECT'
-        ? 'Pas assez de donnees reelles pour cette comparaison prototype.'
-        : 'Comparaison prototype calculee pour QA ; publication produit non autorisee.',
-  });
+    error: 'Presence/absence comparison requires durable presence-event authority before release.',
+    code: ABSENCE_COMPARISON_PERSISTENCE_CODE,
+    operation: 'absence_comparison',
+    retryable: false,
+    maturity: 'NOT_IMPLEMENTED',
+  }, 503);
 });
-
 dogs.get('/:id/vet-report-link', async (c) => {
   const id = c.req.param('id');
   const denied = await requireDogOwnership(c, id);

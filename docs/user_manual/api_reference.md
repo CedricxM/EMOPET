@@ -49,13 +49,13 @@ Limites importantes :
 | GET | `/api/dogs/:id` | Contrôle propriétaire + relecture de l’entité PostgreSQL persistée |
 | PATCH | `/api/dogs/:id` | UPDATE PostgreSQL owner-scoped ; un patch vide échoue avec `400 no_updates` |
 | DELETE | `/api/dogs/:id` | `409 DOG_ERASURE_LIFECYCLE_NOT_READY` ; aucune suppression tant que `G-PRIV-ERASURE` reste ouvert |
-| GET | `/api/dogs/:id/absence-comparison` | Comparaison présence/absence depuis les données réelles disponibles ; fenêtre `days` validée fail-closed ; `REJECT` si la lecture réussit mais les données sont insuffisantes ; `503 presence_comparison_data_unavailable` si la source PostgreSQL est indisponible ; aucun fallback physiologique synthétique côté serveur |
+| GET | `/api/dogs/:id/absence-comparison` | Contrôle propriétaire + fenêtre `days` validée ; `503 ABSENCE_COMPARISON_PERSISTENCE_NOT_READY` tant qu’aucune autorité durable Presence n’existe ; aucune comparaison Product V1 n’est publiée depuis la Map volatile |
 | GET | `/api/dogs/:id/vet-report-link` | Création d'un lien temporaire signé |
 | GET | `/api/dogs/:id/vet-report` | PDF via propriétaire ou `share_token` valide ; `503 vet_report_data_unavailable` si les sources autoritatives sont illisibles |
 
 Les lectures et mutations non destructives du profil chien utilisent désormais la table PostgreSQL `dogs`. Les réponses de liste/détail restent owner-scoped ; CREATE vérifie aussi l’existence du compte Guardian avant insertion. DELETE reste volontairement fail-closed : le dépôt n’invente pas un effacement partiel tant que la topologie complète d’effacement et les données dépendantes/externalisées ne sont pas autorisées par `G-PRIV-ERASURE`.
 
-Le paramètre `days` de la comparaison présence/absence est contrôlé après l'autorisation propriétaire : omission = 14 jours ; valeur fournie = entier décimal positif sûr et représentable comme date, sinon `400 invalid_presence_window`. Aucun plafond métier n'est choisi ici. Une lecture PostgreSQL réussie sans ligne reste un état d'absence de données ; une erreur de lecture reste une indisponibilité distincte (`503`, réponse `private, no-store`).
+Le paramètre `days` de la comparaison présence/absence est contrôlé après l'autorisation propriétaire : omission = 14 jours ; valeur fournie = entier décimal positif sûr et représentable comme date, sinon `400 invalid_presence_window`. Aucun plafond métier n'est choisi ici. Après une fenêtre valide, la comparaison échoue explicitement tant que l’autorité Presence durable n’est pas disponible.
 
 Le mode démo sans token de l'application mobile peut construire une comparaison locale explicitement étiquetée comme telle ; il ne constitue pas une source de données backend et ne doit pas être confondu avec une mesure du chien.
 
@@ -68,7 +68,7 @@ Le mode démo sans token de l'application mobile peut construire une comparaison
 | GET | `/api/sensors/eli/:dogId` | Contrôle propriétaire ; `501 eli_runtime_not_implemented` tant qu’aucun producteur ELI autoritatif n’est câblé |
 | GET | `/api/sensors/eli/:dogId/history` | Contrôle propriétaire ; `501 eli_runtime_not_implemented` tant qu’aucun runtime/lecteur ELI autoritatif n’est câblé |
 | GET | `/api/sensors/baseline/:dogId` | Contrôle propriétaire ; `501 baseline_read_not_implemented` tant qu’aucune projection autoritative n’est câblée |
-| POST, GET | `/api/sensors/presence/:dogId/events` | Événements conservés en mémoire du processus ; le GET valide `days` fail-closed et renvoie `400 invalid_presence_window` si la fenêtre fournie est invalide |
+| POST, GET | `/api/sensors/presence/:dogId/events` | Contrôle propriétaire ; POST vérifie aussi l’identité chien payload/path ; GET valide `days` ; ensuite `503 PRESENCE_PERSISTENCE_NOT_READY` tant qu’aucune persistance Product V1 durable/lifecycle-approved n’existe |
 
 Le `POST /api/sensors/summaries` persiste désormais dans PostgreSQL uniquement avec une provenance canonique : `ingestionId` et `deviceId` sont requis par le runtime, le device doit appartenir au chien et correspondre à la source MAT/TAG, les champs propres à l'autre source sont rejetés, et la version firmware est lue depuis le registre serveur. Un retry strictement identique réutilise la ligne existante ; la réutilisation d'un même `ingestionId` avec un contenu différent échoue. Cette provenance relationnelle ne constitue pas une authentification cryptographique du matériel.
 

@@ -88,20 +88,17 @@ test('presence source boundary classifies thrown reader errors separately', asyn
   );
 });
 
-test('absence-comparison route preserves input/source truth and no synthetic fallback', () => {
+test('absence-comparison route preserves input truth and refuses volatile Presence evidence', () => {
   const routeSource = readFileSync(new URL('../api/routes/dogs.ts', import.meta.url), 'utf8');
 
   assert.doesNotMatch(routeSource, /buildFallback(?:Summaries|PresenceEvents)/);
   assert.doesNotMatch(routeSource, /fallback-[123]/);
-  assert.doesNotMatch(routeSource, /catch\s*\{\s*summaries\s*=\s*\[\]/);
   assert.match(routeSource, /parseLookbackWindow\(c\.req\.query\('days'\)\)/);
-  assert.match(routeSource, /readPresenceComparisonSource/);
-  assert.match(routeSource, /PresenceComparisonDataUnavailableError/);
-  assert.match(routeSource, /error:\s*error\.code/);
-  assert.match(routeSource, /private, max-age=0, no-store/);
+  assert.match(routeSource, /ABSENCE_COMPARISON_PERSISTENCE_NOT_READY/);
+  assert.match(routeSource, /Cache-Control',\s*'private, no-store'/);
+  assert.match(routeSource, /maturity:\s*'NOT_IMPLEMENTED'/);
   assert.match(routeSource, /503/);
-  assert.match(routeSource, /PROTOTYPE_SEMANTICS_UNVALIDATED/);
-  assert.match(routeSource, /publishable:\s*false/);
-  assert.match(routeSource, /controllingGate:\s*'SCI-PRES-01'/);
-  assert.match(routeSource, /syntheticFallback:\s*false/);
+  assert.doesNotMatch(routeSource, /readPresenceComparisonSource/);
+  assert.doesNotMatch(routeSource, /computePresenceComparison/);
+  assert.doesNotMatch(routeSource, /getPresenceEventsForDog/);
 });
