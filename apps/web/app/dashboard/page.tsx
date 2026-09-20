@@ -4,14 +4,12 @@ import { ContentShell } from '../../components/content-shell';
 import {
   Button,
   Card,
-  DataXL,
   Disclaimer,
   Eyebrow,
   H1,
   H2,
   Icon,
   Lead,
-  Meter,
   P,
   P2,
   Pill,
@@ -21,7 +19,6 @@ import {
   MOCK_ELI,
   MOCK_RECOVERY,
   MOCK_REPOS,
-  MOCK_TREND_14D,
 } from '../../lib/mock-data';
 import { formatDateLocale, useI18n } from '../../lib/i18n';
 import { useState } from 'react';
@@ -75,41 +72,26 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* Observation principale.
+            L'indice global qui occupait cet emplacement — « Indice d'équilibre (ELI) »,
+            sa valeur, son delta hebdomadaire, sa jauge et la tendance « ELI quotidien »
+            sur 14 jours — est retiré. Décision et autorités citées dans
+            docs/records/memory/DASHBOARD_GLOBAL_INDEX_RETIREMENT_2026-09-20.md ;
+            constat d'origine dans CURRENT_UI_ELI_PRODUCT_DRIFT_AUDIT_2026-09-07.md §8.3. */}
         <section className={styles.observatoryGrid}>
           <Card>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <Pill state={MOCK_ELI.state} />
-                  <Eyebrow>{t('dashboard', 'balanceIndex')}</Eyebrow>
-                </div>
-                <span
-                  style={{
-                    fontFamily: 'var(--font-sans)',
-                    fontSize: 'var(--text-xs)',
-                    color: 'var(--fg-muted)',
-                    fontFeatureSettings: 'var(--ff-tabular)',
-                  }}
-                >
-                  {MOCK_ELI.captureMinutes} {t('dashboard', 'captureSummary')} · {t('dashboard', 'captureContext')}
-                </span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Eyebrow>{t('dashboard', 'rest')}</Eyebrow>
+                <Pill state={MOCK_REPOS.state} />
               </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-                <DataXL>{MOCK_ELI.value}</DataXL>
-                <span
-                  style={{
-                    fontFamily: 'var(--font-sans)',
-                    fontSize: 'var(--text-sm)',
-                    color: 'var(--lichen-700)',
-                    fontWeight: 'var(--weight-semi)',
-                  }}
-                >
-                  +{MOCK_ELI.delta} {t('dashboard', 'weeklyDelta')}
-                </span>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+                <Stat label={t('dashboard', 'interruptions')} value={String(MOCK_REPOS.interruptions)} />
+                <Stat label={t('dashboard', 'duration')} value={`${MOCK_REPOS.durationMinutes} min`} />
+                <Stat label={t('dashboard', 'confidence')} value={`${MOCK_REPOS.confidence}%`} />
               </div>
-              <Meter value={MOCK_ELI.value} />
               <P2>
-                {t('dashboard', 'stableRhythm')}
+                {t('dashboard', 'partialCapture')}
               </P2>
             </div>
           </Card>
@@ -131,58 +113,21 @@ export default function DashboardPage() {
           </Card>
         </section>
 
-        <section className={styles.observatoryGrid}>
-          <Card>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Eyebrow>{t('dashboard', 'rest')}</Eyebrow>
-                <Pill state={MOCK_REPOS.state} />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-                <Stat label={t('dashboard', 'interruptions')} value={String(MOCK_REPOS.interruptions)} />
-                <Stat label={t('dashboard', 'duration')} value={`${MOCK_REPOS.durationMinutes} min`} />
-                <Stat label={t('dashboard', 'confidence')} value={`${MOCK_REPOS.confidence}%`} />
-              </div>
-              <P2>
-                {t('dashboard', 'partialCapture')}
-              </P2>
-            </div>
-          </Card>
-
+        <section>
           <Card tone="sunk" bordered={false}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <Eyebrow>{t('dashboard', 'recovery')}</Eyebrow>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
+                <Eyebrow>{t('dashboard', 'recovery')}</Eyebrow>
+                <Button kind="ghost" size="sm" leading={<Icon name="download" size={14} />} onClick={() => window.print()}>
+                  {t('dashboard', 'exportSummary')}
+                </Button>
+              </div>
               <P>
                 {t('dashboard', 'recoveryIntro')} {MOCK_DOG.name} {t('dashboard', 'recoveryMiddle')}{' '}
                 <strong style={{ color: 'var(--fg-strong)' }}>{MOCK_RECOVERY.mins} min</strong> {t('dashboard', 'recoveryReturn')}{' '}
                 {t('dashboard', 'recoveryOutro')} {t('dashboard', 'recoveryTrigger')}.
               </P>
               <P2>{t('dashboard', 'recoveryDetail')}</P2>
-            </div>
-          </Card>
-        </section>
-
-        <section>
-          <Card>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <Eyebrow>{t('dashboard', 'trend14d')}</Eyebrow>
-                  <span
-                    style={{
-                      fontFamily: 'var(--font-serif)',
-                      fontSize: 'var(--text-xl)',
-                      color: 'var(--fg-strong)',
-                    }}
-                  >
-                    {t('dashboard', 'dailyEli')}
-                  </span>
-                </div>
-                <Button kind="ghost" size="sm" leading={<Icon name="download" size={14} />} onClick={() => window.print()}>
-                  {t('dashboard', 'exportSummary')}
-                </Button>
-              </div>
-              <TrendChart data={MOCK_TREND_14D} dayShort={t('dashboard', 'dayShort')} />
             </div>
           </Card>
         </section>
@@ -239,50 +184,3 @@ function Stat({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-
-function TrendChart({
-  data,
-  dayShort,
-}: {
-  data: { day: number; eli: number; state: 'valid' | 'degraded' }[];
-  dayShort: string;
-}) {
-  const max = Math.max(...data.map((d) => d.eli));
-  const min = Math.min(...data.map((d) => d.eli));
-  const range = Math.max(1, max - min);
-  return (
-    <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: 160 }}>
-      {data.map((d) => {
-        const h = 20 + ((d.eli - min) / range) * 120;
-        return (
-          <div
-            key={d.day}
-            style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}
-          >
-            <div
-              title={`${dayShort}${d.day} · ELI ${d.eli}`}
-              style={{
-                width: '100%',
-                height: h,
-                background: d.state === 'valid' ? 'var(--accent-2)' : 'var(--eli-degraded)',
-                borderRadius: 'var(--radius-sm)',
-                opacity: 0.92,
-              }}
-            />
-            <span
-              style={{
-                fontFamily: 'var(--font-sans)',
-                fontSize: 'var(--text-xxs)',
-                color: 'var(--fg-muted)',
-                fontFeatureSettings: 'var(--ff-tabular)',
-              }}
-            >
-              {dayShort}{d.day}
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
