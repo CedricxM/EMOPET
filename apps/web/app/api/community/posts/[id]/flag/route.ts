@@ -1,10 +1,14 @@
-﻿/**
- * Signalement d'un post - persistance serveur; aucune suppression automatique cote public.
- * POST /api/community/posts/:id/flag
+/**
+ * Legacy Community moderation plane.
+ *
+ * Product V1 authority is Hono + durable persistence. This historical Next.js
+ * JSON-store route is disabled by default and may run only in an explicit
+ * non-production demo using EMOPET_ALLOW_LEGACY_COMMUNITY_DEMO=1.
  */
 
 import { NextResponse } from 'next/server';
 import type { CirclePost } from '../../../../../../lib/community';
+import { legacyCommunityAuthorityGate } from '../../../../../../lib/server/community-authority';
 import { createFixedWindowRateLimiter } from '../../../../../../lib/server/rate-limit';
 import { enforceRateLimit } from '../../../../../../lib/server/request-security';
 import { collection } from '../../../../../../lib/server/store';
@@ -15,6 +19,9 @@ const posts = collection<CirclePost>('community-posts');
 const flagLimiter = createFixedWindowRateLimiter({ limit: 15, windowMs: 60_000 });
 
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const authorityGate = legacyCommunityAuthorityGate();
+  if (authorityGate) return authorityGate;
+
   const limited = enforceRateLimit(req, flagLimiter, 'community:flag:post');
   if (limited) return limited;
 

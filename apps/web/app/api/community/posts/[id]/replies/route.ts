@@ -1,11 +1,15 @@
-﻿/**
- * Réponse à un post — persistance SERVEUR (R3). Filtre modération appliqué.
- * POST /api/community/posts/:id/replies
+/**
+ * Legacy Community replies plane.
+ *
+ * Product V1 authority is Hono + durable persistence. This historical Next.js
+ * JSON-store route is disabled by default and may run only in an explicit
+ * non-production demo using EMOPET_ALLOW_LEGACY_COMMUNITY_DEMO=1.
  */
 
 import { NextResponse } from 'next/server';
 import { buildReply, containsForbiddenContent } from '../../../../../../lib/community';
 import type { CirclePost } from '../../../../../../lib/community';
+import { legacyCommunityAuthorityGate } from '../../../../../../lib/server/community-authority';
 import { createFixedWindowRateLimiter } from '../../../../../../lib/server/rate-limit';
 import { cleanDisplayName, enforceRateLimit, readLimitedJson } from '../../../../../../lib/server/request-security';
 import { collection } from '../../../../../../lib/server/store';
@@ -18,6 +22,9 @@ const REPLY_MAX_BODY_BYTES = 6 * 1024;
 const REPLY_MAX_CONTENT_LENGTH = 1000;
 
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const authorityGate = legacyCommunityAuthorityGate();
+  if (authorityGate) return authorityGate;
+
   const limited = enforceRateLimit(req, repliesLimiter, 'community:replies:post');
   if (limited) return limited;
 
