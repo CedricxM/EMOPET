@@ -58,9 +58,7 @@ export const fr = {
     recoveryTrigger: 'un passage bruyant dans la rue',
     recoveryDetail:
       "Temps mesuré entre le pic d'activité et le retour à la ligne de base observée.",
-    trend14d: 'Tendance 14 jours',
-    dailyEli: 'ELI quotidien',
-    exportSummary: 'Exporter la synthèse 14 j',
+    exportSummary: 'Exporter les observations affichées',
     understandShow: 'Comprendre les indicateurs',
     understandHide: 'Masquer les indicateurs',
     insufficientCapture: 'Fenêtre de capture insuffisante — aucune donnée affichée',
@@ -275,9 +273,7 @@ export const en: Dict = {
     recoveryTrigger: 'a noisy passage in the street',
     recoveryDetail:
       'Measured time between the activity peak and the return to the observed baseline.',
-    trend14d: '14-day trend',
-    dailyEli: 'Daily ELI',
-    exportSummary: 'Export 14-day summary',
+    exportSummary: 'Export the observations shown',
     understandShow: 'Understand the indicators',
     understandHide: 'Hide the indicators',
     insufficientCapture: 'Insufficient capture window — no data shown',
