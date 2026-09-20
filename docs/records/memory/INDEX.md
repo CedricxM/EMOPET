@@ -21,6 +21,7 @@ This folder preserves historical project lineage, supersessions and retrospectiv
 - `BRAND_AND_PUBLIC_COPY_LINEAGE_MAY_AUG_2026.md` — reconstructs the May→August brand sequence and records current repository drift against the controlled August brand authority.
 - `CURRENT_REPO_HARDWARE_TERMINOLOGY_DRIFT_AUDIT_2026-09-07.md` — distinguishes valid current coaxial-PVDF modality naming from stale MAT topology/maturity assumptions in code and documentation.
 - `CURRENT_UI_ELI_PRODUCT_DRIFT_AUDIT_2026-09-07.md` — records where the current web prototype's global ELI/wellbeing/WQI/RSI score semantics conflict with later founder/product doctrine.
+- `CURRENT_REPO_AUTHORITY_CONFLICT_AUDIT_2026-09-17.md` — records in-repository documents that claim an authority they do not hold: the superseded `apps/web/BRAND_AUTHORITY.md` whose deprecation table inverts the controlled palette, an undefined-font-variable defect found while verifying it, and the canonical ELI engine's absence from every runtime import path.
 - `HISTORICAL_STRATEGY_SUPERSESSIONS_2026-09-07.md` — high-risk historical concepts that must not silently re-enter current authority.
 
 ## Scientific communication lineage

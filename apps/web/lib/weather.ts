@@ -69,6 +69,26 @@ export async function fetchCurrentWeather(lat: number, lon: number, signal?: Abo
   }
 }
 
+/**
+ * Récupération TERMINÉE : « indisponible » n'est pas « en cours ».
+ *
+ * `fetchCurrentWeather` renvoie `null` et `fetchForecast` `[]` quand la source
+ * n'a pas répondu. Sans ce marquage, une interface ne distingue pas un échec
+ * d'un chargement en cours et peut afficher « Chargement… » indéfiniment.
+ * L'adaptateur `lib/api/adapters/openMeteo.ts` fait déjà cette distinction
+ * (`ProviderUnavailableError`) ; ces helpers l'offrent aux appelants directs.
+ */
+export type SettledWeather<T> = { status: 'ok'; data: T } | { status: 'unavailable' };
+
+export function settleCurrentWeather(value: CurrentWeather | null): SettledWeather<CurrentWeather> {
+  return value ? { status: 'ok', data: value } : { status: 'unavailable' };
+}
+
+/** Une prévision vide n'existe pas : un tableau vide signale l'indisponibilité. */
+export function settleForecast(values: DailyWeather[]): SettledWeather<DailyWeather[]> {
+  return values.length > 0 ? { status: 'ok', data: values } : { status: 'unavailable' };
+}
+
 /** Prévisions journalières (N jours). Renvoie [] en cas d'échec. */
 export async function fetchForecast(lat: number, lon: number, days = 3, signal?: AbortSignal): Promise<DailyWeather[]> {
   try {

@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import {
-  Button,
   Card,
   Caption,
   DataXL,
@@ -17,22 +16,20 @@ import {
 import { AnticipationCard } from '../../src/components/anticipation-card';
 import { RecoveryTooltip } from '../../src/components/recovery-tooltip';
 import {
+  V6_INSIGHTS_RUNTIME_SOURCE,
   shouldShowAnticipationCard,
   shouldShowRecoveryTooltip,
   useV6Insights,
 } from '../../src/hooks/use-v6-insights';
-import { useDogStore, usePreferencesStore } from '../../src/store';
-import { colors, fontFamily, fontSize, radius, spacing } from '../../src/theme';
+import { useDogStore } from '../../src/store';
+import { colors, fontFamily, fontSize, spacing } from '../../src/theme';
 
 export default function HomeScreen() {
   const dogs = useDogStore((s) => s.dogs);
-  const subscriptionTier = usePreferencesStore((s) => s.subscriptionTier);
-  const hardwareLinked = usePreferencesStore((s) => s.hardwareLinked);
   const insights = useV6Insights();
   const [anticipationDismissedAt, setAnticipationDismissedAt] = useState<Date | null>(null);
 
-  const dogName = dogs[0]?.name ?? insights.dogName ?? 'Gwen';
-  const freeWithoutKit = subscriptionTier === 'free' && !hardwareLinked;
+  const dogName = dogs[0]?.name ?? 'Votre chien';
   const showAnticipation = shouldShowAnticipationCard(insights, anticipationDismissedAt);
   const showRecoveryTooltip = shouldShowRecoveryTooltip(insights);
 
@@ -45,17 +42,17 @@ export default function HomeScreen() {
         <H1 style={styles.title}>{dogName}, ce matin</H1>
       </View>
 
-      {/* ELI card */}
+      {/* ELI card — unavailable until an authoritative producer/projection exists. */}
       <Card style={styles.card}>
         <View style={styles.pillRow}>
-          <Pill state={freeWithoutKit ? 'suppressed' : 'valid'} />
+          <Pill state="suppressed" />
           <Caption style={styles.windowText}>
-            {freeWithoutKit ? 'En attente de capteurs' : 'Fenêtre · 22:14 → 06:03'}
+            Source ELI · {V6_INSIGHTS_RUNTIME_SOURCE.status}
           </Caption>
         </View>
         <Eyebrow>Charge sur 24 h</Eyebrow>
         <View style={styles.valueRow}>
-          <DataXL>{freeWithoutKit ? '—' : '0,42'}</DataXL>
+          <DataXL>—</DataXL>
           <Text style={styles.valueUnit}>ELI</Text>
         </View>
         <View style={styles.meter}>
@@ -63,51 +60,45 @@ export default function HomeScreen() {
             style={[
               styles.meterFill,
               {
-                width: freeWithoutKit ? '0%' : '42%',
-                backgroundColor: freeWithoutKit ? colors.eli.suppressed : colors.eli.valid,
+                width: '0%',
+                backgroundColor: colors.eli.suppressed,
               },
             ]}
           />
         </View>
         <P2 style={styles.cardBody}>
-          {freeWithoutKit
-            ? 'Le mode sans capteur affiche uniquement des repères généraux — aucune interprétation n’est produite.'
-            : 'Estimation basée sur 6 h 12 de signal valide. Tendance stable sur 3 jours.'}
+          Aucune projection ELI de référence n est câblée. Aucune valeur capteur n est affichée à partir
+          d un tier, d un toggle local ou d un contenu de démonstration.
         </P2>
 
-        {showRecoveryTooltip && insights.recoverySpeed && (
-          <RecoveryTooltip
-            dogName={dogName}
-            recoverySpeed={insights.recoverySpeed}
-            baselineMinutes={insights.recoveryBaselineMinutes}
-          />
-        )}
+        {V6_INSIGHTS_RUNTIME_SOURCE.authoritative &&
+          showRecoveryTooltip &&
+          insights.recoverySpeed && (
+            <RecoveryTooltip
+              dogName={dogName}
+              recoverySpeed={insights.recoverySpeed}
+              baselineMinutes={insights.recoveryBaselineMinutes}
+            />
+          )}
       </Card>
 
-      {/* Repos */}
+      {/* Repos — no synthetic metrics while the sensor runtime is unwired. */}
       <Card style={styles.card}>
         <View style={styles.pillRow}>
-          <Pill state="degraded" />
-          <Caption style={styles.windowText}>2 nuits observées</Caption>
+          <Pill state="suppressed" />
+          <Caption style={styles.windowText}>Source repos non câblée</Caption>
         </View>
         <Eyebrow>Repos cette nuit</Eyebrow>
-        <Text style={styles.restTitle}>Repos fragmenté</Text>
-        <View style={styles.grid}>
-          {([
-            ['Interruptions', '4'],
-            ['Durée', '6 h 12'],
-            ['Confiance', '62 %'],
-          ] as const).map(([k, v]) => (
-            <View key={k} style={styles.gridCell}>
-              <Text style={styles.gridKey}>{k}</Text>
-              <Text style={styles.gridValue}>{v}</Text>
-            </View>
-          ))}
-        </View>
+        <Text style={styles.restTitle}>Données indisponibles</Text>
+        <P2 style={styles.cardBody}>
+          EMOPET n affiche pas de durée, d interruption ou de confiance sans données capteur de référence.
+        </P2>
       </Card>
 
       {/* Anticipation observation */}
-      {showAnticipation && insights.anticipation ? (
+      {V6_INSIGHTS_RUNTIME_SOURCE.authoritative &&
+      showAnticipation &&
+      insights.anticipation ? (
         <AnticipationCard
           dogName={dogName}
           anticipation={insights.anticipation}
@@ -115,20 +106,12 @@ export default function HomeScreen() {
           onDismiss={() => setAnticipationDismissedAt(new Date())}
         />
       ) : (
-        <Card style={styles.card} tone="accentSoft">
-          <Eyebrow tone="accent">Observation · déclarée + observée</Eyebrow>
-          <Text style={styles.observationTitle}>{dogName} anticipe vos départs le matin.</Text>
+        <Card style={styles.card} tone="suppressed">
+          <Eyebrow>Observation indisponible</Eyebrow>
+          <Text style={styles.observationTitle}>Aucune observation comportementale de référence.</Text>
           <P2 style={styles.observationBody}>
-            Détecté 3 fois ce mois-ci · à confirmer sur plusieurs semaines.
+            Les cartes d anticipation restent silencieuses tant qu un producteur autoritatif n est pas câblé.
           </P2>
-          <View style={styles.buttonRow}>
-            <Button kind="primary" small>
-              En savoir plus
-            </Button>
-            <Button kind="ghost" small onPress={() => setAnticipationDismissedAt(new Date())}>
-              Masquer
-            </Button>
-          </View>
         </Card>
       )}
 
