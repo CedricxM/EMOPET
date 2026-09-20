@@ -4,9 +4,16 @@ on:
   pull_request:
     paths:
       - 'backend/db/**'
-      - 'backend/test/migration-baseline-static.test.mjs'
+      - 'backend/api/routes/auth.ts'
+      - 'backend/api/middleware/auth.ts'
       - 'backend/api/routes/dogs.ts'
-      - 'backend/test/vet-report-period-contract.test.mjs'
+      - 'backend/api/routes/health.ts'
+      - 'backend/api/routes/sensors.ts'
+      - 'backend/api/routes/data-export.ts'
+      - 'backend/api/routes/community.ts'
+      - 'backend/api/routes/directory.ts'
+      - 'backend/test/*.integration.test.mjs'
+      - 'backend/test/migration-baseline-static.test.mjs'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:
 
