@@ -1,17 +1,18 @@
 /**
- * Carnet du chien — persistance SERVEUR (R3, tranche carnet).
+ * Legacy Journal / Memories prototype plane.
  *
- * GET    /api/journal       liste les entrées (seed des entrées démo si vide)
- * POST   /api/journal       ajoute une entrée (construite côté client, validée ici)
- * DELETE /api/journal?id=   supprime une entrée (droit à l'effacement)
+ * Product V1 Journal/Memory persistence is not wired yet. This historical
+ * Next.js collection store is disabled by default and may run only in an
+ * explicit non-production demo using EMOPET_ALLOW_LEGACY_JOURNAL_DEMO=1.
  *
- * ⚠ Données privées : sans auth, c'est le carnet du chien de démo. À scoper par
- * dogId/userId quand l'auth sera là. Photos en data URL = à migrer vers R2 (storage).
+ * It must never be interpreted as canonical Owner identity, retention,
+ * erasure, sharing or durable Product V1 authority.
  */
 
 import { NextResponse } from 'next/server';
 import { INITIAL_ENTRIES, JOURNAL_OWNER_HEADER, validateJournalEntry } from '../../../lib/journal';
 import type { JournalEntry } from '../../../lib/journal';
+import { legacyJournalAuthorityGate } from '../../../lib/server/journal-authority';
 import { createFixedWindowRateLimiter } from '../../../lib/server/rate-limit';
 import { enforceRateLimit, readLimitedJson } from '../../../lib/server/request-security';
 import { collection } from '../../../lib/server/store';
@@ -46,51 +47,73 @@ function listSeeded(): StoredJournalEntry[] {
   return all;
 }
 
+function demoJson(body: Record<string, unknown>, status = 200): NextResponse {
+  return NextResponse.json(
+    { ...body, authority: 'LEGACY_DEMO_ONLY' },
+    {
+      status,
+      headers: {
+        'Cache-Control': 'private, no-store',
+        'X-Content-Type-Options': 'nosniff',
+      },
+    },
+  );
+}
+
 export async function GET(req: Request) {
+  const authorityGate = legacyJournalAuthorityGate();
+  if (authorityGate) return authorityGate;
+
   const limited = enforceRateLimit(req, journalReadLimiter, 'journal:get');
   if (limited) return limited;
 
   const ownerToken = ownerTokenFromRequest(req);
   const all = listSeeded();
   const visible = all.filter((entry) => entry.ownerToken === DEMO_OWNER || (ownerToken && entry.ownerToken === ownerToken));
-  return NextResponse.json({ entries: visible.map(stripOwner) });
+  return demoJson({ entries: visible.map(stripOwner) });
 }
 
 export async function POST(req: Request) {
+  const authorityGate = legacyJournalAuthorityGate();
+  if (authorityGate) return authorityGate;
+
   const limited = enforceRateLimit(req, journalWriteLimiter, 'journal:post');
   if (limited) return limited;
 
   const ownerToken = ownerTokenFromRequest(req);
-  if (!ownerToken) return NextResponse.json({ ok: false, errors: ['Non autorise.'] }, { status: 401 });
+  if (!ownerToken) return demoJson({ ok: false, errors: ['Non autorise.'] }, 401);
   const parsed = await readLimitedJson<JournalEntry>(req, JOURNAL_MAX_BODY_BYTES);
   if (!parsed.ok) {
-    return NextResponse.json(
+    return demoJson(
       { ok: false, errors: [parsed.error === 'payload_too_large' ? 'Requete trop volumineuse.' : 'Requete invalide.'] },
-      { status: parsed.status },
+      parsed.status,
     );
   }
   const entry = parsed.data;
   const errors = validateJournalEntry(entry);
-  if (errors.length > 0) return NextResponse.json({ ok: false, errors }, { status: 400 });
-  listSeeded(); // garantit le seed avant insertion
+  if (errors.length > 0) return demoJson({ ok: false, errors }, 400);
+  listSeeded();
   if (entries.list().some((e) => e.id === entry.id && e.ownerToken === ownerToken)) {
-    return NextResponse.json({ ok: true, entry, duplicate: true });
+    return demoJson({ ok: true, entry, duplicate: true });
   }
   entries.insert({ ...entry, ownerToken });
-  return NextResponse.json({ ok: true, entry }, { status: 201 });
+  return demoJson({ ok: true, entry }, 201);
 }
 
 export async function DELETE(req: Request) {
+  const authorityGate = legacyJournalAuthorityGate();
+  if (authorityGate) return authorityGate;
+
   const limited = enforceRateLimit(req, journalWriteLimiter, 'journal:delete');
   if (limited) return limited;
 
   const ownerToken = ownerTokenFromRequest(req);
-  if (!ownerToken) return NextResponse.json({ ok: false, errors: ['Non autorise.'] }, { status: 401 });
+  if (!ownerToken) return demoJson({ ok: false, errors: ['Non autorise.'] }, 401);
 
   const id = new URL(req.url).searchParams.get('id');
-  if (!id) return NextResponse.json({ ok: false, errors: ['id manquant'] }, { status: 400 });
+  if (!id) return demoJson({ ok: false, errors: ['id manquant'] }, 400);
   const target = entries.list().find((entry) => entry.id === id && entry.ownerToken === ownerToken);
-  if (!target) return NextResponse.json({ ok: false, errors: ['Entree introuvable.'] }, { status: 404 });
+  if (!target) return demoJson({ ok: false, errors: ['Entree introuvable.'] }, 404);
   entries.removeWhere((entry) => entry.id === id && entry.ownerToken === ownerToken);
-  return NextResponse.json({ ok: true });
+  return demoJson({ ok: true });
 }
