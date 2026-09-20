@@ -11,15 +11,16 @@ const serviceSource = readFileSync(
   'utf8',
 );
 
-test('presence comparison stays non-publishable while SCI-PRES-01 is open', () => {
-  assert.match(routeSource, /PROTOTYPE_SEMANTICS_UNVALIDATED/);
-  assert.match(routeSource, /publishable:\s*false/);
-  assert.match(routeSource, /controllingGate:\s*'SCI-PRES-01'/);
-  assert.match(routeSource, /syntheticFallback:\s*false/);
-  assert.match(routeSource, /publication produit non autorisee/);
+test('presence comparison stays non-publishable while durable Presence authority is absent', () => {
+  assert.match(routeSource, /ABSENCE_COMPARISON_PERSISTENCE_NOT_READY/);
+  assert.match(routeSource, /maturity:\s*'NOT_IMPLEMENTED'/);
+  assert.match(routeSource, /retryable:\s*false/);
+  assert.match(routeSource, /Cache-Control',\s*'private, no-store'/);
+  assert.doesNotMatch(routeSource, /computePresenceComparison/);
+  assert.doesNotMatch(routeSource, /getPresenceEventsForDog/);
 });
 
-test('presence publication quarantine does not rewrite current formulas or thresholds', () => {
+test('presence quarantine does not rewrite prototype formulas or thresholds', () => {
   assert.match(serviceSource, /validPresenceHours < 2 \|\| validAbsenceHours < 2/);
   assert.match(
     serviceSource,
