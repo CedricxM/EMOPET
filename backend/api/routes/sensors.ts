@@ -37,8 +37,9 @@ sensors.get('/eli/:dogId', async (c) => {
   const denied = await requireDogOwnership(c, dogId);
   if (denied) return denied;
 
-  // TODO: return latest ELI state for dog
-  return c.json({ dogId, eli: null });
+  // No canonical ELI producer/runtime is wired. Do not represent
+  // NOT_IMPLEMENTED as an authoritative successful no-result.
+  return c.json({ error: 'eli_runtime_not_implemented', dogId }, 501);
 });
 
 sensors.get('/eli/:dogId/history', async (c) => {
@@ -47,8 +48,9 @@ sensors.get('/eli/:dogId/history', async (c) => {
   if (denied) return denied;
 
   const range = c.req.query('range') ?? '7d';
-  // TODO: return ELI history
-  return c.json({ dogId, range, history: [] });
+  // Keep the requested range visible as request context without claiming it
+  // was queried against an authoritative ELI runtime.
+  return c.json({ error: 'eli_runtime_not_implemented', dogId, range }, 501);
 });
 
 sensors.get('/baseline/:dogId', async (c) => {
