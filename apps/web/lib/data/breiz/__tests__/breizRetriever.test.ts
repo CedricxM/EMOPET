@@ -5,16 +5,25 @@ import { ingestBreizDocuments } from '../ingestDocuments';
 import { MOCK_BREIZ_DOCUMENTS } from '../mockDocuments';
 import { createBreizMockStore, retrieveBreizLocalKnowledge } from '../breizRetriever';
 
+/**
+ * Ce test affirmait auparavant `rejected.length === 0` pour un markdown SANS
+ * aucune licence. Il documentait donc le défaut : l'ingestion fabriquait la
+ * phrase « License review required before public use », ce qui rendait la règle
+ * `license is required` du schéma inatteignable. Le fichier porte désormais son
+ * reçu, et le cas sans reçu est couvert par le test suivant.
+ */
 test('Breiz ingestion parses markdown and preserves source defaults', () => {
   const result = ingestBreizDocuments([
     {
       filename: 'lorient.md',
       content: '# Lorient local note\nFlat harbor loops and local route notes.',
+      license: 'Licence Ouverte 2.0',
     },
   ]);
   assert.equal(result.rejected.length, 0);
   assert.equal(result.documents[0]!.title, 'Lorient local note');
   assert.equal(result.documents[0]!.region, 'Bretagne');
+  assert.equal(result.documents[0]!.license, 'Licence Ouverte 2.0');
 });
 
 test('Breiz chunks export vector-store-ready metadata', () => {
