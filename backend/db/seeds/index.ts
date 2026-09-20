@@ -1,7 +1,8 @@
 /**
- * Master Seed Script — Freemium App Data Foundation
+ * Master Seed Script — controlled freemium data foundation.
  *
- * Seeds all freemium data: breed knowledge, templates, directory, alerts.
+ * Historical freemium templates are non-release migration/regression evidence
+ * and are never seeded implicitly or in production.
  * Run with: npx tsx db/seeds/index.ts
  */
 
@@ -27,8 +28,20 @@ const connectionString = process.env['DATABASE_URL'] ?? 'postgres://localhost:54
 const client = postgres(connectionString);
 const db = drizzle(client, { schema });
 
+const legacyFreemiumSeedRequested =
+  process.env['EMOPET_ALLOW_LEGACY_FREEMIUM_TEMPLATE_SEED'] === '1';
+const allowLegacyFreemiumTemplates =
+  process.env['NODE_ENV'] !== 'production' && legacyFreemiumSeedRequested;
+
+if (process.env['NODE_ENV'] === 'production' && legacyFreemiumSeedRequested) {
+  console.error(
+    'LEGACY FREEMIUM TEMPLATE SEED REFUSED — historical migration/dev corpus cannot be loaded in production.',
+  );
+  process.exit(1);
+}
+
 async function seed() {
-  console.log('Seeding freemium data...\n');
+  console.log('Seeding controlled freemium data...\n');
 
   // 1. Breed Knowledge
   const allBreeds = [...BREED_KNOWLEDGE_PART1, ...BREED_KNOWLEDGE_PART2];
@@ -38,7 +51,10 @@ async function seed() {
   }
   console.log(`  Done: ${allBreeds.length} breeds`);
 
-  // 2. Freemium Templates
+  // 2. Historical freemium templates
+  // These pre-date the canonical Breiz release authority and are quarantined by
+  // default under #235. They may be loaded only for explicit non-production
+  // migration/regression work and are never release content authority.
   const allTemplates = [
     ...HEALTH_SEASONAL_TEMPLATES,
     ...BEHAVIOR_EDUCATION_TEMPLATES,
@@ -50,21 +66,17 @@ async function seed() {
     ...COMMUNITY_TEMPLATES,
     ...FUN_FACT_TEMPLATES,
   ];
-  console.log(`Seeding ${allTemplates.length} freemium templates...`);
-  for (const template of allTemplates) {
-    await db.insert(schema.bleizFreemiumTemplates).values(template).onConflictDoNothing();
+
+  if (allowLegacyFreemiumTemplates) {
+    console.warn('LEGACY FREEMIUM TEMPLATE SEED ENABLED — non-production migration/regression authority only.');
+    console.log(`Seeding ${allTemplates.length} historical freemium templates...`);
+    for (const template of allTemplates) {
+      await db.insert(schema.bleizFreemiumTemplates).values(template).onConflictDoNothing();
+    }
+    console.log(`  Done: ${allTemplates.length} legacy templates`);
+  } else {
+    console.log('Skipping legacy freemium templates (canonical Breiz release authority required).');
   }
-  console.log(`  Done: ${allTemplates.length} templates`);
-  console.log(`  Breakdown:`);
-  console.log(`    health_seasonal: ${HEALTH_SEASONAL_TEMPLATES.length}`);
-  console.log(`    behavior_education: ${BEHAVIOR_EDUCATION_TEMPLATES.length}`);
-  console.log(`    nutrition: ${NUTRITION_TEMPLATES.length}`);
-  console.log(`    activity_exercise: ${ACTIVITY_EXERCISE_TEMPLATES.length}`);
-  console.log(`    first_aid: ${FIRST_AID_TEMPLATES.length}`);
-  console.log(`    life_events: ${LIFE_EVENTS_TEMPLATES.length}`);
-  console.log(`    milestone: ${MILESTONE_TEMPLATES.length}`);
-  console.log(`    community: ${COMMUNITY_TEMPLATES.length}`);
-  console.log(`    fun_fact: ${FUN_FACT_TEMPLATES.length}`);
 
   // 3. Local Directory
   console.log(`\nSeeding ${LORIENT_DIRECTORY.length} directory entries...`);
@@ -82,11 +94,11 @@ async function seed() {
 
   // Summary
   console.log('\n════════════════════════════════════════════');
-  console.log('Freemium seed complete:');
-  console.log(`  Breeds:    ${allBreeds.length}`);
-  console.log(`  Templates: ${allTemplates.length}`);
-  console.log(`  Directory: ${LORIENT_DIRECTORY.length}`);
-  console.log(`  Alerts:    ${SEASONAL_ALERTS_BRETAGNE.length}`);
+  console.log('Controlled freemium seed complete:');
+  console.log(`  Breeds:                  ${allBreeds.length}`);
+  console.log(`  Legacy templates seeded: ${allowLegacyFreemiumTemplates ? allTemplates.length : 0}`);
+  console.log(`  Directory:               ${LORIENT_DIRECTORY.length}`);
+  console.log(`  Alerts:                  ${SEASONAL_ALERTS_BRETAGNE.length}`);
   console.log('════════════════════════════════════════════\n');
 
   await client.end();

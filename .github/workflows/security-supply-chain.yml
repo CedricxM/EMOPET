@@ -60,6 +60,8 @@ jobs:
           node-version: '20'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Enforce legacy freemium quarantine gate
+        run: pnpm legacy-freemium:audit
       - name: Typecheck workspace
         id: typecheck
         shell: bash
