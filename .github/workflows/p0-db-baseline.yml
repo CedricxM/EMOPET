@@ -6,6 +6,8 @@ on:
       - 'backend/db/**'
       - 'backend/api/routes/auth.ts'
       - 'backend/api/middleware/auth.ts'
+      - 'backend/api/services/auth-*.ts'
+      - 'backend/test/auth-*.test.mjs'
       - 'backend/api/routes/dogs.ts'
       - 'backend/api/routes/health.ts'
       - 'backend/api/routes/sensors.ts'
@@ -174,6 +176,14 @@ jobs:
         run: |
           psql "$GENERATED_DATABASE_URL" -Atc "select tablename from pg_tables where schemaname='public' order by tablename" > /tmp/tables-generated.txt
           diff -u /tmp/tables-a.txt /tmp/tables-generated.txt
+
+      - name: AUTH-01 route integration on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          AUTH_DB_INTEGRATION: '1'
+          EMOPET_DB_INTEGRATION_TEST: '0'
+        run: node --test test/auth-routes-postgres.test.mjs test/auth-session-concurrency.test.mjs
 
       - name: INT-03A sensor-summary provenance integration
         working-directory: backend

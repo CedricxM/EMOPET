@@ -7,7 +7,7 @@ const enabled = Boolean(process.env.DATABASE_URL);
 test('auth middleware preserves downstream error ownership', { skip: !enabled }, async () => {
   process.env.NODE_ENV = 'test';
 
-  const { authMiddleware, signToken } = await import('../dist/api/middleware/auth.js');
+  const { authMiddleware, signAccessToken } = await import('../dist/api/middleware/auth.js');
 
   const app = new Hono();
   app.onError((_error, c) => c.json({ error: 'internal_server_error' }, 500));
@@ -16,10 +16,7 @@ test('auth middleware preserves downstream error ownership', { skip: !enabled },
     throw new Error('test-only downstream detail');
   });
 
-  const validToken = await signToken({
-    sub: '11111111-1111-4111-8111-111111111111',
-    email: 'auth-boundary@example.test',
-  });
+  const validToken = await signAccessToken('11111111-1111-4111-8111-111111111111');
 
   const downstreamFailure = await app.request('/api/downstream-failure', {
     headers: { Authorization: `Bearer ${validToken}` },
