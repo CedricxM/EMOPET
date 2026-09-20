@@ -53,6 +53,7 @@ function readPrivilegedKeyFromEnvironment(): PrivilegedTokenKeyConfig {
  * through the verifier boundary so authorizePrivilegedRequest maps them to
  * UNAVAILABLE/503; invalid or unauthorized bearer tokens remain DENIED/401.
  */
+// Provider selection remains outside this adapter; it verifies only canonical privileged tokens.
 export const canonicalPrivilegedAuthorizationVerifier =
   createCanonicalPrivilegedAuthorizationVerifier({
     keyProvider: readPrivilegedKeyFromEnvironment,
