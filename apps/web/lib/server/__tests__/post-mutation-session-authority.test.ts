@@ -21,7 +21,7 @@ test('post PATCH preserves Community kill gate and 8 KiB parser behind exact pri
   const cookieRead = patch.indexOf('await cookies()');
   const authorize = patch.indexOf('authorizePrivilegedSessionToken');
   const params = patch.indexOf('await ctx.params');
-  const body = patch.indexOf('readLimitedJson<unknown>(req, MAX_ADMIN_POST_PATCH_BYTES)');
+  const body = patch.indexOf('parseAdminPostPatchRequest(req)');
   const mutation = patch.indexOf("collection<CirclePost>('community-posts').update");
 
   for (const position of [gate, rate, originConfig, originGuard, bearerReject, cookieRead, authorize, params, body, mutation]) {
@@ -37,7 +37,8 @@ test('post PATCH preserves Community kill gate and 8 KiB parser behind exact pri
   assert.ok(authorize < params);
   assert.ok(params < body);
   assert.ok(body < mutation);
-  assert.equal(source.includes('const MAX_ADMIN_POST_PATCH_BYTES = 8 * 1024'), true);
+  assert.equal(source.includes("from '../../../../../lib/server/admin-post-patch'"), true);
+  assert.equal(patch.includes('adminPostMutationForAction(parsed.action)'), true);
   assert.equal(patch.includes("'moderation.post.manage'"), true);
   assert.equal(patch.includes('LEGACY_DEMO_ONLY'), true);
 });
