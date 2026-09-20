@@ -147,9 +147,20 @@ export const ELIStateSchema = z.object({
 
 // ── Sensor Summary Validators ───────────────────────────────────
 
+/**
+ * Device/network boundary for persisted summaries. Keep this strict: unknown
+ * fields must be rejected rather than silently stripped so raw sensor payloads
+ * cannot hitchhike beside approved features.
+ *
+ * ingestionId/deviceId stay parser-optional so the route can return the
+ * controlled SENSOR_PROVENANCE_REQUIRED domain error. The fresh DB baseline
+ * still enforces both as NOT NULL.
+ */
 export const SensorSummaryCreateSchema = z.object({
   timestamp: z.coerce.date(),
   dogId: z.string().uuid(),
+  ingestionId: z.string().uuid().optional(),
+  deviceId: z.string().uuid().optional(),
   source: z.enum(['MAT', 'TAG']),
   matPresenceMinutes: z.number().min(0).max(60).optional(),
   respiratoryRate: z.object({
@@ -173,7 +184,7 @@ export const SensorSummaryCreateSchema = z.object({
   agitationEvents: z.number().int().min(0).optional(),
   temperatureC: z.number().finite().min(-40).max(60).optional(),
   humidityPct: z.number().finite().min(0).max(100).optional(),
-});
+}).strict();
 
 // ── Community Validators ────────────────────────────────────────
 
