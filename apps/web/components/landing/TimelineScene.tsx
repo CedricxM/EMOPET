@@ -72,14 +72,14 @@ export default function TimelineScene() {
           >
             <span
               className="text-[#6B7684] font-mono text-sm tabular-nums shrink-0"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               {entry.time}
             </span>
             <span className="w-2 h-2 rounded-full bg-[#FE502D] shrink-0 relative top-1" />
             <span
               className="text-[#2E3A48] text-base md:text-lg"
-              style={{ fontFamily: 'var(--font-source-sans)' }}
+              style={{ fontFamily: 'var(--font-body)' }}
             >
               {entry.text}
             </span>
@@ -96,13 +96,13 @@ export default function TimelineScene() {
         <div className="space-y-1">
           <p
             className="text-[#141C25] text-2xl md:text-3xl font-light"
-            style={{ fontFamily: 'var(--font-fraunces)' }}
+            style={{ fontFamily: 'var(--font-display)' }}
           >
             Vous étiez là.
           </p>
           <p
             className="text-[#141C25] text-2xl md:text-3xl font-light"
-            style={{ fontFamily: 'var(--font-fraunces)' }}
+            style={{ fontFamily: 'var(--font-display)' }}
           >
             Mais vous dormiez.
           </p>
@@ -112,7 +112,7 @@ export default function TimelineScene() {
           className={`text-[#4A5766] text-base md:text-lg max-w-md mx-auto leading-relaxed transition-all duration-700 delay-300 ${
             showMessage ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           }`}
-          style={{ fontFamily: 'var(--font-source-sans)' }}
+          style={{ fontFamily: 'var(--font-body)' }}
         >
           EMOPET peut vous aider à mieux comprendre ce qui s&apos;est passé
           pendant que vous ne regardiez pas.
