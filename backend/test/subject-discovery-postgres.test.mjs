@@ -18,6 +18,7 @@ const PRIOR_A = randomUUID();
 const CONSENT_A = randomUUID();
 const SESSION_A = randomUUID();
 const MESSAGE_A = randomUUID();
+const COPRESENCE_A = randomUUID();
 
 let sql = null;
 let lockConnection = null;
@@ -45,6 +46,7 @@ after(async () => {
     await sql`DELETE FROM research_data_consents WHERE id = ${CONSENT_A}`;
     await sql`DELETE FROM auth_refresh_sessions WHERE id = ${SESSION_A}`;
     await sql`DELETE FROM ai_messages WHERE id = ${MESSAGE_A}`;
+    await sql`DELETE FROM copresence_events WHERE id = ${COPRESENCE_A}`;
     await sql`DELETE FROM user_config WHERE user_id IN (${USER_A}, ${USER_B})`;
     await sql`DELETE FROM dogs WHERE id IN (${DOG_A}, ${DOG_B})`;
     await sql`DELETE FROM achievements WHERE user_id IN (${USER_A}, ${USER_B})`;
@@ -81,7 +83,8 @@ async function snapshot() {
       (SELECT count(*)::int FROM behavioral_factor_scores WHERE id = ${FACTOR_A}) AS factors,
       (SELECT count(*)::int FROM eli_behavioral_priors WHERE id = ${PRIOR_A}) AS priors,
       (SELECT count(*)::int FROM research_data_consents WHERE id = ${CONSENT_A}) AS consents,
-      (SELECT count(*)::int FROM auth_refresh_sessions WHERE id = ${SESSION_A}) AS sessions
+      (SELECT count(*)::int FROM auth_refresh_sessions WHERE id = ${SESSION_A}) AS sessions,
+      (SELECT count(*)::int FROM copresence_events WHERE id = ${COPRESENCE_A}) AS copresence
   `;
   return row;
 }
@@ -102,6 +105,11 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
     VALUES
       (${DOG_A}, ${USER_A}, 'Dog A', 'Test', '2020-01-01', 'female', 20.0, 'FC2'),
       (${DOG_B}, ${USER_B}, 'Dog B', 'Test', '2021-01-01', 'male', 22.0, 'FC2')
+  `;
+
+  await sql`
+    INSERT INTO copresence_events (id, dog_a_id, dog_b_id, occurred_at)
+    VALUES (${COPRESENCE_A}, ${DOG_B}, ${DOG_A}, now())
   `;
 
   await sql`
@@ -191,6 +199,10 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
     assert.equal(first.dog.behavioralFactorScores.count, 1);
     assert.equal(first.dog.eliBehavioralPriors.count, 1);
     assert.equal(first.dog.researchDataConsents.count, 1);
+    assert.equal(first.dog.copresenceEvents.status, 'DISCOVERED');
+    assert.equal(first.dog.copresenceEvents.count, 1);
+    assert.equal(first.externalOrUnresolved.contactRequests.status, 'UNRESOLVED_IDENTITY_MAPPING');
+    assert.equal(first.externalOrUnresolved.contactRequests.count, null);
 
     assert.equal(first.guardian.communitiesCreated.count, 0);
     assert.equal(first.guardian.communityMemberships.count, 0);
@@ -276,6 +288,7 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
       priors: 1,
       consents: 1,
       sessions: 1,
+      copresence: 1,
     });
   });
 });
