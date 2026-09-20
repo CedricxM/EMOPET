@@ -38,7 +38,9 @@ test('shared Community readiness helper fails closed while matching runtime is u
   assert.match(helper, /code:\s*COMMUNITY_PERSISTENCE_NOT_READY/);
   assert.match(helper, /retryable:\s*false/);
   assert.match(helper, /},\s*503\)/);
-  assert.match(helper, /Cache-Control',\s*'private, no-store'/);
+  assert.match(helper, /markPrivate\(c\)/);
+  const privacyHelper = functionSource('markPrivate');
+  assert.match(privacyHelper, /Cache-Control',\s*'private, no-store'/);
   assert.doesNotMatch(handler, /matches:\s*\[\]/);
 });
 

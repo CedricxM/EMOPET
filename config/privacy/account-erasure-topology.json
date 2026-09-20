@@ -66,6 +66,20 @@
       "erasureDisposition": "TO_CONFIRM"
     },
     {
+      "table": "community_reports",
+      "column": "reporter_user_id",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "community_rules_acceptances",
+      "column": "user_id",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
       "table": "dogs",
       "column": "owner_id",
       "source": "backend/db/schema/dogs.ts",

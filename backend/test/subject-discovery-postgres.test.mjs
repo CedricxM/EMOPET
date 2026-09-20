@@ -192,7 +192,11 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
     assert.equal(first.dog.eliBehavioralPriors.count, 1);
     assert.equal(first.dog.researchDataConsents.count, 1);
 
-    assert.equal(first.externalOrUnresolved.community.status, 'INTEGRATION_DEFERRED');
+    assert.equal(first.guardian.communitiesCreated.count, 0);
+    assert.equal(first.guardian.communityMemberships.count, 0);
+    assert.equal(first.guardian.communityRulesAcceptances.count, 0);
+    assert.equal(first.guardian.communityReportsFiled.count, 0);
+    assert.equal(Object.hasOwn(first.externalOrUnresolved, 'community'), false);
     assert.equal(first.externalOrUnresolved.professionalSharing.status, 'INTEGRATION_DEFERRED');
     assert.equal(first.externalOrUnresolved.erasureDisposition.status, 'POLICY_AUTHORITY_OPEN');
 
