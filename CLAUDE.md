@@ -27,6 +27,7 @@ Le brief `PROMPT_PROTOTYPE_BRETAGNE.md` décrit une proposition historique. Les 
 - Le web contient aussi des Route Handlers Next.js avec stockage JSON `.data/` et replis localStorage. Ce plan prototype n'est pas l'autorité durable et reste à réconcilier avec le backend/PostgreSQL.
 - Navigation sidebar observée : `/dashboard`, `/journal`, `/quartier`, `/world`, `/breiz`, `/profil`. Des routes hors sidebar existent, notamment `/rapport`, `/contact` et `/admin`.
 - Design system maison : `apps/web/styles/tokens.css` et primitives `apps/web/components/ui/*`. HeroUI 3 et Tailwind 4 sont également installés.
+- Le moteur canonique `packages/eli-engine` (EKF, vetoes, confidence, RSM) n'est importé par **aucun module runtime**. `apps/web/lib/eli/catalog.ts` duplique ses valeurs localement « pour éviter tout import cross-package » et le dashboard consomme `lib/eli/mock`. Ce qui est affiché à l'utilisateur ne vient donc pas du moteur scientifique. Gate ouverte : #118. Constat daté : `docs/records/memory/CURRENT_REPO_AUTHORITY_CONFLICT_AUDIT_2026-09-17.md`.
 - Aucun projet Unity et aucune intégration Nakama ne sont présents sur les branches distantes observées. Ces workstreams restent `GATED / NOT PRODUCTION AUTHORITY`.
 - Les commandes documentées dans les manifests sont des surfaces disponibles, pas une preuve de build, de CI ou de production.
 - Le code contient encore des surfaces historiques de gamification et de score global. Ne pas les étendre ni les traiter comme décisions produit sans revue contre les autorités actuelles.
@@ -136,6 +137,11 @@ Reliability states :
 - SUPPRESSED `#9AA0A6`
 
 Les anciens profils Playfair/Montserrat puis Sora + navy/orange/teal + paw/spiral sont **historiques/superseded**. Le code web contient encore une partie de cette ancienne identité. Ne pas traiter cette implémentation comme l'autorité actuelle et ne pas faire de migration visuelle massive sans pilote + QA.
+
+Deux pièges observés dans le code, à connaître avant tout audit visuel :
+
+1. **`tokens.css` a conservé les NOMS de tokens de la charte actuelle (`--granit-*`, `--terracotta-*`, `--lichen-*`, `--cream-*`) en remplaçant leurs VALEURS par navy/orange/teal.** Un `grep terracotta` renvoie donc du vert alors que le rendu est l'ancienne charte. Vérifier les valeurs hexadécimales, jamais les noms.
+2. **`apps/web/BRAND_AUTHORITY.md` (8 août 2026) se déclarait « single source of truth » et marquait `#C97B5A`, `#6B8E6F`, `#1F2A36` comme « DEPRECATED — DO NOT USE » — or ce sont la terre cuite, le lichen et le granit prescrits par BRAND-AUTHORITY-001 (25 août 2026).** Le fichier porte désormais un en-tête `HISTORICAL / SUPERSEDED` et sa Rule 1 est marquée « do not execute ». Ne pas la ré-exécuter.
 
 Le statut de la tagline historique `Smart care. Strong bond.` / `Soins intelligents. Lien fort.` reste à confirmer séparément. Ne pas inventer une nouvelle tagline.
 

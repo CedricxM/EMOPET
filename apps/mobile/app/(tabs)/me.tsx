@@ -10,7 +10,7 @@ import {
   P2,
   ScreenContainer,
 } from '../../src/components/ui';
-import { useDogStore, usePreferencesStore } from '../../src/store';
+import { useDogStore } from '../../src/store';
 import { colors, fontFamily, fontSize, radius, spacing } from '../../src/theme';
 
 interface MenuItem {
@@ -22,7 +22,7 @@ interface MenuItem {
 const MENU: MenuItem[] = [
   { name: 'IA & tonalité', hint: 'Voix Bleiz · calme', route: '/settings/ai-tone' },
   { name: 'Mode prudence', hint: 'Activé', route: '/settings' },
-  { name: 'Santé & vétérinaire', hint: 'Rapport 14 j', route: '/settings/health-vet' },
+  { name: 'Santé & vétérinaire', hint: 'Partage nominatif en préparation', route: '/settings/health-vet' },
   { name: 'Confidentialité', hint: 'Pseudonymes · opt-in', route: '/settings' },
   { name: 'À propos d’EMOPET', hint: null, route: '/settings' },
 ];
@@ -30,10 +30,11 @@ const MENU: MenuItem[] = [
 export default function ProfileScreen() {
   const dogs = useDogStore((s) => s.dogs);
   const dog = dogs[0];
-  const hardwareLinked = usePreferencesStore((s) => s.hardwareLinked);
 
-  const dogName = dog?.name ?? 'Gwen';
-  const dogMeta = dog ? buildDogMeta(dog) : 'Épagneul breton · 4 ans · 18 kg';
+  const dogName = dog?.name ?? 'Aucun chien selectionne';
+  const dogMeta = dog
+    ? buildDogMeta(dog)
+    : 'Ajoutez ou selectionnez un chien pour afficher son profil.';
 
   return (
     <ScreenContainer scroll>
@@ -42,7 +43,7 @@ export default function ProfileScreen() {
       <Card style={styles.dogCard} padding={14}>
         <View style={styles.dogRow}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{dogName[0]?.toUpperCase() ?? 'G'}</Text>
+            <Text style={styles.avatarText}>{dog ? dogName[0]?.toUpperCase() ?? '—' : '—'}</Text>
           </View>
           <View style={styles.dogBody}>
             <Text style={styles.dogName}>{dogName}</Text>
@@ -56,17 +57,16 @@ export default function ProfileScreen() {
         <SensorRow
           iconName="mat"
           title="MAT · tapis"
-          subtitle={hardwareLinked ? 'Connecté · 98 % présence' : 'Non lié'}
-          bars={[0.3, 0.5, 0.7, 0.9]}
-          state="valid"
+          subtitle="Statut de liaison indisponible"
+          bars={[]}
+          state="degraded"
         />
         <SensorRow
           iconName="tag"
           title="TAG · collier"
-          subtitle={hardwareLinked ? 'Contact partiel · batterie 42 %' : 'Non lié'}
-          bars={[0.3, 0.5, 0.7, 0]}
+          subtitle="Statut de liaison indisponible"
+          bars={[]}
           state="degraded"
-          degradedLastBar
         />
       </View>
 
@@ -76,9 +76,10 @@ export default function ProfileScreen() {
             <Text style={styles.suppressedIconText}>i</Text>
           </View>
           <View style={styles.suppressedBody}>
-            <Text style={styles.suppressedTitle}>Signal insuffisant pour interprétation</Text>
+            <Text style={styles.suppressedTitle}>Statut capteurs indisponible</Text>
             <P2 style={styles.suppressedText}>
-              Moins de 30 min de signal valide ces dernières 24 h — on reste prudent.
+              Aucun runtime device de référence n est câblé. EMOPET ne déduit ni présence, ni batterie,
+              ni qualité de signal depuis une préférence locale.
             </P2>
           </View>
         </View>
