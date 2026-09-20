@@ -6,11 +6,16 @@
  * explicit non-production Community demo opt-in.
  */
 
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import type { CirclePost } from '../../../../../lib/community';
 import { collection } from '../../../../../lib/server/store';
-import { isAdmin } from '../../../../../lib/server/admin';
+import { canonicalPrivilegedAuthorizationVerifier } from '../../../../../lib/server/canonical-privileged-verifier';
 import { legacyCommunityAuthorityGate } from '../../../../../lib/server/community-authority';
+import { evaluatePrivilegedMutationOrigin } from '../../../../../lib/server/privileged-mutation-origin';
+import { authorizePrivilegedSessionToken } from '../../../../../lib/server/privileged-request';
+import { PRIVILEGED_SESSION_COOKIE } from '../../../../../lib/server/privileged-session';
+import { resolvePrivilegedWebOrigin } from '../../../../../lib/server/privileged-web-origin-config';
 import { createFixedWindowRateLimiter } from '../../../../../lib/server/rate-limit';
 import { enforceRateLimit, readLimitedJson } from '../../../../../lib/server/request-security';
 
@@ -39,7 +44,37 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   const limited = enforceRateLimit(req, adminLimiter, 'admin:posts:patch');
   if (limited) return limited;
 
-  if (!isAdmin(req)) return demoJson({ ok: false, error: 'unauthorized' }, 401);
+  const originConfig = resolvePrivilegedWebOrigin();
+  if (originConfig.status !== 'CONFIGURED') {
+    return demoJson({ ok: false, error: 'privileged_origin_unavailable' }, 503);
+  }
+
+  const originDecision = evaluatePrivilegedMutationOrigin({
+    request: req,
+    expectedOrigin: originConfig.origin,
+  });
+  if (originDecision.status !== 'ALLOWED') {
+    return demoJson({ ok: false, error: 'forbidden_origin' }, 403);
+  }
+
+  if (req.headers.has('authorization')) {
+    return demoJson({ ok: false, error: 'unauthorized' }, 401);
+  }
+
+  const sessionTokenValue = (await cookies()).get(PRIVILEGED_SESSION_COOKIE)?.value;
+  const authorization = await authorizePrivilegedSessionToken(
+    sessionTokenValue,
+    'moderation.post.manage',
+    canonicalPrivilegedAuthorizationVerifier,
+  );
+
+  if (authorization.status === 'UNAVAILABLE') {
+    return demoJson({ ok: false, error: 'privileged_auth_unavailable' }, 503);
+  }
+  if (authorization.status !== 'AUTHORIZED') {
+    return demoJson({ ok: false, error: 'unauthorized' }, 401);
+  }
+
   const { id } = await ctx.params;
   const parsed = await readLimitedJson<unknown>(req, MAX_ADMIN_POST_PATCH_BYTES);
   if (!parsed.ok) {
