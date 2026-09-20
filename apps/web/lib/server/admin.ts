@@ -1,19 +1,25 @@
 import { timingSafeEqual } from 'node:crypto';
 
 /**
- * Gate admin minimal (server-only).
+ * Legacy prototype admin gate (server-only).
  *
- * Si `ADMIN_TOKEN` est défini, les routes admin exigent l'en-tête
- * `x-admin-token` correspondant. Sinon (dev), l'accès est ouvert localement.
+ * This shared static token is intentionally unavailable in production. It has
+ * no individual staff identity, MFA assurance, role separation or per-user
+ * revocation, so it must not become a production privileged authority while
+ * the real authenticated staff path is still being built.
  *
- * ⚠ Gate de prototype. La vraie protection = auth + rôle staff (RBAC),
- * différée jusqu'à la mise en place de l'authentification.
+ * In non-production environments only, `ADMIN_TOKEN` may keep the prototype
+ * admin tooling usable for local development and tests.
  */
 
 export const ADMIN_TOKEN_COOKIE = 'breiz-admin-token';
 
+function legacyAdminTokenAllowed(): boolean {
+  return process.env['NODE_ENV'] !== 'production';
+}
+
 export function adminConfigured(): boolean {
-  return !!process.env['ADMIN_TOKEN'];
+  return legacyAdminTokenAllowed() && !!process.env['ADMIN_TOKEN']?.trim();
 }
 
 function decodeTokenValue(value: string | null | undefined): string | undefined {
@@ -26,6 +32,8 @@ function decodeTokenValue(value: string | null | undefined): string | undefined 
 }
 
 export function isAdminTokenValue(value: string | null | undefined): boolean {
+  if (!legacyAdminTokenAllowed()) return false;
+
   const token = process.env['ADMIN_TOKEN']?.trim();
   const candidate = decodeTokenValue(value);
   if (!token || !candidate) return false;
