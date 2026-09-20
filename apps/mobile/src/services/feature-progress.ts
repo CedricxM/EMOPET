@@ -23,6 +23,17 @@ export interface FeatureProgressLocalContext {
   };
 }
 
+export interface LocalFeatureProgressResponse {
+  userId: null;
+  generatedAt: string;
+  services: FeatureProgressCard[];
+  authoritative: false;
+}
+
+export type FeatureProgressClientResponse =
+  | FeatureProgressResponse
+  | LocalFeatureProgressResponse;
+
 export interface WaitlistResponse {
   serviceId: string;
   channel: 'in_app' | 'email';
@@ -348,18 +359,19 @@ function localCard(
 
 export function buildLocalFeatureProgress(
   context: FeatureProgressLocalContext,
-): FeatureProgressResponse {
+): LocalFeatureProgressResponse {
   return {
-    userId: context.userId ?? null,
+    userId: null,
     generatedAt: new Date().toISOString(),
     services: FEATURE_PROGRESS_CATALOG.map((entry) => localCard(entry, context)),
+    authoritative: false,
   };
 }
 
 export async function fetchFeatureProgress(
   token: string | null | undefined,
   context: FeatureProgressLocalContext,
-): Promise<FeatureProgressResponse> {
+): Promise<FeatureProgressClientResponse> {
   if (!token) {
     return buildLocalFeatureProgress(context);
   }
