@@ -23,6 +23,17 @@ export interface FeatureProgressLocalContext {
   };
 }
 
+export interface LocalFeatureProgressResponse {
+  userId: null;
+  generatedAt: string;
+  services: FeatureProgressCard[];
+  authoritative: false;
+}
+
+export type FeatureProgressClientResponse =
+  | FeatureProgressResponse
+  | LocalFeatureProgressResponse;
+
 export interface WaitlistResponse {
   serviceId: string;
   channel: 'in_app' | 'email';
@@ -197,7 +208,7 @@ function localCard(
         {
           key: 'report_block',
           label: 'Signalement et blocage disponibles',
-          state: 'done',
+          state: 'blocked',
         },
         {
           key: 'moderation_ops',
@@ -262,7 +273,7 @@ function localCard(
                 {
                   key: 'report_block',
                   label: 'Blocage et signalement actifs',
-                  state: 'done',
+                  state: 'blocked',
                 },
                 {
                   key: 'anti_harassment',
@@ -306,7 +317,7 @@ function localCard(
                       {
                         key: 'report_block',
                         label: 'Signalement et blocage disponibles',
-                        state: 'done',
+                        state: 'blocked',
                       },
                       {
                         key: 'anti_fake',
@@ -348,18 +359,19 @@ function localCard(
 
 export function buildLocalFeatureProgress(
   context: FeatureProgressLocalContext,
-): FeatureProgressResponse {
+): LocalFeatureProgressResponse {
   return {
-    userId: context.userId ?? 'demo-user',
+    userId: null,
     generatedAt: new Date().toISOString(),
     services: FEATURE_PROGRESS_CATALOG.map((entry) => localCard(entry, context)),
+    authoritative: false,
   };
 }
 
 export async function fetchFeatureProgress(
   token: string | null | undefined,
   context: FeatureProgressLocalContext,
-): Promise<FeatureProgressResponse> {
+): Promise<FeatureProgressClientResponse> {
   if (!token) {
     return buildLocalFeatureProgress(context);
   }
