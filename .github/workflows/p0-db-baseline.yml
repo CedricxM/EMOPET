@@ -15,6 +15,10 @@ on:
       - 'backend/api/routes/directory.ts'
       - 'backend/test/*.integration.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
+      - 'backend/test/dataset-writer-authority.sql'
+      - 'scripts/ingest_vbo.ts'
+      - 'scripts/data/vbo-committed-snapshot-audit.mjs'
+      - 'data/vbo/**'
       - '.github/workflows/p0-db-baseline.yml'
   workflow_dispatch:
 
@@ -153,6 +157,17 @@ jobs:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: pnpm exec drizzle-kit migrate --config=db/drizzle.p0-baseline.config.ts
 
+      - name: INT-03B VBO writer and traceability contract
+        run: |
+          grep -Fq "updated_at = NOW()" scripts/ingest_vbo.ts
+          grep -Fq "RAISE EXCEPTION" data/vbo/breed_canonical_insert.sql
+          node scripts/data/vbo-committed-snapshot-audit.mjs
+
+      - name: INT-03B writer-owned dataset timestamp
+        env:
+          GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+        run: psql "$GENERATED_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/dataset-writer-authority.sql
+
       - name: Verify generated table inventory
         env:
           GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
@@ -192,5 +207,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus the focused INT-03A sensor-provenance reconstruction.'
+          echo 'This workflow validates disposable P0 database behavior plus focused INT-03A sensor-provenance and INT-03B dataset-writer authority.'
           echo 'It does not authorize production migration, deployment, or release.'
