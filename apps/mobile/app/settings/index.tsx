@@ -6,15 +6,9 @@ import { FirmwareVersionRow } from '../../src/components/firmware-version-row';
 import { useV6Insights } from '../../src/hooks/use-v6-insights';
 import { saveFeatureConsent } from '../../src/services/feature-progress';
 
-const TIERS: Array<'free' | 'trial' | 'kit' | 'premium'> = ['free', 'trial', 'kit', 'premium'];
-
 export default function SettingsScreen() {
   const token = useAuthStore((state) => state.token);
-  const subscriptionTier = usePreferencesStore((state) => state.subscriptionTier);
-  const hardwareLinked = usePreferencesStore((state) => state.hardwareLinked);
   const consents = usePreferencesStore((state) => state.consents);
-  const setSubscriptionTier = usePreferencesStore((state) => state.setSubscriptionTier);
-  const setHardwareLinked = usePreferencesStore((state) => state.setHardwareLinked);
   const setConsent = usePreferencesStore((state) => state.setConsent);
   const activateCommunityConsentFromDurableAuthority = usePreferencesStore(
     (state) => state.activateCommunityConsentFromDurableAuthority,
@@ -64,30 +58,11 @@ export default function SettingsScreen() {
       <Text style={styles.title}>Options avancees</Text>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Entitlements V1</Text>
-        <Text style={styles.helper}>Le mode free reste sans insights capteurs.</Text>
-        <View style={styles.row}>
-          <Text style={styles.label}>Kit lie</Text>
-          <Switch
-            value={hardwareLinked}
-            onValueChange={setHardwareLinked}
-            trackColor={{ false: '#3B4D73', true: '#E94560' }}
-          />
-        </View>
-        <Text style={styles.label}>Tier</Text>
-        <View style={styles.pillRow}>
-          {TIERS.map((tier) => (
-            <Pressable
-              key={tier}
-              style={[styles.pill, subscriptionTier === tier && styles.pillActive]}
-              onPress={() => setSubscriptionTier(tier)}
-            >
-              <Text style={[styles.pillText, subscriptionTier === tier && styles.pillTextActive]}>
-                {tier}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        <Text style={styles.sectionTitle}>Compte & materiel</Text>
+        <Text style={styles.helper}>
+          Le niveau d abonnement et l association MAT/TAG ne sont pas modifiables localement.
+          Ils seront affiches ici quand une autorite compte/device de reference sera cablee.
+        </Text>
       </View>
 
       <View style={styles.card}>

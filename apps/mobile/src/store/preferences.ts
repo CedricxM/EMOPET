@@ -20,8 +20,6 @@ interface PreferencesState {
     community_opt_in: boolean;
     vet_export_opt_in: boolean;
   };
-  setSubscriptionTier: (tier: MobileSubscriptionTier) => void;
-  setHardwareLinked: (linked: boolean) => void;
   setCommunityAiToneProfileDefault: (profile: MobileAiToneProfile) => void;
   setAiToneProfile: (profile: MobileAiToneProfile | null) => void;
   setCommunityRulesAccepted: (accepted: boolean) => void;
@@ -34,6 +32,7 @@ interface PreferencesState {
 }
 
 export const usePreferencesStore = create<PreferencesState>((set) => ({
+  // Read-only placeholders until canonical account/device authority is wired.
   subscriptionTier: 'free',
   hardwareLinked: false,
   communityAiToneProfileDefault: 'BREIZ',
@@ -47,8 +46,6 @@ export const usePreferencesStore = create<PreferencesState>((set) => ({
     community_opt_in: false,
     vet_export_opt_in: false,
   },
-  setSubscriptionTier: (subscriptionTier) => set({ subscriptionTier }),
-  setHardwareLinked: (hardwareLinked) => set({ hardwareLinked }),
   setCommunityAiToneProfileDefault: (communityAiToneProfileDefault) => set({ communityAiToneProfileDefault }),
   setAiToneProfile: (aiToneProfile) => set({ aiToneProfile }),
   setCommunityRulesAccepted: (communityRulesAccepted) => set({ communityRulesAccepted }),
