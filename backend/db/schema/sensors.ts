@@ -1,14 +1,11 @@
-import { pgTable, uuid, varchar, timestamp, real, integer, jsonb, index, uniqueIndex } from 'drizzle-orm/pg-core';
-import { devices, dogs } from './dogs.js';
+import { pgTable, uuid, varchar, timestamp, real, integer, jsonb } from 'drizzle-orm/pg-core';
+import { dogs } from './dogs.js';
 
 export const sensorSummaries = pgTable('sensor_summaries', {
   id: uuid('id').primaryKey().defaultRandom(),
   dogId: uuid('dog_id').notNull().references(() => dogs.id),
-  ingestionId: uuid('ingestion_id'),
-  deviceId: uuid('device_id').references(() => devices.id),
   timestamp: timestamp('timestamp', { withTimezone: true }).notNull(),
   source: varchar('source', { length: 5 }).notNull(), // MAT, TAG
-  firmwareVersionAtIngest: varchar('firmware_version_at_ingest', { length: 20 }),
   matPresenceMinutes: real('mat_presence_minutes'),
   respiratoryRateMean: real('respiratory_rate_mean'),
   respiratoryRateStd: real('respiratory_rate_std'),
@@ -24,10 +21,7 @@ export const sensorSummaries = pgTable('sensor_summaries', {
   temperatureC: real('temperature_c'),
   humidityPct: real('humidity_pct'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-}, (table) => ({
-  ingestionIdUnique: uniqueIndex('uq_sensor_summaries_ingestion_id').on(table.ingestionId),
-  deviceTimestampIdx: index('idx_sensor_summaries_device_timestamp').on(table.deviceId, table.timestamp),
-}));
+});
 
 export const eliStates = pgTable('eli_states', {
   id: uuid('id').primaryKey().defaultRandom(),

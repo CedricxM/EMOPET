@@ -1,4 +1,4 @@
-import { nanoid } from 'nanoid';
+﻿import { nanoid } from 'nanoid';
 import {
   FEATURE_PROGRESS_CATALOG,
   type CommunityRulesAcceptInput,
@@ -242,14 +242,9 @@ function buildCard(entry: FeatureCatalogEntry, userId: string): FeatureProgressC
           state: communityRulesAccepted ? 'done' : 'todo',
         },
         {
-          key: 'report_durable',
-          label: 'Signalement persistant disponible',
+          key: 'report_block',
+          label: 'Signalement et blocage disponibles',
           state: 'done',
-        },
-        {
-          key: 'block_enforcement',
-          label: 'Blocage applique aux surfaces Community',
-          state: 'blocked',
         },
         {
           key: 'moderation_ops',
@@ -288,14 +283,9 @@ function buildCard(entry: FeatureCatalogEntry, userId: string): FeatureProgressC
           state: communityRulesAccepted ? 'done' : 'todo',
         },
         {
-          key: 'report_durable',
-          label: 'Signalement persistant disponible',
+          key: 'report_block',
+          label: 'Blocage et signalement actifs',
           state: 'done',
-        },
-        {
-          key: 'block_enforcement',
-          label: 'Blocage applique aux surfaces Community',
-          state: 'blocked',
         },
         {
           key: 'anti_harassment',
@@ -392,14 +382,9 @@ function buildCard(entry: FeatureCatalogEntry, userId: string): FeatureProgressC
           state: communityRulesAccepted ? 'done' : 'todo',
         },
         {
-          key: 'report_durable',
-          label: 'Signalement persistant disponible',
+          key: 'report_block',
+          label: 'Signalement et blocage disponibles',
           state: 'done',
-        },
-        {
-          key: 'block_enforcement',
-          label: 'Blocage applique aux surfaces Community',
-          state: 'blocked',
         },
         {
           key: 'anti_fake',

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import type { ConsentPurpose, FeatureProgressCard, FeatureProgressCta } from '@emopet/shared';
+import type { FeatureProgressCard, FeatureProgressCta } from '@emopet/shared';
 
 import {
   acceptCommunityRulesRequest,
@@ -11,6 +11,10 @@ import {
   saveFeatureConsent,
 } from '../services/feature-progress';
 import { useAuthStore, usePreferencesStore } from '../store';
+
+function actionErrorMessage(reason: unknown): string {
+  return reason instanceof Error ? reason.message : 'Action impossible pour le moment.';
+}
 
 export function useFeatureProgress() {
   const router = useRouter();
@@ -22,6 +26,9 @@ export function useFeatureProgress() {
   const setConsent = usePreferencesStore((state) => state.setConsent);
   const activateLocationConsentFromDurableAuthority = usePreferencesStore(
     (state) => state.activateLocationConsentFromDurableAuthority,
+  );
+  const activateCommunityConsentFromDurableAuthority = usePreferencesStore(
+    (state) => state.activateCommunityConsentFromDurableAuthority,
   );
   const setCommunityRulesAccepted = usePreferencesStore((state) => state.setCommunityRulesAccepted);
   const joinWaitlist = usePreferencesStore((state) => state.joinWaitlist);
@@ -80,60 +87,6 @@ export function useFeatureProgress() {
     }
   }
 
-  async function persistConsentAndApply(
-    purpose: ConsentPurpose,
-    action: FeatureProgressCta,
-  ): Promise<void> {
-    const isLocationConsent = purpose === 'location_nearby_temp';
-
-    // Sensitive location/coproximity cannot be represented as an accepted
-    // local/demo consent. It must be durably bound to an authenticated
-    // principal before any local collection switch is enabled.
-    if (isLocationConsent && !token) {
-      setConsent('location_opt_in', false);
-      setPassivePhoneDetectionEnabled(false);
-      Alert.alert(
-        'Proximite indisponible',
-        'La proximite reste desactivee tant que le consentement ne peut pas etre enregistre durablement sur votre compte.',
-      );
-      return;
-    }
-
-    try {
-      await saveFeatureConsent(token, {
-        purpose,
-        status: 'accepted',
-        context: action.context,
-      });
-
-      // Local state changes only after durable consent recording succeeds.
-      if (purpose === 'community_opt_in') {
-        setConsent('community_opt_in', true);
-      }
-      if (isLocationConsent) {
-        activateLocationConsentFromDurableAuthority();
-        setPassivePhoneDetectionEnabled(true);
-      }
-
-      if (action.route) {
-        router.push(action.route as never);
-      }
-    } catch (reason: unknown) {
-      if (isLocationConsent) {
-        setConsent('location_opt_in', false);
-        setPassivePhoneDetectionEnabled(false);
-      }
-      Alert.alert(
-        isLocationConsent ? 'Proximite indisponible' : 'Consentement indisponible',
-        isLocationConsent
-          ? 'La proximite reste desactivee. Aucun consentement local ne remplace un enregistrement durable.'
-          : reason instanceof Error
-            ? reason.message
-            : 'Le consentement n a pas pu etre enregistre.',
-      );
-    }
-  }
-
   async function onAction(action: FeatureProgressCta, item: FeatureProgressCard): Promise<void> {
     if (action.type === 'open' || action.type === 'learn_more' || action.type === 'view_progress') {
       router.push((action.route ?? '/progress') as never);
@@ -141,24 +94,34 @@ export function useFeatureProgress() {
     }
 
     if (action.type === 'join_waitlist') {
-      joinWaitlist(item.serviceId);
-      await joinFeatureWaitlistRequest(token, item.serviceId);
-      Alert.alert(
-        'Liste rejointe',
-        `${item.title} reste visible ici, et vous serez prioritaire pour la beta.`,
-      );
+      try {
+        await joinFeatureWaitlistRequest(token, item.serviceId);
+        joinWaitlist(item.serviceId);
+        setError(null);
+        Alert.alert(
+          'Liste rejointe',
+          `${item.title} reste visible ici, et vous serez prioritaire pour la beta.`,
+        );
+      } catch (reason: unknown) {
+        setError(actionErrorMessage(reason));
+      }
       return;
     }
 
     if (action.type === 'accept_rules') {
-      await acceptCommunityRulesRequest(token);
-      setCommunityRulesAccepted(true);
-      Alert.alert(
-        'Regles acceptees',
-        'Vous pouvez maintenant avancer vers les fonctions communautaires qui demandent une base de moderation claire.',
-      );
-      if (action.route) {
-        router.push(action.route as never);
+      try {
+        await acceptCommunityRulesRequest(token);
+        setCommunityRulesAccepted(true);
+        setError(null);
+        Alert.alert(
+          'Regles acceptees',
+          'Vous pouvez maintenant avancer vers les fonctions communautaires qui demandent une base de moderation claire.',
+        );
+        if (action.route) {
+          router.push(action.route as never);
+        }
+      } catch (reason: unknown) {
+        setError(actionErrorMessage(reason));
       }
       return;
     }
@@ -171,7 +134,34 @@ export function useFeatureProgress() {
         {
           text: prompt.confirmLabel,
           onPress: () => {
-            void persistConsentAndApply(purpose, action);
+            void (async () => {
+              try {
+                await saveFeatureConsent(token, {
+                  purpose,
+                  status: 'accepted',
+                  context: action.context,
+                });
+
+                if (purpose === 'community_opt_in') {
+                  activateCommunityConsentFromDurableAuthority();
+                }
+                if (purpose === 'location_nearby_temp') {
+                  activateLocationConsentFromDurableAuthority();
+                  setPassivePhoneDetectionEnabled(true);
+                }
+
+                setError(null);
+                if (action.route) {
+                  router.push(action.route as never);
+                }
+              } catch (reason: unknown) {
+                if (purpose === 'location_nearby_temp') {
+                  setConsent('location_opt_in', false);
+                  setPassivePhoneDetectionEnabled(false);
+                }
+                setError(actionErrorMessage(reason));
+              }
+            })();
           },
         },
       ]);

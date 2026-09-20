@@ -1,25 +1,24 @@
 export type WorldResourceKey =
-  | 'driftwood'
-  | 'seaGlass'
-  | 'gardenSeeds'
-  | 'lanternLight'
-  | 'mapInk'
-  | 'storyThreads';
+  | 'routinePoints'
+  | 'observationQuality'
+  | 'trustFragments'
+  | 'walkTraces'
+  | 'calmStones'
+  | 'bondMoments'
+  | 'communitySeeds'
+  | 'signalClarity'
+  | 'localDiscoveries';
 
 export type ResourceBalance = Record<WorldResourceKey, number>;
 
-/**
- * World events are generated only by explicit activity inside World.
- * They are NOT sourced from MAT/TAG/ELI, dog activity, rest, distance, signal
- * quality, adherence, Memories quantity or relationship metrics.
- */
 export type WorldEventType =
-  | 'world_welcome_pack_opened'
-  | 'world_area_explored'
-  | 'world_workshop_completed'
-  | 'world_coop_scene_completed'
-  | 'world_story_fragment_found'
-  | 'world_decoration_shared';
+  | 'reliable_rest_window_completed'
+  | 'walk_added'
+  | 'calm_place_discovered'
+  | 'community_place_contributed'
+  | 'signal_quality_high'
+  | 'educational_tip_read'
+  | 'mat_setup_completed';
 
 export type TileMotif =
   | 'pathMotif'
@@ -81,97 +80,131 @@ export interface CommunityWorldState {
 
 export const WORLD_RESOURCES: WorldResourceDefinition[] = [
   {
-    key: 'driftwood',
-    label: 'Bois flotté',
-    shortLabel: 'Bois',
-    description: 'Ressource fictive obtenue uniquement dans Mon monde.',
+    key: 'routinePoints',
+    label: 'Routine Points',
+    shortLabel: 'Routine',
+    description: 'Care routines completed with gentle continuity.',
     color: 'var(--emopet-navy)',
   },
   {
-    key: 'seaGlass',
-    label: 'Verre marin',
-    shortLabel: 'Verre',
-    description: 'Ressource fictive de décoration, sans lien avec les données du chien.',
+    key: 'observationQuality',
+    label: 'Observation Quality',
+    shortLabel: 'Quality',
+    description: 'Reliable observation windows and clear setup context.',
     color: 'var(--emopet-teal)',
   },
   {
-    key: 'gardenSeeds',
-    label: 'Graines du jardin',
-    shortLabel: 'Graines',
-    description: 'Ressource fictive issue des activités de jardinage dans World.',
-    color: 'var(--lichen-500)',
-  },
-  {
-    key: 'lanternLight',
-    label: 'Lumière de lanterne',
-    shortLabel: 'Lumière',
-    description: 'Ressource fictive pour les objets lumineux de World.',
+    key: 'trustFragments',
+    label: 'Trust Fragments',
+    shortLabel: 'Trust',
+    description: 'Owner engagement with setup, notes and learning.',
     color: 'var(--emopet-orange)',
   },
   {
-    key: 'mapInk',
-    label: 'Encre de carte',
-    shortLabel: 'Encre',
-    description: 'Ressource fictive utilisée pour explorer la carte interne de World.',
+    key: 'walkTraces',
+    label: 'Walk Traces',
+    shortLabel: 'Walks',
+    description: 'Walk notes and route additions.',
+    color: 'var(--emopet-teal)',
+  },
+  {
+    key: 'calmStones',
+    label: 'Calm Stones',
+    shortLabel: 'Stones',
+    description: 'Quiet places and rest-zone setup work.',
     color: 'var(--granit-500)',
   },
   {
-    key: 'storyThreads',
-    label: 'Fils d’histoire',
-    shortLabel: 'Histoires',
-    description: 'Ressource fictive liée aux fragments narratifs choisis dans World.',
+    key: 'bondMoments',
+    label: 'Bond Moments',
+    shortLabel: 'Bond',
+    description: 'Shared owner actions such as notes, learning and care tasks.',
+    color: 'var(--emopet-orange)',
+  },
+  {
+    key: 'communitySeeds',
+    label: 'Community Seeds',
+    shortLabel: 'Seeds',
+    description: 'Opt-in local contributions.',
+    color: 'var(--emopet-teal)',
+  },
+  {
+    key: 'signalClarity',
+    label: 'Signal Clarity',
+    shortLabel: 'Signal',
+    description: 'High-confidence MAT or TAG capture windows.',
+    color: 'var(--emopet-navy)',
+  },
+  {
+    key: 'localDiscoveries',
+    label: 'Local Discoveries',
+    shortLabel: 'Local',
+    description: 'Dog-friendly places and walking route discoveries.',
     color: 'var(--emopet-orange)',
   },
 ];
 
 export const EMPTY_RESOURCE_BALANCE: ResourceBalance = {
-  driftwood: 0,
-  seaGlass: 0,
-  gardenSeeds: 0,
-  lanternLight: 0,
-  mapInk: 0,
-  storyThreads: 0,
+  routinePoints: 0,
+  observationQuality: 0,
+  trustFragments: 0,
+  walkTraces: 0,
+  calmStones: 0,
+  bondMoments: 0,
+  communitySeeds: 0,
+  signalClarity: 0,
+  localDiscoveries: 0,
 };
 
-/**
- * Demo-only World events. Every grant below is produced by an in-World action.
- * No event is a proxy for real-dog performance, Care quality or sensor evidence.
- */
 export const MOCK_WORLD_EVENTS: WorldEvent[] = [
   {
-    id: 'world-welcome',
-    type: 'world_welcome_pack_opened',
-    title: 'Paquet de bienvenue ouvert',
-    detail: 'Quelques matériaux fictifs sont disponibles pour essayer l’atelier.',
-    grants: { driftwood: 28, seaGlass: 18, gardenSeeds: 16, lanternLight: 12, mapInk: 12 },
+    id: 'event-rest-window',
+    type: 'reliable_rest_window_completed',
+    title: 'Reliable rest window completed',
+    detail: 'MAT captured a complete reference window with 91% signal confidence.',
+    grants: { routinePoints: 40, observationQuality: 30, signalClarity: 18, calmStones: 10 },
   },
   {
-    id: 'world-cove',
-    type: 'world_area_explored',
-    title: 'Crique virtuelle explorée',
-    detail: 'Une zone de Mon monde a été visitée. Aucune donnée réelle du chien n’est utilisée.',
-    grants: { seaGlass: 14, mapInk: 16 },
+    id: 'event-walk-note',
+    type: 'walk_added',
+    title: 'Walk note added',
+    detail: 'A coastal route was added with time, distance and surface notes.',
+    grants: { walkTraces: 34, bondMoments: 12, localDiscoveries: 8 },
   },
   {
-    id: 'world-workshop',
-    type: 'world_workshop_completed',
-    title: 'Petit atelier terminé',
-    detail: 'Un mini tutoriel de construction dans World a été terminé.',
-    grants: { driftwood: 14, gardenSeeds: 8 },
+    id: 'event-place',
+    type: 'calm_place_discovered',
+    title: 'Quiet place discovered',
+    detail: 'A low-traffic walking spot was saved for later review.',
+    grants: { calmStones: 14, localDiscoveries: 18, communitySeeds: 6 },
   },
   {
-    id: 'world-coop',
-    type: 'world_coop_scene_completed',
-    title: 'Scène coopérative terminée',
-    detail: 'Une activité sociale optionnelle de World a été terminée sans classement.',
-    grants: { lanternLight: 14, gardenSeeds: 10 },
+    id: 'event-community',
+    type: 'community_place_contributed',
+    title: 'Local map contribution',
+    detail: 'A dog-friendly place was shared with the Lorient map after opt-in.',
+    grants: { communitySeeds: 26, localDiscoveries: 12, trustFragments: 10 },
   },
   {
-    id: 'world-story',
-    type: 'world_story_fragment_found',
-    title: 'Fragment d’histoire trouvé',
-    detail: 'Un élément narratif de World a été découvert volontairement.',
-    grants: { storyThreads: 18, mapInk: 8 },
+    id: 'event-signal',
+    type: 'signal_quality_high',
+    title: 'High signal confidence',
+    detail: 'TAG and MAT were aligned long enough to support careful interpretation.',
+    grants: { signalClarity: 28, observationQuality: 16 },
+  },
+  {
+    id: 'event-learning',
+    type: 'educational_tip_read',
+    title: 'Care tip read',
+    detail: 'An educational card about steady setup routines was completed.',
+    grants: { routinePoints: 12, trustFragments: 10, bondMoments: 8 },
+  },
+  {
+    id: 'event-setup',
+    type: 'mat_setup_completed',
+    title: 'MAT setup checked',
+    detail: 'The placement check confirmed a stable reference surface.',
+    grants: { routinePoints: 18, signalClarity: 20, calmStones: 8 },
   },
 ];
 
@@ -180,156 +213,164 @@ export const INITIAL_WORLD_ITEM_IDS = ['coast-path', 'garden-planting'];
 export const WORLD_BUILD_ITEMS: WorldBuildItem[] = [
   {
     id: 'coast-path',
-    title: 'Chemin côtier',
-    category: 'Chemin',
-    description: 'Un chemin purement décoratif dans Mon monde.',
+    title: 'Coastal path tiles',
+    category: 'Path',
+    description: 'A soft route through the personal world.',
     motif: 'pathMotif',
     cell: 24,
-    cost: { driftwood: 12, seaGlass: 5 },
+    cost: { routinePoints: 16, walkTraces: 8 },
   },
   {
     id: 'garden-planting',
-    title: 'Petit jardin',
-    category: 'Jardin',
-    description: 'Un coin végétal fictif à aménager.',
+    title: 'Garden planting',
+    category: 'Garden',
+    description: 'Low plants and stones for a quiet corner.',
     motif: 'plantMotif',
     cell: 11,
-    cost: { gardenSeeds: 10, driftwood: 6 },
+    cost: { routinePoints: 12, calmStones: 8 },
   },
   {
     id: 'rest-blanket',
-    title: 'Plaid de cabane',
-    category: 'Décoration',
-    description: 'Un textile décoratif de World. Il ne représente pas le repos réel du chien.',
+    title: 'Rest-zone blanket',
+    category: 'Rest zone',
+    description: 'A premium textile marker for the home area.',
     motif: 'blanketMotif',
     cell: 19,
-    cost: { seaGlass: 8, storyThreads: 6 },
+    cost: { observationQuality: 16, calmStones: 10 },
   },
   {
     id: 'paw-marker',
-    title: 'Petit panneau patte',
-    category: 'Décoration',
-    description: 'Un marqueur visuel sans score ni signification comportementale.',
+    title: 'Paw marker',
+    category: 'Marker',
+    description: 'A small EMOPET signpost for a completed care step.',
     motif: 'pawMotif',
     cell: 25,
-    cost: { driftwood: 8, mapInk: 5 },
+    cost: { trustFragments: 8, bondMoments: 8 },
   },
   {
     id: 'lantern-pair',
-    title: 'Paire de lanternes',
-    category: 'Lumière',
-    description: 'Deux lumières pour personnaliser une zone de World.',
+    title: 'Lantern pair',
+    category: 'Light',
+    description: 'Warm markers for evening route notes.',
     motif: 'lanternMotif',
     cell: 17,
-    cost: { lanternLight: 10, seaGlass: 6 },
+    cost: { signalClarity: 14, routinePoints: 12 },
   },
   {
     id: 'local-sign',
-    title: 'Panneau du port',
-    category: 'Décor régional',
-    description: 'Un élément breton fictif dans le monde, distinct de la carte locale réelle.',
+    title: 'Local map sign',
+    category: 'Local',
+    description: 'A sign for a saved dog-friendly place.',
     motif: 'signMotif',
     cell: 30,
-    cost: { mapInk: 9, driftwood: 7 },
+    cost: { localDiscoveries: 12, communitySeeds: 8 },
   },
   {
     id: 'wave-panel',
-    title: 'Panneau vague',
-    category: 'Côte',
-    description: 'Une ligne de vague obtenue avec des ressources propres à World.',
+    title: 'Breton wave panel',
+    category: 'Coast',
+    description: 'A subtle wave line unlocked by clear signals.',
     motif: 'waveMotif',
     cell: 4,
-    cost: { seaGlass: 10, lanternLight: 5 },
+    cost: { signalClarity: 18, observationQuality: 12 },
   },
   {
     id: 'mini-lighthouse',
-    title: 'Mini phare',
-    category: 'Repère',
-    description: 'Un petit phare inspiré de la côte bretonne.',
+    title: 'Mini lighthouse',
+    category: 'Landmark',
+    description: 'A Lorient-inspired landmark for shared local progress.',
     motif: 'lighthouseMotif',
     cell: 6,
-    cost: { driftwood: 10, lanternLight: 8, mapInk: 6 },
+    cost: { communitySeeds: 14, localDiscoveries: 12, signalClarity: 10 },
   },
   {
     id: 'bench-corner',
-    title: 'Coin banc',
-    category: 'Décoration',
-    description: 'Un coin tranquille dans le décor, sans lecture du comportement réel.',
+    title: 'Bench corner',
+    category: 'Cozy object',
+    description: 'A quiet sitting point built from care notes.',
     motif: 'benchMotif',
     cell: 28,
-    cost: { driftwood: 12, gardenSeeds: 6 },
+    cost: { bondMoments: 10, calmStones: 14 },
   },
   {
     id: 'shell-line',
-    title: 'Ligne de coquillages',
-    category: 'Saisonnier',
-    description: 'Un détail côtier purement cosmétique.',
+    title: 'Shell line',
+    category: 'Seasonal',
+    description: 'A coastal detail unlocked through route discoveries.',
     motif: 'shellMotif',
     cell: 33,
-    cost: { seaGlass: 7, storyThreads: 5 },
+    cost: { walkTraces: 12, localDiscoveries: 8 },
   },
 ];
 
 export const BASE_WORLD_TILES: Array<{ id: string; title: string; motif: TileMotif; cell: number }> = [
-  { id: 'home', title: 'Petite maison', motif: 'houseMotif', cell: 18 },
-  { id: 'tree', title: 'Lisière douce', motif: 'treeMotif', cell: 9 },
-  { id: 'stone', title: 'Pierres du jardin', motif: 'stoneMotif', cell: 20 },
-  { id: 'wave', title: 'Ligne de côte', motif: 'waveMotif', cell: 32 },
+  { id: 'home', title: 'Cozy home', motif: 'houseMotif', cell: 18 },
+  { id: 'tree', title: 'Soft forest edge', motif: 'treeMotif', cell: 9 },
+  { id: 'stone', title: 'Garden stones', motif: 'stoneMotif', cell: 20 },
+  { id: 'wave', title: 'Coast line', motif: 'waveMotif', cell: 32 },
 ];
 
 export const WORLD_QUESTS: WorldQuest[] = [
   {
-    id: 'quest-world-cove',
-    title: 'Explorer la crique virtuelle',
-    detail: 'Une activité entièrement interne à World.',
-    progress: 0,
-    target: 1,
-    resourceHint: 'seaGlass',
+    id: 'quest-rest',
+    title: 'Complete 3 reliable rest observations this week',
+    detail: 'Progress comes from capture quality and setup continuity.',
+    progress: 2,
+    target: 3,
+    resourceHint: 'observationQuality',
   },
   {
-    id: 'quest-world-build',
-    title: 'Placer une décoration',
-    detail: 'Construisez uniquement si vous en avez envie. Aucun streak ni pénalité.',
+    id: 'quest-route',
+    title: 'Add one favorite walking route',
+    detail: 'Route notes become Walk Traces and Local Discoveries.',
     progress: 0,
     target: 1,
-    resourceHint: 'driftwood',
+    resourceHint: 'walkTraces',
   },
   {
-    id: 'quest-world-story',
-    title: 'Trouver un fragment d’histoire',
-    detail: 'La narration de World est optionnelle et indépendante de Memories.',
+    id: 'quest-tip',
+    title: 'Read one educational care tip',
+    detail: 'Learning actions support owner progression.',
     progress: 1,
     target: 1,
-    resourceHint: 'storyThreads',
+    resourceHint: 'trustFragments',
   },
   {
-    id: 'quest-world-coop',
-    title: 'Essayer une activité coopérative',
-    detail: 'Pas de classement, pas de score de relation et aucune donnée ELI.',
+    id: 'quest-setup',
+    title: 'Check signal quality after setting up the MAT',
+    detail: 'High-confidence windows increase Signal Clarity.',
+    progress: 1,
+    target: 1,
+    resourceHint: 'signalClarity',
+  },
+  {
+    id: 'quest-local',
+    title: 'Add a quiet place to the local map',
+    detail: 'Community participation stays opt-in and cooperative.',
     progress: 0,
     target: 1,
-    resourceHint: 'lanternLight',
+    resourceHint: 'communitySeeds',
   },
 ];
 
 export const COMMUNITY_WORLD: CommunityWorldState = {
   city: 'Lorient',
-  headline: 'Un nouveau chemin partagé est visible dans la zone sociale de World.',
+  headline: 'Lorient community unlocked a new shared path.',
   updates: [
-    'Une décoration coopérative a été ajoutée au port virtuel.',
-    'Un nouvel espace de rencontre optionnel est disponible.',
-    'Aucune donnée Care/ELI n’est utilisée pour classer ou récompenser ces contributions.',
+    '3 quiet zones were added this week.',
+    'Your contribution helped improve the local dog map.',
+    'A new coastal walk has been discovered nearby.',
   ],
   stats: [
-    { label: 'Espaces partagés', value: '7' },
-    { label: 'Décors coopératifs', value: '18' },
-    { label: 'Contributions opt-in', value: '42' },
+    { label: 'Shared paths', value: '7' },
+    { label: 'Quiet zones', value: '18' },
+    { label: 'Opt-in places', value: '42' },
   ],
   nodes: [
-    { label: 'Port virtuel', x: 18, y: 56, tone: 'teal' },
-    { label: 'Crique', x: 38, y: 28, tone: 'orange' },
-    { label: 'Jardin', x: 62, y: 48, tone: 'navy' },
-    { label: 'Chemin partagé', x: 78, y: 22, tone: 'teal' },
+    { label: 'Harbor path', x: 18, y: 56, tone: 'teal' },
+    { label: 'Coastal walk', x: 38, y: 28, tone: 'orange' },
+    { label: 'Garden route', x: 62, y: 48, tone: 'navy' },
+    { label: 'Shared path', x: 78, y: 22, tone: 'teal' },
   ],
 };
 

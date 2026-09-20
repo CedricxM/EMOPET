@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
@@ -24,44 +24,12 @@ import {
 } from '../../lib/mock-world';
 import styles from './world-builder.module.css';
 
-const WORLD_COPY = {
-  fr: {
-    heroLead:
-      'Un espace ludique optionnel à construire pour le plaisir. Ses ressources viennent uniquement d’actions réalisées dans Mon monde, jamais de MAT/TAG/ELI, de la distance, du repos ou de la performance réelle du chien.',
-    loop: ['Activité World', 'Matériaux symboliques', 'Objet placé', 'Monde enrichi'],
-    needMore: 'Il vous manque seulement des matériaux propres à World. Aucune activité réelle avec votre chien n’est requise.',
-    personalWorldText:
-      'Le monde évolue avec son propre état ludique. Il ne note pas le chien, ne récompense pas ses performances et n’utilise pas la qualité des données Care comme monnaie.',
-    questsTitle: 'Activités optionnelles de World',
-    questsText: 'Aucun streak, aucune pénalité, aucun objectif lié au chien réel. Revenez seulement si vous avez envie de jouer.',
-    whyEarned: 'Origine des matériaux de démonstration',
-    whyEarnedText:
-      'Chaque matériau ci-dessous vient d’une action interne à World. Ce panneau sert justement à rendre visible la séparation avec Care, ELI et les capteurs.',
-    feedbackInitial: 'Commencez petit : un chemin côtier et un jardin sont déjà posés.',
-  },
-  en: {
-    heroLead:
-      'An optional playful space built for enjoyment. Its resources come only from actions inside My Dog World, never from MAT/TAG/ELI, distance, rest, or the dog’s real-world performance.',
-    loop: ['World activity', 'Symbolic materials', 'Object placed', 'World enriched'],
-    needMore: 'You only need more World-only materials. No real-world dog activity is required.',
-    personalWorldText:
-      'The world evolves from its own playful state. It does not score the dog, reward real-world performance, or turn Care data quality into currency.',
-    questsTitle: 'Optional World activities',
-    questsText: 'No streaks, no penalty, and no goal tied to the real dog. Come back only when you feel like playing.',
-    whyEarned: 'Where demo materials came from',
-    whyEarnedText:
-      'Every material below comes from an action inside World. This panel makes the separation from Care, ELI, and sensors explicit.',
-    feedbackInitial: 'Start small: a coastal path and a garden are already placed.',
-  },
-} as const;
-
 export function WorldBuilder() {
-  const { t, locale } = useI18n();
-  const copy = locale === 'en' ? WORLD_COPY.en : WORLD_COPY.fr;
+  const { t } = useI18n();
   const [resources, setResources] = useState<ResourceBalance>(() => computeResourceBalance());
   const [builtIds, setBuiltIds] = useState<string[]>(INITIAL_WORLD_ITEM_IDS);
   const [communityOptIn, setCommunityOptIn] = useState(false);
-  const [feedback, setFeedback] = useState<string>(copy.feedbackInitial);
+  const [feedback, setFeedback] = useState(() => t('world', 'feedbackInitial'));
   const [placingCell, setPlacingCell] = useState<number | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(() => WORLD_BUILD_ITEMS.find((item) => !INITIAL_WORLD_ITEM_IDS.includes(item.id))?.id ?? null);
   const [hoveredCell, setHoveredCell] = useState<number | null>(null);
@@ -80,18 +48,18 @@ export function WorldBuilder() {
     setSelectedItemId(item.id);
     setHoveredCell(item.cell);
     if (builtIds.includes(item.id)) {
-      setFeedback(`${item.title} est déjà visible dans le monde.`);
+      setFeedback(`${item.title} est deja visible dans le monde.`);
     } else if (canAfford(resources, item.cost)) {
-      setFeedback(`${item.title} est prêt à être placé sur la tuile lumineuse.`);
+      setFeedback(`${item.title} est pret a etre place sur la tuile lumineuse.`);
     } else {
-      setFeedback(copy.needMore);
+      setFeedback(t('world', 'feedbackNeedMore'));
     }
   }
 
   function handleBuild(item: WorldBuildItem) {
     if (builtIds.includes(item.id)) return;
     if (!canAfford(resources, item.cost)) {
-      setFeedback(copy.needMore);
+      setFeedback(t('world', 'feedbackNeedMore'));
       return;
     }
     setResources((current) => spendResources(current, item.cost));
@@ -106,7 +74,7 @@ export function WorldBuilder() {
   function handleTileBuild(cell: number) {
     if (!selectedItem) return;
     if (cell !== selectedItem.cell) {
-      setFeedback(locale === 'en' ? 'This tile does not match the selected object.' : 'Cette tuile ne correspond pas à l’objet sélectionné.');
+      setFeedback('Cette tuile ne correspond pas a l objet selectionne.');
       return;
     }
     handleBuild(selectedItem);
@@ -123,9 +91,12 @@ export function WorldBuilder() {
         <div className={styles.heroGrid}>
           <div className={styles.heroCopy}>
             <h1 className={styles.heroTitle}>{t('world', 'heroTitle')}</h1>
-            <p className={styles.heroLead}>{copy.heroLead}</p>
-            <div className={styles.loopStrip} aria-label={locale === 'en' ? 'My Dog World build loop' : 'Boucle de construction Mon monde'}>
-              {copy.loop.map((step) => <span key={step}>{step}</span>)}
+            <p className={styles.heroLead}>{t('world', 'heroLead')}</p>
+            <div className={styles.loopStrip} aria-label="Boucle de progression Mon Monde">
+              <span>Routine accomplie</span>
+              <span>Ressources gagnees</span>
+              <span>Objet place</span>
+              <span>Monde enrichi</span>
             </div>
             <div className={styles.heroActions}>
               <Button kind="accent" leading={<Icon name="plus" size={15} />} onClick={() => setFeedback(t('world', 'buildPanelText'))}>
@@ -154,7 +125,7 @@ export function WorldBuilder() {
           <div className={styles.panelHeader}>
             <div>
               <h2 className={styles.panelTitle}>{t('world', 'personalWorld')}</h2>
-              <p className={styles.panelText}>{copy.personalWorldText}</p>
+              <p className={styles.panelText}>{t('world', 'personalWorldText')}</p>
             </div>
           </div>
           <div className={styles.worldCanvas}>
@@ -199,8 +170,8 @@ export function WorldBuilder() {
         <div className={styles.panel}>
           <div className={styles.panelHeader}>
             <div>
-              <h2 className={styles.panelTitle}>{copy.questsTitle}</h2>
-              <p className={styles.panelText}>{copy.questsText}</p>
+              <h2 className={styles.panelTitle}>{t('world', 'questsTitle')}</h2>
+              <p className={styles.panelText}>{t('world', 'questsText')}</p>
             </div>
           </div>
           <div className={styles.questList}>
@@ -291,8 +262,8 @@ export function WorldBuilder() {
       <section className={styles.panel}>
         <div className={styles.panelHeader}>
           <div>
-            <h2 className={styles.panelTitle}>{copy.whyEarned}</h2>
-            <p className={styles.panelText}>{copy.whyEarnedText}</p>
+            <h2 className={styles.panelTitle}>{t('world', 'whyEarned')}</h2>
+            <p className={styles.panelText}>{t('world', 'whyEarnedText')}</p>
           </div>
         </div>
         <div className={styles.eventList}>
@@ -318,7 +289,7 @@ const MOCK_BUILD_ITEM_BY_ID = new Map(WORLD_BUILD_ITEMS.map((item) => [item.id, 
 function GrantRow({ grants }: { grants: Partial<ResourceBalance> }) {
   const entries = Object.entries(grants) as Array<[WorldResourceKey, number]>;
   return (
-    <div className={styles.grantRow} aria-label="World-only materials">
+    <div className={styles.grantRow} aria-label="Resources earned">
       {entries.map(([key, value]) => {
         const resource = getResourceDefinition(key);
         return (
@@ -330,3 +301,9 @@ function GrantRow({ grants }: { grants: Partial<ResourceBalance> }) {
     </div>
   );
 }
+
+
+
+
+
+

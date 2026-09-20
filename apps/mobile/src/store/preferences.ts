@@ -20,8 +20,6 @@ interface PreferencesState {
     community_opt_in: boolean;
     vet_export_opt_in: boolean;
   };
-  setSubscriptionTier: (tier: MobileSubscriptionTier) => void;
-  setHardwareLinked: (linked: boolean) => void;
   setCommunityAiToneProfileDefault: (profile: MobileAiToneProfile) => void;
   setAiToneProfile: (profile: MobileAiToneProfile | null) => void;
   setCommunityRulesAccepted: (accepted: boolean) => void;
@@ -30,9 +28,11 @@ interface PreferencesState {
   setManualPresenceOverride: (state: 'present' | 'absence' | null) => void;
   setConsent: (key: SensitiveConsentKey, value: boolean) => void;
   activateLocationConsentFromDurableAuthority: () => void;
+  activateCommunityConsentFromDurableAuthority: () => void;
 }
 
 export const usePreferencesStore = create<PreferencesState>((set) => ({
+  // Read-only placeholders until canonical account/device authority is wired.
   subscriptionTier: 'free',
   hardwareLinked: false,
   communityAiToneProfileDefault: 'BREIZ',
@@ -46,8 +46,6 @@ export const usePreferencesStore = create<PreferencesState>((set) => ({
     community_opt_in: false,
     vet_export_opt_in: false,
   },
-  setSubscriptionTier: (subscriptionTier) => set({ subscriptionTier }),
-  setHardwareLinked: (hardwareLinked) => set({ hardwareLinked }),
   setCommunityAiToneProfileDefault: (communityAiToneProfileDefault) => set({ communityAiToneProfileDefault }),
   setAiToneProfile: (aiToneProfile) => set({ aiToneProfile }),
   setCommunityRulesAccepted: (communityRulesAccepted) => set({ communityRulesAccepted }),
@@ -57,8 +55,8 @@ export const usePreferencesStore = create<PreferencesState>((set) => ({
         ? state.waitlistedServiceIds
         : [...state.waitlistedServiceIds, serviceId],
     })),
-  // Passive detection is a dependent location feature. A direct UI toggle must
-  // never be able to enable it while durable location authority is absent.
+  // Passive detection may only be enabled when durable location authority is
+  // already reflected in the local consent mirror.
   setPassivePhoneDetectionEnabled: (enabled) =>
     set((state) => ({
       passivePhoneDetectionEnabled: enabled && state.consents.location_opt_in,
@@ -66,11 +64,13 @@ export const usePreferencesStore = create<PreferencesState>((set) => ({
   setManualPresenceOverride: (manualPresenceOverride) => set({ manualPresenceOverride }),
   setConsent: (key, value) =>
     set((state) => {
+      if ((key === 'location_opt_in' || key === 'community_opt_in') && value) {
+        // Generic/local state may revoke sensitive authority, but it cannot
+        // manufacture a positive server-backed consent.
+        return {};
+      }
+
       if (key === 'location_opt_in') {
-        // Generic/local state may revoke location authority, but must never
-        // manufacture a positive location consent. Positive activation is only
-        // available through activateLocationConsentFromDurableAuthority().
-        if (value) return {};
         return {
           consents: {
             ...state.consents,
@@ -92,6 +92,13 @@ export const usePreferencesStore = create<PreferencesState>((set) => ({
       consents: {
         ...state.consents,
         location_opt_in: true,
+      },
+    })),
+  activateCommunityConsentFromDurableAuthority: () =>
+    set((state) => ({
+      consents: {
+        ...state.consents,
+        community_opt_in: true,
       },
     })),
 }));

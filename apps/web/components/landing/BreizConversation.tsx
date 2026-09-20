@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 interface Message {
-  sender: 'breiz' | 'owner';
+  sender: 'breiz' | 'gardien';
   text: string;
 }
 
@@ -17,7 +17,7 @@ const conversation: Message[] = [
     text: "Il fera doux cet après-midi. J'ai trouvé une idée pas très loin.",
   },
   {
-    sender: 'owner',
+    sender: 'gardien',
     text: "Pas trop longtemps aujourd'hui.",
   },
   {
@@ -68,20 +68,20 @@ export default function BreizConversation() {
         <div className="w-8 h-8 rounded-full bg-[#E3EAE4] flex items-center justify-center">
           <span
             className="text-[#1E9A90] text-xs font-bold"
-            style={{ fontFamily: 'var(--font-source-sans)' }}
+            style={{ fontFamily: 'var(--font-body)' }}
           >
             B
           </span>
         </div>
         <span
           className="text-[#1E9A90] text-sm font-semibold"
-          style={{ fontFamily: 'var(--font-source-sans)' }}
+          style={{ fontFamily: 'var(--font-body)' }}
         >
           Breiz
         </span>
         <span
           className="text-[#6B7684] text-xs"
-          style={{ fontFamily: 'var(--font-source-sans)' }}
+          style={{ fontFamily: 'var(--font-body)' }}
         >
           · compagnon IA
         </span>
@@ -93,7 +93,7 @@ export default function BreizConversation() {
           <div
             key={index}
             className={`flex ${
-              msg.sender === 'owner' ? 'justify-end' : 'justify-start'
+              msg.sender === 'gardien' ? 'justify-end' : 'justify-start'
             } transition-all duration-500 ${
               visibleMessages.includes(index)
                 ? 'opacity-100 translate-y-0'
@@ -109,7 +109,7 @@ export default function BreizConversation() {
             >
               <p
                 className="text-sm leading-relaxed"
-                style={{ fontFamily: 'var(--font-source-sans)' }}
+                style={{ fontFamily: 'var(--font-body)' }}
               >
                 {msg.text}
               </p>
@@ -125,7 +125,7 @@ export default function BreizConversation() {
             ? 'opacity-100'
             : 'opacity-0'
         }`}
-        style={{ fontFamily: 'var(--font-source-sans)' }}
+        style={{ fontFamily: 'var(--font-body)' }}
       >
         Pas un chatbot flottant. Une présence narrative.
       </p>

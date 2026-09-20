@@ -29,18 +29,9 @@ export interface PostureDistribution {
 /** Hourly sensor summary — the canonical cloud storage format. */
 export interface SensorSummary {
   id: string;
-  /** Event/window timestamp supplied by the summary producer. */
   timestamp: Date;
   dogId: string;
-  /** Producer-generated retry key for one logical summary ingestion. */
-  ingestionId?: string;
-  /** Canonical EMOPET device UUID when the ingestion was device-bound. */
-  deviceId?: string;
   source: SensorSource;
-  /** Server-derived firmware snapshot from the bound device row. */
-  firmwareVersionAtIngest?: string | null;
-  /** Server persistence/receive timestamp, distinct from event time. */
-  createdAt?: Date;
 
   // MAT data
   matPresenceMinutes?: number;

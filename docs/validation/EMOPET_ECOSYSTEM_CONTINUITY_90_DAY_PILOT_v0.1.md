@@ -2,19 +2,20 @@
 
 **Status:** PROPOSED CONTROLLED PRODUCT-VALIDATION PROTOCOL / NOT STARTED  
 **Date:** 2026-09-06  
+**Canonical terminology revision:** 2026-09-17 under DOMAIN-TERM #245; terminology only, authority and evidence status unchanged.  
 **Parent:** #223  
 **Not a clinical trial. Not scientific validation of ELI.**
 
 ## 1. Question
 
-Can a Guardian experience Care, Breiz, Together, Memories, Community/World and professional sharing as **one coherent EMOPET product** while still understanding that these surfaces have different evidence, privacy and semantic authority?
+Can an Owner experience Care, Breiz, Together, Memories, Community/World and professional sharing as **one coherent EMOPET product** while still understanding that these surfaces have different evidence, privacy and semantic authority?
 
 The pilot is designed to test ecosystem coherence, not to prove medical benefit or diagnostic performance.
 
 ## 2. Minimum prerequisite
 
 Do not start until the tested slice has:
-- stable test accounts and Guardian ownership;
+- stable test accounts and Owner ownership;
 - controlled consent/sharing flows;
 - explicit provenance/confidence display for Care observations;
 - an abstention state;
@@ -26,7 +27,7 @@ Do not start until the tested slice has:
 ## 3. Cohorts
 
 ### Cohort A — ecosystem users
-Target first controlled round: **12–20 Guardian–dog households**.
+Target first controlled round: **12–20 Owner–dog households**.
 
 Recruit across:
 - different dog ages;
@@ -43,7 +44,7 @@ Professional review is separate from clinical care unless a separately approved 
 
 ### Days 0–7 — onboarding / authority comprehension
 Test:
-- dog + Guardian setup;
+- dog + Owner setup;
 - MAT/TAG onboarding where hardware is in-scope;
 - consent/privacy choices;
 - explanation of what EMOPET does and does not know.
@@ -116,8 +117,8 @@ Measure:
 
 ### Days 78–90 — professional continuity
 Test:
-- Guardian generates a Veterinary Summary;
-- Guardian chooses whether/how to share;
+- Owner generates a Veterinary Summary;
+- Owner chooses whether/how to share;
 - vet reviews summary or a standardized equivalent;
 - access expires/revokes where implemented.
 
@@ -125,7 +126,7 @@ Measure:
 - vet comprehension time;
 - useful vs unnecessary fields;
 - trust in observation/interpretation boundary;
-- Guardian understanding of what was shared.
+- Owner understanding of what was shared.
 
 ## 5. Primary system metrics
 

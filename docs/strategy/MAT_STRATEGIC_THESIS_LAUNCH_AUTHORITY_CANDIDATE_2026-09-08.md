@@ -1,6 +1,7 @@
 # EMOPET — MAT strategic thesis vs launch authority
 
 **Control date:** 2026-09-08  
+**Canonical terminology revision:** 2026-09-17 under DOMAIN-TERM #245; terminology only, authority and evidence status unchanged.  
 **Status:** `CANDIDATE / OPEN / REQUIRES_FOUNDER_APPROVAL`  
 **Authority effect:** `NONE UNTIL APPROVED`  
 **Related authority:** `docs/strategy/FOUNDER_STRATEGIC_LOCKS_2026-09-07.md`  
@@ -28,7 +29,7 @@ Under this hierarchy, the strategic thesis explains what EMOPET is testing; the 
 ## Consequences if approved
 
 - `MAT_CORE` means the evidence supports MAT as part of the V1 commercial composition.
-- `MAT_OPTIONAL` means MAT remains strategically useful but is not mandatory for every V1 Guardian.
+- `MAT_OPTIONAL` means MAT remains strategically useful but is not mandatory for every V1 Owner.
 - `MAT_POST_V1` means TAG + application may launch first while MAT remains an active later hypothesis.
 - `MAT_REDIRECT` means the rest-context concept survives but the current MAT implementation or role changes materially.
 - `MAT_KILL` means the project must update downstream strategy, claims, product diagrams, pricing, supplier assumptions, and GTM materials. Historical MAT evidence remains provenance, not current authority.

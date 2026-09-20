@@ -17,7 +17,7 @@ It does not answer:
 - How healthy is my dog?
 - How happy is my dog?
 - How strong is our relationship?
-- What should I do to be a better Owner?
+- What should I do to be a better Guardian?
 
 Home is an orchestration surface, not a verdict surface.
 

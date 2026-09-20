@@ -4,9 +4,7 @@
  * Fetches daily weather for the dog's location using OpenWeatherMap free tier.
  * Used by Bleiz/Freemium scheduler to contextualize messages.
  *
- * API: OpenWeatherMap free tier (1000 calls/day). Runtime egress is disabled
- * unless EMOPET_OPENWEATHERMAP_EGRESS_GATE=GO; that operator gate is not legal
- * or processor/transfer clearance.
+ * API: OpenWeatherMap free tier (1000 calls/day)
  */
 
 import type { WeatherData } from '@emopet/shared';
@@ -15,7 +13,6 @@ import { weatherContext } from '../../db/schema/index.js';
 import { eq, and } from 'drizzle-orm';
 
 const OWM_API_KEY = process.env['OPENWEATHERMAP_API_KEY'] ?? '';
-const OWM_EGRESS_ALLOWED = process.env['EMOPET_OPENWEATHERMAP_EGRESS_GATE'] === 'GO';
 const OWM_BASE = 'https://api.openweathermap.org/data/2.5/weather';
 
 // ─── Known Locations ────────────────────────────────────────────────
@@ -51,7 +48,7 @@ export interface FetchWeatherResult {
 
 /**
  * Fetch weather for a location. Checks cache first (same-day),
- * then calls OpenWeatherMap API only when explicit egress authority is GO.
+ * then calls OpenWeatherMap API.
  */
 export async function fetchWeather(
   locationKey: string,
@@ -60,6 +57,7 @@ export async function fetchWeather(
 ): Promise<FetchWeatherResult> {
   const today = new Date().toISOString().split('T')[0]!;
 
+  // Check cache
   const [cached] = await db
     .select()
     .from(weatherContext)
@@ -82,6 +80,7 @@ export async function fetchWeather(
     };
   }
 
+  // Resolve coordinates
   const coords = lat != null && lon != null
     ? { lat, lon }
     : KNOWN_LOCATIONS[locationKey.toLowerCase()];
@@ -92,9 +91,6 @@ export async function fetchWeather(
 
   if (!OWM_API_KEY) {
     return { data: null, fromCache: false, error: 'OPENWEATHERMAP_API_KEY not configured' };
-  }
-  if (!OWM_EGRESS_ALLOWED) {
-    return { data: null, fromCache: false, error: 'OpenWeatherMap egress not authorized' };
   }
 
   try {
@@ -119,9 +115,10 @@ export async function fetchWeather(
       humidityPct: json.main.humidity,
       windSpeedMs: json.wind.speed,
       weatherCondition: json.weather[0]?.main?.toLowerCase() ?? null,
-      uvIndex: null,
+      uvIndex: null, // UV requires OneCall API (paid tier)
     };
 
+    // Store in cache
     await db.insert(weatherContext).values({
       locationKey,
       date: today,
@@ -156,25 +153,50 @@ export function evaluateWeatherTriggers(
   heatAlertThresholdC?: number | null,
 ): WeatherTrigger[] {
   const triggers: WeatherTrigger[] = [];
+
   const heatThreshold = heatAlertThresholdC ?? 25;
 
   if (weather.temperatureC != null) {
+    // Heat alerts
     if (weather.temperatureC >= heatThreshold + 8) {
-      triggers.push({ type: 'heat', severity: 'urgent', message: `Température extrême : ${weather.temperatureC}°C` });
+      triggers.push({
+        type: 'heat',
+        severity: 'urgent',
+        message: `Température extrême : ${weather.temperatureC}°C`,
+      });
     } else if (weather.temperatureC >= heatThreshold + 3) {
-      triggers.push({ type: 'heat', severity: 'attention', message: `Chaleur importante : ${weather.temperatureC}°C` });
+      triggers.push({
+        type: 'heat',
+        severity: 'attention',
+        message: `Chaleur importante : ${weather.temperatureC}°C`,
+      });
     } else if (weather.temperatureC >= heatThreshold) {
-      triggers.push({ type: 'heat', severity: 'info', message: `Température élevée : ${weather.temperatureC}°C` });
+      triggers.push({
+        type: 'heat',
+        severity: 'info',
+        message: `Température élevée : ${weather.temperatureC}°C`,
+      });
     }
 
+    // Cold alerts
     if (weather.temperatureC <= -10) {
-      triggers.push({ type: 'cold', severity: 'urgent', message: `Froid extrême : ${weather.temperatureC}°C` });
+      triggers.push({
+        type: 'cold',
+        severity: 'urgent',
+        message: `Froid extrême : ${weather.temperatureC}°C`,
+      });
     } else if (weather.temperatureC <= 0) {
-      triggers.push({ type: 'cold', severity: 'attention', message: `Gel : ${weather.temperatureC}°C` });
+      triggers.push({
+        type: 'cold',
+        severity: 'attention',
+        message: `Gel : ${weather.temperatureC}°C`,
+      });
     }
   }
 
+  // Wind/storm
   if (weather.windSpeedMs != null && weather.windSpeedMs > 13.9) {
+    // >50 km/h
     triggers.push({
       type: 'storm',
       severity: weather.windSpeedMs > 20.8 ? 'urgent' : 'attention',
@@ -182,6 +204,7 @@ export function evaluateWeatherTriggers(
     });
   }
 
+  // UV
   if (weather.uvIndex != null && weather.uvIndex > 6) {
     triggers.push({
       type: 'uv',

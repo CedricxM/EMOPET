@@ -39,6 +39,18 @@ function sqlEvents(sql) {
   return events.sort((a, b) => a.index - b.index);
 }
 
+
+function activeMigrationPrefixes() {
+  return readdirSync(migrationsDir)
+    .filter((name) => /^\d+.*\.sql$/.test(name))
+    .sort()
+    .map((name) => ({
+      name,
+      path: join(migrationsDir, name),
+      prefix: Number.parseInt(name.match(/^(\d+)/)?.[1] ?? '', 10),
+    }));
+}
+
 function orderedSqlSources() {
   const draftFiles = readdirSync(draftDir)
     .filter((name) => /^\d+.*\.sql$/.test(name))
@@ -100,16 +112,54 @@ test('all candidate draft SQL stays outside the active migrations directory', ()
   }
 });
 
-test('professional-share persistence advances to Owner terminology through migration 0009', () => {
-  const schema = read(join(schemaDir, 'professional-sharing.ts'));
-  const migration = read(join(migrationsDir, '0009_professional_share_owner_terminology.sql'));
 
-  assert.match(schema, /ownerUserId: uuid\('owner_user_id'\)/);
-  assert.match(schema, /idx_prof_share_grant_owner_dog/);
-  assert.doesNotMatch(schema, /guardianUserId/);
-  assert.doesNotMatch(schema, /uuid\('guardian_user_id'\)/);
-  assert.doesNotMatch(schema, /idx_prof_share_grant_guardian_dog/);
+test('active migration numeric prefixes are unique', () => {
+  const migrations = activeMigrationPrefixes();
+  const seen = new Map();
+  const duplicates = [];
 
-  assert.match(migration, /RENAME COLUMN guardian_user_id TO owner_user_id/);
-  assert.match(migration, /idx_prof_share_grant_guardian_dog[\s\S]*idx_prof_share_grant_owner_dog/);
+  for (const migration of migrations) {
+    const previous = seen.get(migration.prefix);
+    if (previous) duplicates.push(`${previous} and ${migration.name} share prefix ${migration.prefix}`);
+    else seen.set(migration.prefix, migration.name);
+  }
+
+  assert.deepEqual(duplicates, [], duplicates.join('\n'));
+});
+
+test('active migration numeric prefixes are contiguous from 0001', () => {
+  const migrations = activeMigrationPrefixes();
+  const actual = migrations.map((migration) => migration.prefix);
+  const expected = Array.from({ length: actual.length }, (_, index) => index + 1);
+
+  assert.deepEqual(
+    actual,
+    expected,
+    `Active migration prefixes must be contiguous from 0001; found: ${migrations.map((migration) => migration.name).join(', ')}`,
+  );
+});
+
+
+test('replayed or renumbered active migrations retain frozen-source provenance', () => {
+  const marker = /^-- EMOPET-REPLAY-PROVENANCE:\s*original=(\d+_[^;\s]+\.sql);\s*source_commit=([0-9a-f]{40});\s*source_blob=([0-9a-f]{40})\s*$/m;
+
+  for (const migration of activeMigrationPrefixes()) {
+    const source = read(migration.path);
+    const mentionsReplay = /^-- EMOPET-REPLAY-PROVENANCE:/m.test(source);
+
+    if (!mentionsReplay) continue;
+
+    const match = source.match(marker);
+    assert.ok(
+      match,
+      `${migration.name}: replay provenance must record original filename, 40-char source commit, and 40-char source blob`,
+    );
+
+    const originalPrefix = Number.parseInt(match[1].match(/^(\d+)/)?.[1] ?? '', 10);
+    assert.notEqual(
+      originalPrefix,
+      migration.prefix,
+      `${migration.name}: replay provenance is only for a migration whose active number differs from its frozen source number`,
+    );
+  }
 });

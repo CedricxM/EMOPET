@@ -1,13 +1,5 @@
 /**
- * BLE binary protocol contracts.
- *
- * Boundary names are intentionally explicit:
- * - BleWireFrame: raw notification bytes on the BLE characteristic.
- * - ParsedBleSensorFrame: validated MAT/TAG protocol object after parsing.
- * - VerifiedParsedBleFrame: opaque compile-time proof that bytes passed the
- *   canonical BLE parser before entering a downstream feature boundary.
- *
- * Neither parsed-frame type is a FeatureVector and neither is an ELI input.
+ * BLE SensorFrame binary protocol types.
  *
  * Frame layout (little-endian unless noted):
  * ┌─────────┬─────────┬────────┬──────┬─────────┬─────────────┬────┐
@@ -23,9 +15,6 @@
  * payload = source-dependent sensor data
  * crc     = XOR of all preceding bytes (simple integrity check)
  */
-
-/** Raw bytes received from or serialized onto the BLE transport. */
-export type BleWireFrame = Uint8Array;
 
 // ── Source Identifiers ──────────────────────────────────────────
 
@@ -122,27 +111,7 @@ export interface TagFrame {
   payload: TagPayload;
 }
 
-/** Canonical parsed BLE boundary after header/version/length/CRC validation. */
-export type ParsedBleSensorFrame = MatFrame | TagFrame;
-
-/**
- * Opaque proof carried only by the canonical verification wrapper after the
- * raw BLE bytes have passed header/version/source/length/CRC parsing.
- *
- * This proof is deliberately narrow. It does NOT attest physical-device
- * identity, dog binding, firmware trust, wall-clock correctness, calibration,
- * sample quality, feature extraction correctness, or scientific validity.
- */
-declare const verifiedParsedBleFrameBrand: unique symbol;
-export type VerifiedParsedBleFrame = ParsedBleSensorFrame & {
-  readonly [verifiedParsedBleFrameBrand]: true;
-};
-
-/**
- * @deprecated Use ParsedBleSensorFrame. Kept temporarily to avoid a flag-day
- * rename while callers migrate to the explicit ELI-IO boundary names.
- */
-export type SensorFrame = ParsedBleSensorFrame;
+export type SensorFrame = MatFrame | TagFrame;
 
 // ── Frame Sizes ─────────────────────────────────────────────────
 

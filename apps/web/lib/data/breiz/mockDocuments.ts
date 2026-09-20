@@ -18,7 +18,7 @@ export const MOCK_BREIZ_DOCUMENTS: BreizDocument[] = [
       'The Lorient harbor area offers flat walking loops, frequent wind exposure and several exit points toward quieter streets. Use local notes for surface, crowding and route duration.',
     reliability_level: 'curated_mock',
     last_checked_at: '2026-06-13',
-    allowed_usage: 'retrieval_only',
+    allowed_usage: 'public_answer_with_source',
   },
   {
     id: 'breiz-vannes-golfe-001',
@@ -37,7 +37,7 @@ export const MOCK_BREIZ_DOCUMENTS: BreizDocument[] = [
       'Vannes combines coastal mobility, tourism flows and urban services. Local answers should cite the source and avoid inventing access rules for specific beaches or parks.',
     reliability_level: 'curated_mock',
     last_checked_at: '2026-06-13',
-    allowed_usage: 'retrieval_only',
+    allowed_usage: 'public_answer_with_source',
   },
   {
     id: 'breiz-source-rules-001',

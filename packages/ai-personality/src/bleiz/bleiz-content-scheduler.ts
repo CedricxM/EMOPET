@@ -453,8 +453,8 @@ export function filterGeneratedText(template: BleizTemplate, text: string): {
 
 function interpolatePrompt(template: BleizTemplate, contexts: BleizContexts): string {
   const source = template.prompt;
-  let result = '';
   let cursor = 0;
+  let result = '';
 
   while (cursor < source.length) {
     const start = source.indexOf('{{', cursor);
@@ -471,18 +471,22 @@ function interpolatePrompt(template: BleizTemplate, contexts: BleizContexts): st
 
     result += source.slice(cursor, start);
     const rawPath = source.slice(start + 2, end);
+
+    // Preserve malformed placeholders exactly as the previous matcher did.
     if (rawPath.length === 0 || rawPath.includes('}')) {
       result += source.slice(start, end + 2);
-    } else {
-      const value = resolveField(
-        rawPath.trim(),
-        contexts.sensor,
-        contexts.dog,
-        contexts.user,
-        contexts.community,
-      );
-      result += value === undefined || value === null ? '' : String(value);
+      cursor = end + 2;
+      continue;
     }
+
+    const value = resolveField(
+      rawPath.trim(),
+      contexts.sensor,
+      contexts.dog,
+      contexts.user,
+      contexts.community,
+    );
+    result += value === undefined || value === null ? '' : String(value);
     cursor = end + 2;
   }
 

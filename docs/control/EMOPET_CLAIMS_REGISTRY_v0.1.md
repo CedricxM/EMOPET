@@ -2,8 +2,9 @@
 
 **Status:** PROPOSED CLAIM CONTROL / NOT MARKETING OR LEGAL SIGN-OFF  
 **Date:** 2026-09-06  
+**Canonical terminology revision:** 2026-09-17 under DOMAIN-TERM #245; terminology only, authority and evidence status unchanged.  
 **Parent:** #223  
-**Related:** `EMOPET_EXPERIENCE_DOCTRINE_v0.1.md`, `COMPETITIVE_LANDSCAPE.md`, #230, #231
+**Related:** `docs/product/EMOPET_EXPERIENCE_DOCTRINE_v0.1.md`, `docs/strategy/COMPETITIVE_LANDSCAPE.md`, #230, #231
 
 ## 0. Purpose
 
@@ -49,7 +50,7 @@ No claim moves to stronger status because it appears repeatedly in code, decks, 
 | EMOPET can prepare useful information for a veterinary consultation | `CONDITIONAL` | product workflow description, not proof of improved consultation |
 | Veterinary Summary improves the consultation | `EVIDENCE_REQUIRED` | Founding Panel / workflow study |
 | Veterinary Summary saves X minutes | `EVIDENCE_REQUIRED` | requires prospective measured evidence |
-| EMOPET enriches/repairs anamnesis | `EVIDENCE_REQUIRED` for performance wording | safer internal hypothesis: `aims to preserve a more precise chronology for the Guardian to share` |
+| EMOPET enriches/repairs anamnesis | `EVIDENCE_REQUIRED` for performance wording | safer internal hypothesis: `aims to preserve a more precise chronology for the Owner to share` |
 | A veterinarian can interpret EMOPET observations | `AUTHORIZED_DESCRIPTIVE` | professional interpretation remains outside EMOPET authority |
 
 ## 3. Behavioral / emotion claims
@@ -81,10 +82,10 @@ No claim moves to stronger status because it appears repeatedly in code, decks, 
 
 | Claim | State | Notes |
 |---|---|---|
-| Memories preserves the Guardian's chosen history with the dog | `CONDITIONAL` | design authority; implementation and user value still to test |
-| EMOPET automatically knows which moments matter emotionally | `FORBIDDEN` | Guardian chooses meaning |
+| Memories preserves the Owner's chosen history with the dog | `CONDITIONAL` | design authority; implementation and user value still to test |
+| EMOPET automatically knows which moments matter emotionally | `FORBIDDEN` | Owner chooses meaning |
 | EMOPET measures bond strength | `FORBIDDEN` | no relationship score |
-| EMOPET can tell whether the user is a good Guardian | `FORBIDDEN` | no moral/performance scoring |
+| EMOPET can tell whether the user is a good Owner | `FORBIDDEN` | no moral/performance scoring |
 | Memories is private by default | `CONDITIONAL` | product authority; must be enforced in runtime before production claim |
 | EMOPET will never use Memories for engagement pressure | `CONDITIONAL` | doctrine commitment, requires implementation review |
 
@@ -104,7 +105,7 @@ No claim moves to stronger status because it appears repeatedly in code, decks, 
 
 | Claim | State | Notes |
 |---|---|---|
-| Guardian controls professional sharing | `CONDITIONAL` | intended authority; runtime grant/revocation model must exist |
+| Owner controls professional sharing | `CONDITIONAL` | intended authority; runtime grant/revocation model must exist |
 | Vet access is revocable/expiring/recipient-bound | `CONDITIONAL` | target architecture, not current broad production fact |
 | `vet_export_opt_in` alone is sufficient for permanent Vet View | `FORBIDDEN` | future access requires scoped grant model |
 | Community/World never receives Care data automatically | `CONDITIONAL` | doctrine; must be backed by implementation tests |

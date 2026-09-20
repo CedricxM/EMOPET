@@ -22,11 +22,13 @@ const ADAPTER_FILE: Record<string, string> = {
   purgomalum: 'adapters/purgoMalum.ts',
 };
 
-const esc = (s: string): string =>
-  s
-    .replace(/\|/g, '&#124;')
-    .replace(/\r/g, ' ')
-    .replace(/\n/g, ' ');
+function markdownTableCell(value: unknown): string {
+  return String(value)
+    .split('\r').join(' ')
+    .split('\n').join(' ')
+    .split('|').join('&#124;')
+    .trim();
+}
 
 const head = [
   '# API Provider Matrix — EMOPET',
@@ -43,22 +45,22 @@ const head = [
 
 const rows = PROVIDERS.map((d) =>
   [
-    d.providerName,
-    d.category,
-    d.baseUrl,
+    markdownTableCell(d.providerName),
+    markdownTableCell(d.category),
+    markdownTableCell(d.baseUrl),
     d.requiresAuth ? 'oui' : 'non',
-    esc(d.freeTierNotes || '—'),
-    d.commercialUseRisk,
-    d.privacyRisk,
-    d.rateLimitRisk,
-    d.implementationComplexity,
-    d.productValueForEMOPET,
-    d.status,
-    d.recommended,
-    `\`${d.flagKey}\``,
-    d.envKeys.length ? d.envKeys.map((k) => `\`${k}\``).join(' ') : '—',
-    ADAPTER_FILE[d.providerName] ?? '—',
-    d.fallbackProvider ?? '—',
+    markdownTableCell(d.freeTierNotes || '—'),
+    markdownTableCell(d.commercialUseRisk),
+    markdownTableCell(d.privacyRisk),
+    markdownTableCell(d.rateLimitRisk),
+    markdownTableCell(d.implementationComplexity),
+    markdownTableCell(d.productValueForEMOPET),
+    markdownTableCell(d.status),
+    markdownTableCell(d.recommended),
+    `\`${markdownTableCell(d.flagKey)}\``,
+    d.envKeys.length ? d.envKeys.map((k) => `\`${markdownTableCell(k)}\``).join(' ') : '—',
+    markdownTableCell(ADAPTER_FILE[d.providerName] ?? '—'),
+    markdownTableCell(d.fallbackProvider ?? '—'),
   ].join(' | '),
 ).map((r) => `| ${r} |`);
 

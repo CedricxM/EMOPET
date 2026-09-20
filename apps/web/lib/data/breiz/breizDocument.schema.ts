@@ -6,11 +6,6 @@ export interface BreizDocument {
   title: string;
   source_name: string;
   source_url: string | null;
-  /**
-   * Controlled source-registry binding used by release-time rights authority.
-   * Missing/unknown ids fail closed for public answers.
-   */
-  source_registry_id?: string | null;
   license: string;
   territory: string;
   region: string;

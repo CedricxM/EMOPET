@@ -23,6 +23,17 @@ export interface FeatureProgressLocalContext {
   };
 }
 
+export interface LocalFeatureProgressResponse {
+  userId: null;
+  generatedAt: string;
+  services: FeatureProgressCard[];
+  authoritative: false;
+}
+
+export type FeatureProgressClientResponse =
+  | FeatureProgressResponse
+  | LocalFeatureProgressResponse;
+
 export interface WaitlistResponse {
   serviceId: string;
   channel: 'in_app' | 'email';
@@ -195,13 +206,8 @@ function localCard(
           state: communityRulesAccepted ? 'done' : 'todo',
         },
         {
-          key: 'report_durable',
-          label: 'Signalement persistant disponible',
-          state: 'done',
-        },
-        {
-          key: 'block_enforcement',
-          label: 'Blocage applique aux surfaces Community',
+          key: 'report_block',
+          label: 'Signalement et blocage disponibles',
           state: 'blocked',
         },
         {
@@ -265,13 +271,8 @@ function localCard(
                   state: communityRulesAccepted ? 'done' : 'todo',
                 },
                 {
-                  key: 'report_durable',
-                  label: 'Signalement persistant disponible',
-                  state: 'done',
-                },
-                {
-                  key: 'block_enforcement',
-                  label: 'Blocage applique aux surfaces Community',
+                  key: 'report_block',
+                  label: 'Blocage et signalement actifs',
                   state: 'blocked',
                 },
                 {
@@ -314,13 +315,8 @@ function localCard(
                         state: communityRulesAccepted ? 'done' : 'todo',
                       },
                       {
-                        key: 'report_durable',
-                        label: 'Signalement persistant disponible',
-                        state: 'done',
-                      },
-                      {
-                        key: 'block_enforcement',
-                        label: 'Blocage applique aux surfaces Community',
+                        key: 'report_block',
+                        label: 'Signalement et blocage disponibles',
                         state: 'blocked',
                       },
                       {
@@ -363,18 +359,19 @@ function localCard(
 
 export function buildLocalFeatureProgress(
   context: FeatureProgressLocalContext,
-): FeatureProgressResponse {
+): LocalFeatureProgressResponse {
   return {
-    userId: context.userId ?? 'demo-user',
+    userId: null,
     generatedAt: new Date().toISOString(),
     services: FEATURE_PROGRESS_CATALOG.map((entry) => localCard(entry, context)),
+    authoritative: false,
   };
 }
 
 export async function fetchFeatureProgress(
   token: string | null | undefined,
   context: FeatureProgressLocalContext,
-): Promise<FeatureProgressResponse> {
+): Promise<FeatureProgressClientResponse> {
   if (!token) {
     return buildLocalFeatureProgress(context);
   }
@@ -382,24 +379,23 @@ export async function fetchFeatureProgress(
   return apiRequest<FeatureProgressResponse>('/api/feature-progress', { token });
 }
 
+function requireMutationToken(token: string | null | undefined): string {
+  const normalized = token?.trim();
+  if (!normalized) {
+    throw new Error('Connexion requise pour enregistrer cette action.');
+  }
+  return normalized;
+}
+
 export async function saveFeatureConsent(
   token: string | null | undefined,
   input: ConsentCreateInput,
 ): Promise<ConsentRecord> {
-  if (!token) {
-    return {
-      userId: 'demo-user',
-      purpose: input.purpose,
-      status: input.status ?? 'accepted',
-      timestamp: new Date().toISOString(),
-      context: input.context,
-    };
-  }
-
+  const authToken = requireMutationToken(token);
   return apiRequest<ConsentRecord>('/api/feature-progress/consents', {
     method: 'POST',
     body: input,
-    token,
+    token: authToken,
   });
 }
 
@@ -407,35 +403,22 @@ export async function joinFeatureWaitlistRequest(
   token: string | null | undefined,
   serviceId: string,
 ): Promise<WaitlistResponse> {
-  if (!token) {
-    return {
-      serviceId,
-      channel: 'in_app',
-      joinedAt: new Date().toISOString(),
-    };
-  }
-
+  const authToken = requireMutationToken(token);
   return apiRequest<WaitlistResponse>('/api/feature-progress/waitlist', {
     method: 'POST',
     body: { serviceId },
-    token,
+    token: authToken,
   });
 }
 
 export async function acceptCommunityRulesRequest(
   token: string | null | undefined,
 ): Promise<{ userId: string; acceptedAt: string }> {
-  if (!token) {
-    return {
-      userId: 'demo-user',
-      acceptedAt: new Date().toISOString(),
-    };
-  }
-
+  const authToken = requireMutationToken(token);
   return apiRequest<{ userId: string; acceptedAt: string }>('/api/community/rules/accept', {
     method: 'POST',
     body: { accepted: true },
-    token,
+    token: authToken,
   });
 }
 

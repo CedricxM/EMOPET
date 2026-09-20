@@ -4,6 +4,24 @@
 **Status:** `PROJECT_DECISION / TERMINOLOGY SUPERSESSION`  
 **Tracking:** DOMAIN-TERM #245
 
+## INT-08 integration scope — 2026-09-17
+
+This record preserves the terminology decision and the implementation history recorded on
+[PR #224's frozen source](https://github.com/CedricxM/EMOPET/tree/7e0d90445a3cf03b094d7037aa6addbfa6f2cc19).
+The Phase C / Phase D completion statements below describe that source snapshot only.
+They do **not** assert that these migrations, contracts, runtime changes or all successor documents
+are integrated into `main` or into this documentation-only INT-08 branch.
+
+INT-08 carries the terminology decision, its bounded product/science documentation changes and
+the one-word Founder Strategic Locks reconciliation. Professional-sharing persistence and runtime
+remain owned by INT-05; other cross-domain changes retain their integration-slice dependencies.
+The historical migration numbers below remain source provenance, not active migration allocation.
+
+Successor/source documents outside INT-08 are linked to the exact frozen source below so that
+historical lineage remains inspectable without importing another slice or implying its delivery.
+Local predecessors retained on this branch remain historical terminology sources.
+See [the INT-08 replay manifest](../../strategy/INT08_AUTHORITY_REPLAY_MANIFEST_2026-09-17.md).
+
 ## Decision
 
 `Guardian` is no longer the canonical EMOPET term for the person who owns the dog.
@@ -23,12 +41,12 @@ The following source files remain in the repository as historical evidence and m
 
 | Historical source | Canonical successor | Supersession scope |
 |---|---|---|
-| `docs/strategy/GUARDIAN_RELATIONSHIP_AND_PRODUCT_SCOPE_DOCTRINE_2026-09-07.md` | `docs/strategy/OWNER_RELATIONSHIP_AND_PRODUCT_SCOPE_DOCTRINE_2026-09-11.md` | terminology only |
-| `docs/product/EMOPET_GUARDIAN_AUTHORITY_MASTER_v0.1.md` | `docs/product/EMOPET_OWNER_AUTHORITY_MASTER_v0.1.md` | terminology only |
-| `docs/product/EMOPET_GUARDIAN_CONTINUITY_MASTER_v0.1.md` | `docs/product/EMOPET_OWNER_CONTINUITY_MASTER_v0.1.md` | terminology only |
-| `docs/control/EMOPET_GUARDIAN_AUTHORITY_MASTER_v0.1.md` | `docs/control/EMOPET_OWNER_AUTHORITY_MASTER_v0.1.md` | terminology only; legacy gate identifier retained |
-| `docs/control/EMOPET_GUARDIAN_PROFESSIONAL_SHARING_v0.1.md` | `docs/control/EMOPET_OWNER_PROFESSIONAL_SHARING_v0.1.md` | terminology only; legacy gate identifier retained |
-| `docs/qa/EMOPET_GUARDIAN_AUTHORITY_BOLA_MATRIX_v0.1.md` | `docs/qa/EMOPET_OWNER_AUTHORITY_BOLA_MATRIX_v0.1.md` | terminology only; legacy QA gate identifier retained |
+| `docs/strategy/GUARDIAN_RELATIONSHIP_AND_PRODUCT_SCOPE_DOCTRINE_2026-09-07.md` | [docs/strategy/OWNER_RELATIONSHIP_AND_PRODUCT_SCOPE_DOCTRINE_2026-09-11.md](https://github.com/CedricxM/EMOPET/blob/7e0d90445a3cf03b094d7037aa6addbfa6f2cc19/docs/strategy/OWNER_RELATIONSHIP_AND_PRODUCT_SCOPE_DOCTRINE_2026-09-11.md) | terminology only |
+| `docs/product/EMOPET_GUARDIAN_AUTHORITY_MASTER_v0.1.md` | [docs/product/EMOPET_OWNER_AUTHORITY_MASTER_v0.1.md](https://github.com/CedricxM/EMOPET/blob/7e0d90445a3cf03b094d7037aa6addbfa6f2cc19/docs/product/EMOPET_OWNER_AUTHORITY_MASTER_v0.1.md) | terminology only |
+| `docs/product/EMOPET_GUARDIAN_CONTINUITY_MASTER_v0.1.md` | [docs/product/EMOPET_OWNER_CONTINUITY_MASTER_v0.1.md](https://github.com/CedricxM/EMOPET/blob/7e0d90445a3cf03b094d7037aa6addbfa6f2cc19/docs/product/EMOPET_OWNER_CONTINUITY_MASTER_v0.1.md) | terminology only |
+| [docs/control/EMOPET_GUARDIAN_AUTHORITY_MASTER_v0.1.md](https://github.com/CedricxM/EMOPET/blob/7e0d90445a3cf03b094d7037aa6addbfa6f2cc19/docs/control/EMOPET_GUARDIAN_AUTHORITY_MASTER_v0.1.md) | [docs/control/EMOPET_OWNER_AUTHORITY_MASTER_v0.1.md](https://github.com/CedricxM/EMOPET/blob/7e0d90445a3cf03b094d7037aa6addbfa6f2cc19/docs/control/EMOPET_OWNER_AUTHORITY_MASTER_v0.1.md) | terminology only; legacy gate identifier retained |
+| [docs/control/EMOPET_GUARDIAN_PROFESSIONAL_SHARING_v0.1.md](https://github.com/CedricxM/EMOPET/blob/7e0d90445a3cf03b094d7037aa6addbfa6f2cc19/docs/control/EMOPET_GUARDIAN_PROFESSIONAL_SHARING_v0.1.md) | [docs/control/EMOPET_OWNER_PROFESSIONAL_SHARING_v0.1.md](https://github.com/CedricxM/EMOPET/blob/7e0d90445a3cf03b094d7037aa6addbfa6f2cc19/docs/control/EMOPET_OWNER_PROFESSIONAL_SHARING_v0.1.md) | terminology only; legacy gate identifier retained |
+| [docs/qa/EMOPET_GUARDIAN_AUTHORITY_BOLA_MATRIX_v0.1.md](https://github.com/CedricxM/EMOPET/blob/7e0d90445a3cf03b094d7037aa6addbfa6f2cc19/docs/qa/EMOPET_GUARDIAN_AUTHORITY_BOLA_MATRIX_v0.1.md) | [docs/qa/EMOPET_OWNER_AUTHORITY_BOLA_MATRIX_v0.1.md](https://github.com/CedricxM/EMOPET/blob/7e0d90445a3cf03b094d7037aa6addbfa6f2cc19/docs/qa/EMOPET_OWNER_AUTHORITY_BOLA_MATRIX_v0.1.md) | terminology only; legacy QA gate identifier retained |
 
 Historical files are retained unchanged so the repository preserves what was actually written and reviewed at the time.
 

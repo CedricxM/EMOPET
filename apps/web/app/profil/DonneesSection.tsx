@@ -36,8 +36,12 @@ const UsagesModal = dynamic(
   () => import('../../components/donnees/modals').then((m) => m.UsagesModal),
   { ssr: false },
 );
-const PrivacyErasureUnavailableModal = dynamic(
-  () => import('../../components/donnees/privacy-erasure-modal').then((m) => m.PrivacyErasureUnavailableModal),
+const DeleteModal = dynamic(
+  () => import('../../components/donnees/modals').then((m) => m.DeleteModal),
+  { ssr: false },
+);
+const DeletedToastModal = dynamic(
+  () => import('../../components/donnees/modals').then((m) => m.DeletedToastModal),
   { ssr: false },
 );
 
@@ -76,7 +80,8 @@ export function DonneesSection() {
   const [viewAllOpen, setViewAllOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [usagesOpen, setUsagesOpen] = useState(false);
-  const [erasureOpen, setErasureOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deletedToastOpen, setDeletedToastOpen] = useState(false);
 
   const viewDataOpen = viewDataFor !== null || viewAllOpen;
 
@@ -105,7 +110,7 @@ export function DonneesSection() {
           onViewAll={() => setViewAllOpen(true)}
           onExport={() => setExportOpen(true)}
           onSeeUsages={() => setUsagesOpen(true)}
-          onDelete={() => setErasureOpen(true)}
+          onDelete={() => setDeleteOpen(true)}
         />
 
         <Section05Consent />
@@ -130,11 +135,15 @@ export function DonneesSection() {
       {usagesOpen && (
         <UsagesModal isOpen={usagesOpen} onClose={() => setUsagesOpen(false)} />
       )}
-      {erasureOpen && (
-        <PrivacyErasureUnavailableModal
-          isOpen={erasureOpen}
-          onClose={() => setErasureOpen(false)}
+      {deleteOpen && (
+        <DeleteModal
+          isOpen={deleteOpen}
+          onClose={() => setDeleteOpen(false)}
+          onConfirmed={() => { setDeleteOpen(false); setDeletedToastOpen(true); }}
         />
+      )}
+      {deletedToastOpen && (
+        <DeletedToastModal isOpen={deletedToastOpen} onClose={() => setDeletedToastOpen(false)} />
       )}
     </>
   );
