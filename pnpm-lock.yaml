@@ -208,9 +208,6 @@ importers:
 
   backend:
     dependencies:
-
-  backend:
-    dependencies:
       '@emopet/eli-engine':
         specifier: workspace:*
         version: link:../packages/eli-engine
