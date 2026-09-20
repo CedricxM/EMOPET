@@ -22,6 +22,14 @@ import { parseLookbackWindow } from '../utils/temporal-window.js';
 
 const dogs = new Hono();
 
+const PRESENCE_COMPARISON_AUTHORITY = {
+  status: 'PROTOTYPE_SEMANTICS_UNVALIDATED' as const,
+  publishable: false,
+  controllingGate: 'SCI-PRES-01' as const,
+  syntheticFallback: false,
+};
+
+
 function getUserId(c: unknown): string | undefined {
   return (c as { get: (key: string) => unknown }).get('userId') as string | undefined;
 }
@@ -66,7 +74,10 @@ dogs.get('/:id/absence-comparison', async (c) => {
     if (error instanceof PresenceComparisonDataUnavailableError) {
       c.header('Cache-Control', 'private, max-age=0, no-store');
       return c.json(
-        { error: error.code },
+        {
+          error: error.code,
+          authority: PRESENCE_COMPARISON_AUTHORITY,
+        },
         503,
       );
     }
@@ -91,10 +102,11 @@ dogs.get('/:id/absence-comparison', async (c) => {
     dogId: id,
     days,
     comparison,
+    authority: PRESENCE_COMPARISON_AUTHORITY,
     message:
       comparison.gate === 'REJECT'
-        ? 'Pas assez de donnees pour comparer presence et absence.'
-        : 'Comparaison presence / absence disponible.',
+        ? 'Pas assez de donnees reelles pour cette comparaison prototype.'
+        : 'Comparaison prototype calculee pour QA ; publication produit non autorisee.',
   });
 });
 
