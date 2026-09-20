@@ -6,6 +6,9 @@ import { MOCK_SCORED_BRITTANY_TERRITORIES } from '../../../lib/data/territory/mo
 import { DEFAULT_TERRITORY_SCORING_WEIGHTS } from '../../../lib/data/territory/territoryScoring';
 import { ADMIN_TOKEN_COOKIE, isAdminTokenValue } from '../../../lib/server/admin';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const BREAKDOWN_LABELS = [
   ['population_density_potential', 'Population / densite'],
   ['canine_ecosystem_density', 'Ecosysteme canin'],
