@@ -35,16 +35,33 @@ function ComparisonBar({
 
 export default function AbsenceScreen() {
   const token = useAuthStore((state) => state.token);
-  const selectedDogId = useDogStore((state) => state.selectedDogId) ?? 'demo-dog';
+  const selectedDogId = useDogStore((state) => state.selectedDogId);
   const [payload, setPayload] = useState<AbsenceComparisonPayload | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
-    setLoading(true);
+    setPayload(null);
     setError(null);
 
+    if (!selectedDogId) {
+      setLoading(false);
+      setError('Selectionnez un chien pour afficher une comparaison.');
+      return () => {
+        mounted = false;
+      };
+    }
+
+    if (!token) {
+      setLoading(false);
+      setError('Connexion requise pour charger une comparaison issue de donnees reelles.');
+      return () => {
+        mounted = false;
+      };
+    }
+
+    setLoading(true);
     fetchAbsenceComparison(selectedDogId, token)
       .then((value) => {
         if (mounted) {

@@ -43,6 +43,26 @@ test('email requis pour la visio, téléphone pour l’appel', () => {
   assert.ok(validateContactInput({ ...base(), channel: 'phone', contactValue: 'abc' }).some((e) => /téléphone/i.test(e)));
 });
 
+test('email : validation bornée et déterministe', () => {
+  const invalid = [
+    'a@@emopet.fr',
+    'a@emopet',
+    'a@.emopet.fr',
+    'a@emopet.fr.',
+    `${'a'.repeat(65)}@emopet.fr`,
+    `${'a'.repeat(245)}@emopet.fr`,
+    'a b@emopet.fr',
+    'a@emo\npet.fr',
+  ];
+
+  for (const contactValue of invalid) {
+    assert.ok(
+      validateContactInput({ ...base(), channel: 'video', contactValue }).some((e) => /email/i.test(e)),
+      `doit rejeter ${JSON.stringify(contactValue)}`,
+    );
+  }
+});
+
 test('1 à 5 créneaux', () => {
   assert.ok(validateContactInput({ ...base(), proposedSlots: [] }).some((e) => /1 à 5/.test(e)));
 });
