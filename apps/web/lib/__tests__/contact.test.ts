@@ -47,6 +47,18 @@ test('1 à 5 créneaux', () => {
   assert.ok(validateContactInput({ ...base(), proposedSlots: [] }).some((e) => /1 à 5/.test(e)));
 });
 
+test('validation email : rejette les formes ambiguës sans backtracking', () => {
+  assert.ok(
+    validateContactInput({ ...base(), channel: 'video', contactValue: 'a@b@emopet.fr' })
+      .some((e) => /email/i.test(e)),
+  );
+  assert.ok(
+    validateContactInput({ ...base(), channel: 'video', contactValue: `${'a'.repeat(20_000)}@emopet.fr` })
+      .length === 0,
+  );
+});
+
+
 test('buildRequest : statut pending, type de coordonnée selon canal', () => {
   assert.equal(buildRequest(base()).contactValueType, 'phone');
   assert.equal(buildRequest({ ...base(), channel: 'video', contactValue: 'a@b.fr' }).contactValueType, 'email');
