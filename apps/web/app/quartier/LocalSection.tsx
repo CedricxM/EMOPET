@@ -29,6 +29,7 @@ import type { CircleEvent } from '../../lib/community';
 import { MOCK_MAP_PLACES, MOCK_MAP_ROUTES } from '../../lib/data/mapbox/mockMapEntities';
 import { mapPlacesToCommunitySpots, mergeCommunitySpots } from '../../lib/data/mapbox/mapboxToCommunitySpot';
 import { useI18n } from '../../lib/i18n';
+import { persistUserSpotFallback } from '../../lib/local-map-persistence';
 import type { Dict } from '../../lib/i18n';
 import styles from '../../styles/living-pages.module.css';
 
@@ -291,28 +292,35 @@ export function LocalSection() {
     setTimeout(() => setFlashNotice(null), 4000);
   }
 
-  async function handleCreateSpot(input: NewSpotInput) {
-    // Centre par dÃ©faut : Lorient (ville d'ancrage). En prod : position cliquÃ©e.
+  async function handleCreateSpot(input: NewSpotInput): Promise<boolean> {
+    // Centre par défaut : Lorient (ville d'ancrage). En prod : position cliquée.
     const payload = { ...input, lon: -3.3702, lat: 47.7482 };
-    // R3 : persistance serveur d'abord, repli localStorage si hors-ligne.
+
+    // Persistance serveur d'abord. Le fallback local ne compte comme succès
+    // que si l'écriture locale a réellement été confirmée.
     try {
-      const res = await fetch('/api/map/spots', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
+      const res = await fetch('/api/map/spots', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
       if (res.ok) {
         const data = (await res.json()) as { ok: boolean; spot?: CommunitySpot };
         if (data.ok && data.spot) {
           setSpots((prev) => [...prev, data.spot!]);
           afterCreate();
-          return;
+          return true;
         }
       }
     } catch {
-      /* repli local */
+      /* fallback local contrôlé ci-dessous */
     }
+
     const newSpot: CommunitySpot = {
       id: `user-${Date.now()}`,
       category: input.category,
       name: input.name,
-      description: input.description || 'Spot ajoutÃ© par la communautÃ©.',
+      description: input.description || 'Spot ajouté par la communauté.',
       lon: -3.3702,
       lat: 47.7482,
       isAnonymous: input.isAnonymous,
@@ -322,43 +330,54 @@ export function LocalSection() {
       comments: [],
       createdAt: new Date().toISOString(),
     };
-    setSpots((prev) => {
-      const next = [...prev, newSpot];
-      try {
-        const userSpots = next.filter((s) => s.id.startsWith('user-'));
-        localStorage.setItem(STORAGE_SPOTS, JSON.stringify(userSpots));
-      } catch {}
-      return next;
-    });
+
+    let fallbackSaved = false;
+    try {
+      fallbackSaved = persistUserSpotFallback(localStorage, STORAGE_SPOTS, newSpot).ok;
+    } catch {
+      fallbackSaved = false;
+    }
+
+    if (!fallbackSaved) {
+      setFlashNotice('Impossible d’enregistrer ce spot pour le moment. Rien n’a été ajouté.');
+      setTimeout(() => setFlashNotice(null), 5000);
+      return false;
+    }
+
+    setSpots((prev) => [...prev, newSpot]);
     afterCreate();
+    return true;
   }
 
-  async function handleAddComment(spotId: string, content: string) {
+  async function handleAddComment(spotId: string, content: string): Promise<boolean> {
     try {
-      const res = await fetch(`/api/map/spots/${spotId}/comments`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ content, authorName: 'Vous' }) });
+      const res = await fetch(`/api/map/spots/${spotId}/comments`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ content, authorName: 'Vous' }),
+      });
       if (res.ok) {
         const data = (await res.json()) as { ok: boolean; comment?: CommunitySpot['comments'][number] };
         if (data.ok && data.comment) {
-          setSpots((prev) => prev.map((s) => (s.id === spotId ? { ...s, comments: [...s.comments, data.comment!] } : s)));
-          return;
+          setSpots((prev) => prev.map((s) => (
+            s.id === spotId ? { ...s, comments: [...s.comments, data.comment!] } : s
+          )));
+          return true;
         }
       }
     } catch {
-      /* repli local */
+      /* la route partagée reste autoritaire */
     }
-    setSpots((prev) =>
-      prev.map((s) =>
-        s.id === spotId
-          ? { ...s, comments: [...s.comments, { id: `c-${Date.now()}`, content, authorName: 'Vous', createdAt: new Date().toISOString() }] }
-          : s,
-      ),
-    );
+
+    setFlashNotice('Impossible de publier ce commentaire pour le moment. Votre texte est conservé.');
+    setTimeout(() => setFlashNotice(null), 5000);
+    return false;
   }
 
-  function handleFlagSpot(_spotId: string) {
-    setSelectedSpotId(null);
-    setFlashNotice(t('local', 'spotFlagged'));
-    setTimeout(() => setFlashNotice(null), 4000);
+  async function handleFlagSpot(_spotId: string): Promise<boolean> {
+    // Aucun endpoint de signalement de spot n'existe actuellement. Ne jamais
+    // transformer ce vide d'autorité en faux accusé de réception.
+    return false;
   }
 
   const [filter, setFilter] = useState<FilterId>('all');
@@ -650,4 +669,3 @@ export function LocalSection() {
     </>
   );
 }
-

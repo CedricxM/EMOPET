@@ -3,64 +3,92 @@
    Ported from emopet-design-system/colors_and_type.css.
    Keep this file and the mobile theme in sync.
 
-   Les stacks de polices sont définies ici pour éviter une dépendance réseau
-   au build. Sora reste la famille de marque préférée, avec fallbacks système.
+   Les familles de marque sont chargées par `app/layout.tsx` via `next/font`,
+   qui les auto-héberge au build. Aucune requête navigateur vers un tiers.
    ============================================================ */
 
 :root {
-  /* Official EMOPET brand aliases */
-  --emopet-navy: #1D1A6A;
-  --emopet-orange: #FE502D;
-  --emopet-teal: #2CB7AB;
-  --emopet-cream: #F6EFE7;
-  --emopet-gray: #6B6F76;
-
   /* ============================================================
-     Charte emopet 2026 — navy / orange / teal / cream.
-     Les noms d'échelle (granit/terracotta/lichen/cream) sont
-     CONSERVÉS pour ne pas casser les composants ; seules les
-     VALEURS changent → re-skin global instantané.
-       granit  = navy   (#1D1A6A) — marque + texte
-       terracotta = orange (#FE502D) — accent / CTA
-       lichen  = teal   (#2CB7AB) — secondaire
-       cream   = #F6EFE7 — fonds
-       gris neutre #6B6F76 — texte atténué
+     BRAND-AUTHORITY-001 (2026-08-25) — charte contrôlée appliquée.
+
+     Les noms d'échelle (granit / terracotta / lichen / cream) étaient déjà
+     ceux de cette charte ; seules les VALEURS étaient restées navy / orange /
+     teal, héritées du profil superseded. Elles sont ici alignées sur §3.2.
+
+     Valeurs PRESCRITES, reprises telles quelles :
+       Sable #F4EFE6 · Sable clair #FAF6EE · Sable profond #EAE2D3
+       Pierre #D8D0C2 · Pierre claire #E4DDD0
+       Granit #1F2A36 · Granit clair #2E3B47 · Ardoise #5A6570
+       Terre cuite #C97B5A · Terre cuite sombre #A65E3F
+       Lichen #6B8E6F · Lichen sombre #4F6F53
+
+     Les échelons INTERMÉDIAIRES (900/600/400/300/200/100) ne figurent pas
+     dans l'autorité : ils sont DÉRIVÉS par interpolation depuis les valeurs
+     prescrites, et signalés comme tels. Ils n'ont pas d'autorité propre.
+
+     Les anciens alias --emopet-navy / -orange / -teal / -cream / -gray sont
+     conservés pour les composants existants et repointés vers la palette
+     contrôlée. Voir la couche de compatibilité ci-dessous.
      ============================================================ */
 
-  /* Surfaces (cream) */
-  --cream-50:  #FBF7F1;
-  --cream-100: var(--emopet-cream);
-  --cream-200: #EEE5D9;
-  --cream-300: #DCD2C4;
-  --cream-400: #C5BAA8;
+  /* Alias de marque — nommés d'après BRAND-AUTHORITY-001. */
+  --brand-sable: #F4EFE6;
+  --brand-granit: #1F2A36;
+  --brand-ardoise: #5A6570;
+  --brand-terracotta: #C97B5A;
+  --brand-lichen: #6B8E6F;
 
-  /* Granit → Navy (marque + texte), dégradé vers gris neutre */
-  --granit-900: #14123A;
-  --granit-800: var(--emopet-navy);
-  --granit-700: #2E2B83;
-  --granit-600: #4A4796;
-  --granit-500: var(--emopet-gray);
-  --granit-400: #8E919A;
-  --granit-300: #B7B9BF;
-  --granit-200: #D6D7DB;
+  /* ⚠ COMPATIBILITÉ — noms hérités du profil superseded.
+     Ces cinq alias NE DÉCRIVENT PLUS leur valeur : `--emopet-navy` vaut
+     désormais du granit, `--emopet-orange` de la terre cuite, `--emopet-teal`
+     du lichen. Ils survivent uniquement parce que 159 références les
+     consomment encore dans les composants ; les renommer est une tranche
+     distincte, volontairement hors de cette bascule.
+     NE PAS en introduire de nouvelles : utiliser les `--brand-*` ci-dessus
+     ou les échelles nommées. */
+  --emopet-navy: var(--brand-granit);
+  --emopet-orange: var(--brand-terracotta);
+  --emopet-teal: var(--brand-lichen);
+  --emopet-cream: var(--brand-sable);
+  --emopet-gray: var(--brand-ardoise);
 
-  /* Terracotta → Orange (accent / CTA) */
-  --terracotta-700: #C2350F;
-  --terracotta-600: #E03E18;
-  --terracotta-500: var(--emopet-orange);
-  --terracotta-400: #FF6E50;
-  --terracotta-300: #FF9A82;
-  --terracotta-200: #FFC7B9;
-  --terracotta-100: #FFE7E0;
+  /* Surfaces — famille Sable / Pierre. Les cinq échelons sont PRESCRITS. */
+  --cream-50:  #FAF6EE; /* Sable clair    — prescrit */
+  --cream-100: #F4EFE6; /* Sable          — prescrit */
+  --cream-200: #EAE2D3; /* Sable profond  — prescrit */
+  --cream-300: #E4DDD0; /* Pierre claire  — prescrit */
+  --cream-400: #D8D0C2; /* Pierre         — prescrit */
 
-  /* Lichen → Teal (secondaire) */
-  --lichen-700: #1E7E76;
-  --lichen-600: #25998F;
-  --lichen-500: var(--emopet-teal);
-  --lichen-400: #5BC9BF;
-  --lichen-300: #8FDAD3;
-  --lichen-200: #BFE9E5;
-  --lichen-100: #E3F5F2;
+  /* Granit / Ardoise — marque et texte. */
+  --granit-900: #141B23; /* dérivé */
+  --granit-800: #1F2A36; /* Granit        — prescrit */
+  --granit-700: #2E3B47; /* Granit clair  — prescrit */
+  --granit-600: #3F4A56; /* dérivé */
+  --granit-500: #5A6570; /* Ardoise       — prescrit */
+  --granit-400: #8C939B; /* dérivé */
+  --granit-300: #BABEC3; /* dérivé */
+  --granit-200: #DBDDE0; /* dérivé */
+
+  /* Terre cuite — accent. Sur sable, 500 (2.84:1) et 600 (4.27:1) échouent
+     pour du texte normal ; utiliser 700 comme texte sur ce fond.
+     La paire blanc sur FOND 600 atteint 4.89:1 : elle convient aux boutons.
+     Toujours vérifier la paire texte/fond réellement utilisée. */
+  --terracotta-700: #814931; /* dérivé */
+  --terracotta-600: #A65E3F; /* Terre cuite sombre — prescrit */
+  --terracotta-500: #C97B5A; /* Terre cuite        — prescrit */
+  --terracotta-400: #D8A088; /* dérivé */
+  --terracotta-300: #E4BDAC; /* dérivé */
+  --terracotta-200: #F0DAD1; /* dérivé */
+  --terracotta-100: #F9EFEB; /* dérivé */
+
+  /* Lichen — secondaire. Même règle : 500 ne porte pas de texte normal (3.20:1). */
+  --lichen-700: #3E5741; /* dérivé */
+  --lichen-600: #4F6F53; /* Lichen sombre — prescrit */
+  --lichen-500: #6B8E6F; /* Lichen        — prescrit */
+  --lichen-400: #94AE97; /* dérivé */
+  --lichen-300: #B5C6B7; /* dérivé */
+  --lichen-200: #D6DFD7; /* dérivé */
+  --lichen-100: #EDF1EE; /* dérivé */
 
   /* ELI reliability gating */
   --eli-valid: #7A9B7E;
@@ -81,27 +109,31 @@
   --surface-2: var(--cream-50);
   --surface-dark: var(--granit-800);
 
-  --fg: var(--granit-800);
+  --fg: var(--granit-800);            /* Granit sur sable = 12.71:1 — AAA */
   --fg-strong: var(--granit-900);
-  --fg-2: var(--granit-600);
-  /* Texte atténué décroché de la grise de marque : --granit-500 (#6B6F76) = 4.43:1 sur
-     cream (échec AA) → #61656C (≥4.5 sur cream/surface/sunk). La grise de marque
-     --emopet-gray / --granit-500 reste INCHANGÉE pour les usages non-texte. */
-  --fg-muted: #61656C;
+  --fg-2: var(--granit-700);          /* Granit clair sur sable = 10.00:1 — AAA */
+  /* Ardoise est directement conforme : 5.19:1 sur sable, 5.52:1 sur sable clair,
+     4.62:1 sur sable profond. Le contournement #61656C qu'imposait l'ancienne
+     grise de marque (4.43:1, échec) n'est plus nécessaire. */
+  --fg-muted: var(--granit-500);
   --fg-hint: var(--granit-400);
   --fg-on-dark: var(--cream-50);
 
-  --accent: var(--terracotta-500);
-  --accent-hover: var(--terracotta-600);
+  /* L'accent INTERACTIF est la Terre cuite SOMBRE, pas la claire : blanc sur
+     #A65E3F = 4.89:1 (AA), là où blanc sur #C97B5A = 3.25:1 et granit sur
+     #C97B5A = 4.48:1 — tous deux insuffisants pour du texte normal.
+     La Terre cuite claire reste disponible en --terracotta-500 pour les
+     surfaces décoratives et le grand texte. */
+  --accent: var(--terracotta-600);
+  --accent-hover: var(--terracotta-700);
   --accent-press: var(--terracotta-700);
   --accent-soft: var(--terracotta-100);
   --accent-soft-border: var(--terracotta-300);
-  /* Encre sur fond accent : navy (AA). Blanc sur orange #FE502D = 3.28:1 (échec) ;
-     navy sur orange = 4.54:1 (conforme), couleurs de marque inchangées. */
-  --accent-ink: var(--emopet-navy);
+  --accent-ink: #FFFFFF;              /* blanc sur terre cuite sombre = 4.89:1 — AA */
 
-  --accent-2: var(--lichen-500);
-  --accent-2-ink: var(--emopet-navy); /* navy sur teal = 6.01:1 (blanc = 2.48:1, échec) */
+  /* Même raisonnement : Lichen sombre porte le texte, blanc dessus = 5.63:1. */
+  --accent-2: var(--lichen-600);
+  --accent-2-ink: #FFFFFF;
   --accent-2-soft: var(--lichen-100);
   --accent-2-soft-border: var(--lichen-200);
 
@@ -119,12 +151,47 @@
   --vert-ok:    #2D7A3E;
   --orange-pro: #D4810E;
 
-  /* Police principale = Sora (titres + corps). Mono pour les données. */
-  --emopet-font-sora: 'Sora';
-  --emopet-font-jetbrains: 'JetBrains Mono';
-  --font-serif: var(--emopet-font-sora), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-sans: var(--emopet-font-sora), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: var(--emopet-font-jetbrains), 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+  /* ------------------------------------------------------------------
+     Typographie — BRAND-AUTHORITY-001 §3.1.
+       Display / titres / wordmark : Fraunces
+       Corps                        : Instrument Sans
+       Technique / données          : JetBrains Mono
+
+     Les trois familles sont chargées par `app/layout.tsx` via `next/font`,
+     qui les auto-héberge au build : aucune requête du navigateur vers un
+     tiers. Les variables `--f-*` sont injectées par ce chargement.
+
+     Avant cette bascule, `--emopet-font-sora: 'Sora'` nommait une famille
+     qui n'était JAMAIS livrée — ni next/font, ni @font-face, ni lien Google.
+     Chaque page rendait dans la police système du visiteur. Ce n'est donc
+     pas un remplacement de Sora : c'est la première livraison d'une
+     typographie de marque.
+     ------------------------------------------------------------------ */
+  --font-serif: var(--f-display), Georgia, 'Times New Roman', serif;
+  --font-sans: var(--f-body), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: var(--f-mono), 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+
+  /* --------------------------------------------------------------
+     Rôles typographiques de la landing.
+
+     Historique (#363) : les 87 références à --font-fraunces et
+     --font-source-sans, alors non définies, ont été renommées par rôle.
+     Cette réparation seule ne changeait pas le rendu : les familles
+     déclarées n'étaient pas livrées et le navigateur utilisait ses fallbacks.
+
+     État de cette branche (#365) : la bascule typographique autorisée charge
+     Fraunces / Instrument Sans / JetBrains Mono dans app/layout.tsx via
+     next/font. Ces alias héritent maintenant des familles auto-hébergées.
+     L'ancien avertissement interdisant de les charger décrivait l'état
+     antérieur ; il ne décrit plus cette implémentation.
+
+     L'autorité reste BRAND-AUTHORITY-001. Le build et les ratios de contraste
+     ne remplacent pas la QA du rendu, du mobile et des interactions.
+     Provenance de la réparation :
+     docs/records/memory/CURRENT_REPO_AUTHORITY_CONFLICT_AUDIT_2026-09-17.md
+     -------------------------------------------------------------- */
+  --font-display: var(--font-serif);
+  --font-body: var(--font-sans);
 
   --ff-tabular: 'tnum' 1, 'lnum' 1;
   --ff-normal: 'kern' 1, 'liga' 1;
