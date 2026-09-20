@@ -11,7 +11,7 @@ import {
 import type { Category, CategoryId, LevelId } from './data';
 
 /* ============================================================
-   Section 01 â€” Vue d'ensemble
+   Section 01 — Vue d'ensemble
    ============================================================ */
 
 export function Section01Overview({
@@ -25,7 +25,7 @@ export function Section01Overview({
   return (
     <SectionShell numero="01" titre="Vue d'ensemble">
       <NotchInfo>
-        EMOPET ne vend <strong>JAMAIS</strong> vos donnÃ©es. Vous dÃ©cidez chaque catÃ©gorie,
+        EMOPET ne vend <strong>JAMAIS</strong> vos données. Vous décidez chaque catégorie,
         vous pouvez tout supprimer en 1 clic.
       </NotchInfo>
 
@@ -37,12 +37,12 @@ export function Section01Overview({
         }}
       >
         <StatCard
-          eyebrow="MESURES Â· 30 J"
+          eyebrow="MESURES · 30 J"
           value={TOTAL_MEASURES_30D.toLocaleString('fr-FR')}
-          unit="mesures collectÃ©es"
+          unit="mesures collectées"
         />
         <StatCard
-          eyebrow="CATÃ‰GORIES"
+          eyebrow="CATÉGORIES"
           value={activeCount.toString()}
           unit={`actives sur ${CATEGORIES.length}`}
         />
@@ -58,7 +58,7 @@ export function Section01Overview({
 }
 
 /* ============================================================
-   Section 02 â€” 4 niveaux de partage
+   Section 02 — 4 niveaux de partage
    ============================================================ */
 
 export function Section02Levels({
@@ -71,7 +71,7 @@ export function Section02Levels({
   return (
     <SectionShell numero="02" titre="Tu choisis ce que tu partages">
       <P2 style={{ color: 'var(--fg-2)' }}>
-        Le niveau global s'applique par dÃ©faut Ã  toutes tes catÃ©gories. Tu peux le surcharger
+        Le niveau global s'applique par défaut à toutes tes catégories. Tu peux le surcharger
         ligne par ligne en Section 03.
       </P2>
       <RadioGroup
@@ -159,7 +159,7 @@ export function Section02Levels({
                     color: 'var(--fg-muted)',
                   }}
                 >
-                  Qui voit Â· {lvl.audience}
+                  Qui voit · {lvl.audience}
                 </span>
               </div>
             </Radio>
@@ -171,7 +171,7 @@ export function Section02Levels({
 }
 
 /* ============================================================
-   Section 03 â€” DÃ©tail par catÃ©gorie
+   Section 03 — Détail par catégorie
    ============================================================ */
 
 export function Section03Categories({
@@ -186,7 +186,7 @@ export function Section03Categories({
   onShowData: (id: CategoryId) => void;
 }) {
   return (
-    <SectionShell numero="03" titre="Tes 6 catÃ©gories de donnÃ©es">
+    <SectionShell numero="03" titre="Tes 6 catégories de données">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {CATEGORIES.map((cat) => (
           <CategoryRow
@@ -238,14 +238,14 @@ function CategoryRow({
                   cursor: 'help',
                 }}
               >
-                âš  NOTE
+                ⚠ NOTE
               </span>
             )}
           </div>
           <P2>{cat.description}</P2>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 4 }}>
-            <Stat label="Mesures / 30 j" value={cat.measuresPerMonth != null ? cat.measuresPerMonth.toLocaleString('fr-FR') : 'â€”'} />
-            <Stat label="Capteurs" value={cat.sensors.join(' Â· ')} />
+            <Stat label="Mesures / 30 j" value={cat.measuresPerMonth != null ? cat.measuresPerMonth.toLocaleString('fr-FR') : '—'} />
+            <Stat label="Capteurs" value={cat.sensors.join(' · ')} />
           </div>
           {cat.tooltip && (
             <P2 style={{ color: 'var(--prudence-ink)', fontStyle: 'italic', marginTop: 4 }}>
@@ -273,7 +273,7 @@ function CategoryRow({
             </Switch.Control>
             <Switch.Content>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.16em', color: state.on ? 'var(--terracotta-700)' : 'var(--fg-muted)' }}>
-                {state.on ? 'ACTIVÃ‰' : 'DÃ‰SACTIVÃ‰'}
+                {state.on ? 'ACTIVÉ' : 'DÉSACTIVÉ'}
               </span>
             </Switch.Content>
           </Switch>
@@ -324,7 +324,7 @@ function CategoryRow({
               cursor: state.on ? 'pointer' : 'not-allowed',
             }}
           >
-            âŠ™ Voir mes donnÃ©es
+            ⊙ Voir mes données
           </button>
         </div>
       </div>
@@ -333,7 +333,7 @@ function CategoryRow({
 }
 
 /* ============================================================
-   Section 04 â€” Tes droits (4 boutons cards)
+   Section 04 — Tes droits (4 boutons cards)
    ============================================================ */
 
 export function Section04Rights({
@@ -356,10 +356,10 @@ export function Section04Rights({
           gap: 12,
         }}
       >
-        <RightButton glyph="âŠ™"  label="Voir mes donnÃ©es"     subtitle="Toutes les mesures EMOPET sur 30 j" onClick={onViewAll} />
-        <RightButton glyph="â†“"  label="Exporter mes donnÃ©es" subtitle="CSV / JSON Â· prÃªt en 1 clic" onClick={onExport} />
-        <RightButton glyph="âŠ™*" label="Voir les utilisations" subtitle="Ã‰tudes scientifiques en cours" onClick={onSeeUsages} />
-        <RightButton glyph="âœ•"  label="Supprimer mes donnÃ©es" subtitle="Action irrÃ©versible Â· double validation" onClick={onDelete} tone="danger" />
+        <RightButton glyph="⊙"  label="Voir mes données"     subtitle="Toutes les mesures EMOPET sur 30 j" onClick={onViewAll} />
+        <RightButton glyph="↓"  label="Exporter mes données" subtitle="CSV / JSON · prêt en 1 clic" onClick={onExport} />
+        <RightButton glyph="⊙*" label="Voir les utilisations" subtitle="Études scientifiques en cours" onClick={onSeeUsages} />
+        <RightButton glyph="✕"  label="Supprimer mes données" subtitle="Action irréversible · double validation" onClick={onDelete} tone="danger" />
       </div>
     </SectionShell>
   );
@@ -433,15 +433,15 @@ function RightButton({
 }
 
 /* ============================================================
-   Section 05 â€” Consentement annuel
+   Section 05 — Consentement annuel
    ============================================================ */
 
 export function Section05Consent() {
   return (
     <SectionShell numero="05" titre="Consentement annuel">
       <NotchInfo>
-        Ton consentement est renouvelÃ© chaque annÃ©e. Prochaine validation demandÃ©e :{' '}
-        <strong>15 mai 2027</strong>. Tu pourras tout reconfigurer Ã  ce moment-lÃ .
+        Ton consentement est renouvelé chaque année. Prochaine validation demandée :{' '}
+        <strong>15 mai 2027</strong>. Tu pourras tout reconfigurer à ce moment-là.
       </NotchInfo>
     </SectionShell>
   );

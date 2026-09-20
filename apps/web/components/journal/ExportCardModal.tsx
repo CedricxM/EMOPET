@@ -1,10 +1,10 @@
 ﻿'use client';
 
 /**
- * Export "carte postale" d'une entrÃ©e du carnet (Sprint 02, US4).
+ * Export "carte postale" d'une entrée du carnet (Sprint 02, US4).
  *
- * GÃ©nÃ©ration 100 % client via <canvas> â€” pas de backend. Deux formats :
- * Story (1080Ã—1920) et CarrÃ© (1080Ã—1080). Le rendu est tÃ©lÃ©chargeable.
+ * Génération 100 % client via <canvas> — pas de backend. Deux formats :
+ * Story (1080×1920) et Carré (1080×1080). Le rendu est téléchargeable.
  */
 
 import { Modal } from '@/lib/heroui-compat';
@@ -70,7 +70,7 @@ async function draw(canvas: HTMLCanvasElement, entry: JournalEntry, format: Form
   const photo = entryPhoto(entry);
   let y = margin;
 
-  // Photo (si prÃ©sente)
+  // Photo (si présente)
   if (photo) {
     await new Promise<void>((resolve) => {
       const img = new Image();
@@ -102,7 +102,7 @@ async function draw(canvas: HTMLCanvasElement, entry: JournalEntry, format: Form
     ctx.fillStyle = '#FE502D';
     ctx.font = '160px serif';
     ctx.textAlign = 'center';
-    ctx.fillText('âŠ™', w / 2, y + bh / 2 + 55);
+    ctx.fillText('⊙', w / 2, y + bh / 2 + 55);
     ctx.textAlign = 'left';
     y += bh + 60;
   }
@@ -110,7 +110,7 @@ async function draw(canvas: HTMLCanvasElement, entry: JournalEntry, format: Form
   // Kicker
   ctx.fillStyle = '#C2350F';
   ctx.font = '28px monospace';
-  ctx.fillText(`âŠ™ ${DOG.name.toUpperCase()} Â· ${formatDateLong(entry.occurredAt).toUpperCase()}`, margin, y);
+  ctx.fillText(`⊙ ${DOG.name.toUpperCase()} · ${formatDateLong(entry.occurredAt).toUpperCase()}`, margin, y);
   y += 70;
 
   // Titre marque (Sora dans l'UI, fallback canvas lisible).
@@ -133,7 +133,7 @@ async function draw(canvas: HTMLCanvasElement, entry: JournalEntry, format: Form
   // Footer
   ctx.fillStyle = '#6B6F76';
   ctx.font = '26px monospace';
-  ctx.fillText('EMOPET Â· Breiz', margin, h - margin);
+  ctx.fillText('EMOPET · Breiz', margin, h - margin);
 }
 
 export function ExportCardModal({ entry, onClose }: { entry: JournalEntry | null; onClose: () => void }) {
@@ -189,13 +189,13 @@ export function ExportCardModal({ entry, onClose }: { entry: JournalEntry | null
                         cursor: 'pointer',
                       }}
                     >
-                      {f === 'story' ? 'Story 9:16' : 'CarrÃ© 1:1'}
+                      {f === 'story' ? 'Story 9:16' : 'Carré 1:1'}
                     </button>
                   ))}
                 </div>
                 <canvas
                   ref={canvasRef}
-                  aria-label="AperÃ§u de la carte postale"
+                  aria-label="Aperçu de la carte postale"
                   style={{ width: format === 'story' ? 200 : 280, height: 'auto', borderRadius: 8, border: '1px solid var(--border)' }}
                 />
               </div>
@@ -217,7 +217,7 @@ export function ExportCardModal({ entry, onClose }: { entry: JournalEntry | null
                   cursor: 'pointer',
                 }}
               >
-                TÃ©lÃ©charger le PNG
+                Télécharger le PNG
               </button>
             </Modal.Footer>
           </Modal.Dialog>

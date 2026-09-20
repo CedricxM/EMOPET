@@ -1,12 +1,12 @@
 ﻿'use client';
 
 /**
- * /quartier â€” page stratÃ©gique du produit (refonte 14â†’6 routes).
+ * /quartier — page stratégique du produit (refonte 14→6 routes).
  * Fusionne /local (carte Mapbox + annuaire + spots communautaires) et
- * /communaute (cercles, posts, Ã©vÃ©nements, entraide) en une seule destination
- * Â« se relier Â». Anciennes routes redirigÃ©es (next.config.mjs).
+ * /communaute (cercles, posts, événements, entraide) en une seule destination
+ * « se relier ». Anciennes routes redirigées (next.config.mjs).
  *
- * Opt-in explicite pour toute contribution ; aucune donnÃ©e sensible publique ;
+ * Opt-in explicite pour toute contribution ; aucune donnée sensible publique ;
  * aucun classement (invariants EMOPET).
  */
 
@@ -24,7 +24,7 @@ type Section = 'carte' | 'communaute';
 export default function QuartierPage() {
   const { t } = useI18n();
   const [section, setSection] = useState<Section>('carte');
-  // Contributions communautaires : opt-in EXPLICITE (RGPD), dÃ©sactivÃ© par dÃ©faut.
+  // Contributions communautaires : opt-in EXPLICITE (RGPD), désactivé par défaut.
   const [optIn, setOptIn] = useState(false);
 
   const tabs: Array<{ id: Section; label: string }> = [
@@ -41,13 +41,13 @@ export default function QuartierPage() {
               <Eyebrow tone="accent">{t('quartier', 'eyebrow')}</Eyebrow>
               <H1>{t('quartier', 'title')}</H1>
               <Lead>{t('quartier', 'lead')}</Lead>
-              <span className={styles.dogCue}>Exploration locale Â· contributions opt-in</span>
+              <span className={styles.dogCue}>Exploration locale · contributions opt-in</span>
             </div>
             <div className={styles.explorationMiniMap} aria-hidden />
           </div>
         </header>
 
-        {/* ActivitÃ© du quartier â€” visible seulement aprÃ¨s opt-in explicite (RGPD). */}
+        {/* Activité du quartier — visible seulement après opt-in explicite (RGPD). */}
         <div style={{ padding: '14px 16px', borderRadius: 'var(--radius-md)', background: 'var(--accent-2-soft)', border: '1px solid var(--accent-2-soft-border)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-sans)', fontWeight: 'var(--weight-semi)', fontSize: 'var(--text-sm)', color: 'var(--lichen-700)' }}>
@@ -69,7 +69,7 @@ export default function QuartierPage() {
           )}
         </div>
 
-        {/* SÃ©lecteur de section */}
+        {/* Sélecteur de section */}
         <div role="tablist" aria-label={t('quartier', 'title')} style={{ display: 'flex', gap: 8, padding: 6, background: 'var(--bg-sunk)', borderRadius: 'var(--radius-pill)', width: 'fit-content' }}>
           {tabs.map((tab) => {
             const active = section === tab.id;

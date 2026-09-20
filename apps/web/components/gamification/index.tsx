@@ -1,8 +1,8 @@
 ﻿'use client';
 
 /**
- * Composants de gamification du PROPRIÃ‰TAIRE (Sprint 05).
- * âš  Sujet : le propriÃ©taire. Jamais le chien. CÃ©lÃ©brations sobres (pas Candy Crush).
+ * Composants de gamification du PROPRIÉTAIRE (Sprint 05).
+ * ⚠ Sujet : le propriétaire. Jamais le chien. Célébrations sobres (pas Candy Crush).
  */
 
 import { Modal } from '@/lib/heroui-compat';
@@ -29,7 +29,7 @@ function Medallion({ rarity, unlocked, size = 56 }: { rarity: Rarity; unlocked: 
         fontFamily: 'var(--font-mono)', fontSize: size * 0.4,
       }}
     >
-      {unlocked ? 'âŠ™' : 'ðŸ”’'}
+      {unlocked ? '⊙' : '🔒'}
     </div>
   );
 }
@@ -51,10 +51,10 @@ export function ProgressionHeader({ progression }: { progression: Progression })
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.85 }}>
-            Votre niveau dâ€™expÃ©rience canine
+            Votre niveau d’expérience canine
           </span>
           <span style={{ fontFamily: 'var(--font-serif)', fontSize: 'var(--text-3xl)' }}>{level.name}</span>
-          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, opacity: 0.9 }}>Niveau {level.level} Â· {level.unlocks}</span>
+          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, opacity: 0.9 }}>Niveau {level.level} · {level.unlocks}</span>
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontFamily: 'var(--font-serif)', fontSize: 'var(--text-4xl)', lineHeight: 1 }}>{totalPoints}</div>
@@ -84,7 +84,7 @@ export function BadgeCard({ badge, unlocked, counters }: { badge: Badge; unlocke
       <span style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--fg-strong)' }}>{badge.label}</span>
       <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--fg-muted)', lineHeight: 1.4 }}>{badge.description}</span>
       {unlocked ? (
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.1em', color: 'var(--lichen-700)', padding: '2px 8px', borderRadius: 999, background: 'var(--accent-2-soft)' }}>DÃ‰BLOQUÃ‰</span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.1em', color: 'var(--lichen-700)', padding: '2px 8px', borderRadius: 999, background: 'var(--accent-2-soft)' }}>DÉBLOQUÉ</span>
       ) : (
         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 4 }}>
           <Bar pct={(p.current / p.target) * 100} height={5} />
@@ -119,7 +119,7 @@ export function BadgeUnlockModal({ badge, onClose }: { badge: Badge | null; onCl
                   <div style={{ transform: shown ? 'scale(1)' : 'scale(0.6)', opacity: shown ? 1 : 0, transition: 'transform 360ms cubic-bezier(.2,.8,.2,1), opacity 320ms' }}>
                     <Medallion rarity={badge.rarity} unlocked size={88} />
                   </div>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--terracotta-700)' }}>Badge dÃ©bloquÃ©</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--terracotta-700)' }}>Badge débloqué</span>
                   <span style={{ fontFamily: 'var(--font-serif)', fontSize: 22, color: 'var(--fg-strong)' }}>{badge.label}</span>
                   <span style={{ fontFamily: 'var(--font-sans)', fontSize: 14, color: 'var(--fg-2)' }}>{badge.description}</span>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--terracotta-700)' }}>+{badge.pointsReward} points</span>
@@ -152,7 +152,7 @@ export function PathwayCard({ pathway, readIds, onOpen }: { pathway: Pathway; re
           {cards.map((c) => (
             <button key={c.id} type="button" onClick={() => onOpen(c)} style={{ all: 'unset', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', gap: 8, padding: '6px 2px' }}>
               <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: readIds.includes(c.id) ? 'var(--fg-muted)' : 'var(--fg)' }}>
-                {readIds.includes(c.id) ? 'âœ“ ' : ''}{c.title}
+                {readIds.includes(c.id) ? '✓ ' : ''}{c.title}
               </span>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-muted)' }}>{c.readMinutes} min</span>
             </button>
@@ -173,7 +173,7 @@ export function KnowledgeReader({ card, alreadyRead, onClose }: { card: Knowledg
               <>
                 <Modal.Header>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--terracotta-700)' }}>âŠ™ Fiche Â· {card.readMinutes} min</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--terracotta-700)' }}>⊙ Fiche · {card.readMinutes} min</span>
                     <Modal.Heading style={{ fontFamily: 'var(--font-serif)', fontSize: 21, color: 'var(--fg-strong)', margin: 0 }}>{card.title}</Modal.Heading>
                   </div>
                   <Modal.CloseTrigger aria-label="Fermer" />
@@ -188,7 +188,7 @@ export function KnowledgeReader({ card, alreadyRead, onClose }: { card: Knowledg
                       </ul>
                     </div>
                     <div style={{ background: 'var(--accent-2-soft)', borderRadius: 'var(--radius-sm)', padding: 12, fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--lichen-700)' }}>
-                      {alreadyRead ? 'Fiche dÃ©jÃ  lue.' : 'Fiche lue ! +10 points pour votre progression.'}
+                      {alreadyRead ? 'Fiche déjà lue.' : 'Fiche lue ! +10 points pour votre progression.'}
                     </div>
                   </div>
                 </Modal.Body>
@@ -201,7 +201,7 @@ export function KnowledgeReader({ card, alreadyRead, onClose }: { card: Knowledg
   );
 }
 
-/* ---------------- DÃ©fi ---------------- */
+/* ---------------- Défi ---------------- */
 
 export function ChallengeCard({ challenge }: { challenge: Challenge }) {
   return (
@@ -213,7 +213,7 @@ export function ChallengeCard({ challenge }: { challenge: Challenge }) {
         <Bar pct={(challenge.current / challenge.target) * 100} on="var(--lichen-600)" />
         <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--fg-muted)' }}>
           <span>{challenge.current} / {challenge.target} {challenge.unit}</span>
-          <span>Votre part : {challenge.myContribution} {challenge.unit} Â· {challenge.endsLabel}</span>
+          <span>Votre part : {challenge.myContribution} {challenge.unit} · {challenge.endsLabel}</span>
         </div>
       </div>
     </Card>
