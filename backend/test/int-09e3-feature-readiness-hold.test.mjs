@@ -21,6 +21,11 @@ test('INT-09E3 unproven Community readiness is never hard-coded done', () => {
   assert.equal(reportBlocks.length, 3);
 });
 
+test('INT-09E3 local explanatory catalog never fabricates a subject identity', () => {
+  assert.doesNotMatch(source, /demo-user/);
+  assert.match(source, /userId:\s*context\.userId \?\? null/);
+});
+
 test('INT-09E3 user-derived progress can still become done dynamically', () => {
   for (const marker of [
     "communityOptIn ? 'done' : 'todo'",
