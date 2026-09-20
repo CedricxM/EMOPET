@@ -23,7 +23,9 @@ test('INT-09E3 unproven Community readiness is never hard-coded done', () => {
 
 test('INT-09E3 local explanatory catalog never fabricates a subject identity', () => {
   assert.doesNotMatch(source, /demo-user/);
-  assert.match(source, /userId:\s*context\.userId \?\? null/);
+  assert.match(source, /userId:\s*null/);
+  assert.match(source, /authoritative:\s*false/);
+  assert.match(source, /LocalFeatureProgressResponse/);
 });
 
 test('INT-09E3 user-derived progress can still become done dynamically', () => {
