@@ -11,6 +11,7 @@
 
 import dynamic from 'next/dynamic';
 import { useMemo } from 'react';
+import { resolveMapboxToken } from '../../lib/map/mapSurface';
 import { BretagneMap } from './Map';
 import type { SpotMarker } from './Map';
 import type { MapboxEvent } from './MapboxMap';
@@ -34,7 +35,9 @@ export interface CommunityMapProps {
   };
 }
 
-const HAS_MAPBOX = !!process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+// `!!token` acceptait un jeton fait d'espaces : le repli SVG était alors
+// abandonné au profit d'une carte qui ne pouvait pas se charger.
+const HAS_MAPBOX = resolveMapboxToken(process.env.NEXT_PUBLIC_MAPBOX_TOKEN).status === 'configured';
 
 export function CommunityMap({ spots, events, selectedSpotId, onSpotClick, onEventClick, svg }: CommunityMapProps) {
   const spotMarkers = useMemo<SpotMarker[]>(

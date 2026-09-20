@@ -16,6 +16,8 @@ import { categoryMeta } from './spots';
 import type { CommunitySpot } from './spots';
 import { fetchOsmSpots } from '../../lib/osm-spots';
 import type { OsmSpot } from '../../lib/osm-spots';
+import type { MapSurfaceState } from '../../lib/map/mapSurface';
+import { describeMapSurface, resolveMapboxToken } from '../../lib/map/mapSurface';
 
 export interface MapboxEvent {
   id: string;
@@ -80,22 +82,43 @@ export function MapboxMap({ spots, events, selectedSpotId, onSpotClick, onEventC
   const [osmSpots, setOsmSpots] = useState<OsmSpot[]>([]);
   const [osmUnavailable, setOsmUnavailable] = useState(false);
   const [ready, setReady] = useState(false);
+  const [surface, setSurface] = useState<MapSurfaceState>('ready');
 
   // Init carte (une fois)
   useEffect(() => {
-    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-    if (!token || !containerRef.current) return;
-    mapboxgl.accessToken = token;
-    const map = new mapboxgl.Map({
-      container: containerRef.current,
-      style: 'mapbox://styles/mapbox/outdoors-v12',
-      center: [-3.3702, 47.7482],
-      zoom: 9,
-      minZoom: 7,
-      maxZoom: 18,
-      maxBounds: BRETAGNE_BOUNDS,
-      attributionControl: true,
-    });
+    const resolution = resolveMapboxToken(process.env.NEXT_PUBLIC_MAPBOX_TOKEN);
+    if (resolution.status === 'unconfigured') {
+      // Auparavant on sortait ici sans rien dire, laissant un conteneur vide de
+      // 480 px. `CommunityMap` garde normalement ce cas, mais un composant ne
+      // doit pas dépendre du silence d'un autre pour être honnête.
+      setSurface('unconfigured');
+      return;
+    }
+    if (!containerRef.current) return;
+    mapboxgl.accessToken = resolution.token;
+
+    // `new mapboxgl.Map()` lève de façon SYNCHRONE quand WebGL n'est pas
+    // disponible — matériel ancien, accélération désactivée, certains parcs
+    // d'entreprise. Rien n'encadrait cet appel : l'exception remontait à React
+    // et emportait toute la route `/quartier`, pas seulement la carte.
+    // Un `map.on('error')` ne peut rien y faire, l'objet n'existant pas encore.
+    let map: mapboxgl.Map;
+    try {
+      map = new mapboxgl.Map({
+        container: containerRef.current,
+        style: 'mapbox://styles/mapbox/outdoors-v12',
+        center: [-3.3702, 47.7482],
+        zoom: 9,
+        minZoom: 7,
+        maxZoom: 18,
+        maxBounds: BRETAGNE_BOUNDS,
+        attributionControl: true,
+      });
+    } catch {
+      setSurface('unavailable');
+      return;
+    }
+
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right');
     map.addControl(new mapboxgl.GeolocateControl({ positionOptions: { enableHighAccuracy: true }, trackUserLocation: false }), 'bottom-right');
     mapRef.current = map;
@@ -119,7 +142,11 @@ export function MapboxMap({ spots, events, selectedSpotId, onSpotClick, onEventC
         setOsmUnavailable(true);
       });
     };
-    map.on('load', () => { setReady(true); loadOsm(); });
+    // Sans cet écouteur, un jeton invalide ou révoqué, un dépassement de quota
+    // ou un fond de carte injoignable ne produisaient aucun `load` — donc aucun
+    // message, et un rectangle vide pour seule réponse.
+    map.on('error', () => setSurface('unavailable'));
+    map.on('load', () => { setSurface('ready'); setReady(true); loadOsm(); });
     map.on('moveend', loadOsm);
 
     return () => { map.remove(); mapRef.current = null; };
@@ -169,7 +196,31 @@ export function MapboxMap({ spots, events, selectedSpotId, onSpotClick, onEventC
         ref={containerRef}
         style={{ width: '100%', height: 480, borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border)' }}
       />
-      {osmUnavailable && (
+      {surface !== 'ready' && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 24,
+            textAlign: 'center',
+            borderRadius: 'var(--radius-lg)',
+            background: 'var(--surface-2)',
+            border: '1px solid var(--border)',
+            color: 'var(--fg-2)',
+            fontFamily: 'var(--font-sans)',
+            fontSize: 13,
+            lineHeight: 1.6,
+          }}
+        >
+          {describeMapSurface(surface)}
+        </div>
+      )}
+      {surface === 'ready' && osmUnavailable && (
         <div
           role="status"
           aria-live="polite"
