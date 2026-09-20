@@ -94,6 +94,20 @@
       ]
     },
     {
+      "table": "community_reports",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "community"
+      ]
+    },
+    {
+      "table": "community_rules_acceptances",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "community"
+      ]
+    },
+    {
       "table": "copresence_events",
       "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
       "inventoryCategories": [],

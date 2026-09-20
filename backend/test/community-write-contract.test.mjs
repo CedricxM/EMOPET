@@ -2,17 +2,22 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-test('Hono Community UGC routes do not acknowledge writes that are not persisted', () => {
+test('Hono Community core acknowledges only durable writes and keeps blocking unavailable', () => {
   const source = readFileSync(new URL('../api/routes/community.ts', import.meta.url), 'utf8');
 
-  assert.match(source, /community_post_persistence_not_implemented/);
-  assert.match(source, /community_comment_persistence_not_implemented/);
-  assert.match(source, /community_event_persistence_not_implemented/);
+  for (const persisted of [
+    '.insert(communityRulesAcceptances)',
+    '.insert(communityReports)',
+    '.insert(posts)',
+    '.insert(comments)',
+    '.insert(communityEvents)',
+  ]) {
+    assert.ok(source.includes(persisted), `missing durable write: ${persisted}`);
+  }
 
-  assert.doesNotMatch(source, /message:\s*['"]posted['"]/);
-  assert.doesNotMatch(source, /message:\s*['"]commented['"]/);
-  assert.doesNotMatch(source, /message:\s*['"]event_created['"]/);
-
-  const notImplementedResponses = source.match(/},\s*501\s*\);/g) ?? [];
-  assert.ok(notImplementedResponses.length >= 3);
+  assert.match(source, /communityPersistenceUnavailable\(c, 'create_block'\)/);
+  assert.doesNotMatch(source, /community_post_persistence_not_implemented/);
+  assert.doesNotMatch(source, /community_comment_persistence_not_implemented/);
+  assert.doesNotMatch(source, /community_event_persistence_not_implemented/);
+  assert.doesNotMatch(source, /acceptCommunityRules|createUgcReport|createUserBlock/);
 });

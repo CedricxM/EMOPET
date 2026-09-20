@@ -11,12 +11,19 @@ import {
   behavioralAssessments,
   behavioralFactorScores,
   behavioralResponses,
+  comments,
+  communities,
+  communityEvents,
+  communityMembers,
+  communityReports,
+  communityRulesAcceptances,
   devices,
   dogSubBaselines,
   dogs,
   eliBehavioralPriors,
   eliStates,
   healthEntries,
+  posts,
   recoveryEvents,
   researchDataConsents,
   routineStability,
@@ -167,6 +174,13 @@ export async function discoverSubjectData(
           await countWhere(tx, researchDataConsents, eq(researchDataConsents.userId, userId)),
         ),
         userConfig: counted(await countWhere(tx, userConfig, eq(userConfig.userId, userId))),
+        communitiesCreated: counted(await countWhere(tx, communities, eq(communities.createdBy, userId))),
+        communityMemberships: counted(await countWhere(tx, communityMembers, eq(communityMembers.userId, userId))),
+        communityPostsAuthored: counted(await countWhere(tx, posts, eq(posts.authorId, userId))),
+        communityCommentsAuthored: counted(await countWhere(tx, comments, eq(comments.authorId, userId))),
+        communityEventsCreated: counted(await countWhere(tx, communityEvents, eq(communityEvents.createdBy, userId))),
+        communityRulesAcceptances: counted(await countWhere(tx, communityRulesAcceptances, eq(communityRulesAcceptances.userId, userId))),
+        communityReportsFiled: counted(await countWhere(tx, communityReports, eq(communityReports.reporterUserId, userId))),
       };
 
       let dogCounts = {
@@ -253,10 +267,6 @@ export async function discoverSubjectData(
           researchDataConsents: counted(dogCounts.researchDataConsents),
         },
         externalOrUnresolved: {
-          community: unresolved(
-            'INTEGRATION_DEFERRED',
-            'Community subject-linked persistence is owned by INT-06 and is not reported as absent by INT-04B.',
-          ),
           professionalSharing: unresolved(
             'INTEGRATION_DEFERRED',
             'Professional-sharing persistence is owned by INT-05 and is not reported as absent by INT-04B.',

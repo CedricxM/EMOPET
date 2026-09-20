@@ -76,19 +76,19 @@ Le `POST /api/sensors/summaries` persiste désormais dans PostgreSQL uniquement 
 
 | Méthode | Chemin | État observé |
 |---|---|---|
-| GET | `/api/community` | `503 COMMUNITY_PERSISTENCE_NOT_READY` tant que la liste durable member-scoped n’est pas intégrée |
-| GET | `/api/community/:id` | `503 COMMUNITY_PERSISTENCE_NOT_READY` tant que le détail durable n’est pas intégré |
-| GET | `/api/community/:id/feed` | `503 COMMUNITY_PERSISTENCE_NOT_READY` tant que le feed durable n’est pas intégré |
-| POST | `/api/community/rules/accept` | Acceptation conservée en mémoire |
-| POST | `/api/community/reports` | Signalement conservé en mémoire |
-| POST | `/api/community/blocks` | Blocage conservé en mémoire |
-| POST | `/api/community/posts` | Validation/règles/filtre puis `501 community_post_persistence_not_implemented`; aucun succès de création tant qu'aucun writer Hono n'est prouvé |
-| POST | `/api/community/comments` | Validation/règles/filtre puis `501 community_comment_persistence_not_implemented`; aucun succès de création tant qu'aucun writer Hono n'est prouvé |
-| GET | `/api/community/:id/events` | `503 COMMUNITY_PERSISTENCE_NOT_READY` tant que la lecture durable des événements n’est pas intégrée |
-| POST | `/api/community/events` | Validation/règles/filtre puis `501 community_event_persistence_not_implemented`; aucun succès de création tant qu'aucun writer Hono n'est prouvé |
+| GET | `/api/community` | Liste PostgreSQL limitée aux communautés dont l’utilisateur authentifié est membre ; localisation précise masquée |
+| GET | `/api/community/:id` | Détail PostgreSQL member-scoped ; outsider et communauté absente restent non-énumérants (`404`) |
+| GET | `/api/community/:id/feed` | Feed PostgreSQL borné, règles courantes requises, curseur de navigation non-autorisant et réautorisation à chaque continuation |
+| POST | `/api/community/rules/accept` | Acceptation des règles persistée PostgreSQL ; version serveur canonique |
+| POST | `/api/community/reports` | Intake de signalement persisté PostgreSQL après vérification membership + cible ; ne constitue pas une modération/adjudication |
+| POST | `/api/community/blocks` | `503 COMMUNITY_PERSISTENCE_NOT_READY` ; blocking/enforcement non implémenté |
+| POST | `/api/community/posts` | Création PostgreSQL member-scoped + règles courantes ; auteur imposé par le serveur ; projection publique bornée |
+| POST | `/api/community/comments` | Création PostgreSQL après revalidation membership/règles et verrouillage du post parent |
+| GET | `/api/community/:id/events` | Lecture PostgreSQL member-scoped + règles courantes ; lieu/coordonnées retenus côté stockage mais non divulgués |
+| POST | `/api/community/events` | Création PostgreSQL member-scoped + règles courantes ; identité créateur imposée par le serveur ; localisation non divulguée |
 | GET | `/api/community/copresence/:dogId` | Contrôle propriétaire puis `503 COMMUNITY_PERSISTENCE_NOT_READY` tant que le runtime de coprésence n’est pas implémenté ; aucun `200` vide n’est utilisé pour simuler l’absence de correspondances |
 
-Les contrôles de règles et de modération déterminent uniquement si une requête est autorisée à poursuivre. Ils ne constituent pas une preuve qu'un post, commentaire ou événement a été créé ou persisté.
+Le core Community Hono est désormais durable pour membership-scoped list/detail/feed, acceptation des règles, posts, commentaires, événements et intake de signalement. Le rôle de membership reste descriptif et non autorisant pour la modération ; blocking, adjudication, coprésence et release de localisation restent fail-closed ou hors périmètre.
 
 ### Progression, consentements et waitlist
 

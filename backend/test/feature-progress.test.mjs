@@ -93,7 +93,7 @@ test('community routes fail closed without identity before reading or mutating s
   for (const request of requests) {
     const response = await app.request(request.path, request.init);
     assert.equal(response.status, 401, request.path);
-    assert.deepEqual(await response.json(), { error: 'unauthorized' });
+    assert.deepEqual(await response.json(), { error: 'Authentication required.', code: 'AUTHENTICATION_REQUIRED' });
   }
 
   assert.equal(hasAcceptedCommunityRules('demo-user'), false);
@@ -101,83 +101,22 @@ test('community routes fail closed without identity before reading or mutating s
   assert.equal(getUserBlocks().length, blocksBefore);
 });
 
-test('community UGC permission does not imply persistence success', async () => {
-  const app = new Hono();
-  app.use('*', async (c, next) => {
-    c.set('userId', 'u_rules');
-    await next();
-  });
-  app.route('/api/community', community);
+test('feature-progress memory state does not grant durable Community authority', async () => {
+  const { readFileSync } = await import('node:fs');
+  const routeSource = readFileSync(new URL('../api/routes/community.ts', import.meta.url), 'utf8');
 
-  const blockedResponse = await app.request('/api/community/posts', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      communityId: COMMUNITY_ID,
-      type: 'moment',
-      content: 'Bonjour la communaute',
-      mediaUrls: [],
-    }),
-  });
+  assert.match(routeSource, /communityRulesAcceptances/);
+  assert.match(routeSource, /requireCurrentRulesAcceptance/);
+  assert.match(routeSource, /\.insert\(communityRulesAcceptances\)/);
+  assert.match(routeSource, /\.insert\(posts\)/);
+  assert.match(routeSource, /\.insert\(comments\)/);
+  assert.match(routeSource, /\.insert\(communityEvents\)/);
 
-  assert.equal(blockedResponse.status, 403);
+  assert.doesNotMatch(routeSource, /hasAcceptedCommunityRules/);
+  assert.doesNotMatch(routeSource, /acceptCommunityRules/);
+  assert.doesNotMatch(routeSource, /createUgcReport/);
+  assert.doesNotMatch(routeSource, /createUserBlock/);
+  assert.doesNotMatch(routeSource, /feature-progress\.js/);
 
-  const acceptedResponse = await app.request('/api/community/rules/accept', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ accepted: true }),
-  });
-
-  assert.equal(acceptedResponse.status, 201);
-
-  const postResponse = await app.request('/api/community/posts', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      communityId: COMMUNITY_ID,
-      type: 'moment',
-      content: 'Bonjour la communaute',
-      mediaUrls: [],
-    }),
-  });
-
-  assert.equal(postResponse.status, 501);
-  assert.deepEqual(await postResponse.json(), {
-    error: 'community_post_persistence_not_implemented',
-  });
-
-  const commentResponse = await app.request('/api/community/comments', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      postId: '22222222-2222-4222-8222-222222222222',
-      content: 'Une reponse valide',
-    }),
-  });
-  assert.equal(commentResponse.status, 501);
-  assert.deepEqual(await commentResponse.json(), {
-    error: 'community_comment_persistence_not_implemented',
-  });
-
-  const eventResponse = await app.request('/api/community/events', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      communityId: COMMUNITY_ID,
-      title: 'Balade du dimanche',
-      description: 'Rendez-vous au parc',
-      location: 'Parc central',
-      startsAt: '2026-09-20T10:00:00.000Z',
-    }),
-  });
-  assert.equal(eventResponse.status, 501);
-  assert.deepEqual(await eventResponse.json(), {
-    error: 'community_event_persistence_not_implemented',
-  });
+  assert.equal(hasAcceptedCommunityRules('u_rules'), false);
 });
