@@ -31,6 +31,8 @@ export function requestClientKey(req: Request, scope: string): string {
 
 export function rateLimitHeaders(rate: RateLimitResult): HeadersInit {
   return {
+    'Cache-Control': 'private, no-store',
+    'X-Content-Type-Options': 'nosniff',
     'retry-after': String(Math.max(1, Math.ceil((rate.resetAt - Date.now()) / 1000))),
     'x-ratelimit-limit': String(rate.limit),
     'x-ratelimit-remaining': String(rate.remaining),
