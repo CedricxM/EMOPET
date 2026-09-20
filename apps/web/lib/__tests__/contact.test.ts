@@ -52,7 +52,7 @@ test('email : validation bornée et déterministe', () => {
     `${'a'.repeat(65)}@emopet.fr`,
     `${'a'.repeat(245)}@emopet.fr`,
     'a b@emopet.fr',
-    'a@emopet.fr\n',
+    'a@emo\npet.fr',
   ];
 
   for (const contactValue of invalid) {
