@@ -60,8 +60,8 @@ Le mode démo sans token de l'application mobile peut construire une comparaison
 |---|---|---|
 | POST | `/api/sensors/summaries` | Validation + contrôle propriétaire ; `501 sensor_summary_ingestion_not_implemented` tant qu'aucune persistance durable n'est implémentée |
 | GET | `/api/sensors/summaries/:dogId` | Contrôle propriétaire ; `501 sensor_summary_read_not_implemented` tant qu’aucun lecteur autoritatif n’est câblé |
-| GET | `/api/sensors/eli/:dogId` | État ELI placeholder |
-| GET | `/api/sensors/eli/:dogId/history` | Historique placeholder |
+| GET | `/api/sensors/eli/:dogId` | Contrôle propriétaire ; `501 eli_runtime_not_implemented` tant qu’aucun producteur ELI autoritatif n’est câblé |
+| GET | `/api/sensors/eli/:dogId/history` | Contrôle propriétaire ; `501 eli_runtime_not_implemented` tant qu’aucun runtime/lecteur ELI autoritatif n’est câblé |
 | GET | `/api/sensors/baseline/:dogId` | Contrôle propriétaire ; `501 baseline_read_not_implemented` tant qu’aucune projection autoritative n’est câblée |
 | POST, GET | `/api/sensors/presence/:dogId/events` | Événements conservés en mémoire du processus ; le GET valide `days` fail-closed et renvoie `400 invalid_presence_window` si la fenêtre fournie est invalide |
 
