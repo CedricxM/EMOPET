@@ -461,8 +461,8 @@ export function LocalSection() {
           )}
           <div className={styles.localNote}>
             <P2 style={{ color: 'var(--lichen-700)' }}>
-              Couche data EMOPET : {DATA_LAYER_SPOTS.length} points mockes et {MOCK_MAP_ROUTES.length} routes preparees.
-              Les contributions communautaires restent opt-in et n affichent aucune donnee privee.
+              Couche data EMOPET : {DATA_LAYER_SPOTS.length} points mockés et {MOCK_MAP_ROUTES.length} routes préparées.
+              Les contributions communautaires restent opt-in et n’affichent aucune donnée privée.
             </P2>
           </div>
         </div>

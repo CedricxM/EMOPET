@@ -85,7 +85,7 @@ export default function BreizPage() {
               Nouvelle
             </Button>
           </div>
-          <P2 style={{ marginTop: 8 }}>Breiz croise les notes, les sources locales et les fenetres fiables sans conclure a la place du proprietaire.</P2>
+          <P2 style={{ marginTop: 8 }}>Breiz croise les notes, les sources locales et les fenêtres fiables sans conclure à la place du propriétaire.</P2>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {CONVERSATIONS.map((c) => (

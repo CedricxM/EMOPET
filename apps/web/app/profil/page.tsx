@@ -66,7 +66,7 @@ export default function ProfilPage() {
               <Eyebrow>{t('profil', 'eyebrow')}</Eyebrow>
               <H1>{t('profil', 'title')}</H1>
               <Lead>{t('profil', 'lead')}</Lead>
-              <span className={styles.dogCue}>Fiche de Gus · profil, capteurs et preferences</span>
+              <span className={styles.dogCue}>Fiche de Gus · profil, capteurs et préférences</span>
             </div>
             <div className={styles.sceneStamp} aria-hidden />
           </div>
@@ -113,7 +113,7 @@ export default function ProfilPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1, minWidth: 220 }}>
                   <H2>{MOCK_DOG.name}</H2>
                   <P2 style={{ fontFeatureSettings: 'var(--ff-tabular)' }}>{MOCK_DOG.breed} · {MOCK_DOG.ageYears} ans · {MOCK_DOG.weightKg} kg</P2>
-                  <span className={styles.dogCue}>MAT, TAG et carnet relies au meme profil</span>
+                  <span className={styles.dogCue}>MAT, TAG et carnet reliés au même profil</span>
                 </div>
                 <Button kind="ghost" size="sm">Modifier</Button>
               </div>

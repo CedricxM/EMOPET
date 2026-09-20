@@ -183,7 +183,7 @@ export const fr = {
   },
   nav: {
     home: 'Accueil',
-    mobilePreview: 'Apercu mobile',
+    mobilePreview: 'Aperçu mobile',
     dashboard: 'ELI · Dashboard',
     world: 'Mon monde',
     bienEtre: 'Bien-être · ELI v6',
