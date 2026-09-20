@@ -63,14 +63,14 @@ Le mode démo sans token de l'application mobile peut construire une comparaison
 
 | Méthode | Chemin | État observé |
 |---|---|---|
-| POST | `/api/sensors/summaries` | Validation + contrôle propriétaire ; `501 sensor_summary_ingestion_not_implemented` tant qu'aucune persistance durable n'est implémentée |
-| GET | `/api/sensors/summaries/:dogId` | Contrôle propriétaire ; `501 sensor_summary_read_not_implemented` tant qu’aucun lecteur autoritatif n’est câblé |
+| POST | `/api/sensors/summaries` | Persistance PostgreSQL owner-scoped avec provenance `ingestionId` + `deviceId`, liaison dog/source, snapshot firmware serveur et retry idempotent |
+| GET | `/api/sensors/summaries/:dogId` | Lecture PostgreSQL owner-scoped ; fenêtres bornées `1h/6h/12h/24h/48h/72h/7d/14d/30d`, ordre décroissant ; source indisponible => `503 PRODUCT_DATABASE_OPERATION_UNAVAILABLE` |
 | GET | `/api/sensors/eli/:dogId` | Contrôle propriétaire ; `501 eli_runtime_not_implemented` tant qu’aucun producteur ELI autoritatif n’est câblé |
 | GET | `/api/sensors/eli/:dogId/history` | Contrôle propriétaire ; `501 eli_runtime_not_implemented` tant qu’aucun runtime/lecteur ELI autoritatif n’est câblé |
 | GET | `/api/sensors/baseline/:dogId` | Contrôle propriétaire ; `501 baseline_read_not_implemented` tant qu’aucune projection autoritative n’est câblée |
 | POST, GET | `/api/sensors/presence/:dogId/events` | Événements conservés en mémoire du processus ; le GET valide `days` fail-closed et renvoie `400 invalid_presence_window` si la fenêtre fournie est invalide |
 
-Le `POST /api/sensors/summaries` n'accuse volontairement aucune ingestion tant qu'aucun stockage ou mécanisme durable n'existe. Un succès de validation/autorisation ne doit pas être confondu avec une persistance, une mise en file ou une acceptation de données.
+Le `POST /api/sensors/summaries` persiste désormais dans PostgreSQL uniquement avec une provenance canonique : `ingestionId` et `deviceId` sont requis par le runtime, le device doit appartenir au chien et correspondre à la source MAT/TAG, les champs propres à l'autre source sont rejetés, et la version firmware est lue depuis le registre serveur. Un retry strictement identique réutilise la ligne existante ; la réutilisation d'un même `ingestionId` avec un contenu différent échoue. Cette provenance relationnelle ne constitue pas une authentification cryptographique du matériel.
 
 ### Communauté
 

@@ -4,8 +4,11 @@ import { readFileSync } from 'node:fs';
 
 const source = readFileSync(new URL('../api/routes/sensors.ts', import.meta.url), 'utf8');
 
-test('sensor summary read does not report a fake successful empty result', () => {
-  assert.match(source, /sensor_summary_read_not_implemented/);
+test('sensor summary read uses the authoritative owner-scoped PostgreSQL source', () => {
+  assert.match(source, /select\(\)\s*\.from\(sensorSummaries\)/s);
+  assert.match(source, /eq\(sensorSummaries\.dogId, dogId\)/);
+  assert.match(source, /PRODUCT_DATABASE_OPERATION_UNAVAILABLE/);
+  assert.doesNotMatch(source, /sensor_summary_read_not_implemented/);
   assert.doesNotMatch(source, /return c\.json\(\{ dogId, range, summaries: \[\] \}\)/);
 });
 
@@ -20,8 +23,9 @@ test('presence-event read uses the shared fail-closed temporal window parser', (
   assert.doesNotMatch(source, /Number\(c\.req\.query\('days'\)/);
 });
 
-test('sensor write and placeholder reads remain explicit maturity states', () => {
-  assert.match(source, /sensor_summary_ingestion_not_implemented/);
-  const notImplementedResponses = source.match(/},\s*501\s*\);/g) ?? [];
-  assert.ok(notImplementedResponses.length >= 3);
+test('ELI and baseline placeholder reads remain explicit maturity states while summaries are durable', () => {
+  assert.doesNotMatch(source, /sensor_summary_ingestion_not_implemented/);
+  assert.doesNotMatch(source, /sensor_summary_read_not_implemented/);
+  assert.match(source, /eli_runtime_not_implemented/);
+  assert.match(source, /baseline_read_not_implemented/);
 });
