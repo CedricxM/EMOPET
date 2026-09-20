@@ -131,6 +131,34 @@ test('community-only template can trigger without sensor payload', () => {
   );
 });
 
+
+test('prompt interpolation resolves community placeholders in linear time', () => {
+  const template = BLEIZ_TEMPLATES.find((item) => item.id === 'COM_COPRESENCE_HINT');
+  assert.ok(template);
+
+  const contexts = buildBaseContexts();
+  contexts.sensor = {};
+  contexts.community = {
+    city: 'Lorient',
+    copresence_count: 4,
+    otherDogName: 'Malo',
+    otherDogBreed: 'berger',
+  };
+
+  const jobs = scheduleBleizContent({
+    templates: [template],
+    contexts,
+    history: [],
+    now: new Date('2026-03-30T09:00:00Z'),
+  });
+
+  assert.equal(jobs.length, 1);
+  assert.match(jobs[0].prompt, /Malo/);
+  assert.match(jobs[0].prompt, /berger/);
+  assert.match(jobs[0].prompt, /Lorient/);
+  assert.equal(jobs[0].prompt.includes('{{'), false);
+});
+
 test('free tier without hardware never schedules sensor-driven templates', () => {
   const sensorTemplate = BLEIZ_TEMPLATES.find((item) => item.id === 'BHV_ABSENCE_AGITATION');
   const communityTemplate = BLEIZ_TEMPLATES.find((item) => item.id === 'COM_COPRESENCE_HINT');
