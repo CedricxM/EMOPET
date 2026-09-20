@@ -44,11 +44,16 @@ Limites importantes :
 
 | Méthode | Chemin | État observé |
 |---|---|---|
-| GET, POST | `/api/dogs` | Liste/création placeholder |
-| GET, PATCH, DELETE | `/api/dogs/:id` | Contrôle propriétaire, réponse encore partielle |
+| GET | `/api/dogs` | Liste PostgreSQL limitée au Guardian authentifié |
+| POST | `/api/dogs` | Création PostgreSQL owner-scoped ; l’identité Guardian doit être un UUID canonique avec un compte persistant |
+| GET | `/api/dogs/:id` | Contrôle propriétaire + relecture de l’entité PostgreSQL persistée |
+| PATCH | `/api/dogs/:id` | UPDATE PostgreSQL owner-scoped ; un patch vide échoue avec `400 no_updates` |
+| DELETE | `/api/dogs/:id` | `409 DOG_ERASURE_LIFECYCLE_NOT_READY` ; aucune suppression tant que `G-PRIV-ERASURE` reste ouvert |
 | GET | `/api/dogs/:id/absence-comparison` | Comparaison présence/absence depuis les données réelles disponibles ; fenêtre `days` validée fail-closed ; `REJECT` si la lecture réussit mais les données sont insuffisantes ; `503 presence_comparison_data_unavailable` si la source PostgreSQL est indisponible ; aucun fallback physiologique synthétique côté serveur |
 | GET | `/api/dogs/:id/vet-report-link` | Création d'un lien temporaire signé |
 | GET | `/api/dogs/:id/vet-report` | PDF via propriétaire ou `share_token` valide ; `503 vet_report_data_unavailable` si les sources autoritatives sont illisibles |
+
+Les lectures et mutations non destructives du profil chien utilisent désormais la table PostgreSQL `dogs`. Les réponses de liste/détail restent owner-scoped ; CREATE vérifie aussi l’existence du compte Guardian avant insertion. DELETE reste volontairement fail-closed : le dépôt n’invente pas un effacement partiel tant que la topologie complète d’effacement et les données dépendantes/externalisées ne sont pas autorisées par `G-PRIV-ERASURE`.
 
 Le paramètre `days` de la comparaison présence/absence est contrôlé après l'autorisation propriétaire : omission = 14 jours ; valeur fournie = entier décimal positif sûr et représentable comme date, sinon `400 invalid_presence_window`. Aucun plafond métier n'est choisi ici. Une lecture PostgreSQL réussie sans ligne reste un état d'absence de données ; une erreur de lecture reste une indisponibilité distincte (`503`, réponse `private, no-store`).
 
