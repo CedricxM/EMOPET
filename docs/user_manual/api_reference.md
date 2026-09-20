@@ -98,7 +98,7 @@ Les contrôles de règles et de modération déterminent uniquement si une requ�
 | Méthode | Chemin | État observé |
 |---|---|---|
 | GET | `/api/health/:dogId` | Contrôle propriétaire, entrées placeholder |
-| POST | `/api/health` | Validation + contrôle propriétaire, persistance non démontrée |
+| POST | `/api/health` | Validation + contrôle propriétaire ; `501 health_entry_persistence_not_implemented` tant qu'aucun writer durable n'est actif |
 | GET | `/api/health/:dogId/reminders` | Contrôle propriétaire, rappels placeholder |
 
 Ces routes portent un nom historique `health`, mais leurs sorties ne doivent pas être présentées comme un diagnostic.
