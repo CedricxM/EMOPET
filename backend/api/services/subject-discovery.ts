@@ -200,6 +200,8 @@ export async function discoverSubjectData(
         eliRoutineStability: 0,
         eliUserConfig: 0,
         behavioralAssessments: 0,
+        behavioralAssessmentsProduct: 0,
+        behavioralAssessmentsResearch: 0,
         behavioralResponses: 0,
         behavioralFactorScores: 0,
         eliBehavioralPriors: 0,
@@ -209,10 +211,17 @@ export async function discoverSubjectData(
 
       if (selectedDogIds.length > 0) {
         const assessmentRows = await tx
-          .select({ id: behavioralAssessments.id })
+          .select({
+            id: behavioralAssessments.id,
+            administrationMode: behavioralAssessments.administrationMode,
+          })
           .from(behavioralAssessments)
           .where(inArray(behavioralAssessments.dogId, selectedDogIds));
         const assessmentIds = assessmentRows.map((row) => row.id);
+        const behavioralAssessmentsResearch = assessmentRows.filter(
+          (row) => row.administrationMode === 'research',
+        ).length;
+        const behavioralAssessmentsProduct = assessmentRows.length - behavioralAssessmentsResearch;
 
         dogCounts = {
           devices: await countWhere(tx, devices, inArray(devices.dogId, selectedDogIds)),
@@ -229,6 +238,8 @@ export async function discoverSubjectData(
           eliRoutineStability: await countWhere(tx, routineStability, inArray(routineStability.dogId, selectedDogIds)),
           eliUserConfig: await countWhere(tx, userConfig, inArray(userConfig.dogId, selectedDogIds)),
           behavioralAssessments: assessmentIds.length,
+          behavioralAssessmentsProduct,
+          behavioralAssessmentsResearch,
           behavioralResponses: assessmentIds.length > 0
             ? await countWhere(tx, behavioralResponses, inArray(behavioralResponses.assessmentId, assessmentIds))
             : 0,
@@ -272,6 +283,12 @@ export async function discoverSubjectData(
           eliRoutineStability: counted(dogCounts.eliRoutineStability),
           eliUserConfig: counted(dogCounts.eliUserConfig),
           behavioralAssessments: counted(dogCounts.behavioralAssessments),
+          behavioralAssessmentsProduct: counted(dogCounts.behavioralAssessmentsProduct, {
+            note: 'Non-research administration modes. Existing erasure semantics classify these as product-side assessment rows.',
+          }),
+          behavioralAssessmentsResearch: counted(dogCounts.behavioralAssessmentsResearch, {
+            note: 'Research administration mode. Product erasure must defer these rows to research governance authority.',
+          }),
           behavioralResponses: counted(dogCounts.behavioralResponses),
           behavioralFactorScores: counted(dogCounts.behavioralFactorScores),
           eliBehavioralPriors: counted(dogCounts.eliBehavioralPriors),
