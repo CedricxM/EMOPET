@@ -18,6 +18,9 @@ const allowedReadOnlyReferences = new Set([
   'backend/api/services/ai-zero-durable-retention-readiness.ts',
   'backend/api/services/erasure-residue-verification.ts',
   'backend/api/services/subject-discovery.ts',
+  // Reviewed read-only composition only: consumes the canonical AI readiness
+  // result and never reads or mutates ai_messages directly.
+  'backend/api/services/retention-execution-plan.ts',
 ]);
 
 const skippedDirectoryNames = new Set([
