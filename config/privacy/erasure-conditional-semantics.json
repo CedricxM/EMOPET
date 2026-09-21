@@ -50,10 +50,15 @@
         "ONLY_IF_DELETION_MATERIALLY_BREAKS_MULTI_PARTY_PUBLIC_THREAD_APPLY_IRREVERSIBLE_DEIDENTIFICATION",
         "IF_SAFE_DEIDENTIFICATION_CANNOT_BE_ACHIEVED_DELETE"
       ],
-      "currentSchemaConstraint": "author_id is NOT NULL and FK-bound; anonymisation requires an explicit schema-supported de-identification mechanism rather than leaving the deleted user id.",
-      "implementationConsequence": "Executor can implement DELETE immediately; the exceptional anonymisation path requires schema support and de-identification tests.",
+      "currentSchemaConstraint": "author_id is nullable but remains a NO ACTION user FK, so de-identification must be an explicit executor action and account deletion cannot silently anonymize content.",
+      "implementationConsequence": "Schema support for explicit author detachment is implemented; a future executor must still delete by default and may null author_id only after thread-integrity necessity is established and de-identification checks pass.",
       "newHumanDecisionRequired": false,
-      "promotionAuthorized": false
+      "promotionAuthorized": false,
+      "schemaSupportStatus": "IMPLEMENTED",
+      "schemaSupportEvidence": [
+        "backend/db/schema/community.ts",
+        "backend/db/migrations/0008_community_author_deidentification_support.sql"
+      ]
     },
     {
       "relation": "users.id|DIRECT_FK|posts|author_id",
@@ -67,10 +72,15 @@
         "REMOVE_IDENTIFYING_MEDIA_AND_METADATA",
         "IF_SAFE_DEIDENTIFICATION_CANNOT_BE_ACHIEVED_DELETE"
       ],
-      "currentSchemaConstraint": "author_id is NOT NULL and FK-bound; anonymisation requires explicit schema support and media/reference scrubbing.",
-      "implementationConsequence": "Executor can implement DELETE immediately; the exceptional anonymisation path requires schema and media-erasure support.",
+      "currentSchemaConstraint": "author_id is nullable but remains a NO ACTION user FK, so de-identification must be an explicit executor action and account deletion cannot silently anonymize content.",
+      "implementationConsequence": "Schema support for explicit author detachment is implemented; a future executor must still delete by default and may null author_id only after thread-integrity necessity is established and identifying media/metadata are scrubbed.",
       "newHumanDecisionRequired": false,
-      "promotionAuthorized": false
+      "promotionAuthorized": false,
+      "schemaSupportStatus": "IMPLEMENTED",
+      "schemaSupportEvidence": [
+        "backend/db/schema/community.ts",
+        "backend/db/migrations/0008_community_author_deidentification_support.sql"
+      ]
     },
     {
       "relation": "dogs.id|DIRECT_FK|devices|dog_id",
