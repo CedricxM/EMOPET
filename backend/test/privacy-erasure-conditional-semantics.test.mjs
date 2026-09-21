@@ -128,11 +128,7 @@ test('refresh-session semantics preserve the already-approved revoke-now then de
     'DELETE_EXPIRED_SESSION_ROWS',
     'DELETE_ACCOUNT_ROOT_NO_LATER_THAN_APPROVED_ACCOUNT_CLOSURE_WINDOW',
   ]);
-  assert.match(row.currentSchemaConstraint, /nullable/i);
-  assert.match(row.currentSchemaConstraint, /SET NULL/);
-  assert.equal(row.promotionAuthorized, true);
-  assert.equal(row.executionStatus, 'IMPLEMENTED');
-  assert.equal(row.matrixDisposition, 'DETACH');
+  assert.match(row.currentSchemaConstraint, /NOT NULL/);
   assert.match(row.implementationConsequence, /stage account erasure/i);
 });
 
@@ -174,7 +170,11 @@ test('device metadata detach is implemented without changing the approved bounde
   );
   assert.equal(row.semanticType, 'DETACH_THEN_BOUNDED_METADATA_RETENTION');
   assert.ok(row.semantics.includes('UNBIND_DEVICE_FROM_DOG_IMMEDIATELY_ON_DOG_ERASURE'));
-  assert.match(row.currentSchemaConstraint, /NOT NULL/);
+  assert.match(row.currentSchemaConstraint, /nullable/i);
+  assert.match(row.currentSchemaConstraint, /SET NULL/);
+  assert.equal(row.promotionAuthorized, true);
+  assert.equal(row.executionStatus, 'IMPLEMENTED');
+  assert.equal(row.matrixDisposition, 'DETACH');
 
   const dogsSchema = await source('backend/db/schema/dogs.ts');
   assert.match(
