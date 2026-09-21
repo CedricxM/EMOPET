@@ -46,6 +46,16 @@ test('exact-location readiness source is read-only, aggregate-only and bounded t
     exact.finalDisposition,
     'DELETE_AT_EXPIRY_OR_FEATURE_SESSION_END_WHICHEVER_IS_EARLIER',
   );
+  assert.equal(exact.readinessStatus, 'IMPLEMENTED_READ_ONLY_MAX_WINDOW');
+  assert.equal(
+    exact.readinessBoundary,
+    'MAX_24_HOURS_ONLY_SESSION_END_MAY_REQUIRE_EARLIER_DELETION',
+  );
+  assert.deepEqual(exact.readinessEvidence, [
+    'backend/api/services/exact-location-retention-readiness.ts',
+    'backend/test/exact-location-retention-readiness.test.mjs',
+    'backend/test/exact-location-retention-readiness.integration.test.mjs',
+  ]);
 });
 
 test('readiness reports only aggregate rows definitely beyond the 24-hour maximum', async () => {
