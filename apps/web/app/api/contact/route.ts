@@ -6,11 +6,17 @@
  * run only under an explicit non-production Contact demo opt-in.
  */
 
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { MAX_ACTIVE_REQUESTS, buildRequest, parseNewContactInput, validateContactInput } from '../../../lib/contact';
 import type { ContactRequest } from '../../../lib/contact';
-import { isAdmin } from '../../../lib/server/admin';
+import { canonicalPrivilegedAuthorizationVerifier } from '../../../lib/server/canonical-privileged-verifier';
 import { legacyContactAuthorityGate } from '../../../lib/server/contact-authority';
+import { resolveContactReadAuthority } from '../../../lib/server/contact-read-authority';
+import { evaluatePrivilegedMutationOrigin } from '../../../lib/server/privileged-mutation-origin';
+import { authorizePrivilegedSessionToken } from '../../../lib/server/privileged-request';
+import { PRIVILEGED_SESSION_COOKIE } from '../../../lib/server/privileged-session';
+import { resolvePrivilegedWebOrigin } from '../../../lib/server/privileged-web-origin-config';
 import { createFixedWindowRateLimiter } from '../../../lib/server/rate-limit';
 import { enforceRateLimit, readLimitedJson } from '../../../lib/server/request-security';
 import { collection } from '../../../lib/server/store';
@@ -52,7 +58,22 @@ export async function GET(req: Request) {
 
   const limited = enforceRateLimit(req, contactReadLimiter, 'contact:get');
   if (limited) return limited;
-  if (isAdmin(req)) return demoJson({ requests: requests.list() });
+
+  const authority = await resolveContactReadAuthority(
+    req,
+    canonicalPrivilegedAuthorizationVerifier,
+  );
+
+  if (authority.status === 'UNAVAILABLE') {
+    return demoJson({ ok: false, errors: ['Service indisponible.'] }, 503);
+  }
+  if (authority.status === 'DENIED') {
+    return demoJson({ ok: false, errors: ['Non autorisé.'] }, 401);
+  }
+  if (authority.status === 'AUTHORIZED') {
+    return demoJson({ requests: requests.list() });
+  }
+
   const ownerToken = ownerTokenFromRequest(req);
   if (!ownerToken) {
     return demoJson({ ok: false, errors: ['Non autorisé.'] }, 401);
@@ -108,15 +129,53 @@ export async function DELETE(req: Request) {
 
   const id = new URL(req.url).searchParams.get('id');
   if (!id) return demoJson({ ok: false, errors: ['id manquant'] }, 400);
-  const all = requests.list();
-  const target = all.find((item) => item.id === id);
-  if (!target) return demoJson({ ok: false, errors: ['Demande introuvable.'] }, 404);
-  if (!isAdmin(req)) {
-    const ownerToken = ownerTokenFromRequest(req);
-    if (!ownerToken || target.ownerToken !== ownerToken) {
+
+  // Explicit owner authority is terminal. A wrong owner token never falls
+  // through to a privileged cookie that the browser may also carry.
+  const ownerToken = ownerTokenFromRequest(req);
+  if (ownerToken) {
+    const target = requests.list().find((item) => item.id === id);
+    if (!target || target.ownerToken !== ownerToken) {
       return demoJson({ ok: false, errors: ['Non autorisé.'] }, 404);
     }
+    requests.remove(id);
+    return demoJson({ ok: true });
   }
+
+  const originConfig = resolvePrivilegedWebOrigin();
+  if (originConfig.status !== 'CONFIGURED') {
+    return demoJson({ ok: false, error: 'privileged_origin_unavailable' }, 503);
+  }
+
+  const originDecision = evaluatePrivilegedMutationOrigin({
+    request: req,
+    expectedOrigin: originConfig.origin,
+  });
+  if (originDecision.status !== 'ALLOWED') {
+    return demoJson({ ok: false, error: 'forbidden_origin' }, 403);
+  }
+
+  if (req.headers.has('authorization')) {
+    return demoJson({ ok: false, error: 'unauthorized' }, 401);
+  }
+
+  const sessionTokenValue = (await cookies()).get(PRIVILEGED_SESSION_COOKIE)?.value;
+  const authorization = await authorizePrivilegedSessionToken(
+    sessionTokenValue,
+    'contact.request.manage',
+    canonicalPrivilegedAuthorizationVerifier,
+  );
+
+  if (authorization.status === 'UNAVAILABLE') {
+    return demoJson({ ok: false, error: 'privileged_auth_unavailable' }, 503);
+  }
+  if (authorization.status !== 'AUTHORIZED') {
+    return demoJson({ ok: false, error: 'unauthorized' }, 401);
+  }
+
+  const target = requests.list().find((item) => item.id === id);
+  if (!target) return demoJson({ ok: false, errors: ['Demande introuvable.'] }, 404);
+
   requests.remove(id);
   return demoJson({ ok: true });
 }
