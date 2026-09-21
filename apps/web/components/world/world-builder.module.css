@@ -1107,8 +1107,14 @@
 .inventoryTab:focus-visible {
   border-color: color-mix(in srgb, var(--emopet-teal) 44%, var(--border));
   color: var(--fg-strong);
-  outline: none;
 }
+
+/* `outline: none` retiré : la règle groupait le survol et le focus clavier, et
+   supprimait l'anneau global de `globals.css`. Ce qui restait au focus était le
+   changement de bordure ci-dessus — 1.50:1 contre la bordure au repos, 1.76:1
+   contre le fond, là où WCAG 2.2 §1.4.11 exige 3:1 pour un indicateur non
+   textuel. Sur l'onglet actif, dont la bordure est transparente, il ne restait
+   rien du tout. */
 
 .inventoryTabActive {
   border-color: transparent;
@@ -1156,7 +1162,6 @@
 .buildTitleButton:focus-visible {
   color: var(--emopet-navy);
   text-decoration: underline;
-  outline: none;
 }
 
 .stateBadge {
