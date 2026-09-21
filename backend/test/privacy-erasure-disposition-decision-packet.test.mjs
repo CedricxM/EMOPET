@@ -16,28 +16,43 @@ const [matrix, packet] = await Promise.all([
 const relationKey = (row) =>
   [row.subjectRoot, row.relationType, row.table, row.column].join('|');
 
-test('decision packet remains advisory and cannot promote executable erasure', () => {
+const approvedDetaches = new Set([
+  'users.id|DIRECT_FK|behavioral_assessments|respondent_user_id',
+  'users.id|DIRECT_FK|communities|created_by',
+  'users.id|DIRECT_FK|community_events|created_by',
+  'users.id|DIRECT_FK|community_reports|reporter_user_id',
+]);
+
+test('decision packet records four approved detach rows while complete erasure remains fail closed', () => {
   assert.equal(
     packet.schemaVersion,
     'emopet-erasure-disposition-decision-packet-v1',
   );
   assert.equal(
     packet.status,
-    'DECISION_SUPPORT_ONLY_NO_MATRIX_DISPOSITION_PROMOTED',
+    'FOUR_PRODUCT_PRIVACY_DISPOSITIONS_PROMOTED_REMAINDER_DECISION_SUPPORT',
   );
   assert.equal(packet.claimsExecutableErasure, false);
   assert.equal(packet.claimsCompleteErasure, false);
-  assert.equal(packet.summary.matrixRowsPromoted, 0);
+  assert.equal(packet.summary.matrixRowsPromoted, 4);
 
   for (const row of packet.relations) {
-    assert.equal(row.promotionAuthorized, false);
+    if (approvedDetaches.has(relationKey(row))) {
+      assert.equal(row.promotionAuthorized, true);
+      assert.equal(row.disposition, 'DETACH');
+      assert.equal(row.candidateDisposition, 'DETACH');
+      assert.equal(row.executionStatus, 'IMPLEMENTED');
+      assert.equal(row.approvalRef, '#446');
+    } else {
+      assert.equal(row.promotionAuthorized, false);
+    }
   }
   for (const row of packet.nonSqlSurfaces) {
     assert.equal(row.promotionAuthorized, false);
   }
 });
 
-test('packet covers every canonical matrix relation exactly once without changing matrix authority', () => {
+test('packet covers every canonical matrix relation exactly once and mirrors promoted authority', () => {
   assert.equal(packet.relations.length, matrix.entries.length);
 
   const matrixKeys = matrix.entries.map(relationKey).sort();
@@ -47,8 +62,14 @@ test('packet covers every canonical matrix relation exactly once without changin
   assert.equal(new Set(packetKeys).size, packetKeys.length);
 
   for (const row of matrix.entries) {
-    assert.equal(row.disposition, 'TO_CONFIRM');
-    assert.equal(row.executionStatus, 'NOT_IMPLEMENTED');
+    if (approvedDetaches.has(relationKey(row))) {
+      assert.equal(row.disposition, 'DETACH');
+      assert.equal(row.executionStatus, 'IMPLEMENTED');
+      assert.notEqual(row.testEvidence, 'NONE');
+    } else {
+      assert.equal(row.disposition, 'TO_CONFIRM');
+      assert.equal(row.executionStatus, 'NOT_IMPLEMENTED');
+    }
   }
   assert.equal(matrix.claimsExecutableErasure, false);
   assert.equal(matrix.claimsCompleteErasure, false);
@@ -60,7 +81,7 @@ test('decision grouping counts remain explicit and exhaustive', () => {
     policyAlignedDeleteCandidates: 22,
     policyConditionalExecutionRequired: 12,
     legalAuthorityBlocked: 3,
-    matrixRowsPromoted: 0,
+    matrixRowsPromoted: 4,
   });
 
   const counts = Object.fromEntries(
@@ -107,16 +128,14 @@ test('policy-aligned candidates are DELETE-only suggestions backed by current pr
   for (const key of required) assert.ok(keys.has(key), key);
 });
 
-test('conditional rows stay unresolved where row-level or phased semantics are required', () => {
+test('conditional rows distinguish approved D1-D4 detach from still-unresolved execution semantics', () => {
   const conditional = Object.fromEntries(
     packet.relations
       .filter((row) => row.decisionSupportStatus === 'POLICY_CONDITIONAL_EXECUTION_REQUIRED')
       .map((row) => [relationKey(row), row]),
   );
 
-  for (const row of Object.values(conditional)) {
-    assert.equal(row.candidateDisposition, null);
-    assert.equal(row.promotionAuthorized, false);
+  for (const [key, row] of Object.entries(conditional)) {
     assert.ok(Array.isArray(row.allowedOutcomes));
     assert.ok(row.allowedOutcomes.length >= 2);
     assert.equal(typeof row.requiredDecision, 'string');
@@ -124,6 +143,16 @@ test('conditional rows stay unresolved where row-level or phased semantics are r
 
     for (const outcome of row.allowedOutcomes) {
       assert.ok(matrix.allowedFutureDispositions.includes(outcome), outcome);
+    }
+
+    if (approvedDetaches.has(key)) {
+      assert.equal(row.candidateDisposition, 'DETACH');
+      assert.equal(row.promotionAuthorized, true);
+      assert.equal(row.disposition, 'DETACH');
+      assert.equal(row.executionStatus, 'IMPLEMENTED');
+    } else {
+      assert.equal(row.candidateDisposition, null);
+      assert.equal(row.promotionAuthorized, false);
     }
   }
 
