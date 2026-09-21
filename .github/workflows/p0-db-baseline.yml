@@ -205,6 +205,14 @@ jobs:
           EMOPET_DB_INTEGRATION_TEST: '0'
         run: node --test test/auth-routes-postgres.test.mjs test/auth-session-concurrency.test.mjs
 
+      - name: PRIV-RETENTION refresh-session expiry readiness
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          AUTH_RETENTION_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/auth-session-retention-readiness.integration.test.mjs
+
       - name: INT-03A sensor-summary provenance integration
         working-directory: backend
         env:
