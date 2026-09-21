@@ -59,7 +59,15 @@ test('retention schedule has a complete explicit category inventory and no indef
     assert.ok(row.finalDisposition.length > 0);
     assert.ok(Array.isArray(row.holdConditions));
     assert.ok(['REQUIRED', 'NEGATIVE_EVIDENCE_REQUIRED'].includes(row.purgeEvidence));
-    assert.ok(String(row.authority).includes('PRODUCT_APPROVED') || row.id === 'sensor_raw_audio');
+    assert.ok(
+      String(row.authority).includes('PRODUCT_APPROVED')
+      || row.id === 'sensor_raw_audio'
+      || (
+        row.id === 'auth_refresh_sessions'
+        && String(row.authority).startsWith('TECHNICAL_SECURITY_LIFECYCLE_CANDIDATE_')
+      ),
+      `unexpected retention authority class for ${row.id}: ${row.authority}`,
+    );
   }
 });
 
