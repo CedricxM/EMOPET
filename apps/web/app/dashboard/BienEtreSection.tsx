@@ -271,7 +271,7 @@ export function BienEtreSection() {
         </Card>
 
         {/* Export */}
-        <button type="button" onClick={() => window.print()} style={{ display: 'inline-flex', alignSelf: 'flex-start', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 'var(--radius-pill)', background: 'var(--terracotta-500)', color: 'white', border: 'none', fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
+        <button type="button" onClick={() => window.print()} style={{ display: 'inline-flex', alignSelf: 'flex-start', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 'var(--radius-pill)', background: 'var(--accent)', color: 'white', border: 'none', fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
           <Icon name="download" size={15} color="white" /> Exporter pour mon vétérinaire
         </button>
 

@@ -125,7 +125,7 @@ function CostRow({ cost, resources }: { cost: Partial<ResourceBalance>; resource
           <span
             key={key}
             className={`${styles.costChip} ${enough ? styles.costEnough : styles.costMissing}`}
-            style={{ '--chip-color': resource.color } as CSSProperties}
+            style={{ '--chip-color': resource.textColor } as CSSProperties}
           >
             {value} {resource.shortLabel}
           </span>
