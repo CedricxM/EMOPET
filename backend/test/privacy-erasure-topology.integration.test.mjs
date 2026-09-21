@@ -87,6 +87,7 @@ test('PRIV-ERASURE-TOPOLOGY static controls remain fail closed', () => {
     'users.id|DIRECT_FK|communities|created_by',
     'users.id|DIRECT_FK|community_events|created_by',
     'users.id|DIRECT_FK|community_reports|reporter_user_id',
+    'dogs.id|DIRECT_FK|devices|dog_id',
   ]);
   for (const row of matrix.entries) {
     const key = relationKey(row.subjectRoot, row.relationType, row);
