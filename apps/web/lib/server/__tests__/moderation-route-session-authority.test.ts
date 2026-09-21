@@ -30,5 +30,6 @@ test('moderation read keeps both legacy data-plane gates before canonical privil
   assert.ok(cookie < authorize);
   assert.ok(authorize < readStore);
   assert.equal(get.includes("'moderation.queue.read'"), true);
-  assert.equal(get.includes('LEGACY_DEMO_ONLY'), true);
+  assert.equal(source.includes('LEGACY_DEMO_ONLY'), true);
+  assert.equal(get.includes('demoJson('), true);
 });
