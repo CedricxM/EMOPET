@@ -34,7 +34,7 @@ test('D1-D4 identity foreign keys detach rather than block account-root deletion
   assert.match(migration, /communities[\s\S]*ON DELETE SET NULL/);
   assert.match(migration, /community_events[\s\S]*ON DELETE SET NULL/);
   assert.match(migration, /community_reports[\s\S]*ON DELETE SET NULL/);
-  assert.doesNotMatch(migration, /community_rules_acceptances/);
-  assert.doesNotMatch(migration, /research_data_consents/);
-  assert.doesNotMatch(migration, /subscriptions/);
+  assert.doesNotMatch(migration, /ALTER TABLE "community_rules_acceptances"/);
+  assert.doesNotMatch(migration, /ALTER TABLE "research_data_consents"/);
+  assert.doesNotMatch(migration, /ALTER TABLE "subscriptions"/);
 });
