@@ -34,8 +34,8 @@
       "table": "behavioral_assessments",
       "column": "respondent_user_id",
       "source": "backend/db/schema/behavioral-assessments.ts",
-      "databaseDeleteAction": "NO_ACTION",
-      "erasureDisposition": "TO_CONFIRM"
+      "databaseDeleteAction": "SET_NULL",
+      "erasureDisposition": "DETACH"
     },
     {
       "table": "comments",
@@ -48,15 +48,15 @@
       "table": "communities",
       "column": "created_by",
       "source": "backend/db/schema/community.ts",
-      "databaseDeleteAction": "NO_ACTION",
-      "erasureDisposition": "TO_CONFIRM"
+      "databaseDeleteAction": "SET_NULL",
+      "erasureDisposition": "DETACH"
     },
     {
       "table": "community_events",
       "column": "created_by",
       "source": "backend/db/schema/community.ts",
-      "databaseDeleteAction": "NO_ACTION",
-      "erasureDisposition": "TO_CONFIRM"
+      "databaseDeleteAction": "SET_NULL",
+      "erasureDisposition": "DETACH"
     },
     {
       "table": "community_members",
@@ -69,8 +69,8 @@
       "table": "community_reports",
       "column": "reporter_user_id",
       "source": "backend/db/schema/community.ts",
-      "databaseDeleteAction": "NO_ACTION",
-      "erasureDisposition": "TO_CONFIRM"
+      "databaseDeleteAction": "SET_NULL",
+      "erasureDisposition": "DETACH"
     },
     {
       "table": "community_rules_acceptances",
@@ -118,8 +118,9 @@
   "unconstrainedUserIdentifiers": [],
   "dogDescendantAuthority": "config/privacy/dog-erasure-topology.json",
   "scopeLimitations": [
-    "NO_ACTION means PostgreSQL will not silently erase these dependent rows with the account root.",
-    "This topology records mechanics only. Every relation remains TO_CONFIRM.",
+    "SET_NULL on the four approved product/privacy provenance relations detaches deleted account identity automatically when the user root is eventually deleted.",
+    "NO_ACTION on the remaining direct references means PostgreSQL will not silently erase those dependent rows with the account root.",
+    "This topology records mechanics plus already-approved relation disposition only; it does not authorize root deletion or complete erasure.",
     "External/object/cache/analytics/backup copies remain blockers to any complete-erasure claim."
   ]
 }
