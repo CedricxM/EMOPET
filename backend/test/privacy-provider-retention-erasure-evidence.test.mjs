@@ -82,7 +82,7 @@ test('Plausible current root integration has no canonical subject identifier or 
   assert.ok(row.publicEvidence.retention.some((v) => /24 hours/i.test(v)));
   assert.ok(row.publicEvidence.retention.some((v) => /persistent visitor identifiers/i.test(v)));
 
-  const layout = await readFile(new URL('../apps/web/app/layout.tsx', import.meta.url), 'utf8');
+  const layout = await readFile(new URL('../../apps/web/app/layout.tsx', import.meta.url), 'utf8');
   assert.match(layout, /data-domain=\{PLAUSIBLE_DOMAIN\}/);
   assert.match(layout, /https:\/\/plausible\.io\/js\/script\.js/);
   assert.equal(/data-[a-z-]*user/i.test(layout), false);
