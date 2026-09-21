@@ -82,10 +82,22 @@ test('PRIV-ERASURE-TOPOLOGY static controls remain fail closed', () => {
     'dog lineage and topology must enumerate the same unconstrained dog identifiers',
   );
 
+  const approvedDetach = new Set([
+    'users.id|DIRECT_FK|behavioral_assessments|respondent_user_id',
+    'users.id|DIRECT_FK|communities|created_by',
+    'users.id|DIRECT_FK|community_events|created_by',
+    'users.id|DIRECT_FK|community_reports|reporter_user_id',
+  ]);
   for (const row of matrix.entries) {
-    assert.equal(row.disposition, 'TO_CONFIRM');
+    const matrixKey = relationKey(row.subjectRoot, row.relationType, row);
     assert.equal(row.executionStatus, 'NOT_IMPLEMENTED');
-    assert.equal(row.testEvidence, 'NONE');
+    if (approvedDetach.has(matrixKey)) {
+      assert.equal(row.disposition, 'DETACH');
+      assert.equal(row.testEvidence, 'SCHEMA_SET_NULL_READY_EXECUTOR_NOT_IMPLEMENTED');
+    } else {
+      assert.equal(row.disposition, 'TO_CONFIRM');
+      assert.equal(row.testEvidence, 'NONE');
+    }
   }
   for (const surface of matrix.nonSqlSurfaces) {
     assert.equal(surface.disposition, 'TO_CONFIRM');
