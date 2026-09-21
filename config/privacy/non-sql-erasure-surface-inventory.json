@@ -59,7 +59,8 @@
             "https://api.resend.com/emails"
           ],
           "dataBoundary": "Contact notification body can include contact coordinate/value, message, proposed slots, request id and request context.",
-          "deletionEvidence": "EXTERNAL_UNVERIFIED"
+          "deletionEvidence": "EXTERNAL_UNVERIFIED",
+          "providerEvidenceRef": "config/privacy/provider-retention-erasure-evidence.json#Resend"
         },
         {
           "provider": "Anthropic",
@@ -69,7 +70,8 @@
             "https://api.anthropic.com/v1/messages"
           ],
           "dataBoundary": "Breiz sends a bounded user message plus generated regional/system context when ANTHROPIC_API_KEY is configured.",
-          "deletionEvidence": "EXTERNAL_UNVERIFIED"
+          "deletionEvidence": "EXTERNAL_UNVERIFIED",
+          "providerEvidenceRef": "config/privacy/provider-retention-erasure-evidence.json#Anthropic"
         },
         {
           "provider": "Mapbox",
@@ -79,7 +81,8 @@
             "NEXT_PUBLIC_MAPBOX_TOKEN"
           ],
           "dataBoundary": "Map runtime and geolocation/map requests may reach Mapbox when configured; repository discovery does not establish provider retention.",
-          "deletionEvidence": "EXTERNAL_UNVERIFIED"
+          "deletionEvidence": "EXTERNAL_UNVERIFIED",
+          "providerEvidenceRef": "config/privacy/provider-retention-erasure-evidence.json#Mapbox"
         },
         {
           "provider": "OpenStreetMap_Overpass",
@@ -88,17 +91,31 @@
             "apps/web/lib/osm-spots.ts"
           ],
           "dataBoundary": "Viewport-bounded external POI queries are made to Overpass; repository discovery does not establish provider-side log retention.",
-          "deletionEvidence": "EXTERNAL_UNVERIFIED"
+          "deletionEvidence": "EXTERNAL_UNVERIFIED",
+          "providerEvidenceRef": "config/privacy/provider-retention-erasure-evidence.json#OpenStreetMap_Overpass"
         },
         {
-          "provider": "OpenMeteo_and_weather_providers",
-          "repositoryStatus": "ACTIVE_OR_ENV_GATED_BY_PROVIDER",
+          "provider": "Open-Meteo",
+          "repositoryStatus": "ACTIVE_OR_FLAG_GATED_WEB_CONTEXT_INTEGRATION",
           "evidence": [
-            "apps/web/lib/api/providerRegistry.ts",
-            "backend/api/services/weather.ts"
+            "apps/web/lib/api/adapters/openMeteo.ts",
+            "apps/web/lib/context-engine/orchestrator.ts",
+            "apps/web/lib/weather.ts"
           ],
-          "dataBoundary": "Weather/context lookups may send coordinates or location context depending on selected provider.",
-          "deletionEvidence": "EXTERNAL_UNVERIFIED"
+          "dataBoundary": "Weather/context requests may send latitude/longitude. Provider policy evidence is tracked separately and does not prove production enablement.",
+          "deletionEvidence": "PUBLIC_TTL_POLICY_FOUND_OPERATIONAL_RECEIPT_UNVERIFIED",
+          "providerEvidenceRef": "config/privacy/provider-retention-erasure-evidence.json#Open-Meteo"
+        },
+        {
+          "provider": "OpenWeatherMap",
+          "repositoryStatus": "ACTIVE_ENV_GATED_BACKEND_INTEGRATION",
+          "evidence": [
+            "backend/api/services/weather.ts",
+            "OPENWEATHERMAP_API_KEY"
+          ],
+          "dataBoundary": "Backend weather requests send latitude/longitude plus the EMOPET provider API key when configured.",
+          "deletionEvidence": "AUTHORITATIVE_RETENTION_AND_SUBJECT_ERASURE_POLICY_UNVERIFIED",
+          "providerEvidenceRef": "config/privacy/provider-retention-erasure-evidence.json#OpenWeatherMap"
         },
         {
           "provider": "Stripe",
@@ -177,6 +194,10 @@
         {
           "path": "docs/security/PRIV_SECURITY_AUDIT_SINK_DISCOVERY_2026-09-21.md",
           "fact": "Sentry and PostHog are PLACEHOLDER_ONLY; no controlled observability sink is established."
+        },
+        {
+          "path": "config/privacy/provider-retention-erasure-evidence.json",
+          "fact": "Dated official public evidence records Plausible no-persistent-identifier behavior, while production enablement and any additional tracking paths remain unverified."
         }
       ],
       "requiredExternalEvidence": [
@@ -184,7 +205,8 @@
         "SUBJECT_OR_IDENTIFIER_MAPPING_IF_ANY",
         "PROVIDER_RETENTION_CONFIGURATION",
         "DELETE_ANONYMISATION_OR_EXPIRY_EVIDENCE_WHERE_APPLICABLE"
-      ]
+      ],
+      "providerEvidenceRef": "config/privacy/provider-retention-erasure-evidence.json#Plausible"
     },
     {
       "surface": "BACKUPS",
@@ -216,5 +238,6 @@
         "EXPIRY_OR_DELETION_RECEIPT_FOR_AFFECTED_BACKUPS"
       ]
     }
-  ]
+  ],
+  "providerEvidenceRegistry": "config/privacy/provider-retention-erasure-evidence.json"
 }
