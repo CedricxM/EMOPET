@@ -92,7 +92,14 @@
         "DOCUMENTED_RESEARCH_VALIDATION_HOLD_WITH_SEPARATE_AUTHORITY"
       ],
       "purgeEvidence": "REQUIRED",
-      "authority": "PRODUCT_APPROVED_SOURCE_ALIGNED_36_MONTHS"
+      "authority": "PRODUCT_APPROVED_SOURCE_ALIGNED_36_MONTHS",
+      "readinessStatus": "IMPLEMENTED_READ_ONLY_36_MONTH_WINDOW",
+      "readinessBoundary": "DETAILED_ONLY_AGGREGATION_AND_PURGE_EXECUTION_NOT_VERIFIED",
+      "readinessEvidence": [
+        "backend/api/services/detailed-sensor-eli-retention-readiness.ts",
+        "backend/test/detailed-sensor-eli-retention-readiness.test.mjs",
+        "backend/test/detailed-sensor-eli-retention-readiness.integration.test.mjs"
+      ]
     },
     {
       "id": "sensor_preprocessed_aggregates",
@@ -150,7 +157,14 @@
         "DOCUMENTED_RESEARCH_VALIDATION_HOLD_WITH_SEPARATE_AUTHORITY"
       ],
       "purgeEvidence": "REQUIRED",
-      "authority": "PRODUCT_APPROVED_SOURCE_ALIGNED_36_MONTHS"
+      "authority": "PRODUCT_APPROVED_SOURCE_ALIGNED_36_MONTHS",
+      "readinessStatus": "IMPLEMENTED_READ_ONLY_36_MONTH_WINDOW",
+      "readinessBoundary": "DETAILED_ONLY_AGGREGATION_AND_PURGE_EXECUTION_NOT_VERIFIED",
+      "readinessEvidence": [
+        "backend/api/services/detailed-sensor-eli-retention-readiness.ts",
+        "backend/test/detailed-sensor-eli-retention-readiness.test.mjs",
+        "backend/test/detailed-sensor-eli-retention-readiness.integration.test.mjs"
+      ]
     },
     {
       "id": "eli_inferred_aggregates",
