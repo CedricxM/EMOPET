@@ -156,12 +156,19 @@ test('device metadata needs schema support for detach but no new product-retenti
   );
   assert.equal(row.semanticType, 'DETACH_THEN_BOUNDED_METADATA_RETENTION');
   assert.ok(row.semantics.includes('UNBIND_DEVICE_FROM_DOG_IMMEDIATELY_ON_DOG_ERASURE'));
-  assert.match(row.currentSchemaConstraint, /NOT NULL/);
+  assert.match(row.currentSchemaConstraint, /nullable.*SET NULL/i);
+  assert.equal(row.schemaSupportStatus, 'IMPLEMENTED_SET_NULL');
+  assert.equal(row.postUnbindRetentionEnforcement, 'NOT_IMPLEMENTED');
+  assert.equal(row.promotionAuthorized, false);
 
   const dogsSchema = await source('backend/db/schema/dogs.ts');
   assert.match(
     dogsSchema,
-    /export const devices = pgTable\('devices'[\s\S]*dogId: uuid\('dog_id'\)\.notNull\(\)\.references/,
+    /export const devices = pgTable\('devices'[\s\S]*dogId: uuid\('dog_id'\)\.references\(\(\) => dogs\.id, \{ onDelete: 'set null' \}\)/,
+  );
+  assert.equal(
+    /export const devices = pgTable\('devices'[\s\S]*dogId: uuid\('dog_id'\)\.notNull\(\)/.test(dogsSchema),
+    false,
   );
 });
 
