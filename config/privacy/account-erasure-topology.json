@@ -27,7 +27,7 @@
       "table": "auth_refresh_sessions",
       "column": "user_id",
       "source": "backend/db/schema/auth-sessions.ts",
-      "databaseDeleteAction": "NO_ACTION",
+      "databaseDeleteAction": "SET_NULL",
       "erasureDisposition": "TO_CONFIRM"
     },
     {
@@ -119,6 +119,7 @@
   "dogDescendantAuthority": "config/privacy/dog-erasure-topology.json",
   "scopeLimitations": [
     "SET_NULL on the four approved D1-D4 provenance/report relations implements automatic identity detachment when an account root is deleted.",
+    "SET_NULL on auth_refresh_sessions.user_id provides schema support for phased account erasure while retained revoked/expired session evidence remains bounded by its original expiry; it does not promote the matrix disposition.",
     "Other unresolved account relations remain fail-closed and keep their existing database mechanics until separately authorized.",
     "External/object/cache/analytics/backup copies remain blockers to any complete-erasure claim."
   ]
