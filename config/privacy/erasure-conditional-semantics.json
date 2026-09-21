@@ -34,10 +34,17 @@
         "DELETE_EXPIRED_SESSION_ROWS",
         "DELETE_ACCOUNT_ROOT_NO_LATER_THAN_APPROVED_ACCOUNT_CLOSURE_WINDOW"
       ],
-      "currentSchemaConstraint": "user_id is NOT NULL and NO ACTION, so deleting the user before retained session rows expire is currently blocked.",
-      "implementationConsequence": "Future executor must stage account erasure or redesign the session evidence representation; direct root deletion first is invalid.",
+      "currentSchemaConstraint": "user_id is nullable with ON DELETE SET NULL; account deletion can detach retained session evidence from the deleted account.",
+      "implementationConsequence": "Schema/runtime support for detached inactive sessions is implemented. A future erasure executor must still revoke all active sessions before root deletion and delete retained detached rows at their original expiry.",
       "newHumanDecisionRequired": false,
-      "promotionAuthorized": false
+      "promotionAuthorized": false,
+      "schemaSupportStatus": "IMPLEMENTED",
+      "schemaSupportEvidence": [
+        "backend/db/schema/auth-sessions.ts",
+        "backend/db/migrations/0008_refresh_session_user_detach.sql",
+        "backend/api/services/auth-sessions.ts",
+        "backend/api/routes/auth.ts"
+      ]
     },
     {
       "relation": "users.id|DIRECT_FK|comments|author_id",
