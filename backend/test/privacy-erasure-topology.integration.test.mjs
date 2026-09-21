@@ -117,8 +117,6 @@ test('PRIV-ERASURE-TOPOLOGY static controls remain fail closed', () => {
   assert.deepEqual(
     sorted(unclassified),
     sorted([
-      'ai_messages',
-      'behavioral_assessments',
       'research_data_consents',
       'subscriptions',
     ]),
@@ -138,11 +136,20 @@ test('PRIV-ERASURE-TOPOLOGY static controls remain fail closed', () => {
     ['achievements', 'account'],
     ['auth_refresh_sessions', 'account'],
     ['copresence_events', 'location'],
+    ['ai_messages', 'ai_messages'],
   ]) {
     assert.equal(mappedByTable[table].classificationStatus, 'MAPPED_TO_EXISTING_PRIVACY_CATEGORY');
     assert.deepEqual(mappedByTable[table].inventoryCategories, [category]);
     assert.equal(typeof mappedByTable[table].mappingRationale, 'string');
     assert.ok(mappedByTable[table].mappingRationale.length > 0);
+  assert.equal(mappedByTable.behavioral_assessments.classificationStatus, 'MAPPED_TO_EXISTING_PRIVACY_CATEGORY');
+  assert.deepEqual(
+    mappedByTable.behavioral_assessments.inventoryCategories,
+    ['behavioral_assessment_product', 'research_validation'],
+  );
+  assert.match(mappedByTable.behavioral_assessments.mappingRationale, /administration_mode='research'/);
+  assert.match(mappedByTable.behavioral_assessments.mappingRationale, /product rows/);
+
   assert.equal(mappedByTable.user_config.classificationStatus, 'MAPPED_TO_EXISTING_PRIVACY_CATEGORY');
   assert.deepEqual(mappedByTable.user_config.inventoryCategories, ['account', 'dog_profile']);
   assert.equal(typeof mappedByTable.user_config.mappingRationale, 'string');
