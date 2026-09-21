@@ -136,11 +136,13 @@
       "data": [
         "voluntary address/geocoding input",
         "map coordinates",
-        "future TAG location if approved"
+        "future TAG location if approved",
+        "dog co-presence exact coordinates",
+        "dog pair co-presence timestamp"
       ],
-      "purpose": "location features, nearby services, maps and territorial context",
+      "purpose": "location features, nearby services, maps, territorial context and short-lived dog co-presence detection",
       "legalBasis": "TO_CONFIRM_WITH_EXPLICIT_PRODUCT_FLOW",
-      "retention": "SEE_RETENTION_SCHEDULE_exact_location_AND_coarse_location_context",
+      "retention": "SEE_RETENTION_SCHEDULE_exact_location_AND_coarse_location_context; RAW_COPRESENCE_ROWS_WITH_EXACT_COORDINATES_FOLLOW_exact_location",
       "thirdParties": [
         "geocoding/map/weather providers only where necessary and enabled"
       ],

@@ -106,13 +106,11 @@
     },
     {
       "table": "copresence_events",
-      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
-      "inventoryCategories": [],
-      "candidateAreas": [
-        "community",
-        "location",
-        "dog co-presence"
-      ]
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "location"
+      ],
+      "mappingRationale": "Rows contain exact latitude/longitude plus dog-pair and occurrence time; the raw persisted row is therefore governed by the high-risk exact-location boundary. Any longer-lived social/co-presence history must use a separately governed de-located derived representation."
     },
     {
       "table": "devices",
