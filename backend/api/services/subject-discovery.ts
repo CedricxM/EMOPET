@@ -203,7 +203,11 @@ export async function discoverSubjectData(
         behavioralAssessmentsProduct: 0,
         behavioralAssessmentsResearch: 0,
         behavioralResponses: 0,
+        behavioralResponsesProduct: 0,
+        behavioralResponsesResearch: 0,
         behavioralFactorScores: 0,
+        behavioralFactorScoresProduct: 0,
+        behavioralFactorScoresResearch: 0,
         eliBehavioralPriors: 0,
         researchDataConsents: 0,
         copresenceEvents: 0,
@@ -218,10 +222,14 @@ export async function discoverSubjectData(
           .from(behavioralAssessments)
           .where(inArray(behavioralAssessments.dogId, selectedDogIds));
         const assessmentIds = assessmentRows.map((row) => row.id);
-        const behavioralAssessmentsResearch = assessmentRows.filter(
-          (row) => row.administrationMode === 'research',
-        ).length;
-        const behavioralAssessmentsProduct = assessmentRows.length - behavioralAssessmentsResearch;
+        const productAssessmentIds = assessmentRows
+          .filter((row) => row.administrationMode !== 'research')
+          .map((row) => row.id);
+        const researchAssessmentIds = assessmentRows
+          .filter((row) => row.administrationMode === 'research')
+          .map((row) => row.id);
+        const behavioralAssessmentsResearch = researchAssessmentIds.length;
+        const behavioralAssessmentsProduct = productAssessmentIds.length;
 
         dogCounts = {
           devices: await countWhere(tx, devices, inArray(devices.dogId, selectedDogIds)),
@@ -243,8 +251,20 @@ export async function discoverSubjectData(
           behavioralResponses: assessmentIds.length > 0
             ? await countWhere(tx, behavioralResponses, inArray(behavioralResponses.assessmentId, assessmentIds))
             : 0,
+          behavioralResponsesProduct: productAssessmentIds.length > 0
+            ? await countWhere(tx, behavioralResponses, inArray(behavioralResponses.assessmentId, productAssessmentIds))
+            : 0,
+          behavioralResponsesResearch: researchAssessmentIds.length > 0
+            ? await countWhere(tx, behavioralResponses, inArray(behavioralResponses.assessmentId, researchAssessmentIds))
+            : 0,
           behavioralFactorScores: assessmentIds.length > 0
             ? await countWhere(tx, behavioralFactorScores, inArray(behavioralFactorScores.assessmentId, assessmentIds))
+            : 0,
+          behavioralFactorScoresProduct: productAssessmentIds.length > 0
+            ? await countWhere(tx, behavioralFactorScores, inArray(behavioralFactorScores.assessmentId, productAssessmentIds))
+            : 0,
+          behavioralFactorScoresResearch: researchAssessmentIds.length > 0
+            ? await countWhere(tx, behavioralFactorScores, inArray(behavioralFactorScores.assessmentId, researchAssessmentIds))
             : 0,
           eliBehavioralPriors: await countWhere(tx, eliBehavioralPriors, inArray(eliBehavioralPriors.dogId, selectedDogIds)),
           researchDataConsents: await countWhere(tx, researchDataConsents, inArray(researchDataConsents.dogId, selectedDogIds)),
@@ -290,7 +310,19 @@ export async function discoverSubjectData(
             note: 'Research administration mode. Product erasure must defer these rows to research governance authority.',
           }),
           behavioralResponses: counted(dogCounts.behavioralResponses),
+          behavioralResponsesProduct: counted(dogCounts.behavioralResponsesProduct, {
+            note: 'Responses whose parent assessment is non-research; they inherit the product assessment erasure branch.',
+          }),
+          behavioralResponsesResearch: counted(dogCounts.behavioralResponsesResearch, {
+            note: 'Responses whose parent assessment is research; product erasure must defer these descendants with their research parent.',
+          }),
           behavioralFactorScores: counted(dogCounts.behavioralFactorScores),
+          behavioralFactorScoresProduct: counted(dogCounts.behavioralFactorScoresProduct, {
+            note: 'Factor scores whose parent assessment is non-research; they inherit the product assessment erasure branch.',
+          }),
+          behavioralFactorScoresResearch: counted(dogCounts.behavioralFactorScoresResearch, {
+            note: 'Factor scores whose parent assessment is research; product erasure must defer these descendants with their research parent.',
+          }),
           eliBehavioralPriors: counted(dogCounts.eliBehavioralPriors),
           researchDataConsents: counted(dogCounts.researchDataConsents),
           copresenceEvents: counted(dogCounts.copresenceEvents),

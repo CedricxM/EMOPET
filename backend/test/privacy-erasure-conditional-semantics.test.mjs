@@ -188,6 +188,11 @@ test('behavioral dog-side children inherit parent product-vs-research authority 
   );
   assert.ok(assessment.semantics.some((value) => /administration_mode != research/.test(value)));
   assert.ok(assessment.semantics.some((value) => /administration_mode == research/.test(value)));
+  assert.equal(assessment.readinessStatus, 'IMPLEMENTED_READ_ONLY');
+  assert.deepEqual(assessment.readinessEvidence, [
+    'backend/api/services/subject-discovery.ts',
+    'backend/test/subject-discovery-postgres.test.mjs',
+  ]);
 
   for (const relation of [
     'dogs.id|TRANSITIVE_FK|behavioral_responses|assessment_id',
@@ -197,6 +202,11 @@ test('behavioral dog-side children inherit parent product-vs-research authority 
     assert.equal(child.semanticType, 'INHERIT_PARENT_ASSESSMENT_DISPOSITION');
     assert.ok(child.semantics.includes('PRODUCT_PARENT_DELETE => CASCADE_CHILD_DELETE'));
     assert.ok(child.semantics.includes('RESEARCH_PARENT_HELD => CHILD_MUST_NOT_BE_DELETED_BY_PRODUCT_EXECUTOR'));
+    assert.equal(child.readinessStatus, 'IMPLEMENTED_READ_ONLY');
+    assert.deepEqual(child.readinessEvidence, [
+      'backend/api/services/subject-discovery.ts',
+      'backend/test/subject-discovery-postgres.test.mjs',
+    ]);
   }
 });
 

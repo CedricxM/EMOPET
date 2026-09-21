@@ -130,9 +130,14 @@
         "DO_NOT_ALLOW_DATABASE_CASCADE_TO_ERASE_RESEARCH_ROWS_WITHOUT_RESEARCH_AUTHORITY"
       ],
       "currentSchemaConstraint": "product and research rows share one physical table.",
-      "implementationConsequence": "Future executor must branch by administration_mode before deleting assessment parents.",
+      "implementationConsequence": "Read-only discovery now separates product vs research assessment parents. A future authorized executor must still branch by administration_mode before deleting assessment parents.",
       "newHumanDecisionRequired": false,
-      "promotionAuthorized": false
+      "promotionAuthorized": false,
+      "readinessStatus": "IMPLEMENTED_READ_ONLY",
+      "readinessEvidence": [
+        "backend/api/services/subject-discovery.ts",
+        "backend/test/subject-discovery-postgres.test.mjs"
+      ]
     },
     {
       "relation": "dogs.id|TRANSITIVE_FK|behavioral_responses|assessment_id",
@@ -146,9 +151,14 @@
         "RESEARCH_PARENT_HELD => CHILD_MUST_NOT_BE_DELETED_BY_PRODUCT_EXECUTOR"
       ],
       "currentSchemaConstraint": "database CASCADE is mechanical and will fire if the assessment parent is deleted.",
-      "implementationConsequence": "Parent assessment authority must be resolved before deletion; no independent child decision is needed.",
+      "implementationConsequence": "Read-only discovery now separates this descendant count by product vs research parent. Any future deletion still inherits the resolved parent assessment authority.",
       "newHumanDecisionRequired": false,
-      "promotionAuthorized": false
+      "promotionAuthorized": false,
+      "readinessStatus": "IMPLEMENTED_READ_ONLY",
+      "readinessEvidence": [
+        "backend/api/services/subject-discovery.ts",
+        "backend/test/subject-discovery-postgres.test.mjs"
+      ]
     },
     {
       "relation": "dogs.id|TRANSITIVE_FK|behavioral_factor_scores|assessment_id",
@@ -162,9 +172,14 @@
         "RESEARCH_PARENT_HELD => CHILD_MUST_NOT_BE_DELETED_BY_PRODUCT_EXECUTOR"
       ],
       "currentSchemaConstraint": "database CASCADE is mechanical and will fire if the assessment parent is deleted.",
-      "implementationConsequence": "Parent assessment authority must be resolved before deletion; no independent child decision is needed.",
+      "implementationConsequence": "Read-only discovery now separates this descendant count by product vs research parent. Any future deletion still inherits the resolved parent assessment authority.",
       "newHumanDecisionRequired": false,
-      "promotionAuthorized": false
+      "promotionAuthorized": false,
+      "readinessStatus": "IMPLEMENTED_READ_ONLY",
+      "readinessEvidence": [
+        "backend/api/services/subject-discovery.ts",
+        "backend/test/subject-discovery-postgres.test.mjs"
+      ]
     }
   ],
   "authorityDecisionsRemaining": [

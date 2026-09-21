@@ -14,7 +14,9 @@ const DOG_B = randomUUID();
 const ASSESSMENT_A = randomUUID();
 const ASSESSMENT_RESEARCH_A = randomUUID();
 const RESPONSE_A = randomUUID();
+const RESPONSE_RESEARCH_A = randomUUID();
 const FACTOR_A = randomUUID();
+const FACTOR_RESEARCH_A = randomUUID();
 const PRIOR_A = randomUUID();
 const CONSENT_A = randomUUID();
 const SESSION_A = randomUUID();
@@ -41,8 +43,8 @@ if (enabled) {
 after(async () => {
   if (sql) {
     await sql`DELETE FROM eli_behavioral_priors WHERE id = ${PRIOR_A}`;
-    await sql`DELETE FROM behavioral_factor_scores WHERE id = ${FACTOR_A}`;
-    await sql`DELETE FROM behavioral_responses WHERE id = ${RESPONSE_A}`;
+    await sql`DELETE FROM behavioral_factor_scores WHERE id IN (${FACTOR_A}, ${FACTOR_RESEARCH_A})`;
+    await sql`DELETE FROM behavioral_responses WHERE id IN (${RESPONSE_A}, ${RESPONSE_RESEARCH_A})`;
     await sql`DELETE FROM behavioral_assessments WHERE id IN (${ASSESSMENT_A}, ${ASSESSMENT_RESEARCH_A})`;
     await sql`DELETE FROM research_data_consents WHERE id = ${CONSENT_A}`;
     await sql`DELETE FROM auth_refresh_sessions WHERE id = ${SESSION_A}`;
@@ -80,8 +82,8 @@ async function snapshot() {
       (SELECT count(*)::int FROM users WHERE id IN (${USER_A}, ${USER_B})) AS users,
       (SELECT count(*)::int FROM dogs WHERE id IN (${DOG_A}, ${DOG_B})) AS dogs,
       (SELECT count(*)::int FROM behavioral_assessments WHERE id IN (${ASSESSMENT_A}, ${ASSESSMENT_RESEARCH_A})) AS assessments,
-      (SELECT count(*)::int FROM behavioral_responses WHERE id = ${RESPONSE_A}) AS responses,
-      (SELECT count(*)::int FROM behavioral_factor_scores WHERE id = ${FACTOR_A}) AS factors,
+      (SELECT count(*)::int FROM behavioral_responses WHERE id IN (${RESPONSE_A}, ${RESPONSE_RESEARCH_A})) AS responses,
+      (SELECT count(*)::int FROM behavioral_factor_scores WHERE id IN (${FACTOR_A}, ${FACTOR_RESEARCH_A})) AS factors,
       (SELECT count(*)::int FROM eli_behavioral_priors WHERE id = ${PRIOR_A}) AS priors,
       (SELECT count(*)::int FROM research_data_consents WHERE id = ${CONSENT_A}) AS consents,
       (SELECT count(*)::int FROM auth_refresh_sessions WHERE id = ${SESSION_A}) AS sessions,
@@ -159,16 +161,16 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
   await sql`
     INSERT INTO behavioral_responses (
       id, assessment_id, item_key, response_status, response_value, scale_min, scale_max
-    ) VALUES (
-      ${RESPONSE_A}, ${ASSESSMENT_A}, 'opaque-test-item', 'answered', 2, 0, 4
-    )
+    ) VALUES
+      (${RESPONSE_A}, ${ASSESSMENT_A}, 'opaque-test-item', 'answered', 2, 0, 4),
+      (${RESPONSE_RESEARCH_A}, ${ASSESSMENT_RESEARCH_A}, 'opaque-research-item', 'answered', 3, 0, 4)
   `;
   await sql`
     INSERT INTO behavioral_factor_scores (
       id, assessment_id, factor_key, score, scoring_method
-    ) VALUES (
-      ${FACTOR_A}, ${ASSESSMENT_A}, 'test-factor', 0.5, 'test-only'
-    )
+    ) VALUES
+      (${FACTOR_A}, ${ASSESSMENT_A}, 'test-factor', 0.5, 'test-only'),
+      (${FACTOR_RESEARCH_A}, ${ASSESSMENT_RESEARCH_A}, 'research-factor', 0.7, 'test-only')
   `;
   await sql`
     INSERT INTO eli_behavioral_priors (
@@ -209,8 +211,14 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
     assert.equal(first.dog.behavioralAssessmentsProduct.count, 1);
     assert.equal(first.dog.behavioralAssessmentsResearch.count, 1);
     assert.match(first.dog.behavioralAssessmentsResearch.note, /research governance authority/);
-    assert.equal(first.dog.behavioralResponses.count, 1);
-    assert.equal(first.dog.behavioralFactorScores.count, 1);
+    assert.equal(first.dog.behavioralResponses.count, 2);
+    assert.equal(first.dog.behavioralResponsesProduct.count, 1);
+    assert.equal(first.dog.behavioralResponsesResearch.count, 1);
+    assert.match(first.dog.behavioralResponsesResearch.note, /research parent/);
+    assert.equal(first.dog.behavioralFactorScores.count, 2);
+    assert.equal(first.dog.behavioralFactorScoresProduct.count, 1);
+    assert.equal(first.dog.behavioralFactorScoresResearch.count, 1);
+    assert.match(first.dog.behavioralFactorScoresResearch.note, /research parent/);
     assert.equal(first.dog.eliBehavioralPriors.count, 1);
     assert.equal(first.dog.researchDataConsents.count, 1);
     assert.equal(first.dog.copresenceEvents.status, 'DISCOVERED');
@@ -297,8 +305,8 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
       users: 2,
       dogs: 2,
       assessments: 2,
-      responses: 1,
-      factors: 1,
+      responses: 2,
+      factors: 2,
       priors: 1,
       consents: 1,
       sessions: 1,
