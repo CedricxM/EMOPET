@@ -164,13 +164,17 @@ test('device metadata has detachable schema support while lifecycle promotion re
     source('backend/db/schema/dogs.ts'),
     source('backend/db/migrations/0007_device_dog_detach.sql'),
   ]);
+  const deviceBlock = dogsSchema.match(
+    /export const devices = pgTable\('devices'[\s\S]*?(?=export const healthEntries)/,
+  )?.[0];
+  assert.ok(deviceBlock);
   assert.match(
-    dogsSchema,
-    /export const devices = pgTable\('devices'[\s\S]*dogId: uuid\('dog_id'\)\.references\(\(\) => dogs\.id, \{ onDelete: 'set null' \}\)/,
+    deviceBlock,
+    /dogId: uuid\('dog_id'\)\.references\(\(\) => dogs\.id, \{ onDelete: 'set null' \}\)/,
   );
   assert.doesNotMatch(
-    dogsSchema,
-    /export const devices = pgTable\('devices'[\s\S]*dogId: uuid\('dog_id'\)\.notNull\(\)/,
+    deviceBlock,
+    /dogId: uuid\('dog_id'\)\.notNull\(\)/,
   );
   assert.match(migration, /ALTER TABLE "devices" ALTER COLUMN "dog_id" DROP NOT NULL/);
   assert.match(migration, /ON DELETE SET NULL/);
