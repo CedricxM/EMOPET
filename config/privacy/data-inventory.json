@@ -200,6 +200,61 @@
       "internationalTransfer": "PROVIDER_SPECIFIC_REVIEW_REQUIRED",
       "exportable": "CASE_BY_CASE",
       "erasure": "SUBJECT_TO_SECURITY_AND_LEGAL_RETENTION"
+    },
+    {
+      "id": "ai_messages",
+      "data": [
+        "target_user_id",
+        "target_community_id",
+        "dog_id",
+        "generated_message_content",
+        "pushed_at",
+        "metadata",
+        "created_at"
+      ],
+      "purpose": "future targeted AI/product messaging only if a separately approved product need authorises durable persistence",
+      "legalBasis": "NO_DURABLE_PERSISTENCE_AUTHORISED_BY_CURRENT_PRODUCT_DECISION",
+      "retention": "SEE_RETENTION_SCHEDULE_ai_messages_ZERO_DURABLE_RETENTION",
+      "thirdParties": [],
+      "internationalTransfer": "NONE_BY_DEFAULT",
+      "exportable": true,
+      "erasure": "DURABLE_ROWS_SHOULD_NOT_EXIST; IF_FOUND_TREAT_AS_EXPIRED_PENDING_CONTROLLED_ERASURE_EXECUTION"
+    },
+    {
+      "id": "behavioral_assessment_product",
+      "data": [
+        "dog_id",
+        "respondent_user_id",
+        "respondent_role",
+        "instrument_code",
+        "instrument_version",
+        "administration_mode_non_research",
+        "scientific_use_status",
+        "response_status_and_values",
+        "factor_scores",
+        "assessment_provenance"
+      ],
+      "purpose": "retain user-entered product behavioral assessment evidence and provenance needed to explain product history and any ELI prior derived from it",
+      "legalBasis": "TO_CONFIRM_BEFORE_PRODUCTION",
+      "retention": "SEE_RETENTION_SCHEDULE_behavioral_assessment_product",
+      "thirdParties": [],
+      "internationalTransfer": "NONE_BY_DEFAULT",
+      "exportable": true,
+      "erasure": "DELETE_WITH_DOG_OR_ACCOUNT_ERASURE_UNLESS_SEPARATELY_JUSTIFIED_HOLD"
+    },
+    {
+      "id": "research_validation",
+      "data": [
+        "research-mode behavioral assessment records",
+        "research/validation personal datasets"
+      ],
+      "purpose": "separately governed research or validation processing; must not inherit product behavioral retention automatically",
+      "legalBasis": "TO_CONFIRM_RESEARCH_GOVERNANCE_BEFORE_USE",
+      "retention": "SEE_RETENTION_SCHEDULE_research_validation_personal_datasets",
+      "thirdParties": [],
+      "internationalTransfer": "PROVIDER_OR_STUDY_SPECIFIC_REVIEW_REQUIRED",
+      "exportable": true,
+      "erasure": "DELETE_OR_IRREVERSIBLY_ANONYMISE_UNDER_SEPARATE_RESEARCH_GOVERNANCE"
     }
   ],
   "retentionAuthority": {
