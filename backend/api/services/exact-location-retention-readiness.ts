@@ -185,7 +185,10 @@ export async function inspectExactLocationRetention(
       counts,
       policyBoundary: 'MAX_24_HOURS_ONLY_SESSION_END_MAY_REQUIRE_EARLIER_DELETION',
     };
-  } catch {
+  } catch (error) {
+    if (process.env.EXACT_LOCATION_RETENTION_DB_INTEGRATION === '1') {
+      console.error('EXACT_LOCATION_RETENTION_DB_ERROR', error);
+    }
     return failure('database_unavailable', true);
   }
 }
