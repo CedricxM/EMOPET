@@ -65,6 +65,7 @@ export const communityReports = pgTable('community_reports', {
   reason: varchar('reason', { length: 20 }).notNull(),
   details: varchar('details', { length: 500 }),
   status: varchar('status', { length: 20 }).notNull().default('open'),
+  finalActionAt: timestamp('final_action_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => [
   index('idx_community_reports_reporter_created').on(
@@ -77,6 +78,7 @@ export const communityReports = pgTable('community_reports', {
     table.contentId,
     table.createdAt.desc().nullsFirst(),
   ),
+  index('idx_community_reports_final_action_at').on(table.finalActionAt),
 ]);
 
 export const communityEvents = pgTable('community_events', {
