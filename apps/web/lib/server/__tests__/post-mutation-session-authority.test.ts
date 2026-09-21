@@ -40,5 +40,6 @@ test('post PATCH preserves Community kill gate and 8 KiB parser behind exact pri
   assert.equal(source.includes("from '../../../../../lib/server/admin-post-patch'"), true);
   assert.equal(patch.includes('adminPostMutationForAction(parsed.action)'), true);
   assert.equal(patch.includes("'moderation.post.manage'"), true);
-  assert.equal(patch.includes('LEGACY_DEMO_ONLY'), true);
+  assert.equal(source.includes('LEGACY_DEMO_ONLY'), true);
+  assert.equal(patch.includes('demoJson('), true);
 });
