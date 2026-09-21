@@ -141,7 +141,14 @@
       "finalDisposition": "DO_NOT_DURABLY_PERSIST_UNTIL_A_SEPARATE_PRODUCT_NEED_RETENTION_PURPOSE_AND_PRIVACY_AUTHORITY_ARE_APPROVED",
       "holdConditions": [],
       "purgeEvidence": "NEGATIVE_EVIDENCE_REQUIRED",
-      "authority": "PRODUCT_APPROVED_AI_NO_DURABLE_RETENTION_UNTIL_SEPARATE_NEED"
+      "authority": "PRODUCT_APPROVED_AI_NO_DURABLE_RETENTION_UNTIL_SEPARATE_NEED",
+      "readinessStatus": "IMPLEMENTED_READ_ONLY_NEGATIVE_EVIDENCE",
+      "readinessBoundary": "DETECTION_ONLY_WRITE_PREVENTION_AND_PURGE_NOT_IMPLEMENTED",
+      "readinessEvidence": [
+        "backend/api/services/ai-zero-durable-retention-readiness.ts",
+        "backend/test/ai-zero-durable-retention-readiness.test.mjs",
+        "backend/test/ai-zero-durable-retention-readiness.integration.test.mjs"
+      ]
     },
     {
       "id": "eli_inferred_detailed",
