@@ -22,14 +22,14 @@ const [matrix, packet, semantics] = await Promise.all([
 const key = (row) =>
   [row.subjectRoot, row.relationType, row.table, row.column].join('|');
 
-test('conditional semantics remain decision support only with zero matrix promotion', () => {
+test('conditional semantics record four approved detach promotions without claiming execution', () => {
   assert.equal(
     semantics.schemaVersion,
     'emopet-erasure-conditional-semantics-v1',
   );
   assert.equal(
     semantics.status,
-    'FOUR_PRODUCT_PRIVACY_DECISIONS_APPROVED_LEGAL_PRIVACY_DECISION_REMAINS',
+    'FOUR_PRODUCT_PRIVACY_DISPOSITIONS_PROMOTED_EXECUTION_INCOMPLETE',
   );
   assert.equal(semantics.claimsExecutableErasure, false);
   assert.equal(semantics.claimsCompleteErasure, false);
@@ -37,7 +37,7 @@ test('conditional semantics remain decision support only with zero matrix promot
     conditionalRowsTotal: 12,
     semanticsAlreadyDeterminedByExistingPolicy: 7,
     authorityDecisionsStillRequired: 1,
-    matrixRowsPromoted: 0,
+    matrixRowsPromoted: 4,
     productPrivacyDecisionsApproved: 4,
   });
 
@@ -49,9 +49,20 @@ test('conditional semantics remain decision support only with zero matrix promot
     assert.equal(row.executionStatus, 'NOT_IMPLEMENTED');
   }
 
+  const approved = new Set([
+    'users.id|DIRECT_FK|behavioral_assessments|respondent_user_id',
+    'users.id|DIRECT_FK|communities|created_by',
+    'users.id|DIRECT_FK|community_events|created_by',
+    'users.id|DIRECT_FK|community_reports|reporter_user_id',
+  ]);
   for (const row of matrix.entries) {
-    assert.equal(row.disposition, 'TO_CONFIRM');
     assert.equal(row.executionStatus, 'NOT_IMPLEMENTED');
+    if (approved.has(key(row))) {
+      assert.equal(row.disposition, 'DETACH');
+      assert.equal(row.testEvidence, 'SCHEMA_SET_NULL_READY_EXECUTOR_NOT_IMPLEMENTED');
+    } else {
+      assert.equal(row.disposition, 'TO_CONFIRM');
+    }
   }
 });
 
