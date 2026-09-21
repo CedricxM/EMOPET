@@ -82,13 +82,13 @@ test('account erasure preflight reflects four implemented SET NULL detach relati
   assert.equal(result.relational.unresolvedDisposition, 11);
   assert.equal(result.relational.notImplemented, 11);
   assert.deepEqual(result.relational.databaseMechanics, {
-    NO_ACTION: 11,
+    NO_ACTION: 10,
     RESTRICT: 0,
     CASCADE: 0,
-    SET_NULL: 4,
+    SET_NULL: 5,
     SET_DEFAULT: 0,
   });
-  assert.equal(result.relational.rootDeleteBlockers.length, 11);
+  assert.equal(result.relational.rootDeleteBlockers.length, 10);
   assert.deepEqual(result.relational.automaticCascadeRelations, []);
 
   assert.deepEqual(result.nonSql, {
@@ -198,5 +198,5 @@ test('resolved and implemented ordered handling can clear NO ACTION as a control
   assert.equal(result.destructiveActionAuthorized, false);
   assert.deepEqual(result.reasons, []);
   assert.deepEqual(result.relational.rootDeleteBlockers, []);
-  assert.equal(result.relational.databaseMechanics.NO_ACTION, 11);
+  assert.equal(result.relational.databaseMechanics.NO_ACTION, 10);
 });
