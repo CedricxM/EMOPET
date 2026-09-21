@@ -40,7 +40,16 @@ export interface WorldResourceDefinition {
   label: string;
   shortLabel: string;
   description: string;
+  /** Accent décoratif — pastille, bordure. Utilisé sur fond sombre. */
   color: string;
+  /**
+   * Encre du même accent, pour les surfaces CLAIRES où cette couleur porte du
+   * texte. `color` seul y échoue : lichen `#6B8E6F` = 3,20:1 et terre cuite
+   * `#C97B5A` = 2,84:1 sur le sable, là où WCAG AA exige 4,5:1 pour du texte
+   * normal — les deux ratios sont écrits dans `tokens.css`, qui prescrit le
+   * palier 700 comme couleur de texte sur ce fond.
+   */
+  textColor: string;
 }
 
 export interface WorldEvent {
@@ -85,6 +94,7 @@ export const WORLD_RESOURCES: WorldResourceDefinition[] = [
     shortLabel: 'Routine',
     description: 'Care routines completed with gentle continuity.',
     color: 'var(--emopet-navy)',
+    textColor: 'var(--granit-800)',
   },
   {
     key: 'observationQuality',
@@ -92,6 +102,7 @@ export const WORLD_RESOURCES: WorldResourceDefinition[] = [
     shortLabel: 'Quality',
     description: 'Reliable observation windows and clear setup context.',
     color: 'var(--emopet-teal)',
+    textColor: 'var(--lichen-700)',
   },
   {
     key: 'trustFragments',
@@ -99,6 +110,7 @@ export const WORLD_RESOURCES: WorldResourceDefinition[] = [
     shortLabel: 'Trust',
     description: 'Owner engagement with setup, notes and learning.',
     color: 'var(--emopet-orange)',
+    textColor: 'var(--terracotta-700)',
   },
   {
     key: 'walkTraces',
@@ -106,6 +118,7 @@ export const WORLD_RESOURCES: WorldResourceDefinition[] = [
     shortLabel: 'Walks',
     description: 'Walk notes and route additions.',
     color: 'var(--emopet-teal)',
+    textColor: 'var(--lichen-700)',
   },
   {
     key: 'calmStones',
@@ -113,6 +126,7 @@ export const WORLD_RESOURCES: WorldResourceDefinition[] = [
     shortLabel: 'Stones',
     description: 'Quiet places and rest-zone setup work.',
     color: 'var(--granit-500)',
+    textColor: 'var(--granit-700)',
   },
   {
     key: 'bondMoments',
@@ -120,6 +134,7 @@ export const WORLD_RESOURCES: WorldResourceDefinition[] = [
     shortLabel: 'Bond',
     description: 'Shared owner actions such as notes, learning and care tasks.',
     color: 'var(--emopet-orange)',
+    textColor: 'var(--terracotta-700)',
   },
   {
     key: 'communitySeeds',
@@ -127,6 +142,7 @@ export const WORLD_RESOURCES: WorldResourceDefinition[] = [
     shortLabel: 'Seeds',
     description: 'Opt-in local contributions.',
     color: 'var(--emopet-teal)',
+    textColor: 'var(--lichen-700)',
   },
   {
     key: 'signalClarity',
@@ -134,6 +150,7 @@ export const WORLD_RESOURCES: WorldResourceDefinition[] = [
     shortLabel: 'Signal',
     description: 'High-confidence MAT or TAG capture windows.',
     color: 'var(--emopet-navy)',
+    textColor: 'var(--granit-800)',
   },
   {
     key: 'localDiscoveries',
@@ -141,6 +158,7 @@ export const WORLD_RESOURCES: WorldResourceDefinition[] = [
     shortLabel: 'Local',
     description: 'Dog-friendly places and walking route discoveries.',
     color: 'var(--emopet-orange)',
+    textColor: 'var(--terracotta-700)',
   },
 ];
 

@@ -22,19 +22,25 @@ test('retention schedule stays a product-approved candidate and cannot claim run
     schedule.decisions.R2,
     'DELETE_DEFAULT_NECESSITY_ONLY_IRREVERSIBLE_ANONYMISATION_FAIL_TO_DELETE',
   );
+  assert.equal(schedule.decisions.R3, 'DETAILED_SENSOR_AND_ELI_SOURCE_ALIGNED_36_MONTHS');
+  assert.equal(schedule.decisions.R4, 'AI_MESSAGES_NO_DURABLE_RETENTION_UNTIL_SEPARATE_PRODUCT_NEED');
+  assert.equal(schedule.decisions.R5, 'BEHAVIORAL_ASSESSMENTS_PRODUCT_RESEARCH_LIFECYCLE_SPLIT');
 });
 
 test('retention schedule has a complete explicit category inventory and no indefinite mode', () => {
   const expected = [
     'account_auth',
+    'auth_refresh_sessions',
     'dog_profile',
     'device_binding_admin_metadata',
     'sensor_preprocessed_detailed',
     'sensor_preprocessed_aggregates',
     'sensor_raw_audio',
+    'ai_messages',
     'eli_inferred_detailed',
     'eli_inferred_aggregates',
     'veterinary_user_entered_records',
+    'behavioral_assessment_product',
     'exact_location',
     'coarse_location_context',
     'community_content',
@@ -58,14 +64,35 @@ test('retention schedule has a complete explicit category inventory and no indef
     assert.ok(row.finalDisposition.length > 0);
     assert.ok(Array.isArray(row.holdConditions));
     assert.ok(['REQUIRED', 'NEGATIVE_EVIDENCE_REQUIRED'].includes(row.purgeEvidence));
-    assert.ok(String(row.authority).includes('PRODUCT_APPROVED') || row.id === 'sensor_raw_audio');
+    assert.ok(
+      String(row.authority).includes('PRODUCT_APPROVED')
+      || row.id === 'sensor_raw_audio'
+      || (
+        row.id === 'auth_refresh_sessions'
+        && String(row.authority).startsWith('TECHNICAL_SECURITY_LIFECYCLE_CANDIDATE_')
+      ),
+      `unexpected retention authority class for ${row.id}: ${row.authority}`,
+    );
   }
+});
+
+test('refresh-session retention matches the current 30-day credential security window', () => {
+  const session = byId('auth_refresh_sessions');
+  assert.deepEqual(session.activeRetention, {
+    mode: 'DURATION',
+    value: 30,
+    unit: 'DAYS',
+  });
+  assert.match(session.finalDisposition, /REVOKE_IMMEDIATELY/);
+  assert.match(session.finalDisposition, /ORIGINAL_EXPIRY_WINDOW/);
+  assert.deepEqual(session.holdConditions, []);
+  assert.match(session.authority, /TECHNICAL_SECURITY_LIFECYCLE_CANDIDATE/);
 });
 
 test('rich longitudinal history keeps detailed data bounded and aggregates tied to active dog lifetime', () => {
   assert.deepEqual(byId('sensor_preprocessed_detailed').activeRetention, {
     mode: 'DURATION',
-    value: 24,
+    value: 36,
     unit: 'MONTHS',
   });
   assert.deepEqual(byId('eli_inferred_detailed').activeRetention, {
@@ -78,6 +105,49 @@ test('rich longitudinal history keeps detailed data bounded and aggregates tied 
     assert.deepEqual(byId(id).activeRetention, { mode: 'ACTIVE_DOG_PROFILE_LIFETIME' });
     assert.equal(byId(id).finalDisposition, 'DELETE_ON_DOG_OR_ACCOUNT_ERASURE');
   }
+});
+
+test('detailed ELI never outlives its detailed sensor source under founder decision B', () => {
+  const sensor = byId('sensor_preprocessed_detailed');
+  const eli = byId('eli_inferred_detailed');
+
+  assert.deepEqual(sensor.activeRetention, {
+    mode: 'DURATION',
+    value: 36,
+    unit: 'MONTHS',
+  });
+  assert.deepEqual(eli.activeRetention, {
+    mode: 'DURATION',
+    value: 36,
+    unit: 'MONTHS',
+  });
+  assert.equal(sensor.authority, 'PRODUCT_APPROVED_SOURCE_ALIGNED_36_MONTHS');
+  assert.equal(eli.authority, 'PRODUCT_APPROVED_SOURCE_ALIGNED_36_MONTHS');
+});
+
+test('AI messages have zero durable retention until a separate product need is approved', () => {
+  const ai = byId('ai_messages');
+  assert.deepEqual(ai.activeRetention, {
+    mode: 'NO_DURABLE_RETENTION',
+    value: 0,
+    unit: 'SECONDS',
+  });
+  assert.equal(ai.archive, null);
+  assert.match(ai.finalDisposition, /DO_NOT_DURABLY_PERSIST/);
+  assert.equal(ai.purgeEvidence, 'NEGATIVE_EVIDENCE_REQUIRED');
+  assert.equal(ai.authority, 'PRODUCT_APPROVED_AI_NO_DURABLE_RETENTION_UNTIL_SEPARATE_NEED');
+});
+
+test('Behavioral product assessments follow dog lifetime while research remains separate', () => {
+  const product = byId('behavioral_assessment_product');
+  const research = byId('research_validation_personal_datasets');
+
+  assert.deepEqual(product.activeRetention, { mode: 'ACTIVE_DOG_PROFILE_LIFETIME' });
+  assert.equal(product.finalDisposition, 'DELETE_ON_DOG_OR_ACCOUNT_ERASURE');
+  assert.equal(product.authority, 'PRODUCT_APPROVED_BEHAVIORAL_SPLIT_PRODUCT_ONLY');
+
+  assert.notDeepEqual(research.activeRetention, product.activeRetention);
+  assert.match(research.authority, /PRODUCT_APPROVED_CANDIDATE/);
 });
 
 test('high-risk location is materially shorter than behavioral history', () => {

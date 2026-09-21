@@ -14,7 +14,7 @@ export type ConfidenceState = 'VALID' | 'DEGRADED' | 'SUPPRESSED';
 
 export const CONFIDENCE_META: Record<ConfidenceState, { label: string; color: string; bg: string }> = {
   VALID: { label: 'Confiance élevée', color: 'var(--vert-ok)', bg: 'var(--accent-2-soft)' },
-  DEGRADED: { label: 'Confiance partielle', color: 'var(--orange-pro)', bg: 'var(--prudence-bg)' },
+  DEGRADED: { label: 'Confiance partielle', color: 'var(--eli-degraded-ink)', bg: 'var(--prudence-bg)' },
   SUPPRESSED: { label: 'Données insuffisantes', color: 'var(--rouge)', bg: 'var(--rouge-bg)' },
 };
 
@@ -28,7 +28,9 @@ export interface Family {
 }
 
 export const FAMILIES: Family[] = [
-  { id: 'activite', label: 'Activité', description: 'Temps actif, intensité, transitions de phase.', color: 'var(--terracotta-500)' },
+  // contrast-guard:non-textuel — pastille de légende (doublée du libellé) et
+  // trait de sparkline ; mesuré ~3,0:1 contre la carte, au seuil graphique.
+  { id: 'activite', label: 'Activité', description: 'Temps actif, intensité, transitions de phase.', color: 'var(--terracotta-500)' }, // contrast-guard:non-textuel
   { id: 'repos', label: 'Repos', description: 'Durée, régularité et continuité du repos.', color: 'var(--lichen-600)' },
   { id: 'regulation', label: 'Régulation', description: 'Variabilité respiratoire, phases de calme prolongé.', color: 'var(--granit-500)' },
   { id: 'sociabilite', label: 'Sociabilité', description: 'Interactions détectées, proximité, routines.', color: 'var(--terracotta-700)' },
@@ -149,7 +151,7 @@ export function indicatorStateMessage(state: IndicatorState): string {
 /** Gating de publication (ELI v6 §13) : PUBLISH ≥0.70 / DEGRADE / REJECT <0.40. */
 export const GATE_META: Record<'PUBLISH' | 'DEGRADE' | 'REJECT', { label: string; color: string }> = {
   PUBLISH: { label: 'Publié · confiance élevée', color: 'var(--vert-ok)' },
-  DEGRADE: { label: 'Partiel · confiance dégradée', color: 'var(--orange-pro)' },
+  DEGRADE: { label: 'Partiel · confiance dégradée', color: 'var(--eli-degraded-ink)' },
   REJECT: { label: 'Silence · données insuffisantes', color: 'var(--rouge)' },
 };
 
@@ -164,7 +166,7 @@ export const WQI_DIMENSIONS = [
 export const TIER_META: Record<'GOLD' | 'SILVER' | 'BRONZE' | 'REJECTED', { label: string; color: string }> = {
   GOLD: { label: 'Gold', color: 'var(--vert-ok)' },
   SILVER: { label: 'Silver', color: 'var(--lichen-600)' },
-  BRONZE: { label: 'Bronze', color: 'var(--orange-pro)' },
+  BRONZE: { label: 'Bronze', color: 'var(--eli-degraded-ink)' },
   REJECTED: { label: 'Rejeté', color: 'var(--rouge)' },
 };
 

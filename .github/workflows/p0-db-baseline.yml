@@ -23,6 +23,8 @@ on:
       - 'backend/test/copresence-identity-fingerprint.sql'
       - 'backend/test/subject-discovery-postgres.test.mjs'
       - 'backend/test/privacy-erasure-topology.integration.test.mjs'
+      - 'backend/test/privacy-erasure-residue-verification.integration.test.mjs'
+      - 'backend/api/services/erasure-residue-verification.ts'
       - 'config/privacy/**'
       - 'backend/api/services/subject-discovery.ts'
       - 'backend/api/services/subject-access.ts'
@@ -102,11 +104,10 @@ jobs:
 
       - name: Apply historical migrations in order
         run: |
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0001_dataset_registry.sql
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0002_freemium_foundation.sql
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0003_architecture_upgrade.sql
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0004_v6_additions.sql
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0005_behavioral_assessment_provenance.sql
+          for file in $(find backend/db/migrations -maxdepth 1 -type f -name '*.sql' | sort); do
+            echo "Applying $file"
+            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$file"
+          done
 
       - name: Capture first schema
         run: |
@@ -125,11 +126,10 @@ jobs:
             echo "Applying $file"
             psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f "$file"
           done
-          psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0001_dataset_registry.sql
-          psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0002_freemium_foundation.sql
-          psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0003_architecture_upgrade.sql
-          psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0004_v6_additions.sql
-          psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/db/migrations/0005_behavioral_assessment_provenance.sql
+          for file in $(find backend/db/migrations -maxdepth 1 -type f -name '*.sql' | sort); do
+            echo "Applying $file"
+            psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f "$file"
+          done
           pg_dump --schema-only --no-owner --no-privileges "$REPEAT_DATABASE_URL" > /tmp/schema-b.sql
           psql "$REPEAT_DATABASE_URL" -Atc "select tablename from pg_tables where schemaname='public' order by tablename" > /tmp/tables-b.txt
 
@@ -143,6 +143,14 @@ jobs:
 
       - name: Repeatability — complete schema dump
         run: diff -u /tmp/schema-a.sql /tmp/schema-b.sql
+
+      - name: PRIV-RETENTION device unbind clock on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          DEVICE_UNBIND_RETENTION_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/device-unbind-retention-clock.integration.test.mjs
 
       - name: Build backend dependency closure
         run: pnpm --filter @emopet/api... build
@@ -177,6 +185,22 @@ jobs:
           GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: psql "$GENERATED_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/id-01-referential-integrity.sql
 
+      - name: PRIV-RETENTION exact-location max-window readiness
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          EXACT_LOCATION_RETENTION_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/exact-location-retention-readiness.integration.test.mjs
+
+      - name: PRIV-RETENTION detailed sensor + ELI 36-month readiness
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          DETAILED_SENSOR_ELI_RETENTION_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/detailed-sensor-eli-retention-readiness.integration.test.mjs
+
       - name: INT-03B VBO writer and traceability contract
         run: |
           grep -Fq "updated_at = NOW()" scripts/ingest_vbo.ts
@@ -202,6 +226,14 @@ jobs:
           AUTH_DB_INTEGRATION: '1'
           EMOPET_DB_INTEGRATION_TEST: '0'
         run: node --test test/auth-routes-postgres.test.mjs test/auth-session-concurrency.test.mjs
+
+      - name: PRIV-RETENTION refresh-session expiry readiness
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          AUTH_RETENTION_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/auth-session-retention-readiness.integration.test.mjs
 
       - name: INT-03A sensor-summary provenance integration
         working-directory: backend
@@ -252,6 +284,14 @@ jobs:
           PRIVACY_ERASURE_TOPOLOGY_DB_INTEGRATION: '1'
         run: node --test test/privacy-erasure-topology.integration.test.mjs
 
+      - name: PRIV-ERASURE-RESIDUE snapshot + negative SQL verification
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          ERASURE_RESIDUE_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/privacy-erasure-residue-verification.integration.test.mjs
+
       - name: INT-04A bounded Owner export authority
         working-directory: backend
         env:
@@ -290,5 +330,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY and INT-04A bounded export authority.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification and INT-04A bounded export authority.'
           echo 'It does not authorize production migration, deployment, or release.'

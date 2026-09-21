@@ -37,7 +37,7 @@ const LABEL_STYLE: React.CSSProperties = {
 const PRIMARY_BTN: React.CSSProperties = {
   padding: '12px 24px',
   borderRadius: 'var(--radius-pill)',
-  background: 'var(--terracotta-500)',
+  background: 'var(--accent)',
   color: 'white',
   border: 'none',
   fontFamily: 'var(--font-sans)',
@@ -68,7 +68,7 @@ function Stars({ rating }: { rating: number | null }) {
   if (rating == null) return null;
   const rounded = Math.round(rating);
   return (
-    <span aria-label={`Note moyenne ${rating.toFixed(1)} sur 5`} style={{ color: 'var(--terracotta-500)', letterSpacing: '0.08em' }}>
+    <span aria-label={`Note moyenne ${rating.toFixed(1)} sur 5`} style={{ color: 'var(--terracotta-600)', letterSpacing: '0.08em' }}>
       {'★'.repeat(rounded)}
       <span style={{ color: 'var(--fg-hint)' }}>{'★'.repeat(5 - rounded)}</span>
     </span>

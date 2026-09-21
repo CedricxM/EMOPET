@@ -1,0 +1,228 @@
+{
+  "schemaVersion": "emopet-provider-retention-erasure-evidence-v1",
+  "verifiedAt": "2026-09-21",
+  "status": "OFFICIAL_PUBLIC_PROVIDER_EVIDENCE_ONLY_ENVIRONMENT_AND_EXECUTION_UNVERIFIED",
+  "claimsProductionEnablement": false,
+  "claimsProviderDeletionExecuted": false,
+  "claimsCompleteErasure": false,
+  "boundaries": [
+    "Published provider documentation is capability/retention evidence, not proof that EMOPET has an active production account or configuration.",
+    "A documented TTL is not an erasure receipt for a specific EMOPET subject.",
+    "A provider privacy right or support process is not an application-level automated deletion integration.",
+    "Provider policy evidence must be re-verified before production launch and after material provider/model/product changes."
+  ],
+  "providers": [
+    {
+      "provider": "Resend",
+      "repositoryFlow": {
+        "status": "ACTIVE_ENV_GATED_RUNTIME_INTEGRATION",
+        "paths": [
+          "apps/web/lib/server/notify.ts"
+        ],
+        "dataBoundary": "Contact notification email body may contain contact coordinate/value, user message, proposed slots, request id and request context.",
+        "canonicalSubjectIdSent": false,
+        "providerObjectIdPersistedByEmopet": false
+      },
+      "publicEvidence": {
+        "status": "OFFICIAL_PUBLIC_POLICY_FOUND",
+        "retention": [
+          "Email and log data: 30 days on Free, Pro and Scale while the account is active; Enterprise retention can be flexible.",
+          "Remaining customer data: deleted within 90 days after account termination.",
+          "Backups: 7 days."
+        ],
+        "earlyRemoval": "Resend states that a specific message can be removed before the retention window by contacting Resend.",
+        "programmaticDeletion": "Contact records have a delete API, but no sent-email-content delete API relevant to this EMOPET notification flow was established by the reviewed official evidence.",
+        "sources": [
+          "https://resend.com/security/gdpr",
+          "https://resend.com/legal/dpa",
+          "https://resend.com/features/audiences"
+        ]
+      },
+      "emopetErasureReadiness": {
+        "subjectMapping": "INSUFFICIENT_FOR_PROVIDER_MESSAGE_ERASURE",
+        "reason": "The current notification flow discards the provider email object id after send and does not send a canonical EMOPET subject id.",
+        "operationalReceiptStatus": "NOT_AVAILABLE",
+        "environmentEvidenceRequired": true
+      }
+    },
+    {
+      "provider": "Anthropic",
+      "repositoryFlow": {
+        "status": "ACTIVE_ENV_GATED_RUNTIME_INTEGRATION",
+        "paths": [
+          "apps/web/app/api/breiz/route.ts"
+        ],
+        "dataBoundary": "Breiz sends a bounded user message plus generated regional/system context to the Messages API when ANTHROPIC_API_KEY is configured.",
+        "canonicalSubjectIdSent": false,
+        "providerObjectIdPersistedByEmopet": false,
+        "defaultModelAlias": "claude-3-5-haiku-latest"
+      },
+      "publicEvidence": {
+        "status": "OFFICIAL_PUBLIC_POLICY_FOUND",
+        "retention": [
+          "Anthropic commercial API inputs and outputs are deleted from backend systems within 30 days by default.",
+          "Different retention can apply where agreed, including eligible zero-data-retention arrangements.",
+          "Covered Models can require 30-day retention even where ZDR would otherwise apply.",
+          "Usage-policy and legal exceptions can require longer retention."
+        ],
+        "programmaticDeletion": "No per-request subject deletion mechanism relevant to the current Messages API flow was established by the reviewed official evidence.",
+        "sources": [
+          "https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-my-organization-s-data",
+          "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention",
+          "https://privacy.claude.com/en/articles/8956058-i-have-a-zero-data-retention-agreement-with-anthropic-what-products-does-it-apply-to"
+        ]
+      },
+      "emopetErasureReadiness": {
+        "subjectMapping": "NO_CANONICAL_EMOPET_SUBJECT_IDENTIFIER_SENT",
+        "reason": "The request contains user-authored text/context but the current route does not send a canonical EMOPET account id or persist a provider request id.",
+        "operationalReceiptStatus": "NOT_AVAILABLE",
+        "environmentEvidenceRequired": true,
+        "configurationEvidenceNeeded": [
+          "ACTIVE_ANTHROPIC_ORG_AND_WORKSPACE",
+          "ACTUAL_MODEL_RESOLUTION",
+          "RETENTION_OR_ZDR_CONFIGURATION",
+          "ANY_COVERED_MODEL_REQUIREMENT"
+        ]
+      }
+    },
+    {
+      "provider": "Mapbox",
+      "repositoryFlow": {
+        "status": "ACTIVE_ENV_GATED_CLIENT_INTEGRATION",
+        "paths": [
+          "apps/web/components/bretagne-map/MapboxMap.tsx"
+        ],
+        "dataBoundary": "Mapbox GL map requests are client-side when a public token is configured; the component also exposes a high-accuracy GeolocateControl.",
+        "canonicalSubjectIdSent": false,
+        "providerObjectIdPersistedByEmopet": false
+      },
+      "publicEvidence": {
+        "status": "OFFICIAL_PUBLIC_POLICY_FOUND",
+        "retention": [
+          "Mapbox product privacy documentation states IP addresses are deleted after 30 days, subject to limited investigation/legal exceptions.",
+          "For geolocation data, the session-id association is described as broken within 24 hours."
+        ],
+        "deletionRights": "Mapbox documents deletion rights/request channels for applicable personal data.",
+        "sources": [
+          "https://www.mapbox.com/legal/privacy",
+          "https://www.mapbox.com/legal/legal-faq"
+        ]
+      },
+      "emopetErasureReadiness": {
+        "subjectMapping": "NO_CANONICAL_EMOPET_SUBJECT_IDENTIFIER_IN_CURRENT_CLIENT_FLOW",
+        "reason": "The current integration does not attach EMOPET user/dog identifiers to Mapbox requests.",
+        "operationalReceiptStatus": "NOT_AVAILABLE",
+        "environmentEvidenceRequired": true
+      }
+    },
+    {
+      "provider": "Plausible",
+      "repositoryFlow": {
+        "status": "ACTIVE_ENV_GATED_CLIENT_INTEGRATION",
+        "paths": [
+          "apps/web/app/layout.tsx"
+        ],
+        "dataBoundary": "The current root integration loads the standard Plausible script with data-domain only; no EMOPET user id or custom property is configured there.",
+        "canonicalSubjectIdSent": false,
+        "providerObjectIdPersistedByEmopet": false
+      },
+      "publicEvidence": {
+        "status": "OFFICIAL_PUBLIC_POLICY_FOUND",
+        "retention": [
+          "Plausible states raw IP addresses and full User-Agent values are never stored.",
+          "A daily identifier is derived with a rotating salt; old salts are deleted every 24 hours.",
+          "Plausible states it does not create persistent visitor identifiers and site measurement is aggregate.",
+          "Plausible account/site data can be deleted and is permanently removed without undue delay."
+        ],
+        "sources": [
+          "https://plausible.io/data-policy",
+          "https://plausible.io/privacy",
+          "https://plausible.io/security"
+        ]
+      },
+      "emopetErasureReadiness": {
+        "subjectMapping": "NO_CANONICAL_EMOPET_SUBJECT_IDENTIFIER_IN_CURRENT_ROOT_INTEGRATION",
+        "reason": "Current repository integration does not send user id, dog id, precise location or custom subject properties to Plausible.",
+        "operationalReceiptStatus": "ENVIRONMENT_ENABLEMENT_AND_NO_ADDITIONAL_TRACKING_PATHS_UNVERIFIED",
+        "environmentEvidenceRequired": true
+      }
+    },
+    {
+      "provider": "Open-Meteo",
+      "repositoryFlow": {
+        "status": "ACTIVE_OR_FLAG_GATED_WEB_CONTEXT_INTEGRATION",
+        "paths": [
+          "apps/web/lib/api/adapters/openMeteo.ts",
+          "apps/web/lib/context-engine/orchestrator.ts",
+          "apps/web/lib/weather.ts"
+        ],
+        "dataBoundary": "Weather requests may include latitude/longitude and naturally expose the request IP to the provider.",
+        "canonicalSubjectIdSent": false,
+        "providerObjectIdPersistedByEmopet": false
+      },
+      "publicEvidence": {
+        "status": "OFFICIAL_PUBLIC_POLICY_FOUND",
+        "retention": [
+          "Open-Meteo states free API server logs may contain IP addresses and geographical coordinates for troubleshooting.",
+          "Open-Meteo states all such log files are deleted after 90 days."
+        ],
+        "sources": [
+          "https://open-meteo.com/en/terms"
+        ]
+      },
+      "emopetErasureReadiness": {
+        "subjectMapping": "NO_CANONICAL_EMOPET_SUBJECT_IDENTIFIER",
+        "reason": "The current flow is coordinate/context based rather than account-id based.",
+        "operationalReceiptStatus": "TTL_POLICY_ONLY_NO_SUBJECT_RECEIPT",
+        "environmentEvidenceRequired": true
+      }
+    },
+    {
+      "provider": "OpenWeatherMap",
+      "repositoryFlow": {
+        "status": "ACTIVE_ENV_GATED_BACKEND_INTEGRATION",
+        "paths": [
+          "backend/api/services/weather.ts"
+        ],
+        "dataBoundary": "Backend weather requests send latitude/longitude plus the EMOPET OpenWeatherMap API key when OPENWEATHERMAP_API_KEY is configured.",
+        "canonicalSubjectIdSent": false,
+        "providerObjectIdPersistedByEmopet": false
+      },
+      "publicEvidence": {
+        "status": "RETENTION_AND_SUBJECT_ERASURE_POLICY_NOT_ESTABLISHED_BY_CURRENT_OFFICIAL_EVIDENCE_REVIEW",
+        "confirmedCapability": "Official API documentation confirms weather requests accept latitude/longitude.",
+        "sources": [
+          "https://openweathermap.org/api/one-call-3",
+          "https://openweathermap.org/api/one-call-4"
+        ]
+      },
+      "emopetErasureReadiness": {
+        "subjectMapping": "NO_CANONICAL_EMOPET_SUBJECT_IDENTIFIER",
+        "operationalReceiptStatus": "NOT_AVAILABLE",
+        "environmentEvidenceRequired": true,
+        "blocker": "AUTHORITATIVE_PROVIDER_RETENTION_AND_ERASURE_EVIDENCE_REQUIRED"
+      }
+    },
+    {
+      "provider": "OpenStreetMap_Overpass",
+      "repositoryFlow": {
+        "status": "ACTIVE_RUNTIME_CLIENT_INTEGRATION",
+        "paths": [
+          "apps/web/lib/osm-spots.ts"
+        ],
+        "dataBoundary": "Viewport bounding-box POI queries are sent to the public Overpass endpoint; no EMOPET account/dog identifier is attached.",
+        "canonicalSubjectIdSent": false,
+        "providerObjectIdPersistedByEmopet": false
+      },
+      "publicEvidence": {
+        "status": "OPERATOR_RETENTION_AND_SUBJECT_ERASURE_POLICY_NOT_ESTABLISHED_BY_CURRENT_REVIEW"
+      },
+      "emopetErasureReadiness": {
+        "subjectMapping": "NO_CANONICAL_EMOPET_SUBJECT_IDENTIFIER",
+        "operationalReceiptStatus": "NOT_AVAILABLE",
+        "environmentEvidenceRequired": true,
+        "blocker": "OVERPASS_OPERATOR_LOG_RETENTION_AND_RIGHTS_EVIDENCE_REQUIRED"
+      }
+    }
+  ]
+}

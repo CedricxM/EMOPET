@@ -33,7 +33,7 @@ import { users } from './users.js';
 export const behavioralAssessments = pgTable('behavioral_assessments', {
   id: uuid('id').primaryKey().defaultRandom(),
   dogId: uuid('dog_id').notNull().references(() => dogs.id),
-  respondentUserId: uuid('respondent_user_id').references(() => users.id),
+  respondentUserId: uuid('respondent_user_id').references(() => users.id, { onDelete: 'set null' }),
   respondentRole: varchar('respondent_role', { length: 30 }).notNull().default('owner'),
 
   instrumentCode: varchar('instrument_code', { length: 50 }).notNull(),

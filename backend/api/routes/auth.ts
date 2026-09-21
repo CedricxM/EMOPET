@@ -234,7 +234,7 @@ auth.post('/logout', async (c) => {
       userId: authRefreshSessions.userId, familyId: authRefreshSessions.familyId,
     }).from(authRefreshSessions)
       .where(eq(authRefreshSessions.tokenHash, hashRefreshToken(refreshToken))).limit(1);
-    if (!session || !await lockAuthUser(tx, session.userId)) return;
+    if (!session?.userId || !await lockAuthUser(tx, session.userId)) return;
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${session.familyId}, 0))`);
     const now = new Date();
     // A rotated token still identifies this login session. Revoke its active

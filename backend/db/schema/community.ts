@@ -10,7 +10,7 @@ export const communities = pgTable('communities', {
   latitude: real('latitude'),
   longitude: real('longitude'),
   radiusM: integer('radius_m'),
-  createdBy: uuid('created_by').notNull().references(() => users.id),
+  createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -33,7 +33,7 @@ export const communityRulesAcceptances = pgTable('community_rules_acceptances', 
 export const posts = pgTable('posts', {
   id: uuid('id').primaryKey().defaultRandom(),
   communityId: uuid('community_id').notNull().references(() => communities.id),
-  authorId: uuid('author_id').notNull().references(() => users.id),
+  authorId: uuid('author_id').references(() => users.id),
   type: varchar('type', { length: 20 }).notNull(),
   content: varchar('content', { length: 2000 }).notNull(),
   mediaUrls: jsonb('media_urls').default([]),
@@ -51,20 +51,21 @@ export const posts = pgTable('posts', {
 export const comments = pgTable('comments', {
   id: uuid('id').primaryKey().defaultRandom(),
   postId: uuid('post_id').notNull().references(() => posts.id),
-  authorId: uuid('author_id').notNull().references(() => users.id),
+  authorId: uuid('author_id').references(() => users.id),
   content: varchar('content', { length: 1000 }).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
 export const communityReports = pgTable('community_reports', {
   id: uuid('id').primaryKey().defaultRandom(),
-  reporterUserId: uuid('reporter_user_id').notNull().references(() => users.id),
+  reporterUserId: uuid('reporter_user_id').references(() => users.id, { onDelete: 'set null' }),
   contentType: varchar('content_type', { length: 20 }).notNull().default('post'),
   contentId: uuid('content_id').notNull(),
   communityId: uuid('community_id').notNull(),
   reason: varchar('reason', { length: 20 }).notNull(),
   details: varchar('details', { length: 500 }),
   status: varchar('status', { length: 20 }).notNull().default('open'),
+  finalActionAt: timestamp('final_action_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => [
   index('idx_community_reports_reporter_created').on(
@@ -77,12 +78,13 @@ export const communityReports = pgTable('community_reports', {
     table.contentId,
     table.createdAt.desc().nullsFirst(),
   ),
+  index('idx_community_reports_final_action_at').on(table.finalActionAt),
 ]);
 
 export const communityEvents = pgTable('community_events', {
   id: uuid('id').primaryKey().defaultRandom(),
   communityId: uuid('community_id').notNull().references(() => communities.id),
-  createdBy: uuid('created_by').notNull().references(() => users.id),
+  createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
   title: varchar('title', { length: 200 }).notNull(),
   description: varchar('description', { length: 2000 }),
   location: varchar('location', { length: 200 }).notNull(),

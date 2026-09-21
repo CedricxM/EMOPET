@@ -47,6 +47,25 @@ test('PRIV-ERASURE-TOPOLOGY static controls remain fail closed', () => {
   assert.equal(residue.claimsCompleteErasure, false);
   assert.equal(residue.claimsExecutableErasure, false);
 
+  assert.equal(
+    residue.status,
+    'RELATIONAL_NEGATIVE_RESIDUE_IMPLEMENTED_NON_SQL_PENDING',
+  );
+  for (const key of residue.snapshotKeys) {
+    assert.equal(key.captureStatus, 'IMPLEMENTED_READ_ONLY');
+  }
+  for (const route of residue.relationProbeRoutes) {
+    assert.equal(route.probeStatus, 'IMPLEMENTED_READ_ONLY');
+  }
+  assert.equal(
+    residue.implementationEvidence.service,
+    'backend/api/services/erasure-residue-verification.ts',
+  );
+  assert.equal(
+    residue.implementationEvidence.integrationTest,
+    'backend/test/privacy-erasure-residue-verification.integration.test.mjs',
+  );
+
   assert.deepEqual(
     userLineage.directReferences.map((row) => `${row.table}.${row.column}`).sort(),
     accountTopology.directUserReferences.map((row) => `${row.table}.${row.column}`).sort(),
@@ -63,10 +82,23 @@ test('PRIV-ERASURE-TOPOLOGY static controls remain fail closed', () => {
     'dog lineage and topology must enumerate the same unconstrained dog identifiers',
   );
 
+  const approvedDetaches = new Set([
+    'users.id|DIRECT_FK|behavioral_assessments|respondent_user_id',
+    'users.id|DIRECT_FK|communities|created_by',
+    'users.id|DIRECT_FK|community_events|created_by',
+    'users.id|DIRECT_FK|community_reports|reporter_user_id',
+  ]);
   for (const row of matrix.entries) {
-    assert.equal(row.disposition, 'TO_CONFIRM');
-    assert.equal(row.executionStatus, 'NOT_IMPLEMENTED');
-    assert.equal(row.testEvidence, 'NONE');
+    const key = relationKey(row.subjectRoot, row.relationType, row);
+    if (approvedDetaches.has(key)) {
+      assert.equal(row.disposition, 'DETACH');
+      assert.equal(row.executionStatus, 'IMPLEMENTED');
+      assert.notEqual(row.testEvidence, 'NONE');
+    } else {
+      assert.equal(row.disposition, 'TO_CONFIRM');
+      assert.equal(row.executionStatus, 'NOT_IMPLEMENTED');
+      assert.equal(row.testEvidence, 'NONE');
+    }
   }
   for (const surface of matrix.nonSqlSurfaces) {
     assert.equal(surface.disposition, 'TO_CONFIRM');
@@ -114,7 +146,47 @@ test('PRIV-ERASURE-TOPOLOGY static controls remain fail closed', () => {
       assert.deepEqual(row.inventoryCategories, []);
     }
   }
-  assert.ok(unclassified.length > 0, 'classification gaps must remain explicit until separately authorized');
+  assert.deepEqual(
+    sorted(unclassified),
+    sorted([
+      'research_data_consents',
+      'subscriptions',
+    ]),
+    'only genuinely ambiguous product/legal lifecycle classifications should remain open',
+  );
+
+  const mappedByTable = Object.fromEntries(coverage.tables.map((row) => [row.table, row]));
+  for (const [table, category] of [
+    ['baselines', 'sensor_preprocessed'],
+    ['dog_sub_baselines', 'sensor_preprocessed'],
+    ['baseline_drift_monitor', 'sensor_preprocessed'],
+    ['anticipation_events', 'eli_inferred'],
+    ['recovery_events', 'eli_inferred'],
+    ['routine_stability', 'eli_inferred'],
+    ['walk_quality', 'eli_inferred'],
+    ['eli_behavioral_priors', 'eli_inferred'],
+    ['achievements', 'account'],
+    ['auth_refresh_sessions', 'account'],
+    ['copresence_events', 'location'],
+    ['ai_messages', 'ai_messages'],
+  ]) {
+    assert.equal(mappedByTable[table].classificationStatus, 'MAPPED_TO_EXISTING_PRIVACY_CATEGORY');
+    assert.deepEqual(mappedByTable[table].inventoryCategories, [category]);
+    assert.equal(typeof mappedByTable[table].mappingRationale, 'string');
+    assert.ok(mappedByTable[table].mappingRationale.length > 0);
+  assert.equal(mappedByTable.behavioral_assessments.classificationStatus, 'MAPPED_TO_EXISTING_PRIVACY_CATEGORY');
+  assert.deepEqual(
+    mappedByTable.behavioral_assessments.inventoryCategories,
+    ['behavioral_assessment_product', 'research_validation'],
+  );
+  assert.match(mappedByTable.behavioral_assessments.mappingRationale, /administration_mode='research'/);
+  assert.match(mappedByTable.behavioral_assessments.mappingRationale, /product rows/);
+
+  assert.equal(mappedByTable.user_config.classificationStatus, 'MAPPED_TO_EXISTING_PRIVACY_CATEGORY');
+  assert.deepEqual(mappedByTable.user_config.inventoryCategories, ['account', 'dog_profile']);
+  assert.equal(typeof mappedByTable.user_config.mappingRationale, 'string');
+
+  }
 });
 
 test('PRIV-ERASURE-TOPOLOGY matches generated PostgreSQL FK/delete mechanics', {

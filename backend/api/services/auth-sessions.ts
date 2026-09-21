@@ -10,7 +10,7 @@ export type SessionRevokeReason = 'logout' | 'logout_all' | 'rotated' | 'reuse_d
 
 export interface RefreshSessionRecord {
   id: string;
-  userId: string;
+  userId: string | null;
   familyId: string;
   tokenHash: string;
   expiresAt: Date;
@@ -75,7 +75,7 @@ export async function rotateRefreshCredential(
 ): Promise<RotateRefreshResult> {
   const tokenHash = hashRefreshToken(rawToken);
   const observed = await repository.findByTokenHash(tokenHash);
-  if (!observed) return { ok: false, reason: 'invalid_or_expired' };
+  if (!observed || !observed.userId) return { ok: false, reason: 'invalid_or_expired' };
 
   if (!await repository.lockUser(observed.userId)) {
     return { ok: false, reason: 'invalid_or_expired' };
@@ -83,7 +83,7 @@ export async function rotateRefreshCredential(
   await repository.lockFamily(observed.familyId);
 
   const current = await repository.findByTokenHash(tokenHash);
-  if (!current || current.familyId !== observed.familyId || current.userId !== observed.userId) {
+  if (!current || !current.userId || current.familyId !== observed.familyId || current.userId !== observed.userId) {
     return { ok: false, reason: 'invalid_or_expired' };
   }
   const now = clock();
