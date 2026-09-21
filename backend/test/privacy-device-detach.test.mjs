@@ -17,7 +17,7 @@ test('device dog binding is detachable in schema and migration', async () => {
     /export const devices = pgTable\('devices'[\s\S]*dogId: uuid\('dog_id'\)\.references\(\(\) => dogs\.id, \{ onDelete: 'set null' \}\)/,
   );
   assert.equal(
-    /export const devices = pgTable\('devices'[\s\S]*dogId: uuid\('dog_id'\)\.notNull\(\)/.test(schema),
+    /dogId: uuid\('dog_id'\)\.notNull\(\)\.references\(\(\) => dogs\.id\)/.test(schema),
     false,
   );
 
