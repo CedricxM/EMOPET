@@ -206,7 +206,14 @@
       "finalDisposition": "DELETE_AT_EXPIRY_OR_FEATURE_SESSION_END_WHICHEVER_IS_EARLIER",
       "holdConditions": [],
       "purgeEvidence": "REQUIRED",
-      "authority": "PRODUCT_APPROVED_HIGH_RISK_EXCEPTION"
+      "authority": "PRODUCT_APPROVED_HIGH_RISK_EXCEPTION",
+      "readinessStatus": "IMPLEMENTED_READ_ONLY_MAX_WINDOW",
+      "readinessEvidence": [
+        "backend/api/services/exact-location-retention-readiness.ts",
+        "backend/test/exact-location-retention-readiness.test.mjs",
+        "backend/test/exact-location-retention-readiness.integration.test.mjs"
+      ],
+      "readinessBoundary": "MAX_24_HOURS_ONLY_SESSION_END_MAY_REQUIRE_EARLIER_DELETION"
     },
     {
       "id": "coarse_location_context",
