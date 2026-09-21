@@ -98,6 +98,8 @@ function validCounts(counts: ExactLocationRetentionCounts): boolean {
 
 const postgresRepository: ExactLocationRetentionRepository = {
   async countAt(cutoffAt) {
+    const cutoffIso = cutoffAt.toISOString();
+
     return db.transaction(async (tx) => {
       await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY`);
       await tx.execute(sql`SET LOCAL statement_timeout = '10s'`);
@@ -119,17 +121,17 @@ const postgresRepository: ExactLocationRetentionRepository = {
           beyondMaxWindowTotal: sql<number>`count(*) FILTER (
             WHERE (${copresenceEvents.latitude} IS NOT NULL
                 OR ${copresenceEvents.longitude} IS NOT NULL)
-              AND ${copresenceEvents.occurredAt} <= ${cutoffAt}
+              AND ${copresenceEvents.occurredAt} <= ${cutoffIso}::timestamptz
           )::int`,
           beyondMaxWindowCompletePairs: sql<number>`count(*) FILTER (
             WHERE ${copresenceEvents.latitude} IS NOT NULL
               AND ${copresenceEvents.longitude} IS NOT NULL
-              AND ${copresenceEvents.occurredAt} <= ${cutoffAt}
+              AND ${copresenceEvents.occurredAt} <= ${cutoffIso}::timestamptz
           )::int`,
           beyondMaxWindowPartialRows: sql<number>`count(*) FILTER (
             WHERE (${copresenceEvents.latitude} IS NULL)
                <> (${copresenceEvents.longitude} IS NULL)
-              AND ${copresenceEvents.occurredAt} <= ${cutoffAt}
+              AND ${copresenceEvents.occurredAt} <= ${cutoffIso}::timestamptz
           )::int`,
         })
         .from(copresenceEvents);
@@ -185,10 +187,7 @@ export async function inspectExactLocationRetention(
       counts,
       policyBoundary: 'MAX_24_HOURS_ONLY_SESSION_END_MAY_REQUIRE_EARLIER_DELETION',
     };
-  } catch (error) {
-    if (process.env.EXACT_LOCATION_RETENTION_DB_INTEGRATION === '1') {
-      console.error('EXACT_LOCATION_RETENTION_DB_ERROR', error);
-    }
+  } catch {
     return failure('database_unavailable', true);
   }
 }
