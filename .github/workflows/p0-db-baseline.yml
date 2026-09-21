@@ -18,6 +18,8 @@ on:
       - 'backend/api/services/community-*.ts'
       - 'backend/api/routes/directory.ts'
       - 'backend/test/*.integration.test.mjs'
+      - 'backend/api/services/*retention*.ts'
+      - 'backend/test/*retention*.test.mjs'
       - 'backend/api/services/ai-zero-durable-retention-readiness.ts'
       - 'backend/test/ai-zero-durable-retention-readiness.test.mjs'
       - 'backend/api/services/moderation-retention-readiness.ts'
