@@ -235,6 +235,9 @@ test('device metadata has detachable schema and future unbind-clock support whil
   );
   assert.match(detachMigration, /ALTER TABLE "devices" ALTER COLUMN "dog_id" DROP NOT NULL/);
   assert.match(detachMigration, /ON DELETE SET NULL/);
+  assert.match(clockMigration, /DROP CONSTRAINT IF EXISTS "devices_dog_id_fkey"/);
+  assert.match(clockMigration, /ADD CONSTRAINT "devices_dog_id_dogs_id_fk"/);
+  assert.match(clockMigration, /ON DELETE SET NULL ON UPDATE NO ACTION/);
   assert.match(clockMigration, /ADD COLUMN IF NOT EXISTS "unbound_at" TIMESTAMPTZ/);
   assert.match(clockMigration, /OLD\.dog_id IS NOT NULL AND NEW\.dog_id IS NULL/);
   assert.match(clockMigration, /NEW\.unbound_at = NOW\(\)/);
