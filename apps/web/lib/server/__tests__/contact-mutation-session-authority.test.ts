@@ -38,5 +38,6 @@ test('contact PATCH preserves demo kill gate before session-only privileged muta
   assert.ok(params < body);
   assert.ok(body < mutation);
   assert.equal(patch.includes("'contact.request.manage'"), true);
-  assert.equal(patch.includes('LEGACY_DEMO_ONLY'), true);
+  assert.equal(source.includes('LEGACY_DEMO_ONLY'), true);
+  assert.equal(patch.includes('demoJson('), true);
 });
