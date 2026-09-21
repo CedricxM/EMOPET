@@ -19,7 +19,7 @@ export const dogs = pgTable('dogs', {
 
 export const devices = pgTable('devices', {
   id: uuid('id').primaryKey().defaultRandom(),
-  dogId: uuid('dog_id').notNull().references(() => dogs.id),
+  dogId: uuid('dog_id').references(() => dogs.id, { onDelete: 'set null' }),
   type: varchar('type', { length: 5 }).notNull(), // MAT, TAG
   macAddress: varchar('mac_address', { length: 17 }).notNull().unique(),
   firmwareVersion: varchar('firmware_version', { length: 20 }),

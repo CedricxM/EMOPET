@@ -84,10 +84,15 @@
         "REMOVE_OR_PSEUDONYMIZE_DIRECT_DEVICE_IDENTIFIERS_WHEN_NO_LONGER_NEEDED",
         "DELETE_OR_IRREVERSIBLY_PSEUDONYMIZE_AT_WINDOW_END"
       ],
-      "currentSchemaConstraint": "dog_id is NOT NULL and NO ACTION, so current schema cannot retain device metadata while deleting the dog.",
-      "implementationConsequence": "Future implementation needs nullable/detached device ownership or a separate retained security-metadata representation before destructive dog erasure.",
+      "currentSchemaConstraint": "dog_id is nullable with ON DELETE SET NULL, so dog deletion can detach the device binding without deleting retained device metadata.",
+      "implementationConsequence": "Schema support for immediate unbind is implemented; the future executor must still enforce the bounded post-unbind retention, identifier minimisation and final purge/pseudonymisation lifecycle.",
       "newHumanDecisionRequired": false,
-      "promotionAuthorized": false
+      "promotionAuthorized": false,
+      "schemaSupportStatus": "IMPLEMENTED",
+      "schemaSupportEvidence": [
+        "backend/db/schema/dogs.ts",
+        "backend/db/migrations/0007_device_dog_detach.sql"
+      ]
     },
     {
       "relation": "dogs.id|DIRECT_FK|behavioral_assessments|dog_id",
