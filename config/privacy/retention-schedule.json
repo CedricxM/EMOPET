@@ -423,5 +423,26 @@
       "purgeEvidence": "REQUIRED",
       "authority": "PRODUCT_APPROVED_CANDIDATE"
     }
-  ]
+  ],
+  "executionPlanning": {
+    "status": "IMPLEMENTED_READ_ONLY_AGGREGATE_DRY_RUN",
+    "mode": "DRY_RUN_ONLY",
+    "destructiveActionAuthorized": false,
+    "claimsCrossCategorySnapshotAtomic": false,
+    "evidence": [
+      "backend/api/services/retention-execution-plan.ts",
+      "backend/test/retention-execution-plan.test.mjs",
+      "backend/test/retention-execution-plan.integration.test.mjs",
+      ".github/workflows/p0-db-baseline.yml"
+    ],
+    "scope": [
+      "auth_refresh_sessions",
+      "exact_location",
+      "sensor_preprocessed_detailed",
+      "eli_inferred_detailed",
+      "moderation_evidence",
+      "ai_messages"
+    ],
+    "boundary": "AGGREGATE_SIGNAL_COUNTS_ONLY_NO_ROW_IDS_NO_MUTATION_NO_PURGE_AUTHORITY_PER_PROBE_TRANSACTIONS_NOT_CROSS_CATEGORY_ATOMIC"
+  }
 }
