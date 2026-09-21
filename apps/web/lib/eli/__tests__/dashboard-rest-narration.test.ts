@@ -43,7 +43,14 @@ const ROWS = [
 ] as const;
 
 function placeholders(template: string): string[] {
-  return [...template.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
+  // `noUncheckedIndexedAccess` type le groupe capturant `string | undefined`,
+  // alors qu'un `match` de cette expression en porte toujours un.
+  const names: string[] = [];
+  for (const match of template.matchAll(/\{(\w+)\}/g)) {
+    const name = match[1];
+    if (name !== undefined) names.push(name);
+  }
+  return names.sort();
 }
 
 /** Le fragment JSX de la ligne qui rend cette clé de texte. */
