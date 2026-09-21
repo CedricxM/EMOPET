@@ -2,6 +2,10 @@ import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import {
+  validateAiMessageWriteGuard,
+  withAiMessageWriteGuardTemporarilyDropped,
+} from './helpers/ai-message-fixture.mjs';
 
 const enabled = process.env.ERASURE_RESIDUE_DB_INTEGRATION === '1';
 
@@ -45,6 +49,7 @@ async function cleanup() {
   await sql`DELETE FROM research_data_consents WHERE id = ${CONSENT_A}`;
   await sql`DELETE FROM auth_refresh_sessions WHERE id = ${SESSION_A}`;
   await sql`DELETE FROM ai_messages WHERE id = ${MESSAGE_A}`;
+  await validateAiMessageWriteGuard(sql);
   await sql`DELETE FROM copresence_events WHERE id = ${COPRESENCE_A}`;
   await sql`DELETE FROM user_config WHERE user_id IN (${USER_A}, ${USER_B})`;
   await sql`DELETE FROM achievements WHERE user_id IN (${USER_A}, ${USER_B})`;
@@ -136,10 +141,12 @@ test('snapshot capture and residue verification survive parent deletion without 
     INSERT INTO user_config (user_id, dog_id, config_key, config_value)
     VALUES (${USER_A}, ${DOG_A}, 'erasure-test', '{}'::jsonb)
   `;
-  await sql`
-    INSERT INTO ai_messages (id, category, target_user_id, dog_id, content)
-    VALUES (${MESSAGE_A}, 'system', ${USER_A}, ${DOG_A}, 'erasure-test')
-  `;
+  await withAiMessageWriteGuardTemporarilyDropped(sql, async (tx) => {
+    await tx`
+      INSERT INTO ai_messages (id, category, target_user_id, dog_id, content)
+      VALUES (${MESSAGE_A}, 'system', ${USER_A}, ${DOG_A}, 'erasure-test')
+    `;
+  });
   await sql`
     INSERT INTO auth_refresh_sessions (
       id, user_id, family_id, token_hash, expires_at
@@ -259,6 +266,7 @@ test('snapshot capture and residue verification survive parent deletion without 
   await sql`DELETE FROM research_data_consents WHERE id = ${CONSENT_A}`;
   await sql`DELETE FROM auth_refresh_sessions WHERE id = ${SESSION_A}`;
   await sql`DELETE FROM ai_messages WHERE id = ${MESSAGE_A}`;
+  await validateAiMessageWriteGuard(sql);
   await sql`DELETE FROM copresence_events WHERE id = ${COPRESENCE_A}`;
   await sql`DELETE FROM user_config WHERE user_id = ${USER_A}`;
   await sql`DELETE FROM achievements WHERE user_id = ${USER_A}`;
