@@ -189,7 +189,7 @@ export async function captureErasureVerificationSnapshot(
 
   try {
     return await db.transaction(async (tx) => {
-      await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY`);
+      await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ`);
       await tx.execute(sql`SET LOCAL lock_timeout = '5s'`);
       await tx.execute(sql`SET LOCAL statement_timeout = '10s'`);
 
