@@ -22,14 +22,14 @@ const [matrix, packet, semantics] = await Promise.all([
 const key = (row) =>
   [row.subjectRoot, row.relationType, row.table, row.column].join('|');
 
-test('conditional semantics preserve fail-closed erasure with four approved matrix promotions', () => {
+test('conditional semantics preserve fail-closed erasure with five implemented detach promotions', () => {
   assert.equal(
     semantics.schemaVersion,
     'emopet-erasure-conditional-semantics-v1',
   );
   assert.equal(
     semantics.status,
-    'FOUR_PRODUCT_PRIVACY_DECISIONS_PROMOTED_LEGAL_PRIVACY_DECISION_REMAINS',
+    'FOUR_PRODUCT_PRIVACY_DECISIONS_PLUS_DEVICE_DETACH_PROMOTED_LEGAL_PRIVACY_DECISION_REMAINS',
   );
   assert.equal(semantics.claimsExecutableErasure, false);
   assert.equal(semantics.claimsCompleteErasure, false);
@@ -37,11 +37,20 @@ test('conditional semantics preserve fail-closed erasure with four approved matr
     conditionalRowsTotal: 12,
     semanticsAlreadyDeterminedByExistingPolicy: 7,
     authorityDecisionsStillRequired: 1,
-    matrixRowsPromoted: 4,
+    matrixRowsPromoted: 5,
     productPrivacyDecisionsApproved: 4,
   });
 
-  for (const row of [...semantics.policyDetermined, ...semantics.authorityDecisionsRemaining]) {
+  for (const row of semantics.policyDetermined) {
+    if (row.relation === 'dogs.id|DIRECT_FK|devices|dog_id') {
+      assert.equal(row.promotionAuthorized, true);
+      assert.equal(row.executionStatus, 'IMPLEMENTED');
+      assert.equal(row.matrixDisposition, 'DETACH');
+    } else {
+      assert.equal(row.promotionAuthorized, false);
+    }
+  }
+  for (const row of semantics.authorityDecisionsRemaining) {
     assert.equal(row.promotionAuthorized, false);
   }
   for (const row of semantics.productPrivacyDecisionsApproved) {
@@ -49,7 +58,12 @@ test('conditional semantics preserve fail-closed erasure with four approved matr
     assert.equal(row.executionStatus, 'IMPLEMENTED');
   }
 
-  const promoted = new Set(semantics.productPrivacyDecisionsApproved.map((row) => row.relation));
+  const promoted = new Set([
+    ...semantics.productPrivacyDecisionsApproved.map((row) => row.relation),
+    ...semantics.policyDetermined
+      .filter((row) => row.promotionAuthorized === true)
+      .map((row) => row.relation),
+  ]);
   for (const row of matrix.entries) {
     if (promoted.has(key(row))) {
       assert.equal(row.disposition, 'DETACH');
@@ -114,7 +128,11 @@ test('refresh-session semantics preserve the already-approved revoke-now then de
     'DELETE_EXPIRED_SESSION_ROWS',
     'DELETE_ACCOUNT_ROOT_NO_LATER_THAN_APPROVED_ACCOUNT_CLOSURE_WINDOW',
   ]);
-  assert.match(row.currentSchemaConstraint, /NOT NULL/);
+  assert.match(row.currentSchemaConstraint, /nullable/i);
+  assert.match(row.currentSchemaConstraint, /SET NULL/);
+  assert.equal(row.promotionAuthorized, true);
+  assert.equal(row.executionStatus, 'IMPLEMENTED');
+  assert.equal(row.matrixDisposition, 'DETACH');
   assert.match(row.implementationConsequence, /stage account erasure/i);
 });
 
@@ -150,7 +168,7 @@ test('behavioral dog-side children inherit parent product-vs-research authority 
   }
 });
 
-test('device metadata needs schema support for detach but no new product-retention choice', async () => {
+test('device metadata detach is implemented without changing the approved bounded-retention policy', async () => {
   const row = semantics.policyDetermined.find(
     (item) => item.relation === 'dogs.id|DIRECT_FK|devices|dog_id',
   );
@@ -161,7 +179,7 @@ test('device metadata needs schema support for detach but no new product-retenti
   const dogsSchema = await source('backend/db/schema/dogs.ts');
   assert.match(
     dogsSchema,
-    /export const devices = pgTable\('devices'[\s\S]*dogId: uuid\('dog_id'\)\.notNull\(\)\.references/,
+    /export const devices = pgTable\('devices'[\s\S]*dogId: uuid\('dog_id'\)\.references\(\(\) => dogs\.id, \{ onDelete: 'set null' \}\)/,
   );
 });
 
