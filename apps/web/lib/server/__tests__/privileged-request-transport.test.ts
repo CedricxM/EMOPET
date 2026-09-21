@@ -15,7 +15,7 @@ test('request without Authorization may use the separately read privileged sessi
   const verifier: PrivilegedAuthorizationVerifier = {
     async authorize(input) {
       assert.deepEqual(input, { token: SESSION_TOKEN, action: ACTION });
-      return { status: 'AUTHORIZED', subject: ADMIN_ID, action: ACTION };
+      return { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'admin', action: ACTION };
     },
   };
 
@@ -26,7 +26,7 @@ test('request without Authorization may use the separately read privileged sessi
       ACTION,
       verifier,
     ),
-    { status: 'AUTHORIZED', subject: ADMIN_ID, action: ACTION },
+    { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'admin', action: ACTION },
   );
 });
 
@@ -34,7 +34,7 @@ test('explicit valid Bearer authority is terminal and ignores the session token'
   const verifier: PrivilegedAuthorizationVerifier = {
     async authorize(input) {
       assert.deepEqual(input, { token: BEARER_TOKEN, action: ACTION });
-      return { status: 'AUTHORIZED', subject: ADMIN_ID, action: ACTION };
+      return { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'admin', action: ACTION };
     },
   };
 
@@ -47,7 +47,7 @@ test('explicit valid Bearer authority is terminal and ignores the session token'
       ACTION,
       verifier,
     ),
-    { status: 'AUTHORIZED', subject: ADMIN_ID, action: ACTION },
+    { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'admin', action: ACTION },
   );
 });
 
@@ -56,7 +56,7 @@ test('explicit malformed Authorization never falls back to a valid session', asy
   const verifier: PrivilegedAuthorizationVerifier = {
     async authorize() {
       calls += 1;
-      return { status: 'AUTHORIZED', subject: ADMIN_ID, action: ACTION };
+      return { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'admin', action: ACTION };
     },
   };
 
