@@ -144,6 +144,14 @@ jobs:
       - name: Repeatability — complete schema dump
         run: diff -u /tmp/schema-a.sql /tmp/schema-b.sql
 
+      - name: PRIV-RETENTION device unbind clock on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          DEVICE_UNBIND_RETENTION_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/device-unbind-retention-clock.integration.test.mjs
+
       - name: Build backend dependency closure
         run: pnpm --filter @emopet/api... build
 
