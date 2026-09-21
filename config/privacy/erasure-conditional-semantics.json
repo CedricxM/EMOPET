@@ -41,7 +41,7 @@
       "schemaSupportStatus": "IMPLEMENTED",
       "schemaSupportEvidence": [
         "backend/db/schema/auth-sessions.ts",
-        "backend/db/migrations/0008_refresh_session_user_detach.sql",
+        "backend/db/migrations/0009_refresh_session_user_detach.sql",
         "backend/api/services/auth-sessions.ts",
         "backend/api/routes/auth.ts"
       ]
