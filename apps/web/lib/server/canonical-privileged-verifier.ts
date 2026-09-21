@@ -28,13 +28,22 @@ export function createCanonicalPrivilegedAuthorizationVerifier(
         now: options.now?.(),
       });
 
-      if (result.status !== 'AUTHORIZED') {
+      if (result.status === 'DENIED') {
+        if (result.reason === 'action_not_allowed') {
+          return {
+            status: 'DENIED' as const,
+            subject: result.subject,
+            role: result.role,
+            action: result.action,
+          };
+        }
         return { status: 'DENIED' as const };
       }
 
       return {
         status: 'AUTHORIZED' as const,
         subject: result.subject,
+        role: result.role,
         action,
       };
     },

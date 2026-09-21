@@ -45,11 +45,11 @@ test('canonical adapter authorizes an admin token only for the requested finite 
 
   assert.deepEqual(
     await authorizePrivilegedRequest(requestWith(token), ACTION, verifierFor()),
-    { status: 'AUTHORIZED', subject: ADMIN_ID, action: ACTION },
+    { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'admin', action: ACTION },
   );
 });
 
-test('canonical adapter maps a valid but unauthorized role to bounded denial', async () => {
+test('canonical adapter retains verified support identity on bounded RBAC denial', async () => {
   const token = await signPrivilegedAccessToken({
     subject: SUPPORT_ID,
     role: 'support',
@@ -62,7 +62,7 @@ test('canonical adapter maps a valid but unauthorized role to bounded denial', a
 
   assert.deepEqual(
     await authorizePrivilegedRequest(requestWith(token), ACTION, verifierFor()),
-    { status: 'DENIED', reason: 'not_authorized' },
+    { status: 'DENIED', reason: 'not_authorized', subject: SUPPORT_ID, role: 'support', action: ACTION },
   );
 });
 
@@ -88,11 +88,17 @@ test('canonical adapter enforces contact.request.read through the same package a
 
   assert.deepEqual(
     await authorizePrivilegedRequest(requestWith(adminToken), CONTACT_ACTION, verifierFor()),
-    { status: 'AUTHORIZED', subject: ADMIN_ID, action: CONTACT_ACTION },
+    { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'admin', action: CONTACT_ACTION },
   );
   assert.deepEqual(
     await authorizePrivilegedRequest(requestWith(supportToken), CONTACT_ACTION, verifierFor()),
-    { status: 'DENIED', reason: 'not_authorized' },
+    {
+      status: 'DENIED',
+      reason: 'not_authorized',
+      subject: SUPPORT_ID,
+      role: 'support',
+      action: CONTACT_ACTION,
+    },
   );
 });
 

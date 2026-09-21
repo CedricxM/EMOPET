@@ -13,7 +13,7 @@ test('contact read preserves owner scope only when Authorization is absent', asy
   const verifier: PrivilegedAuthorizationVerifier = {
     async authorize() {
       calls += 1;
-      return { status: 'AUTHORIZED', subject: ADMIN_ID, action: ACTION };
+      return { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'admin', action: ACTION };
     },
   };
 
@@ -35,7 +35,7 @@ test('contact read requests exactly contact.request.read for a privileged bearer
   const verifier: PrivilegedAuthorizationVerifier = {
     async authorize(input) {
       assert.deepEqual(input, { token: TOKEN, action: ACTION });
-      return { status: 'AUTHORIZED', subject: ADMIN_ID, action: ACTION };
+      return { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'admin', action: ACTION };
     },
   };
 
@@ -46,7 +46,7 @@ test('contact read requests exactly contact.request.read for a privileged bearer
       }),
       verifier,
     ),
-    { status: 'AUTHORIZED', subject: ADMIN_ID, action: ACTION },
+    { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'admin', action: ACTION },
   );
 });
 

@@ -128,8 +128,28 @@ test('authorization composes verified token assurance with the exact finite acti
       key,
       now: new Date('2026-09-04T09:01:00.000Z'),
     }),
-    { status: 'DENIED', reason: 'action_not_allowed' },
+    {
+      status: 'DENIED',
+      reason: 'action_not_allowed',
+      subject: SUPPORT_ID,
+      role: 'support',
+      action: 'moderation.queue.read',
+    },
   );
+});
+
+test('invalid tokens remain anonymous denials and cannot contribute actor identity', async () => {
+  const result = await authorizePrivilegedAccessToken({
+    token: 'not-a-valid-privileged-jwt-1234567890',
+    action: 'moderation.queue.read',
+    key,
+    now: new Date('2026-09-04T09:01:00.000Z'),
+  });
+
+  assert.deepEqual(result, { status: 'DENIED', reason: 'invalid_token' });
+  assert.equal('subject' in result, false);
+  assert.equal('role' in result, false);
+  assert.equal('action' in result, false);
 });
 
 test('expired privileged tokens fail closed', async () => {

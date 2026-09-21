@@ -8,6 +8,7 @@ import {
 } from '../privileged-request';
 
 const ADMIN_ID = '11111111-1111-4111-8111-111111111111';
+const SUPPORT_ID = '22222222-2222-4222-8222-222222222222';
 const ACTION = 'moderation.queue.read' as const;
 
 test('privileged request requires a Bearer credential and ignores legacy admin headers', async () => {
@@ -15,7 +16,7 @@ test('privileged request requires a Bearer credential and ignores legacy admin h
   const verifier: PrivilegedAuthorizationVerifier = {
     async authorize() {
       calls += 1;
-      return { status: 'AUTHORIZED', subject: ADMIN_ID, action: ACTION };
+      return { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'admin', action: ACTION };
     },
   };
 
@@ -46,7 +47,7 @@ test('privileged request authorizes only the exact action returned by the verifi
   const verifier: PrivilegedAuthorizationVerifier = {
     async authorize(input) {
       assert.deepEqual(input, { token, action: ACTION });
-      return { status: 'AUTHORIZED', subject: ADMIN_ID, action: ACTION };
+      return { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'admin', action: ACTION };
     },
   };
 
@@ -58,12 +59,12 @@ test('privileged request authorizes only the exact action returned by the verifi
       ACTION,
       verifier,
     ),
-    { status: 'AUTHORIZED', subject: ADMIN_ID, action: ACTION },
+    { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'admin', action: ACTION },
   );
 
   const wrongActionVerifier: PrivilegedAuthorizationVerifier = {
     async authorize() {
-      return { status: 'AUTHORIZED', subject: ADMIN_ID, action: 'moderation.post.manage' };
+      return { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'admin', action: 'moderation.post.manage' };
     },
   };
   assert.deepEqual(
@@ -75,6 +76,32 @@ test('privileged request authorizes only the exact action returned by the verifi
       wrongActionVerifier,
     ),
     { status: 'UNAVAILABLE', reason: 'verifier_invalid_result' },
+  );
+});
+
+test('authenticated RBAC denial retains bounded verified identity while remaining denied', async () => {
+  const req = new Request('https://example.test/api/admin/moderation', {
+    headers: { authorization: 'Bearer privileged-token-value-1234567890' },
+  });
+
+  assert.deepEqual(
+    await authorizePrivilegedRequest(req, ACTION, {
+      async authorize() {
+        return {
+          status: 'DENIED',
+          subject: SUPPORT_ID,
+          role: 'support',
+          action: ACTION,
+        };
+      },
+    }),
+    {
+      status: 'DENIED',
+      reason: 'not_authorized',
+      subject: SUPPORT_ID,
+      role: 'support',
+      action: ACTION,
+    },
   );
 });
 
