@@ -18,6 +18,8 @@ on:
       - 'backend/api/services/community-*.ts'
       - 'backend/api/routes/directory.ts'
       - 'backend/test/*.integration.test.mjs'
+      - 'backend/api/services/ai-zero-durable-retention-readiness.ts'
+      - 'backend/test/ai-zero-durable-retention-readiness.test.mjs'
       - 'backend/api/services/moderation-retention-readiness.ts'
       - 'backend/test/moderation-retention-readiness.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
@@ -186,6 +188,14 @@ jobs:
         env:
           GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: psql "$GENERATED_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/id-01-referential-integrity.sql
+
+      - name: PRIV-RETENTION AI zero-durable negative evidence
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          AI_ZERO_DURABLE_RETENTION_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/ai-zero-durable-retention-readiness.integration.test.mjs
 
       - name: PRIV-RETENTION exact-location max-window readiness
         working-directory: backend
