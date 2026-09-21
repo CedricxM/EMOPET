@@ -21,20 +21,21 @@ const approvedDetaches = new Set([
   'users.id|DIRECT_FK|communities|created_by',
   'users.id|DIRECT_FK|community_events|created_by',
   'users.id|DIRECT_FK|community_reports|reporter_user_id',
+  'dogs.id|DIRECT_FK|devices|dog_id',
 ]);
 
-test('decision packet records four approved detach rows while complete erasure remains fail closed', () => {
+test('decision packet records five implemented detach rows while complete erasure remains fail closed', () => {
   assert.equal(
     packet.schemaVersion,
     'emopet-erasure-disposition-decision-packet-v1',
   );
   assert.equal(
     packet.status,
-    'FOUR_PRODUCT_PRIVACY_DISPOSITIONS_PROMOTED_REMAINDER_DECISION_SUPPORT',
+    'FIVE_RELATIONAL_DISPOSITIONS_PROMOTED_REMAINDER_DECISION_SUPPORT',
   );
   assert.equal(packet.claimsExecutableErasure, false);
   assert.equal(packet.claimsCompleteErasure, false);
-  assert.equal(packet.summary.matrixRowsPromoted, 4);
+  assert.equal(packet.summary.matrixRowsPromoted, 5);
 
   for (const row of packet.relations) {
     if (approvedDetaches.has(relationKey(row))) {
@@ -42,7 +43,12 @@ test('decision packet records four approved detach rows while complete erasure r
       assert.equal(row.disposition, 'DETACH');
       assert.equal(row.candidateDisposition, 'DETACH');
       assert.equal(row.executionStatus, 'IMPLEMENTED');
-      assert.equal(row.approvalRef, '#446');
+      assert.equal(
+        row.approvalRef,
+        relationKey(row) === 'dogs.id|DIRECT_FK|devices|dog_id'
+          ? 'config/privacy/retention-schedule.json#device_binding_admin_metadata'
+          : '#446',
+      );
     } else {
       assert.equal(row.promotionAuthorized, false);
     }
@@ -81,7 +87,7 @@ test('decision grouping counts remain explicit and exhaustive', () => {
     policyAlignedDeleteCandidates: 22,
     policyConditionalExecutionRequired: 12,
     legalAuthorityBlocked: 3,
-    matrixRowsPromoted: 4,
+    matrixRowsPromoted: 5,
   });
 
   const counts = Object.fromEntries(
@@ -128,7 +134,7 @@ test('policy-aligned candidates are DELETE-only suggestions backed by current pr
   for (const key of required) assert.ok(keys.has(key), key);
 });
 
-test('conditional rows distinguish approved D1-D4 detach from still-unresolved execution semantics', () => {
+test('conditional rows distinguish implemented detach relations from still-unresolved execution semantics', () => {
   const conditional = Object.fromEntries(
     packet.relations
       .filter((row) => row.decisionSupportStatus === 'POLICY_CONDITIONAL_EXECUTION_REQUIRED')
