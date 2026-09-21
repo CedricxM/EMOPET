@@ -12,12 +12,19 @@ test('device dog binding is detachable in schema and migration', async () => {
     source('backend/db/migrations/0007_device_detach_on_dog_erasure.sql'),
   ]);
 
+  const devicesStart = schema.indexOf("export const devices = pgTable('devices'");
+  const nextExport = schema.indexOf('\nexport const ', devicesStart + 1);
+  const devicesBlock = schema.slice(
+    devicesStart,
+    nextExport === -1 ? schema.length : nextExport,
+  );
+  assert.ok(devicesStart >= 0);
   assert.match(
-    schema,
-    /export const devices = pgTable\('devices'[\s\S]*dogId: uuid\('dog_id'\)\.references\(\(\) => dogs\.id, \{ onDelete: 'set null' \}\)/,
+    devicesBlock,
+    /dogId: uuid\('dog_id'\)\.references\(\(\) => dogs\.id, \{ onDelete: 'set null' \}\)/,
   );
   assert.equal(
-    /dogId: uuid\('dog_id'\)\.notNull\(\)\.references\(\(\) => dogs\.id\)/.test(schema),
+    /dogId: uuid\('dog_id'\)\.notNull\(\)/.test(devicesBlock),
     false,
   );
 
