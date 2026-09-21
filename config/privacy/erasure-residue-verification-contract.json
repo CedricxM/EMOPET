@@ -1,28 +1,32 @@
 {
   "schemaVersion": "emopet-erasure-residue-verification-contract-v1",
-  "status": "NEGATIVE_RESIDUE_VERIFICATION_NOT_IMPLEMENTED",
+  "status": "RELATIONAL_NEGATIVE_RESIDUE_IMPLEMENTED_NON_SQL_PENDING",
   "claimsExecutableErasure": false,
   "claimsCompleteErasure": false,
   "snapshotKeys": [
     {
       "key": "ACCOUNT_ID",
       "source": "users.id",
-      "captureRule": "CAPTURE_TARGET_ACCOUNT_ID_BEFORE_ANY_FUTURE_MUTATION"
+      "captureRule": "CAPTURE_TARGET_ACCOUNT_ID_BEFORE_ANY_FUTURE_MUTATION",
+      "captureStatus": "IMPLEMENTED_READ_ONLY"
     },
     {
       "key": "DOG_IDS_SNAPSHOT",
       "source": "dogs.id",
-      "captureRule": "CAPTURE_ALL_TARGET_DOG_IDS_BEFORE_ANY_FUTURE_MUTATION"
+      "captureRule": "CAPTURE_ALL_TARGET_DOG_IDS_BEFORE_ANY_FUTURE_MUTATION",
+      "captureStatus": "IMPLEMENTED_READ_ONLY"
     },
     {
       "key": "ASSESSMENT_IDS_SNAPSHOT",
       "source": "behavioral_assessments.id",
-      "captureRule": "CAPTURE_IDS_FOR_TARGET_DOGS_BEFORE_PARENT_MUTATION"
+      "captureRule": "CAPTURE_IDS_FOR_TARGET_DOGS_BEFORE_PARENT_MUTATION",
+      "captureStatus": "IMPLEMENTED_READ_ONLY"
     },
     {
       "key": "FACTOR_SCORE_IDS_SNAPSHOT",
       "source": "behavioral_factor_scores.id",
-      "captureRule": "CAPTURE_IDS_FOR_TARGET_ASSESSMENTS_BEFORE_PARENT_MUTATION"
+      "captureRule": "CAPTURE_IDS_FOR_TARGET_ASSESSMENTS_BEFORE_PARENT_MUTATION",
+      "captureStatus": "IMPLEMENTED_READ_ONLY"
     }
   ],
   "relationProbeRoutes": [
@@ -32,7 +36,7 @@
         "DIRECT_FK"
       ],
       "snapshotKey": "ACCOUNT_ID",
-      "probeStatus": "NOT_IMPLEMENTED"
+      "probeStatus": "IMPLEMENTED_READ_ONLY"
     },
     {
       "subjectRoot": "dogs.id",
@@ -41,7 +45,7 @@
         "UNCONSTRAINED_IDENTIFIER"
       ],
       "snapshotKey": "DOG_IDS_SNAPSHOT",
-      "probeStatus": "NOT_IMPLEMENTED"
+      "probeStatus": "IMPLEMENTED_READ_ONLY"
     },
     {
       "subjectRoot": "dogs.id",
@@ -49,7 +53,7 @@
         "TRANSITIVE_FK"
       ],
       "snapshotKey": "ASSESSMENT_IDS_SNAPSHOT_OR_FACTOR_SCORE_IDS_SNAPSHOT",
-      "probeStatus": "NOT_IMPLEMENTED"
+      "probeStatus": "IMPLEMENTED_READ_ONLY"
     }
   ],
   "nonSqlProbes": [
@@ -81,8 +85,15 @@
   ],
   "completionRule": "NO_COMPLETE_ERASURE_EVIDENCE_UNTIL_EVERY_APPROVED_RELATIONAL_DISPOSITION_HAS_POST_CONDITION_PROOF_AND_EVERY_APPLICABLE_NON_SQL_SURFACE_HAS EXECUTION_OR_EXPIRY_EVIDENCE",
   "scopeLimitations": [
-    "This contract describes future verification requirements only; it does not execute erasure.",
+    "Relational PostgreSQL snapshot capture and negative-residue verification are implemented read-only; this contract does not execute erasure.",
     "A zero-row PostgreSQL result cannot prove deletion from non-SQL surfaces.",
-    "Snapshot identifiers must be captured before future parent mutations destroy traversal paths."
-  ]
+    "Snapshot identifiers must be captured before future parent mutations destroy traversal paths.",
+    "claimsExecutableErasure and claimsCompleteErasure remain false while lifecycle dispositions, destructive execution or applicable non-SQL evidence remain unresolved."
+  ],
+  "implementationEvidence": {
+    "service": "backend/api/services/erasure-residue-verification.ts",
+    "integrationTest": "backend/test/privacy-erasure-residue-verification.integration.test.mjs",
+    "p0WorkflowStep": "PRIV-ERASURE-RESIDUE snapshot + negative SQL verification",
+    "mergeAuthority": "#440"
+  }
 }
