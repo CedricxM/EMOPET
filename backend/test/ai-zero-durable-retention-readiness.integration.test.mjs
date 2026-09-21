@@ -43,6 +43,8 @@ test('AI zero-durable readiness detects a durable row and does not mutate it', {
   assert.equal(empty.status, 'NO_DURABLE_AI_ROWS_PRESENT');
   assert.equal(empty.durableRowCount, 0);
   assert.equal(empty.claimsWritePreventionImplemented, false);
+  assert.equal(empty.claimsRepositoryRuntimePersistenceGuardImplemented, true);
+  assert.equal(empty.claimsDatabaseWritePreventionImplemented, false);
 
   await sql`
     INSERT INTO ai_messages (id, category, content)
@@ -56,6 +58,8 @@ test('AI zero-durable readiness detects a durable row and does not mutate it', {
   assert.equal(present.destructiveActionAuthorized, false);
   assert.equal(present.claimsPurgeExecuted, false);
   assert.equal(present.claimsWritePreventionImplemented, false);
+  assert.equal(present.claimsRepositoryRuntimePersistenceGuardImplemented, true);
+  assert.equal(present.claimsDatabaseWritePreventionImplemented, false);
 
   const rows = await sql`
     SELECT id, category, content

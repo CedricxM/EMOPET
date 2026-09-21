@@ -142,12 +142,13 @@
       "holdConditions": [],
       "purgeEvidence": "NEGATIVE_EVIDENCE_REQUIRED",
       "authority": "PRODUCT_APPROVED_AI_NO_DURABLE_RETENTION_UNTIL_SEPARATE_NEED",
-      "readinessStatus": "IMPLEMENTED_READ_ONLY_NEGATIVE_EVIDENCE",
-      "readinessBoundary": "DETECTION_ONLY_WRITE_PREVENTION_AND_PURGE_NOT_IMPLEMENTED",
+      "readinessStatus": "IMPLEMENTED_READ_ONLY_NEGATIVE_EVIDENCE_AND_REPOSITORY_RUNTIME_PERSISTENCE_GUARD",
+      "readinessBoundary": "REPOSITORY_RUNTIME_PERSISTENCE_GUARD_ONLY_DATABASE_WRITE_PREVENTION_AND_PURGE_NOT_IMPLEMENTED",
       "readinessEvidence": [
         "backend/api/services/ai-zero-durable-retention-readiness.ts",
         "backend/test/ai-zero-durable-retention-readiness.test.mjs",
-        "backend/test/ai-zero-durable-retention-readiness.integration.test.mjs"
+        "backend/test/ai-zero-durable-retention-readiness.integration.test.mjs",
+        "backend/test/ai-zero-durable-retention-write-guard.test.mjs"
       ]
     },
     {
