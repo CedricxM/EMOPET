@@ -107,15 +107,22 @@
         "REMOVE_OR_PSEUDONYMIZE_DIRECT_DEVICE_IDENTIFIERS_WHEN_NO_LONGER_NEEDED",
         "DELETE_OR_IRREVERSIBLY_PSEUDONYMIZE_AT_WINDOW_END"
       ],
-      "currentSchemaConstraint": "dog_id is nullable with ON DELETE SET NULL, so dog deletion can detach the device binding without deleting retained device metadata.",
-      "implementationConsequence": "Schema support for immediate unbind is implemented; the future executor must still enforce the bounded post-unbind retention, identifier minimisation and final purge/pseudonymisation lifecycle.",
+      "currentSchemaConstraint": "dog_id is nullable with ON DELETE SET NULL. unbound_at records future dog-binding detach transitions at the database layer; devices already detached before migration 0010 may legitimately have an unknown unbound_at.",
+      "implementationConsequence": "Immediate unbind and a trustworthy retention clock for future detach events are implemented. A future authorized executor must still enforce the approved post-unbind window, treat legacy detached rows without unbound_at as unresolved rather than inventing dates, minimise direct device identifiers, and perform final purge/pseudonymisation.",
       "newHumanDecisionRequired": false,
       "promotionAuthorized": false,
       "schemaSupportStatus": "IMPLEMENTED",
       "schemaSupportEvidence": [
         "backend/db/schema/dogs.ts",
         "backend/db/migrations/0007_device_dog_detach.sql"
-      ]
+      ],
+      "retentionClockStatus": "IMPLEMENTED_FOR_FUTURE_UNBINDS",
+      "retentionClockEvidence": [
+        "backend/db/schema/dogs.ts",
+        "backend/db/migrations/0010_device_unbind_retention_clock.sql",
+        "backend/test/device-unbind-retention-clock.integration.test.mjs"
+      ],
+      "legacyDetachedClockStatus": "UNKNOWN_PRE_0010_NOT_BACKFILLED"
     },
     {
       "relation": "dogs.id|DIRECT_FK|behavioral_assessments|dog_id",
