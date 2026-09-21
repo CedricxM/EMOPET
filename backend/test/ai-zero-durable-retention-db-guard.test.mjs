@@ -30,9 +30,16 @@ test('AI-A/R4 database write guard covers fresh and historical database paths wi
 
   assert.equal(
     row.databaseWritePreventionStatus,
-    'IMPLEMENTED_FRESH_BASELINE_AND_HISTORICAL_UPGRADE_CONSTRAINT',
+    'IMPLEMENTED_AND_RUNTIME_ATTESTED_BY_READINESS_PROBE',
   );
   assert.equal(row.databaseWritePreventionConstraint, 'chk_ai_messages_no_durable_persistence');
   assert.match(row.databaseWritePreventionBoundary, /LEGACY_ROWS_PRESERVED/);
+  assert.equal(row.runtimeAttestation.status, 'IMPLEMENTED_READ_ONLY');
+  assert.equal(row.runtimeAttestation.constraint, 'chk_ai_messages_no_durable_persistence');
+  assert.deepEqual(row.runtimeAttestation.verifies, [
+    'CONSTRAINT_PRESENT',
+    'CHECK_EXPRESSION_FALSE',
+    'CONSTRAINT_VALIDATION_STATE_REPORTED',
+  ]);
   assert.equal(row.purgeEvidence, 'NEGATIVE_EVIDENCE_REQUIRED');
 });
