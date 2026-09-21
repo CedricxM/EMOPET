@@ -15,7 +15,7 @@ test('privileged session authorization fails closed before verifier on missing o
   const verifier: PrivilegedAuthorizationVerifier = {
     async authorize() {
       calls += 1;
-      return { status: 'AUTHORIZED', subject: ADMIN_ID, action: ACTION };
+      return { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'admin', action: ACTION };
     },
   };
 
@@ -40,13 +40,13 @@ test('privileged session authorization asks the canonical verifier for the exact
   const verifier: PrivilegedAuthorizationVerifier = {
     async authorize(input) {
       assert.deepEqual(input, { token: TOKEN, action: ACTION });
-      return { status: 'AUTHORIZED', subject: ADMIN_ID, action: ACTION };
+      return { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'admin', action: ACTION };
     },
   };
 
   assert.deepEqual(
     await authorizePrivilegedSessionToken(TOKEN, ACTION, verifier),
-    { status: 'AUTHORIZED', subject: ADMIN_ID, action: ACTION },
+    { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'admin', action: ACTION },
   );
 });
 
