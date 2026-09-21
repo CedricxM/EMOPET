@@ -16,12 +16,16 @@ export type ErasureDisposition =
 
 export type ErasureExecutionStatus = 'NOT_IMPLEMENTED' | 'IMPLEMENTED';
 
+export type ErasureRelationType =
+  | 'DIRECT_FK'
+  | 'TRANSITIVE_FK'
+  | 'UNCONSTRAINED_IDENTIFIER';
+
 export interface ErasureMatrixEntry {
   subjectRoot: ErasureSubjectRoot;
-  relationType: 'DIRECT_FK' | 'TRANSITIVE_FK' | 'UNCONSTRAINED_IDENTIFIER';
+  relationType: ErasureRelationType;
   table: string;
   column: string;
-  databaseDeleteAction?: DatabaseDeleteAction;
   disposition: ErasureDisposition;
   executionStatus: ErasureExecutionStatus;
   testEvidence?: string;
@@ -42,12 +46,20 @@ export interface ErasureDispositionMatrix {
   nonSqlSurfaces: ErasureNonSqlSurface[];
 }
 
+export interface ErasureTechnicalRelation {
+  subjectRoot: ErasureSubjectRoot;
+  relationType: ErasureRelationType;
+  table: string;
+  column: string;
+  databaseDeleteAction: DatabaseDeleteAction;
+}
+
 export interface ErasureReadinessReport {
   ok: true;
   mode: 'PREFLIGHT_ONLY';
   destructiveActionAuthorized: false;
   subjectRoot: ErasureSubjectRoot;
-  status: 'BLOCKED';
+  status: 'BLOCKED' | 'CONTROL_PLANE_READY';
   reasons: Array<
     | 'POLICY_DISPOSITIONS_UNRESOLVED'
     | 'RELATIONAL_EXECUTION_NOT_IMPLEMENTED'
@@ -61,19 +73,19 @@ export interface ErasureReadinessReport {
     total: number;
     unresolvedDisposition: number;
     notImplemented: number;
-    databaseMechanics: Record<DatabaseDeleteAction | 'UNKNOWN', number>;
+    databaseMechanics: Record<DatabaseDeleteAction, number>;
     rootDeleteBlockers: Array<{
       table: string;
       column: string;
-      relationType: ErasureMatrixEntry['relationType'];
-      databaseDeleteAction: DatabaseDeleteAction | 'UNKNOWN';
+      relationType: ErasureRelationType;
+      databaseDeleteAction: DatabaseDeleteAction;
       disposition: ErasureDisposition;
       executionStatus: ErasureExecutionStatus;
     }>;
     automaticCascadeRelations: Array<{
       table: string;
       column: string;
-      relationType: ErasureMatrixEntry['relationType'];
+      relationType: ErasureRelationType;
     }>;
   };
   nonSql: {
@@ -94,11 +106,19 @@ export interface ErasureReadinessFailure {
   destructiveActionAuthorized: false;
   error:
     | 'invalid_matrix'
-    | 'unsupported_subject_root';
+    | 'invalid_technical_topology'
+    | 'unsupported_subject_root'
+    | 'topology_matrix_mismatch';
 }
 
 export type ErasureReadinessResult = ErasureReadinessReport | ErasureReadinessFailure;
 
+const SUBJECT_ROOTS = new Set<ErasureSubjectRoot>(['users.id', 'dogs.id']);
+const RELATION_TYPES = new Set<ErasureRelationType>([
+  'DIRECT_FK',
+  'TRANSITIVE_FK',
+  'UNCONSTRAINED_IDENTIFIER',
+]);
 const DELETE_ACTIONS = new Set<DatabaseDeleteAction>([
   'NO_ACTION',
   'RESTRICT',
@@ -106,7 +126,6 @@ const DELETE_ACTIONS = new Set<DatabaseDeleteAction>([
   'SET_NULL',
   'SET_DEFAULT',
 ]);
-
 const DISPOSITIONS = new Set<ErasureDisposition>([
   'TO_CONFIRM',
   'DELETE',
@@ -114,7 +133,6 @@ const DISPOSITIONS = new Set<ErasureDisposition>([
   'DETACH',
   'RETAIN_WITH_JUSTIFICATION',
 ]);
-
 const EXECUTION_STATUSES = new Set<ErasureExecutionStatus>([
   'NOT_IMPLEMENTED',
   'IMPLEMENTED',
@@ -129,6 +147,15 @@ function fail(error: ErasureReadinessFailure['error']): ErasureReadinessFailure 
   };
 }
 
+function relationKey(
+  subjectRoot: ErasureSubjectRoot,
+  relationType: ErasureRelationType,
+  table: string,
+  column: string,
+): string {
+  return `${subjectRoot}|${relationType}|${table}|${column}`;
+}
+
 function isMatrix(value: ErasureDispositionMatrix): boolean {
   if (
     value?.schemaVersion !== 'emopet-erasure-disposition-matrix-v1'
@@ -141,34 +168,63 @@ function isMatrix(value: ErasureDispositionMatrix): boolean {
     return false;
   }
 
+  const relationKeys = new Set<string>();
   for (const row of value.entries) {
     if (
-      !['users.id', 'dogs.id'].includes(row.subjectRoot)
-      || !['DIRECT_FK', 'TRANSITIVE_FK', 'UNCONSTRAINED_IDENTIFIER'].includes(row.relationType)
+      !SUBJECT_ROOTS.has(row.subjectRoot)
+      || !RELATION_TYPES.has(row.relationType)
       || typeof row.table !== 'string'
       || row.table.length === 0
       || typeof row.column !== 'string'
       || row.column.length === 0
       || !DISPOSITIONS.has(row.disposition)
       || !EXECUTION_STATUSES.has(row.executionStatus)
-      || (
-        row.databaseDeleteAction !== undefined
-        && !DELETE_ACTIONS.has(row.databaseDeleteAction)
-      )
     ) {
       return false;
     }
+
+    const key = relationKey(row.subjectRoot, row.relationType, row.table, row.column);
+    if (relationKeys.has(key)) return false;
+    relationKeys.add(key);
   }
 
+  const surfaces = new Set<string>();
   for (const surface of value.nonSqlSurfaces) {
     if (
       typeof surface.surface !== 'string'
       || surface.surface.length === 0
+      || surfaces.has(surface.surface)
       || !DISPOSITIONS.has(surface.disposition)
       || !EXECUTION_STATUSES.has(surface.executionStatus)
     ) {
       return false;
     }
+    surfaces.add(surface.surface);
+  }
+
+  return true;
+}
+
+function validTechnicalRelations(relations: ErasureTechnicalRelation[]): boolean {
+  if (!Array.isArray(relations)) return false;
+
+  const keys = new Set<string>();
+  for (const row of relations) {
+    if (
+      !SUBJECT_ROOTS.has(row.subjectRoot)
+      || !RELATION_TYPES.has(row.relationType)
+      || typeof row.table !== 'string'
+      || row.table.length === 0
+      || typeof row.column !== 'string'
+      || row.column.length === 0
+      || !DELETE_ACTIONS.has(row.databaseDeleteAction)
+    ) {
+      return false;
+    }
+
+    const key = relationKey(row.subjectRoot, row.relationType, row.table, row.column);
+    if (keys.has(key)) return false;
+    keys.add(key);
   }
 
   return true;
@@ -177,47 +233,74 @@ function isMatrix(value: ErasureDispositionMatrix): boolean {
 /**
  * Pure PRIV erasure-readiness preflight.
  *
- * This does not execute, plan, authorise or imply any destructive mutation.
- * It only summarizes the current matrix and database mechanics.
+ * This function composes the policy matrix with verified database mechanics,
+ * but never executes, plans, authorises or implies a destructive mutation.
  */
 export function buildErasureReadinessReport(
   matrix: ErasureDispositionMatrix,
   subjectRoot: ErasureSubjectRoot,
+  technicalRelations: ErasureTechnicalRelation[],
 ): ErasureReadinessResult {
   if (!isMatrix(matrix)) return fail('invalid_matrix');
-  if (subjectRoot !== 'users.id' && subjectRoot !== 'dogs.id') {
-    return fail('unsupported_subject_root');
+  if (!SUBJECT_ROOTS.has(subjectRoot)) return fail('unsupported_subject_root');
+  if (!validTechnicalRelations(technicalRelations)) return fail('invalid_technical_topology');
+
+  const matrixRows = matrix.entries.filter((row) => row.subjectRoot === subjectRoot);
+  const technicalRows = technicalRelations.filter((row) => row.subjectRoot === subjectRoot);
+
+  const matrixKeys = matrixRows
+    .map((row) => relationKey(row.subjectRoot, row.relationType, row.table, row.column))
+    .sort();
+  const topologyKeys = technicalRows
+    .map((row) => relationKey(row.subjectRoot, row.relationType, row.table, row.column))
+    .sort();
+
+  if (
+    matrixKeys.length !== topologyKeys.length
+    || matrixKeys.some((key, index) => key !== topologyKeys[index])
+  ) {
+    return fail('topology_matrix_mismatch');
   }
 
-  const rows = matrix.entries.filter((row) => row.subjectRoot === subjectRoot);
-
-  const mechanics: Record<DatabaseDeleteAction | 'UNKNOWN', number> = {
+  const mechanics: Record<DatabaseDeleteAction, number> = {
     NO_ACTION: 0,
     RESTRICT: 0,
     CASCADE: 0,
     SET_NULL: 0,
     SET_DEFAULT: 0,
-    UNKNOWN: 0,
   };
 
-  for (const row of rows) {
-    mechanics[row.databaseDeleteAction ?? 'UNKNOWN'] += 1;
+  const mechanicsByKey = new Map(
+    technicalRows.map((row) => [
+      relationKey(row.subjectRoot, row.relationType, row.table, row.column),
+      row.databaseDeleteAction,
+    ]),
+  );
+
+  for (const row of technicalRows) {
+    mechanics[row.databaseDeleteAction] += 1;
   }
 
-  const rootDeleteBlockers = rows
-    .filter((row) =>
-      row.relationType === 'DIRECT_FK'
-      && ['NO_ACTION', 'RESTRICT'].includes(row.databaseDeleteAction ?? 'UNKNOWN'))
+  const rootDeleteBlockers = matrixRows
+    .filter((row) => {
+      if (row.relationType !== 'DIRECT_FK') return false;
+      const action = mechanicsByKey.get(
+        relationKey(row.subjectRoot, row.relationType, row.table, row.column),
+      );
+      return action === 'NO_ACTION' || action === 'RESTRICT';
+    })
     .map((row) => ({
       table: row.table,
       column: row.column,
       relationType: row.relationType,
-      databaseDeleteAction: row.databaseDeleteAction ?? 'UNKNOWN',
+      databaseDeleteAction: mechanicsByKey.get(
+        relationKey(row.subjectRoot, row.relationType, row.table, row.column),
+      ) as DatabaseDeleteAction,
       disposition: row.disposition,
       executionStatus: row.executionStatus,
     }));
 
-  const automaticCascadeRelations = rows
+  const automaticCascadeRelations = technicalRows
     .filter((row) => row.databaseDeleteAction === 'CASCADE')
     .map((row) => ({
       table: row.table,
@@ -225,8 +308,8 @@ export function buildErasureReadinessReport(
       relationType: row.relationType,
     }));
 
-  const unresolvedRelational = rows.filter((row) => row.disposition === 'TO_CONFIRM').length;
-  const unimplementedRelational = rows.filter((row) => row.executionStatus !== 'IMPLEMENTED').length;
+  const unresolvedRelational = matrixRows.filter((row) => row.disposition === 'TO_CONFIRM').length;
+  const unimplementedRelational = matrixRows.filter((row) => row.executionStatus !== 'IMPLEMENTED').length;
   const unresolvedNonSql = matrix.nonSqlSurfaces.filter((row) => row.disposition === 'TO_CONFIRM').length;
   const unimplementedNonSql = matrix.nonSqlSurfaces.filter((row) => row.executionStatus !== 'IMPLEMENTED').length;
 
@@ -244,10 +327,10 @@ export function buildErasureReadinessReport(
     mode: 'PREFLIGHT_ONLY',
     destructiveActionAuthorized: false,
     subjectRoot,
-    status: 'BLOCKED',
+    status: reasons.length > 0 ? 'BLOCKED' : 'CONTROL_PLANE_READY',
     reasons,
     relational: {
-      total: rows.length,
+      total: matrixRows.length,
       unresolvedDisposition: unresolvedRelational,
       notImplemented: unimplementedRelational,
       databaseMechanics: mechanics,
