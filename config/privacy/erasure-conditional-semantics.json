@@ -1,12 +1,12 @@
 {
   "schemaVersion": "emopet-erasure-conditional-semantics-v1",
-  "status": "FOUR_PRODUCT_PRIVACY_DECISIONS_PROMOTED_LEGAL_PRIVACY_DECISION_REMAINS",
+  "status": "FOUR_PRODUCT_PRIVACY_DECISIONS_PLUS_DEVICE_DETACH_PROMOTED_LEGAL_PRIVACY_DECISION_REMAINS",
   "claimsExecutableErasure": false,
   "claimsCompleteErasure": false,
   "sourcePacket": "config/privacy/erasure-disposition-decision-packet.json",
   "boundaries": [
     "These semantics describe how already-approved product policies would have to be expressed by a future executor.",
-    "Only the four founder-approved D1-D4 account relations are promoted to DETACH/IMPLEMENTED; no destructive account-erasure executor is authorized.",
+    "The four founder-approved D1-D4 account relations plus policy-determined devices.dog_id are promoted to DETACH/IMPLEMENTED; no destructive account/dog erasure executor is authorized.",
     "A row can be operationally specified without being legally/privacy approved for execution.",
     "D1-D4 DETACH schema support is implemented by SET NULL; all other schema or executor work remains separately gated.",
     "Founder approved the privacy-first A option for respondent provenance, community creator provenance, event creator provenance, and moderation reporter identity on 2026-09-21.",
@@ -16,7 +16,7 @@
     "conditionalRowsTotal": 12,
     "semanticsAlreadyDeterminedByExistingPolicy": 7,
     "authorityDecisionsStillRequired": 1,
-    "matrixRowsPromoted": 4,
+    "matrixRowsPromoted": 5,
     "productPrivacyDecisionsApproved": 4
   },
   "policyDetermined": [
@@ -84,10 +84,13 @@
         "REMOVE_OR_PSEUDONYMIZE_DIRECT_DEVICE_IDENTIFIERS_WHEN_NO_LONGER_NEEDED",
         "DELETE_OR_IRREVERSIBLY_PSEUDONYMIZE_AT_WINDOW_END"
       ],
-      "currentSchemaConstraint": "dog_id is NOT NULL and NO ACTION, so current schema cannot retain device metadata while deleting the dog.",
-      "implementationConsequence": "Future implementation needs nullable/detached device ownership or a separate retained security-metadata representation before destructive dog erasure.",
+      "currentSchemaConstraint": "dog_id is nullable with ON DELETE SET NULL, so dog erasure automatically removes the dog identity link while the device row may survive.",
+      "implementationConsequence": "IMPLEMENTED: dog erasure detaches retained device metadata; bounded retention, identifier minimisation and final purge remain governed by device_binding_admin_metadata.",
       "newHumanDecisionRequired": false,
-      "promotionAuthorized": false
+      "promotionAuthorized": true,
+      "executionStatus": "IMPLEMENTED",
+      "matrixDisposition": "DETACH",
+      "testEvidence": "backend/test/privacy-device-detach.test.mjs"
     },
     {
       "relation": "dogs.id|DIRECT_FK|behavioral_assessments|dog_id",
