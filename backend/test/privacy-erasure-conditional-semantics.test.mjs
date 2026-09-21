@@ -116,20 +116,30 @@ test('refresh-session semantics preserve revoke-now/delete-at-expiry with detach
   ]);
   assert.match(row.currentSchemaConstraint, /nullable/);
   assert.equal(row.schemaSupportStatus, 'IMPLEMENTED');
+  assert.equal(row.expiryReadinessStatus, 'IMPLEMENTED_READ_ONLY');
+  assert.deepEqual(row.expiryReadinessEvidence, [
+    'backend/api/services/auth-session-retention-readiness.ts',
+    'backend/test/auth-session-retention-readiness.test.mjs',
+    'backend/test/auth-session-retention-readiness.integration.test.mjs',
+  ]);
   assert.equal(row.promotionAuthorized, false);
-  assert.match(row.implementationConsequence, /revoke all active sessions/i);
+  assert.match(row.implementationConsequence, /read-only expired-row discovery/i);
 
-  const [schema, service, route, migration] = await Promise.all([
+  const [schema, service, route, migration, readiness] = await Promise.all([
     source('backend/db/schema/auth-sessions.ts'),
     source('backend/api/services/auth-sessions.ts'),
     source('backend/api/routes/auth.ts'),
     source('backend/db/migrations/0008_refresh_session_user_detach.sql'),
+    source('backend/api/services/auth-session-retention-readiness.ts'),
   ]);
   assert.match(schema, /userId: uuid\('user_id'\)\.references\(\(\) => users\.id, \{ onDelete: 'set null' \}\)/);
   assert.match(service, /if \(!observed \|\| !observed\.userId\) return \{ ok: false, reason: 'invalid_or_expired' \}/);
   assert.match(route, /if \(!session\?\.userId \|\| !await lockAuthUser\(tx, session\.userId\)\) return/);
   assert.match(migration, /ALTER TABLE "auth_refresh_sessions" ALTER COLUMN "user_id" DROP NOT NULL/);
   assert.match(migration, /ON DELETE SET NULL/);
+  assert.match(readiness, /READ_ONLY_RETENTION_READINESS/);
+  assert.match(readiness, /DELETE_ONLY_AFTER_ORIGINAL_EXPIRY/);
+  assert.match(readiness, /destructiveActionAuthorized: false/);
 });
 
 test('R2 post/comment semantics remain delete-first with explicit nullable-author schema support', async () => {
