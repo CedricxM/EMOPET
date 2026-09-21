@@ -130,7 +130,12 @@ export default function ProfilPage() {
 
             <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <Eyebrow>Capteurs</Eyebrow>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+              {/* `repeat(2, 1fr)` forcait deux colonnes a toute largeur, et `1fr`
+                  vaut `minmax(auto, 1fr)` : le min-content des cartes elargissait
+                  les pistes a 208 + 237 px dans un conteneur de 294 px. `auto-fit`
+                  garde les deux colonnes tant qu'elles tiennent et passe a une
+                  seule en dessous. */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16 }}>
                 {MOCK_SENSORS.map((s) => (
                   <Card key={s.id}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

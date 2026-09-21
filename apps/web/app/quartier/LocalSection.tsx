@@ -589,6 +589,12 @@ export function LocalSection() {
           background: 'var(--bg-sunk)',
           borderRadius: 'var(--radius-pill)',
           width: 'fit-content',
+          // `fit-content` laissait ce controle segmente depasser son parent :
+          // 473 px de contenu dans 294 px disponibles a 390 px de viewport.
+          // Un bandeau de pilules a fond arrondi se casse visuellement s'il
+          // passe a la ligne — il defile.
+          maxWidth: '100%',
+          overflowX: 'auto',
         }}
       >
         {FILTERS.map((f) => {
