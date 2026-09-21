@@ -35,7 +35,7 @@
         "DELETE_ACCOUNT_ROOT_NO_LATER_THAN_APPROVED_ACCOUNT_CLOSURE_WINDOW"
       ],
       "currentSchemaConstraint": "user_id is nullable with ON DELETE SET NULL; account deletion can detach retained session evidence from the deleted account.",
-      "implementationConsequence": "Schema/runtime support for detached inactive sessions is implemented. A future erasure executor must still revoke all active sessions before root deletion and delete retained detached rows at their original expiry.",
+      "implementationConsequence": "Schema/runtime support for detached inactive sessions and read-only expired-row discovery are implemented. A future authorized executor must still revoke all active sessions before root deletion and perform deletion of rows only after their original expiry.",
       "newHumanDecisionRequired": false,
       "promotionAuthorized": false,
       "schemaSupportStatus": "IMPLEMENTED",
@@ -44,6 +44,12 @@
         "backend/db/migrations/0008_refresh_session_user_detach.sql",
         "backend/api/services/auth-sessions.ts",
         "backend/api/routes/auth.ts"
+      ],
+      "expiryReadinessStatus": "IMPLEMENTED_READ_ONLY",
+      "expiryReadinessEvidence": [
+        "backend/api/services/auth-session-retention-readiness.ts",
+        "backend/test/auth-session-retention-readiness.test.mjs",
+        "backend/test/auth-session-retention-readiness.integration.test.mjs"
       ]
     },
     {
