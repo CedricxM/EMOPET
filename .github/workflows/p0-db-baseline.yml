@@ -23,6 +23,8 @@ on:
       - 'backend/test/copresence-identity-fingerprint.sql'
       - 'backend/test/subject-discovery-postgres.test.mjs'
       - 'backend/test/privacy-erasure-topology.integration.test.mjs'
+      - 'backend/test/privacy-erasure-residue-verification.integration.test.mjs'
+      - 'backend/api/services/erasure-residue-verification.ts'
       - 'config/privacy/**'
       - 'backend/api/services/subject-discovery.ts'
       - 'backend/api/services/subject-access.ts'
@@ -252,6 +254,14 @@ jobs:
           PRIVACY_ERASURE_TOPOLOGY_DB_INTEGRATION: '1'
         run: node --test test/privacy-erasure-topology.integration.test.mjs
 
+      - name: PRIV-ERASURE-RESIDUE snapshot + negative SQL verification
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          ERASURE_RESIDUE_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/privacy-erasure-residue-verification.integration.test.mjs
+
       - name: INT-04A bounded Owner export authority
         working-directory: backend
         env:
@@ -290,5 +300,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY and INT-04A bounded export authority.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification and INT-04A bounded export authority.'
           echo 'It does not authorize production migration, deployment, or release.'
