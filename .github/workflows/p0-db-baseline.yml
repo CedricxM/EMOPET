@@ -193,6 +193,14 @@ jobs:
           NODE_ENV: test
         run: node --test test/exact-location-retention-readiness.integration.test.mjs
 
+      - name: PRIV-RETENTION detailed sensor + ELI 36-month readiness
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          DETAILED_SENSOR_ELI_RETENTION_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/detailed-sensor-eli-retention-readiness.integration.test.mjs
+
       - name: INT-03B VBO writer and traceability contract
         run: |
           grep -Fq "updated_at = NOW()" scripts/ingest_vbo.ts
