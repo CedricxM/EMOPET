@@ -34,8 +34,9 @@ export interface SpotCategoryMeta {
 
 /** Catalogue des 8 catégories initiales (extensible). */
 export const SPOT_CATEGORIES: SpotCategoryMeta[] = [
-  { value: 'plage',              label: 'Plage',             color: 'var(--terracotta-500)' },
-  { value: 'parc',               label: 'Parc',              color: 'var(--lichen-500)' },
+  // contrast-guard:non-textuel — remplissage d'épingle, posée sur une carte.
+  { value: 'plage',              label: 'Plage',             color: 'var(--terracotta-500)' }, // contrast-guard:non-textuel
+  { value: 'parc',               label: 'Parc',              color: 'var(--lichen-500)' }, // contrast-guard:non-textuel
   { value: 'foret',              label: 'Forêt / sentier',   color: 'var(--lichen-700)' },
   { value: 'veterinaire',        label: 'Vétérinaire',       color: 'var(--rouge)' },
   { value: 'comportementaliste', label: 'Éducateur',         color: 'var(--terracotta-700)' },

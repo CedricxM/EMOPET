@@ -24,7 +24,7 @@ const LABEL: CSSProperties = {
   fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--fg-muted)',
 };
 const PRIMARY: CSSProperties = {
-  width: '100%', padding: '12px 24px', borderRadius: 'var(--radius-pill)', background: 'var(--terracotta-500)',
+  width: '100%', padding: '12px 24px', borderRadius: 'var(--radius-pill)', background: 'var(--accent)',
   color: 'white', border: 'none', fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: 14, cursor: 'pointer',
 };
 
@@ -252,7 +252,7 @@ export function CommunityCharterModal({ isOpen, onClose }: { isOpen: boolean; on
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {CHARTER_RULES.map((r, i) => (
             <div key={r.title} style={{ display: 'flex', gap: 12 }}>
-              <span style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 22, color: 'var(--terracotta-500)', minWidth: 28 }}>{String(i + 1).padStart(2, '0')}</span>
+              <span style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 22, color: 'var(--terracotta-600)', minWidth: 28 }}>{String(i + 1).padStart(2, '0')}</span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <span style={{ fontFamily: 'var(--font-serif)', fontSize: 16, color: 'var(--fg-strong)' }}>{r.title}</span>
                 <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--fg-2)', lineHeight: 1.5 }}>{r.text}</span>

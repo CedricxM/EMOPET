@@ -29,7 +29,7 @@ const PERIODS = [
 const STATE_INK: Record<IndicatorState, string> = {
   stable: 'var(--fg-2)',
   amelioration: 'var(--lichen-700)',
-  attention: 'var(--orange-pro)',
+  attention: 'var(--eli-degraded-ink)',
 };
 
 function Bar({ pct, color = 'var(--terracotta-500)' }: { pct: number; color?: string }) {
@@ -140,7 +140,7 @@ export function BienEtreSection() {
                 <Gauge value={summary.rsi.current} baseline={summary.rsi.baselineMean} color="var(--lichen-600)" label="RSI" />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <DeltaText delta={summary.rsi.delta} />
-                  <P2 style={{ color: summary.rsi.current < RSI_ALERT_THRESHOLD ? 'var(--orange-pro)' : 'var(--fg-2)', fontStyle: 'italic' }}>{rsiState}</P2>
+                  <P2 style={{ color: summary.rsi.current < RSI_ALERT_THRESHOLD ? 'var(--eli-degraded-ink)' : 'var(--fg-2)', fontStyle: 'italic' }}>{rsiState}</P2>
                   <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--fg-muted)' }}>similarité du jour vs moyenne 14 j</span>
                 </div>
               </div>
@@ -271,7 +271,7 @@ export function BienEtreSection() {
         </Card>
 
         {/* Export */}
-        <button type="button" onClick={() => window.print()} style={{ display: 'inline-flex', alignSelf: 'flex-start', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 'var(--radius-pill)', background: 'var(--terracotta-500)', color: 'white', border: 'none', fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
+        <button type="button" onClick={() => window.print()} style={{ display: 'inline-flex', alignSelf: 'flex-start', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 'var(--radius-pill)', background: 'var(--accent)', color: 'white', border: 'none', fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
           <Icon name="download" size={15} color="white" /> Exporter pour mon vétérinaire
         </button>
 

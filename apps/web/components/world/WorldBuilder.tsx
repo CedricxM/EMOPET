@@ -185,7 +185,7 @@ export function WorldBuilder() {
                       <h3 className={styles.questTitle}>{quest.title}</h3>
                       <p className={styles.questDetail}>{quest.detail}</p>
                     </div>
-                    <span className={styles.costChip} style={{ color: resource.color }}>
+                    <span className={styles.costChip} style={{ color: resource.textColor }}>
                       {quest.progress}/{quest.target}
                     </span>
                   </div>
@@ -293,7 +293,7 @@ function GrantRow({ grants }: { grants: Partial<ResourceBalance> }) {
       {entries.map(([key, value]) => {
         const resource = getResourceDefinition(key);
         return (
-          <span key={key} className={styles.grantChip} style={{ color: resource.color }}>
+          <span key={key} className={styles.grantChip} style={{ color: resource.textColor }}>
             +{value} {resource.shortLabel}
           </span>
         );

@@ -468,7 +468,8 @@ function SectionShell({
             fontFamily: 'var(--font-serif)',
             fontStyle: 'italic',
             fontSize: 38,
-            color: 'var(--terracotta-500)',
+            // 3.33:1 avec l'opacite 0.85 ci-dessous, contre 2.39:1 en 500.
+            color: 'var(--terracotta-600)',
             lineHeight: 1,
             opacity: 0.85,
           }}
