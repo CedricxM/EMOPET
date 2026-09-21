@@ -32,6 +32,8 @@ EMOPET combines connected-device data, potentially precise location, longitudina
 
 Machine-readable inventory: `config/privacy/data-inventory.json`.
 
+Product-approved candidate retention schedule: `config/privacy/retention-schedule.json` (`LEGAL_PRIVACY_SIGNOFF_PENDING`, runtime purge not yet implemented).
+
 ## Core principles
 
 - data minimisation;
@@ -56,7 +58,7 @@ Machine-readable inventory: `config/privacy/data-inventory.json`.
 | Raw audio captures household speech | High | no raw audio storage/retention/transmission doctrine | OPEN_NEGATIVE_PROOF |
 | Account takeover exposes long-term history | High | auth baseline, refresh/revocation, rate limits, security monitoring | BLOCKED_AUTH_BASELINE |
 | Community accidentally publishes private dog/location data | High | public-safe schemas, opt-in/privacy levels, moderation tests | OPEN_END_TO_END_TESTS |
-| Data retained indefinitely | Medium/High | machine-readable inventory; retention values explicitly TO_CONFIRM | OPEN_RETENTION_DECISION |
+| Data retained indefinitely | Medium/High | machine-readable candidate retention schedule; progressive minimisation; bounded category clocks; runtime purge not yet implemented | PRODUCT_DECISION_RECORDED_LEGAL_SIGNOFF_AND_IMPLEMENTATION_OPEN |
 | Deletion misses backups/derived records | High | erasure runbook; cascade map required | OPEN_IMPLEMENTATION |
 | Supply-chain compromise | High | SBOM, dependency audit, Semgrep, Gitleaks and regression workflow merged as P0 control layer | CONTROL_LAYER_MERGED_RESIDUAL_RISK_REMAINS |
 
@@ -96,7 +98,7 @@ Before public launch the AIPD must include:
 
 - final legal entity/controller;
 - final purposes/legal bases;
-- final retention schedule;
+- final legally/privacy-approved retention schedule and purge evidence;
 - processor/subprocessor register;
 - transfer assessment;
 - technical/organisational measures;
