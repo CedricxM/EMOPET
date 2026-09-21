@@ -103,7 +103,7 @@ test('seven conditional rows need implementation semantics but no new founder de
   }
 });
 
-test('refresh-session semantics preserve the already-approved revoke-now then delete-at-expiry lifecycle', () => {
+test('refresh-session semantics preserve revoke-now/delete-at-expiry with detachable inactive evidence', async () => {
   const row = semantics.policyDetermined.find(
     (item) => item.relation === 'users.id|DIRECT_FK|auth_refresh_sessions|user_id',
   );
@@ -114,8 +114,22 @@ test('refresh-session semantics preserve the already-approved revoke-now then de
     'DELETE_EXPIRED_SESSION_ROWS',
     'DELETE_ACCOUNT_ROOT_NO_LATER_THAN_APPROVED_ACCOUNT_CLOSURE_WINDOW',
   ]);
-  assert.match(row.currentSchemaConstraint, /NOT NULL/);
-  assert.match(row.implementationConsequence, /stage account erasure/i);
+  assert.match(row.currentSchemaConstraint, /nullable/);
+  assert.equal(row.schemaSupportStatus, 'IMPLEMENTED');
+  assert.equal(row.promotionAuthorized, false);
+  assert.match(row.implementationConsequence, /revoke all active sessions/i);
+
+  const [schema, service, route, migration] = await Promise.all([
+    source('backend/db/schema/auth-sessions.ts'),
+    source('backend/api/services/auth-sessions.ts'),
+    source('backend/api/routes/auth.ts'),
+    source('backend/db/migrations/0008_refresh_session_user_detach.sql'),
+  ]);
+  assert.match(schema, /userId: uuid\('user_id'\)\.references\(\(\) => users\.id, \{ onDelete: 'set null' \}\)/);
+  assert.match(service, /if \(!observed \|\| !observed\.userId\) return \{ ok: false, reason: 'invalid_or_expired' \}/);
+  assert.match(route, /if \(!session\?\.userId \|\| !await lockAuthUser\(tx, session\.userId\)\) return/);
+  assert.match(migration, /ALTER TABLE "auth_refresh_sessions" ALTER COLUMN "user_id" DROP NOT NULL/);
+  assert.match(migration, /ON DELETE SET NULL/);
 });
 
 test('R2 post/comment semantics remain delete-first with exceptional irreversible de-identification', () => {
