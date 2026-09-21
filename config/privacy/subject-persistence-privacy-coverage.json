@@ -14,12 +14,11 @@
     },
     {
       "table": "ai_messages",
-      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
-      "inventoryCategories": [],
-      "candidateAreas": [
-        "targeted product messaging",
-        "dog-linked content"
-      ]
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "ai_messages"
+      ],
+      "mappingRationale": "Founder decision AI-A: durable AI-message persistence is not authorised until a separate product need and retention purpose are approved. Existing schema presence is not persistence authority."
     },
     {
       "table": "anticipation_events",
@@ -55,12 +54,12 @@
     },
     {
       "table": "behavioral_assessments",
-      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
-      "inventoryCategories": [],
-      "candidateAreas": [
-        "behavioral assessment evidence",
-        "owner report"
-      ]
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "behavioral_assessment_product",
+        "research_validation"
+      ],
+      "mappingRationale": "Founder decision Behavioral-C: rows with administration_mode='research' are governed by separate research/validation authority; standardized/progressive/unknown product rows follow behavioral_assessment_product lifecycle. Physical table sharing does not merge the two purposes."
     },
     {
       "table": "comments",

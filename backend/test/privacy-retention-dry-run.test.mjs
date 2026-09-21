@@ -42,7 +42,7 @@ test('planner is explicitly dry-run only and never authorises destructive action
   const result = planRetentionDryRun(schedule, {
     categoryId: 'sensor_preprocessed_detailed',
     retentionStartedAt: '2024-09-21T07:00:00.000Z',
-    evaluationAt: '2026-09-20T07:00:00.000Z',
+    evaluationAt: '2027-09-20T07:00:00.000Z',
   });
 
   assert.equal(result.ok, true);
@@ -50,20 +50,20 @@ test('planner is explicitly dry-run only and never authorises destructive action
   assert.equal(result.destructiveActionAuthorized, false);
   assert.equal(result.verdict, 'KEEP');
   assert.equal(result.reason, 'WITHIN_RETENTION_WINDOW');
-  assert.equal(result.ordinaryExpiryAt, '2026-09-21T07:00:00.000Z');
+  assert.equal(result.ordinaryExpiryAt, '2027-09-21T07:00:00.000Z');
   assert.equal(JSON.stringify(schedule), before, 'planner must not mutate policy input');
 });
 
-test('24-month MAT/TAG detail expires exactly at the candidate calendar boundary', () => {
+test('36-month MAT/TAG detail expires exactly at the source-aligned calendar boundary', () => {
   const before = planRetentionDryRun(schedule, {
     categoryId: 'sensor_preprocessed_detailed',
     retentionStartedAt: '2024-09-21T07:00:00.000Z',
-    evaluationAt: '2026-09-21T06:59:59.999Z',
+    evaluationAt: '2027-09-21T06:59:59.999Z',
   });
   const atBoundary = planRetentionDryRun(schedule, {
     categoryId: 'sensor_preprocessed_detailed',
     retentionStartedAt: '2024-09-21T07:00:00.000Z',
-    evaluationAt: '2026-09-21T07:00:00.000Z',
+    evaluationAt: '2027-09-21T07:00:00.000Z',
   });
 
   assert.equal(before.ok, true);
@@ -83,6 +83,65 @@ test('36-month ELI detail uses calendar duration rather than a fixed day approxi
   assert.equal(result.ok, true);
   assert.equal(result.verdict, 'EXPIRED');
   assert.equal(result.ordinaryExpiryAt, '2026-09-21T12:34:56.000Z');
+});
+
+test('source and ELI detailed retention remain aligned across the full 36-month window', () => {
+  for (const month of [12, 24, 25, 30, 35, 36, 48]) {
+    const evaluationAt = computeRetentionExpiry('2024-09-21T07:00:00.000Z', month, 'MONTHS');
+    const source = planRetentionDryRun(schedule, {
+      categoryId: 'sensor_preprocessed_detailed',
+      retentionStartedAt: '2024-09-21T07:00:00.000Z',
+      evaluationAt,
+    });
+    const eli = planRetentionDryRun(schedule, {
+      categoryId: 'eli_inferred_detailed',
+      retentionStartedAt: '2024-09-21T07:00:00.000Z',
+      evaluationAt,
+    });
+
+    assert.equal(source.ok, true);
+    assert.equal(eli.ok, true);
+    assert.equal(source.verdict, eli.verdict, `source/ELI divergence at month ${month}`);
+    assert.equal(source.ordinaryExpiryAt, eli.ordinaryExpiryAt);
+  }
+});
+
+test('AI message persistence is immediately expired when any durable row exists', () => {
+  const present = planRetentionDryRun(schedule, {
+    categoryId: 'ai_messages',
+    evaluationAt: '2026-09-21T08:00:00.000Z',
+    durableRecordPresent: true,
+  });
+  const absent = planRetentionDryRun(schedule, {
+    categoryId: 'ai_messages',
+    evaluationAt: '2026-09-21T08:00:00.000Z',
+    durableRecordPresent: false,
+  });
+
+  assert.equal(present.ok, true);
+  assert.equal(present.verdict, 'EXPIRED');
+  assert.equal(present.reason, 'NO_DURABLE_RETENTION_RECORD_PRESENT');
+  assert.equal(present.destructiveActionAuthorized, false);
+  assert.equal(absent.ok, true);
+  assert.equal(absent.verdict, 'NOT_APPLICABLE');
+});
+
+test('product behavioral assessment retention follows active dog-profile lifetime', () => {
+  const active = planRetentionDryRun(schedule, {
+    categoryId: 'behavioral_assessment_product',
+    evaluationAt: '2032-01-01T00:00:00.000Z',
+  });
+  const ended = planRetentionDryRun(schedule, {
+    categoryId: 'behavioral_assessment_product',
+    lifecycleEndedAt: '2032-01-01T00:00:00.000Z',
+    evaluationAt: '2032-01-01T00:00:00.000Z',
+  });
+
+  assert.equal(active.ok, true);
+  assert.equal(active.verdict, 'KEEP');
+  assert.equal(ended.ok, true);
+  assert.equal(ended.verdict, 'EXPIRED');
+  assert.equal(ended.reason, 'LIFECYCLE_ENDED');
 });
 
 test('calendar month arithmetic clamps month-end safely', () => {
