@@ -14,12 +14,13 @@ export interface AiZeroDurableRetentionReadinessReport {
   claimsPurgeExecuted: false;
   claimsWritePreventionImplemented: false;
   claimsRepositoryRuntimePersistenceGuardImplemented: true;
-  claimsDatabaseWritePreventionImplemented: false;
+  claimsDatabaseWritePreventionImplemented: true;
+  claimsDatabaseWritePreventionVerifiedAtRuntime: false;
   categoryId: 'ai_messages';
   policySeconds: 0;
   status: 'NO_DURABLE_AI_ROWS_PRESENT' | 'DURABLE_AI_ROWS_PRESENT';
   durableRowCount: number;
-  policyBoundary: 'REPOSITORY_RUNTIME_PERSISTENCE_GUARD_ONLY_DATABASE_WRITE_PREVENTION_AND_PURGE_NOT_IMPLEMENTED';
+  policyBoundary: 'REPOSITORY_AND_DATABASE_WRITE_GUARDS_IMPLEMENTED_RUNTIME_DATABASE_ATTESTATION_AND_PURGE_NOT_IMPLEMENTED';
 }
 
 export interface AiZeroDurableRetentionReadinessFailure {
@@ -29,7 +30,8 @@ export interface AiZeroDurableRetentionReadinessFailure {
   claimsPurgeExecuted: false;
   claimsWritePreventionImplemented: false;
   claimsRepositoryRuntimePersistenceGuardImplemented: true;
-  claimsDatabaseWritePreventionImplemented: false;
+  claimsDatabaseWritePreventionImplemented: true;
+  claimsDatabaseWritePreventionVerifiedAtRuntime: false;
   error: 'invalid_repository_result' | 'database_unavailable';
   retryable?: boolean;
 }
@@ -49,7 +51,8 @@ function failure(
     claimsPurgeExecuted: false,
     claimsWritePreventionImplemented: false,
     claimsRepositoryRuntimePersistenceGuardImplemented: true,
-    claimsDatabaseWritePreventionImplemented: false,
+    claimsDatabaseWritePreventionImplemented: true,
+    claimsDatabaseWritePreventionVerifiedAtRuntime: false,
     error,
     ...(retryable === undefined ? {} : { retryable }),
   };
@@ -79,9 +82,11 @@ const postgresRepository: AiZeroDurableRetentionRepository = {
  *
  * The current product authority permits zero durable ai_messages rows. This
  * probe detects whether durable rows exist and never deletes them. Repository
- * runtime access to the table is separately constrained by a static allowlist
- * guard; PostgreSQL itself still permits direct writes until a database-level
- * control is separately implemented and evidenced.
+ * runtime access is constrained by the static allowlist guard. Fresh Drizzle
+ * baselines and historical upgrades now also carry a CHECK(false) write guard;
+ * this read-only probe does not yet attest that the expected constraint is
+ * present in the live database, so the aggregate verified-prevention claim
+ * remains conservative.
  */
 export async function inspectAiZeroDurableRetention(
   repository: AiZeroDurableRetentionRepository = postgresRepository,
@@ -97,14 +102,15 @@ export async function inspectAiZeroDurableRetention(
       claimsPurgeExecuted: false,
       claimsWritePreventionImplemented: false,
       claimsRepositoryRuntimePersistenceGuardImplemented: true,
-      claimsDatabaseWritePreventionImplemented: false,
+      claimsDatabaseWritePreventionImplemented: true,
+      claimsDatabaseWritePreventionVerifiedAtRuntime: false,
       categoryId: 'ai_messages',
       policySeconds: 0,
       status: durableRowCount > 0
         ? 'DURABLE_AI_ROWS_PRESENT'
         : 'NO_DURABLE_AI_ROWS_PRESENT',
       durableRowCount,
-      policyBoundary: 'REPOSITORY_RUNTIME_PERSISTENCE_GUARD_ONLY_DATABASE_WRITE_PREVENTION_AND_PURGE_NOT_IMPLEMENTED',
+      policyBoundary: 'REPOSITORY_AND_DATABASE_WRITE_GUARDS_IMPLEMENTED_RUNTIME_DATABASE_ATTESTATION_AND_PURGE_NOT_IMPLEMENTED',
     };
   } catch {
     return failure('database_unavailable', true);

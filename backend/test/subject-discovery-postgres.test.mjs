@@ -4,6 +4,10 @@ import { randomUUID } from 'node:crypto';
 import { setTimeout as delay } from 'node:timers/promises';
 
 import postgres from 'postgres';
+import {
+  validateAiMessageWriteGuard,
+  withAiMessageWriteGuardTemporarilyDropped,
+} from './helpers/ai-message-fixture.mjs';
 
 const enabled = process.env.SUBJECT_DISCOVERY_DB_INTEGRATION === '1';
 
@@ -49,6 +53,7 @@ after(async () => {
     await sql`DELETE FROM research_data_consents WHERE id = ${CONSENT_A}`;
     await sql`DELETE FROM auth_refresh_sessions WHERE id = ${SESSION_A}`;
     await sql`DELETE FROM ai_messages WHERE id = ${MESSAGE_A}`;
+    await validateAiMessageWriteGuard(sql);
     await sql`DELETE FROM copresence_events WHERE id = ${COPRESENCE_A}`;
     await sql`DELETE FROM user_config WHERE user_id IN (${USER_A}, ${USER_B})`;
     await sql`DELETE FROM dogs WHERE id IN (${DOG_A}, ${DOG_B})`;
@@ -127,10 +132,12 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
     INSERT INTO user_config (user_id, dog_id, config_key, config_value)
     VALUES (${USER_A}, ${DOG_A}, 'discovery-test', '{}'::jsonb)
   `;
-  await sql`
-    INSERT INTO ai_messages (id, category, target_user_id, dog_id, content)
-    VALUES (${MESSAGE_A}, 'system', ${USER_A}, ${DOG_A}, 'discovery-test')
-  `;
+  await withAiMessageWriteGuardTemporarilyDropped(sql, async (tx) => {
+    await tx`
+      INSERT INTO ai_messages (id, category, target_user_id, dog_id, content)
+      VALUES (${MESSAGE_A}, 'system', ${USER_A}, ${DOG_A}, 'discovery-test')
+    `;
+  });
   await sql`
     INSERT INTO auth_refresh_sessions (
       id, user_id, family_id, token_hash, expires_at

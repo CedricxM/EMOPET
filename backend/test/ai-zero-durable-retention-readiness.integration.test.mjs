@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 const enabled = process.env.AI_ZERO_DURABLE_RETENTION_DB_INTEGRATION === '1';
 
 const MESSAGE_ID = 'a1000000-0000-4000-8000-000000000801';
+const GUARD_CONSTRAINT = 'chk_ai_messages_no_durable_persistence';
 
 let sql = null;
 let inspectAiZeroDurableRetention = null;
@@ -33,47 +34,61 @@ after(async () => {
   if (closeDatabase) await closeDatabase();
 });
 
-test('AI zero-durable readiness detects a durable row and does not mutate it', {
+test('AI zero-durable database guard rejects new durable rows on a fresh baseline', {
   skip: !enabled,
 }, async () => {
   await cleanup();
 
-  const empty = await inspectAiZeroDurableRetention();
-  assert.equal(empty.ok, true, `empty readiness failed: ${JSON.stringify(empty)}`);
-  assert.equal(empty.status, 'NO_DURABLE_AI_ROWS_PRESENT');
-  assert.equal(empty.durableRowCount, 0);
-  assert.equal(empty.claimsWritePreventionImplemented, false);
-  assert.equal(empty.claimsRepositoryRuntimePersistenceGuardImplemented, true);
-  assert.equal(empty.claimsDatabaseWritePreventionImplemented, false);
+  const before = await inspectAiZeroDurableRetention();
+  assert.equal(before.ok, true, `initial readiness failed: ${JSON.stringify(before)}`);
+  assert.equal(before.status, 'NO_DURABLE_AI_ROWS_PRESENT');
+  assert.equal(before.durableRowCount, 0);
+  assert.equal(before.claimsRepositoryRuntimePersistenceGuardImplemented, true);
+  assert.equal(before.claimsDatabaseWritePreventionImplemented, true);
+  assert.equal(before.claimsDatabaseWritePreventionVerifiedAtRuntime, false);
+  assert.equal(before.claimsWritePreventionImplemented, false);
 
-  await sql`
-    INSERT INTO ai_messages (id, category, content)
-    VALUES (${MESSAGE_ID}, 'test-only', 'durable-row-should-be-detected')
+  const guards = await sql`
+    SELECT
+      c.convalidated AS validated,
+      pg_get_constraintdef(c.oid, true) AS definition
+    FROM pg_constraint c
+    JOIN pg_class t ON t.oid = c.conrelid
+    JOIN pg_namespace n ON n.oid = t.relnamespace
+    WHERE n.nspname = 'public'
+      AND t.relname = 'ai_messages'
+      AND c.conname = ${GUARD_CONSTRAINT}
+      AND c.contype = 'c'
   `;
 
-  const present = await inspectAiZeroDurableRetention();
-  assert.equal(present.ok, true, `present readiness failed: ${JSON.stringify(present)}`);
-  assert.equal(present.status, 'DURABLE_AI_ROWS_PRESENT');
-  assert.equal(present.durableRowCount, 1);
-  assert.equal(present.destructiveActionAuthorized, false);
-  assert.equal(present.claimsPurgeExecuted, false);
-  assert.equal(present.claimsWritePreventionImplemented, false);
-  assert.equal(present.claimsRepositoryRuntimePersistenceGuardImplemented, true);
-  assert.equal(present.claimsDatabaseWritePreventionImplemented, false);
+  assert.equal(guards.length, 1, 'fresh baseline must contain the AI zero-durable CHECK guard');
+  assert.equal(guards[0].validated, true);
+  assert.equal(guards[0].definition, 'CHECK (false)');
 
-  const rows = await sql`
-    SELECT id, category, content
+  await assert.rejects(
+    async () => {
+      await sql`
+        INSERT INTO ai_messages (id, category, content)
+        VALUES (${MESSAGE_ID}, 'test-only', 'durable-row-must-be-rejected')
+      `;
+    },
+    (error) => {
+      assert.equal(error?.code, '23514');
+      assert.equal(error?.constraint_name, GUARD_CONSTRAINT);
+      return true;
+    },
+  );
+
+  const [persisted] = await sql`
+    SELECT count(*)::int AS count
     FROM ai_messages
     WHERE id = ${MESSAGE_ID}
   `;
-  assert.equal(rows.length, 1, 'readiness must not delete the durable AI row');
-  assert.equal(rows[0].content, 'durable-row-should-be-detected');
+  assert.equal(persisted.count, 0);
 
-  await cleanup();
-
-  const cleared = await inspectAiZeroDurableRetention();
-  assert.equal(cleared.ok, true);
-  assert.equal(cleared.status, 'NO_DURABLE_AI_ROWS_PRESENT');
-  assert.equal(cleared.durableRowCount, 0);
-  assert.equal(cleared.claimsWritePreventionImplemented, false);
+  const afterAttempt = await inspectAiZeroDurableRetention();
+  assert.equal(afterAttempt.ok, true);
+  assert.equal(afterAttempt.status, 'NO_DURABLE_AI_ROWS_PRESENT');
+  assert.equal(afterAttempt.durableRowCount, 0);
+  assert.equal(afterAttempt.claimsPurgeExecuted, false);
 });
