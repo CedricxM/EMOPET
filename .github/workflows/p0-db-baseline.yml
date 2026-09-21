@@ -215,6 +215,14 @@ jobs:
           NODE_ENV: test
         run: node --test test/detailed-sensor-eli-retention-readiness.integration.test.mjs
 
+      - name: PRIV-RETENTION UTC calendar expiry parity
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          RETENTION_CALENDAR_PARITY_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/privacy-retention-calendar-parity.integration.test.mjs
+
       - name: PRIV-RETENTION moderation evidence 12-month readiness
         working-directory: backend
         env:

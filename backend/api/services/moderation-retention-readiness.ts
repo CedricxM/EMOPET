@@ -1,4 +1,4 @@
-import { isNotNull, isNull, lte, sql } from 'drizzle-orm';
+import { isNotNull, isNull, sql } from 'drizzle-orm';
 
 import { db } from '../../db/index.js';
 import { communityReports } from '../../db/schema/index.js';
@@ -17,7 +17,7 @@ export interface ModerationRetentionCounts {
 }
 
 export interface ModerationRetentionRepository {
-  countAt(cutoffAt: Date): Promise<ModerationRetentionCounts>;
+  countExpiredAt(evaluationAt: Date): Promise<ModerationRetentionCounts>;
 }
 
 export interface ModerationRetentionReadinessReport {
@@ -29,7 +29,9 @@ export interface ModerationRetentionReadinessReport {
   claimsHistoricalBackfillComplete: false;
   categoryId: 'moderation_evidence';
   evaluationAt: string;
+  /** Calendar reference only; eligibility uses each row clock plus policyMonths. */
   cutoffAt: string;
+  expiryBasis: 'ROW_CLOCK_PLUS_UTC_CALENDAR_MONTHS';
   policyMonths: 12;
   status:
     | 'ROWS_BEYOND_12_MONTHS_PRESENT'
@@ -90,7 +92,7 @@ function validCounts(counts: ModerationRetentionCounts): boolean {
 }
 
 const postgresRepository: ModerationRetentionRepository = {
-  async countAt(cutoffAt) {
+  async countExpiredAt(evaluationAt) {
     return db.transaction(async (tx) => {
       await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY`);
       await tx.execute(sql`SET LOCAL statement_timeout = '10s'`);
@@ -112,7 +114,11 @@ const postgresRepository: ModerationRetentionRepository = {
       const [beyondRow] = await tx
         .select({ count: sql<number>`count(*)::int` })
         .from(communityReports)
-        .where(lte(communityReports.finalActionAt, cutoffAt));
+        .where(sql`
+          (${communityReports.finalActionAt} AT TIME ZONE 'UTC')
+            + make_interval(months => ${MODERATION_RETENTION_MONTHS})
+          <= (${evaluationAt.toISOString()}::timestamptz AT TIME ZONE 'UTC')
+        `);
 
       return {
         total: Number(totalRow?.count ?? 0),
@@ -143,7 +149,7 @@ export async function inspectModerationRetention(
   const cutoffAt = new Date(cutoffIso);
 
   try {
-    const counts = await repository.countAt(cutoffAt);
+    const counts = await repository.countExpiredAt(new Date(evaluationAt));
     if (!validCounts(counts)) return failure('invalid_repository_result');
 
     const status = counts.beyondWindowTotal > 0
@@ -162,6 +168,7 @@ export async function inspectModerationRetention(
       categoryId: 'moderation_evidence',
       evaluationAt,
       cutoffAt: cutoffAt.toISOString(),
+      expiryBasis: 'ROW_CLOCK_PLUS_UTC_CALENDAR_MONTHS',
       policyMonths: MODERATION_RETENTION_MONTHS,
       status,
       counts,

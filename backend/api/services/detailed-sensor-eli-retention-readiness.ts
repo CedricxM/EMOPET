@@ -1,4 +1,4 @@
-import { lte, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 
 import { db } from '../../db/index.js';
 import { eliStates, sensorSummaries } from '../../db/schema/index.js';
@@ -17,7 +17,7 @@ export interface DetailedSensorEliRetentionCounts {
 }
 
 export interface DetailedSensorEliRetentionRepository {
-  countAt(cutoffAt: Date): Promise<DetailedSensorEliRetentionCounts>;
+  countExpiredAt(evaluationAt: Date): Promise<DetailedSensorEliRetentionCounts>;
 }
 
 export interface DetailedSensorEliRetentionReadinessReport {
@@ -28,7 +28,9 @@ export interface DetailedSensorEliRetentionReadinessReport {
   claimsAggregationCompleted: false;
   categoryIds: ['sensor_preprocessed_detailed', 'eli_inferred_detailed'];
   evaluationAt: string;
+  /** Calendar reference only; eligibility uses each row clock plus policyMonths. */
   cutoffAt: string;
+  expiryBasis: 'ROW_CLOCK_PLUS_UTC_CALENDAR_MONTHS';
   policyMonths: 36;
   status:
     | 'NO_DETAILED_ROWS_BEYOND_36_MONTHS'
@@ -85,7 +87,7 @@ function validCounts(counts: DetailedSensorEliRetentionCounts): boolean {
 }
 
 const postgresRepository: DetailedSensorEliRetentionRepository = {
-  async countAt(cutoffAt) {
+  async countExpiredAt(evaluationAt) {
     return db.transaction(async (tx) => {
       await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY`);
       await tx.execute(sql`SET LOCAL statement_timeout = '10s'`);
@@ -97,7 +99,11 @@ const postgresRepository: DetailedSensorEliRetentionRepository = {
       const [sensorBeyondRow] = await tx
         .select({ count: sql<number>`count(*)::int` })
         .from(sensorSummaries)
-        .where(lte(sensorSummaries.timestamp, cutoffAt));
+        .where(sql`
+          (${sensorSummaries.timestamp} AT TIME ZONE 'UTC')
+            + make_interval(months => ${DETAILED_RETENTION_MONTHS})
+          <= (${evaluationAt.toISOString()}::timestamptz AT TIME ZONE 'UTC')
+        `);
 
       const [eliTotalRow] = await tx
         .select({ count: sql<number>`count(*)::int` })
@@ -106,7 +112,11 @@ const postgresRepository: DetailedSensorEliRetentionRepository = {
       const [eliBeyondRow] = await tx
         .select({ count: sql<number>`count(*)::int` })
         .from(eliStates)
-        .where(lte(eliStates.timestamp, cutoffAt));
+        .where(sql`
+          (${eliStates.timestamp} AT TIME ZONE 'UTC')
+            + make_interval(months => ${DETAILED_RETENTION_MONTHS})
+          <= (${evaluationAt.toISOString()}::timestamptz AT TIME ZONE 'UTC')
+        `);
 
       return {
         sensorDetailedTotal: Number(sensorTotalRow?.count ?? 0),
@@ -138,7 +148,7 @@ export async function inspectDetailedSensorEliRetention(
   const cutoffAt = new Date(cutoffIso);
 
   try {
-    const counts = await repository.countAt(cutoffAt);
+    const counts = await repository.countExpiredAt(new Date(evaluationAt));
     if (!validCounts(counts)) return failure('invalid_repository_result');
 
     const beyondWindow =
@@ -153,6 +163,7 @@ export async function inspectDetailedSensorEliRetention(
       categoryIds: ['sensor_preprocessed_detailed', 'eli_inferred_detailed'],
       evaluationAt,
       cutoffAt: cutoffAt.toISOString(),
+      expiryBasis: 'ROW_CLOCK_PLUS_UTC_CALENDAR_MONTHS',
       policyMonths: DETAILED_RETENTION_MONTHS,
       status: beyondWindow
         ? 'DETAILED_ROWS_BEYOND_36_MONTHS_PRESENT'

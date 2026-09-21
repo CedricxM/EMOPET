@@ -28,11 +28,11 @@ const probes = [
     },
   },
   {
-    name: 'sensor and ELI detail', inspect: inspectDetailedSensorEliRetention, method: 'countAt',
+    name: 'sensor and ELI detail', inspect: inspectDetailedSensorEliRetention, method: 'countExpiredAt',
     counts: { sensorDetailedTotal: 0, sensorBeyondWindow: 0, eliDetailedTotal: 0, eliBeyondWindow: 0 },
   },
   {
-    name: 'moderation', inspect: inspectModerationRetention, method: 'countAt',
+    name: 'moderation', inspect: inspectModerationRetention, method: 'countExpiredAt',
     counts: { total: 0, clockedTotal: 0, unclockedTotal: 0, beyondWindowTotal: 0 },
   },
 ];
@@ -132,10 +132,10 @@ test('calendar expiry preserves years below 0100 and Gregorian leap days', () =>
 });
 
 test('an unrepresentable cutoff is an input failure and never reaches the database', async () => {
-  for (const probe of probes.filter((entry) => entry.method === 'countAt')) {
+  for (const probe of probes.filter((entry) => entry.name !== 'refresh sessions')) {
     let calls = 0;
     const result = await probe.inspect('0000-01-01T00:00:00.000Z', {
-      async countAt() { calls += 1; return probe.counts; },
+      async [probe.method]() { calls += 1; return probe.counts; },
     });
     assert.equal(result.ok, false, probe.name);
     assert.equal(result.error, 'invalid_evaluation_at', probe.name);
@@ -150,7 +150,7 @@ test('readiness calendar cutoffs preserve year 0000 leap-day semantics', async (
     [inspectDetailedSensorEliRetention, '0003-02-28T12:00:00.000Z'],
   ]) {
     const probe = probes.find((entry) => entry.inspect === inspect);
-    const result = await inspect(input, { async countAt() { return probe.counts; } });
+    const result = await inspect(input, { async [probe.method]() { return probe.counts; } });
     assert.equal(result.ok, true);
     assert.equal(result.cutoffAt, '0000-02-28T12:00:00.000Z');
   }
