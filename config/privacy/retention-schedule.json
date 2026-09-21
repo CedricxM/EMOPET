@@ -5,7 +5,10 @@
   "productPhilosophy": "RICH_LONGITUDINAL_HISTORY_WITH_PROGRESSIVE_MINIMISATION",
   "decisions": {
     "R1": "ACTIVE_DOG_PROFILE_LIFETIME_AGGREGATES",
-    "R2": "DELETE_DEFAULT_NECESSITY_ONLY_IRREVERSIBLE_ANONYMISATION_FAIL_TO_DELETE"
+    "R2": "DELETE_DEFAULT_NECESSITY_ONLY_IRREVERSIBLE_ANONYMISATION_FAIL_TO_DELETE",
+    "R3": "DETAILED_SENSOR_AND_ELI_SOURCE_ALIGNED_36_MONTHS",
+    "R4": "AI_MESSAGES_NO_DURABLE_RETENTION_UNTIL_SEPARATE_PRODUCT_NEED",
+    "R5": "BEHAVIORAL_ASSESSMENTS_PRODUCT_RESEARCH_LIFECYCLE_SPLIT"
   },
   "globalRules": [
     "No category may be treated as legally final until privacy/legal sign-off is recorded.",
@@ -80,7 +83,7 @@
       "trigger": "observation timestamp",
       "activeRetention": {
         "mode": "DURATION",
-        "value": 24,
+        "value": 36,
         "unit": "MONTHS"
       },
       "archive": "AGE_INTO_LOWER_GRANULARITY_LONGITUDINAL_AGGREGATES",
@@ -89,7 +92,7 @@
         "DOCUMENTED_RESEARCH_VALIDATION_HOLD_WITH_SEPARATE_AUTHORITY"
       ],
       "purgeEvidence": "REQUIRED",
-      "authority": "PRODUCT_APPROVED_CANDIDATE"
+      "authority": "PRODUCT_APPROVED_SOURCE_ALIGNED_36_MONTHS"
     },
     {
       "id": "sensor_preprocessed_aggregates",
@@ -120,6 +123,20 @@
       "authority": "CURRENT_DOCTRINE_NO_RAW_AUDIO_OR_UNAPPROVED_RAW_STREAM"
     },
     {
+      "id": "ai_messages",
+      "trigger": "durable persistence attempt",
+      "activeRetention": {
+        "mode": "NO_DURABLE_RETENTION",
+        "value": 0,
+        "unit": "SECONDS"
+      },
+      "archive": null,
+      "finalDisposition": "DO_NOT_DURABLY_PERSIST_UNTIL_A_SEPARATE_PRODUCT_NEED_RETENTION_PURPOSE_AND_PRIVACY_AUTHORITY_ARE_APPROVED",
+      "holdConditions": [],
+      "purgeEvidence": "NEGATIVE_EVIDENCE_REQUIRED",
+      "authority": "PRODUCT_APPROVED_AI_NO_DURABLE_RETENTION_UNTIL_SEPARATE_NEED"
+    },
+    {
       "id": "eli_inferred_detailed",
       "trigger": "inference timestamp",
       "activeRetention": {
@@ -133,7 +150,7 @@
         "DOCUMENTED_RESEARCH_VALIDATION_HOLD_WITH_SEPARATE_AUTHORITY"
       ],
       "purgeEvidence": "REQUIRED",
-      "authority": "PRODUCT_APPROVED_CANDIDATE"
+      "authority": "PRODUCT_APPROVED_SOURCE_ALIGNED_36_MONTHS"
     },
     {
       "id": "eli_inferred_aggregates",
@@ -162,6 +179,20 @@
       ],
       "purgeEvidence": "REQUIRED",
       "authority": "PRODUCT_APPROVED_CANDIDATE"
+    },
+    {
+      "id": "behavioral_assessment_product",
+      "trigger": "validated dog-profile deletion or account erasure",
+      "activeRetention": {
+        "mode": "ACTIVE_DOG_PROFILE_LIFETIME"
+      },
+      "archive": "PRESERVE_ASSESSMENT_PROVENANCE_WITH_ANY_PRODUCT_ELI_PRIOR_DERIVED_FROM_IT",
+      "finalDisposition": "DELETE_ON_DOG_OR_ACCOUNT_ERASURE",
+      "holdConditions": [
+        "DOCUMENTED_LEGAL_OR_RIGHTS_HOLD"
+      ],
+      "purgeEvidence": "REQUIRED",
+      "authority": "PRODUCT_APPROVED_BEHAVIORAL_SPLIT_PRODUCT_ONLY"
     },
     {
       "id": "exact_location",
