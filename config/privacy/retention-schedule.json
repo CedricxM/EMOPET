@@ -32,6 +32,20 @@
       "authority": "PRODUCT_APPROVED_CANDIDATE"
     },
     {
+      "id": "auth_refresh_sessions",
+      "trigger": "refresh session issuance",
+      "activeRetention": {
+        "mode": "DURATION",
+        "value": 30,
+        "unit": "DAYS"
+      },
+      "archive": "NONE_SECURITY_EVENTS_BELONG_TO_SECURITY_AUTH_LOGS",
+      "finalDisposition": "REVOKE_IMMEDIATELY_WHEN_REQUIRED; DELETE_SESSION_RECORD_AFTER_ITS_ORIGINAL_EXPIRY_WINDOW",
+      "holdConditions": [],
+      "purgeEvidence": "REQUIRED",
+      "authority": "TECHNICAL_SECURITY_LIFECYCLE_CANDIDATE_BASED_ON_CURRENT_30_DAY_REFRESH_TTL_AND_REUSE_DETECTION"
+    },
+    {
       "id": "dog_profile",
       "trigger": "validated dog-profile deletion or account erasure",
       "activeRetention": {
