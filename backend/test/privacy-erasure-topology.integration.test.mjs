@@ -119,7 +119,6 @@ test('PRIV-ERASURE-TOPOLOGY static controls remain fail closed', () => {
     sorted([
       'ai_messages',
       'behavioral_assessments',
-      'copresence_events',
       'research_data_consents',
       'subscriptions',
     ]),
@@ -138,6 +137,7 @@ test('PRIV-ERASURE-TOPOLOGY static controls remain fail closed', () => {
     ['eli_behavioral_priors', 'eli_inferred'],
     ['achievements', 'account'],
     ['auth_refresh_sessions', 'account'],
+    ['copresence_events', 'location'],
   ]) {
     assert.equal(mappedByTable[table].classificationStatus, 'MAPPED_TO_EXISTING_PRIVACY_CATEGORY');
     assert.deepEqual(mappedByTable[table].inventoryCategories, [category]);
