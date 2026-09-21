@@ -2,6 +2,7 @@ import { lte, sql } from 'drizzle-orm';
 
 import { db } from '../../db/index.js';
 import { authRefreshSessions } from '../../db/schema/index.js';
+import { canonicalRetentionUtc } from './retention-time.js';
 
 export interface ExpiredRefreshSessionCounts {
   expiredTotal: number;
@@ -55,13 +56,6 @@ function failure(
     error,
     ...(retryable === undefined ? {} : { retryable }),
   };
-}
-
-function canonicalUtc(value: string): string | null {
-  if (typeof value !== 'string' || !value.endsWith('Z')) return null;
-  const parsed = Date.parse(value);
-  if (!Number.isFinite(parsed)) return null;
-  return new Date(parsed).toISOString();
 }
 
 function validCount(value: number): boolean {
@@ -119,7 +113,7 @@ export async function inspectExpiredRefreshSessionRetention(
   evaluationAtInput: string,
   repository: RefreshSessionRetentionRepository = postgresRepository,
 ): Promise<RefreshSessionRetentionReadinessResult> {
-  const evaluationAt = canonicalUtc(evaluationAtInput);
+  const evaluationAt = canonicalRetentionUtc(evaluationAtInput);
   if (!evaluationAt) return failure('invalid_evaluation_at');
 
   try {

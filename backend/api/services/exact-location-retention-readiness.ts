@@ -2,6 +2,10 @@ import { sql } from 'drizzle-orm';
 
 import { db } from '../../db/index.js';
 import { copresenceEvents } from '../../db/schema/index.js';
+import {
+  canonicalRetentionUtc,
+  representableRetentionUtc,
+} from './retention-time.js';
 
 const MAX_EXACT_LOCATION_RETENTION_HOURS = 24;
 const MAX_EXACT_LOCATION_RETENTION_MS =
@@ -65,13 +69,6 @@ function failure(
     error,
     ...(retryable === undefined ? {} : { retryable }),
   };
-}
-
-function canonicalUtc(value: string): string | null {
-  if (typeof value !== 'string' || !value.endsWith('Z')) return null;
-  const parsed = Date.parse(value);
-  if (!Number.isFinite(parsed)) return null;
-  return new Date(parsed).toISOString();
 }
 
 function validCount(value: number): boolean {
@@ -160,12 +157,14 @@ export async function inspectExactLocationRetention(
   evaluationAtInput: string,
   repository: ExactLocationRetentionRepository = postgresRepository,
 ): Promise<ExactLocationRetentionReadinessResult> {
-  const evaluationAt = canonicalUtc(evaluationAtInput);
+  const evaluationAt = canonicalRetentionUtc(evaluationAtInput);
   if (!evaluationAt) return failure('invalid_evaluation_at');
 
-  const cutoffAt = new Date(
+  const cutoffIso = representableRetentionUtc(new Date(
     Date.parse(evaluationAt) - MAX_EXACT_LOCATION_RETENTION_MS,
-  );
+  ));
+  if (!cutoffIso) return failure('invalid_evaluation_at');
+  const cutoffAt = new Date(cutoffIso);
 
   try {
     const counts = await repository.countAt(cutoffAt);

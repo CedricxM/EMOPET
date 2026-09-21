@@ -1,3 +1,9 @@
+import {
+  canonicalRetentionUtc,
+  representableRetentionUtc,
+  shiftRetentionUtcMonths,
+} from './retention-time.js';
+
 export type RetentionUnit = 'SECONDS' | 'HOURS' | 'DAYS' | 'MONTHS' | 'YEARS';
 
 export type RetentionMode =
@@ -117,56 +123,26 @@ function failure(error: RetentionDryRunFailure['error']): RetentionDryRunFailure
   };
 }
 
-function canonicalUtc(value: string | undefined): string | null {
-  if (typeof value !== 'string' || !value.endsWith('Z')) return null;
-  const parsed = Date.parse(value);
-  if (!Number.isFinite(parsed)) return null;
-  return new Date(parsed).toISOString();
-}
-
-function daysInUtcMonth(year: number, monthIndex: number): number {
-  return new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
-}
-
-function addUtcCalendarMonths(iso: string, months: number): string {
-  const source = new Date(iso);
-  const sourceMonth = source.getUTCMonth();
-  const totalMonth = source.getUTCFullYear() * 12 + sourceMonth + months;
-  const targetYear = Math.floor(totalMonth / 12);
-  const targetMonth = ((totalMonth % 12) + 12) % 12;
-  const targetDay = Math.min(source.getUTCDate(), daysInUtcMonth(targetYear, targetMonth));
-
-  return new Date(Date.UTC(
-    targetYear,
-    targetMonth,
-    targetDay,
-    source.getUTCHours(),
-    source.getUTCMinutes(),
-    source.getUTCSeconds(),
-    source.getUTCMilliseconds(),
-  )).toISOString();
-}
-
 export function computeRetentionExpiry(
   startedAt: string,
   value: number,
   unit: RetentionUnit,
 ): string | null {
-  const canonical = canonicalUtc(startedAt);
+  const canonical = canonicalRetentionUtc(startedAt);
   if (!canonical || !Number.isSafeInteger(value) || value < 0) return null;
 
   const startMs = Date.parse(canonical);
   switch (unit) {
     case 'SECONDS':
-      return new Date(startMs + value * 1_000).toISOString();
+      return representableRetentionUtc(new Date(startMs + value * 1_000));
     case 'HOURS':
-      return new Date(startMs + value * 60 * 60 * 1_000).toISOString();
+      return representableRetentionUtc(new Date(startMs + value * 60 * 60 * 1_000));
     case 'DAYS':
-      return new Date(startMs + value * 24 * 60 * 60 * 1_000).toISOString();
+      return representableRetentionUtc(new Date(startMs + value * 24 * 60 * 60 * 1_000));
     case 'MONTHS':
-      return addUtcCalendarMonths(canonical, value);
+      return shiftRetentionUtcMonths(canonical, value);
     case 'YEARS':
-      return addUtcCalendarMonths(canonical, value * 12);
+      return shiftRetentionUtcMonths(canonical, value * 12);
     default:
       return null;
   }
@@ -222,26 +198,26 @@ export function planRetentionDryRun(
   const category = schedule.categories.find((item) => item.id === input.categoryId);
   if (!category) return failure('category_not_found');
 
-  const evaluationAt = canonicalUtc(input.evaluationAt);
+  const evaluationAt = canonicalRetentionUtc(input.evaluationAt);
   if (!evaluationAt) return failure('invalid_evaluation_at');
 
   const retentionStartedAt = input.retentionStartedAt === undefined
     ? null
-    : canonicalUtc(input.retentionStartedAt);
+    : canonicalRetentionUtc(input.retentionStartedAt);
   if (input.retentionStartedAt !== undefined && !retentionStartedAt) {
     return failure('invalid_retention_started_at');
   }
 
   const lifecycleEndedAt = input.lifecycleEndedAt === undefined
     ? null
-    : canonicalUtc(input.lifecycleEndedAt);
+    : canonicalRetentionUtc(input.lifecycleEndedAt);
   if (input.lifecycleEndedAt !== undefined && !lifecycleEndedAt) {
     return failure('invalid_lifecycle_ended_at');
   }
 
   const earlyExpiryAt = input.earlyExpiryAt === undefined
     ? null
-    : canonicalUtc(input.earlyExpiryAt);
+    : canonicalRetentionUtc(input.earlyExpiryAt);
   if (input.earlyExpiryAt !== undefined && !earlyExpiryAt) {
     return failure('invalid_early_expiry_at');
   }

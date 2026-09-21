@@ -2,6 +2,10 @@ import { isNotNull, isNull, lte, sql } from 'drizzle-orm';
 
 import { db } from '../../db/index.js';
 import { communityReports } from '../../db/schema/index.js';
+import {
+  canonicalRetentionUtc,
+  shiftRetentionUtcMonths,
+} from './retention-time.js';
 
 const MODERATION_RETENTION_MONTHS = 12;
 
@@ -70,30 +74,6 @@ function failure(
   };
 }
 
-function canonicalUtc(value: string): string | null {
-  if (typeof value !== 'string' || !value.endsWith('Z')) return null;
-  const parsed = Date.parse(value);
-  if (!Number.isFinite(parsed)) return null;
-  return new Date(parsed).toISOString();
-}
-
-function subtractUtcMonths(value: string, months: number): Date {
-  const result = new Date(value);
-  const day = result.getUTCDate();
-
-  result.setUTCDate(1);
-  result.setUTCMonth(result.getUTCMonth() - months);
-
-  const lastDay = new Date(Date.UTC(
-    result.getUTCFullYear(),
-    result.getUTCMonth() + 1,
-    0,
-  )).getUTCDate();
-
-  result.setUTCDate(Math.min(day, lastDay));
-  return result;
-}
-
 function validCount(value: number): boolean {
   return Number.isSafeInteger(value) && value >= 0;
 }
@@ -155,10 +135,12 @@ export async function inspectModerationRetention(
   evaluationAtInput: string,
   repository: ModerationRetentionRepository = postgresRepository,
 ): Promise<ModerationRetentionReadinessResult> {
-  const evaluationAt = canonicalUtc(evaluationAtInput);
+  const evaluationAt = canonicalRetentionUtc(evaluationAtInput);
   if (!evaluationAt) return failure('invalid_evaluation_at');
 
-  const cutoffAt = subtractUtcMonths(evaluationAt, MODERATION_RETENTION_MONTHS);
+  const cutoffIso = shiftRetentionUtcMonths(evaluationAt, -MODERATION_RETENTION_MONTHS);
+  if (!cutoffIso) return failure('invalid_evaluation_at');
+  const cutoffAt = new Date(cutoffIso);
 
   try {
     const counts = await repository.countAt(cutoffAt);
