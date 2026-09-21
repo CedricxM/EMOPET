@@ -102,6 +102,40 @@ test('aucune règle :focus-visible ne supprime l’anneau de focus', () => {
   );
 });
 
+/**
+ * Le même défaut se pose en style inline, où aucune règle CSS n'apparaît.
+ *
+ * `style={{ …, outline: 'none' }}` sur un `<input>` ne laisse RIEN au focus :
+ * pas de règle à relire, pas de sélecteur à chercher. Un champ de saisie du
+ * `mobile-preview` portait exactement cela. La garde CSS ci-dessus ne pouvait
+ * pas le voir, ce qui rendait sa portée trompeuse.
+ */
+test('aucun style inline ne supprime l’anneau de focus', () => {
+  const sources: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir)) {
+      if (entry === 'node_modules' || entry === '.next') continue;
+      const full = path.join(dir, entry);
+      if (statSync(full).isDirectory()) walk(full);
+      else if (/\.tsx?$/.test(full) && !full.includes('__tests__')) sources.push(full);
+    }
+  };
+  for (const root of ['app', 'components', 'lib']) walk(path.join(webRoot, root));
+
+  const offenders: string[] = [];
+  for (const file of sources) {
+    const source = readFileSync(file, 'utf8');
+    // `outline: 'none'` / `outline: "none"` / `outlineStyle: 'none'` / `outline: 0`
+    const re = /\boutline(Style)?\s*:\s*(['"`]none['"`]|0)\s*[,}]/g;
+    if (re.test(source)) offenders.push(path.relative(webRoot, file));
+  }
+  assert.deepEqual(
+    offenders,
+    [],
+    `l’anneau de focus est supprimé en style inline :\n  ${offenders.join('\n  ')}`,
+  );
+});
+
 test('l’anneau global est toujours déclaré', () => {
   // Le retrait des suppressions ne vaut que si l'anneau qu'elles masquaient
   // existe encore.
