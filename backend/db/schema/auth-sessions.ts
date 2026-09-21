@@ -4,7 +4,7 @@ import { users } from './users.js';
 
 export const authRefreshSessions = pgTable('auth_refresh_sessions', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => users.id),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
   familyId: uuid('family_id').notNull(),
   tokenHash: varchar('token_hash', { length: 64 }).notNull().unique(),
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
