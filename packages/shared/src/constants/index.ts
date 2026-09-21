@@ -83,9 +83,7 @@ export const REFERENT_WEEKLY_INTERACTIONS = 10;
 export const REFERENT_WEEKLY_RESPONSES = 3;
 export const REFERENT_TONE_SCORE_MIN = 0.7;
 
-// ── GDPR ────────────────────────────────────────────────────────
-export const GPS_RETENTION_DAYS = 30;
-export const SENSOR_SUMMARY_RETENTION_MONTHS = 24;
-export const AI_INSIGHT_RETENTION_MONTHS = 24;
+// Privacy retention authority lives in config/privacy/retention-schedule.json.
+// Do not duplicate product/legal retention clocks in shared runtime constants.
 
 export * from './feature-progress.js';
