@@ -34,8 +34,23 @@ import { fileURLToPath } from 'node:url';
 
 const webRoot = fileURLToPath(new URL('../../', import.meta.url));
 
-/** Teintes claires : belles en décor, insuffisantes sous du texte. */
-const LIGHT_ACCENTS = ['--terracotta-500', '--lichen-500'];
+/**
+ * Teintes claires : belles en décor, insuffisantes sous du texte.
+ *
+ * `--orange-pro` (#D4810E) a rejoint la liste après coup. Mesuré au rendu dans
+ * la section « Comprendre les indicateurs » — dépliable, donc invisible à un
+ * simple chargement de page — il tombait entre 2,35 et 2,85:1 sur les quatre
+ * surfaces claires de la charte. Ce qu'il coloriait rend le défaut pire que sa
+ * valeur : « Partiel · confiance dégradée », « DÉMO · », « Fenêtre ». L'état
+ * qui demande à l'utilisateur de faire MOINS confiance était celui qu'il ne
+ * pouvait pas lire.
+ *
+ * `tokens.css` fournissait déjà l'encre correspondante, `--eli-degraded-ink`
+ * (#7A5F1E, 4,68 à 5,69:1). Le texte y est routé ; l'ambre reste où il est
+ * décoratif, sans que sa VALEUR change — renommer ou revaloriser un token en
+ * lui gardant son nom est le piège que `CLAUDE.md` signale explicitement.
+ */
+const LIGHT_ACCENTS = ['--terracotta-500', '--lichen-500', '--orange-pro'];
 
 function sourceFiles(): string[] {
   const out: string[] = [];
@@ -52,31 +67,30 @@ function sourceFiles(): string[] {
 }
 
 /**
- * Exceptions explicites : usages NON textuels que l'audit n'a pas pu mesurer,
- * parce que leur fond n'est pas déterminable depuis la cascade.
+ * Exception : usage NON textuel dont le fond n'est pas mesurable depuis la
+ * cascade — remplissage d'épingle sur une carte, trait de sparkline.
  *
- * `spots.ts` : remplissage des épingles de carte, posées sur une carte.
- * `catalog.ts` : couleur d'indicateur dont le point de rendu n'a pas été établi.
- *
- * Elles restent listées pour être reprises quand leur surface sera mesurable —
- * pas pour être oubliées.
+ * Elle se pose EN LIGNE, avec `// contrast-guard:non-textuel`, et jamais sur un
+ * fichier entier. Une première version excluait `lib/eli/catalog.ts` au complet
+ * pour épargner une seule ligne ; le fichier porte aussi les couleurs de texte
+ * des états de confiance, et la garde ne les voyait donc plus. Une exception
+ * doit être aussi étroite que la raison qui la justifie, et vivre à côté du
+ * code qu'elle excuse.
  */
-const UNMEASURED = new Set([
-  path.join('components', 'bretagne-map', 'spots.ts'),
-  path.join('lib', 'eli', 'catalog.ts'),
-]);
+const EXEMPT = /contrast-guard:non-textuel/;
 
-const files = sourceFiles().filter((f) => !UNMEASURED.has(path.relative(webRoot, f)));
+const files = sourceFiles();
 
 test('le corpus audité n’est pas vide', () => {
   assert.ok(files.length > 50, `seulement ${files.length} fichiers sources trouvés`);
 });
 
-test('aucun accent clair n’est utilisé comme couleur de texte', () => {
+test('aucune teinte décorative n’est utilisée comme couleur de texte', () => {
   const offenders: string[] = [];
   for (const file of files) {
     const lines = readFileSync(file, 'utf8').split('\n');
     lines.forEach((line, i) => {
+      if (EXEMPT.test(line)) return;
       for (const accent of LIGHT_ACCENTS) {
         // `color:` seul — ni `background-color:`, ni `border-color:`.
         const re = new RegExp(String.raw`(?<![-\w])color\s*:\s*'?var\(${accent}\)`);
@@ -96,6 +110,7 @@ test('aucun texte blanc ne repose sur un accent clair', () => {
   for (const file of files) {
     const lines = readFileSync(file, 'utf8').split('\n');
     lines.forEach((line, i) => {
+      if (EXEMPT.test(line)) return;
       const onLight = LIGHT_ACCENTS.some((a) =>
         new RegExp(String.raw`background(-color)?\s*:\s*'?var\(${a}\)`).test(line),
       );

@@ -16,7 +16,7 @@ import type { ContactRequest } from '../../lib/contact';
 import { useI18n } from '../../lib/i18n';
 
 const STATUS_TONE: Record<string, string> = {
-  pending: 'var(--orange-pro)',
+  pending: 'var(--eli-degraded-ink)',
   scheduled: 'var(--lichen-700)',
   completed: 'var(--granit-500)',
   cancelled: 'var(--granit-400)',
