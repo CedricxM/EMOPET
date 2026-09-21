@@ -287,7 +287,10 @@ export function buildErasureReadinessReport(
       const action = mechanicsByKey.get(
         relationKey(row.subjectRoot, row.relationType, row.table, row.column),
       );
-      return action === 'NO_ACTION' || action === 'RESTRICT';
+      return (
+        (action === 'NO_ACTION' || action === 'RESTRICT')
+        && (row.disposition === 'TO_CONFIRM' || row.executionStatus !== 'IMPLEMENTED')
+      );
     })
     .map((row) => ({
       table: row.table,
