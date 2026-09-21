@@ -123,7 +123,7 @@ test('refresh-session semantics preserve revoke-now/delete-at-expiry with detach
     source('backend/db/schema/auth-sessions.ts'),
     source('backend/api/services/auth-sessions.ts'),
     source('backend/api/routes/auth.ts'),
-    source('backend/db/migrations/0008_refresh_session_user_detach.sql'),
+    source('backend/db/migrations/0009_refresh_session_user_detach.sql'),
   ]);
   assert.match(schema, /userId: uuid\('user_id'\)\.references\(\(\) => users\.id, \{ onDelete: 'set null' \}\)/);
   assert.match(service, /if \(!observed \|\| !observed\.userId\) return \{ ok: false, reason: 'invalid_or_expired' \}/);
