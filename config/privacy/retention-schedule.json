@@ -284,7 +284,14 @@
         "DOCUMENTED_INVESTIGATION_OR_LEGAL_HOLD"
       ],
       "purgeEvidence": "REQUIRED",
-      "authority": "PRODUCT_APPROVED_CANDIDATE"
+      "authority": "PRODUCT_APPROVED_CANDIDATE",
+      "clockSupportStatus": "IMPLEMENTED_SCHEMA_ONLY",
+      "clockField": "community_reports.final_action_at",
+      "clockBoundary": "RUNTIME_FINAL_ACTION_STAMPING_NOT_IMPLEMENTED_NO_HISTORICAL_BACKFILL",
+      "clockEvidence": [
+        "backend/db/schema/community.ts",
+        "backend/db/migrations/0011_moderation_final_action_clock.sql"
+      ]
     },
     {
       "id": "support_contact",
