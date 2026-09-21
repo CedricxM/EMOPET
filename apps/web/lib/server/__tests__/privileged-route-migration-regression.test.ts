@@ -16,9 +16,13 @@ test('all six retained D2-A surfaces are detached from the legacy static admin a
     const url = new URL(relative, import.meta.url);
     const source = await readFile(url, 'utf8');
 
+    assert.equal(
+      /from ['"][^'"]*lib\/server\/admin['"]/.test(source),
+      false,
+      `${relative} must not import the retired lib/server/admin authority`,
+    );
+
     for (const legacy of [
-      'lib/server/admin',
-      'server/admin',
       'isAdmin(',
       'isAdminTokenValue',
       'ADMIN_TOKEN_COOKIE',
