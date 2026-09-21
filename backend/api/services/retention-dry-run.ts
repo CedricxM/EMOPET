@@ -294,8 +294,8 @@ export function planRetentionDryRun(
     const { value, unit } = category.activeRetention;
     if (!retentionStartedAt) return failure('retention_started_at_required');
     if (
-      !Number.isSafeInteger(value)
-      || value === undefined
+      value === undefined
+      || !Number.isSafeInteger(value)
       || value < 0
       || !unit
     ) {
