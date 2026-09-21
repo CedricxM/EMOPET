@@ -38,6 +38,35 @@ ELI history — the answer is aggregation, not deletion (decision A, rows 4 and 
 
 ## Decision A — Retention schedule (#69, sub-gate `G-PRIV-RETENTION`)
 
+> **Superseded in part, same day.** After this record was written, the privacy
+> control-plane workstream took ownership of PRIV-01C and posted an Option C
+> "rich longitudinal history" schedule on #69. **Where the two differ, that
+> schedule governs and the table below does not.** This section is retained as
+> the reasoning that produced the review of it, not as a competing authority —
+> two retention schedules in one repository is precisely the authority conflict
+> `CLAUDE.md` warns against.
+>
+> Values explicitly conceded to that schedule: `security_logs` 12 months (inside
+> the 6–12 month range both cite), `support_contact` 24 months, incident
+> evidence 24 months, coarse location 90 days, backups 30 days rolling, research
+> datasets project + 12 months. Its split between coarse and exact location is
+> better than the single `location` row below and replaces it.
+>
+> Three findings were raised against it on #69 and remain open there:
+> 1. its R1 option A caps longitudinal aggregates at 5 rolling years, which
+>    deletes the earlier reference of any dog over five — the senior dogs for
+>    whom slow change is the signal. Position: **R1 = B**, aggregates live for
+>    the active dog profile's lifetime.
+> 2. it keeps ELI detail 36 months but preprocessed MAT/TAG detail only 24,
+>    leaving a 12-month band of ELI states whose source resolution is gone —
+>    unexplainable, un-re-derivable, and unauditable, against Care §4 provenance.
+>    Position: align the two boundaries; derived data must not outlive its source.
+> 3. its exact-location ceiling of 24 hours needs reconciling into one rule with
+>    the #131 `OPTIN-G3` decision below, which retains no position trail at all.
+>
+> Position on its second open question: **R2 = B**, anonymise public content
+> whose removal would break other members' threads, delete the account linkage.
+
 Every duration below is derived from the processing purpose, as #69 requires:
 *"this issue must not assign attractive-looking numbers such as 30 days, 1 year,
 or account lifetime without a documented purpose/legal/operational
@@ -246,6 +275,25 @@ therefore expressed as a rule that resolves without another round of analysis:
   roles and a handful of staff, running the identity provider yourself adds an
   availability risk on the exact path you need working during an incident.
 
+**Resolved the same day: neither suite is paid for.** The third branch applies.
+Ranking the existing shortlist in draft #212 against that fact gives **Google
+Cloud Identity** as the staff directory — the one candidate offering stable user
+ids, `suspended` state, a Directory API and audit events without first buying a
+productivity suite, combined with its `Only security key` enforcement. Entra ID
+is eliminated on cost of entry: #212 records that Conditional Access, the
+mechanism that enforces phishing-resistant strength, requires Entra ID P1+, so
+adopting it means standing up and paying for a Microsoft tenant used by nothing
+else. Okta remains the fallback if a dedicated control plane is wanted, with a
+named operational owner — #212's own §8 warns that a second workforce directory
+without an owner can be the worse security choice.
+
+Two things must be verified against a real tenant before this becomes a
+selection: that `Only security key` **enforcement** (not merely passkey support)
+is available on the tier actually provisioned, and that trusted-device bypass can
+be disabled for the privileged OU with a known holder of the recovery grace
+mechanism. The next step is #212 §9's non-production adapter spike — a tenant
+signup, not a contract.
+
 Whichever is chosen, the requirements it must satisfy are the seven `PROVIDER-G`
 gates already written in #175 — they are the acceptance criteria, unchanged.
 
@@ -266,7 +314,7 @@ change can produce that evidence, and #175 correctly refuses to close without it
 | #140 | Bearer-report horizon: 365 days | **Can close** |
 | #142 | No product cap while volatile; horizon = retention once durable | **Can close** |
 | #64 | Frozen snapshot, refreshed by re-issue | **Stays open** — identity, activation, audit, multi-party review |
-| #175 | MFA policy, recovery, lifecycle, session values; provider as a rule | **Stays open** — `PROVIDER-G1…G7` external evidence |
+| #175 | MFA policy, recovery, lifecycle, session values; provider rule **resolved** to Google Cloud Identity, pending two tenant checks | **Stays open** — `PROVIDER-G1…G7` external evidence |
 | #266 | Not re-decided — option A already recorded by the founder | Owned by the reconstruction workstream |
 
 ## Condition for revision
