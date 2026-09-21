@@ -185,6 +185,14 @@ jobs:
           GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: psql "$GENERATED_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/id-01-referential-integrity.sql
 
+      - name: PRIV-RETENTION exact-location max-window readiness
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          EXACT_LOCATION_RETENTION_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/exact-location-retention-readiness.integration.test.mjs
+
       - name: INT-03B VBO writer and traceability contract
         run: |
           grep -Fq "updated_at = NOW()" scripts/ingest_vbo.ts
