@@ -110,7 +110,7 @@ test('AI readiness fails closed on impossible counts and repository outages', as
       claimsWritePreventionImplemented: false,
       claimsRepositoryRuntimePersistenceGuardImplemented: true,
       claimsDatabaseWritePreventionImplemented: true,
-    claimsDatabaseWritePreventionVerifiedAtRuntime: false,
+      claimsDatabaseWritePreventionVerifiedAtRuntime: false,
       error: 'invalid_repository_result',
     });
   }
