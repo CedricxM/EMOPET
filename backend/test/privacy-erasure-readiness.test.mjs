@@ -198,5 +198,6 @@ test('resolved and implemented ordered handling can clear NO ACTION as a control
   assert.equal(result.destructiveActionAuthorized, false);
   assert.deepEqual(result.reasons, []);
   assert.deepEqual(result.relational.rootDeleteBlockers, []);
-  assert.equal(result.relational.databaseMechanics.NO_ACTION, 15);
+  assert.equal(result.relational.databaseMechanics.NO_ACTION, 11);
+  assert.equal(result.relational.databaseMechanics.SET_NULL, 4);
 });
