@@ -17,7 +17,7 @@ d'outils SaaS de référence. État au 2026-05-31.
 | **Paiement** | schéma freemium en DB, rien de branché | 🔴 manque | **Stripe** (ou Lemon Squeezy) ; besoin compte + clés + webhooks |
 | **Object storage** | photos carnet en data URL (localStorage) | 🔴 manque | **Cloudflare R2** ou UploadThing ; besoin compte + clés S3 |
 | **Error tracking** | aucun | 🔴 manque | **Sentry** ; besoin DSN + `@sentry/nextjs` |
-| **Background jobs** | aucun (cron ELI/purge théoriques) | 🔴 manque | **Inngest** ou cron : snapshots ELI nuit, baseline freeze, purge contact 6 mois |
+| **Background jobs** | aucun (cron ELI/purge théoriques) | 🔴 manque | **Inngest** ou cron : snapshots ELI nuit, baseline freeze, exécution des rétentions selon `config/privacy/retention-schedule.json` ; aucune purge Contact runtime n'est actuellement implémentée |
 | Tests | `node:test` + tsx (régional) | 🟡 | étendre à Vitest + Playwright (parcours) |
 
 ## Fait dans cette passe (sans compte requis)
