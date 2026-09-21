@@ -214,6 +214,26 @@ test('zero-durable-retention raw audio is immediately expired when a durable rec
   assert.equal(absent.reason, 'NO_DURABLE_RECORD_PRESENT');
 });
 
+test('refresh-session records expire with the current 30-day credential window', () => {
+  const before = planRetentionDryRun(schedule, {
+    categoryId: 'auth_refresh_sessions',
+    retentionStartedAt: '2026-09-01T07:00:00.000Z',
+    evaluationAt: '2026-10-01T06:59:59.999Z',
+  });
+  const expired = planRetentionDryRun(schedule, {
+    categoryId: 'auth_refresh_sessions',
+    retentionStartedAt: '2026-09-01T07:00:00.000Z',
+    evaluationAt: '2026-10-01T07:00:00.000Z',
+  });
+
+  assert.equal(before.ok, true);
+  assert.equal(before.verdict, 'KEEP');
+  assert.equal(expired.ok, true);
+  assert.equal(expired.verdict, 'EXPIRED');
+  assert.equal(expired.ordinaryExpiryAt, '2026-10-01T07:00:00.000Z');
+  assert.equal(expired.destructiveActionAuthorized, false);
+});
+
 test('backups follow the explicit 30-day rolling candidate window', () => {
   const result = planRetentionDryRun(schedule, {
     categoryId: 'backups',
