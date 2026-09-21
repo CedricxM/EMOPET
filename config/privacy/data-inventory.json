@@ -14,7 +14,7 @@
       ],
       "purpose": "account access, authentication and account administration",
       "legalBasis": "TO_CONFIRM_BEFORE_PRODUCTION",
-      "retention": "SEE_RETENTION_SCHEDULE_account_auth",
+      "retention": "SEE_RETENTION_SCHEDULE_account_auth_AND_auth_refresh_sessions",
       "thirdParties": [],
       "internationalTransfer": "NONE_BY_DEFAULT",
       "exportable": true,

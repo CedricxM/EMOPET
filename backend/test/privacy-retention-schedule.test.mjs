@@ -27,6 +27,7 @@ test('retention schedule stays a product-approved candidate and cannot claim run
 test('retention schedule has a complete explicit category inventory and no indefinite mode', () => {
   const expected = [
     'account_auth',
+    'auth_refresh_sessions',
     'dog_profile',
     'device_binding_admin_metadata',
     'sensor_preprocessed_detailed',
@@ -58,8 +59,29 @@ test('retention schedule has a complete explicit category inventory and no indef
     assert.ok(row.finalDisposition.length > 0);
     assert.ok(Array.isArray(row.holdConditions));
     assert.ok(['REQUIRED', 'NEGATIVE_EVIDENCE_REQUIRED'].includes(row.purgeEvidence));
-    assert.ok(String(row.authority).includes('PRODUCT_APPROVED') || row.id === 'sensor_raw_audio');
+    assert.ok(
+      String(row.authority).includes('PRODUCT_APPROVED')
+      || row.id === 'sensor_raw_audio'
+      || (
+        row.id === 'auth_refresh_sessions'
+        && String(row.authority).startsWith('TECHNICAL_SECURITY_LIFECYCLE_CANDIDATE_')
+      ),
+      `unexpected retention authority class for ${row.id}: ${row.authority}`,
+    );
   }
+});
+
+test('refresh-session retention matches the current 30-day credential security window', () => {
+  const session = byId('auth_refresh_sessions');
+  assert.deepEqual(session.activeRetention, {
+    mode: 'DURATION',
+    value: 30,
+    unit: 'DAYS',
+  });
+  assert.match(session.finalDisposition, /REVOKE_IMMEDIATELY/);
+  assert.match(session.finalDisposition, /ORIGINAL_EXPIRY_WINDOW/);
+  assert.deepEqual(session.holdConditions, []);
+  assert.match(session.authority, /TECHNICAL_SECURITY_LIFECYCLE_CANDIDATE/);
 });
 
 test('rich longitudinal history keeps detailed data bounded and aggregates tied to active dog lifetime', () => {
