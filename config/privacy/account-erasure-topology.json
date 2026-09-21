@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-account-erasure-topology-v1",
-  "status": "TECHNICAL_DATABASE_ERASURE_TOPOLOGY_NOT_ERASURE_POLICY",
+  "status": "TECHNICAL_DATABASE_ERASURE_TOPOLOGY_WITH_FOUR_APPROVED_DETACH_RELATIONS",
   "claimsCompleteAccountErasure": false,
   "claimsExecutableErasure": false,
   "subject": {
@@ -34,8 +34,8 @@
       "table": "behavioral_assessments",
       "column": "respondent_user_id",
       "source": "backend/db/schema/behavioral-assessments.ts",
-      "databaseDeleteAction": "NO_ACTION",
-      "erasureDisposition": "TO_CONFIRM"
+      "databaseDeleteAction": "SET_NULL",
+      "erasureDisposition": "DETACH"
     },
     {
       "table": "comments",
@@ -48,15 +48,15 @@
       "table": "communities",
       "column": "created_by",
       "source": "backend/db/schema/community.ts",
-      "databaseDeleteAction": "NO_ACTION",
-      "erasureDisposition": "TO_CONFIRM"
+      "databaseDeleteAction": "SET_NULL",
+      "erasureDisposition": "DETACH"
     },
     {
       "table": "community_events",
       "column": "created_by",
       "source": "backend/db/schema/community.ts",
-      "databaseDeleteAction": "NO_ACTION",
-      "erasureDisposition": "TO_CONFIRM"
+      "databaseDeleteAction": "SET_NULL",
+      "erasureDisposition": "DETACH"
     },
     {
       "table": "community_members",
@@ -69,8 +69,8 @@
       "table": "community_reports",
       "column": "reporter_user_id",
       "source": "backend/db/schema/community.ts",
-      "databaseDeleteAction": "NO_ACTION",
-      "erasureDisposition": "TO_CONFIRM"
+      "databaseDeleteAction": "SET_NULL",
+      "erasureDisposition": "DETACH"
     },
     {
       "table": "community_rules_acceptances",
@@ -118,8 +118,8 @@
   "unconstrainedUserIdentifiers": [],
   "dogDescendantAuthority": "config/privacy/dog-erasure-topology.json",
   "scopeLimitations": [
-    "NO_ACTION means PostgreSQL will not silently erase these dependent rows with the account root.",
-    "This topology records mechanics only. Every relation remains TO_CONFIRM.",
+    "SET_NULL on the four approved D1-D4 provenance/report relations implements automatic identity detachment when an account root is deleted.",
+    "Other unresolved account relations remain fail-closed and keep their existing database mechanics until separately authorized.",
     "External/object/cache/analytics/backup copies remain blockers to any complete-erasure claim."
   ]
 }
