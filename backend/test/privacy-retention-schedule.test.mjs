@@ -68,9 +68,12 @@ test('rich longitudinal history keeps detailed data bounded and aggregates tied 
     value: 24,
     unit: 'MONTHS',
   });
+  // Aligne sur le palier source : une inference detaillee ne survit pas aux
+  // observations dont elle est tiree. L'invariant lui-meme est verrouille dans
+  // privacy-retention-dry-run.test.mjs, qui echoue si les deux divergent.
   assert.deepEqual(byId('eli_inferred_detailed').activeRetention, {
     mode: 'DURATION',
-    value: 36,
+    value: 24,
     unit: 'MONTHS',
   });
 

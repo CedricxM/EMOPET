@@ -73,7 +73,7 @@ test('24-month MAT/TAG detail expires exactly at the candidate calendar boundary
   assert.equal(atBoundary.reason, 'RETENTION_WINDOW_ELAPSED');
 });
 
-test('36-month ELI detail uses calendar duration rather than a fixed day approximation', () => {
+test('ELI detail uses calendar duration rather than a fixed day approximation', () => {
   const result = planRetentionDryRun(schedule, {
     categoryId: 'eli_inferred_detailed',
     retentionStartedAt: '2023-09-21T12:34:56.000Z',
@@ -82,7 +82,43 @@ test('36-month ELI detail uses calendar duration rather than a fixed day approxi
 
   assert.equal(result.ok, true);
   assert.equal(result.verdict, 'EXPIRED');
-  assert.equal(result.ordinaryExpiryAt, '2026-09-21T12:34:56.000Z');
+  // 24 mois calendaires depuis 2023-09-21, pas 730 jours.
+  assert.equal(result.ordinaryExpiryAt, '2025-09-21T12:34:56.000Z');
+});
+
+test('l\u2019inference ne survit jamais aux observations dont elle est tiree', () => {
+  // Invariant, pas une valeur : c'est la relation entre les deux paliers qui
+  // compte. Une inference detaillee qui survit a sa source ne peut plus montrer
+  // sa provenance (Care §4), ne peut plus etre recalculee si la version du
+  // modele change, et ne peut plus etre auditee quand un proprietaire demande
+  // pourquoi. Aligner les deux durees ferme ce trou ; c'est la RELATION que ce
+  // test verrouille, pour qu'un futur ajustement de l'une force l'autre.
+  const source = schedule.categories.find((c) => c.id === 'sensor_preprocessed_detailed');
+  const derived = schedule.categories.find((c) => c.id === 'eli_inferred_detailed');
+
+  assert.ok(source && derived, 'les deux paliers detailles doivent exister');
+  assert.equal(source.activeRetention.unit, derived.activeRetention.unit,
+    'comparer des durees exige la meme unite');
+  assert.ok(derived.activeRetention.value <= source.activeRetention.value,
+    `le detail ELI (${derived.activeRetention.value}) survivrait au detail capteur `
+    + `(${source.activeRetention.value})`);
+
+  // Et la meme chose observee a travers le planificateur, sur une nuit unique :
+  // il ne doit jamais exister d'instant ou la source est EXPIRED et l'inference KEEP.
+  const startedAt = '2024-03-21T23:00:00.000Z';
+  for (const monthsLater of [12, 24, 25, 30, 36, 48]) {
+    const evaluationAt = new Date(Date.UTC(2024, 2 + monthsLater, 21, 23, 0, 0)).toISOString();
+    const src = planRetentionDryRun(schedule, {
+      categoryId: 'sensor_preprocessed_detailed', retentionStartedAt: startedAt, evaluationAt,
+    });
+    const der = planRetentionDryRun(schedule, {
+      categoryId: 'eli_inferred_detailed', retentionStartedAt: startedAt, evaluationAt,
+    });
+    assert.equal(src.ok, true);
+    assert.equal(der.ok, true);
+    assert.ok(!(src.verdict === 'EXPIRED' && der.verdict === 'KEEP'),
+      `a ${monthsLater} mois : source ${src.verdict}, inference ${der.verdict}`);
+  }
 });
 
 test('calendar month arithmetic clamps month-end safely', () => {

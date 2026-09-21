@@ -110,7 +110,7 @@
       "trigger": "inference timestamp",
       "activeRetention": {
         "mode": "DURATION",
-        "value": 36,
+        "value": 24,
         "unit": "MONTHS"
       },
       "archive": "AGE_INTO_LOWER_GRANULARITY_LONGITUDINAL_AGGREGATES",
@@ -119,7 +119,7 @@
         "DOCUMENTED_RESEARCH_VALIDATION_HOLD_WITH_SEPARATE_AUTHORITY"
       ],
       "purgeEvidence": "REQUIRED",
-      "authority": "PRODUCT_APPROVED_CANDIDATE"
+      "authority": "PRODUCT_APPROVED_SOURCE_ALIGNED"
     },
     {
       "id": "eli_inferred_aggregates",
