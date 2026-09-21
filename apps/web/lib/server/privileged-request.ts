@@ -1,4 +1,4 @@
-import type { PrivilegedAction } from '@emopet/privileged-auth';
+import { isPrivilegedRole, type PrivilegedAction, type PrivilegedRole } from '@emopet/privileged-auth';
 
 import { readPrivilegedSessionToken } from './privileged-session';
 
@@ -27,6 +27,7 @@ export type PrivilegedRequestDecision =
   | {
       status: 'AUTHORIZED';
       subject: string;
+      role: PrivilegedRole;
       action: PrivilegedWebAction;
     }
   | {
@@ -39,11 +40,18 @@ export type PrivilegedRequestDecision =
         | 'not_authorized';
     }
   | {
+      status: 'DENIED';
+      reason: 'not_authorized';
+      subject: string;
+      role: PrivilegedRole;
+      action: PrivilegedWebAction;
+    }
+  | {
       status: 'UNAVAILABLE';
       reason: 'verifier_unavailable' | 'verifier_invalid_result';
     };
 
-const AUTHORIZED_KEYS = Object.freeze(['status', 'subject', 'action']);
+const VERIFIED_DECISION_KEYS = Object.freeze(['status', 'subject', 'role', 'action']);
 const TERMINAL_KEYS = Object.freeze(['status']);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -51,7 +59,24 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function hasOnlyKeys(value: Record<string, unknown>, allowed: readonly string[]): boolean {
-  return Object.keys(value).every((key) => allowed.includes(key));
+  const keys = Object.keys(value);
+  return keys.length === allowed.length && keys.every((key) => allowed.includes(key));
+}
+
+function validVerifiedIdentity(
+  value: Record<string, unknown>,
+  expectedAction: PrivilegedWebAction,
+): value is Record<string, unknown> & {
+  subject: string;
+  role: PrivilegedRole;
+  action: PrivilegedWebAction;
+} {
+  return (
+    typeof value.subject === 'string'
+    && UUID_RE.test(value.subject)
+    && isPrivilegedRole(value.role)
+    && value.action === expectedAction
+  );
 }
 
 function readBearer(req: Request): { ok: true; token: string } | { ok: false; reason: 'missing_bearer' | 'invalid_bearer' } {
@@ -80,10 +105,22 @@ function parseVerifierDecision(
   }
 
   if (value.status === 'DENIED') {
-    if (!hasOnlyKeys(value, TERMINAL_KEYS)) {
-      return { status: 'UNAVAILABLE', reason: 'verifier_invalid_result' };
+    if (hasOnlyKeys(value, TERMINAL_KEYS)) {
+      return { status: 'DENIED', reason: 'not_authorized' };
     }
-    return { status: 'DENIED', reason: 'not_authorized' };
+    if (
+      hasOnlyKeys(value, VERIFIED_DECISION_KEYS)
+      && validVerifiedIdentity(value, expectedAction)
+    ) {
+      return {
+        status: 'DENIED',
+        reason: 'not_authorized',
+        subject: value.subject,
+        role: value.role,
+        action: expectedAction,
+      };
+    }
+    return { status: 'UNAVAILABLE', reason: 'verifier_invalid_result' };
   }
 
   if (value.status === 'UNAVAILABLE') {
@@ -93,14 +130,10 @@ function parseVerifierDecision(
     return { status: 'UNAVAILABLE', reason: 'verifier_unavailable' };
   }
 
-  if (value.status !== 'AUTHORIZED' || !hasOnlyKeys(value, AUTHORIZED_KEYS)) {
-    return { status: 'UNAVAILABLE', reason: 'verifier_invalid_result' };
-  }
-
   if (
-    typeof value.subject !== 'string'
-    || !UUID_RE.test(value.subject)
-    || value.action !== expectedAction
+    value.status !== 'AUTHORIZED'
+    || !hasOnlyKeys(value, VERIFIED_DECISION_KEYS)
+    || !validVerifiedIdentity(value, expectedAction)
   ) {
     return { status: 'UNAVAILABLE', reason: 'verifier_invalid_result' };
   }
@@ -108,6 +141,7 @@ function parseVerifierDecision(
   return {
     status: 'AUTHORIZED',
     subject: value.subject,
+    role: value.role,
     action: expectedAction,
   };
 }
