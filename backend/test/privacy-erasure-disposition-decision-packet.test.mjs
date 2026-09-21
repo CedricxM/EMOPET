@@ -37,7 +37,7 @@ test('decision packet remains advisory and cannot promote executable erasure', (
   }
 });
 
-test('packet covers every canonical matrix relation exactly once without changing matrix authority', () => {
+test('packet covers every canonical relation while later approved D1-D4 matrix authority is preserved separately', () => {
   assert.equal(packet.relations.length, matrix.entries.length);
 
   const matrixKeys = matrix.entries.map(relationKey).sort();
@@ -46,9 +46,18 @@ test('packet covers every canonical matrix relation exactly once without changin
   assert.deepEqual(packetKeys, matrixKeys);
   assert.equal(new Set(packetKeys).size, packetKeys.length);
 
+  const approved = new Set([
+    'users.id|DIRECT_FK|behavioral_assessments|respondent_user_id',
+    'users.id|DIRECT_FK|communities|created_by',
+    'users.id|DIRECT_FK|community_events|created_by',
+    'users.id|DIRECT_FK|community_reports|reporter_user_id',
+  ]);
   for (const row of matrix.entries) {
-    assert.equal(row.disposition, 'TO_CONFIRM');
     assert.equal(row.executionStatus, 'NOT_IMPLEMENTED');
+    assert.equal(
+      row.disposition,
+      approved.has(relationKey(row)) ? 'DETACH' : 'TO_CONFIRM',
+    );
   }
   assert.equal(matrix.claimsExecutableErasure, false);
   assert.equal(matrix.claimsCompleteErasure, false);
