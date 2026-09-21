@@ -1,0 +1,243 @@
+{
+  "schemaVersion": "emopet-non-sql-erasure-surface-inventory-v1",
+  "status": "REPOSITORY_DISCOVERY_ONLY_ENVIRONMENT_AND_PROVIDER_EVIDENCE_REQUIRED",
+  "claimsCompleteErasure": false,
+  "claimsProviderDeletion": false,
+  "claimsProductionAbsence": false,
+  "discoveryBoundary": [
+    "Repository evidence can prove that code/config/docs are present, placeholder-only, or not found in the inspected tree.",
+    "Repository absence does not prove a provider account, environment variable, retained copy, cache, backup or production integration is absent.",
+    "Provider terms, retention, processor configuration and deletion receipts require external evidence.",
+    "This inventory does not implement or authorize erasure and does not change any non-SQL probeStatus."
+  ],
+  "surfaces": [
+    {
+      "surface": "OBJECT_MEDIA_STORAGE",
+      "repositoryStatus": "PLACEHOLDER_AND_REFERENCE_FIELDS_PRESENT_NO_RUNTIME_OBJECT_STORE_FOUND",
+      "erasureProbeStatus": "NOT_IMPLEMENTED",
+      "environmentEvidenceRequired": true,
+      "evidence": [
+        {
+          "path": ".env.example",
+          "fact": "S3_ENDPOINT, S3_BUCKET, S3_ACCESS_KEY and S3_SECRET_KEY placeholders exist."
+        },
+        {
+          "path": "docs/STACK_GAPS.md",
+          "fact": "Object storage is documented as missing; Cloudflare R2 or UploadThing is future work."
+        },
+        {
+          "path": "apps/web/components/journal/Editor.tsx",
+          "fact": "Journal photos are client data URLs; source comment explicitly says no S3 upload."
+        },
+        {
+          "path": "backend/db/schema/dogs.ts",
+          "fact": "Dog records can store photo_url references."
+        },
+        {
+          "path": "backend/db/schema/community.ts",
+          "fact": "Community posts can store media_urls references."
+        }
+      ],
+      "requiredExternalEvidence": [
+        "PRODUCTION_STORAGE_PROVIDER_SELECTION_OR_EXPLICIT_NONE",
+        "ACTIVE_BUCKET_OR_OBJECT_NAMESPACE_INVENTORY",
+        "SUBJECT_TO_OBJECT_KEY_MAPPING",
+        "DELETE_OR_EXPIRY_RECEIPT_FOR_APPLICABLE_OBJECTS"
+      ]
+    },
+    {
+      "surface": "PROVIDER_HELD_COPIES",
+      "repositoryStatus": "MIXED_ACTIVE_ENV_GATED_AND_PLACEHOLDER_PROVIDER_INTEGRATIONS",
+      "erasureProbeStatus": "NOT_IMPLEMENTED",
+      "environmentEvidenceRequired": true,
+      "providers": [
+        {
+          "provider": "Resend",
+          "repositoryStatus": "ACTIVE_ENV_GATED_RUNTIME_INTEGRATION",
+          "evidence": [
+            "apps/web/lib/server/notify.ts",
+            "https://api.resend.com/emails"
+          ],
+          "dataBoundary": "Contact notification body can include contact coordinate/value, message, proposed slots, request id and request context.",
+          "deletionEvidence": "EXTERNAL_UNVERIFIED",
+          "providerEvidenceRef": "config/privacy/provider-retention-erasure-evidence.json#Resend"
+        },
+        {
+          "provider": "Anthropic",
+          "repositoryStatus": "ACTIVE_ENV_GATED_RUNTIME_INTEGRATION",
+          "evidence": [
+            "apps/web/app/api/breiz/route.ts",
+            "https://api.anthropic.com/v1/messages"
+          ],
+          "dataBoundary": "Breiz sends a bounded user message plus generated regional/system context when ANTHROPIC_API_KEY is configured.",
+          "deletionEvidence": "EXTERNAL_UNVERIFIED",
+          "providerEvidenceRef": "config/privacy/provider-retention-erasure-evidence.json#Anthropic"
+        },
+        {
+          "provider": "Mapbox",
+          "repositoryStatus": "ACTIVE_ENV_GATED_CLIENT_INTEGRATION",
+          "evidence": [
+            "apps/web/components/bretagne-map/MapboxMap.tsx",
+            "NEXT_PUBLIC_MAPBOX_TOKEN"
+          ],
+          "dataBoundary": "Map runtime and geolocation/map requests may reach Mapbox when configured; repository discovery does not establish provider retention.",
+          "deletionEvidence": "EXTERNAL_UNVERIFIED",
+          "providerEvidenceRef": "config/privacy/provider-retention-erasure-evidence.json#Mapbox"
+        },
+        {
+          "provider": "OpenStreetMap_Overpass",
+          "repositoryStatus": "ACTIVE_RUNTIME_INTEGRATION",
+          "evidence": [
+            "apps/web/lib/osm-spots.ts"
+          ],
+          "dataBoundary": "Viewport-bounded external POI queries are made to Overpass; repository discovery does not establish provider-side log retention.",
+          "deletionEvidence": "EXTERNAL_UNVERIFIED",
+          "providerEvidenceRef": "config/privacy/provider-retention-erasure-evidence.json#OpenStreetMap_Overpass"
+        },
+        {
+          "provider": "Open-Meteo",
+          "repositoryStatus": "ACTIVE_OR_FLAG_GATED_WEB_CONTEXT_INTEGRATION",
+          "evidence": [
+            "apps/web/lib/api/adapters/openMeteo.ts",
+            "apps/web/lib/context-engine/orchestrator.ts",
+            "apps/web/lib/weather.ts"
+          ],
+          "dataBoundary": "Weather/context requests may send latitude/longitude. Provider policy evidence is tracked separately and does not prove production enablement.",
+          "deletionEvidence": "PUBLIC_TTL_POLICY_FOUND_OPERATIONAL_RECEIPT_UNVERIFIED",
+          "providerEvidenceRef": "config/privacy/provider-retention-erasure-evidence.json#Open-Meteo"
+        },
+        {
+          "provider": "OpenWeatherMap",
+          "repositoryStatus": "ACTIVE_ENV_GATED_BACKEND_INTEGRATION",
+          "evidence": [
+            "backend/api/services/weather.ts",
+            "OPENWEATHERMAP_API_KEY"
+          ],
+          "dataBoundary": "Backend weather requests send latitude/longitude plus the EMOPET provider API key when configured.",
+          "deletionEvidence": "AUTHORITATIVE_RETENTION_AND_SUBJECT_ERASURE_POLICY_UNVERIFIED",
+          "providerEvidenceRef": "config/privacy/provider-retention-erasure-evidence.json#OpenWeatherMap"
+        },
+        {
+          "provider": "Stripe",
+          "repositoryStatus": "SCHEMA_AND_CONFIG_PLACEHOLDER_NO_RUNTIME_PAYMENT_INTEGRATION_FOUND",
+          "evidence": [
+            "backend/db/schema/users.ts",
+            ".env.example",
+            "docs/STACK_GAPS.md"
+          ],
+          "dataBoundary": "Subscription schema includes stripe_subscription_id; payment runtime is documented as not wired.",
+          "deletionEvidence": "EXTERNAL_UNVERIFIED"
+        },
+        {
+          "provider": "Sentry",
+          "repositoryStatus": "PLACEHOLDER_ONLY",
+          "evidence": [
+            ".env.example",
+            "docs/security/PRIV_SECURITY_AUDIT_SINK_DISCOVERY_2026-09-21.md"
+          ],
+          "dataBoundary": "No runtime Sentry package/integration found by the existing security discovery.",
+          "deletionEvidence": "EXTERNAL_UNVERIFIED"
+        },
+        {
+          "provider": "PostHog",
+          "repositoryStatus": "PLACEHOLDER_ONLY",
+          "evidence": [
+            ".env.example",
+            "docs/security/PRIV_SECURITY_AUDIT_SINK_DISCOVERY_2026-09-21.md"
+          ],
+          "dataBoundary": "No runtime PostHog package/integration found by the existing security discovery.",
+          "deletionEvidence": "EXTERNAL_UNVERIFIED"
+        }
+      ],
+      "requiredExternalEvidence": [
+        "PRODUCTION_PROVIDER_ENABLEMENT_INVENTORY",
+        "PROCESSOR_OR_PROVIDER_ACCOUNT_CONFIGURATION",
+        "SUBJECT_DATA_MAPPING_PER_ACTIVE_PROVIDER",
+        "PROVIDER_RETENTION_AND_DELETION_OR_EXPIRY_RECEIPT"
+      ]
+    },
+    {
+      "surface": "CACHES_SEARCH_INDEXES",
+      "repositoryStatus": "NO_ACTIVE_REPOSITORY_INTEGRATION_FOUND_PLACEHOLDER_CONFIG_DOES_NOT_PROVE_ABSENCE",
+      "erasureProbeStatus": "NOT_IMPLEMENTED",
+      "environmentEvidenceRequired": true,
+      "evidence": [
+        {
+          "path": ".env.example",
+          "fact": "REDIS_URL placeholder exists."
+        },
+        {
+          "path": "repository_search",
+          "fact": "No active Redis/Upstash/Algolia/Elasticsearch/Meilisearch runtime integration was found in the inspected repository."
+        }
+      ],
+      "requiredExternalEvidence": [
+        "PRODUCTION_CACHE_SEARCH_VECTOR_INVENTORY_OR_EXPLICIT_NONE",
+        "SUBJECT_KEY_MAPPING_FOR_APPLICABLE_STORES",
+        "INVALIDATION_DELETE_OR_TTL_EXPIRY_EVIDENCE"
+      ]
+    },
+    {
+      "surface": "ANALYTICS_TELEMETRY",
+      "repositoryStatus": "PLAUSIBLE_ENV_GATED_RUNTIME_PRESENT_OTHER_MONITORING_PLACEHOLDERS_ONLY",
+      "erasureProbeStatus": "NOT_IMPLEMENTED",
+      "environmentEvidenceRequired": true,
+      "evidence": [
+        {
+          "path": "apps/web/app/layout.tsx",
+          "fact": "Plausible script loads from plausible.io when NEXT_PUBLIC_PLAUSIBLE_DOMAIN is configured."
+        },
+        {
+          "path": "docs/STACK_GAPS.md",
+          "fact": "Plausible is documented as env-gated/scaffolded."
+        },
+        {
+          "path": "docs/security/PRIV_SECURITY_AUDIT_SINK_DISCOVERY_2026-09-21.md",
+          "fact": "Sentry and PostHog are PLACEHOLDER_ONLY; no controlled observability sink is established."
+        },
+        {
+          "path": "config/privacy/provider-retention-erasure-evidence.json",
+          "fact": "Dated official public evidence records Plausible no-persistent-identifier behavior, while production enablement and any additional tracking paths remain unverified."
+        }
+      ],
+      "requiredExternalEvidence": [
+        "PRODUCTION_ANALYTICS_TELEMETRY_ENABLEMENT_INVENTORY",
+        "SUBJECT_OR_IDENTIFIER_MAPPING_IF_ANY",
+        "PROVIDER_RETENTION_CONFIGURATION",
+        "DELETE_ANONYMISATION_OR_EXPIRY_EVIDENCE_WHERE_APPLICABLE"
+      ],
+      "providerEvidenceRef": "config/privacy/provider-retention-erasure-evidence.json#Plausible"
+    },
+    {
+      "surface": "BACKUPS",
+      "repositoryStatus": "POLICY_CANDIDATE_PRESENT_NO_PRODUCT_BACKUP_LIFECYCLE_OR_ERASURE_PROOF_FOUND",
+      "erasureProbeStatus": "NOT_IMPLEMENTED",
+      "environmentEvidenceRequired": true,
+      "evidence": [
+        {
+          "path": "config/privacy/retention-schedule.json",
+          "fact": "Backups have a product candidate 30-day rolling retention and restore-only purpose."
+        },
+        {
+          "path": ".github/workflows/p0-db-baseline.yml",
+          "fact": "pg_dump is used for disposable schema-only CI validation, not documented as a production backup lifecycle."
+        },
+        {
+          "path": "docs/privacy/ERASURE_EXPORT_RUNBOOK.md",
+          "fact": "Runbook requires scheduling backup expiry/deletion under the approved backup policy."
+        },
+        {
+          "path": "SECURITY_CHECKLIST.md",
+          "fact": "Backup/export/retention strategy remains a launch-readiness checklist item."
+        }
+      ],
+      "requiredExternalEvidence": [
+        "PRODUCTION_BACKUP_SYSTEM_INVENTORY",
+        "BACKUP_RETENTION_CONFIGURATION",
+        "RESTORE_PATH_AND_ERASURE_REAPPEARANCE_CONTROL",
+        "EXPIRY_OR_DELETION_RECEIPT_FOR_AFFECTED_BACKUPS"
+      ]
+    }
+  ],
+  "providerEvidenceRegistry": "config/privacy/provider-retention-erasure-evidence.json"
+}

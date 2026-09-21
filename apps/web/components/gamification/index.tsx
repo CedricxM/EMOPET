@@ -123,7 +123,7 @@ export function BadgeUnlockModal({ badge, onClose }: { badge: Badge | null; onCl
                   <span style={{ fontFamily: 'var(--font-serif)', fontSize: 22, color: 'var(--fg-strong)' }}>{badge.label}</span>
                   <span style={{ fontFamily: 'var(--font-sans)', fontSize: 14, color: 'var(--fg-2)' }}>{badge.description}</span>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--terracotta-700)' }}>+{badge.pointsReward} points</span>
-                  <button type="button" onClick={onClose} style={{ marginTop: 8, padding: '10px 28px', borderRadius: 999, background: 'var(--terracotta-500)', color: 'white', border: 'none', fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>Continuer</button>
+                  <button type="button" onClick={onClose} style={{ marginTop: 8, padding: '10px 28px', borderRadius: 999, background: 'var(--accent)', color: 'white', border: 'none', fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>Continuer</button>
                 </div>
               </Modal.Body>
             )}

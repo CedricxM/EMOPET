@@ -95,7 +95,7 @@ export function CityModal({
                     style={{
                       padding: '12px 24px',
                       borderRadius: 'var(--radius-pill)',
-                      background: 'var(--terracotta-500)',
+                      background: 'var(--accent)',
                       color: 'white',
                       border: 'none',
                       fontFamily: 'var(--font-sans)',
@@ -213,7 +213,7 @@ export function EventModal({
                 style={{
                   padding: '12px 24px',
                   borderRadius: 'var(--radius-pill)',
-                  background: 'var(--terracotta-500)',
+                  background: 'var(--accent)',
                   color: 'white',
                   border: 'none',
                   fontFamily: 'var(--font-sans)',

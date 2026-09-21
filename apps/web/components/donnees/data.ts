@@ -45,7 +45,9 @@ export const LEVELS: Level[] = [
     id: 'communaute',
     label: 'COMMUNAUTÉ EMOPET',
     glyph: '⊙⊙⊙',
-    accent: 'var(--terracotta-500)',
+    // 600 et non 500 : 4.54:1 contre 3.01:1, et reste distinct du 700 de
+    // « recherche » juste en dessous.
+    accent: 'var(--terracotta-600)',
     audience: 'Autres utilisateurs dans ta ville/région',
     description:
       "Tu partages avec les autres membres de la meute : ville (pas adresse exacte), race, âge, niveau d'activité général. Tu peux organiser des balades, comparer Capitaine à d'autres labradors de Bretagne.",

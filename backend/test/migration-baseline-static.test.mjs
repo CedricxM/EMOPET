@@ -9,6 +9,7 @@ const dbDir = join(here, '..', 'db');
 const schemaDir = join(dbDir, 'schema');
 const migrationsDir = join(dbDir, 'migrations');
 const draftDir = join(dbDir, 'baseline-draft');
+const p0WorkflowPath = join(here, '..', '..', '.github', 'workflows', 'p0-db-baseline.yml');
 
 function read(path) {
   return readFileSync(path, 'utf8');
@@ -162,4 +163,21 @@ test('replayed or renumbered active migrations retain frozen-source provenance',
       `${migration.name}: replay provenance is only for a migration whose active number differs from its frozen source number`,
     );
   }
+});
+
+test('P0 database workflow replays the complete active migration directory on both disposable databases', () => {
+  const workflow = read(p0WorkflowPath);
+  const dynamicReplay = "find backend/db/migrations -maxdepth 1 -type f -name '*.sql' | sort";
+  const occurrences = workflow.split(dynamicReplay).length - 1;
+
+  assert.equal(
+    occurrences,
+    2,
+    'P0 workflow must dynamically replay every active migration on both disposable databases',
+  );
+  assert.equal(
+    /-f backend\/db\/migrations\/000\d_/.test(workflow),
+    false,
+    'P0 workflow must not freeze migration coverage to a hard-coded prefix list',
+  );
 });

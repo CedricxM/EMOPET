@@ -1,0 +1,392 @@
+{
+  "schemaVersion": "emopet-retention-schedule-v1",
+  "status": "PRODUCT_APPROVED_CANDIDATE_LEGAL_PRIVACY_SIGNOFF_PENDING",
+  "runtimeEnforcement": "NOT_IMPLEMENTED",
+  "productPhilosophy": "RICH_LONGITUDINAL_HISTORY_WITH_PROGRESSIVE_MINIMISATION",
+  "decisions": {
+    "R1": "ACTIVE_DOG_PROFILE_LIFETIME_AGGREGATES",
+    "R2": "DELETE_DEFAULT_NECESSITY_ONLY_IRREVERSIBLE_ANONYMISATION_FAIL_TO_DELETE",
+    "R3": "DETAILED_SENSOR_AND_ELI_SOURCE_ALIGNED_36_MONTHS",
+    "R4": "AI_MESSAGES_NO_DURABLE_RETENTION_UNTIL_SEPARATE_PRODUCT_NEED",
+    "R5": "BEHAVIORAL_ASSESSMENTS_PRODUCT_RESEARCH_LIFECYCLE_SPLIT"
+  },
+  "globalRules": [
+    "No category may be treated as legally final until privacy/legal sign-off is recorded.",
+    "Deletion clocks apply to primary and secondary copies; backups expire through their own bounded schedule.",
+    "Detailed data may age into lower-granularity aggregates only where the schedule explicitly permits it.",
+    "Exact location is a separate high-risk class and must not inherit behavioral-history retention.",
+    "Raw audio/raw high-rate sensor persistence is not authorised by this schedule.",
+    "A documented investigation, legal, security or rights hold may suspend ordinary expiry only for the affected evidence."
+  ],
+  "categories": [
+    {
+      "id": "account_auth",
+      "trigger": "validated account closure",
+      "activeRetention": {
+        "mode": "WHILE_ACTIVE_ACCOUNT"
+      },
+      "archive": null,
+      "finalDisposition": "DELETE_PRIMARY_PERSONAL_ACCOUNT_DATA_WITHIN_30_DAYS",
+      "holdConditions": [
+        "DOCUMENTED_LEGAL_OR_RIGHTS_HOLD",
+        "SECURITY_EVIDENCE_MOVES_TO_ITS_OWN_CATEGORY"
+      ],
+      "purgeEvidence": "REQUIRED",
+      "authority": "PRODUCT_APPROVED_CANDIDATE"
+    },
+    {
+      "id": "auth_refresh_sessions",
+      "trigger": "refresh session issuance",
+      "activeRetention": {
+        "mode": "DURATION",
+        "value": 30,
+        "unit": "DAYS"
+      },
+      "archive": "NONE_SECURITY_EVENTS_BELONG_TO_SECURITY_AUTH_LOGS",
+      "finalDisposition": "REVOKE_IMMEDIATELY_WHEN_REQUIRED; DELETE_SESSION_RECORD_AFTER_ITS_ORIGINAL_EXPIRY_WINDOW",
+      "holdConditions": [],
+      "purgeEvidence": "REQUIRED",
+      "authority": "TECHNICAL_SECURITY_LIFECYCLE_CANDIDATE_BASED_ON_CURRENT_30_DAY_REFRESH_TTL_AND_REUSE_DETECTION"
+    },
+    {
+      "id": "dog_profile",
+      "trigger": "validated dog-profile deletion or account erasure",
+      "activeRetention": {
+        "mode": "WHILE_ACTIVE_DOG_PROFILE"
+      },
+      "archive": null,
+      "finalDisposition": "DELETE_WITHIN_30_DAYS",
+      "holdConditions": [
+        "DOCUMENTED_LEGAL_OR_RIGHTS_HOLD"
+      ],
+      "purgeEvidence": "REQUIRED",
+      "authority": "PRODUCT_APPROVED_CANDIDATE"
+    },
+    {
+      "id": "device_binding_admin_metadata",
+      "trigger": "device unbind",
+      "activeRetention": {
+        "mode": "DURATION",
+        "value": 24,
+        "unit": "MONTHS"
+      },
+      "archive": "REMOVE_OR_PSEUDONYMIZE_DIRECT_DEVICE_IDENTIFIERS_WHEN_NO_LONGER_NEEDED",
+      "finalDisposition": "DELETE_OR_IRREVERSIBLY_PSEUDONYMIZE",
+      "holdConditions": [
+        "DOCUMENTED_SECURITY_OR_SUPPORT_HOLD"
+      ],
+      "purgeEvidence": "REQUIRED",
+      "authority": "PRODUCT_APPROVED_CANDIDATE"
+    },
+    {
+      "id": "sensor_preprocessed_detailed",
+      "trigger": "observation timestamp",
+      "activeRetention": {
+        "mode": "DURATION",
+        "value": 36,
+        "unit": "MONTHS"
+      },
+      "archive": "AGE_INTO_LOWER_GRANULARITY_LONGITUDINAL_AGGREGATES",
+      "finalDisposition": "DELETE_DETAILED_OBSERVATION_AFTER_AGGREGATION_OR_EXPIRY",
+      "holdConditions": [
+        "DOCUMENTED_RESEARCH_VALIDATION_HOLD_WITH_SEPARATE_AUTHORITY"
+      ],
+      "purgeEvidence": "REQUIRED",
+      "authority": "PRODUCT_APPROVED_SOURCE_ALIGNED_36_MONTHS",
+      "readinessStatus": "IMPLEMENTED_READ_ONLY_36_MONTH_WINDOW",
+      "readinessBoundary": "DETAILED_ONLY_AGGREGATION_AND_PURGE_EXECUTION_NOT_VERIFIED",
+      "readinessEvidence": [
+        "backend/api/services/detailed-sensor-eli-retention-readiness.ts",
+        "backend/test/detailed-sensor-eli-retention-readiness.test.mjs",
+        "backend/test/detailed-sensor-eli-retention-readiness.integration.test.mjs"
+      ]
+    },
+    {
+      "id": "sensor_preprocessed_aggregates",
+      "trigger": "aggregate creation",
+      "activeRetention": {
+        "mode": "ACTIVE_DOG_PROFILE_LIFETIME"
+      },
+      "archive": null,
+      "finalDisposition": "DELETE_ON_DOG_OR_ACCOUNT_ERASURE",
+      "holdConditions": [
+        "DOCUMENTED_RESEARCH_VALIDATION_HOLD_WITH_SEPARATE_AUTHORITY"
+      ],
+      "purgeEvidence": "REQUIRED",
+      "authority": "PRODUCT_APPROVED_R1_B"
+    },
+    {
+      "id": "sensor_raw_audio",
+      "trigger": "collection attempt",
+      "activeRetention": {
+        "mode": "NO_DURABLE_RETENTION",
+        "value": 0,
+        "unit": "SECONDS"
+      },
+      "archive": null,
+      "finalDisposition": "DO_NOT_DURABLY_COLLECT_OR_PERSIST",
+      "holdConditions": [],
+      "purgeEvidence": "NEGATIVE_EVIDENCE_REQUIRED",
+      "authority": "CURRENT_DOCTRINE_NO_RAW_AUDIO_OR_UNAPPROVED_RAW_STREAM"
+    },
+    {
+      "id": "ai_messages",
+      "trigger": "durable persistence attempt",
+      "activeRetention": {
+        "mode": "NO_DURABLE_RETENTION",
+        "value": 0,
+        "unit": "SECONDS"
+      },
+      "archive": null,
+      "finalDisposition": "DO_NOT_DURABLY_PERSIST_UNTIL_A_SEPARATE_PRODUCT_NEED_RETENTION_PURPOSE_AND_PRIVACY_AUTHORITY_ARE_APPROVED",
+      "holdConditions": [],
+      "purgeEvidence": "NEGATIVE_EVIDENCE_REQUIRED",
+      "authority": "PRODUCT_APPROVED_AI_NO_DURABLE_RETENTION_UNTIL_SEPARATE_NEED"
+    },
+    {
+      "id": "eli_inferred_detailed",
+      "trigger": "inference timestamp",
+      "activeRetention": {
+        "mode": "DURATION",
+        "value": 36,
+        "unit": "MONTHS"
+      },
+      "archive": "AGE_INTO_LOWER_GRANULARITY_LONGITUDINAL_AGGREGATES",
+      "finalDisposition": "DELETE_DETAILED_INFERENCE_AFTER_AGGREGATION_OR_EXPIRY",
+      "holdConditions": [
+        "DOCUMENTED_RESEARCH_VALIDATION_HOLD_WITH_SEPARATE_AUTHORITY"
+      ],
+      "purgeEvidence": "REQUIRED",
+      "authority": "PRODUCT_APPROVED_SOURCE_ALIGNED_36_MONTHS",
+      "readinessStatus": "IMPLEMENTED_READ_ONLY_36_MONTH_WINDOW",
+      "readinessBoundary": "DETAILED_ONLY_AGGREGATION_AND_PURGE_EXECUTION_NOT_VERIFIED",
+      "readinessEvidence": [
+        "backend/api/services/detailed-sensor-eli-retention-readiness.ts",
+        "backend/test/detailed-sensor-eli-retention-readiness.test.mjs",
+        "backend/test/detailed-sensor-eli-retention-readiness.integration.test.mjs"
+      ]
+    },
+    {
+      "id": "eli_inferred_aggregates",
+      "trigger": "aggregate creation",
+      "activeRetention": {
+        "mode": "ACTIVE_DOG_PROFILE_LIFETIME"
+      },
+      "archive": null,
+      "finalDisposition": "DELETE_ON_DOG_OR_ACCOUNT_ERASURE",
+      "holdConditions": [
+        "DOCUMENTED_RESEARCH_VALIDATION_HOLD_WITH_SEPARATE_AUTHORITY"
+      ],
+      "purgeEvidence": "REQUIRED",
+      "authority": "PRODUCT_APPROVED_R1_B"
+    },
+    {
+      "id": "veterinary_user_entered_records",
+      "trigger": "validated user deletion or dog/account erasure",
+      "activeRetention": {
+        "mode": "WHILE_USER_RETAINS_RECORD"
+      },
+      "archive": null,
+      "finalDisposition": "DELETE_ON_USER_REQUEST_OR_DOG_ACCOUNT_ERASURE",
+      "holdConditions": [
+        "DOCUMENTED_LEGAL_OR_RIGHTS_HOLD"
+      ],
+      "purgeEvidence": "REQUIRED",
+      "authority": "PRODUCT_APPROVED_CANDIDATE"
+    },
+    {
+      "id": "behavioral_assessment_product",
+      "trigger": "validated dog-profile deletion or account erasure",
+      "activeRetention": {
+        "mode": "ACTIVE_DOG_PROFILE_LIFETIME"
+      },
+      "archive": "PRESERVE_ASSESSMENT_PROVENANCE_WITH_ANY_PRODUCT_ELI_PRIOR_DERIVED_FROM_IT",
+      "finalDisposition": "DELETE_ON_DOG_OR_ACCOUNT_ERASURE",
+      "holdConditions": [
+        "DOCUMENTED_LEGAL_OR_RIGHTS_HOLD"
+      ],
+      "purgeEvidence": "REQUIRED",
+      "authority": "PRODUCT_APPROVED_BEHAVIORAL_SPLIT_PRODUCT_ONLY"
+    },
+    {
+      "id": "exact_location",
+      "trigger": "location capture",
+      "activeRetention": {
+        "mode": "MAX_DURATION",
+        "value": 24,
+        "unit": "HOURS"
+      },
+      "archive": "NONE_EXACT_LOCATION_MUST_NOT_AGE_INTO_DETAILED_HISTORY",
+      "finalDisposition": "DELETE_AT_EXPIRY_OR_FEATURE_SESSION_END_WHICHEVER_IS_EARLIER",
+      "holdConditions": [],
+      "purgeEvidence": "REQUIRED",
+      "authority": "PRODUCT_APPROVED_HIGH_RISK_EXCEPTION",
+      "readinessStatus": "IMPLEMENTED_READ_ONLY_MAX_WINDOW",
+      "readinessEvidence": [
+        "backend/api/services/exact-location-retention-readiness.ts",
+        "backend/test/exact-location-retention-readiness.test.mjs",
+        "backend/test/exact-location-retention-readiness.integration.test.mjs"
+      ],
+      "readinessBoundary": "MAX_24_HOURS_ONLY_SESSION_END_MAY_REQUIRE_EARLIER_DELETION"
+    },
+    {
+      "id": "coarse_location_context",
+      "trigger": "coarse-context record creation",
+      "activeRetention": {
+        "mode": "MAX_DURATION",
+        "value": 90,
+        "unit": "DAYS"
+      },
+      "archive": "COARSEN_OR_AGGREGATE_ONLY_IF_STILL_NECESSARY",
+      "finalDisposition": "DELETE_AT_EXPIRY_OR_OPT_OUT",
+      "holdConditions": [],
+      "purgeEvidence": "REQUIRED",
+      "authority": "PRODUCT_APPROVED_HIGH_RISK_EXCEPTION"
+    },
+    {
+      "id": "community_content",
+      "trigger": "validated account erasure or explicit content deletion",
+      "activeRetention": {
+        "mode": "WHILE_CONTENT_AND_ACCOUNT_ACTIVE"
+      },
+      "archive": "NONE_BY_DEFAULT",
+      "finalDisposition": "DELETE_BY_DEFAULT; IF_DELETION_MATERIALLY_BREAKS_MULTI_PARTY_PUBLIC_THREAD, RETAIN_TEXT_ONLY_AFTER_IRREVERSIBLE_DEIDENTIFICATION; IF_SAFE_ANONYMISATION_CANNOT_BE_ACHIEVED, DELETE",
+      "deidentificationRequirements": [
+        "REMOVE_ACCOUNT_USER_ID",
+        "REMOVE_DISPLAY_NAME_HANDLE",
+        "REMOVE_PROFILE_PHOTO_AVATAR",
+        "REMOVE_DOG_ACCOUNT_BACKLINK",
+        "REMOVE_EXACT_AND_COARSE_LOCATION",
+        "REMOVE_DEVICE_PROVIDER_IDENTIFIERS",
+        "REMOVE_IDENTIFYING_MEDIA_ATTACHMENTS",
+        "REMOVE_NONESSENTIAL_MODERATION_INTERNAL_METADATA",
+        "REMOVE_DIRECT_AND_INDIRECT_PERSONAL_REFERENCES",
+        "NO_REVERSIBLE_PSEUDONYM_OR_LOOKUP_TABLE",
+        "DISPLAY_NEUTRAL_TOMBSTONE_DELETED_ACCOUNT"
+      ],
+      "holdConditions": [
+        "SEPARATELY_JUSTIFIED_MODERATION_LEGAL_SECURITY_EVIDENCE_ONLY"
+      ],
+      "purgeEvidence": "REQUIRED",
+      "authority": "PRODUCT_APPROVED_R2_PRIVACY_FIRST"
+    },
+    {
+      "id": "moderation_evidence",
+      "trigger": "final moderation action",
+      "activeRetention": {
+        "mode": "DURATION",
+        "value": 12,
+        "unit": "MONTHS"
+      },
+      "archive": "RESTRICTED_ACCESS_ONLY",
+      "finalDisposition": "DELETE_AT_EXPIRY",
+      "holdConditions": [
+        "DOCUMENTED_INVESTIGATION_OR_LEGAL_HOLD"
+      ],
+      "purgeEvidence": "REQUIRED",
+      "authority": "PRODUCT_APPROVED_CANDIDATE",
+      "clockSupportStatus": "IMPLEMENTED_SCHEMA_ONLY",
+      "clockField": "community_reports.final_action_at",
+      "clockBoundary": "RUNTIME_FINAL_ACTION_STAMPING_NOT_IMPLEMENTED_NO_HISTORICAL_BACKFILL",
+      "clockEvidence": [
+        "backend/db/schema/community.ts",
+        "backend/db/migrations/0011_moderation_final_action_clock.sql"
+      ]
+    },
+    {
+      "id": "support_contact",
+      "trigger": "ticket or request closure",
+      "activeRetention": {
+        "mode": "DURATION",
+        "value": 24,
+        "unit": "MONTHS"
+      },
+      "archive": "RESTRICTED_SUPPORT_ARCHIVE_ONLY",
+      "finalDisposition": "DELETE_AT_EXPIRY",
+      "holdConditions": [
+        "DOCUMENTED_DISPUTE_LEGAL_OR_RIGHTS_HOLD"
+      ],
+      "purgeEvidence": "REQUIRED",
+      "authority": "PRODUCT_APPROVED_CANDIDATE"
+    },
+    {
+      "id": "security_auth_logs",
+      "trigger": "event timestamp",
+      "activeRetention": {
+        "mode": "ROLLING_DURATION",
+        "value": 12,
+        "unit": "MONTHS"
+      },
+      "archive": null,
+      "finalDisposition": "ROLLING_DELETE; INCIDENT_SELECTED_EVIDENCE_MOVES_TO_INCIDENT_CATEGORY",
+      "holdConditions": [
+        "DOCUMENTED_INCIDENT_HOLD"
+      ],
+      "purgeEvidence": "REQUIRED",
+      "authority": "PRODUCT_APPROVED_CANDIDATE"
+    },
+    {
+      "id": "incident_evidence",
+      "trigger": "incident closure",
+      "activeRetention": {
+        "mode": "DURATION",
+        "value": 24,
+        "unit": "MONTHS"
+      },
+      "archive": "RESTRICTED_CASE_ARCHIVE_ONLY",
+      "finalDisposition": "DELETE_AT_EXPIRY",
+      "holdConditions": [
+        "DOCUMENTED_INVESTIGATION_OR_LEGAL_HOLD"
+      ],
+      "purgeEvidence": "REQUIRED",
+      "authority": "PRODUCT_APPROVED_CANDIDATE"
+    },
+    {
+      "id": "rights_request_evidence",
+      "trigger": "rights request closure",
+      "activeRetention": {
+        "mode": "DURATION",
+        "value": 3,
+        "unit": "YEARS"
+      },
+      "archive": "MINIMAL_PROOF_ONLY_DO_NOT_RETAIN_FULL_EXPORTED_DATASET",
+      "finalDisposition": "DELETE_AT_EXPIRY",
+      "holdConditions": [
+        "DOCUMENTED_DISPUTE_OR_LEGAL_HOLD"
+      ],
+      "purgeEvidence": "REQUIRED",
+      "authority": "PRODUCT_APPROVED_CANDIDATE_LEGAL_VALIDATION_REQUIRED"
+    },
+    {
+      "id": "backups",
+      "trigger": "backup creation",
+      "activeRetention": {
+        "mode": "ROLLING_DURATION",
+        "value": 30,
+        "unit": "DAYS"
+      },
+      "archive": "RESTORE_ONLY_NO_PRODUCT_ANALYTICS_USE",
+      "finalDisposition": "AUTOMATIC_EXPIRY",
+      "holdConditions": [],
+      "purgeEvidence": "REQUIRED",
+      "authority": "PRODUCT_APPROVED_CANDIDATE"
+    },
+    {
+      "id": "research_validation_personal_datasets",
+      "trigger": "project or validation period end",
+      "activeRetention": {
+        "mode": "DURATION",
+        "value": 12,
+        "unit": "MONTHS"
+      },
+      "archive": "ANONYMISE_WHERE_POSSIBLE; TRULY_ANONYMISED_OUTPUT_MAY_EXIT_PERSONAL_DATA_SCHEDULE",
+      "finalDisposition": "DELETE_OR_IRREVERSIBLY_ANONYMISE_AT_EXPIRY",
+      "holdConditions": [
+        "SEPARATE_RESEARCH_GOVERNANCE_AUTHORITY",
+        "VALID_WITHDRAWAL_OR_EARLIER_APPROVED_TRIGGER"
+      ],
+      "purgeEvidence": "REQUIRED",
+      "authority": "PRODUCT_APPROVED_CANDIDATE"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-erasure-disposition-matrix-v1",
-  "status": "FAIL_CLOSED_ALL_RELATIONAL_DISPOSITIONS_UNRESOLVED",
+  "status": "PARTIAL_RELATIONAL_DISPOSITIONS_APPROVED_ERASURE_STILL_BLOCKED",
   "claimsExecutableErasure": false,
   "claimsCompleteErasure": false,
   "allowedFutureDispositions": [
@@ -42,9 +42,9 @@
       "relationType": "DIRECT_FK",
       "table": "behavioral_assessments",
       "column": "respondent_user_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
+      "disposition": "DETACH",
+      "executionStatus": "IMPLEMENTED",
+      "testEvidence": "backend/test/privacy-approved-erasure-decisions.test.mjs"
     },
     {
       "subjectRoot": "users.id",
@@ -60,18 +60,18 @@
       "relationType": "DIRECT_FK",
       "table": "communities",
       "column": "created_by",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
+      "disposition": "DETACH",
+      "executionStatus": "IMPLEMENTED",
+      "testEvidence": "backend/test/privacy-approved-erasure-decisions.test.mjs"
     },
     {
       "subjectRoot": "users.id",
       "relationType": "DIRECT_FK",
       "table": "community_events",
       "column": "created_by",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
+      "disposition": "DETACH",
+      "executionStatus": "IMPLEMENTED",
+      "testEvidence": "backend/test/privacy-approved-erasure-decisions.test.mjs"
     },
     {
       "subjectRoot": "users.id",
@@ -132,9 +132,9 @@
       "relationType": "DIRECT_FK",
       "table": "community_reports",
       "column": "reporter_user_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
+      "disposition": "DETACH",
+      "executionStatus": "IMPLEMENTED",
+      "testEvidence": "backend/test/privacy-approved-erasure-decisions.test.mjs"
     },
     {
       "subjectRoot": "users.id",
@@ -377,8 +377,9 @@
   ],
   "promotionGate": "claimsExecutableErasure and claimsCompleteErasure MUST remain false while any relation/non-SQL surface is TO_CONFIRM or NOT_IMPLEMENTED",
   "scopeLimitations": [
-    "This matrix records unresolved lifecycle authority. It does not choose a legal or product disposition.",
-    "Database CASCADE mechanics do not upgrade a relation from TO_CONFIRM.",
+    "This matrix records both explicitly approved and unresolved lifecycle authority; only authorized rows may be promoted from TO_CONFIRM.",
+    "Four D1-D4 account relations are approved DETACH operations implemented by PostgreSQL SET NULL foreign-key mechanics.",
+    "Database mechanics do not authorize any still-TO_CONFIRM relation and do not establish complete account erasure.",
     "A technical lineage row and a privacy-category classification are separate controls."
   ]
 }
