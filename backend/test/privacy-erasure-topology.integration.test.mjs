@@ -47,6 +47,25 @@ test('PRIV-ERASURE-TOPOLOGY static controls remain fail closed', () => {
   assert.equal(residue.claimsCompleteErasure, false);
   assert.equal(residue.claimsExecutableErasure, false);
 
+  assert.equal(
+    residue.status,
+    'RELATIONAL_NEGATIVE_RESIDUE_IMPLEMENTED_NON_SQL_PENDING',
+  );
+  for (const key of residue.snapshotKeys) {
+    assert.equal(key.captureStatus, 'IMPLEMENTED_READ_ONLY');
+  }
+  for (const route of residue.relationProbeRoutes) {
+    assert.equal(route.probeStatus, 'IMPLEMENTED_READ_ONLY');
+  }
+  assert.equal(
+    residue.implementationEvidence.service,
+    'backend/api/services/erasure-residue-verification.ts',
+  );
+  assert.equal(
+    residue.implementationEvidence.integrationTest,
+    'backend/test/privacy-erasure-residue-verification.integration.test.mjs',
+  );
+
   assert.deepEqual(
     userLineage.directReferences.map((row) => `${row.table}.${row.column}`).sort(),
     accountTopology.directUserReferences.map((row) => `${row.table}.${row.column}`).sort(),
