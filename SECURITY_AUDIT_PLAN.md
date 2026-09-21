@@ -20,7 +20,7 @@ No UI redesign, route redesign, navigation change or visual identity change is p
 - Mapbox: already integrated in `apps/web/components/bretagne-map`; data-layer schemas/mocks exist under `apps/web/lib/data/mapbox`.
 - Supabase: no Supabase client or migration usage observed in the initial structure scan; Supabase-specific RLS work will be skipped unless later inspection finds active usage.
 - AI/API integrations: Anthropic in `/api/breiz`, Resend notification hook, OpenWeatherMap backend service, Mapbox public token.
-- Authentication: backend JWT middleware exists; web admin routes use an `ADMIN_TOKEN` header gate; some web prototype data uses local/server stores.
+- Authentication: backend JWT middleware exists; privileged web authorization is routed through `@emopet/privileged-auth` with server-side session/Origin guards. Production staff access remains externally gated until MFA/IdP and session establishment are operationally configured; some web prototype data still uses local/server stores.
 
 ## Phase 1 - Secrets and Environment
 
@@ -48,15 +48,18 @@ Inspect:
 
 - `backend/api/middleware/auth.ts`
 - `backend/api/routes/*.ts`
-- `apps/web/lib/server/admin.ts`
+- `packages/privileged-auth/**`
+- `apps/web/lib/server/canonical-privileged-verifier.ts`
+- `apps/web/lib/server/privileged-*.ts`
 - `apps/web/app/api/admin/**`
 - user/dog/profile/sensor/community route handlers
 
 Likely fixes:
 
-- Harden production admin access when no admin token is configured.
-- Add reusable safe authz helpers where the current project shape allows it.
-- Add tests for admin checks and cross-user ownership logic.
+- Verify privileged JWT key separation, finite-action RBAC and fail-closed verifier behavior.
+- Verify server-only privileged session transport and same-origin mutation guards.
+- Keep privileged production access unavailable until MFA/IdP, staff-directory and session-establishment evidence is complete.
+- Add tests for privileged action checks and cross-user ownership logic.
 
 ## Phase 3 - Database and RLS
 
