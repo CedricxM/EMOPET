@@ -1,16 +1,16 @@
 {
   "schemaVersion": "emopet-erasure-disposition-decision-packet-v1",
-  "status": "FOUR_PRODUCT_PRIVACY_DISPOSITIONS_PROMOTED_REMAINDER_DECISION_SUPPORT",
+  "status": "FIVE_RELATIONAL_DISPOSITIONS_PROMOTED_REMAINDER_DECISION_SUPPORT",
   "claimsExecutableErasure": false,
   "claimsCompleteErasure": false,
   "sourceMatrix": "config/privacy/erasure-disposition-matrix.json",
   "sourceRetentionSchedule": "config/privacy/retention-schedule.json",
   "sourceInventory": "config/privacy/data-inventory.json",
   "boundaries": [
-    "This packet mirrors the canonical erasure-disposition matrix and provides decision support; it does not authorize destructive account erasure.",
+    "This packet mirrors the canonical erasure-disposition matrix and provides decision support; it does not authorize destructive account or dog erasure.",
     "A candidate DELETE direction is product-policy alignment only, not privacy/legal approval and not runtime deletion authority.",
-    "Four founder-approved D1-D4 account relations are promoted to DETACH because their identity links are implemented with PostgreSQL SET NULL.",
-    "Conditional rows not explicitly approved still require their documented row-level or phased execution semantics before promotion.",
+    "Five relations are promoted to DETACH: the four founder-approved D1-D4 account relations plus policy-determined devices.dog_id.",
+    "Conditional rows not explicitly approved or already determined by existing policy still require their documented row-level or phased execution semantics before promotion.",
     "Legal-authority-blocked rows cannot be promoted by product or engineering alone.",
     "Database mechanics never substitute for privacy disposition authority on unresolved rows."
   ],
@@ -19,7 +19,7 @@
     "policyAlignedDeleteCandidates": 22,
     "policyConditionalExecutionRequired": 12,
     "legalAuthorityBlocked": 3,
-    "matrixRowsPromoted": 4
+    "matrixRowsPromoted": 5
   },
   "relations": [
     {
@@ -416,11 +416,11 @@
       "relationType": "DIRECT_FK",
       "table": "devices",
       "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
+      "disposition": "DETACH",
+      "executionStatus": "IMPLEMENTED",
+      "testEvidence": "backend/test/privacy-device-detach.test.mjs",
       "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
-      "candidateDisposition": null,
+      "candidateDisposition": "DETACH",
       "policyRefs": [
         "device_binding_admin_metadata"
       ],
@@ -432,7 +432,9 @@
         "DELETE",
         "RETAIN_WITH_JUSTIFICATION"
       ],
-      "promotionAuthorized": false
+      "promotionAuthorized": true,
+      "approvedDecision": "DETACH_DEVICE_ON_DOG_ERASURE_RETAIN_BOUNDED_ADMIN_METADATA",
+      "approvalRef": "config/privacy/retention-schedule.json#device_binding_admin_metadata"
     },
     {
       "subjectRoot": "dogs.id",
