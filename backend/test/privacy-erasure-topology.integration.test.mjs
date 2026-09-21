@@ -114,7 +114,37 @@ test('PRIV-ERASURE-TOPOLOGY static controls remain fail closed', () => {
       assert.deepEqual(row.inventoryCategories, []);
     }
   }
-  assert.ok(unclassified.length > 0, 'classification gaps must remain explicit until separately authorized');
+  assert.deepEqual(
+    sorted(unclassified),
+    sorted([
+      'achievements',
+      'ai_messages',
+      'auth_refresh_sessions',
+      'behavioral_assessments',
+      'copresence_events',
+      'research_data_consents',
+      'subscriptions',
+      'user_config',
+    ]),
+    'only genuinely ambiguous product/legal lifecycle classifications should remain open',
+  );
+
+  const mappedByTable = Object.fromEntries(coverage.tables.map((row) => [row.table, row]));
+  for (const [table, category] of [
+    ['baselines', 'sensor_preprocessed'],
+    ['dog_sub_baselines', 'sensor_preprocessed'],
+    ['baseline_drift_monitor', 'sensor_preprocessed'],
+    ['anticipation_events', 'eli_inferred'],
+    ['recovery_events', 'eli_inferred'],
+    ['routine_stability', 'eli_inferred'],
+    ['walk_quality', 'eli_inferred'],
+    ['eli_behavioral_priors', 'eli_inferred'],
+  ]) {
+    assert.equal(mappedByTable[table].classificationStatus, 'MAPPED_TO_EXISTING_PRIVACY_CATEGORY');
+    assert.deepEqual(mappedByTable[table].inventoryCategories, [category]);
+    assert.equal(typeof mappedByTable[table].mappingRationale, 'string');
+    assert.ok(mappedByTable[table].mappingRationale.length > 0);
+  }
 });
 
 test('PRIV-ERASURE-TOPOLOGY matches generated PostgreSQL FK/delete mechanics', {
