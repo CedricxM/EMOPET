@@ -9,7 +9,7 @@ Main outcomes:
 - Environment examples were replaced with placeholder-only values.
 - A rotation note was created for variable names that may have appeared as non-placeholder values in examples.
 - Public and expensive web API routes now use rate limiting.
-- Admin web routes are rate limited and remain closed when `ADMIN_TOKEN` is missing.
+- Privileged web routes are rate limited and use the canonical `@emopet/privileged-auth` authority with bounded server-side session and same-origin mutation guards; production staff access remains unavailable until external MFA/IdP and session establishment are configured.
 - Journal entries created through the prototype server store are scoped by an owner token and no longer share all user-created entries globally.
 - Public map/community routes now apply safer serialization, input cleanup and hidden-post filtering.
 - Backend JWT/report secrets now fail closed in production when only dev fallback values are available.
@@ -100,7 +100,7 @@ Recommended future Postgres work:
 Production-ready structures:
 
 - Web and backend rate-limit helpers.
-- Admin token fail-closed behavior.
+- Canonical privileged-action authorization and server-side privileged-session boundaries.
 - Backend dog ownership abstraction.
 - Mapbox public marker privacy schema/tests.
 - FCI/Breiz/ELI data-layer validation tests.
@@ -116,7 +116,7 @@ Still mock/prototype:
 
 Needs real datasets/infrastructure later:
 
-- Real auth provider/session model.
+- Operational MFA/IdP staff directory and privileged-session issuance/establishment.
 - Durable rate-limit store such as Redis/Upstash for multi-instance deployments.
 - Postgres persistence for journal/contact/community/map data.
 - Database migrations for indexes and row-level ownership constraints.
@@ -148,6 +148,7 @@ Notes:
 ## Remaining Risks
 
 - Backend auth routes are still TODO and must not be used as production authentication until password hashing, persistence and refresh-token handling are implemented.
+- Privileged authorization primitives are present, but production staff access must remain unavailable until the external MFA/IdP, staff-directory and privileged-session establishment path is operationally configured and evidenced.
 - Web prototype stores are not a production data boundary; they are now safer but should be replaced by authenticated server persistence.
 - In-memory rate limiting is not sufficient for horizontally scaled production.
 - Git history and working-tree diffs could not be inspected because `.git` is empty in this workspace.
