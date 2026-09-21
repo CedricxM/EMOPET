@@ -13,11 +13,13 @@ export interface AiZeroDurableRetentionReadinessReport {
   destructiveActionAuthorized: false;
   claimsPurgeExecuted: false;
   claimsWritePreventionImplemented: false;
+  claimsRepositoryRuntimePersistenceGuardImplemented: true;
+  claimsDatabaseWritePreventionImplemented: false;
   categoryId: 'ai_messages';
   policySeconds: 0;
   status: 'NO_DURABLE_AI_ROWS_PRESENT' | 'DURABLE_AI_ROWS_PRESENT';
   durableRowCount: number;
-  policyBoundary: 'DETECTION_ONLY_WRITE_PREVENTION_AND_PURGE_NOT_IMPLEMENTED';
+  policyBoundary: 'REPOSITORY_RUNTIME_PERSISTENCE_GUARD_ONLY_DATABASE_WRITE_PREVENTION_AND_PURGE_NOT_IMPLEMENTED';
 }
 
 export interface AiZeroDurableRetentionReadinessFailure {
@@ -26,6 +28,8 @@ export interface AiZeroDurableRetentionReadinessFailure {
   destructiveActionAuthorized: false;
   claimsPurgeExecuted: false;
   claimsWritePreventionImplemented: false;
+  claimsRepositoryRuntimePersistenceGuardImplemented: true;
+  claimsDatabaseWritePreventionImplemented: false;
   error: 'invalid_repository_result' | 'database_unavailable';
   retryable?: boolean;
 }
@@ -44,6 +48,8 @@ function failure(
     destructiveActionAuthorized: false,
     claimsPurgeExecuted: false,
     claimsWritePreventionImplemented: false,
+    claimsRepositoryRuntimePersistenceGuardImplemented: true,
+    claimsDatabaseWritePreventionImplemented: false,
     error,
     ...(retryable === undefined ? {} : { retryable }),
   };
@@ -72,8 +78,10 @@ const postgresRepository: AiZeroDurableRetentionRepository = {
  * Read-only negative-evidence probe for founder decision AI-A / R4.
  *
  * The current product authority permits zero durable ai_messages rows. This
- * probe only detects whether durable rows exist; it does not prevent future
- * writes and never deletes existing rows.
+ * probe detects whether durable rows exist and never deletes them. Repository
+ * runtime access to the table is separately constrained by a static allowlist
+ * guard; PostgreSQL itself still permits direct writes until a database-level
+ * control is separately implemented and evidenced.
  */
 export async function inspectAiZeroDurableRetention(
   repository: AiZeroDurableRetentionRepository = postgresRepository,
@@ -88,13 +96,15 @@ export async function inspectAiZeroDurableRetention(
       destructiveActionAuthorized: false,
       claimsPurgeExecuted: false,
       claimsWritePreventionImplemented: false,
+      claimsRepositoryRuntimePersistenceGuardImplemented: true,
+      claimsDatabaseWritePreventionImplemented: false,
       categoryId: 'ai_messages',
       policySeconds: 0,
       status: durableRowCount > 0
         ? 'DURABLE_AI_ROWS_PRESENT'
         : 'NO_DURABLE_AI_ROWS_PRESENT',
       durableRowCount,
-      policyBoundary: 'DETECTION_ONLY_WRITE_PREVENTION_AND_PURGE_NOT_IMPLEMENTED',
+      policyBoundary: 'REPOSITORY_RUNTIME_PERSISTENCE_GUARD_ONLY_DATABASE_WRITE_PREVENTION_AND_PURGE_NOT_IMPLEMENTED',
     };
   } catch {
     return failure('database_unavailable', true);
