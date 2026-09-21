@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-dog-erasure-topology-v1",
-  "status": "TECHNICAL_DATABASE_ERASURE_TOPOLOGY_NOT_ERASURE_POLICY",
+  "status": "TECHNICAL_DOG_ERASURE_TOPOLOGY_WITH_DEVICE_DETACH_IMPLEMENTED",
   "claimsCompleteDogErasure": false,
   "claimsExecutableErasure": false,
   "subject": {
@@ -62,8 +62,8 @@
       "table": "devices",
       "column": "dog_id",
       "source": "backend/db/schema/dogs.ts",
-      "databaseDeleteAction": "NO_ACTION",
-      "erasureDisposition": "TO_CONFIRM"
+      "databaseDeleteAction": "SET_NULL",
+      "erasureDisposition": "DETACH"
     },
     {
       "table": "dog_sub_baselines",
@@ -172,9 +172,8 @@
     }
   ],
   "scopeLimitations": [
-    "NO_ACTION means deleting dogs.id cannot be assumed to cascade through the listed canonical foreign keys.",
-    "Any remaining NO_FK_LIFECYCLE_NOT_ENFORCED identifier is outside canonical dog FK enforcement; copresence dog identifiers are now NO_ACTION canonical FKs and still require explicit lifecycle policy.",
-    "CASCADE mechanics on behavioral child rows do not constitute an approved erasure policy.",
-    "Non-SQL copies remain separate blockers."
+    "devices.dog_id uses SET_NULL for the approved immediate-unbind lifecycle while retaining bounded device admin/support metadata.",
+    "Other unresolved dog relations remain fail-closed and keep their documented database mechanics until separately implemented or authorized.",
+    "This topology does not authorize complete dog erasure and does not resolve non-SQL residue."
   ]
 }
