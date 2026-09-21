@@ -1,4 +1,4 @@
-import { eq, inArray, or, sql } from 'drizzle-orm';
+import { eq, inArray, sql } from 'drizzle-orm';
 
 import { db } from '../../db/index.js';
 import {
@@ -189,8 +189,7 @@ export async function captureErasureVerificationSnapshot(
 
   try {
     return await db.transaction(async (tx) => {
-      await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ`);
-      await tx.execute(sql`SET TRANSACTION READ ONLY`);
+      await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY`);
       await tx.execute(sql`SET LOCAL lock_timeout = '5s'`);
       await tx.execute(sql`SET LOCAL statement_timeout = '10s'`);
 
@@ -280,8 +279,7 @@ export async function verifyErasureResidue(
 
   try {
     return await db.transaction(async (tx) => {
-      await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ`);
-      await tx.execute(sql`SET TRANSACTION READ ONLY`);
+      await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY`);
       await tx.execute(sql`SET LOCAL statement_timeout = '10s'`);
 
       const rootProbes: ErasureSqlProbe[] = [];
