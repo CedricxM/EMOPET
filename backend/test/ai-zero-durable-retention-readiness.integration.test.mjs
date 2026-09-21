@@ -45,8 +45,10 @@ test('AI zero-durable database guard rejects new durable rows on a fresh baselin
   assert.equal(before.durableRowCount, 0);
   assert.equal(before.claimsRepositoryRuntimePersistenceGuardImplemented, true);
   assert.equal(before.claimsDatabaseWritePreventionImplemented, true);
-  assert.equal(before.claimsDatabaseWritePreventionVerifiedAtRuntime, false);
-  assert.equal(before.claimsWritePreventionImplemented, false);
+  assert.equal(before.claimsDatabaseWritePreventionVerifiedAtRuntime, true);
+  assert.equal(before.claimsWritePreventionImplemented, true);
+  assert.equal(before.databaseWriteGuardStatus, 'VERIFIED');
+  assert.equal(before.databaseWriteGuardValidated, true);
 
   const guards = await sql`
     SELECT
@@ -91,4 +93,7 @@ test('AI zero-durable database guard rejects new durable rows on a fresh baselin
   assert.equal(afterAttempt.status, 'NO_DURABLE_AI_ROWS_PRESENT');
   assert.equal(afterAttempt.durableRowCount, 0);
   assert.equal(afterAttempt.claimsPurgeExecuted, false);
+  assert.equal(afterAttempt.claimsDatabaseWritePreventionVerifiedAtRuntime, true);
+  assert.equal(afterAttempt.claimsWritePreventionImplemented, true);
+  assert.equal(afterAttempt.databaseWriteGuardStatus, 'VERIFIED');
 });
