@@ -27,7 +27,8 @@ test('Contact GET keeps legacy data-plane gate before canonical privileged read 
   assert.ok(authority < store);
   assert.equal(get.includes('canonicalPrivilegedAuthorizationVerifier'), true);
   assert.equal(get.includes('isAdmin('), false);
-  assert.equal(get.includes('LEGACY_DEMO_ONLY'), true);
+  assert.equal(source.includes('LEGACY_DEMO_ONLY'), true);
+  assert.equal(get.includes('demoJson('), true);
 
   assert.equal(post.includes('legacyContactAuthorityGate()'), true);
   assert.equal(post.includes('resolveContactReadAuthority'), false);
