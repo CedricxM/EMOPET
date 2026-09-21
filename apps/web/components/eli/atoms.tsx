@@ -89,7 +89,7 @@ export function Sparkline({ data, color = 'var(--terracotta-500)', width = 120, 
 export function DeltaText({ delta }: { delta: number }) {
   const positive = delta >= 0;
   return (
-    <span style={{ fontFamily: 'var(--font-sans)', fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semi)', color: positive ? 'var(--lichen-700)' : 'var(--orange-pro)' }}>
+    <span style={{ fontFamily: 'var(--font-sans)', fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semi)', color: positive ? 'var(--lichen-700)' : 'var(--eli-degraded-ink)' }}>
       {positive ? '+' : ''}{delta.toFixed(1)} vs baseline
     </span>
   );
