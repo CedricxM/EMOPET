@@ -33,7 +33,7 @@ export const communityRulesAcceptances = pgTable('community_rules_acceptances', 
 export const posts = pgTable('posts', {
   id: uuid('id').primaryKey().defaultRandom(),
   communityId: uuid('community_id').notNull().references(() => communities.id),
-  authorId: uuid('author_id').notNull().references(() => users.id),
+  authorId: uuid('author_id').references(() => users.id),
   type: varchar('type', { length: 20 }).notNull(),
   content: varchar('content', { length: 2000 }).notNull(),
   mediaUrls: jsonb('media_urls').default([]),
@@ -51,7 +51,7 @@ export const posts = pgTable('posts', {
 export const comments = pgTable('comments', {
   id: uuid('id').primaryKey().defaultRandom(),
   postId: uuid('post_id').notNull().references(() => posts.id),
-  authorId: uuid('author_id').notNull().references(() => users.id),
+  authorId: uuid('author_id').references(() => users.id),
   content: varchar('content', { length: 1000 }).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
