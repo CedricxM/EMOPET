@@ -62,7 +62,7 @@
       "table": "devices",
       "column": "dog_id",
       "source": "backend/db/schema/dogs.ts",
-      "databaseDeleteAction": "NO_ACTION",
+      "databaseDeleteAction": "SET_NULL",
       "erasureDisposition": "TO_CONFIRM"
     },
     {
@@ -172,9 +172,9 @@
     }
   ],
   "scopeLimitations": [
-    "NO_ACTION means deleting dogs.id cannot be assumed to cascade through the listed canonical foreign keys.",
-    "Any remaining NO_FK_LIFECYCLE_NOT_ENFORCED identifier is outside canonical dog FK enforcement; copresence dog identifiers are now NO_ACTION canonical FKs and still require explicit lifecycle policy.",
+    "SET_NULL on devices.dog_id provides schema support for immediate device unbinding if a future authorized dog-erasure executor deletes the dog root; it does not approve the post-unbind retention duration.",
+    "NO_ACTION on the remaining canonical dog foreign keys means deleting dogs.id cannot be assumed to cascade through those relations.",
     "CASCADE mechanics on behavioral child rows do not constitute an approved erasure policy.",
-    "Non-SQL copies remain separate blockers."
+    "Non-SQL copies and post-unbind device retention enforcement remain separate blockers."
   ]
 }
