@@ -29,19 +29,24 @@ test('conditional semantics remain decision support only with zero matrix promot
   );
   assert.equal(
     semantics.status,
-    'DECISION_SUPPORT_ONLY_NO_MATRIX_PROMOTION',
+    'FOUR_PRODUCT_PRIVACY_DECISIONS_APPROVED_LEGAL_PRIVACY_DECISION_REMAINS',
   );
   assert.equal(semantics.claimsExecutableErasure, false);
   assert.equal(semantics.claimsCompleteErasure, false);
   assert.deepEqual(semantics.summary, {
     conditionalRowsTotal: 12,
     semanticsAlreadyDeterminedByExistingPolicy: 7,
-    authorityDecisionsStillRequired: 5,
+    authorityDecisionsStillRequired: 1,
     matrixRowsPromoted: 0,
+    productPrivacyDecisionsApproved: 4,
   });
 
   for (const row of [...semantics.policyDetermined, ...semantics.authorityDecisionsRemaining]) {
     assert.equal(row.promotionAuthorized, false);
+  }
+  for (const row of semantics.productPrivacyDecisionsApproved) {
+    assert.equal(row.promotionAuthorized, true);
+    assert.equal(row.executionStatus, 'NOT_IMPLEMENTED');
   }
 
   for (const row of matrix.entries) {
@@ -59,6 +64,7 @@ test('the 12 conditional packet rows are partitioned exactly into 7 determined s
   const semanticsKeys = [
     ...semantics.policyDetermined.map((row) => row.relation),
     ...semantics.authorityDecisionsRemaining.map((row) => row.relation),
+    ...semantics.productPrivacyDecisionsApproved.map((row) => row.relation),
   ].sort();
 
   assert.equal(packetConditional.length, 12);
@@ -153,20 +159,14 @@ test('device metadata needs schema support for detach but no new product-retenti
   );
 });
 
-test('only five conditional rows still require authority decisions', () => {
+test('only rules acceptance still requires privacy/legal authority', () => {
   const remaining = Object.fromEntries(
     semantics.authorityDecisionsRemaining.map((row) => [row.relation, row]),
   );
 
   assert.deepEqual(
     Object.keys(remaining).sort(),
-    [
-      'users.id|DIRECT_FK|behavioral_assessments|respondent_user_id',
-      'users.id|DIRECT_FK|communities|created_by',
-      'users.id|DIRECT_FK|community_events|created_by',
-      'users.id|DIRECT_FK|community_reports|reporter_user_id',
-      'users.id|DIRECT_FK|community_rules_acceptances|user_id',
-    ],
+    ['users.id|DIRECT_FK|community_rules_acceptances|user_id'],
   );
 
   assert.equal(
@@ -188,40 +188,40 @@ test('Community created_by is provenance, while runtime access authority is memb
   assert.equal(/eq\(communities\.createdBy/.test(route), false);
   assert.equal(/eq\(communityEvents\.createdBy/.test(route), false);
 
-  const communityDecision = semantics.authorityDecisionsRemaining.find(
+  const communityDecision = semantics.productPrivacyDecisionsApproved.find(
     (row) => row.relation === 'users.id|DIRECT_FK|communities|created_by',
   );
-  const eventDecision = semantics.authorityDecisionsRemaining.find(
+  const eventDecision = semantics.productPrivacyDecisionsApproved.find(
     (row) => row.relation === 'users.id|DIRECT_FK|community_events|created_by',
   );
 
-  assert.match(communityDecision.privacyFirstRecommendation, /DETACH\/ANONYMIZE/);
-  assert.match(eventDecision.privacyFirstRecommendation, /de-identifying/);
+  assert.equal(communityDecision.decision, 'DETACH_OR_ANONYMIZE_CREATOR_AND_KEEP_COMMUNITY');
+  assert.equal(eventDecision.decision, 'DETACH_OR_ANONYMIZE_CREATOR_AND_KEEP_EVENT');
 });
 
 test('respondent user id is nullable today, making privacy-first detach technically representable for surviving product assessments', async () => {
   const schema = await source('backend/db/schema/behavioral-assessments.ts');
   assert.match(
     schema,
-    /respondentUserId: uuid\('respondent_user_id'\)\.references\(\(\) => users\.id\)/,
+    /respondentUserId: uuid\('respondent_user_id'\)\.references\(\(\) => users\.id, \{ onDelete: 'set null' \}\)/,
   );
   assert.equal(
     /respondentUserId: uuid\('respondent_user_id'\)\.notNull\(\)/.test(schema),
     false,
   );
 
-  const row = semantics.authorityDecisionsRemaining.find(
+  const row = semantics.productPrivacyDecisionsApproved.find(
     (item) => item.relation === 'users.id|DIRECT_FK|behavioral_assessments|respondent_user_id',
   );
-  assert.match(row.privacyFirstRecommendation, /DETACH respondent_user_id/);
+  assert.equal(row.decision, 'DETACH_RESPONDENT_ID_FOR_SURVIVING_PRODUCT_ASSESSMENT');
 });
 
 test('moderation reporter and rules-acceptance decisions stay unresolved rather than silently retaining identified evidence', () => {
-  const report = semantics.authorityDecisionsRemaining.find(
+  const report = semantics.productPrivacyDecisionsApproved.find(
     (row) => row.relation === 'users.id|DIRECT_FK|community_reports|reporter_user_id',
   );
-  assert.equal(report.decisionClass, 'PRIVACY_MODERATION_DECISION_REQUIRED');
-  assert.match(report.privacyFirstRecommendation, /ANONYMIZING\/DETACHING reporter identity/);
+  assert.equal(report.decision, 'ANONYMIZE_OR_DETACH_REPORTER_KEEP_REPORT');
+  assert.equal(report.executionStatus, 'NOT_IMPLEMENTED');
 
   const rules = semantics.authorityDecisionsRemaining.find(
     (row) => row.relation === 'users.id|DIRECT_FK|community_rules_acceptances|user_id',
