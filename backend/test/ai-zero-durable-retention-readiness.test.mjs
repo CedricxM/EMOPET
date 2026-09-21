@@ -38,7 +38,8 @@ test('AI zero-durable readiness is read-only and aligned with founder decision R
   assert.match(source, /claimsPurgeExecuted: false/);
   assert.match(source, /claimsWritePreventionImplemented: false/);
   assert.match(source, /claimsRepositoryRuntimePersistenceGuardImplemented: true/);
-  assert.match(source, /claimsDatabaseWritePreventionImplemented: false/);
+  assert.match(source, /claimsDatabaseWritePreventionImplemented: true/);
+  assert.match(source, /claimsDatabaseWritePreventionVerifiedAtRuntime: false/);
 
   assert.equal(
     schedule.decisions.R4,
@@ -67,16 +68,17 @@ test('AI readiness reports any durable row as a policy violation signal without 
     claimsPurgeExecuted: false,
     claimsWritePreventionImplemented: false,
     claimsRepositoryRuntimePersistenceGuardImplemented: true,
-    claimsDatabaseWritePreventionImplemented: false,
+    claimsDatabaseWritePreventionImplemented: true,
+    claimsDatabaseWritePreventionVerifiedAtRuntime: false,
     categoryId: 'ai_messages',
     policySeconds: 0,
     status: 'DURABLE_AI_ROWS_PRESENT',
     durableRowCount: 3,
-    policyBoundary: 'REPOSITORY_RUNTIME_PERSISTENCE_GUARD_ONLY_DATABASE_WRITE_PREVENTION_AND_PURGE_NOT_IMPLEMENTED',
+    policyBoundary: 'REPOSITORY_AND_DATABASE_WRITE_GUARDS_IMPLEMENTED_RUNTIME_DATABASE_ATTESTATION_AND_PURGE_NOT_IMPLEMENTED',
   });
 });
 
-test('an empty AI table is negative evidence plus a repository guard, not database write prevention', async () => {
+test('an empty AI table reports repository and database guard support without live constraint attestation', async () => {
   const result = await inspectAiZeroDurableRetention({
     async countDurableRows() {
       return 0;
@@ -88,7 +90,8 @@ test('an empty AI table is negative evidence plus a repository guard, not databa
   assert.equal(result.durableRowCount, 0);
   assert.equal(result.claimsWritePreventionImplemented, false);
   assert.equal(result.claimsRepositoryRuntimePersistenceGuardImplemented, true);
-  assert.equal(result.claimsDatabaseWritePreventionImplemented, false);
+  assert.equal(result.claimsDatabaseWritePreventionImplemented, true);
+  assert.equal(result.claimsDatabaseWritePreventionVerifiedAtRuntime, false);
   assert.equal(result.claimsPurgeExecuted, false);
 });
 
@@ -106,7 +109,8 @@ test('AI readiness fails closed on impossible counts and repository outages', as
       claimsPurgeExecuted: false,
       claimsWritePreventionImplemented: false,
       claimsRepositoryRuntimePersistenceGuardImplemented: true,
-      claimsDatabaseWritePreventionImplemented: false,
+      claimsDatabaseWritePreventionImplemented: true,
+    claimsDatabaseWritePreventionVerifiedAtRuntime: false,
       error: 'invalid_repository_result',
     });
   }
@@ -123,7 +127,8 @@ test('AI readiness fails closed on impossible counts and repository outages', as
     claimsPurgeExecuted: false,
     claimsWritePreventionImplemented: false,
     claimsRepositoryRuntimePersistenceGuardImplemented: true,
-    claimsDatabaseWritePreventionImplemented: false,
+    claimsDatabaseWritePreventionImplemented: true,
+    claimsDatabaseWritePreventionVerifiedAtRuntime: false,
     error: 'database_unavailable',
     retryable: true,
   });
