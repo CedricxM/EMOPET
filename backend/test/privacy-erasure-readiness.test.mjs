@@ -70,7 +70,7 @@ test('erasure readiness service remains pure and cannot mutate persistence', asy
   assert.equal(source.includes('destructiveActionAuthorized: false'), true);
 });
 
-test('account erasure preflight exposes all unresolved NO ACTION blockers without authorising deletion', () => {
+test('account erasure preflight reflects four approved SET NULL detaches while remaining fail closed', () => {
   const result = buildErasureReadinessReport(matrix, 'users.id', accountRelations);
 
   assert.equal(result.ok, true);
@@ -79,16 +79,16 @@ test('account erasure preflight exposes all unresolved NO ACTION blockers withou
   assert.equal(result.status, 'BLOCKED');
 
   assert.equal(result.relational.total, 15);
-  assert.equal(result.relational.unresolvedDisposition, 15);
+  assert.equal(result.relational.unresolvedDisposition, 11);
   assert.equal(result.relational.notImplemented, 15);
   assert.deepEqual(result.relational.databaseMechanics, {
-    NO_ACTION: 15,
+    NO_ACTION: 11,
     RESTRICT: 0,
     CASCADE: 0,
-    SET_NULL: 0,
+    SET_NULL: 4,
     SET_DEFAULT: 0,
   });
-  assert.equal(result.relational.rootDeleteBlockers.length, 15);
+  assert.equal(result.relational.rootDeleteBlockers.length, 11);
   assert.deepEqual(result.relational.automaticCascadeRelations, []);
 
   assert.deepEqual(result.nonSql, {
