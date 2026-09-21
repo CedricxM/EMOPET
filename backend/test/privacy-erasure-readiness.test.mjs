@@ -119,17 +119,17 @@ test('dog erasure preflight distinguishes direct NO ACTION blockers from transit
   assert.equal(result.destructiveActionAuthorized, false);
 
   assert.equal(result.relational.total, 22);
-  assert.equal(result.relational.unresolvedDisposition, 22);
-  assert.equal(result.relational.notImplemented, 22);
+  assert.equal(result.relational.unresolvedDisposition, 21);
+  assert.equal(result.relational.notImplemented, 21);
   assert.deepEqual(result.relational.databaseMechanics, {
-    NO_ACTION: 20,
+    NO_ACTION: 19,
     RESTRICT: 0,
     CASCADE: 2,
-    SET_NULL: 0,
+    SET_NULL: 1,
     SET_DEFAULT: 0,
   });
 
-  assert.equal(result.relational.rootDeleteBlockers.length, 18);
+  assert.equal(result.relational.rootDeleteBlockers.length, 17);
   assert.deepEqual(
     result.relational.automaticCascadeRelations
       .map((row) => `${row.table}.${row.column}`)
