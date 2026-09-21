@@ -1,14 +1,14 @@
 {
   "schemaVersion": "emopet-erasure-conditional-semantics-v1",
-  "status": "FOUR_PRODUCT_PRIVACY_DECISIONS_APPROVED_LEGAL_PRIVACY_DECISION_REMAINS",
+  "status": "FOUR_PRODUCT_PRIVACY_DECISIONS_PROMOTED_LEGAL_PRIVACY_DECISION_REMAINS",
   "claimsExecutableErasure": false,
   "claimsCompleteErasure": false,
   "sourcePacket": "config/privacy/erasure-disposition-decision-packet.json",
   "boundaries": [
     "These semantics describe how already-approved product policies would have to be expressed by a future executor.",
-    "No relation is promoted from TO_CONFIRM and no destructive action is authorized.",
+    "Only the four founder-approved D1-D4 account relations are promoted to DETACH/IMPLEMENTED; no destructive account-erasure executor is authorized.",
     "A row can be operationally specified without being legally/privacy approved for execution.",
-    "Schema changes needed to express DETACH/ANONYMIZE remain implementation work, not implicit authorization.",
+    "D1-D4 DETACH schema support is implemented by SET NULL; all other schema or executor work remains separately gated.",
     "Founder approved the privacy-first A option for respondent provenance, community creator provenance, event creator provenance, and moderation reporter identity on 2026-09-21.",
     "community_rules_acceptances remains reserved to PRIVACY_LEGAL; research_data_consents and subscriptions remain outside these four product decisions."
   ],
@@ -16,7 +16,7 @@
     "conditionalRowsTotal": 12,
     "semanticsAlreadyDeterminedByExistingPolicy": 7,
     "authorityDecisionsStillRequired": 1,
-    "matrixRowsPromoted": 0,
+    "matrixRowsPromoted": 4,
     "productPrivacyDecisionsApproved": 4
   },
   "policyDetermined": [
@@ -166,7 +166,9 @@
         "RESEARCH_ROWS_REMAIN_UNDER_RESEARCH_GOVERNANCE"
       ],
       "promotionAuthorized": true,
-      "executionStatus": "NOT_IMPLEMENTED"
+      "executionStatus": "IMPLEMENTED",
+      "matrixDisposition": "DETACH",
+      "testEvidence": "backend/test/privacy-approved-erasure-decisions.test.mjs"
     },
     {
       "relation": "users.id|DIRECT_FK|communities|created_by",
@@ -178,7 +180,9 @@
         "DELETE_COMMUNITY_ONLY_UNDER_SEPARATE_COMMUNITY_LIFECYCLE_RULE"
       ],
       "promotionAuthorized": true,
-      "executionStatus": "NOT_IMPLEMENTED"
+      "executionStatus": "IMPLEMENTED",
+      "matrixDisposition": "DETACH",
+      "testEvidence": "backend/test/privacy-approved-erasure-decisions.test.mjs"
     },
     {
       "relation": "users.id|DIRECT_FK|community_events|created_by",
@@ -189,7 +193,9 @@
         "DELETE_EVENT_IF_SEPARATE_EVENT_LIFECYCLE_REQUIRES_IT"
       ],
       "promotionAuthorized": true,
-      "executionStatus": "NOT_IMPLEMENTED"
+      "executionStatus": "IMPLEMENTED",
+      "matrixDisposition": "DETACH",
+      "testEvidence": "backend/test/privacy-approved-erasure-decisions.test.mjs"
     },
     {
       "relation": "users.id|DIRECT_FK|community_reports|reporter_user_id",
@@ -202,7 +208,9 @@
         "DELETE_REPORT_AT_END_OF_APPLICABLE_MODERATION_OR_HOLD_WINDOW"
       ],
       "promotionAuthorized": true,
-      "executionStatus": "NOT_IMPLEMENTED"
+      "executionStatus": "IMPLEMENTED",
+      "matrixDisposition": "DETACH",
+      "testEvidence": "backend/test/privacy-approved-erasure-decisions.test.mjs"
     }
   ]
 }

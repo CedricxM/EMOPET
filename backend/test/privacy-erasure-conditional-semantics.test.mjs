@@ -22,14 +22,14 @@ const [matrix, packet, semantics] = await Promise.all([
 const key = (row) =>
   [row.subjectRoot, row.relationType, row.table, row.column].join('|');
 
-test('conditional semantics remain decision support only with zero matrix promotion', () => {
+test('conditional semantics preserve fail-closed erasure with four approved matrix promotions', () => {
   assert.equal(
     semantics.schemaVersion,
     'emopet-erasure-conditional-semantics-v1',
   );
   assert.equal(
     semantics.status,
-    'FOUR_PRODUCT_PRIVACY_DECISIONS_APPROVED_LEGAL_PRIVACY_DECISION_REMAINS',
+    'FOUR_PRODUCT_PRIVACY_DECISIONS_PROMOTED_LEGAL_PRIVACY_DECISION_REMAINS',
   );
   assert.equal(semantics.claimsExecutableErasure, false);
   assert.equal(semantics.claimsCompleteErasure, false);
@@ -37,7 +37,7 @@ test('conditional semantics remain decision support only with zero matrix promot
     conditionalRowsTotal: 12,
     semanticsAlreadyDeterminedByExistingPolicy: 7,
     authorityDecisionsStillRequired: 1,
-    matrixRowsPromoted: 0,
+    matrixRowsPromoted: 4,
     productPrivacyDecisionsApproved: 4,
   });
 
@@ -46,12 +46,18 @@ test('conditional semantics remain decision support only with zero matrix promot
   }
   for (const row of semantics.productPrivacyDecisionsApproved) {
     assert.equal(row.promotionAuthorized, true);
-    assert.equal(row.executionStatus, 'NOT_IMPLEMENTED');
+    assert.equal(row.executionStatus, 'IMPLEMENTED');
   }
 
+  const promoted = new Set(semantics.productPrivacyDecisionsApproved.map((row) => row.relation));
   for (const row of matrix.entries) {
-    assert.equal(row.disposition, 'TO_CONFIRM');
-    assert.equal(row.executionStatus, 'NOT_IMPLEMENTED');
+    if (promoted.has(key(row))) {
+      assert.equal(row.disposition, 'DETACH');
+      assert.equal(row.executionStatus, 'IMPLEMENTED');
+    } else {
+      assert.equal(row.disposition, 'TO_CONFIRM');
+      assert.equal(row.executionStatus, 'NOT_IMPLEMENTED');
+    }
   }
 });
 
@@ -221,7 +227,7 @@ test('moderation reporter and rules-acceptance decisions stay unresolved rather 
     (row) => row.relation === 'users.id|DIRECT_FK|community_reports|reporter_user_id',
   );
   assert.equal(report.decision, 'ANONYMIZE_OR_DETACH_REPORTER_KEEP_REPORT');
-  assert.equal(report.executionStatus, 'NOT_IMPLEMENTED');
+  assert.equal(report.executionStatus, 'IMPLEMENTED');
 
   const rules = semantics.authorityDecisionsRemaining.find(
     (row) => row.relation === 'users.id|DIRECT_FK|community_rules_acceptances|user_id',
