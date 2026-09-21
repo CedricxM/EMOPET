@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  ADMIN_POST_ACTIONS,
   MAX_ADMIN_POST_PATCH_BYTES,
   adminPostMutationForAction,
   parseAdminPostPatchRequest,
@@ -19,6 +20,7 @@ function req(body: string, extraHeaders: Record<string, string> = {}): Request {
 }
 
 test('admin post PATCH contract accepts only the finite moderation action set and maps mutations exactly', async () => {
+  assert.deepEqual(ADMIN_POST_ACTIONS, ['hide', 'unhide', 'dismiss']);
   for (const [action, expected] of [
     ['hide', { isHidden: true }],
     ['unhide', { isHidden: false }],
