@@ -203,7 +203,7 @@ test('respondent user id is nullable today, making privacy-first detach technica
   const schema = await source('backend/db/schema/behavioral-assessments.ts');
   assert.match(
     schema,
-    /respondentUserId: uuid\('respondent_user_id'\)\.references\(\(\) => users\.id\)/,
+    /respondentUserId: uuid\('respondent_user_id'\)\.references\(\(\) => users\.id, \{ onDelete: 'set null' \}\)/,
   );
   assert.equal(
     /respondentUserId: uuid\('respondent_user_id'\)\.notNull\(\)/.test(schema),
