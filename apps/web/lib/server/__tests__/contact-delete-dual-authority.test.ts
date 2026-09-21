@@ -46,5 +46,6 @@ test('contact DELETE keeps demo gate first and explicit owner authority terminal
   assert.ok(authorize < privilegedTarget);
   assert.ok(privilegedTarget < privilegedRemoval);
   assert.equal(del.includes("'contact.request.manage'"), true);
-  assert.equal(del.includes('LEGACY_DEMO_ONLY'), true);
+  assert.equal(source.includes('LEGACY_DEMO_ONLY'), true);
+  assert.equal(del.includes('demoJson('), true);
 });
