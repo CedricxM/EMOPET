@@ -152,16 +152,15 @@ export async function inspectRetentionExecutionPlan(
     dependencies.inspectAi(),
   ]);
 
-  const failedProbes: RetentionExecutionSignalCategory[] = [];
-  if (!refresh.ok) failedProbes.push('auth_refresh_sessions');
-  if (!exact.ok) failedProbes.push('exact_location');
-  if (!detailed.ok) {
-    failedProbes.push('sensor_preprocessed_detailed', 'eli_inferred_detailed');
-  }
-  if (!moderation.ok) failedProbes.push('moderation_evidence');
-  if (!ai.ok) failedProbes.push('ai_messages');
-
-  if (failedProbes.length > 0) {
+  if (!refresh.ok || !exact.ok || !detailed.ok || !moderation.ok || !ai.ok) {
+    const failedProbes: RetentionExecutionSignalCategory[] = [];
+    if (!refresh.ok) failedProbes.push('auth_refresh_sessions');
+    if (!exact.ok) failedProbes.push('exact_location');
+    if (!detailed.ok) {
+      failedProbes.push('sensor_preprocessed_detailed', 'eli_inferred_detailed');
+    }
+    if (!moderation.ok) failedProbes.push('moderation_evidence');
+    if (!ai.ok) failedProbes.push('ai_messages');
     return failure('readiness_unavailable', failedProbes);
   }
 
