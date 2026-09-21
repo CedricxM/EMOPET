@@ -6,12 +6,11 @@
   "tables": [
     {
       "table": "achievements",
-      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
-      "inventoryCategories": [],
-      "candidateAreas": [
-        "product activity",
-        "account-linked achievements"
-      ]
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "account"
+      ],
+      "mappingRationale": "Account-linked product achievement state; technical privacy classification only."
     },
     {
       "table": "ai_messages",
@@ -32,12 +31,11 @@
     },
     {
       "table": "auth_refresh_sessions",
-      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
-      "inventoryCategories": [],
-      "candidateAreas": [
-        "authentication session state",
-        "security-sensitive account data"
-      ]
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "account"
+      ],
+      "mappingRationale": "Authentication session state linked directly to the account; security-event evidence remains a separate privacy category."
     },
     {
       "table": "baseline_drift_monitor",
@@ -209,11 +207,12 @@
     },
     {
       "table": "user_config",
-      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
-      "inventoryCategories": [],
-      "candidateAreas": [
-        "account and dog configuration"
-      ]
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "account",
+        "dog_profile"
+      ],
+      "mappingRationale": "Composite account+dog configuration keyed by both canonical user and dog subjects."
     },
     {
       "table": "users",
