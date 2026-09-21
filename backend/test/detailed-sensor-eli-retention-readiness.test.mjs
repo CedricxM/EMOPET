@@ -56,12 +56,12 @@ test('detailed sensor + ELI readiness is read-only and pinned to founder R3', as
 });
 
 test('readiness reports sensor and ELI detailed overages separately', async () => {
-  let observedCutoff = null;
+  let observedEvaluation = null;
   const result = await inspectDetailedSensorEliRetention(
     '2026-09-21T12:00:00.000Z',
     {
-      async countAt(cutoff) {
-        observedCutoff = cutoff;
+      async countExpiredAt(evaluationAt) {
+        observedEvaluation = evaluationAt;
         return {
           sensorDetailedTotal: 11,
           sensorBeyondWindow: 3,
@@ -83,7 +83,8 @@ test('readiness reports sensor and ELI detailed overages separately', async () =
   ]);
   assert.equal(result.policyMonths, 36);
   assert.equal(result.cutoffAt, '2023-09-21T12:00:00.000Z');
-  assert.equal(observedCutoff.toISOString(), '2023-09-21T12:00:00.000Z');
+  assert.equal(observedEvaluation.toISOString(), '2026-09-21T12:00:00.000Z');
+  assert.equal(result.expiryBasis, 'ROW_CLOCK_PLUS_UTC_CALENDAR_MONTHS');
   assert.equal(result.status, 'DETAILED_ROWS_BEYOND_36_MONTHS_PRESENT');
   assert.deepEqual(result.counts, {
     sensorDetailedTotal: 11,
@@ -94,12 +95,12 @@ test('readiness reports sensor and ELI detailed overages separately', async () =
 });
 
 test('36-month cutoff preserves UTC calendar-month semantics at leap-day boundaries', async () => {
-  let observedCutoff = null;
+  let observedEvaluation = null;
   const result = await inspectDetailedSensorEliRetention(
     '2024-02-29T12:34:56.000Z',
     {
-      async countAt(cutoff) {
-        observedCutoff = cutoff;
+      async countExpiredAt(evaluationAt) {
+        observedEvaluation = evaluationAt;
         return {
           sensorDetailedTotal: 0,
           sensorBeyondWindow: 0,
@@ -112,7 +113,8 @@ test('36-month cutoff preserves UTC calendar-month semantics at leap-day boundar
 
   assert.equal(result.ok, true);
   assert.equal(result.status, 'NO_DETAILED_ROWS_BEYOND_36_MONTHS');
-  assert.equal(observedCutoff.toISOString(), '2021-02-28T12:34:56.000Z');
+  assert.equal(observedEvaluation.toISOString(), '2024-02-29T12:34:56.000Z');
+  assert.equal(result.cutoffAt, '2021-02-28T12:34:56.000Z');
 });
 
 test('readiness fails closed on invalid time, inconsistent counts and repository failure', async () => {
@@ -120,7 +122,7 @@ test('readiness fails closed on invalid time, inconsistent counts and repository
   const invalidTime = await inspectDetailedSensorEliRetention(
     '2026-09-21T12:00:00+02:00',
     {
-      async countAt() {
+      async countExpiredAt() {
         calls += 1;
         throw new Error('must not run');
       },
@@ -139,7 +141,7 @@ test('readiness fails closed on invalid time, inconsistent counts and repository
   const inconsistent = await inspectDetailedSensorEliRetention(
     '2026-09-21T12:00:00.000Z',
     {
-      async countAt() {
+      async countExpiredAt() {
         return {
           sensorDetailedTotal: 1,
           sensorBeyondWindow: 2,
@@ -155,7 +157,7 @@ test('readiness fails closed on invalid time, inconsistent counts and repository
   const unavailable = await inspectDetailedSensorEliRetention(
     '2026-09-21T12:00:00.000Z',
     {
-      async countAt() {
+      async countExpiredAt() {
         throw new Error('database offline');
       },
     },

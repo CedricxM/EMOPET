@@ -50,13 +50,13 @@ test('moderation readiness source is read-only and bound to the approved 12-mont
 });
 
 test('moderation readiness reports rows beyond 12 months without claiming purge or clock completeness', async () => {
-  let observedCutoff = null;
+  let observedEvaluation = null;
 
   const result = await inspectModerationRetention(
     '2026-09-21T12:00:00.000Z',
     {
-      async countAt(cutoffAt) {
-        observedCutoff = cutoffAt;
+      async countExpiredAt(evaluationAt) {
+        observedEvaluation = evaluationAt;
         return {
           total: 9,
           clockedTotal: 6,
@@ -76,7 +76,8 @@ test('moderation readiness reports rows beyond 12 months without claiming purge 
   assert.equal(result.categoryId, 'moderation_evidence');
   assert.equal(result.policyMonths, 12);
   assert.equal(result.cutoffAt, '2025-09-21T12:00:00.000Z');
-  assert.equal(observedCutoff.toISOString(), '2025-09-21T12:00:00.000Z');
+  assert.equal(observedEvaluation.toISOString(), '2026-09-21T12:00:00.000Z');
+  assert.equal(result.expiryBasis, 'ROW_CLOCK_PLUS_UTC_CALENDAR_MONTHS');
   assert.equal(result.status, 'ROWS_BEYOND_12_MONTHS_PRESENT');
   assert.deepEqual(result.counts, {
     total: 9,
@@ -90,7 +91,7 @@ test('moderation readiness surfaces missing final-action clocks even when no sta
   const result = await inspectModerationRetention(
     '2026-09-21T12:00:00Z',
     {
-      async countAt() {
+      async countExpiredAt() {
         return {
           total: 4,
           clockedTotal: 2,
@@ -112,7 +113,7 @@ test('moderation readiness can report no current row beyond the window without c
   const result = await inspectModerationRetention(
     '2026-09-21T12:00:00.000Z',
     {
-      async countAt() {
+      async countExpiredAt() {
         return {
           total: 3,
           clockedTotal: 3,
@@ -135,13 +136,13 @@ test('moderation readiness can report no current row beyond the window without c
 });
 
 test('moderation readiness uses calendar-month subtraction with leap-day clamping', async () => {
-  let observedCutoff = null;
+  let observedEvaluation = null;
 
   const result = await inspectModerationRetention(
     '2024-02-29T12:00:00.000Z',
     {
-      async countAt(cutoffAt) {
-        observedCutoff = cutoffAt;
+      async countExpiredAt(evaluationAt) {
+        observedEvaluation = evaluationAt;
         return {
           total: 0,
           clockedTotal: 0,
@@ -153,7 +154,8 @@ test('moderation readiness uses calendar-month subtraction with leap-day clampin
   );
 
   assert.equal(result.ok, true);
-  assert.equal(observedCutoff.toISOString(), '2023-02-28T12:00:00.000Z');
+  assert.equal(observedEvaluation.toISOString(), '2024-02-29T12:00:00.000Z');
+  assert.equal(result.cutoffAt, '2023-02-28T12:00:00.000Z');
 });
 
 test('moderation readiness fails closed on invalid time, inconsistent aggregates and repository outage', async () => {
@@ -161,7 +163,7 @@ test('moderation readiness fails closed on invalid time, inconsistent aggregates
   const invalidTime = await inspectModerationRetention(
     '2026-09-21T12:00:00+02:00',
     {
-      async countAt() {
+      async countExpiredAt() {
         calls += 1;
         throw new Error('must not run');
       },
@@ -181,7 +183,7 @@ test('moderation readiness fails closed on invalid time, inconsistent aggregates
   const inconsistent = await inspectModerationRetention(
     '2026-09-21T12:00:00.000Z',
     {
-      async countAt() {
+      async countExpiredAt() {
         return {
           total: 3,
           clockedTotal: 3,
@@ -204,7 +206,7 @@ test('moderation readiness fails closed on invalid time, inconsistent aggregates
   const impossibleExpired = await inspectModerationRetention(
     '2026-09-21T12:00:00.000Z',
     {
-      async countAt() {
+      async countExpiredAt() {
         return {
           total: 2,
           clockedTotal: 1,
@@ -220,7 +222,7 @@ test('moderation readiness fails closed on invalid time, inconsistent aggregates
   const unavailable = await inspectModerationRetention(
     '2026-09-21T12:00:00.000Z',
     {
-      async countAt() {
+      async countExpiredAt() {
         throw new Error('database offline');
       },
     },
