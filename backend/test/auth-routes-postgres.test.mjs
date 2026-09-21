@@ -235,4 +235,31 @@ test('AUTH-01 routes persist credentials, rotate refresh sessions, and revoke se
     refreshToken: fourthLogin.refreshToken,
   });
   assert.equal(afterLogoutAll.status, 401);
+
+  const detachLoginResponse = await jsonRequest('/login', { email, password });
+  assert.equal(detachLoginResponse.status, 200);
+  const detached = await detachLoginResponse.json();
+  const detachedHash = hashRefreshToken(detached.refreshToken);
+
+  await sql`
+    UPDATE auth_refresh_sessions
+    SET user_id = NULL
+    WHERE token_hash = ${detachedHash}
+  `;
+
+  const detachedRefresh = await jsonRequest('/refresh', {
+    refreshToken: detached.refreshToken,
+  });
+  assert.equal(detachedRefresh.status, 401);
+
+  const [detachedRow] = await sql`
+    SELECT user_id, expires_at, token_hash
+    FROM auth_refresh_sessions
+    WHERE token_hash = ${detachedHash}
+  `;
+  assert.equal(detachedRow.user_id, null);
+  assert.equal(detachedRow.token_hash, detachedHash);
+  assert.ok(detachedRow.expires_at instanceof Date);
+
+  await sql`DELETE FROM auth_refresh_sessions WHERE token_hash = ${detachedHash}`;
 });
