@@ -11,6 +11,32 @@ const schedule = JSON.parse(
   await readFile(new URL('../../config/privacy/retention-schedule.json', import.meta.url), 'utf8'),
 );
 
+test('planner source remains pure and contains no persistence/mutation capability', async () => {
+  const source = await readFile(
+    new URL('../api/services/retention-dry-run.ts', import.meta.url),
+    'utf8',
+  );
+
+  for (const forbidden of [
+    "from '../../db",
+    "from '../db",
+    'drizzle-orm',
+    'postgres',
+    '.delete(',
+    '.update(',
+    '.insert(',
+    'DELETE FROM',
+    'UPDATE ',
+    'INSERT INTO',
+    'fetch(',
+  ]) {
+    assert.equal(source.includes(forbidden), false, forbidden);
+  }
+
+  assert.equal(source.includes("mode: 'DRY_RUN_ONLY'"), true);
+  assert.equal(source.includes('destructiveActionAuthorized: false'), true);
+});
+
 test('planner is explicitly dry-run only and never authorises destructive action', () => {
   const before = JSON.stringify(schedule);
   const result = planRetentionDryRun(schedule, {
