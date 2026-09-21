@@ -34,13 +34,18 @@ test('legacy static web admin helper is retired and cannot be imported by active
     'ADMIN_TOKEN',
     'x-admin-token',
     'breiz-admin-token',
-    'lib/server/admin',
-    "from './admin'",
-    "from '../admin'",
   ];
 
   for (const file of files) {
     const source = await readFile(file, 'utf8');
+    assert.equal(
+      /from ['"][^'"]*lib\/server\/admin['"]/.test(source),
+      false,
+      `${path.relative(webRoot, file)} must not import the retired lib/server/admin authority`,
+    );
+    assert.equal(source.includes("from './admin'"), false);
+    assert.equal(source.includes("from '../admin'"), false);
+
     for (const marker of forbidden) {
       assert.equal(
         source.includes(marker),
