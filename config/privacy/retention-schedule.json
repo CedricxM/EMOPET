@@ -142,8 +142,8 @@
       "holdConditions": [],
       "purgeEvidence": "NEGATIVE_EVIDENCE_REQUIRED",
       "authority": "PRODUCT_APPROVED_AI_NO_DURABLE_RETENTION_UNTIL_SEPARATE_NEED",
-      "readinessStatus": "IMPLEMENTED_NEGATIVE_EVIDENCE_REPOSITORY_RUNTIME_GUARD_AND_DATABASE_WRITE_GUARD_SUPPORT",
-      "readinessBoundary": "REPOSITORY_AND_DATABASE_WRITE_GUARDS_IMPLEMENTED_RUNTIME_DATABASE_ATTESTATION_AND_PURGE_NOT_IMPLEMENTED",
+      "readinessStatus": "IMPLEMENTED_NEGATIVE_EVIDENCE_REPOSITORY_RUNTIME_GUARD_DATABASE_WRITE_GUARD_AND_RUNTIME_ATTESTATION",
+      "readinessBoundary": "LIVE_DATABASE_WRITE_GUARD_ATTESTATION_IMPLEMENTED_PURGE_NOT_IMPLEMENTED",
       "readinessEvidence": [
         "backend/api/services/ai-zero-durable-retention-readiness.ts",
         "backend/test/ai-zero-durable-retention-readiness.test.mjs",
@@ -151,15 +151,25 @@
         "backend/test/ai-zero-durable-retention-write-guard.test.mjs",
         "backend/test/ai-zero-durable-retention-db-guard.test.mjs"
       ],
-      "databaseWritePreventionStatus": "IMPLEMENTED_FRESH_BASELINE_AND_HISTORICAL_UPGRADE_CONSTRAINT",
+      "databaseWritePreventionStatus": "IMPLEMENTED_AND_RUNTIME_ATTESTED_BY_READINESS_PROBE",
       "databaseWritePreventionConstraint": "chk_ai_messages_no_durable_persistence",
-      "databaseWritePreventionBoundary": "NEW_INSERT_UPDATE_BLOCKED_LEGACY_ROWS_PRESERVED_FOR_SEPARATE_PURGE_HISTORICAL_CONSTRAINT_MAY_REMAIN_NOT_VALID_UNTIL_EMPTY",
+      "databaseWritePreventionBoundary": "NEW_INSERT_UPDATE_BLOCKED_RUNTIME_PROBE_VERIFIES_CHECK_FALSE_LEGACY_ROWS_PRESERVED_FOR_SEPARATE_PURGE_CONSTRAINT_VALIDATION_MAY_REMAIN_FALSE_UNTIL_EMPTY",
       "databaseWritePreventionEvidence": [
         "backend/db/schema/ai.ts",
         "backend/db/migrations/0012_ai_zero_durable_write_guard.sql",
         "backend/test/ai-zero-durable-retention-readiness.integration.test.mjs",
         "backend/test/ai-zero-durable-retention-db-guard.test.mjs"
-      ]
+      ],
+      "runtimeAttestation": {
+        "status": "IMPLEMENTED_READ_ONLY",
+        "constraint": "chk_ai_messages_no_durable_persistence",
+        "verifies": [
+          "CONSTRAINT_PRESENT",
+          "CHECK_EXPRESSION_FALSE",
+          "CONSTRAINT_VALIDATION_STATE_REPORTED"
+        ],
+        "boundary": "ATTESTS_CURRENT_DATABASE_ONLY_DOES_NOT_PURGE_LEGACY_ROWS_OR_CLAIM_LEGAL_PRIVACY_CLOSURE"
+      }
     },
     {
       "id": "eli_inferred_detailed",
