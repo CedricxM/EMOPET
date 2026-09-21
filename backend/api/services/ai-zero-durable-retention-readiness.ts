@@ -103,7 +103,7 @@ export async function inspectAiZeroDurableRetention(
       claimsWritePreventionImplemented: false,
       claimsRepositoryRuntimePersistenceGuardImplemented: true,
       claimsDatabaseWritePreventionImplemented: true,
-    claimsDatabaseWritePreventionVerifiedAtRuntime: false,
+      claimsDatabaseWritePreventionVerifiedAtRuntime: false,
       categoryId: 'ai_messages',
       policySeconds: 0,
       status: durableRowCount > 0
