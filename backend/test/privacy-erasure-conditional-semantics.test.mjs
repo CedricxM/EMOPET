@@ -150,19 +150,30 @@ test('behavioral dog-side children inherit parent product-vs-research authority 
   }
 });
 
-test('device metadata needs schema support for detach but no new product-retention choice', async () => {
+test('device metadata has detachable schema support while lifecycle promotion remains separately gated', async () => {
   const row = semantics.policyDetermined.find(
     (item) => item.relation === 'dogs.id|DIRECT_FK|devices|dog_id',
   );
   assert.equal(row.semanticType, 'DETACH_THEN_BOUNDED_METADATA_RETENTION');
   assert.ok(row.semantics.includes('UNBIND_DEVICE_FROM_DOG_IMMEDIATELY_ON_DOG_ERASURE'));
-  assert.match(row.currentSchemaConstraint, /NOT NULL/);
+  assert.match(row.currentSchemaConstraint, /nullable/);
+  assert.equal(row.schemaSupportStatus, 'IMPLEMENTED');
+  assert.equal(row.promotionAuthorized, false);
 
-  const dogsSchema = await source('backend/db/schema/dogs.ts');
+  const [dogsSchema, migration] = await Promise.all([
+    source('backend/db/schema/dogs.ts'),
+    source('backend/db/migrations/0007_device_dog_detach.sql'),
+  ]);
   assert.match(
     dogsSchema,
-    /export const devices = pgTable\('devices'[\s\S]*dogId: uuid\('dog_id'\)\.notNull\(\)\.references/,
+    /export const devices = pgTable\('devices'[\s\S]*dogId: uuid\('dog_id'\)\.references\(\(\) => dogs\.id, \{ onDelete: 'set null' \}\)/,
   );
+  assert.doesNotMatch(
+    dogsSchema,
+    /export const devices = pgTable\('devices'[\s\S]*dogId: uuid\('dog_id'\)\.notNull\(\)/,
+  );
+  assert.match(migration, /ALTER TABLE "devices" ALTER COLUMN "dog_id" DROP NOT NULL/);
+  assert.match(migration, /ON DELETE SET NULL/);
 });
 
 test('only rules acceptance still requires privacy/legal authority', () => {
