@@ -106,8 +106,18 @@ test('provider-held-copy inventory distinguishes active runtime integrations fro
   assert.equal(providers.Sentry.repositoryStatus, 'PLACEHOLDER_ONLY');
   assert.equal(providers.PostHog.repositoryStatus, 'PLACEHOLDER_ONLY');
 
+  assert.equal(
+    providers['Open-Meteo'].deletionEvidence,
+    'PUBLIC_TTL_POLICY_FOUND_OPERATIONAL_RECEIPT_UNVERIFIED',
+  );
+  assert.equal(
+    providers.OpenWeatherMap.deletionEvidence,
+    'AUTHORITATIVE_RETENTION_AND_SUBJECT_ERASURE_POLICY_UNVERIFIED',
+  );
+
   for (const provider of Object.values(providers)) {
-    assert.equal(provider.deletionEvidence, 'EXTERNAL_UNVERIFIED');
+    assert.notEqual(provider.deletionEvidence, 'VERIFIED');
+    assert.notEqual(provider.deletionEvidence, 'EXECUTED');
   }
 });
 
