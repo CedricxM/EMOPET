@@ -210,19 +210,22 @@ test('behavioral dog-side children inherit parent product-vs-research authority 
   }
 });
 
-test('device metadata has detachable schema support while lifecycle promotion remains separately gated', async () => {
+test('device metadata has detachable schema and future unbind-clock support while lifecycle promotion remains gated', async () => {
   const row = semantics.policyDetermined.find(
     (item) => item.relation === 'dogs.id|DIRECT_FK|devices|dog_id',
   );
   assert.equal(row.semanticType, 'DETACH_THEN_BOUNDED_METADATA_RETENTION');
   assert.ok(row.semantics.includes('UNBIND_DEVICE_FROM_DOG_IMMEDIATELY_ON_DOG_ERASURE'));
-  assert.match(row.currentSchemaConstraint, /nullable/);
+  assert.match(row.currentSchemaConstraint, /unbound_at/);
   assert.equal(row.schemaSupportStatus, 'IMPLEMENTED');
+  assert.equal(row.retentionClockStatus, 'IMPLEMENTED_FOR_FUTURE_UNBINDS');
+  assert.equal(row.legacyDetachedClockStatus, 'UNKNOWN_PRE_0010_NOT_BACKFILLED');
   assert.equal(row.promotionAuthorized, false);
 
-  const [dogsSchema, migration] = await Promise.all([
+  const [dogsSchema, detachMigration, clockMigration] = await Promise.all([
     source('backend/db/schema/dogs.ts'),
     source('backend/db/migrations/0007_device_dog_detach.sql'),
+    source('backend/db/migrations/0010_device_unbind_retention_clock.sql'),
   ]);
   const deviceBlock = dogsSchema.match(
     /export const devices = pgTable\('devices'[\s\S]*?(?=export const healthEntries)/,
@@ -232,14 +235,27 @@ test('device metadata has detachable schema support while lifecycle promotion re
     deviceBlock,
     /dogId: uuid\('dog_id'\)\.references\(\(\) => dogs\.id, \{ onDelete: 'set null' \}\)/,
   );
+  assert.match(
+    deviceBlock,
+    /unboundAt: timestamp\('unbound_at', \{ withTimezone: true \}\)/,
+  );
   assert.doesNotMatch(
     deviceBlock,
     /dogId: uuid\('dog_id'\)\.notNull\(\)/,
   );
-  assert.match(migration, /ALTER TABLE "devices" ALTER COLUMN "dog_id" DROP NOT NULL/);
-  assert.match(migration, /ON DELETE SET NULL/);
+  assert.match(detachMigration, /ALTER TABLE "devices" ALTER COLUMN "dog_id" DROP NOT NULL/);
+  assert.match(detachMigration, /ON DELETE SET NULL/);
+  assert.match(clockMigration, /DROP CONSTRAINT IF EXISTS "devices_dog_id_fkey"/);
+  assert.match(clockMigration, /ADD CONSTRAINT "devices_dog_id_dogs_id_fk"/);
+  assert.match(clockMigration, /ON DELETE SET NULL ON UPDATE NO ACTION/);
+  assert.match(clockMigration, /ADD COLUMN IF NOT EXISTS "unbound_at" TIMESTAMPTZ/);
+  assert.match(clockMigration, /OLD\.dog_id IS NOT NULL AND NEW\.dog_id IS NULL/);
+  assert.match(clockMigration, /NEW\.unbound_at = NOW\(\)/);
+  assert.match(clockMigration, /ELSIF NEW\.dog_id IS NOT NULL/);
+  assert.match(clockMigration, /NEW\.unbound_at = NULL/);
+  assert.match(clockMigration, /BEFORE UPDATE OF "dog_id" ON "devices"/);
+  assert.match(row.implementationConsequence, /legacy detached rows without unbound_at as unresolved/i);
 });
-
 test('only rules acceptance still requires privacy/legal authority', () => {
   const remaining = Object.fromEntries(
     semantics.authorityDecisionsRemaining.map((row) => [row.relation, row]),
