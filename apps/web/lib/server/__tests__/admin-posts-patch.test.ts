@@ -56,7 +56,12 @@ test('admin post PATCH contract accepts exactly 8 KiB and rejects 8 KiB plus one
   const oversized = exact + ' ';
   assert.equal(Buffer.byteLength(oversized, 'utf8'), MAX_ADMIN_POST_PATCH_BYTES + 1);
 
-  for (const headers of [{}, { 'content-length': '1' }, { 'content-length': String(MAX_ADMIN_POST_PATCH_BYTES + 1) }]) {
+  const headerCases: Array<Record<string, string>> = [
+    {},
+    { 'content-length': '1' },
+    { 'content-length': String(MAX_ADMIN_POST_PATCH_BYTES + 1) },
+  ];
+  for (const headers of headerCases) {
     assert.deepEqual(
       await parseAdminPostPatchRequest(req(oversized, headers)),
       { ok: false, status: 413 },
