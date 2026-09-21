@@ -97,7 +97,7 @@ test('exact-location readiness counts only coordinate-bearing copresence rows be
     '2026-09-21T12:00:00.000Z',
   );
 
-  assert.equal(result.ok, true);
+  assert.equal(result.ok, true, `readiness failed closed: ${JSON.stringify(result)}`);
   assert.equal(result.cutoffAt, '2026-09-20T12:00:00.000Z');
   assert.equal(result.status, 'ROWS_BEYOND_MAX_WINDOW_PRESENT');
   assert.equal(result.destructiveActionAuthorized, false);
