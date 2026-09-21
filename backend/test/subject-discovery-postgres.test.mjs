@@ -12,6 +12,7 @@ const USER_B = randomUUID();
 const DOG_A = randomUUID();
 const DOG_B = randomUUID();
 const ASSESSMENT_A = randomUUID();
+const ASSESSMENT_RESEARCH_A = randomUUID();
 const RESPONSE_A = randomUUID();
 const FACTOR_A = randomUUID();
 const PRIOR_A = randomUUID();
@@ -42,7 +43,7 @@ after(async () => {
     await sql`DELETE FROM eli_behavioral_priors WHERE id = ${PRIOR_A}`;
     await sql`DELETE FROM behavioral_factor_scores WHERE id = ${FACTOR_A}`;
     await sql`DELETE FROM behavioral_responses WHERE id = ${RESPONSE_A}`;
-    await sql`DELETE FROM behavioral_assessments WHERE id = ${ASSESSMENT_A}`;
+    await sql`DELETE FROM behavioral_assessments WHERE id IN (${ASSESSMENT_A}, ${ASSESSMENT_RESEARCH_A})`;
     await sql`DELETE FROM research_data_consents WHERE id = ${CONSENT_A}`;
     await sql`DELETE FROM auth_refresh_sessions WHERE id = ${SESSION_A}`;
     await sql`DELETE FROM ai_messages WHERE id = ${MESSAGE_A}`;
@@ -78,7 +79,7 @@ async function snapshot() {
     SELECT
       (SELECT count(*)::int FROM users WHERE id IN (${USER_A}, ${USER_B})) AS users,
       (SELECT count(*)::int FROM dogs WHERE id IN (${DOG_A}, ${DOG_B})) AS dogs,
-      (SELECT count(*)::int FROM behavioral_assessments WHERE id = ${ASSESSMENT_A}) AS assessments,
+      (SELECT count(*)::int FROM behavioral_assessments WHERE id IN (${ASSESSMENT_A}, ${ASSESSMENT_RESEARCH_A})) AS assessments,
       (SELECT count(*)::int FROM behavioral_responses WHERE id = ${RESPONSE_A}) AS responses,
       (SELECT count(*)::int FROM behavioral_factor_scores WHERE id = ${FACTOR_A}) AS factors,
       (SELECT count(*)::int FROM eli_behavioral_priors WHERE id = ${PRIOR_A}) AS priors,
@@ -146,6 +147,16 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
     )
   `;
   await sql`
+    INSERT INTO behavioral_assessments (
+      id, dog_id, respondent_role,
+      instrument_code, administration_mode, scientific_use_status, status
+    ) VALUES (
+      ${ASSESSMENT_RESEARCH_A}, ${DOG_A}, 'researcher',
+      'TEST-RESEARCH', 'research', 'research_only', 'complete'
+    )
+  `;
+
+  await sql`
     INSERT INTO behavioral_responses (
       id, assessment_id, item_key, response_status, response_value, scale_min, scale_max
     ) VALUES (
@@ -194,7 +205,10 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
 
     assert.equal(first.dog.aiMessagesTargetingDog.count, 1);
     assert.equal(first.dog.eliUserConfig.count, 1);
-    assert.equal(first.dog.behavioralAssessments.count, 1);
+    assert.equal(first.dog.behavioralAssessments.count, 2);
+    assert.equal(first.dog.behavioralAssessmentsProduct.count, 1);
+    assert.equal(first.dog.behavioralAssessmentsResearch.count, 1);
+    assert.match(first.dog.behavioralAssessmentsResearch.note, /research governance authority/);
     assert.equal(first.dog.behavioralResponses.count, 1);
     assert.equal(first.dog.behavioralFactorScores.count, 1);
     assert.equal(first.dog.eliBehavioralPriors.count, 1);
@@ -282,7 +296,7 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
     assert.deepEqual(await snapshot(), {
       users: 2,
       dogs: 2,
-      assessments: 1,
+      assessments: 2,
       responses: 1,
       factors: 1,
       priors: 1,
