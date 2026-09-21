@@ -117,14 +117,11 @@ test('PRIV-ERASURE-TOPOLOGY static controls remain fail closed', () => {
   assert.deepEqual(
     sorted(unclassified),
     sorted([
-      'achievements',
       'ai_messages',
-      'auth_refresh_sessions',
       'behavioral_assessments',
       'copresence_events',
       'research_data_consents',
       'subscriptions',
-      'user_config',
     ]),
     'only genuinely ambiguous product/legal lifecycle classifications should remain open',
   );
@@ -139,11 +136,17 @@ test('PRIV-ERASURE-TOPOLOGY static controls remain fail closed', () => {
     ['routine_stability', 'eli_inferred'],
     ['walk_quality', 'eli_inferred'],
     ['eli_behavioral_priors', 'eli_inferred'],
+    ['achievements', 'account'],
+    ['auth_refresh_sessions', 'account'],
   ]) {
     assert.equal(mappedByTable[table].classificationStatus, 'MAPPED_TO_EXISTING_PRIVACY_CATEGORY');
     assert.deepEqual(mappedByTable[table].inventoryCategories, [category]);
     assert.equal(typeof mappedByTable[table].mappingRationale, 'string');
     assert.ok(mappedByTable[table].mappingRationale.length > 0);
+  assert.equal(mappedByTable.user_config.classificationStatus, 'MAPPED_TO_EXISTING_PRIVACY_CATEGORY');
+  assert.deepEqual(mappedByTable.user_config.inventoryCategories, ['account', 'dog_profile']);
+  assert.equal(typeof mappedByTable.user_config.mappingRationale, 'string');
+
   }
 });
 
