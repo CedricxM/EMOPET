@@ -291,6 +291,13 @@
       "clockEvidence": [
         "backend/db/schema/community.ts",
         "backend/db/migrations/0011_moderation_final_action_clock.sql"
+      ],
+      "readinessStatus": "IMPLEMENTED_READ_ONLY_FINAL_ACTION_CLOCK",
+      "readinessBoundary": "FINAL_ACTION_CLOCK_READINESS_ONLY_RUNTIME_STAMPING_AND_HISTORICAL_BACKFILL_NOT_VERIFIED",
+      "readinessEvidence": [
+        "backend/api/services/moderation-retention-readiness.ts",
+        "backend/test/moderation-retention-readiness.test.mjs",
+        "backend/test/moderation-retention-readiness.integration.test.mjs"
       ]
     },
     {

@@ -18,6 +18,8 @@ on:
       - 'backend/api/services/community-*.ts'
       - 'backend/api/routes/directory.ts'
       - 'backend/test/*.integration.test.mjs'
+      - 'backend/api/services/moderation-retention-readiness.ts'
+      - 'backend/test/moderation-retention-readiness.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
       - 'backend/test/id-01-referential-integrity.sql'
       - 'backend/test/copresence-identity-fingerprint.sql'
@@ -201,6 +203,14 @@ jobs:
           NODE_ENV: test
         run: node --test test/detailed-sensor-eli-retention-readiness.integration.test.mjs
 
+      - name: PRIV-RETENTION moderation evidence 12-month readiness
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          MODERATION_RETENTION_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/moderation-retention-readiness.integration.test.mjs
+
       - name: INT-03B VBO writer and traceability contract
         run: |
           grep -Fq "updated_at = NOW()" scripts/ingest_vbo.ts
@@ -330,5 +340,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification and INT-04A bounded export authority.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification, retention-readiness probes and INT-04A bounded export authority.'
           echo 'It does not authorize production migration, deployment, or release.'
