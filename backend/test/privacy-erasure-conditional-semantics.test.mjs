@@ -118,7 +118,7 @@ test('refresh-session semantics preserve the already-approved revoke-now then de
   assert.match(row.implementationConsequence, /stage account erasure/i);
 });
 
-test('R2 post/comment semantics remain delete-first with exceptional irreversible de-identification', () => {
+test('R2 post/comment semantics remain delete-first with explicit nullable-author schema support', async () => {
   for (const relation of [
     'users.id|DIRECT_FK|comments|author_id',
     'users.id|DIRECT_FK|posts|author_id',
@@ -129,7 +129,33 @@ test('R2 post/comment semantics remain delete-first with exceptional irreversibl
     assert.equal(row.semantics[0], 'DELETE_BY_DEFAULT');
     assert.ok(row.semantics.some((value) => /IRREVERSIBLE_DEIDENTIFICATION/.test(value)));
     assert.ok(row.semantics.some((value) => /DELETE/.test(value)));
+    assert.equal(row.schemaSupportStatus, 'IMPLEMENTED');
+    assert.equal(row.promotionAuthorized, false);
+    assert.match(row.currentSchemaConstraint, /nullable/);
+    assert.match(row.currentSchemaConstraint, /NO ACTION/);
   }
+
+  const [communitySchema, migration] = await Promise.all([
+    source('backend/db/schema/community.ts'),
+    source('backend/db/migrations/0008_community_author_deidentification_support.sql'),
+  ]);
+  const postsBlock = communitySchema.match(
+    /export const posts = pgTable\('posts'[\s\S]*?(?=export const comments)/,
+  )?.[0];
+  const commentsBlock = communitySchema.match(
+    /export const comments = pgTable\('comments'[\s\S]*?(?=export const communityReports)/,
+  )?.[0];
+
+  assert.ok(postsBlock);
+  assert.ok(commentsBlock);
+  for (const block of [postsBlock, commentsBlock]) {
+    assert.match(block, /authorId: uuid\('author_id'\)\.references\(\(\) => users\.id\)/);
+    assert.doesNotMatch(block, /authorId: uuid\('author_id'\)\.notNull\(\)/);
+    assert.doesNotMatch(block, /onDelete: 'set null'/);
+  }
+  assert.match(migration, /ALTER TABLE "posts" ALTER COLUMN "author_id" DROP NOT NULL/);
+  assert.match(migration, /ALTER TABLE "comments" ALTER COLUMN "author_id" DROP NOT NULL/);
+  assert.doesNotMatch(migration, /ON DELETE SET NULL/);
 });
 
 test('behavioral dog-side children inherit parent product-vs-research authority rather than database CASCADE choosing policy', () => {
