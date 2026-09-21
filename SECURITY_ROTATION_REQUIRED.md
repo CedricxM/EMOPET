@@ -9,7 +9,7 @@ The previous root `.env.example` contained values that were not all clearly plac
 - `AUTH_SECRET`
 - `JWT_SECRET`
 - `REPORT_SHARE_SECRET`
-- `ADMIN_TOKEN`
+- `ADMIN_TOKEN` — retired from active privileged runtime; rotate if any prior value was real or shared
 - `ADMIN_SEED_TOKEN`
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
