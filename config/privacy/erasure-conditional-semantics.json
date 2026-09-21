@@ -1,0 +1,200 @@
+{
+  "schemaVersion": "emopet-erasure-conditional-semantics-v1",
+  "status": "DECISION_SUPPORT_ONLY_NO_MATRIX_PROMOTION",
+  "claimsExecutableErasure": false,
+  "claimsCompleteErasure": false,
+  "sourcePacket": "config/privacy/erasure-disposition-decision-packet.json",
+  "boundaries": [
+    "These semantics describe how already-approved product policies would have to be expressed by a future executor.",
+    "No relation is promoted from TO_CONFIRM and no destructive action is authorized.",
+    "A row can be operationally specified without being legally/privacy approved for execution.",
+    "Schema changes needed to express DETACH/ANONYMIZE remain implementation work, not implicit authorization."
+  ],
+  "summary": {
+    "conditionalRowsTotal": 12,
+    "semanticsAlreadyDeterminedByExistingPolicy": 7,
+    "authorityDecisionsStillRequired": 5,
+    "matrixRowsPromoted": 0
+  },
+  "policyDetermined": [
+    {
+      "relation": "users.id|DIRECT_FK|auth_refresh_sessions|user_id",
+      "semanticType": "PHASED_ACCOUNT_ERASURE",
+      "policyRefs": [
+        "auth_refresh_sessions",
+        "account_auth",
+        "security_auth_logs"
+      ],
+      "semantics": [
+        "REVOKE_ALL_ACTIVE_REFRESH_SESSIONS_IMMEDIATELY",
+        "PRESERVE_REVOKED_SESSION_ROWS_ONLY_UNTIL_EACH_ORIGINAL_EXPIRES_AT_FOR_REUSE_DETECTION",
+        "DELETE_EXPIRED_SESSION_ROWS",
+        "DELETE_ACCOUNT_ROOT_NO_LATER_THAN_APPROVED_ACCOUNT_CLOSURE_WINDOW"
+      ],
+      "currentSchemaConstraint": "user_id is NOT NULL and NO ACTION, so deleting the user before retained session rows expire is currently blocked.",
+      "implementationConsequence": "Future executor must stage account erasure or redesign the session evidence representation; direct root deletion first is invalid.",
+      "newHumanDecisionRequired": false,
+      "promotionAuthorized": false
+    },
+    {
+      "relation": "users.id|DIRECT_FK|comments|author_id",
+      "semanticType": "R2_DELETE_FIRST_THREAD_INTEGRITY_EXCEPTION",
+      "policyRefs": [
+        "community_content"
+      ],
+      "semantics": [
+        "DELETE_BY_DEFAULT",
+        "ONLY_IF_DELETION_MATERIALLY_BREAKS_MULTI_PARTY_PUBLIC_THREAD_APPLY_IRREVERSIBLE_DEIDENTIFICATION",
+        "IF_SAFE_DEIDENTIFICATION_CANNOT_BE_ACHIEVED_DELETE"
+      ],
+      "currentSchemaConstraint": "author_id is NOT NULL and FK-bound; anonymisation requires an explicit schema-supported de-identification mechanism rather than leaving the deleted user id.",
+      "implementationConsequence": "Executor can implement DELETE immediately; the exceptional anonymisation path requires schema support and de-identification tests.",
+      "newHumanDecisionRequired": false,
+      "promotionAuthorized": false
+    },
+    {
+      "relation": "users.id|DIRECT_FK|posts|author_id",
+      "semanticType": "R2_DELETE_FIRST_THREAD_INTEGRITY_EXCEPTION",
+      "policyRefs": [
+        "community_content"
+      ],
+      "semantics": [
+        "DELETE_BY_DEFAULT",
+        "ONLY_IF_DELETION_MATERIALLY_BREAKS_MULTI_PARTY_PUBLIC_THREAD_APPLY_IRREVERSIBLE_DEIDENTIFICATION",
+        "REMOVE_IDENTIFYING_MEDIA_AND_METADATA",
+        "IF_SAFE_DEIDENTIFICATION_CANNOT_BE_ACHIEVED_DELETE"
+      ],
+      "currentSchemaConstraint": "author_id is NOT NULL and FK-bound; anonymisation requires explicit schema support and media/reference scrubbing.",
+      "implementationConsequence": "Executor can implement DELETE immediately; the exceptional anonymisation path requires schema and media-erasure support.",
+      "newHumanDecisionRequired": false,
+      "promotionAuthorized": false
+    },
+    {
+      "relation": "dogs.id|DIRECT_FK|devices|dog_id",
+      "semanticType": "DETACH_THEN_BOUNDED_METADATA_RETENTION",
+      "policyRefs": [
+        "device_binding_admin_metadata"
+      ],
+      "semantics": [
+        "UNBIND_DEVICE_FROM_DOG_IMMEDIATELY_ON_DOG_ERASURE",
+        "RETAIN_ONLY_SUPPORT_SECURITY_METADATA_WITHIN_APPROVED_POST_UNBIND_WINDOW",
+        "REMOVE_OR_PSEUDONYMIZE_DIRECT_DEVICE_IDENTIFIERS_WHEN_NO_LONGER_NEEDED",
+        "DELETE_OR_IRREVERSIBLY_PSEUDONYMIZE_AT_WINDOW_END"
+      ],
+      "currentSchemaConstraint": "dog_id is NOT NULL and NO ACTION, so current schema cannot retain device metadata while deleting the dog.",
+      "implementationConsequence": "Future implementation needs nullable/detached device ownership or a separate retained security-metadata representation before destructive dog erasure.",
+      "newHumanDecisionRequired": false,
+      "promotionAuthorized": false
+    },
+    {
+      "relation": "dogs.id|DIRECT_FK|behavioral_assessments|dog_id",
+      "semanticType": "ROW_LEVEL_PRODUCT_RESEARCH_SPLIT",
+      "policyRefs": [
+        "behavioral_assessment_product",
+        "research_validation_personal_datasets"
+      ],
+      "semantics": [
+        "IF administration_mode != research THEN DELETE_WITH_DOG_ERASURE",
+        "IF administration_mode == research THEN BLOCK_PRODUCT_EXECUTOR_AND_DEFER_TO_RESEARCH_GOVERNANCE_AUTHORITY",
+        "DO_NOT_ALLOW_DATABASE_CASCADE_TO_ERASE_RESEARCH_ROWS_WITHOUT_RESEARCH_AUTHORITY"
+      ],
+      "currentSchemaConstraint": "product and research rows share one physical table.",
+      "implementationConsequence": "Future executor must branch by administration_mode before deleting assessment parents.",
+      "newHumanDecisionRequired": false,
+      "promotionAuthorized": false
+    },
+    {
+      "relation": "dogs.id|TRANSITIVE_FK|behavioral_responses|assessment_id",
+      "semanticType": "INHERIT_PARENT_ASSESSMENT_DISPOSITION",
+      "policyRefs": [
+        "behavioral_assessment_product",
+        "research_validation_personal_datasets"
+      ],
+      "semantics": [
+        "PRODUCT_PARENT_DELETE => CASCADE_CHILD_DELETE",
+        "RESEARCH_PARENT_HELD => CHILD_MUST_NOT_BE_DELETED_BY_PRODUCT_EXECUTOR"
+      ],
+      "currentSchemaConstraint": "database CASCADE is mechanical and will fire if the assessment parent is deleted.",
+      "implementationConsequence": "Parent assessment authority must be resolved before deletion; no independent child decision is needed.",
+      "newHumanDecisionRequired": false,
+      "promotionAuthorized": false
+    },
+    {
+      "relation": "dogs.id|TRANSITIVE_FK|behavioral_factor_scores|assessment_id",
+      "semanticType": "INHERIT_PARENT_ASSESSMENT_DISPOSITION",
+      "policyRefs": [
+        "behavioral_assessment_product",
+        "research_validation_personal_datasets"
+      ],
+      "semantics": [
+        "PRODUCT_PARENT_DELETE => CASCADE_CHILD_DELETE",
+        "RESEARCH_PARENT_HELD => CHILD_MUST_NOT_BE_DELETED_BY_PRODUCT_EXECUTOR"
+      ],
+      "currentSchemaConstraint": "database CASCADE is mechanical and will fire if the assessment parent is deleted.",
+      "implementationConsequence": "Parent assessment authority must be resolved before deletion; no independent child decision is needed.",
+      "newHumanDecisionRequired": false,
+      "promotionAuthorized": false
+    }
+  ],
+  "authorityDecisionsRemaining": [
+    {
+      "relation": "users.id|DIRECT_FK|behavioral_assessments|respondent_user_id",
+      "decisionClass": "PRODUCT_PRIVACY_DECISION_REQUIRED",
+      "why": "Respondent account deletion can affect an assessment attached to another guardian's dog. Deleting the whole assessment may erase another subject's product history; retaining the user id defeats erasure.",
+      "privacyFirstRecommendation": "For non-research assessments whose dog remains active, DETACH respondent_user_id (nullable today) and retain respondent_role + non-identifying provenance; if the dog is also erased, delete the assessment. Research rows remain under research governance.",
+      "options": [
+        "DETACH_RESPONDENT_ID_FOR_SURVIVING_PRODUCT_ASSESSMENT",
+        "DELETE_WHOLE_ASSESSMENT",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": false
+    },
+    {
+      "relation": "users.id|DIRECT_FK|communities|created_by",
+      "decisionClass": "PRODUCT_CONTINUITY_DECISION_REQUIRED",
+      "why": "Runtime access authority is membership-scoped; created_by is provenance, so creator erasure does not technically require deleting the multi-party community.",
+      "privacyFirstRecommendation": "Preserve the community when other members remain, but DETACH/ANONYMIZE creator provenance. Delete the community only when a separate lifecycle rule says the community itself should end.",
+      "options": [
+        "DETACH_OR_ANONYMIZE_CREATOR_AND_KEEP_COMMUNITY",
+        "DELETE_COMMUNITY"
+      ],
+      "promotionAuthorized": false
+    },
+    {
+      "relation": "users.id|DIRECT_FK|community_events|created_by",
+      "decisionClass": "PRODUCT_CONTINUITY_DECISION_REQUIRED",
+      "why": "Event creation requires membership/rules acceptance, while created_by is exposed provenance rather than ongoing authorization.",
+      "privacyFirstRecommendation": "Preserve a still-valid multi-party event while de-identifying the erased creator, unless product policy says organizer identity is essential to the event's validity.",
+      "options": [
+        "DETACH_OR_ANONYMIZE_CREATOR_AND_KEEP_EVENT",
+        "DELETE_EVENT"
+      ],
+      "promotionAuthorized": false
+    },
+    {
+      "relation": "users.id|DIRECT_FK|community_reports|reporter_user_id",
+      "decisionClass": "PRIVACY_MODERATION_DECISION_REQUIRED",
+      "why": "Report content may remain bounded moderation evidence after account erasure, but keeping the reporter's canonical user id is a separate necessity question.",
+      "privacyFirstRecommendation": "Retain bounded report evidence while ANONYMIZING/DETACHING reporter identity unless an active documented investigation/legal hold specifically requires attribution.",
+      "options": [
+        "ANONYMIZE_OR_DETACH_REPORTER_KEEP_REPORT",
+        "DELETE_REPORT",
+        "RETAIN_IDENTIFIED_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": false
+    },
+    {
+      "relation": "users.id|DIRECT_FK|community_rules_acceptances|user_id",
+      "decisionClass": "LEGAL_PRIVACY_EVIDENCE_DECISION_REQUIRED",
+      "why": "Rules acceptance is minimal evidentiary data (version + accepted_at) tied directly to the user. Its post-erasure necessity cannot be decided from product behavior alone.",
+      "privacyFirstRecommendation": "Do not retain identified acceptance evidence after erasure unless privacy/legal review establishes a concrete claims/compliance need and bounded duration.",
+      "options": [
+        "DELETE",
+        "ANONYMIZE_MINIMAL_PROOF",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "requiredAuthority": "PRIVACY_LEGAL",
+      "promotionAuthorized": false
+    }
+  ]
+}
