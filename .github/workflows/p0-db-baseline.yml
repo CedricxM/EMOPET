@@ -231,6 +231,14 @@ jobs:
           NODE_ENV: test
         run: node --test test/moderation-retention-readiness.integration.test.mjs
 
+      - name: PRIV-RETENTION aggregate execution plan dry-run
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          RETENTION_EXECUTION_PLAN_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/retention-execution-plan.integration.test.mjs
+
       - name: INT-03B VBO writer and traceability contract
         run: |
           grep -Fq "updated_at = NOW()" scripts/ingest_vbo.ts
