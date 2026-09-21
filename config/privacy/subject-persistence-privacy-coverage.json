@@ -24,11 +24,11 @@
     },
     {
       "table": "anticipation_events",
-      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
-      "inventoryCategories": [],
-      "candidateAreas": [
-        "legacy ELI-v5 derived event"
-      ]
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "eli_inferred"
+      ],
+      "mappingRationale": "Detected anticipation pattern derived from dog-linked sensor/ELI processing; technical privacy classification only."
     },
     {
       "table": "auth_refresh_sessions",
@@ -41,20 +41,19 @@
     },
     {
       "table": "baseline_drift_monitor",
-      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
-      "inventoryCategories": [],
-      "candidateAreas": [
-        "legacy ELI-v5 baseline state"
-      ]
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "sensor_preprocessed"
+      ],
+      "mappingRationale": "Long-term/current RR and activity baseline comparison derived from preprocessed sensor metrics."
     },
     {
       "table": "baselines",
-      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
-      "inventoryCategories": [],
-      "candidateAreas": [
-        "dog baseline lifecycle metadata",
-        "derived baseline metrics"
-      ]
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "sensor_preprocessed"
+      ],
+      "mappingRationale": "Dog baseline metrics derived from preprocessed sensor observations."
     },
     {
       "table": "behavioral_assessments",
@@ -126,11 +125,11 @@
     },
     {
       "table": "dog_sub_baselines",
-      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
-      "inventoryCategories": [],
-      "candidateAreas": [
-        "legacy ELI-v5 baseline state"
-      ]
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "sensor_preprocessed"
+      ],
+      "mappingRationale": "Contextual aggregate RR/activity/MAT/vocal baseline statistics derived from preprocessed sensor observations."
     },
     {
       "table": "dogs",
@@ -141,12 +140,11 @@
     },
     {
       "table": "eli_behavioral_priors",
-      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
-      "inventoryCategories": [],
-      "candidateAreas": [
-        "behavioral-derived model prior",
-        "ELI derived state"
-      ]
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "eli_inferred"
+      ],
+      "mappingRationale": "Versioned behavioral-derived ELI prior; product/research provenance remains separately controlled."
     },
     {
       "table": "eli_states",
@@ -171,11 +169,11 @@
     },
     {
       "table": "recovery_events",
-      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
-      "inventoryCategories": [],
-      "candidateAreas": [
-        "legacy ELI-v5 derived event"
-      ]
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "eli_inferred"
+      ],
+      "mappingRationale": "Derived recovery episode and peak-arousal history used for longitudinal ELI/product analysis."
     },
     {
       "table": "research_data_consents",
@@ -188,11 +186,11 @@
     },
     {
       "table": "routine_stability",
-      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
-      "inventoryCategories": [],
-      "candidateAreas": [
-        "legacy ELI-v5 derived routine state"
-      ]
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "eli_inferred"
+      ],
+      "mappingRationale": "Daily derived routine-state index and trend, not raw sensor persistence."
     },
     {
       "table": "sensor_summaries",
@@ -226,17 +224,18 @@
     },
     {
       "table": "walk_quality",
-      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
-      "inventoryCategories": [],
-      "candidateAreas": [
-        "legacy ELI-v5 derived walk state"
-      ]
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "eli_inferred"
+      ],
+      "mappingRationale": "Derived walk-quality scores and WQI from dog-linked observations."
     }
   ],
   "scopeLimitations": [
     "This first-order registry is independent from technical lineage completeness.",
     "Transitive behavioral descendants are controlled by dog-erasure topology but are not silently classified here.",
     "Mapped does not establish legal basis, retention, exportability, erasure mode or production approval.",
-    "Unclassified is an explicit blocker, not a conclusion that the persistence is unlawful."
+    "Unclassified is an explicit blocker, not a conclusion that the persistence is unlawful.",
+    "Technical mapping to sensor_preprocessed or eli_inferred does not choose detailed-vs-aggregate retention, row-level trigger semantics, erasure disposition, or legal basis."
   ]
 }
