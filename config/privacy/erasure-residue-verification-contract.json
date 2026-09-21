@@ -60,27 +60,47 @@
     {
       "surface": "OBJECT_MEDIA_STORAGE",
       "probeStatus": "NOT_IMPLEMENTED",
-      "requiredEvidenceClass": "OBJECT_MEDIA_STORAGE_RESIDUE_OR_APPROVED_RETENTION_EVIDENCE"
+      "requiredEvidenceClass": "OBJECT_MEDIA_STORAGE_RESIDUE_OR_APPROVED_RETENTION_EVIDENCE",
+      "repositoryDiscovery": {
+        "inventory": "config/privacy/non-sql-erasure-surface-inventory.json",
+        "status": "DISCOVERY_ONLY_NOT_ERASURE_PROBE"
+      }
     },
     {
       "surface": "PROVIDER_HELD_COPIES",
       "probeStatus": "NOT_IMPLEMENTED",
-      "requiredEvidenceClass": "PROVIDER_HELD_COPIES_RESIDUE_OR_APPROVED_RETENTION_EVIDENCE"
+      "requiredEvidenceClass": "PROVIDER_HELD_COPIES_RESIDUE_OR_APPROVED_RETENTION_EVIDENCE",
+      "repositoryDiscovery": {
+        "inventory": "config/privacy/non-sql-erasure-surface-inventory.json",
+        "status": "DISCOVERY_ONLY_NOT_ERASURE_PROBE"
+      }
     },
     {
       "surface": "CACHES_SEARCH_INDEXES",
       "probeStatus": "NOT_IMPLEMENTED",
-      "requiredEvidenceClass": "CACHES_SEARCH_INDEXES_RESIDUE_OR_APPROVED_RETENTION_EVIDENCE"
+      "requiredEvidenceClass": "CACHES_SEARCH_INDEXES_RESIDUE_OR_APPROVED_RETENTION_EVIDENCE",
+      "repositoryDiscovery": {
+        "inventory": "config/privacy/non-sql-erasure-surface-inventory.json",
+        "status": "DISCOVERY_ONLY_NOT_ERASURE_PROBE"
+      }
     },
     {
       "surface": "ANALYTICS_TELEMETRY",
       "probeStatus": "NOT_IMPLEMENTED",
-      "requiredEvidenceClass": "ANALYTICS_TELEMETRY_RESIDUE_OR_APPROVED_RETENTION_EVIDENCE"
+      "requiredEvidenceClass": "ANALYTICS_TELEMETRY_RESIDUE_OR_APPROVED_RETENTION_EVIDENCE",
+      "repositoryDiscovery": {
+        "inventory": "config/privacy/non-sql-erasure-surface-inventory.json",
+        "status": "DISCOVERY_ONLY_NOT_ERASURE_PROBE"
+      }
     },
     {
       "surface": "BACKUPS",
       "probeStatus": "NOT_IMPLEMENTED",
-      "requiredEvidenceClass": "BACKUPS_RESIDUE_OR_APPROVED_RETENTION_EVIDENCE"
+      "requiredEvidenceClass": "BACKUPS_RESIDUE_OR_APPROVED_RETENTION_EVIDENCE",
+      "repositoryDiscovery": {
+        "inventory": "config/privacy/non-sql-erasure-surface-inventory.json",
+        "status": "DISCOVERY_ONLY_NOT_ERASURE_PROBE"
+      }
     }
   ],
   "completionRule": "NO_COMPLETE_ERASURE_EVIDENCE_UNTIL_EVERY_APPROVED_RELATIONAL_DISPOSITION_HAS_POST_CONDITION_PROOF_AND_EVERY_APPLICABLE_NON_SQL_SURFACE_HAS EXECUTION_OR_EXPIRY_EVIDENCE",
@@ -88,7 +108,8 @@
     "Relational PostgreSQL snapshot capture and negative-residue verification are implemented read-only; this contract does not execute erasure.",
     "A zero-row PostgreSQL result cannot prove deletion from non-SQL surfaces.",
     "Snapshot identifiers must be captured before future parent mutations destroy traversal paths.",
-    "claimsExecutableErasure and claimsCompleteErasure remain false while lifecycle dispositions, destructive execution or applicable non-SQL evidence remain unresolved."
+    "claimsExecutableErasure and claimsCompleteErasure remain false while lifecycle dispositions, destructive execution or applicable non-SQL evidence remain unresolved.",
+    "Repository non-SQL discovery classifies visible integrations/placeholders only; it is not production environment inventory or provider deletion evidence."
   ],
   "implementationEvidence": {
     "service": "backend/api/services/erasure-residue-verification.ts",
