@@ -142,13 +142,23 @@
       "holdConditions": [],
       "purgeEvidence": "NEGATIVE_EVIDENCE_REQUIRED",
       "authority": "PRODUCT_APPROVED_AI_NO_DURABLE_RETENTION_UNTIL_SEPARATE_NEED",
-      "readinessStatus": "IMPLEMENTED_READ_ONLY_NEGATIVE_EVIDENCE_AND_REPOSITORY_RUNTIME_PERSISTENCE_GUARD",
-      "readinessBoundary": "REPOSITORY_RUNTIME_PERSISTENCE_GUARD_ONLY_DATABASE_WRITE_PREVENTION_AND_PURGE_NOT_IMPLEMENTED",
+      "readinessStatus": "IMPLEMENTED_NEGATIVE_EVIDENCE_REPOSITORY_RUNTIME_GUARD_AND_DATABASE_WRITE_GUARD_SUPPORT",
+      "readinessBoundary": "REPOSITORY_AND_DATABASE_WRITE_GUARDS_IMPLEMENTED_RUNTIME_DATABASE_ATTESTATION_AND_PURGE_NOT_IMPLEMENTED",
       "readinessEvidence": [
         "backend/api/services/ai-zero-durable-retention-readiness.ts",
         "backend/test/ai-zero-durable-retention-readiness.test.mjs",
         "backend/test/ai-zero-durable-retention-readiness.integration.test.mjs",
-        "backend/test/ai-zero-durable-retention-write-guard.test.mjs"
+        "backend/test/ai-zero-durable-retention-write-guard.test.mjs",
+        "backend/test/ai-zero-durable-retention-db-guard.test.mjs"
+      ],
+      "databaseWritePreventionStatus": "IMPLEMENTED_FRESH_BASELINE_AND_HISTORICAL_UPGRADE_CONSTRAINT",
+      "databaseWritePreventionConstraint": "chk_ai_messages_no_durable_persistence",
+      "databaseWritePreventionBoundary": "NEW_INSERT_UPDATE_BLOCKED_LEGACY_ROWS_PRESERVED_FOR_SEPARATE_PURGE_HISTORICAL_CONSTRAINT_MAY_REMAIN_NOT_VALID_UNTIL_EMPTY",
+      "databaseWritePreventionEvidence": [
+        "backend/db/schema/ai.ts",
+        "backend/db/migrations/0012_ai_zero_durable_write_guard.sql",
+        "backend/test/ai-zero-durable-retention-readiness.integration.test.mjs",
+        "backend/test/ai-zero-durable-retention-db-guard.test.mjs"
       ]
     },
     {
