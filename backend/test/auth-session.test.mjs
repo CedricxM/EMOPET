@@ -234,3 +234,24 @@ test('a refresh token that expires while waiting cannot issue a successor', asyn
   assert.equal(rows.size, 1);
   assert.equal([...rows.values()][0].revokeReason, 'expired');
 });
+
+
+test('detached refresh session cannot authenticate or rotate', async () => {
+  const state = makeRepository();
+  const initial = issueRefreshCredential(USER_ID, new Date('2026-09-01T10:00:00Z'));
+  await state.repository.insert(initial.session);
+
+  const stored = [...state.rows.values()][0];
+  stored.userId = null;
+
+  const result = await rotateRefreshCredential(
+    state.repository,
+    initial.rawToken,
+    () => new Date('2026-09-01T10:01:00Z'),
+  );
+
+  assert.deepEqual(result, { ok: false, reason: 'invalid_or_expired' });
+  assert.deepEqual(state.locks, []);
+  assert.equal(state.reads, 1);
+  assert.equal(state.rows.size, 1);
+});
