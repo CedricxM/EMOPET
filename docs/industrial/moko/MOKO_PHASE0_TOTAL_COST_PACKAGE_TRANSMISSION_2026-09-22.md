@@ -102,13 +102,37 @@ EMOPET replied that:
 - test conditions/settings should be recorded;
 - a short engineering summary is sufficient for Phase 0.
 
+## Supplier reply / scope boundary — 2026-09-22
+
+**Direction:** RECEIVED  
+**Gmail message ID:** `1a0c89bd3c23f91c`
+
+MOKO's reply materially narrows the requested scope:
+
+- MAT 5-unit quotation update: supplier says it will be shared.
+- MAT DFM/DFA / AFE cleaning considerations: acknowledged.
+- MAT test setup / fixtures / acquisition / Phase 0 testing: acknowledged for consideration.
+- Separate short engineering report: not offered.
+- TAG schematic/layout/RF/power/mechanical design: explicitly outside the role stated by MOKO in this reply.
+- TAG 5-unit build: acceptable once EMOPET supplies final fabrication-ready files.
+- Shipping quotation: requires estimated package size/weight.
+- Other mandatory factory/test costs: to be covered in the quotation.
+
+This means the original outbound request was broader than the supplier role MOKO accepted. Current planning must separate:
+
+1. **EMOPET / separately appointed engineering:** TAG design closure and fabrication release;
+2. **MOKO:** PCBA fabrication/assembly and agreed test execution from controlled design/test files;
+3. **EMOPET:** interpretation of the returned measurements and Phase 0 evidence.
+
+The request for recorded data is retained but should be expressed as structured test/measurement records and raw or minimally processed files where available, not as a supplier-authored engineering-analysis report.
+
 ## Evidence state
 
 - `SENT`: confirmed by Gmail Sent metadata.
 - attachment identity/name/size: confirmed by Gmail metadata.
 - local controlled-copy SHA-256: recorded above.
 - `DELIVERED / OPENED`: not independently proven.
-- MOKO acknowledgement of this 22 September package: not yet proven at this control point.
-- final consolidated Phase 0 quotation: not yet proven.
+- MOKO acknowledgement / scope response: **PROVEN** by Gmail message `1a0c89bd3c23f91c`.
+- updated quotation incorporating the clarified scope: not yet proven.
 - manufacturing / tooling release: **not authorized**.
 
