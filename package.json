@@ -19,7 +19,9 @@
     "web:start": "pnpm --filter @emopet/web start",
     "legacy-freemium:audit": "node scripts/content/legacy-freemium-authority-audit.mjs",
     "science:rr-audit": "node scripts/science/rr-variability-window-audit.mjs",
-    "science:rr-audit:test": "node --test scripts/science/rr-variability-window-audit.test.mjs"
+    "science:rr-audit:test": "node --test scripts/science/rr-variability-window-audit.test.mjs",
+    "hardware:tag-source-coherence": "node scripts/hardware/tag-source-coherence.mjs",
+    "hardware:tag-source-coherence:test": "node --test scripts/hardware/tag-source-coherence.test.mjs"
   },
   "devDependencies": {
     "@types/react": "19.2.15",
