@@ -1,6 +1,6 @@
 /**
  * Typography primitives — H1/H2/H3, P, Caption, Micro, Data.
- * Fraunces for H1–H3 and data-xl; Source Sans for everything else.
+ * Fraunces for H1–H3 and data-xl; Instrument Sans for everything else.
  */
 
 import type { PropsWithChildren } from 'react';
