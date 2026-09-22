@@ -64,3 +64,48 @@ test('the owner-note count is decided once, by the reader limit', async () => {
   assert.doesNotMatch(source, /ownerNotes\.slice\(/);
   assert.match(source, /\.\.\.summary\.ownerNotes\.map\(/);
 });
+
+test('Vet Report maximum horizon cannot be inferred from one retention category', () => {
+  const routeSource = readFileSync(new URL('../api/routes/dogs.ts', import.meta.url), 'utf8');
+  const reportSource = readFileSync(new URL('../api/services/vet-report.ts', import.meta.url), 'utf8');
+  const inventory = JSON.parse(
+    readFileSync(new URL('../../config/privacy/data-inventory.json', import.meta.url), 'utf8'),
+  );
+  const schedule = JSON.parse(
+    readFileSync(new URL('../../config/privacy/retention-schedule.json', import.meta.url), 'utf8'),
+  );
+
+  const helper = routeSource.match(
+    /function parseVetReportDays\([\s\S]*?\n\}/,
+  )?.[0] ?? '';
+  assert.ok(helper.length > 0);
+  assert.doesNotMatch(helper, /MAX_|Math\.min|<=\s*30\b|<=\s*365\b/);
+
+  assert.match(reportSource, /from\(sensorSummaries\)/);
+  assert.match(reportSource, /from\(healthEntries\)/);
+
+  const category = (id) => inventory.categories.find((entry) => entry.id === id);
+  assert.equal(
+    category('sensor_preprocessed')?.retention,
+    'SEE_RETENTION_SCHEDULE_sensor_preprocessed_detailed_AND_sensor_preprocessed_aggregates',
+  );
+  assert.equal(
+    category('health_records')?.retention,
+    'SEE_RETENTION_SCHEDULE_veterinary_user_entered_records',
+  );
+
+  const retention = (id) => schedule.categories.find((entry) => entry.id === id)?.activeRetention;
+  assert.deepEqual(retention('sensor_preprocessed_detailed'), {
+    mode: 'DURATION',
+    value: 36,
+    unit: 'MONTHS',
+  });
+  assert.deepEqual(retention('sensor_preprocessed_aggregates'), {
+    mode: 'ACTIVE_DOG_PROFILE_LIFETIME',
+  });
+  assert.deepEqual(retention('veterinary_user_entered_records'), {
+    mode: 'WHILE_USER_RETAINS_RECORD',
+  });
+
+  assert.match(routeSource, /#140 VET-PERIOD-G3 intentionally has no numeric maximum here/);
+});
