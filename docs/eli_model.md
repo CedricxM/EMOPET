@@ -106,6 +106,48 @@ When `recoveryTrend4wPct > +20%`, the state-transition multiplies the load decay
 time constant by `1.10` (slower decay) per McEwen (1998) Type 3 overload. See
 `ekf/state-transition.ts::effectiveLoadDecayPerDay`.
 
+> **FOUR OF THESE RULES ARE NOT WHAT RUNS — recorded 2026-09-22.** Checked
+> against `dynamics/recovery-tracker.ts` and the test that defends it. Unlike
+> `rr_variability` above, this is not two competing branches: half the spec is
+> implemented exactly.
+>
+> | Rule | This document | `recovery-tracker.ts` |
+> |---|---|---|
+> | Episode start | sustained `a > a_high` for **≥ 60 s** | **no sustain at all** — the episode opens on the first sample above `thresholdHigh` |
+> | Episode end | sustained `a < a_low` for ≥ 5 min | `SUSTAINED_RETURN_SECONDS = 300` ✔ |
+> | Metric | minutes between start and **end** (the confirmation) | `belowThresholdSince − startedAt` — start to the **first** crossing, i.e. 5 minutes shorter |
+> | Bounce rule | resets if `a` crosses back above **`a_high`** | resets when `a >= thresholdLow` — **`a_low`**, a far more sensitive trigger |
+> | EMA `0.9·prev + 0.1·new` | — | exact ✔ |
+> | Trend `(recent14 − prior14)/prior·100` | — | exact ✔ |
+> | Minimum samples | *not documented* | `recent.length < 4` over 28 days returns `null` |
+> | `+20%` → load decay `×1.10` | — | `RECOVERY_TREND_PCT_THRESHOLD = 20.0`, `LOAD_DECAY_TREND_MULTIPLIER = 1.10` ✔ |
+>
+> **The divergences are asserted as correct by `__tests__/recovery-tracker.test.ts`,
+> with its own comments spelling them out** — `// back above low -> reset` on a
+> sample of `0.5` where `low = 0.3` and `high = 0.6`, and
+> `// startedAt = 10:00:00, belowThresholdSince = 10:10:00 => recoveryMinutes = 10`.
+> So the engine's unit tests are the de facto specification for this dynamic, and
+> they disagree with this document deliberately rather than by accident. A green
+> suite proves conformance to the tests, not to this spec.
+>
+> **Predictable behavioural consequence, worth stating because it is not
+> obvious.** With no start sustain, a single noisy sample opens an episode; with
+> the reset firing at `a_low` rather than `a_high`, any excursion above
+> `base + 0.5σ` restarts the 5-minute confirmation. Taken together the tracker is
+> biased toward **many episodes that open easily and rarely close**, so
+> `recovery_minutes` would be produced far less often than the spec implies, and
+> the episodes that do close are measured 5 minutes short.
+>
+> **Also unreached.** `RecoveryTracker` is exported by `dynamics/index.ts` but
+> **never constructed** outside its test — no caller in the engine, the backend or
+> either app. The `thresholdHigh` / `thresholdLow` values are parameters, so the
+> baseline derivation this document implies does not exist anywhere. The file also
+> contradicts itself about it: its class docstring says thresholds are
+> `rrMean`-derived "+ 1.5*std", while `update()`'s docstring says arousal is
+> unitless so "the thresholds are absolute, not in RR/std units".
+>
+> Neither side is authority. Gate: #90 (ELI-SCI-04).
+
 ## New dynamic: anticipation_index
 
 Detects whether the dog shows elevated activity in a 15-min window before a
