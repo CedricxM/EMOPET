@@ -46,6 +46,20 @@ over the last 60 s), as defined in Homma & Masaoka (2008).
 > the firmware against the CV stated above. So the statistic disagreement is
 > 2 documents vs 2 implementations, not 3 vs 1.
 >
+> **This is one fork with two self-consistent branches, not five separate
+> mismatches.** The implementation branch agrees with itself across three
+> artefacts — `rr_variability.{h,c}` (SD, 300 s), `observation-model.ts`
+> (monotonic, plateau `· 1.35`) and `packages/eli-engine/src/__tests__/rr-variability.test.ts`,
+> whose header says *"synthetic IBI sequence with known **std**"* and whose first
+> case asserts `expect(s1.x[0]).toBeGreaterThan(predicted.x[0])` — a passing test
+> that **locks** the monotonic reading. The documentation branch agrees with
+> itself too (CV, 60 s, sign change, plateau `· 0.5`). Whoever resolves #86 is
+> choosing a branch, not patching mismatches.
+>
+> Operational consequence: implementing the model described in this document
+> **will fail that test**, by design rather than by accident. That failure is the
+> signal, not a regression.
+>
 > Neither side is authority. Per `CLAUDE.md`, an existing implementation does
 > not become authority by being already coded — and a document does not become
 > authority by being more detailed. Gate: #86 (FW-SCI-01), with the model-shape
