@@ -10,8 +10,16 @@
  * font, which is how the previous body family stayed declared but never
  * loaded until #238.
  *
- * `mono` is unchanged and still resolves to the platform monospace on native.
- * Loading JetBrains Mono on native is a separate change, outside #238.
+ * On web, `expo-font` emits `@font-face{font-family:<the key useFonts was given>}`
+ * (`_createWebFontTemplate`), so the registered CSS family is the alias, not the
+ * human family name. Each web stack therefore leads with the alias and keeps
+ * `"Instrument Sans"` behind it, which matches only if the font is also served
+ * by a stylesheet link. Leading with the human name alone silently fell back to
+ * the system sans on web.
+ *
+ * `mono` is unchanged and still resolves to the platform monospace on native,
+ * and on web its stack deliberately leads with an unregistered `"JetBrains
+ * Mono"`: loading it is a separate change, outside #238.
  */
 
 import { Platform } from 'react-native';
@@ -26,25 +34,25 @@ export const fontFamily = {
   sans: Platform.select({
     ios: 'InstrumentSans-Regular',
     android: 'InstrumentSans-Regular',
-    web: '"Instrument Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    web: '"InstrumentSans-Regular", "Instrument Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     default: 'System',
   })!,
   sansMedium: Platform.select({
     ios: 'InstrumentSans-Medium',
     android: 'InstrumentSans-Medium',
-    web: '"Instrument Sans", -apple-system, sans-serif',
+    web: '"InstrumentSans-Medium", "Instrument Sans", -apple-system, sans-serif',
     default: 'System',
   })!,
   sansSemi: Platform.select({
     ios: 'InstrumentSans-SemiBold',
     android: 'InstrumentSans-SemiBold',
-    web: '"Instrument Sans", -apple-system, sans-serif',
+    web: '"InstrumentSans-SemiBold", "Instrument Sans", -apple-system, sans-serif',
     default: 'System',
   })!,
   sansBold: Platform.select({
     ios: 'InstrumentSans-Bold',
     android: 'InstrumentSans-Bold',
-    web: '"Instrument Sans", -apple-system, sans-serif',
+    web: '"InstrumentSans-Bold", "Instrument Sans", -apple-system, sans-serif',
     default: 'System',
   })!,
   mono: Platform.select({

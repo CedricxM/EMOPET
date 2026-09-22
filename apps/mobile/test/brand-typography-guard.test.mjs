@@ -51,8 +51,15 @@ test('body tokens declare Instrument Sans on every native platform', () => {
     for (const family of families) {
       assert.match(family, /^InstrumentSans-(Regular|Medium|SemiBold|Bold)$/, `${token} -> ${family}`);
     }
+    // The human family name stays in this stack as a fallback behind the
+    // registered alias; the leading entry is asserted by the web test below.
+    const web = block[1].match(/web: '([^']+)'/);
+    assert.ok(web, `${token} must declare a web stack`);
+    assert.ok(
+      web[1].includes('"Instrument Sans"'),
+      `${token} web stack must keep "Instrument Sans" as a fallback`,
+    );
   }
-  assert.match(typography, /web: '"Instrument Sans"/);
 });
 
 test('every native family the tokens declare is actually registered by useFonts', () => {
@@ -63,6 +70,27 @@ test('every native family the tokens declare is actually registered by useFonts'
   assert.ok(declared.length > 0, 'expected at least one loaded family');
   for (const family of declared) {
     assert.ok(aliases.has(family), `typography.ts declares '${family}' but _layout.tsx does not register it`);
+  }
+});
+
+test('every web stack leads with a family useFonts actually registers', () => {
+  // expo-font emits `@font-face{font-family:<useFonts key>}` on web
+  // (_createWebFontTemplate), so a web stack that leads with the human family
+  // name matches nothing and falls back to the system font. mono is the one
+  // deliberate exception: loading JetBrains Mono is outside #238.
+  const aliases = new Set(registeredAliases(layout));
+  const tokens = ['serif', 'sans', 'sansMedium', 'sansSemi', 'sansBold'];
+  for (const token of tokens) {
+    const block = typography.match(new RegExp(`${token}: Platform\\.select\\(\\{([\\s\\S]*?)\\}\\)`));
+    assert.ok(block, `missing token: ${token}`);
+    const web = block[1].match(/web: '([^']+)'/);
+    assert.ok(web, `${token} must declare a web stack`);
+    const first = web[1].match(/^"([^"]+)"/);
+    assert.ok(first, `${token} web stack must lead with a quoted family`);
+    assert.ok(
+      aliases.has(first[1]),
+      `${token} web stack leads with '${first[1]}', which _layout.tsx does not register`,
+    );
   }
 });
 
