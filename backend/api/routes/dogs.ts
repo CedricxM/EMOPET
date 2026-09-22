@@ -66,6 +66,16 @@ function databaseUnavailable(
   );
 }
 
+/**
+ * #140 VET-PERIOD-G3 intentionally has no numeric maximum here.
+ *
+ * The report is a mixed-source projection: sensor summaries map to the
+ * sensor_preprocessed lifecycle (detailed + aggregates), while Owner-entered
+ * health entries map to veterinary_user_entered_records. Those categories do
+ * not share one numeric retention ceiling. A maximum report horizon is
+ * therefore a Product/Data/Privacy decision, not a constant to infer from one
+ * source category or from frozen #224's unapproved days <= 30 behavior.
+ */
 function parseVetReportDays(rawValue: string | undefined): number | null {
   if (rawValue === undefined) return 14;
   const normalized = rawValue.trim();
