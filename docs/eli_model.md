@@ -165,6 +165,48 @@ Non-medical language rule: the output never labels the dog as "anxious" or
 references a clinical separation-anxiety diagnosis. Surface strings must pass the
 Bleiz `never_say` list for `SEP_ANTICIPATION_DETECTED`.
 
+> **THE THRESHOLDS MATCH; THE ELIGIBILITY TEST DOES NOT — recorded 2026-09-22.**
+> Checked against `dynamics/anticipation-tracker.ts`. `MIN_OCCURRENCES = 7`,
+> `RATIO_THRESHOLD = 1.5`, `PRE_EVENT_WINDOW_MIN = 15`, the trailing 30 days and
+> the 50% coverage gate are all implemented as written. One rule is not.
+>
+> **"±30 minutes" is implemented as an hour bucket, and the code asserts they are
+> the same thing.** `detectRecurringHour` buckets occurrences by
+> `o.at.getUTCHours()` and computes `coverage = modeCount / occurrences.length`,
+> under the comment *"Occurrences within ±30 min of mode hour => within the same
+> hour bucket"*. That equivalence is false in both directions:
+>
+> - **07:45 and 08:15** are 30 minutes apart and both within ±30 min of 08:00, but
+>   land in **different** buckets — a tight cluster is split;
+> - **08:05 and 08:55** are 50 minutes apart and in the **same** bucket, though
+>   08:55 is outside ±30 min of 08:00 — a loose cluster is merged.
+>
+> So the gate can reject a dog with a very regular 07:50 routine whose
+> occurrences straddle 07:xx/08:xx, while admitting one whose departures wander
+> anywhere inside 08:00–08:59. That inverts the intent stated in the function's
+> own docstring — *"narrow enough to yield a predictable event time"*.
+>
+> **The bucketing is also in UTC.** A departure routine is a local-time
+> behaviour. An 08:00 local routine in France is 07:00 UTC in winter and 06:00 UTC
+> in summer, so any trailing-30-day window crossing a DST change splits across two
+> UTC buckets and can fail the 50% gate for calendar reasons alone. The same class
+> of issue the privacy work addressed for retention anniversaries.
+>
+> **Why no test caught it.** `__tests__/anticipation-tracker.test.ts` builds every
+> occurrence with `Date.UTC(2026, 3, day, hour, 0, 0)` — exactly on the hour. Under
+> that fixture the bucket and the ±30 min window are indistinguishable, so the
+> divergence is invisible by construction rather than asserted. This is a
+> different failure mode from `recovery_speed` above, where the tests assert the
+> divergence deliberately.
+>
+> **General rule that follows from all three dynamics.** The engine's unit tests
+> are **not** independent evidence about this document. For `recovery_speed` they
+> encode a competing specification; here the fixture is too idealised to reach the
+> code path that diverges. Either way, a green suite does not mean the
+> implementation conforms to `docs/eli_model.md`.
+>
+> Neither side is authority. Gate: #89 (ELI-SCI-03).
+
 ## Non-goals
 
 v6 does **not** change:
