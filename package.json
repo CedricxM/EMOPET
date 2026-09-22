@@ -20,8 +20,8 @@
     "legacy-freemium:audit": "node scripts/content/legacy-freemium-authority-audit.mjs",
     "science:rr-audit": "node scripts/science/rr-variability-window-audit.mjs",
     "science:rr-audit:test": "node --test scripts/science/rr-variability-window-audit.test.mjs",
-    "control:ip-provenance-audit": "node scripts/control/ip-provenance-register-audit.mjs",
-    "control:ip-provenance-audit:test": "node --test scripts/control/ip-provenance-register-audit.test.mjs",
+    "control:pointer-audit": "node scripts/control/control-register-pointer-audit.mjs",
+    "control:pointer-audit:test": "node --test scripts/control/control-register-pointer-audit.test.mjs",
     "hardware:tag-source-coherence": "node scripts/hardware/tag-source-coherence.mjs",
     "hardware:tag-source-coherence:test": "node --test scripts/hardware/tag-source-coherence.test.mjs"
   },

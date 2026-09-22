@@ -8,6 +8,7 @@ Original snapshot boundary: `main@c099581ff8aed1e619f72ab38898fc05833b7c66`
 Work item: [#114 — IP-PROV-01](https://github.com/CedricxM/EMOPET/issues/114)
 Source briefing: [PR #112](https://github.com/CedricxM/EMOPET/pull/112)
 Original vessel: [PR #115](https://github.com/CedricxM/EMOPET/pull/115), never merged
+Pointer self-check: `pnpm control:pointer-audit` (shared with `P0_THIRD_PARTY_DATA_RIGHTS_REGISTER.md`, #116)
 
 ## 0. Reconstruction note — 2026-09-22
 
