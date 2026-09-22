@@ -44,6 +44,16 @@ Before editing:
 - preserve the original files or work on a new branch/revision;
 - read the current ERC and blocker register;
 - inspect all relevant symbols/pin numbers before changing nets;
+- run the repository source-coherence guard before any edit:
+
+  ```bash
+  node scripts/hardware/tag-source-coherence.mjs \
+    --schematic "<current .kicad_sch>" \
+    --erc "<latest native ERC report>" \
+    --pcb "<current .kicad_pcb>"
+  ```
+
+  If it reports any ERC-referenced symbol absent from the schematic, **STOP**. The workspace is mixed-version or incomplete; recover/reconstruct the ERC-generating schematic and obtain a fresh native ERC before using this command.
 - run `kicad-cli --version` if available;
 - inspect `kicad-cli sch erc --help` and `kicad-cli pcb drc --help` before constructing commands because CLI syntax can differ by KiCad version.
 
