@@ -1,11 +1,75 @@
 # EMOPET — Professor James Serpell / University of Pennsylvania Communications
 
-**Control date:** 2026-09-07  
+**Control date:** 2026-09-22 (previous control point: 2026-09-07, retained below)  
 **Primary Gmail thread:** `19cf199a8234f2fc`  
-**Status:** `DISCUSSION / FUTURE FOLLOW-UP SCHEDULED` — methodological/scientific exchange.  
-**Explicitly not proven:** UPenn partnership, endorsement, ELI validation, C-BARQ commercial licence.
+**Status:** `LICENSING DISCUSSION OPENED / TERMS NOT AGREED` — see the 22 September update.  
+**Explicitly not proven:** UPenn partnership, endorsement, ELI validation, **C-BARQ commercial licence granted**, **approval of distributed administration**.
+
+---
+
+## Update — 22 September 2026
+
+**Source of this update:** a **founder statement**, recorded on 2026-09-22.
+**Evidence level:** `FOUNDER_DECLARATION`. **No Gmail evidence is present in the repository at this control point.** This section therefore sits one level below the 7 September material, which was reconciled against connected Gmail.
+
+The 7 September control point left an open evidence gate: two messages scheduled for 2026-09-08 15:00 Europe/Paris, with status `SCHEDULED_NOT_SENT`. The founder has now reported the outcome.
+
+### What the founder reports
+
+**Neetu Singh Amin (Penn Center for Innovation)** — the licensing contact previously supplied by Prof. Serpell — has responded. The reported content is:
+
+1. a **commercial licence can cover** full integration of C-BARQ into a consumer product;
+2. the licence **imposes requirements** on administration, display, scoring and attribution;
+3. **distributed presentation requires approval or specific conditions**;
+4. **pricing depends** on company size, scope, number of users, duration, territory and commercial plan;
+5. a **call is scheduled for October 2026**.
+
+### Status change
+
+| Item | Status at 2026-09-07 | Status at 2026-09-22 |
+|---|---|---|
+| Licensing enquiry transmission | `SCHEDULED_NOT_SENT` | `REPORTED_SENT_AND_ANSWERED` — founder declaration, Gmail evidence pending |
+| Licensing discussion | `NOT_PROVEN` | **`OPENED`** — a commercial route is reported to exist |
+| **C-BARQ commercial licence** | `NOT_PROVEN` | **`NOT GRANTED`** — unchanged in substance |
+| Distributed / sequential administration | `EMOPET_PROPOSAL / NOT_PROVEN` | **`APPROVAL REQUIRED`** — reported as conditional, not permitted |
+| Pricing | not addressed | `PARAMETERS KNOWN, AMOUNT UNKNOWN` |
+| Next milestone | 8 September evidence gate | **call, October 2026** |
+
+### What must not be inferred from this update
+
+A response establishing that a licence **can** cover an intended use is **not** a licence. At this control point the following statements remain unsupported and must not appear in any deck, document or external communication:
+
+- `C-BARQ is licensed` / `C-BARQ licence obtained` / `licence agreed`;
+- `Penn approved sequential or distributed administration` — the reported response says the opposite: approval or specific conditions are required;
+- `Penn partnership`, `Penn endorsement`, `UPenn validation of ELI`;
+- any statement about price, scope or territory, none of which has been quoted.
+
+Safe formulation at 2026-09-22:
+
+> `A commercial licensing discussion is open with the Penn Center for Innovation. A call is scheduled for October 2026. No licence has been granted.`
+
+### Engineering consequence
+
+`docs/research/cbarq-breiz-integration.md` §8.1 is updated to match. Every item marked `[BLOQUÉ-LICENCE]` in that document **remains blocked**: no licensed item text may be ingested, no official scoring rule may be written, no administration policy may carry `scoring_allowed`, and `instrumentVersions.licenseStatus` stays `not_proven` — which keeps the runtime gate closed and prevents any real administration from opening.
+
+The reported licence requirements — administration, display, scoring, attribution — match the four axes that design document already anticipated. That is a useful confirmation of the architecture, not an authorisation.
+
+### Evidence gate still open
+
+To raise this section from `FOUNDER_DECLARATION` to `ÉTABLI`, record:
+
+- the actual send timestamps of both 8 September messages, confirming they moved to `SENT`;
+- the exact attachment filenames and byte sizes evidenced in each sent message;
+- the Penn Center for Innovation reply: sender, timestamp, message ID, and exact wording — in particular the precise wording on distributed presentation, which drives the product design;
+- the October call: date, participants, and written follow-up.
+
+Until then, treat this section as reported, not evidenced. `SCIENTIFIC_FRAMEWORK_REGISTER.md` should be updated in the same pass.
+
+---
 
 ## Evidence correction — 7 September 2026
+
+> **Superseded in part on 2026-09-22.** The scheduling facts below remain the controlled record of what was verifiable on 7 September. The `SCHEDULED_NOT_SENT` status and the `NOT_PROVEN` licensing status are updated by the 22 September section above. The attribution boundary concerning Prof. Serpell is **not** superseded and remains fully in force.
 
 A connected-Gmail re-check identified two status/attribution errors that must not propagate into future decks or Product decisions.
 
@@ -188,11 +252,17 @@ Do not state without new evidence:
 - `scientific partnership with UPenn`;
 - `ELI validated by James Serpell`;
 - `C-BARQ licensed`;
-- `licensing discussion underway` before the scheduled enquiry is actually sent/answered;
+- ~~`licensing discussion underway` before the scheduled enquiry is actually sent/answered~~ — **updated 2026-09-22**: a licensing discussion is now reported as open (founder declaration). `C-BARQ licensed` remains prohibited;
 - `UPenn endorsement`;
 - `framework approved by James Serpell` unless an explicit written response supports that precise claim.
 
+Added 2026-09-22:
+
+- `Penn approved sequential / distributed administration` — the reported response requires approval or specific conditions, which have not been obtained.
+
 ## Next evidence gate
+
+> **Partly answered on 2026-09-22 by founder declaration; Gmail evidence still outstanding.** The list below remains the checklist to close, plus the additional items in the 22 September section.
 
 After 2026-09-08 15:00 Europe/Paris:
 
