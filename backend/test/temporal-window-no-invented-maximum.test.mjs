@@ -1,14 +1,15 @@
 /**
- * #142 WINDOW-G3 / #140 VET-PERIOD-G3 guard.
+ * #142 WINDOW-G3 guard.
  *
- * The open decision is whether a maximum query horizon exists at all and, if so,
- * what it is. Until then the instruction "do not invent an arbitrary maximum" is
- * enforced by nothing but a comment. This test enforces it, and records where a
- * real cap would have to come from so the eventual decision is a confirmation
- * rather than a fresh invention.
+ * The open decision is whether the Presence-related lookback routes should have
+ * a maximum horizon and, if so, what authority sets it. Current main still has
+ * no durable Presence persistence/lifecycle authority, so this test prevents a
+ * convenience number from becoming product policy before the data source and
+ * its lifecycle are actually named.
  *
- * It does NOT assert that a cap is wrong. It asserts that if one appears here it
- * must reference the canonical retention authority instead of restating a number.
+ * #140 Vet Report is deliberately separate: it uses parseVetReportDays and a
+ * mixed report dataset, so this shared Presence helper must not pretend to own
+ * that decision.
  */
 
 import test from 'node:test';
@@ -22,17 +23,15 @@ const HELPER = 'backend/api/utils/temporal-window.ts';
 
 /**
  * Strip comments before scanning for code. The helper's own doc comment names
- * the values it warns against, so a raw-text scan flags the warning itself.
+ * historical values it warns against, so a raw-text scan would flag the warning.
  */
 function codeOnly(source) {
   return source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
 }
 
-test('the shared parser still declares no maximum horizon', async () => {
+test('the shared Presence parser still declares no maximum horizon', async () => {
   const source = codeOnly(await read(HELPER));
 
-  // Only the default is a bare number in this file. Any other numeric constant
-  // is a candidate cap and must be reviewed against WINDOW-G3 first.
   const declarations = [...source.matchAll(/^export const ([A-Z_]+) = (\d+);$/gm)];
   assert.deepEqual(
     declarations.map(([, name]) => name),
@@ -45,25 +44,35 @@ test('the shared parser still declares no maximum horizon', async () => {
   }
 });
 
-test('the derivation rule is recorded where the decision will be taken', async () => {
+test('the helper records the real authority gap instead of inventing a retention-derived cap', async () => {
   const source = await read(HELPER);
-  assert.match(source, /retention-schedule\.json/);
+
   assert.match(source, /#142/);
-  assert.match(source, /#140/);
-  assert.match(source, /#478/);
-  // The candidate status of the retention number must travel with it.
-  assert.match(source, /SIGNOFF_PENDING/);
+  assert.match(source, /#135/);
+  assert.match(source, /durable Presence/i);
+  assert.match(source, /retention\/lifecycle authority/i);
+
+  // Vet Report is a separate parser/dataset and must not be silently folded
+  // into the Presence WINDOW-G3 control.
+  assert.match(source, /#140 Vet Report is intentionally out of scope/);
+
+  // Guard against the previous incorrect derivation being reintroduced here.
+  assert.doesNotMatch(source, /36 months/i);
+  assert.doesNotMatch(source, /sensor_preprocessed_detailed/);
+  assert.doesNotMatch(source, /eli_inferred_detailed/);
 });
 
-test('the retention category the derivation cites still says 36 months', async () => {
-  const schedule = JSON.parse(await read('config/privacy/retention-schedule.json'));
-  for (const id of ['sensor_preprocessed_detailed', 'eli_inferred_detailed']) {
-    const category = schedule.categories.find((row) => row.id === id);
-    assert.ok(category, `missing retention category: ${id}`);
-    assert.equal(category.activeRetention.mode, 'DURATION');
-    assert.equal(category.activeRetention.value, 36);
-    assert.equal(category.activeRetention.unit, 'MONTHS');
-  }
-  // If this ever stops being a candidate, revisit the comment in the helper.
-  assert.equal(schedule.status, 'PRODUCT_APPROVED_CANDIDATE_LEGAL_PRIVACY_SIGNOFF_PENDING');
+test('current Presence call sites remain fail-closed rather than defining a hidden data-retention ceiling', async () => {
+  const [dogs, sensors] = await Promise.all([
+    read('backend/api/routes/dogs.ts'),
+    read('backend/api/routes/sensors.ts'),
+  ]);
+
+  assert.match(dogs, /parseLookbackWindow\(c\.req\.query\('days'\)\)/);
+  assert.match(dogs, /ABSENCE_COMPARISON_PERSISTENCE_NOT_READY/);
+  assert.match(dogs, /maturity: 'NOT_IMPLEMENTED'/);
+
+  assert.match(sensors, /parseLookbackWindow\(c\.req\.query\('days'\)\)/);
+  assert.match(sensors, /PRESENCE_PERSISTENCE_NOT_READY/);
+  assert.match(sensors, /durable Product V1 persistence authority/);
 });
