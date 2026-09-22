@@ -11,6 +11,21 @@ minimumReleaseAge: 10080
 blockExoticSubdeps: true
 trustPolicy: no-downgrade
 # Keep every exception exact rather than weakening trust checks globally.
+#
+# SCOPE DECISION, 2026-09-22 (#482 Q4): trustPolicy and minimumReleaseAge apply
+# to devDependencies and to type-only packages on the same terms as runtime
+# dependencies. No exemption by dependency kind.
+#
+# Reasoning, since the opposite is the intuitive answer: a devDependency runs at
+# build time in CI, where it has the checkout and whatever secrets the job holds.
+# That is a larger blast radius than most runtime dependencies, not a smaller
+# one. Three of the four exceptions below are devDependency transitives, which is
+# evidence of exposure, not of harmlessness. A type-only package is still an npm
+# package delivered by the same publish path; "only types" describes its
+# contents, not its install.
+#
+# The escape hatch is this list: exact, per-version, with its evidence recorded
+# and an owner. That keeps the audit trail a category exemption would erase.
 # Per-entry rationale, including the original semver@6.3.1 / Babel legacy 6.x
 # reason, is recorded inline below.
 trustPolicyExclude:

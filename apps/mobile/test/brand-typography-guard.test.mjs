@@ -108,3 +108,23 @@ test('the Instrument Sans package is declared as a dependency', () => {
     'package.json must declare @expo-google-fonts/instrument-sans',
   );
 });
+
+test('the legacy App.v04 stack stays contained and is not the app root', async () => {
+  const legacy = await read('../App.v04.tsx');
+  // Containment, not deletion: CLAUDE.md requires an explicit decision to remove
+  // a historical artefact. This asserts the header survives and the file has not
+  // quietly become reachable.
+  assert.match(legacy, /HISTORICAL \/ SUPERSEDED — NOT THE APP ROOT/);
+  assert.equal(pkg.main, 'expo-router/entry');
+
+  // It is the only reason @expo-google-fonts/source-sans-3 is still a dependency.
+  // If its imports ever go, the dependency should go with them — and if the
+  // dependency goes first, this file stops compiling, which is the point.
+  const stillImportsLegacyFont = /@expo-google-fonts\/source-sans-3/.test(legacy);
+  const stillDeclared = Boolean(pkg.dependencies['@expo-google-fonts/source-sans-3']);
+  assert.equal(
+    stillImportsLegacyFont,
+    stillDeclared,
+    'the legacy font dependency and its only importer must be retired together (#238, family of #242)',
+  );
+});
