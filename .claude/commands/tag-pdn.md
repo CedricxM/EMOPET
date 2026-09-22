@@ -16,6 +16,10 @@ Preserve these nRF9151 constraints:
 
 Current EMOPET candidate includes U12/U13 TPS22916C sequencing, Nordic local ferrite/decoupling, provisional source reservoir and LP501622HA 3.7 V / 100 mAh / 10C candidate.
 
+Current EEMB product authority identifies LP501622HA as a **bare cell with solder tabs**, approximately 16.5 × 24.0 × 5.3 mm and ~2.0 g. Treat that as a Phase-0 bare-cell CAD input only. A PCM/protection implementation, leads, insulation and their resistance/volume remain separate OPEN inputs.
+
+Current #503 arithmetic also establishes that the candidate is prototype-plausible at mid SOC but has essentially no static path-loss margin near 3.2 V OCV under the 505 mA design load. Preserve this as a reason to require low-SOC transient bench evidence; do not turn the 10C label into a PASS.
+
 Tasks:
 1. Recover exact component values/MPNs from controlled sources, never memory.
 2. Build a worst-case rail budget including cell OCV/ESR, protection path if present, switch resistance/inrush, ferrite/trace resistance, capacitor effective values and modem burst load.

@@ -16,6 +16,16 @@ Preserve:
 - 50-ohm geometry depends on the real stack-up;
 - final antenna matching values are design-specific and cannot be invented.
 
+Current Phase-0 topology/component authority from #504:
+- LTE: external antenna path for the first engineering build;
+- GNSS: dedicated external path; do not share LTE/GNSS for Phase 0;
+- UICC: physical 1.8 V nano-SIM; SIM_DET remains floating;
+- LTE/GNSS board receptacle candidate: Hirose U.FL-R-SMT-1(01);
+- conducted LTE test switch candidate: Murata MM8130-2600;
+- nano-SIM holder candidate: Molex 1042240820;
+- UICC low-capacitance ESD candidate: TI TPD4E05U06DQAR;
+- do not replace these candidates by convenience. Reopen only for a documented fit, availability, lifecycle or electrical conflict.
+
 Tasks:
 1. Audit the nRF9151 symbol/pin map against current Nordic authority.
 2. Inventory every existing RF/SIM net and placeholder in the recovered schematic.
@@ -33,8 +43,8 @@ Tasks:
 
 Do not claim antenna efficiency, VSWR, body/enclosure detuning, GNSS TTFF/sensitivity or regulatory radiated performance.
 
-If exact antenna/SIM mechanical selections remain open, stop with:
-TAG_B02_B06_RF = TOPOLOGY_PACKET_READY / COMPONENT+MECHANICAL_SELECTION_REQUIRED
+If the board-side candidates above are coherent but stack-up/matching/antenna physical evidence remains open, stop with:
+TAG_B02_B06_RF = BOARD_SIDE_COMPONENTS_SELECTED / STACKUP+MATCHING+PHYSICAL_RF_EVIDENCE_OPEN
 
 If topology and stack-up are actually frozen, stop with:
 TAG_B02_B06_RF = READY_FOR_50OHM_ROUTING_CALCULATION / PHYSICAL_RF_GATE_OPEN
