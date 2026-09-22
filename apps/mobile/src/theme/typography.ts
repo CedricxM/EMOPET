@@ -1,12 +1,17 @@
 /**
  * Typography tokens.
  *
- * Font families: Fraunces (serif, headings) and Source Sans 3 (sans, body).
- * Fonts are not yet bundled — when they load via expo-font, the named families
- * take over; until then the OS falls back to system serif/sans.
+ * Font families per BRAND-AUTHORITY-001 (2026-08-25): Fraunces for display /
+ * titles, Instrument Sans for body, JetBrains Mono for technical/metadata.
  *
- * To load them: pnpm add expo-font @expo-google-fonts/fraunces
- * @expo-google-fonts/source-sans-3, then call useFonts in app/_layout.tsx.
+ * The native family names below are the aliases registered by `useFonts` in
+ * `app/_layout.tsx`. They must stay in sync with that map: a name declared
+ * here that the layout does not register silently falls back to the system
+ * font, which is how the previous body family stayed declared but never
+ * loaded until #238.
+ *
+ * `mono` is unchanged and still resolves to the platform monospace on native.
+ * Loading JetBrains Mono on native is a separate change, outside #238.
  */
 
 import { Platform } from 'react-native';
@@ -19,27 +24,27 @@ export const fontFamily = {
     default: 'Fraunces',
   })!,
   sans: Platform.select({
-    ios: 'SourceSans3-Regular',
-    android: 'SourceSans3-Regular',
-    web: '"Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    ios: 'InstrumentSans-Regular',
+    android: 'InstrumentSans-Regular',
+    web: '"Instrument Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     default: 'System',
   })!,
   sansMedium: Platform.select({
-    ios: 'SourceSans3-Medium',
-    android: 'SourceSans3-Medium',
-    web: '"Source Sans 3", -apple-system, sans-serif',
+    ios: 'InstrumentSans-Medium',
+    android: 'InstrumentSans-Medium',
+    web: '"Instrument Sans", -apple-system, sans-serif',
     default: 'System',
   })!,
   sansSemi: Platform.select({
-    ios: 'SourceSans3-SemiBold',
-    android: 'SourceSans3-SemiBold',
-    web: '"Source Sans 3", -apple-system, sans-serif',
+    ios: 'InstrumentSans-SemiBold',
+    android: 'InstrumentSans-SemiBold',
+    web: '"Instrument Sans", -apple-system, sans-serif',
     default: 'System',
   })!,
   sansBold: Platform.select({
-    ios: 'SourceSans3-Bold',
-    android: 'SourceSans3-Bold',
-    web: '"Source Sans 3", -apple-system, sans-serif',
+    ios: 'InstrumentSans-Bold',
+    android: 'InstrumentSans-Bold',
+    web: '"Instrument Sans", -apple-system, sans-serif',
     default: 'System',
   })!,
   mono: Platform.select({
