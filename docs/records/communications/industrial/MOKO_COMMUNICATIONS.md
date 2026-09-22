@@ -3,7 +3,7 @@
 **Control date:** 2026-09-22  
 **Counterparty:** MOKO Technology / Alyson Tong  
 **Primary Gmail thread:** `19f7e608c5fe1172`  
-**Current state:** ACTIVE SUPPLIER REVIEW / MAT QUOTATION RECEIVED / UPDATED PHASE 0 PACKAGE SENT / NO MANUFACTURING OR TOOLING RELEASE INFERRED
+**Current state:** ACTIVE SUPPLIER REVIEW / MAT QUOTATION RECEIVED / UPDATED PHASE 0 PACKAGE ACKNOWLEDGED / MOKO FABRICATION+TEST SCOPE CLARIFIED / NO MANUFACTURING OR TOOLING RELEASE INFERRED
 
 ## Material evidence currently identified
 
@@ -109,12 +109,33 @@ The email keeps the TAG boundary explicit: current material is for engineering r
 
 Related controlled record: `docs/industrial/moko/MOKO_PHASE0_TOTAL_COST_PACKAGE_TRANSMISSION_2026-09-22.md`.
 
+## 2026-09-22 MOKO scope clarification after updated package
+
+**Direction:** RECEIVED  
+**Gmail message ID:** `1a0c89bd3c23f91c`  
+**Status proven:** `RECEIVED / SUPPLIER SCOPE CLARIFIED`
+
+MOKO acknowledges the updated request and clarifies its Phase 0 operating boundary:
+
+- MOKO will return the updated 5-unit MAT quotation.
+- MAT DFM/DFA and high-impedance AFE cleaning/process considerations are noted.
+- MOKO will consider the MAT bench/fixture/acquisition/testing progress.
+- MOKO does **not** offer the requested separate short engineering-analysis report.
+- For TAG, MOKO states that it is acting as a PCBA factory and will **fabricate and test according to EMOPET design files**; schematic closure, PCB layout/routing, RF/antenna, battery/power-path and mechanical/acoustic design are therefore not supplier-owned engineering scope in this exchange.
+- A 5-unit TAG prototype build is acceptable after EMOPET closes the remaining fabrication blockers and supplies final design files.
+- MOKO asks for estimated shipment size/weight before shipping cost can be quoted.
+- Other mandatory factory/test costs will be included in the quotation.
+
+Controlled implication: TAG design closure remains an EMOPET / separately appointed engineering responsibility. MOKO may fabricate, inspect and execute agreed tests, but this reply must not be cited as MOKO acceptance of TAG design responsibility.
+
+For Phase 0 test evidence, EMOPET should request structured measurement/test records and raw/minimally processed data where available rather than a supplier-authored engineering interpretation report.
+
 ## Current supplier action gates
 
 - Original RFQ acknowledgement / active bilateral supplier discussion: **PROVEN BY SUBSEQUENT REPLIES**.
 - MAT quotation + BOM-alternative notes: **RECEIVED 2026-09-17 / NOT ACCEPTED BY RECEIPT ALONE**.
-- Consolidated MAT + TAG + engineering + testing + logistics quotation: `PENDING MOKO RESPONSE`.
-- 22 September updated engineering package: `SENT / ACKNOWLEDGEMENT NOT YET PROVEN`.
+- Consolidated Phase 0 quotation: `PARTIAL SCOPE RESPONSE RECEIVED / UPDATED COST QUOTATION PENDING`.
+- 22 September updated engineering package: `SENT / ACKNOWLEDGED BY MOKO`.
 - TAG final fabrication package: `NOT YET RELEASED`.
 - Tooling/manufacturing release: **not authorized by any Phase 0 RFQ/package transmission**.
 
@@ -122,4 +143,4 @@ Related controlled record: `docs/industrial/moko/MOKO_PHASE0_TOTAL_COST_PACKAGE_
 
 Supplier replies and the 17 September quotation now prove an active technical/commercial review. They still do **not** prove a manufacturing contract, accepted engineering SOW, purchase order, tooling authority or production commitment.
 
-Preferred current wording: **MOKO is the supplier/EMS under active technical and commercial review; a MAT quotation has been received and the updated Phase 0 MAT/TAG engineering-and-testing cost package was sent on 22 September.**
+Preferred current wording: **MOKO is the supplier/EMS under active technical and commercial review; it has received the updated Phase 0 package and has clarified that TAG design closure remains on EMOPET's side while MOKO's proposed role is fabrication and agreed product testing from supplied design files.**
