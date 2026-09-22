@@ -50,11 +50,17 @@ When still applicable to the current schematic revision:
   - CHIPEN -> VDD for always-enabled Phase-0 capture;
   - include the datasheet-required 100 kΩ pulldown on SD unless a later controlled implementation supersedes it.
 - TPS63900:
-  - if the rail remains the selected always-on 3V3 candidate, EN may be tied directly to VIN; record this as the explicit design disposition.
+  - if the rail remains the selected always-on 3V3 candidate, EN may be tied directly to VIN; record this as the explicit design disposition;
+  - RCFG3 = 16.2 kΩ is the TI table value for 3.3 V when SEL is low;
+  - RCFG1 = 36.5 kΩ gives 3.3 V when SEL is high, and RCFG2 = 0 Ω selects the unlimited input-current setting;
+  - treat those values as electrically verified; exact production MPNs still require the configured tolerance/tempco constraints.
 - BQ25185:
   - STAT1/STAT2 may be DNC when unused;
   - /CE -> GND for always-enabled charging unless a later controlled requirement needs MCU control;
-  - NTCSC0402E3103FLFT is 10 kΩ, B25/85=3435 K and may connect directly to TS/MR for the charger temperature function.
+  - NTCSC0402E3103FLFT is 10 kΩ, B25/85=3435 K and may connect directly to TS/MR for the charger temperature function;
+  - RISET = 3.0 kΩ gives approximately 100 mA fast-charge current from the TI programming equation;
+  - RILIM/VSET = 24 kΩ selects 4.2 V battery regulation and 100 mA input-current limit;
+  - those programming values are closed unless the battery/charge requirement changes; exact resistor MPNs remain a sourcing item.
 - TAG local NTC measurement:
   - the current BOM already states RT1/R10/C16 use a duty-cycled MS88SF3 GPIO; a direct GPIO-driven divider is acceptable only after confirming the exact current/current-limit and ADC acquisition assumptions. Do not invent a MOSFET solely because an older blocker said “gate”.
 - nRF9151 host UART:
