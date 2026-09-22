@@ -1,6 +1,6 @@
 # EMOPET — Retrospective Memory Index
 
-**Control date:** 2026-09-07  
+**Control date:** 2026-09-07 (last entry added 2026-09-22)  
 **Status:** `CONTROLLED MEMORY INDEX`
 
 This folder preserves historical project lineage, supersessions and retrospective reconstruction. It complements current strategy/product authorities and must not be used to promote historical architecture into current Product truth.
@@ -22,6 +22,7 @@ This folder preserves historical project lineage, supersessions and retrospectiv
 - `CURRENT_REPO_HARDWARE_TERMINOLOGY_DRIFT_AUDIT_2026-09-07.md` — distinguishes valid current coaxial-PVDF modality naming from stale MAT topology/maturity assumptions in code and documentation.
 - `CURRENT_UI_ELI_PRODUCT_DRIFT_AUDIT_2026-09-07.md` — records where the current web prototype's global ELI/wellbeing/WQI/RSI score semantics conflict with later founder/product doctrine.
 - `CURRENT_REPO_AUTHORITY_CONFLICT_AUDIT_2026-09-17.md` — records in-repository documents that claim an authority they do not hold: the superseded `apps/web/BRAND_AUTHORITY.md` whose deprecation table inverts the controlled palette, an undefined-font-variable defect found while verifying it, and the canonical ELI engine's absence from every runtime import path.
+- `CURRENT_SYSTEM_STATE_AUDIT_2026-09-22.md` — dated snapshot of repository, issue and pull-request state one week later: the ten-merge Privacy wave and its two-layer AI zero-durable guard, the `501`/`503` abstention routes, the `rr_variability` CV/60 s vs SD/300 s contradiction across documents and firmware, `@emopet/eli-engine` declared in three manifests with zero runtime importers, and the correction that the 22-category retention schedule already records durations while purpose, legal basis and approver are what remain missing. Records eight proposed decision locks without deciding any of them.
 - `HISTORICAL_STRATEGY_SUPERSESSIONS_2026-09-07.md` — high-risk historical concepts that must not silently re-enter current authority.
 
 ## Scientific communication lineage
