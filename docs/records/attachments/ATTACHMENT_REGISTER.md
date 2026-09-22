@@ -1,10 +1,15 @@
 # EMOPET — Important Attachment Register
 
-**Control date:** 2026-09-07  
+**Control date:** 2026-09-22  
 **Purpose:** identify important EMOPET files that were sent, received, scheduled or prepared, even when the binary itself is stored outside GitHub.
 
 | Date | Direction | Counterparty / use | Filename | Status | Size | SHA-256 / integrity | Evidence / source |
 |---|---|---|---|---|---:|---|---|
+| 2026-09-22 11:23 Europe/Paris | SENT | MOKO — updated Phase 0 MAT+TAG engineering/testing quotation request | `EMOPET_MOKO_PHASE0_TOTAL_COST_ENGINEERING_PACKAGE_2026-09-22_SEND_CLEAN.zip` | `SENT` | 308900 B | `6d7deece32deac1088df16c888ea936612cd42c70995c227e95be8ebd5ea631f` | Gmail message `1a0c86d26a46ef03`; `docs/industrial/moko/MOKO_PHASE0_TOTAL_COST_PACKAGE_TRANSMISSION_2026-09-22.md` |
+| 2026-09-17 | RECEIVED | MOKO — MAT quotation | `Quotation.pdf` | `RECEIVED / NOT_ACCEPTED_BY_RECEIPT` | 86780 B | hash not yet imported | Gmail message `1a0ad3e12b802d1d` |
+| 2026-09-17 | RECEIVED | MOKO — BOM alternatives/notes | `BOM Notes.xlsx` | `RECEIVED / ALTERNATIVES_REQUIRE_REVIEW` | 19154 B | hash not yet imported | Gmail message `1a0ad3e12b802d1d` |
+| 2026-09-14 | SENT | MOKO — current MAT package | `EMOPET_MAT_PHASE0_MOKO_2026-09-14.zip` | `SENT` | 135223 B | hash not yet imported | Gmail message `1a09f85f220939fc` |
+| 2026-09-14 | SENT | MOKO — interim TAG engineering package | `EMOPET_TAG_PHASE0_MOKO_2026-09-14.zip` | `SENT / INTERIM_ENGINEERING_NOT_FAB_RELEASE` | 45656 B | hash not yet imported | Gmail message `1a09f85f220939fc` |
 | 2026-09-07 | SENT | MOKO — Phase 0 RFQ | `EMOPET_MOKO_PHASE0_RFQ_SEND_NOW_2026-09-06.zip` | `SENT` | 192756 B | `2701e3344b7b7b7e5a7842a10163bbce99f358e09b756b8428aedd785d500532` | Gmail message `1a078c0bd460631b`; `docs/industrial/moko/MOKO_RFQ_TRANSMISSION_2026-09-07.md` |
 | 2026-09-03 | SENT | Oniris VetAgroBio — Audrey Lafragette | `EMOPET_Presentation.pdf` | `SENT` | 2212912 B | hash not yet imported | Gmail message `1a0670d0ac6b7ca7`; `docs/records/communications/science/ONIRIS_COMMUNICATIONS.md` |
 | 2026-09-08 15:00 Europe/Paris | SCHEDULED | Prof. James Serpell / UPenn | `EMOPET.pdf` | `SCHEDULED_NOT_SENT` at 2026-09-07 control point | 2180028 B | hash not yet imported | Gmail message `1a0811a9de2fe45c`; returned by `label:scheduled`; not found in `in:sent` at control point |
