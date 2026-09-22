@@ -17,6 +17,15 @@ x = [a, v, L]   with a ∈ [0,1], v ∈ [-1,1], L ∈ [0,1]
 Respiratory rate variability (coefficient of variation of inter-breath intervals
 over the last 60 s), as defined in Homma & Masaoka (2008).
 
+> **CONTESTED DEFINITION — recorded 2026-09-22.** The MAT firmware does not
+> compute this. `firmware/mat/main/sensors/rr_variability.{h,c}` returns a
+> **standard deviation over 300 s** (seconds), not a **CV over 60 s**
+> (dimensionless). Unit and window both differ, so `baseline.rrVariabilityMean`
+> and `rrVariabilityStd` — and therefore the observation model and Jacobian
+> below — are calibrated against a quantity the device does not currently
+> produce. Neither definition is authority yet. Gate: #86 (FW-SCI-01). See
+> `docs/firmware_protocol.md` for the side-by-side evidence.
+
 Observation model `h_rr_variability(a, baseline)` is **non-monotonic**:
 
 - For `a ∈ [0, 0.4]` (rest): slope positive, `h = baseline.rrVariabilityMean + a · k1`

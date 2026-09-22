@@ -8,8 +8,26 @@ export interface LookbackWindow {
 /**
  * Parse a lookback window bounded only by runtime representation.
  *
- * Product/Data/Privacy have not selected a maximum horizon. This helper only
- * rejects malformed integers and values that JavaScript Date cannot represent.
+ * Product/Data/Privacy have not selected a maximum horizon for the Presence
+ * windows owned by #142. This helper therefore rejects malformed integers and
+ * values JavaScript Date cannot represent, but it does not invent a product cap.
+ *
+ * Importantly, there is currently no retention-derived number to copy here:
+ * the two active call sites are Presence/absence routes that still fail closed
+ * because durable Presence persistence/lifecycle authority is not implemented
+ * (#135). Until a canonical durable Presence source/category exists, its actual
+ * storage/lifecycle ceiling is not known.
+ *
+ * If a later Product/Data/Privacy decision adds a maximum, it must be justified
+ * against the retention/lifecycle authority of the data the route actually
+ * reads at that time and should reference the canonical policy rather than
+ * duplicate a retention constant in this helper.
+ *
+ * The frozen #224 source contains a days <= 30 cap with no located approval.
+ * That value is not authority merely because it exists in composed code.
+ *
+ * #140 Vet Report is intentionally out of scope here: it uses its own
+ * parseVetReportDays contract and reads a different mixed dataset.
  */
 export function parseLookbackWindow(
   rawValue: string | undefined,
