@@ -26,6 +26,32 @@ over the last 60 s), as defined in Homma & Masaoka (2008).
 > produce. Neither definition is authority yet. Gate: #86 (FW-SCI-01). See
 > `docs/firmware_protocol.md` for the side-by-side evidence.
 
+> **THE OBSERVATION MODEL BELOW IS NOT WHAT RUNS — recorded 2026-09-22.**
+> `packages/eli-engine/src/ekf/observation-model.ts:48-70` implements a
+> different shape from the three segments described below, and in the opposite
+> direction at moderate arousal:
+>
+> | | this document | `observation-model.ts` |
+> |---|---|---|
+> | `a ∈ [0, 0.4]` | slope positive | slope positive (`0.5`) |
+> | `a ∈ (0.4, 0.7]` | slope **negative**, variability decreases | slope still **positive** (`0.5`) |
+> | `a > 0.7` | plateau at `rrVariabilityMean · 0.5` | plateau at `rrVariabilityMean · 1.35` |
+> | Jacobian | *"changes sign — handled in `observation-model.ts` by piecewise segment selection"* | `dh_da = vBase * slope`, `slope ∈ {0.5, 0}` — **never negative, no sign change** |
+>
+> The implemented model is monotonic up to a plateau. The freeze-like decrease
+> at moderate arousal, the sign change and the sub-baseline plateau exist only
+> in this document. The plateau values differ by a factor of 2.7.
+>
+> The engine's own comment also reads *"Expected **STD** of IBI"*, siding with
+> the firmware against the CV stated above. So the statistic disagreement is
+> 2 documents vs 2 implementations, not 3 vs 1.
+>
+> Neither side is authority. Per `CLAUDE.md`, an existing implementation does
+> not become authority by being already coded — and a document does not become
+> authority by being more detailed. Gate: #86 (FW-SCI-01), with the model-shape
+> disagreement arguably prior to the unit question. See #88 for the citation
+> provenance issue.
+
 Observation model `h_rr_variability(a, baseline)` is **non-monotonic**:
 
 - For `a ∈ [0, 0.4]` (rest): slope positive, `h = baseline.rrVariabilityMean + a · k1`

@@ -283,7 +283,10 @@ export function buildVetReportPdf(summary: VetReportSummary): Buffer {
     ),
     '',
     'Notes proprietaire:',
-    ...summary.ownerNotes.slice(0, 4).map((note) => `- ${note}`),
+    // The count is decided once, by the reader's limit. Slicing again here
+    // discarded a row that had already been fetched, and meant the number of
+    // notes shown never varied with the requested period (#140).
+    ...summary.ownerNotes.map((note) => `- ${note}`),
     '',
     'Disclaimers:',
     '- Ce document est informatif et non medical.',

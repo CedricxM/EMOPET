@@ -50,3 +50,17 @@ test('the PDF labels its coverage ratio as sensor coverage, not coverage of the 
   assert.doesNotMatch(source, /`Couverture de donnees: /);
   assert.match(source, /Sensor-derived only/);
 });
+
+test('the owner-note count is decided once, by the reader limit', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const source = await readFile(
+    new URL('../api/services/vet-report.ts', import.meta.url),
+    'utf8',
+  );
+
+  // listHealthEntries fetched 5 while the PDF rendered slice(0, 4), so one
+  // fetched row was always discarded and the count never varied with the
+  // requested period (#140). One place decides it now.
+  assert.doesNotMatch(source, /ownerNotes\.slice\(/);
+  assert.match(source, /\.\.\.summary\.ownerNotes\.map\(/);
+});
