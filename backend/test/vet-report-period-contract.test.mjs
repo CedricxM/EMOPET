@@ -34,3 +34,19 @@ test('vet-report link and report share the same validated period helper', () => 
   assert.match(source, /verifyVetReportShareToken\(shareToken, id, days\)/);
   assert.match(source, /loadVetReportSummary\(id, days\)/);
 });
+
+test('the PDF labels its coverage ratio as sensor coverage, not coverage of the report', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const source = await readFile(
+    new URL('../api/services/vet-report.ts', import.meta.url),
+    'utf8',
+  );
+
+  // coverageRatio is distinctDays(sensorSummaries) / requested days. The report
+  // also contains owner notes and the dog profile, which have different
+  // retention modes, so an unqualified "Couverture de donnees" reads as coverage
+  // of the whole document and overstates what was measured (#140).
+  assert.match(source, /Couverture des donnees capteur:/);
+  assert.doesNotMatch(source, /`Couverture de donnees: /);
+  assert.match(source, /Sensor-derived only/);
+});

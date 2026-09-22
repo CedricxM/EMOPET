@@ -202,6 +202,10 @@ export function createVetReportSummaryLoader(
       throw new VetReportDataUnavailableError(cause);
     }
 
+    // Sensor-derived only: distinct days that carry a sensor summary. Owner
+    // notes and the dog profile are not counted, and they have different
+    // retention modes (#140), so this ratio must be labelled as sensor coverage
+    // rather than as coverage of the report.
     const validDays = distinctDays(summaries.map((item) => item.timestamp));
     const coverage: VetReportCoverage = {
       validDays,
@@ -271,7 +275,7 @@ export function buildVetReportPdf(summary: VetReportSummary): Buffer {
     `Chien: ${summary.dogName}`,
     `Periode: ${summary.days} jours`,
     `Genere le: ${summary.generatedAt.toISOString().slice(0, 10)}`,
-    `Couverture de donnees: ${summary.coverage.validDays}/${summary.coverage.totalDays} jours valides (${Math.round(summary.coverage.coverageRatio * 100)}%)`,
+    `Couverture des donnees capteur: ${summary.coverage.validDays}/${summary.coverage.totalDays} jours valides (${Math.round(summary.coverage.coverageRatio * 100)}%)`,
     '',
     'Tendances de synthese:',
     ...summary.trends.map(
