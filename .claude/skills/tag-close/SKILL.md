@@ -1,110 +1,98 @@
 ---
 name: tag-close
-description: Close EMOPET TAG electrical/design blockers from controlled evidence without inventing hardware decisions or bypassing KiCad/bench gates.
+description: Controlled EMOPET TAG Rev-B closure workflow for KiCad/electrical blockers. Use only when explicitly invoked.
+disable-model-invocation: true
 ---
 
-# TAG closure workflow
+# EMOPET TAG Rev-B closure workflow
 
-Use this skill when working on EMOPET TAG Phase 0 / Rev-B-or-later hardware closure.
+Goal: close every TAG blocker that can be closed from controlled evidence, while refusing to fabricate missing RF, mechanical, battery-test or manufacturing facts.
 
-## Goal
+The user's text after `/tag-close` should identify the TAG working directory or task. If the KiCad working directory is outside the repository, ask the user to run `/add-dir <path>` or start Claude Code with `--add-dir <path>` before editing it.
 
-Reduce the TAG blocker set using controlled repository/filesystem evidence and authoritative component documentation. Implement reversible, evidence-backed electrical closures. Never convert an unresolved physical, RF, mechanical, regulatory, supplier, or bench requirement into a fabricated design fact.
+## Authority order
 
-## Required inputs
+1. Current TAG source files supplied by the user.
+2. `EMOPET_TAG_REV_B_CHANGESET_2026-09-11.json`.
+3. Current authoritative capture plan / pinmap / native ERC findings.
+4. Manufacturer datasheets and official reference designs.
+5. Current GitHub issue #480 and controlled repo records.
 
-Locate the current copies of, when available:
+Never use old Flux fragments as authority when they conflict with the controlled Rev-B changeset.
 
-- `EMOPET_TAG_OPEN_BLOCKERS.csv`
-- `EMOPET_TAG_AUTHORITATIVE_CAPTURE_PLAN.csv`
-- `EMOPET_TAG_COMPONENT_CAPTURE_MATRIX.csv`
-- current `*.kicad_sch`, `*.kicad_pcb`, local symbol/footprint libraries and project files
-- latest native `ERC.rpt` / DRC reports
-- current TAG BOM
-- current engineering-candidate / change-set / source-evidence files
+## Known source-backed closures
 
-If multiple versions exist, identify the newest controlled source and do not silently merge contradictory versions.
+Treat these as engineering decisions that may be implemented if the current files still match the cited evidence:
 
-## Authority rules
+- MS88SF3 normal-voltage supply mode: VDD pad 31 + VDDH pad 32 -> 3V3_CANDIDATE.
+- MS88SF3 GPIO/module-pad map from the Rev-B changeset:
+  - SCL P0.26 / pad 17
+  - SDA P0.27 / pad 14
+  - BMI270_INT1 P0.13 / pad 39
+  - I2S_SCK P0.14 / pad 30
+  - I2S_WS P0.15 / pad 40
+  - I2S_SD P0.16 / pad 29
+  - NTC_ADC P0.04/AIN2 / pad 16
+  - NTC_EXCITE P0.05/AIN3 / pad 15
+  - UART_TX P0.06 / pad 21
+  - UART_RX P0.08 / pad 26
+  - nRF9151 MAIN_PWR_EN P0.07 / pad 20
+  - nRF9151 GPIO_PWR_EN P0.17 / pad 41
+  - SWDIO pad 49, SWCLK pad 50.
+- NTC excitation is direct GPIO-gated from MS88 P0.05 to the R10 divider top. Do not invent a transistor unless a newer authority requires one.
+- nRF9151 split VDD/VDD_GPIO sequencing and U12/U13 load-switch network come from the controlled changeset.
+- nRF9151 UART logical direction:
+  - MS88 P0.06 TX -> nRF9151 RXD
+  - nRF9151 TXD -> MS88 P0.08 RX
+  Exact nRF9151 GPIO selection is a configurable PSEL/layout decision and must be assigned from the final nRF9151 pin budget, not guessed.
+- BMI270 primary interface is I2C. For the current single-primary-interface candidate:
+  - CSB -> VDDIO
+  - SDO -> GND for default 0x68 address
+  - INT1 used
+  - INT2 DNC unless a newer requirement exists
+  - unused auxiliary/OIS pins stay DNC.
+- INMP441 single-microphone candidate:
+  - L/R -> GND for left channel
+  - CHIPEN -> VDD for always-enabled Phase-0 bring-up
+  - retain/add the manufacturer-recommended 100 kΩ SD pull-down where the current design has R4 reserved for this role.
+- BQ25185 Phase-0 standalone charging:
+  - /CE -> GND for charging enabled
+  - STAT1/STAT2 may be explicitly NC if not consumed; do not add fake status logic.
+- TPS63900 is the selected always-on 3V3 rail:
+  - EN must be driven high; tying EN to VIN is the default candidate unless a newer controlled power-state requirement supersedes it.
+- BR1 DNC is explicit NC.
+- The two bridge AC inputs may terminate on a logical 2-contact CHARGE_IN interface without freezing pogo pitch/pad/enclosure geometry.
 
-1. Prefer an existing controlled EMOPET decision over historical source material.
-2. Prefer official manufacturer documentation for component pin/function facts.
-3. A datasheet may close a component-connection question; it does not close a Product, RF, mechanical, regulatory, thermal, battery-pack, enclosure, dog-body-loading, or bench-validation decision.
-4. Do not add No-Connect markers merely to make ERC green. Add them only when the official component documentation explicitly permits DNC / floating and the EMOPET architecture intentionally does not use the function.
-5. Do not invent RF matching values, antenna geometry, controlled-impedance widths, battery pulse performance, acoustic sealing performance, pogo coordinates, enclosure datums, or measured results.
-6. Do not route or release fabrication files while a routing/fabrication blocker remains.
-7. Never treat a generated Gerber/Drill/PnP file as authority when the design gate says HOLD / NOT FOR FABRICATION.
+## Do not pretend these are closed
 
-## Current evidence-backed closures to verify/apply
+The following remain physical/production gates until real evidence exists:
 
-When still applicable to the current schematic revision:
+- LTE/GNSS antenna topology, matching, SIM/eSIM, RF keep-outs and radiated validation.
+- Final 50-ohm geometry until a real fabricator stack-up + chosen antenna topology exist.
+- Battery pack/PCM identity and measured droop/ESR across relevant SOC/temperature/age.
+- Final pogo pad geometry, pitch, compression, sealing and enclosure datum.
+- Microphone port/membrane/sealing mechanical stack and ingress/acoustic validation.
+- Final enclosure fit / 3D packing / thermal / comfort.
+- Production passive MPN freeze until exact MPNs are selected and reviewed.
+- Routing freeze and manufacturing release until the blocking physical gates are closed.
 
-- BMI270 in I2C mode:
-  - SDO/ADDR -> GND for default address;
-  - CSB -> VDDIO;
-  - unused INT2 may be DNC;
-  - unused ASDx/ASCx may be DNC or VDDIO, never GND;
-  - unused OCSB/OSDO may be DNC when the OIS interface remains disabled.
-- INMP441:
-  - choose and record one channel; default EMOPET Phase-0 choice is LEFT, so L/R -> GND;
-  - CHIPEN -> VDD for always-enabled Phase-0 capture;
-  - include the datasheet-required 100 kΩ pulldown on SD unless a later controlled implementation supersedes it.
-- TPS63900:
-  - if the rail remains the selected always-on 3V3 candidate, EN may be tied directly to VIN; record this as the explicit design disposition.
-- BQ25185:
-  - STAT1/STAT2 may be DNC when unused;
-  - /CE -> GND for always-enabled charging unless a later controlled requirement needs MCU control;
-  - NTCSC0402E3103FLFT is 10 kΩ, B25/85=3435 K and may connect directly to TS/MR for the charger temperature function.
-- TAG local NTC measurement:
-  - the current BOM already states RT1/R10/C16 use a duty-cycled MS88SF3 GPIO; a direct GPIO-driven divider is acceptable only after confirming the exact current/current-limit and ADC acquisition assumptions. Do not invent a MOSFET solely because an older blocker said “gate”.
-- nRF9151 host UART:
-  - UARTE pins are software-remappable through PSEL;
-  - if no later authority conflicts, reserve nRF9151 P0.00 as RXD from MS88 P0.06/TX and P0.01 as TXD to MS88 P0.08/RX;
-  - record the corresponding firmware PSEL obligation.
-- Native ERC already executed:
-  - if the latest controlled report is the 2026-09-21 KiCad-10 report with 25 errors + 1 warning, the old “no native ERC” blocker is stale and must be marked closed/replaced by the specific remaining findings.
+## Execution workflow
 
-## Physical / measured gates that MUST stay open until evidence exists
+1. Read the current schematic, PCB, local libraries, blocker CSV, changeset/pinmap, BOM and latest ERC report before editing.
+2. Reconcile stale blockers against the controlled changeset and manufacturer datasheets.
+3. Make only source-backed schematic/library/BOM changes.
+4. Never add No-Connect flags merely to silence ERC. NC is allowed only when the manufacturer permits the pin to be unused and the project does not require it.
+5. If KiCad CLI is installed, run native ERC after every electrical batch. If not installed, stop short of claiming ERC closure and produce an exact pending-validation diff.
+6. Do not route while #480 physical blockers remain. A lower ERC count is not routing authority.
+7. Preserve a rollback-safe copy before modifying KiCad files.
+8. Produce/update:
+   - blocker matrix with CLOSED / PARTIAL / OPEN and evidence;
+   - ERC findings;
+   - BOM/footprint status;
+   - issue #480 evidence note;
+   - a final list of items requiring physical lab/CAD/fabricator evidence.
+9. Never claim manufacturing-ready unless native KiCad checks, footprint QA, RF/mechanical/battery gates and final review all pass.
 
-Keep these open unless the required evidence is actually present:
+## Expected result
 
-- MS88SF3 fabrication footprint independent land-pattern QA;
-- nRF9151 LTE/GNSS antenna selection, matching and body/enclosure detuning;
-- SIM/eSIM implementation and provisioning path;
-- controlled 50-ohm geometry from the final fabricator stack;
-- production protected battery pack and measured VDD droop under cellular bursts;
-- effective capacitance / inrush measurements on the real PDN;
-- final pogo target geometry, pitch, compression and enclosure datum;
-- microphone port/membrane/sealing performance;
-- full 3D packing, thermal, GNSS and RF physical validation;
-- final production passive MPN freeze where no controlled selection exists;
-- native KiCad ERC/DRC after every material schematic/layout change.
-
-## Execution sequence
-
-1. Inventory current files and hashes.
-2. Reconcile blocker registry against the newest ERC/DRC and design records. Close stale blockers only with evidence.
-3. Build a table: blocker -> authority -> proposed closure -> evidence -> change -> verification -> residual risk.
-4. Apply only evidence-backed schematic/BOM edits.
-5. Run structural sanity checks on KiCad text files.
-6. If `kicad-cli` is available:
-   - run native ERC;
-   - run DRC only if a routed board exists and routing is authorized.
-7. If `kicad-cli` is unavailable:
-   - do not claim ERC/DRC PASS;
-   - emit `NATIVE_KICAD_VERIFICATION_REQUIRED.md` with exact commands/GUI checks required.
-8. Never fabricate missing RF/mechanical/battery data just to reduce the blocker count.
-9. Update the blocker registry with explicit states: CLOSED, CLOSED_ELECTRICAL_PENDING_NATIVE_VERIFY, OPEN_PHYSICAL, OPEN_BENCH, OPEN_PRODUCT_DECISION, OPEN_REGULATORY.
-10. Produce a concise closure receipt including changed files, unresolved blockers, and the next single highest-value action.
-
-## Stop conditions
-
-Stop rather than guess when:
-- an RF matching value or antenna placement needs simulation/measurement;
-- a battery-pack pulse/droop claim needs real hardware;
-- an enclosure datum or acoustic stack is not controlled;
-- a regulatory classification changes mechanical architecture;
-- source files are stale or inconsistent with the latest ERC report;
-- native KiCad validation is required but unavailable.
-
-The objective is fewer *real* blockers, not a greener-looking report.
+Drive the electrical schematic as far toward source-backed closure as possible. Report a blocker as OPEN only when the missing evidence is genuinely external/physical, not because an older document failed to import a decision that a newer controlled source already contains.
