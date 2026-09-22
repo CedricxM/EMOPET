@@ -8,26 +8,26 @@ export interface LookbackWindow {
 /**
  * Parse a lookback window bounded only by runtime representation.
  *
- * Product/Data/Privacy have not selected a maximum horizon (#142 WINDOW-G3,
- * #140 VET-PERIOD-G3). This helper only rejects malformed integers and values
- * that JavaScript Date cannot represent.
+ * Product/Data/Privacy have not selected a maximum horizon for the Presence
+ * windows owned by #142. This helper therefore rejects malformed integers and
+ * values JavaScript Date cannot represent, but it does not invent a product cap.
  *
- * WHERE A MAXIMUM MUST COME FROM, when one is chosen: not from this file, and
- * not from a number picked for convenience. A query horizon longer than the
- * retention window of the data it reads cannot return anything, so the cap is
- * derivable from `config/privacy/retention-schedule.json` — 36 months for
- * `sensor_preprocessed_detailed` and `eli_inferred_detailed`, which is what
- * these endpoints read. Two consequences:
+ * Importantly, there is currently no retention-derived number to copy here:
+ * the two active call sites are Presence/absence routes that still fail closed
+ * because durable Presence persistence/lifecycle authority is not implemented
+ * (#135). Until a canonical durable Presence source/category exists, its actual
+ * storage/lifecycle ceiling is not known.
  *
- *  1. that number is still `PRODUCT_APPROVED_CANDIDATE_LEGAL_PRIVACY_SIGNOFF_PENDING`
- *     (#478), so a cap derived from it inherits candidate status and must not be
- *     presented to clients as settled policy;
- *  2. it must be *referenced*, never restated here. #470 retired duplicated
- *     retention constants and a test guards their return; a second copy in this
- *     file would recreate exactly that.
+ * If a later Product/Data/Privacy decision adds a maximum, it must be justified
+ * against the retention/lifecycle authority of the data the route actually
+ * reads at that time and should reference the canonical policy rather than
+ * duplicate a retention constant in this helper.
  *
- * The frozen #224 source contains a `days <= 30` cap with no located approval.
+ * The frozen #224 source contains a days <= 30 cap with no located approval.
  * That value is not authority merely because it exists in composed code.
+ *
+ * #140 Vet Report is intentionally out of scope here: it uses its own
+ * parseVetReportDays contract and reads a different mixed dataset.
  */
 export function parseLookbackWindow(
   rawValue: string | undefined,
