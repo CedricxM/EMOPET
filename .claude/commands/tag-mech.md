@@ -28,6 +28,17 @@ The historical fit-check target may be used only as a bounded target:
 
 Label those dimensions `FIT_CHECK_TARGET` unless a newer controlled CAD authority exists.
 
+Current Phase-0 bare-cell fit-check input from #503 / EEMB:
+- LP501622HA bare cell: approximately 16.5 × 24.0 × 5.3 mm, ~2.0 g;
+- status: `FIT_CHECK_BARE_CELL`, not protected-pack authority;
+- reserve additional space/resistance explicitly for PCM/protection, solder tabs/leads, insulation and tolerance/swelling allowances rather than hiding them inside the bare-cell dimensions.
+
+Current board-side RF/UICC candidates from #504 that must be represented in packing/keep-outs when applicable:
+- Hirose U.FL-R-SMT-1(01) LTE/GNSS receptacles;
+- Murata MM8130-2600 conducted-test switch;
+- Molex 1042240820 nano-SIM holder;
+- TI TPD4E05U06DQAR UICC ESD array.
+
 ## 2. Build one coordinate authority
 
 Create `TAG_MECHANICAL_INTERFACE_CONTROL_2026-09-22.md` and a machine-readable CSV/JSON table with one coordinate system shared by:
