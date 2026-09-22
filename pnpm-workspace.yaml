@@ -10,11 +10,48 @@ allowBuilds:
 minimumReleaseAge: 10080
 blockExoticSubdeps: true
 trustPolicy: no-downgrade
-# Exact provenance-gap exception only. semver@6.3.1 is required by Babel's
-# legacy 6.x range. Keep the exception exact rather than weakening trust checks
-# globally.
+# Keep every exception exact rather than weakening trust checks globally.
+# Per-entry rationale, including the original semver@6.3.1 / Babel legacy 6.x
+# reason, is recorded inline below.
 trustPolicyExclude:
-  - semver@6.3.1
+  # Exact provenance-gap exceptions only, one rule per package name.
+  #
+  # SYNTAX TRAP, verified in pnpm 10.33.0: `evaluateVersionPolicy` returns on
+  # the FIRST rule whose name matches, so a second `semver@...` line would be
+  # unreachable and silently ineffective. Several exact versions of one package
+  # must therefore be written as a `||` union on a single line. Checked against
+  # pnpm's own `createPackageVersionPolicy` / `parseExactVersionsUnion`.
+  #
+  # None of these four changes a single resolved version. Regenerating the
+  # lockfile with them in place produced an 8-line diff, all of it the one
+  # newly added package (#238). They permit reproducing the graph that is
+  # already committed and already green in CI; they admit no new code.
+  # Recorded under #482.
+  #
+  # semver: 6.3.1 is required by Babel's legacy 6.x range; 5.7.2 by
+  # react-native@0.76.9. No semver release in the 5.x or 6.x lines carries
+  # provenance at all — the lines end at 5.7.2 and 6.3.1, and attestation
+  # starts only at 7.x — so there is no in-line `overrides` alternative.
+  - "semver@5.7.2 || 6.3.1"
+  # undici-types: pulled in by @types/node@22.19.15 (apps/web), not
+  # independently selectable. Provenance present 6.13.0-6.18.2, absent
+  # 6.19.0-7.2.0, present again at 7.16.0 — a publisher-side gap across a
+  # release window, not a version-specific signal. Preferred to an `overrides`
+  # entry, which would change a resolved type definition to silence a metadata
+  # concern. Re-evaluate when @types/node moves to a line that attests again.
+  - undici-types@6.21.0
+  # eslint-import-resolver-typescript: via eslint-config-next@15.5.24
+  # (apps/web). Provenance absent across 3.6.3-3.10.1, present from 4.4.4.
+  # Bumping to 4.x is a major change owned by whoever owns apps/web lint.
+  - eslint-import-resolver-typescript@3.10.1
+  # ua-parser-js: via fbjs@3.0.5, i.e. the react-native chain, not an
+  # apps/web choice. Provenance absent across 1.0.37-1.0.41, present from
+  # 2.0.0. Flagged deliberately rather than waved through: this package has a
+  # real compromise history (the 2021 takeover of 0.7.29 / 0.8.0 / 1.0.0). The
+  # observed pattern here is an attestation gap across the whole 1.x line, and
+  # 1.0.41 is the version already committed in pnpm-lock.yaml and already
+  # passing security-supply-chain. Revisit if react-native moves to 2.x.
+  - ua-parser-js@1.0.41
 minimumReleaseAgeExclude:
   - fast-uri@3.1.7
   - browserslist@4.28.7
