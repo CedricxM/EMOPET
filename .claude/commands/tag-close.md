@@ -68,7 +68,9 @@ Only apply an item when the actual symbol pin names/numbers match the expected c
 - STAT1 / STAT2 may be explicit no-connect when unused.
 - CE must not float.
 - For the Phase-0 simple always-charge candidate, strap CE low to enable charging.
-- Do not alter ISET/ILIM programming values without separate authority.
+- RISET = 3.0 kOhm gives approximately 100 mA fast-charge current under the current TI programming authority.
+- RILIM/VSET = 24 kOhm selects 4.2 V battery regulation and a 100 mA input-current limit under the current candidate.
+- Treat those programming values as electrically closed unless the battery/charge requirement changes; exact production resistor MPNs remain a sourcing item.
 
 ### E2 — BMI270 in primary I2C mode, no secondary/OIS
 
@@ -84,6 +86,9 @@ Only apply an item when the actual symbol pin names/numbers match the expected c
 
 - EN must not float.
 - Existing EMOPET capture intent treats this as the always-on 3.3 V rail; strap EN high to the appropriate live input/control rail for this Phase-0 candidate.
+- RCFG3 = 16.2 kOhm is the current 3.3 V preset value when SEL is low.
+- RCFG1 = 36.5 kOhm gives the 3.3 V preset when SEL is high; RCFG2 = 0 Ohm selects the unlimited input-current setting for that preset.
+- Treat those values as electrically verified; exact production MPNs still require the configured tolerance/tempco constraints.
 - Keep SEL/CFG straps explicit.
 
 ### E4 — INMP441 simple Phase-0 closure
