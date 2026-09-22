@@ -89,6 +89,52 @@ Coefficient of variation of per-second ODBA within a 30-min window (Robert et al
 Linear and monotonic increasing. Again falls back to an effectively infinite R
 when baseline is missing.
 
+> **THE DEFINITION IS COHERENT; THE FUNCTIONAL FORM IS NOT — recorded 2026-09-22.**
+>
+> Unlike `rr_variability`, the *measurement* agrees across all three layers.
+> `firmware/collar/main/sensors/activity_variability.{h,c}` implements exactly what
+> is documented: `ACTIVITY_WINDOW_SEC 1800`, `ACTIVITY_MIN_VALID_COUNT 900`,
+> `return sqrt(var) / mean`, `NAN` below 50% valid. One undocumented guard,
+> `mean < 1e-3 → NAN`, which is a sensible division guard. So the v6 round was not
+> uniformly unreliable — this feature's contract holds.
+>
+> **What does not hold is the form above.** It is **additive** with a constant
+> slope `k2`; `observation-model.ts:104` is **proportional**:
+>
+> | | this document | `observation-model.ts` |
+> |---|---|---|
+> | `h` | `mean + a · k2` | `vBase · (1 + 0.4 · a)` |
+> | `∂h/∂a` | `k2` — independent of baseline | `vBase · 0.4` — **scales with baseline** |
+>
+> The same mismatch applies to `rr_variability` above (`mean + a · k1` versus
+> `vBase · (1 + 0.5 a)`), so it is systematic rather than a slip. And **`k1` and
+> `k2` are never assigned a value anywhere in this document**, while the code
+> hardcodes `0.5` and `0.4`.
+>
+> **Consequence, which runs against the product's own premise.** Under the coded
+> proportional form, a dog whose baseline variability is low gets proportionally
+> muted sensitivity — `∂h/∂a` shrinks with `vBase`, so the observation can barely
+> move the latent state. Under the documented additive form the slope is
+> baseline-independent, so a very regular dog still produces a signal. The coded
+> form therefore **mutes this feature for the calmest, most regular dogs**, which
+> is the population where a subtle change is most worth catching in a within-dog
+> comparison.
+>
+> **The citation supports the signal, not the inference.** The firmware header is
+> careful and narrow — *"Robert et al. (2009) … ODBA as activity intensity proxy in
+> mammals"* — which supports ODBA as an activity measure. The engine's comment then
+> asserts, with no citation, *"Linear growth in arousal — elevated arousal makes
+> activity more irregular."* An ODBA-validation paper does not support
+> variability-of-ODBA tracking arousal. That gap is this feature's actual open
+> question, and it is an EMOPET hypothesis rather than a cited result.
+>
+> **Coefficient provenance, across all six rows.** `observation-model.ts` hardcodes
+> `0.4`, `0.5`, `1.2`, `0.4`, `0.6` and `0.3 / −0.2`. None is recorded here; this
+> document uses unassigned symbols instead. Whoever fixes the forms above should
+> record the values in the same change.
+>
+> Neither side is authority. Gate: #87 (FW-SCI-02).
+
 ## New dynamic: recovery_speed
 
 Time to return to baseline after an arousal spike. Implemented in
