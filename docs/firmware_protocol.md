@@ -17,7 +17,7 @@ Do not infer a hardware geometry from the software alias alone. Protocol/schema 
 
 | Field | Type | Source | Null meaning |
 |---|---|---|---|
-| `rr_variability` | `number \| null` | MAT — coaxial PVDF/piezo IBI CV over 60 s | <30 valid IBIs |
+| `rr_variability` | `number \| null` | MAT — coaxial PVDF/piezo IBI CV over 60 s **(contested — see #86)** | <30 valid IBIs |
 | `activity_variability` | `number \| null` | TAG — ODBA CV over 30 min | <50% valid seconds |
 | `tremor_detected` | `boolean` | TAG — 8–15 Hz bandpass | false when below threshold |
 | `lateral_acc_rms` | `number \| null` | TAG — lateral RMS over 1 s | TAG not reporting |
@@ -36,11 +36,11 @@ Do not infer a hardware geometry from the software alias alone. Protocol/schema 
 
 Module: `firmware/mat/main/sensors/rr_variability.{h,c}`.
 
+> **CONTESTED DEFINITION — do not build on either side until #86 closes (recorded 2026-09-22).** This section and `docs/eli_model.md` both describe a **coefficient of variation over 60 s** (`std(ibi) / mean(ibi)`, dimensionless). The firmware in `rr_variability.{h,c}` computes a **standard deviation over 300 s** (`RR_IBI_BUFFER_WINDOW_SEC 300`, `return (float)sqrt(var)` — seconds, no division by the mean). Unit *and* window differ, so a consumer calibrated on one produces a dimensionally wrong result on the other. Neither is authority yet. Both documents cite Homma & Masaoka (2008) for a definition the firmware does not compute. The choice propagates into `baseline.rrVariabilityMean` / `rrVariabilityStd`, veto thresholds and the published observation semantics, so no canine validation protocol should be executed against this feature until the definition is fixed. Gate: #86 (FW-SCI-01).
+
 > **Validation boundary:** the existence of this code path or feature schema does not prove that the current MAT hardware can yet extract reliable IBIs or `rr_variability` in bench or animal conditions. Publication/use remains subject to the current feasibility, signal-quality and product-authority gates.
 
-> **Known fix-up**: `#define RR_IBI_WINDOW_MS` should sit at the top of
-> `rr_variability.c` (or move to the header) — it is currently declared below
-> its first use inside `collect_window()`. Move it before the first reference.
+> **Resolved 2026-09-22**: the earlier fix-up note asked for `#define RR_IBI_WINDOW_MS` to be moved above its first use. It already is — declared at `rr_variability.c:14`, first used at `:45` inside `collect_window()`. The instruction is removed rather than left to be re-executed.
 
 ## TAG — activity_variability
 
