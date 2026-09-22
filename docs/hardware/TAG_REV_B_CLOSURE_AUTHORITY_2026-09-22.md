@@ -104,6 +104,12 @@ Electrical cleanup is worthwhile, but it does not supersede #480. Routing freeze
 
 ## Claude Code workflow
 
-The repository previously had no project `.claude/` workflow for this task. A manual skill is introduced with this record as `/tag-close`.
+Current `main` already carries the controlled TAG command chain under `.claude/commands/`:
 
-The skill is intentionally forbidden from inventing physical evidence. It may reconcile source-backed KiCad/BOM/ERC decisions and automate consistency work, but it must leave RF, battery measurements, enclosure/acoustics and fabricator-dependent geometry open until evidence exists.
+`/tag-recover → /tag-close → /tag-footprint → /tag-temp + /tag-pdn + /tag-rf + /tag-mech → /tag-release`.
+
+This record supplements that command chain with the source-backed reconciliation above. It does **not** define a second command/skill named `/tag-close`.
+
+Execution must begin with `/tag-recover` while the packaged schematic and latest ERC remain mixed-version. Only after a fresh native ERC and source-coherence PASS may `/tag-close` apply deterministic electrical closures.
+
+The existing commands are intentionally forbidden from inventing physical evidence. They may reconcile source-backed KiCad/BOM/ERC decisions and automate consistency work, but RF measurements, battery transient evidence, enclosure/acoustic geometry and fabricator-dependent impedance authority remain explicit gates.
