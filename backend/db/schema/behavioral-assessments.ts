@@ -9,6 +9,7 @@ import {
   boolean,
   index,
   uniqueIndex,
+  foreignKey,
   check,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
@@ -39,7 +40,9 @@ export const behavioralAssessments = pgTable('behavioral_assessments', {
   respondentRole: varchar('respondent_role', { length: 30 }).notNull().default('owner'),
 
   instrumentCode: varchar('instrument_code', { length: 50 }).notNull(),
-  instrumentVersion: varchar('instrument_version', { length: 100 }),
+  instrumentVersion: varchar('instrument_version', { length: 100 })
+    .notNull()
+    .default('UNVERSIONED'),
   licenseReference: varchar('license_reference', { length: 255 }),
 
   administrationMode: varchar('administration_mode', { length: 30 })
@@ -69,6 +72,11 @@ export const behavioralAssessments = pgTable('behavioral_assessments', {
 }, (table) => [
   index('idx_behavioral_assessment_dog').on(table.dogId),
   index('idx_behavioral_assessment_instrument').on(table.instrumentCode),
+  uniqueIndex('uq_behavioral_assessment_instrument_binding').on(
+    table.id,
+    table.instrumentCode,
+    table.instrumentVersion,
+  ),
   check(
     'chk_behavioral_assessment_respondent_role',
     sql`${table.respondentRole} IN ('owner','caregiver','trainer','veterinarian','researcher','other')`,
@@ -161,13 +169,81 @@ export const behavioralFactorScores = pgTable('behavioral_factor_scores', {
   computedAt: timestamp('computed_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => [
   uniqueIndex('uq_behavioral_factor_assessment_factor').on(table.assessmentId, table.factorKey),
+  uniqueIndex('uq_behavioral_factor_binding').on(table.id, table.assessmentId, table.factorKey),
   index('idx_behavioral_factor_assessment').on(table.assessmentId),
+]);
+
+/**
+ * Scientific authority for a behavioural-instrument factor -> ELI prior mapping.
+ *
+ * Instrument evidence can exist without any ELI mapping authority. HOLD and
+ * RESEARCH_ONLY records remain governance evidence only. An active prior must
+ * bind to an exact reviewed GO tuple.
+ */
+export const eliBehavioralMappingAuthorities = pgTable('eli_behavioral_mapping_authorities', {
+  id: uuid('id').primaryKey().defaultRandom(),
+
+  instrumentCode: varchar('instrument_code', { length: 50 }).notNull(),
+  instrumentVersion: varchar('instrument_version', { length: 100 })
+    .notNull()
+    .default('UNVERSIONED'),
+  sourceInstrumentCode: varchar('source_instrument_code', { length: 50 }).notNull(),
+  sourceInstrumentVersion: varchar('source_instrument_version', { length: 100 })
+    .notNull()
+    .default('UNVERSIONED'),
+  sourceFactorKey: varchar('source_factor_key', { length: 100 }).notNull(),
+  targetPriorKey: varchar('target_prior_key', { length: 100 }).notNull(),
+  algorithmVersion: varchar('algorithm_version', { length: 100 }).notNull(),
+  authorityVersion: varchar('authority_version', { length: 100 }).notNull(),
+
+  evidenceReference: varchar('evidence_reference', { length: 500 }).notNull(),
+  disposition: varchar('disposition', { length: 20 }).notNull().default('HOLD'),
+  reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+  reviewerRole: varchar('reviewer_role', { length: 100 }),
+  reason: varchar('reason', { length: 1000 }).notNull(),
+
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('uq_eli_behavioral_mapping_authority_natural').on(
+    table.instrumentCode,
+    table.instrumentVersion,
+    table.sourceFactorKey,
+    table.targetPriorKey,
+    table.algorithmVersion,
+    table.authorityVersion,
+  ),
+  uniqueIndex('uq_eli_behavioral_mapping_authority_binding').on(
+    table.id,
+    table.instrumentCode,
+    table.instrumentVersion,
+    table.sourceFactorKey,
+    table.targetPriorKey,
+    table.algorithmVersion,
+    table.disposition,
+  ),
+  check(
+    'chk_eli_behavioral_mapping_authority_disposition',
+    sql`${table.disposition} IN ('HOLD','RESEARCH_ONLY','GO','RETIRED')`,
+  ),
+  check(
+    'chk_eli_behavioral_mapping_authority_go_review',
+    sql`${table.disposition} <> 'GO' OR (
+      ${table.reviewedAt} IS NOT NULL
+      AND ${table.reviewerRole} IS NOT NULL
+      AND length(trim(${table.reviewerRole})) > 0
+      AND length(trim(${table.evidenceReference})) > 0
+    )`,
+  ),
 ]);
 
 /**
  * Explicit bridge between behavioural assessment evidence and ELI.
  * Nothing from C-BARQ (or any future instrument) should silently mutate ELI.
  * Every prior is versioned, attributable and can be retired/rejected.
+ *
+ * Active status is fail-closed: an active prior must bind to the exact factor
+ * score, assessment instrument/version and reviewed GO mapping authority.
  */
 export const eliBehavioralPriors = pgTable('eli_behavioral_priors', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -185,6 +261,9 @@ export const eliBehavioralPriors = pgTable('eli_behavioral_priors', {
   algorithmVersion: varchar('algorithm_version', { length: 100 }).notNull(),
   status: varchar('status', { length: 20 }).notNull().default('candidate'),
 
+  mappingAuthorityId: uuid('mapping_authority_id'),
+  mappingAuthorityDisposition: varchar('mapping_authority_disposition', { length: 20 }),
+
   rationale: jsonb('rationale').default({}),
   activatedAt: timestamp('activated_at', { withTimezone: true }),
   retiredAt: timestamp('retired_at', { withTimezone: true }),
@@ -197,6 +276,73 @@ export const eliBehavioralPriors = pgTable('eli_behavioral_priors', {
     'chk_eli_behavioral_prior_status',
     sql`${table.status} IN ('candidate','active','retired','rejected')`,
   ),
+  check(
+    'chk_eli_behavioral_prior_mapping_disposition',
+    sql`${table.mappingAuthorityDisposition} IS NULL OR ${table.mappingAuthorityDisposition} IN ('HOLD','RESEARCH_ONLY','GO','RETIRED')`,
+  ),
+  check(
+    'chk_eli_behavioral_prior_mapping_binding_pair',
+    sql`(
+      ${table.mappingAuthorityId} IS NULL AND ${table.mappingAuthorityDisposition} IS NULL
+    ) OR (
+      ${table.mappingAuthorityId} IS NOT NULL AND ${table.mappingAuthorityDisposition} IS NOT NULL
+    )`,
+  ),
+  check(
+    'chk_eli_behavioral_prior_active_authority',
+    sql`${table.status} <> 'active' OR (
+      ${table.factorScoreId} IS NOT NULL
+      AND ${table.mappingAuthorityId} IS NOT NULL
+      AND ${table.mappingAuthorityDisposition} = 'GO'
+    )`,
+  ),
+  foreignKey({
+    name: 'fk_eli_behavioral_prior_factor_binding',
+    columns: [
+      table.factorScoreId,
+      table.assessmentId,
+      table.sourceFactorKey,
+    ],
+    foreignColumns: [
+      behavioralFactorScores.id,
+      behavioralFactorScores.assessmentId,
+      behavioralFactorScores.factorKey,
+    ],
+  }),
+  foreignKey({
+    name: 'fk_eli_behavioral_prior_assessment_instrument',
+    columns: [
+      table.assessmentId,
+      table.sourceInstrumentCode,
+      table.sourceInstrumentVersion,
+    ],
+    foreignColumns: [
+      behavioralAssessments.id,
+      behavioralAssessments.instrumentCode,
+      behavioralAssessments.instrumentVersion,
+    ],
+  }),
+  foreignKey({
+    name: 'fk_eli_behavioral_prior_mapping_authority',
+    columns: [
+      table.mappingAuthorityId,
+      table.sourceInstrumentCode,
+      table.sourceInstrumentVersion,
+      table.sourceFactorKey,
+      table.targetPriorKey,
+      table.algorithmVersion,
+      table.mappingAuthorityDisposition,
+    ],
+    foreignColumns: [
+      eliBehavioralMappingAuthorities.id,
+      eliBehavioralMappingAuthorities.instrumentCode,
+      eliBehavioralMappingAuthorities.instrumentVersion,
+      eliBehavioralMappingAuthorities.sourceFactorKey,
+      eliBehavioralMappingAuthorities.targetPriorKey,
+      eliBehavioralMappingAuthorities.algorithmVersion,
+      eliBehavioralMappingAuthorities.disposition,
+    ],
+  }),
 ]);
 
 /**
