@@ -16,17 +16,43 @@ function packageKey(row) {
   return [row.name ?? '', row.version ?? '', row.registryName ?? '', row.path ?? ''].join('\u0000');
 }
 
+function expandPnpmEntry(entry, bucketLicense = 'UNKNOWN') {
+  if (!entry || typeof entry !== 'object') return [];
+
+  const license =
+    typeof entry.license === 'string' && entry.license.trim()
+      ? entry.license.trim()
+      : bucketLicense.trim() || 'UNKNOWN';
+
+  // pnpm v9+ groups all installed versions of one package under
+  // { name, versions: [...], paths: [...], license, ... }.
+  if (Array.isArray(entry.versions)) {
+    return entry.versions
+      .map((version, index) => ({
+        ...entry,
+        version: typeof version === 'string' ? version.trim() : '',
+        path:
+          Array.isArray(entry.paths) && typeof entry.paths[index] === 'string'
+            ? entry.paths[index]
+            : '',
+        license,
+      }))
+      .filter((row) => row.version);
+  }
+
+  // Preserve compatibility with older/synthetic fixtures that carry one
+  // version/path directly.
+  return [{
+    ...entry,
+    license,
+  }];
+}
+
 export function flattenPnpmLicenseReport(report) {
   const rows = [];
 
   if (Array.isArray(report)) {
-    for (const entry of report) {
-      if (!entry || typeof entry !== 'object') continue;
-      rows.push({
-        ...entry,
-        license: typeof entry.license === 'string' && entry.license.trim() ? entry.license.trim() : 'UNKNOWN',
-      });
-    }
+    for (const entry of report) rows.push(...expandPnpmEntry(entry));
     return rows;
   }
 
@@ -34,16 +60,7 @@ export function flattenPnpmLicenseReport(report) {
 
   for (const [bucket, value] of Object.entries(report)) {
     const entries = Array.isArray(value) ? value : value && typeof value === 'object' ? [value] : [];
-    for (const entry of entries) {
-      if (!entry || typeof entry !== 'object') continue;
-      rows.push({
-        ...entry,
-        license:
-          typeof entry.license === 'string' && entry.license.trim()
-            ? entry.license.trim()
-            : bucket.trim() || 'UNKNOWN',
-      });
-    }
+    for (const entry of entries) rows.push(...expandPnpmEntry(entry, bucket));
   }
 
   return rows;
