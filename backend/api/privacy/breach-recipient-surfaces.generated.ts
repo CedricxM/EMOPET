@@ -213,6 +213,18 @@ export const BREACH_RECIPIENT_SURFACES = [
     "source": "config/privacy account+dog erasure topology"
   },
   {
+    "surface": "sql:professional_share_access_audits",
+    "authority": "SQL_UNCONSTRAINED_GAP_REQUIRED",
+    "requiredGap": "canonical_subject_missing",
+    "source": "config/privacy/dog-erasure-topology.json unconstrained identifiers"
+  },
+  {
+    "surface": "sql:professional_share_grants",
+    "authority": "CANONICAL_SQL",
+    "requiredGap": null,
+    "source": "config/privacy account+dog erasure topology"
+  },
+  {
     "surface": "sql:recovery_events",
     "authority": "CANONICAL_SQL",
     "requiredGap": null,

@@ -38,6 +38,11 @@ on:
       - 'backend/test/data-export-*.test.mjs'
       - 'backend/test/privacy-dog-export-coverage.test.mjs'
       - 'config/privacy/dog-export-coverage.json'
+      - 'backend/api/services/professional-share-*.ts'
+      - 'backend/test/professional-share-*.test.mjs'
+      - 'packages/shared/src/types/professional-share.ts'
+      - 'packages/shared/src/validators/professional-share.ts'
+      - 'scripts/security/professional-share-authority-audit.mjs'
       - 'backend/test/dataset-writer-authority.sql'
       - 'scripts/ingest_vbo.ts'
       - 'scripts/data/vbo-committed-snapshot-audit.mjs'
@@ -343,6 +348,16 @@ jobs:
             test/privacy-dog-export-coverage.test.mjs \
             test/data-export-runtime.integration.test.mjs
 
+      - name: INT-05 backend authority guard
+        run: node scripts/security/professional-share-authority-audit.mjs
+
+      - name: INT-05 recipient-bound professional sharing
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          EMOPET_DB_INTEGRATION_TEST: '1'
+        run: node --test test/professional-share-*.test.mjs
+
       - name: Verify generated snapshot is stable
         working-directory: backend
         run: |
@@ -368,5 +383,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification, retention-readiness probes and INT-04A bounded export authority.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification, retention-readiness probes, INT-04A bounded export authority, and INT-05 recipient-bound professional sharing.'
           echo 'It does not authorize production migration, deployment, or release.'

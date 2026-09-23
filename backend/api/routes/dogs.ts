@@ -1,11 +1,18 @@
-import { and, eq } from 'drizzle-orm';
-import { Hono } from 'hono';
+import { and, eq, sql } from 'drizzle-orm';
+import { Hono, type MiddlewareHandler } from 'hono';
 import { zValidator } from '@hono/zod-validator';
-import { DogCreateSchema, DogUpdateSchema } from '@emopet/shared';
+import {
+  DogCreateSchema,
+  DogUpdateSchema,
+  OwnerProfessionalShareGrantCreateSchema,
+  OwnerProfessionalShareGrantRevokeSchema,
+  ProfessionalShareGrantIdSchema,
+} from '@emopet/shared';
 
 import { db } from '../../db/index.js';
 import {
   dogs as dogsTable,
+  professionalShareGrants,
   users,
 } from '../../db/schema/index.js';
 import {
@@ -64,6 +71,59 @@ function databaseUnavailable(
     },
     503,
   );
+}
+
+function legacyGenericVetShareAllowed(): boolean {
+  return process.env['NODE_ENV'] !== 'production'
+    && process.env['EMOPET_ALLOW_LEGACY_GENERIC_VET_SHARE'] === '1';
+}
+
+type ShareTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+async function withOwnerProfessionalShareAuthority<T>(
+  userId: string,
+  dogId: string,
+  operation: (tx: ShareTransaction) => Promise<T>,
+): Promise<T | null> {
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`SET LOCAL lock_timeout = '5s'`);
+    await tx.execute(sql`SET LOCAL statement_timeout = '10s'`);
+    const [ownedDog] = await tx
+      .select({ id: dogsTable.id })
+      .from(dogsTable)
+      .where(and(eq(dogsTable.id, dogId), eq(dogsTable.ownerId, userId)))
+      .limit(1)
+      .for('share');
+    if (!ownedDog) return null;
+    return operation(tx);
+  });
+}
+
+function toOwnerProfessionalShareGrant(row: typeof professionalShareGrants.$inferSelect) {
+  return {
+    id: row.id,
+    dogId: row.dogId,
+    recipient: {
+      displayName: row.recipientDisplayName,
+      type: row.recipientType,
+      ...(row.recipientOrganizationName ? { organizationName: row.recipientOrganizationName } : {}),
+      ...(row.recipientEmail ? { email: row.recipientEmail } : {}),
+    },
+    purpose: row.purpose,
+    ...(row.purposeNote ? { purposeNote: row.purposeNote } : {}),
+    scopes: row.scopes,
+    window: {
+      dataFrom: row.dataFrom.toISOString(),
+      dataTo: row.dataTo.toISOString(),
+      accessExpiresAt: row.accessExpiresAt.toISOString(),
+    },
+    status: row.status,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+    ...(row.activatedAt ? { activatedAt: row.activatedAt.toISOString() } : {}),
+    ...(row.revokedAt ? { revokedAt: row.revokedAt.toISOString() } : {}),
+    ...(row.revocationReason ? { revocationReason: row.revocationReason } : {}),
+  };
 }
 
 /**
@@ -176,6 +236,133 @@ dogs.get('/:id/absence-comparison', async (c) => {
     maturity: 'NOT_IMPLEMENTED',
   }, 503);
 });
+const privateProfessionalShareResponse: MiddlewareHandler = async (c, next) => {
+  c.header('Cache-Control', 'private, no-store');
+  await next();
+};
+dogs.use('/:id/professional-shares', privateProfessionalShareResponse);
+dogs.use('/:id/professional-shares/*', privateProfessionalShareResponse);
+
+dogs.post(
+  '/:id/professional-shares',
+  zValidator('json', OwnerProfessionalShareGrantCreateSchema),
+  async (c) => {
+    const id = c.req.param('id');
+    const denied = await requireDogOwnership(c, id);
+    if (denied) return denied;
+    const userId = getUserId(c)!;
+    const body = c.req.valid('json');
+    try {
+      const created = await withOwnerProfessionalShareAuthority(userId, id, async (tx) => {
+        const [row] = await tx.insert(professionalShareGrants).values({
+          ownerUserId: userId,
+          dogId: id,
+          recipientDisplayName: body.recipient.displayName,
+          recipientType: body.recipient.type,
+          recipientOrganizationName: body.recipient.organizationName,
+          recipientEmail: body.recipient.email,
+          recipientPrincipalId: null,
+          purpose: body.purpose,
+          purposeNote: body.purposeNote,
+          scopes: body.scopes,
+          dataFrom: new Date(body.window.dataFrom),
+          dataTo: new Date(body.window.dataTo),
+          accessExpiresAt: new Date(body.window.accessExpiresAt),
+          status: 'PENDING',
+          activatedAt: null,
+        }).returning();
+        if (!row) throw new Error('Professional share was not persisted');
+        return row;
+      });
+      if (!created) return c.json({ error: 'not_found' }, 404);
+      return c.json({
+        grant: toOwnerProfessionalShareGrant(created),
+        activation: 'REQUIRES_VERIFIED_PROFESSIONAL_IDENTITY',
+      }, 201);
+    } catch {
+      return databaseUnavailable(c, 'create_professional_share');
+    }
+  },
+);
+
+dogs.get('/:id/professional-shares', async (c) => {
+  const id = c.req.param('id');
+  const denied = await requireDogOwnership(c, id);
+  if (denied) return denied;
+  const userId = getUserId(c)!;
+  try {
+    const rows = await withOwnerProfessionalShareAuthority(userId, id, async (tx) => tx
+      .select()
+      .from(professionalShareGrants)
+      .where(and(
+        eq(professionalShareGrants.ownerUserId, userId),
+        eq(professionalShareGrants.dogId, id),
+      ))
+      .orderBy(professionalShareGrants.createdAt));
+    if (!rows) return c.json({ error: 'not_found' }, 404);
+    return c.json({ grants: rows.map(toOwnerProfessionalShareGrant) });
+  } catch {
+    return databaseUnavailable(c, 'list_professional_shares');
+  }
+});
+
+dogs.post('/:id/professional-shares/:grantId/revoke', async (c) => {
+  const id = c.req.param('id');
+  const denied = await requireDogOwnership(c, id);
+  if (denied) return denied;
+  const grantId = c.req.param('grantId');
+  if (!ProfessionalShareGrantIdSchema.safeParse(grantId).success) {
+    return c.json({ error: 'not_found' }, 404);
+  }
+  const bodyText = await c.req.text();
+  let rawBody: unknown;
+  try {
+    rawBody = bodyText.trim() ? JSON.parse(bodyText) : {};
+  } catch {
+    return c.json({ error: 'invalid_request' }, 400);
+  }
+  const parsedBody = OwnerProfessionalShareGrantRevokeSchema.safeParse(rawBody);
+  if (!parsedBody.success) return c.json({ error: 'invalid_request' }, 400);
+  const userId = getUserId(c)!;
+  try {
+    const revoked = await withOwnerProfessionalShareAuthority(userId, id, async (tx) => {
+      const [existing] = await tx
+        .select()
+        .from(professionalShareGrants)
+        .where(and(
+          eq(professionalShareGrants.id, grantId),
+          eq(professionalShareGrants.dogId, id),
+          eq(professionalShareGrants.ownerUserId, userId),
+        ))
+        .limit(1)
+        .for('update');
+      if (!existing) return null;
+      if (existing.status === 'REVOKED') return existing;
+      const now = new Date();
+      const [row] = await tx
+        .update(professionalShareGrants)
+        .set({
+          status: 'REVOKED',
+          revokedAt: now,
+          revocationReason: parsedBody.data.reason ?? null,
+          updatedAt: now,
+        })
+        .where(and(
+          eq(professionalShareGrants.id, grantId),
+          eq(professionalShareGrants.dogId, id),
+          eq(professionalShareGrants.ownerUserId, userId),
+        ))
+        .returning();
+      if (!row) throw new Error('Professional share revocation was not persisted');
+      return row;
+    });
+    if (!revoked) return c.json({ error: 'not_found' }, 404);
+    return c.json({ grant: toOwnerProfessionalShareGrant(revoked) });
+  } catch {
+    return databaseUnavailable(c, 'revoke_professional_share');
+  }
+});
+
 dogs.get('/:id/vet-report-link', async (c) => {
   const id = c.req.param('id');
   const denied = await requireDogOwnership(c, id);
@@ -183,6 +370,15 @@ dogs.get('/:id/vet-report-link', async (c) => {
 
   const days = parseVetReportDays(c.req.query('days'));
   if (days === null) return c.json({ error: 'invalid_report_period' }, 400);
+
+  if (!legacyGenericVetShareAllowed()) {
+    return c.json({
+      error: 'Generic professional sharing is disabled',
+      code: 'RECIPIENT_BOUND_GRANT_REQUIRED',
+      gate: 'G-GUARDIAN-PROFESSIONAL-SHARE-01',
+      message: 'Create a recipient-bound, scoped, expiring professional grant instead.',
+    }, 409);
+  }
 
   const userId = String(getUserId(c) ?? '');
   const token = await createVetReportShareToken(userId, id, days);
@@ -209,6 +405,13 @@ dogs.get('/:id/vet-report', async (c) => {
   const isShareAccess = typeof shareToken === 'string' && shareToken.length > 0;
 
   if (isShareAccess) {
+    if (!legacyGenericVetShareAllowed()) {
+      return c.json({
+        error: 'Legacy generic share access is disabled',
+        code: 'RECIPIENT_BOUND_GRANT_REQUIRED',
+        gate: 'G-GUARDIAN-PROFESSIONAL-SHARE-01',
+      }, 401);
+    }
     const isValid = await verifyVetReportShareToken(shareToken, id, days);
     if (!isValid) {
       return c.json({ error: 'Invalid or expired share token' }, 401);

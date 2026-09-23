@@ -163,6 +163,23 @@
       ]
     },
     {
+      "table": "professional_share_access_audits",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "professional_sharing",
+        "security_logs"
+      ],
+      "mappingRationale": "Sanitized professional-share policy-decision evidence belongs to the professional-sharing data class and the existing security-log class; unconstrained identifiers remain explicit lifecycle gaps."
+    },
+    {
+      "table": "professional_share_grants",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "professional_sharing"
+      ],
+      "mappingRationale": "Owner- and dog-linked recipient binding/contact, declared purpose/scope, access-window and lifecycle metadata for professional sharing. This classifies persistence only; it does not authorize recipient activation or final retention."
+    },
+    {
       "table": "recovery_events",
       "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
       "inventoryCategories": [

@@ -208,14 +208,19 @@ test('invalid input never produces a completeness claim', async () => {
   });
 });
 
-test('derived catalogue covers all 48 current surfaces including second-order behavioral tables', () => {
+test('derived catalogue covers all 50 current surfaces including second-order behavioral tables', () => {
   const counts = { sql: 0, non_sql: 0, provider: 0, web: 0 };
   for (const entry of BREACH_RECIPIENT_SURFACES) counts[entry.surface.split(':', 1)[0]] += 1;
 
-  assert.equal(BREACH_RECIPIENT_SURFACES.length, 48);
-  assert.deepEqual(counts, { sql: 31, non_sql: 5, provider: 7, web: 5 });
+  assert.equal(BREACH_RECIPIENT_SURFACES.length, 50);
+  assert.deepEqual(counts, { sql: 33, non_sql: 5, provider: 7, web: 5 });
   assert.ok(BREACH_RECIPIENT_SURFACES.some((entry) => entry.surface === 'sql:behavioral_responses'));
   assert.ok(BREACH_RECIPIENT_SURFACES.some((entry) => entry.surface === 'sql:behavioral_factor_scores'));
+  assert.ok(BREACH_RECIPIENT_SURFACES.some((entry) => entry.surface === 'sql:professional_share_grants'));
+  assert.ok(BREACH_RECIPIENT_SURFACES.some((entry) =>
+    entry.surface === 'sql:professional_share_access_audits'
+    && entry.requiredGap === 'canonical_subject_missing'
+  ));
 });
 
 test('checked-in surface catalogue is exactly derived from privacy topology and web code', () => {

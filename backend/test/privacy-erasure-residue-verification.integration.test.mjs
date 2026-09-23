@@ -21,6 +21,8 @@ const CONSENT_A = randomUUID();
 const SESSION_A = randomUUID();
 const MESSAGE_A = randomUUID();
 const COPRESENCE_A = randomUUID();
+const PROFESSIONAL_SHARE_GRANT_A = randomUUID();
+const PROFESSIONAL_SHARE_AUDIT_A = randomUUID();
 
 let sql = null;
 let closeDatabase = null;
@@ -50,6 +52,8 @@ async function cleanup() {
   await sql`DELETE FROM auth_refresh_sessions WHERE id = ${SESSION_A}`;
   await sql`DELETE FROM ai_messages WHERE id = ${MESSAGE_A}`;
   await validateAiMessageWriteGuard(sql);
+  await sql`DELETE FROM professional_share_access_audits WHERE id = ${PROFESSIONAL_SHARE_AUDIT_A}`;
+  await sql`DELETE FROM professional_share_grants WHERE id = ${PROFESSIONAL_SHARE_GRANT_A}`;
   await sql`DELETE FROM copresence_events WHERE id = ${COPRESENCE_A}`;
   await sql`DELETE FROM user_config WHERE user_id IN (${USER_A}, ${USER_B})`;
   await sql`DELETE FROM achievements WHERE user_id IN (${USER_A}, ${USER_B})`;
@@ -199,6 +203,28 @@ test('snapshot capture and residue verification survive parent deletion without 
     INSERT INTO copresence_events (id, dog_a_id, dog_b_id, occurred_at)
     VALUES (${COPRESENCE_A}, ${DOG_A}, ${DOG_B}, now())
   `;
+  await sql`
+    INSERT INTO professional_share_grants (
+      id, owner_user_id, dog_id,
+      recipient_display_name, recipient_type, recipient_email,
+      purpose, scopes, data_from, data_to, access_expires_at,
+      status
+    ) VALUES (
+      ${PROFESSIONAL_SHARE_GRANT_A}, ${USER_A}, ${DOG_A},
+      'Residue Vet', 'VETERINARIAN', 'residue-vet@example.invalid',
+      'VETERINARY_CONSULTATION', '["VETERINARY_SUMMARY"]'::jsonb,
+      NOW() - INTERVAL '7 days', NOW(), NOW() + INTERVAL '7 days',
+      'PENDING'
+    )
+  `;
+  await sql`
+    INSERT INTO professional_share_access_audits (
+      id, grant_id, dog_id, event, decision_status, reason
+    ) VALUES (
+      ${PROFESSIONAL_SHARE_AUDIT_A}, ${PROFESSIONAL_SHARE_GRANT_A}, ${DOG_A},
+      'PROFESSIONAL_SHARE_POLICY_DECISION', 'DENIED', 'RECIPIENT_MISMATCH'
+    )
+  `;
 
   const captured = await captureErasureVerificationSnapshot(USER_A);
   assert.equal(captured.ok, true);
@@ -209,6 +235,7 @@ test('snapshot capture and residue verification survive parent deletion without 
     dogIds: [DOG_A],
     assessmentIds: [ASSESSMENT_A],
     factorScoreIds: [FACTOR_A],
+    professionalShareGrantIds: [PROFESSIONAL_SHARE_GRANT_A],
   });
 
   const before = await verifyErasureResidue(captured.snapshot);
@@ -238,10 +265,15 @@ test('snapshot capture and residue verification survive parent deletion without 
   assert.equal(probesBefore['behavioral_factor_scores.assessment_id'], 1);
   assert.equal(probesBefore['eli_behavioral_priors.factor_score_id'], 1);
   assert.equal(probesBefore['copresence_events.dog_a_id'], 1);
+  assert.equal(probesBefore['professional_share_grants.owner_user_id'], 1);
+  assert.equal(probesBefore['professional_share_grants.dog_id'], 1);
+  assert.equal(probesBefore['professional_share_access_audits.dog_id'], 1);
+  assert.equal(probesBefore['professional_share_access_audits.grant_id'], 1);
 
   const dogOnly = await captureErasureVerificationSnapshot(USER_A, DOG_A);
   assert.equal(dogOnly.ok, true);
   assert.equal(dogOnly.snapshot.scope, 'DOG');
+  assert.deepEqual(dogOnly.snapshot.professionalShareGrantIds, [PROFESSIONAL_SHARE_GRANT_A]);
   const dogBefore = await verifyErasureResidue(dogOnly.snapshot);
   assert.equal(dogBefore.ok, true);
   assert.deepEqual(dogBefore.accountRelationProbes, []);
@@ -271,8 +303,25 @@ test('snapshot capture and residue verification survive parent deletion without 
   await sql`DELETE FROM user_config WHERE user_id = ${USER_A}`;
   await sql`DELETE FROM achievements WHERE user_id = ${USER_A}`;
   await sql`DELETE FROM subscriptions WHERE user_id = ${USER_A}`;
+  await sql`DELETE FROM professional_share_grants WHERE id = ${PROFESSIONAL_SHARE_GRANT_A}`;
   await sql`DELETE FROM dogs WHERE id = ${DOG_A}`;
   await sql`DELETE FROM users WHERE id = ${USER_A}`;
+
+  const orphanAudit = await verifyErasureResidue(captured.snapshot);
+  assert.equal(orphanAudit.ok, true);
+  assert.equal(orphanAudit.status, 'SQL_RESIDUE_PRESENT');
+  const orphanProbes = Object.fromEntries(
+    [
+      ...orphanAudit.rootProbes,
+      ...orphanAudit.accountRelationProbes,
+      ...orphanAudit.dogRelationProbes,
+      ...orphanAudit.transitiveRelationProbes,
+    ].map((row) => [row.key, row.count]),
+  );
+  assert.equal(orphanProbes['professional_share_access_audits.dog_id'], 1);
+  assert.equal(orphanProbes['professional_share_access_audits.grant_id'], 1);
+
+  await sql`DELETE FROM professional_share_access_audits WHERE id = ${PROFESSIONAL_SHARE_AUDIT_A}`;
 
   const after = await verifyErasureResidue(captured.snapshot);
   assert.equal(after.ok, true);

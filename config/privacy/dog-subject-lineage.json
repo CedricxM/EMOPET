@@ -97,9 +97,20 @@
       "table": "walk_quality",
       "column": "dog_id",
       "source": "backend/db/schema/eli-v5.ts"
+    },
+    {
+      "table": "professional_share_grants",
+      "column": "dog_id",
+      "source": "backend/db/schema/professional-sharing.ts"
     }
   ],
-  "unconstrainedDogIdentifiers": [],
+  "unconstrainedDogIdentifiers": [
+    {
+      "table": "professional_share_access_audits",
+      "column": "dog_id",
+      "source": "backend/db/schema/professional-sharing.ts"
+    }
+  ],
   "transitiveDescendants": [
     {
       "table": "behavioral_responses",
@@ -138,5 +149,15 @@
     "Canonical foreign keys are technical persistence mechanics, not lifecycle policy; copresence dog identifiers are now canonical but remain non-disclosable without separate location authority.",
     "Community relations already present in the base schema remain visible here even while INT-06 runtime integration is deferred.",
     "Object/media storage, providers, caches, analytics and backups remain outside PostgreSQL lineage."
+  ],
+  "unconstrainedGrantIdentifiers": [
+    {
+      "table": "professional_share_access_audits",
+      "column": "grant_id",
+      "references": "professional_share_grants.id",
+      "source": "backend/db/schema/professional-sharing.ts",
+      "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED",
+      "erasureDisposition": "TO_CONFIRM"
+    }
   ]
 }

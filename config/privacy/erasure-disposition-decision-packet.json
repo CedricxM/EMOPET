@@ -15,9 +15,9 @@
     "Database mechanics never substitute for privacy disposition authority on unresolved rows."
   ],
   "summary": {
-    "relationalTotal": 37,
+    "relationalTotal": 41,
     "policyAlignedDeleteCandidates": 22,
-    "policyConditionalExecutionRequired": 12,
+    "policyConditionalExecutionRequired": 16,
     "legalAuthorityBlocked": 3,
     "matrixRowsPromoted": 4
   },
@@ -717,6 +717,96 @@
         "eli_inferred_aggregates"
       ],
       "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "professional_share_grants",
+      "column": "owner_user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "professional_sharing"
+      ],
+      "why": "Professional-share grant lifecycle is recipient-bound and time-bounded, but account/dog erasure behavior is not yet authorized by an approved destructive policy.",
+      "requiredDecision": "Define professional-share grant lifecycle on subject erasure, including pending, active, expired and revoked states, before any destructive executor is promoted.",
+      "allowedOutcomes": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "professional_share_grants",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "professional_sharing"
+      ],
+      "why": "Professional-share grant lifecycle is recipient-bound and time-bounded, but account/dog erasure behavior is not yet authorized by an approved destructive policy.",
+      "requiredDecision": "Define professional-share grant lifecycle on subject erasure, including pending, active, expired and revoked states, before any destructive executor is promoted.",
+      "allowedOutcomes": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "UNCONSTRAINED_IDENTIFIER",
+      "table": "professional_share_access_audits",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "professional_sharing",
+        "security_auth_logs"
+      ],
+      "why": "Sanitized professional-share audit evidence has intentionally unconstrained identifiers so denied/unknown lookups remain auditable; lifecycle handling must preserve only justified evidence.",
+      "requiredDecision": "Define DELETE, irreversible minimisation, or justified bounded retention for professional-share audit evidence without relying on parent FKs.",
+      "allowedOutcomes": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "professional_share_grants.id",
+      "relationType": "UNCONSTRAINED_IDENTIFIER",
+      "table": "professional_share_access_audits",
+      "column": "grant_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "professional_sharing",
+        "security_auth_logs"
+      ],
+      "why": "Sanitized professional-share audit evidence has intentionally unconstrained identifiers so denied/unknown lookups remain auditable; lifecycle handling must preserve only justified evidence.",
+      "requiredDecision": "Define DELETE, irreversible minimisation, or justified bounded retention for professional-share audit evidence without relying on parent FKs.",
+      "allowedOutcomes": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
       "promotionAuthorized": false
     }
   ],
