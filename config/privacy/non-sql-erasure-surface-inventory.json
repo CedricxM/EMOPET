@@ -89,11 +89,14 @@
         },
         {
           "provider": "OpenStreetMap_Overpass",
-          "repositoryStatus": "ACTIVE_RUNTIME_INTEGRATION",
+          "repositoryStatus": "REVIEWED_AUTHORITY_GATED_RUNTIME_INTEGRATION_CURRENTLY_HOLD",
           "evidence": [
-            "apps/web/lib/osm-spots.ts"
+            "apps/web/lib/overpass-rights.ts",
+            "apps/web/lib/osm-spots.ts",
+            "NEXT_PUBLIC_EMOPET_OVERPASS_RIGHTS_GATE",
+            "NEXT_PUBLIC_EMOPET_OVERPASS_ENDPOINT"
           ],
-          "dataBoundary": "Viewport-bounded external POI queries are made to Overpass; repository discovery does not establish provider-side log retention.",
+          "dataBoundary": "Checked-in Overpass service authority is HOLD, so endpoint/env presence cannot authorize live POI queries. A future reviewed GO is limited to the reviewed live-query flow with ephemeral bounded cache; repository discovery still does not establish provider-side log retention or subject erasure.",
           "deletionEvidence": "EXTERNAL_UNVERIFIED",
           "providerEvidenceRef": "config/privacy/provider-retention-erasure-evidence.json#OpenStreetMap_Overpass"
         },
