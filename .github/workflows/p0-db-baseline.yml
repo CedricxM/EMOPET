@@ -155,6 +155,14 @@ jobs:
       - name: Repeatability — complete schema dump
         run: diff -u /tmp/schema-a.sql /tmp/schema-b.sql
 
+      - name: BEHAV-DATA-01 response/context semantics on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          BEHAVIORAL_RESPONSE_SEMANTICS_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/behavioral-response-semantics.integration.test.mjs
+
       - name: PRIV-RETENTION device unbind clock on historical migrations
         working-directory: backend
         env:
@@ -190,6 +198,14 @@ jobs:
         env:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: pnpm exec drizzle-kit migrate --config=db/drizzle.p0-baseline.config.ts
+
+      - name: BEHAV-DATA-01 response/context semantics on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          BEHAVIORAL_RESPONSE_SEMANTICS_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/behavioral-response-semantics.integration.test.mjs
 
       - name: ID-01 canonical identity and FK checks
         env:
