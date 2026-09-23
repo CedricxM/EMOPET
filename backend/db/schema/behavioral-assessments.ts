@@ -171,6 +171,7 @@ export const behavioralEliMappingAuthorities = pgTable('behavioral_eli_mapping_a
   minPriorValue: real('min_prior_value').notNull(),
   maxPriorValue: real('max_prior_value').notNull(),
   protocolReference: varchar('protocol_reference', { length: 255 }).notNull(),
+  requiredFactorProvenanceKeys: jsonb('required_factor_provenance_keys').notNull().default([]),
   reviewAuthority: varchar('review_authority', { length: 255 }),
   validationStatus: varchar('validation_status', { length: 30 }).notNull().default('unvalidated'),
   status: varchar('status', { length: 20 }).notNull().default('draft'),
@@ -185,6 +186,10 @@ export const behavioralEliMappingAuthorities = pgTable('behavioral_eli_mapping_a
   uniqueIndex('uq_behavioral_eli_mapping_authority_version').on(table.authorityKey, table.authorityVersion),
   index('idx_behavioral_eli_mapping_source').on(table.sourceInstrumentCode, table.sourceFactorKey),
   check('chk_behavioral_eli_mapping_bounds', sql`${table.minPriorValue} <= ${table.maxPriorValue}`),
+  check(
+    'chk_behavioral_eli_mapping_required_provenance',
+    sql`jsonb_typeof(${table.requiredFactorProvenanceKeys}) = 'array'`,
+  ),
   check(
     'chk_behavioral_eli_mapping_validation_status',
     sql`${table.validationStatus} IN ('unvalidated','research_only','validated_for_mapping')`,
@@ -204,6 +209,7 @@ export const behavioralEliMappingAuthorities = pgTable('behavioral_eli_mapping_a
     'chk_behavioral_eli_mapping_approved_evidence',
     sql`${table.status} <> 'approved' OR (
       ${table.validationStatus} = 'validated_for_mapping'
+      AND jsonb_array_length(${table.requiredFactorProvenanceKeys}) > 0
       AND ${table.reviewAuthority} IS NOT NULL
       AND ${table.approvedAt} IS NOT NULL
       AND ${table.activatedAt} IS NOT NULL
