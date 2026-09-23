@@ -44,6 +44,14 @@ const dogRelations = [
   })),
 ];
 
+const professionalShareGrantRelations = (dog.unconstrainedGrantIdentifiers ?? []).map((row) => ({
+  subjectRoot: row.references,
+  relationType: 'UNCONSTRAINED_IDENTIFIER',
+  table: row.table,
+  column: row.column,
+  databaseDeleteAction: row.databaseDeleteAction,
+}));
+
 test('erasure readiness service remains pure and cannot mutate persistence', async () => {
   const source = await readFile(
     new URL('../api/services/erasure-readiness.ts', import.meta.url),
@@ -78,17 +86,18 @@ test('account erasure preflight reflects four implemented SET NULL detach relati
   assert.equal(result.destructiveActionAuthorized, false);
   assert.equal(result.status, 'BLOCKED');
 
-  assert.equal(result.relational.total, 15);
-  assert.equal(result.relational.unresolvedDisposition, 11);
-  assert.equal(result.relational.notImplemented, 11);
+  assert.equal(result.relational.total, 16);
+  assert.equal(result.relational.unresolvedDisposition, 12);
+  assert.equal(result.relational.notImplemented, 12);
   assert.deepEqual(result.relational.databaseMechanics, {
-    NO_ACTION: 10,
+    NO_ACTION: 11,
     RESTRICT: 0,
     CASCADE: 0,
     SET_NULL: 5,
     SET_DEFAULT: 0,
+    NO_FK_LIFECYCLE_NOT_ENFORCED: 0,
   });
-  assert.equal(result.relational.rootDeleteBlockers.length, 10);
+  assert.equal(result.relational.rootDeleteBlockers.length, 11);
   assert.deepEqual(result.relational.automaticCascadeRelations, []);
 
   assert.deepEqual(result.nonSql, {
@@ -118,18 +127,19 @@ test('dog erasure preflight reflects detachable device binding plus remaining bl
   assert.equal(result.status, 'BLOCKED');
   assert.equal(result.destructiveActionAuthorized, false);
 
-  assert.equal(result.relational.total, 22);
-  assert.equal(result.relational.unresolvedDisposition, 22);
-  assert.equal(result.relational.notImplemented, 22);
+  assert.equal(result.relational.total, 24);
+  assert.equal(result.relational.unresolvedDisposition, 24);
+  assert.equal(result.relational.notImplemented, 24);
   assert.deepEqual(result.relational.databaseMechanics, {
-    NO_ACTION: 19,
+    NO_ACTION: 20,
     RESTRICT: 0,
     CASCADE: 2,
     SET_NULL: 1,
     SET_DEFAULT: 0,
+    NO_FK_LIFECYCLE_NOT_ENFORCED: 1,
   });
 
-  assert.equal(result.relational.rootDeleteBlockers.length, 17);
+  assert.equal(result.relational.rootDeleteBlockers.length, 18);
   assert.deepEqual(
     result.relational.automaticCascadeRelations
       .map((row) => `${row.table}.${row.column}`)
@@ -144,6 +154,25 @@ test('dog erasure preflight reflects detachable device binding plus remaining bl
     result.relational.rootDeleteBlockers.some((row) => row.relationType !== 'DIRECT_FK'),
     false,
   );
+});
+
+test('professional-share grant-root preflight remains blocked without inventing FK lifecycle authority', () => {
+  const result = buildErasureReadinessReport(
+    matrix,
+    'professional_share_grants.id',
+    professionalShareGrantRelations,
+  );
+
+  assert.equal(result.ok, true);
+  assert.equal(result.status, 'BLOCKED');
+  assert.equal(result.destructiveActionAuthorized, false);
+  assert.equal(result.relational.total, 1);
+  assert.equal(result.relational.unresolvedDisposition, 1);
+  assert.equal(result.relational.notImplemented, 1);
+  assert.equal(result.relational.databaseMechanics.NO_FK_LIFECYCLE_NOT_ENFORCED, 1);
+  assert.deepEqual(result.relational.rootDeleteBlockers, []);
+  assert.ok(result.reasons.includes('POLICY_DISPOSITIONS_UNRESOLVED'));
+  assert.ok(result.reasons.includes('RELATIONAL_EXECUTION_NOT_IMPLEMENTED'));
 });
 
 test('preflight fails closed when matrix and generated technical topology drift apart', () => {
@@ -198,5 +227,5 @@ test('resolved and implemented ordered handling can clear NO ACTION as a control
   assert.equal(result.destructiveActionAuthorized, false);
   assert.deepEqual(result.reasons, []);
   assert.deepEqual(result.relational.rootDeleteBlockers, []);
-  assert.equal(result.relational.databaseMechanics.NO_ACTION, 10);
+  assert.equal(result.relational.databaseMechanics.NO_ACTION, 11);
 });
