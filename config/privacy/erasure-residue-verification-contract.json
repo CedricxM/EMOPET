@@ -27,6 +27,11 @@
       "source": "behavioral_factor_scores.id",
       "captureRule": "CAPTURE_IDS_FOR_TARGET_ASSESSMENTS_BEFORE_PARENT_MUTATION",
       "captureStatus": "IMPLEMENTED_READ_ONLY"
+    },
+    {
+      "key": "PROFESSIONAL_SHARE_GRANT_IDS_SNAPSHOT",
+      "source": "professional_share_grants.id",
+      "captureRule": "CAPTURE_GRANTS_LINKED_TO_TARGET_OWNER_OR_DOGS_BEFORE_PARENT_MUTATION"
     }
   ],
   "relationProbeRoutes": [
@@ -54,6 +59,14 @@
       ],
       "snapshotKey": "ASSESSMENT_IDS_SNAPSHOT_OR_FACTOR_SCORE_IDS_SNAPSHOT",
       "probeStatus": "IMPLEMENTED_READ_ONLY"
+    },
+    {
+      "subjectRoot": "professional_share_grants.id",
+      "relationTypes": [
+        "UNCONSTRAINED_IDENTIFIER"
+      ],
+      "snapshotKey": "PROFESSIONAL_SHARE_GRANT_IDS_SNAPSHOT",
+      "probeStatus": "NOT_IMPLEMENTED"
     }
   ],
   "nonSqlProbes": [

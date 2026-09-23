@@ -134,9 +134,24 @@
       "source": "backend/db/schema/eli-v5.ts",
       "databaseDeleteAction": "NO_ACTION",
       "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "professional_share_grants",
+      "column": "dog_id",
+      "source": "backend/db/schema/professional-sharing.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
     }
   ],
-  "unconstrainedDogIdentifiers": [],
+  "unconstrainedDogIdentifiers": [
+    {
+      "table": "professional_share_access_audits",
+      "column": "dog_id",
+      "source": "backend/db/schema/professional-sharing.ts",
+      "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED",
+      "erasureDisposition": "TO_CONFIRM"
+    }
+  ],
   "transitiveDescendants": [
     {
       "table": "behavioral_responses",
@@ -176,5 +191,15 @@
     "Any remaining NO_FK_LIFECYCLE_NOT_ENFORCED identifier is outside canonical dog FK enforcement; copresence dog identifiers are now NO_ACTION canonical FKs and still require explicit lifecycle policy.",
     "CASCADE mechanics on behavioral child rows do not constitute an approved erasure policy.",
     "Non-SQL copies remain separate blockers."
+  ],
+  "unconstrainedGrantIdentifiers": [
+    {
+      "table": "professional_share_access_audits",
+      "column": "grant_id",
+      "references": "professional_share_grants.id",
+      "source": "backend/db/schema/professional-sharing.ts",
+      "databaseDeleteAction": "NO_FK_LIFECYCLE_NOT_ENFORCED",
+      "erasureDisposition": "TO_CONFIRM"
+    }
   ]
 }

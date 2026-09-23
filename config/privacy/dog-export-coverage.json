@@ -154,9 +154,24 @@
       "routeSymbol": "walkQuality",
       "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT",
       "projectionAuthority": "TO_CONFIRM_ELI_V5_DISCLOSURE"
+    },
+    {
+      "table": "professional_share_grants",
+      "column": "dog_id",
+      "routeSymbol": "professionalShareGrants",
+      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT",
+      "projectionAuthority": "TO_CONFIRM_PROFESSIONAL_GRANT_ACCESS_PROJECTION"
     }
   ],
-  "unconstrainedDogIdentifiers": [],
+  "unconstrainedDogIdentifiers": [
+    {
+      "table": "professional_share_access_audits",
+      "column": "dog_id",
+      "routeSymbol": "professionalShareAccessAudits",
+      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT_UNCONSTRAINED_IDENTIFIER",
+      "projectionAuthority": "TO_CONFIRM_PROFESSIONAL_AUDIT_ACCESS_PROJECTION"
+    }
+  ],
   "knownOutOfScopeForThisPostgresRouteMatrix": [
     "raw high-rate MAT/TAG streams not persisted by the current backend schema",
     "object/media storage",

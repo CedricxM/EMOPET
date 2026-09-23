@@ -225,6 +225,25 @@
         "eli_inferred"
       ],
       "mappingRationale": "Derived walk-quality scores and WQI from dog-linked observations."
+    },
+    {
+      "table": "professional_share_access_audits",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": [
+        "sanitized policy decisions",
+        "unconstrained attempted grant/dog identifiers",
+        "audit retention and deletion unresolved"
+      ]
+    },
+    {
+      "table": "professional_share_grants",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": [
+        "Owner-controlled recipient contact/binding metadata",
+        "professional grant authority and lifecycle"
+      ]
     }
   ],
   "scopeLimitations": [

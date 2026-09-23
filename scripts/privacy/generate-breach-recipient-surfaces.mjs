@@ -43,13 +43,18 @@ export function deriveBreachRecipientSurfaces() {
   const nonSql = readJson(NON_SQL_INVENTORY);
   const providerEvidence = readJson(PROVIDER_EVIDENCE);
 
-  const sqlTables = uniqueSorted([
+  const canonicalSqlTables = uniqueSorted([
     account.subject.table,
     ...account.directUserReferences.map((entry) => entry.table),
     dog.subject.table,
     ...dog.canonicalForeignKeys.map((entry) => entry.table),
     ...dog.transitiveDescendants.map((entry) => entry.table),
   ]);
+
+  const unconstrainedSqlTables = uniqueSorted([
+    ...(dog.unconstrainedDogIdentifiers ?? []).map((entry) => entry.table),
+    ...(dog.unconstrainedGrantIdentifiers ?? []).map((entry) => entry.table),
+  ]).filter((table) => !canonicalSqlTables.includes(table));
 
   const nonSqlSurfaces = uniqueSorted(nonSql.surfaces.map((entry) => entry.surface));
   const providers = uniqueSorted(providerEvidence.providers.map((entry) => entry.provider));
@@ -61,11 +66,17 @@ export function deriveBreachRecipientSurfaces() {
   }
 
   return [
-    ...sqlTables.map((name) => ({
+    ...canonicalSqlTables.map((name) => ({
       surface: 'sql:' + name,
       authority: 'CANONICAL_SQL',
       requiredGap: null,
       source: 'config/privacy account+dog erasure topology',
+    })),
+    ...unconstrainedSqlTables.map((name) => ({
+      surface: 'sql:' + name,
+      authority: 'SQL_UNCONSTRAINED_GAP_REQUIRED',
+      requiredGap: 'canonical_subject_missing',
+      source: 'config/privacy/dog-erasure-topology.json unconstrained identifiers',
     })),
     ...nonSqlSurfaces.map((name) => ({
       surface: 'non_sql:' + name,
