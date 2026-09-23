@@ -176,6 +176,7 @@ export const behavioralEliMappingAuthorities = pgTable('behavioral_eli_mapping_a
 
   rationale: jsonb('rationale').default({}),
   approvedAt: timestamp('approved_at', { withTimezone: true }),
+  activatedAt: timestamp('activated_at', { withTimezone: true }),
   retiredAt: timestamp('retired_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
@@ -192,6 +193,7 @@ export const behavioralEliMappingAuthorities = pgTable('behavioral_eli_mapping_a
     sql`${table.status} <> 'approved' OR (
       ${table.reviewAuthority} IS NOT NULL
       AND ${table.approvedAt} IS NOT NULL
+      AND ${table.activatedAt} IS NOT NULL
       AND length(trim(${table.protocolReference})) > 0
     )`,
   ),
