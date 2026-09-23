@@ -78,6 +78,8 @@ test('object storage remains placeholder/reference-only in repository evidence',
 test('provider-held-copy inventory distinguishes active runtime integrations from placeholders', async () => {
   const notify = await text('apps/web/lib/server/notify.ts');
   const breiz = await text('apps/web/app/api/breiz/route.ts');
+  const anthropicRights = await text('apps/web/lib/anthropic-rights.ts');
+  const anthropicAuthority = await text('apps/web/lib/anthropic-service-authority.ts');
   const mapbox = await text('apps/web/components/bretagne-map/MapboxMap.tsx');
   const mapboxRights = await text('apps/web/lib/mapbox-rights.ts');
   const mapboxAuthority = await text('apps/web/lib/mapbox-service-authority.ts');
@@ -90,6 +92,10 @@ test('provider-held-copy inventory distinguishes active runtime integrations fro
   assert.match(notify, /req\.contactValue/);
   assert.match(breiz, /https:\/\/api\.anthropic\.com\/v1\/messages/);
   assert.match(breiz, /userMessage/);
+  assert.match(breiz, /getControlledAnthropicEgress/);
+  assert.match(anthropicRights, /EMOPET_ANTHROPIC_EGRESS_GATE/);
+  assert.match(anthropicRights, /ANTHROPIC_API_KEY/);
+  assert.match(anthropicAuthority, /disposition:\s*'HOLD'/);
   assert.match(mapbox, /getControlledMapboxToken/);
   assert.match(mapboxRights, /NEXT_PUBLIC_MAPBOX_TOKEN/);
   assert.match(mapboxRights, /NEXT_PUBLIC_EMOPET_MAPBOX_RIGHTS_GATE/);
@@ -102,7 +108,10 @@ test('provider-held-copy inventory distinguishes active runtime integrations fro
     surface('PROVIDER_HELD_COPIES').providers.map((row) => [row.provider, row]),
   );
   assert.equal(providers.Resend.repositoryStatus, 'ACTIVE_ENV_GATED_RUNTIME_INTEGRATION');
-  assert.equal(providers.Anthropic.repositoryStatus, 'ACTIVE_ENV_GATED_RUNTIME_INTEGRATION');
+  assert.equal(
+    providers.Anthropic.repositoryStatus,
+    'REVIEWED_AUTHORITY_GATED_RUNTIME_INTEGRATION_CURRENTLY_HOLD',
+  );
   assert.equal(
     providers.Mapbox.repositoryStatus,
     'REVIEWED_AUTHORITY_GATED_CLIENT_INTEGRATION_CURRENTLY_HOLD',

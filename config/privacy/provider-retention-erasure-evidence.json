@@ -48,11 +48,13 @@
     {
       "provider": "Anthropic",
       "repositoryFlow": {
-        "status": "ACTIVE_ENV_GATED_RUNTIME_INTEGRATION",
+        "status": "REVIEWED_AUTHORITY_GATED_RUNTIME_INTEGRATION_CURRENTLY_HOLD",
         "paths": [
+          "apps/web/lib/anthropic-service-authority.ts",
+          "apps/web/lib/anthropic-rights.ts",
           "apps/web/app/api/breiz/route.ts"
         ],
-        "dataBoundary": "Breiz sends a bounded user message plus generated regional/system context to the Messages API when ANTHROPIC_API_KEY is configured.",
+        "dataBoundary": "Breiz external model egress is structurally present but the checked-in provider/processor authority is HOLD. Key/model/env presence cannot authorize calls; any future reviewed GO is bound to the reviewed model set and bounded Breiz message/regional-context scope.",
         "canonicalSubjectIdSent": false,
         "providerObjectIdPersistedByEmopet": false,
         "defaultModelAlias": "claude-3-5-haiku-latest"

@@ -64,12 +64,16 @@
         },
         {
           "provider": "Anthropic",
-          "repositoryStatus": "ACTIVE_ENV_GATED_RUNTIME_INTEGRATION",
+          "repositoryStatus": "REVIEWED_AUTHORITY_GATED_RUNTIME_INTEGRATION_CURRENTLY_HOLD",
           "evidence": [
+            "apps/web/lib/anthropic-service-authority.ts",
+            "apps/web/lib/anthropic-rights.ts",
             "apps/web/app/api/breiz/route.ts",
-            "https://api.anthropic.com/v1/messages"
+            "ANTHROPIC_API_KEY",
+            "ANTHROPIC_MODEL",
+            "EMOPET_ANTHROPIC_EGRESS_GATE"
           ],
-          "dataBoundary": "Breiz sends a bounded user message plus generated regional/system context when ANTHROPIC_API_KEY is configured.",
+          "dataBoundary": "Checked-in Anthropic provider/processor authority is HOLD, so a key, model and runtime GO flag cannot by themselves authorize Breiz egress. A future reviewed GO is model-bound and limited to bounded user message plus generated regional/system context; repository evidence still does not establish provider retention/deletion execution.",
           "deletionEvidence": "EXTERNAL_UNVERIFIED",
           "providerEvidenceRef": "config/privacy/provider-retention-erasure-evidence.json#Anthropic"
         },
