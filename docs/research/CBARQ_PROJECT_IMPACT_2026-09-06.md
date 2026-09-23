@@ -1,9 +1,50 @@
 # EMOPET — C-BARQ / Flint 2017 Project Impact Assessment
 
 **Date:** 2026-09-06  
-**Reconciled:** 2026-09-07 against connected Gmail correspondence  
+**Reconciled:** 2026-09-07 against connected Gmail correspondence; 2026-09-23 against Besegher et al. 2025 French factorial evidence  
 **Status:** Scientific architecture review  
 **Scope:** C-BARQ integration, ELI priors, behavioural data model, claims, research governance
+
+## 2026-09-23 controlled addendum — French factorial validation evidence
+
+New controlled authority:
+`docs/science/EMOPET_CBARQ_UPENN_SCIENTIFIC_AUTHORITY_2026-09-23.md`
+
+Primary study:
+Besegher A, Rebout N, Bovet D, Jeannin S, Bedossa T, Serpell JA, Hoummady S. *Evaluation of the factorial structures of the canine behavioral assessment and research questionnaire (C-BARQ) in France.* Applied Animal Behaviour Science 292 (2025) 106816. DOI `10.1016/j.applanim.2025.106816`.
+
+### What this adds
+
+- published peer-reviewed evidence that the C-BARQ factorial structure is broadly supported in a French sample;
+- a French instrument version supplied/revised with Prof. Serpell for the study;
+- EFA/CFA evidence that some constructs can group differently in this sample, notably stranger fear/aggression;
+- explicit evidence that missing/applicability semantics and household context matter;
+- a scientifically stronger reason to use C-BARQ as a possible **external criterion** in future ELI validation rather than as latent-state ground truth.
+
+### What this does NOT add
+
+- no EMOPET C-BARQ licence;
+- no right to copy item wording;
+- no validated 63-item short form;
+- no validation of ELI;
+- no sensor -> fear/aggression/anxiety mapping;
+- no Penn or Serpell endorsement;
+- no need to redesign MAT/TAG hardware on the basis of this paper alone.
+
+### Repository consequences now tracked separately
+
+- #538: response applicability + household-context provenance;
+- #539: fail-closed behavioural assessment -> ELI mapping authority;
+- #540: instrument/version/language/scoring/licence contract;
+- #541: prospective C-BARQ external-criterion validation protocol;
+- #542: contextual event provenance;
+- #543: this scientific-memory reconciliation.
+
+### Mandatory interpretation update
+
+The earlier statement that C-BARQ may inform ELI only through a controlled evidence-adapter remains valid, but the French study strengthens the reason for that firewall: guardian-reported categories may overlap or be interpreted differently, so questionnaire labels cannot be treated as direct latent-state truth.
+
+The 63 items retained above the study's factor-loading threshold must **not** be reinterpreted as an authorized or validated EMOPET short form.
 
 ## Executive conclusion
 
