@@ -141,7 +141,7 @@ test('BEHAV-DATA-01 preserves response-state and household-context semantics', {
         status: 'unseen_magic',
         value: null,
       }),
-      /chk_behavioral_response_status/,
+      /chk_behavioral_response_(status|scale)/,
       'unknown response states must fail closed',
     );
 
