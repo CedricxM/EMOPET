@@ -5,6 +5,7 @@ import {
   buildLicenseEvidence,
   dedupePackages,
   flattenPnpmLicenseReport,
+  markdownTableCell,
   renderMarkdown,
   reviewClassForLicense,
 } from './summarize-pnpm-licenses.mjs';
@@ -55,6 +56,12 @@ test('deduplicates exact installed entries while retaining distinct versions', (
   assert.equal(dedupePackages(rows).length, 2);
 });
 
+test('markdown table cells are encoded without partial replacement semantics', () => {
+  assert.equal(markdownTableCell('MIT|Apache-2.0'), 'MIT\\|Apache-2.0');
+  assert.equal(markdownTableCell('line1\nline2'), 'line1 line2');
+  assert.equal(markdownTableCell('A\\B|C'), 'A\\\\B\\|C');
+});
+
 test('review classes are triage labels, never legal clearance', () => {
   assert.equal(reviewClassForLicense('UNKNOWN'), 'MISSING_OR_NONSTANDARD_METADATA_REVIEW');
   assert.equal(reviewClassForLicense('GPL-3.0-only'), 'RECIPROCAL_OR_SOURCE_OBLIGATION_REVIEW');
@@ -100,7 +107,8 @@ test('empty production evidence fails closed', () => {
         productionReport: {},
         metadata: {
           generatedAt: '2026-09-23T00:00:00.000Z',
-          candidateSha: '0123456789abcdef0123456789abcdef01234567',
+          candidateHeadSha: '0123456789abcdef0123456789abcdef01234567',
+          evaluatedCheckoutSha: 'fedcba9876543210fedcba9876543210fedcba98',
           packageManager: 'pnpm@10.33.0',
           sourceArtifacts: [],
         },
