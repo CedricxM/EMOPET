@@ -37,6 +37,12 @@ The repository contains no approved C-BARQ mapping authority. The French validat
 
 Questionnaire evidence and sensor/model evidence may disagree. Neither stream silently overwrites the other. Provenance, quality, confidence and abstention remain visible.
 
+## Runtime database authority
+
+The cross-row activation invariant is enforced by PostgreSQL trigger/function objects owned by migration `0015_behavioral_eli_mapping_authority.sql`. Drizzle schema generation represents the tables, columns, indexes and row-local constraints, but does not generate PostgreSQL trigger/function objects. Fresh-baseline QA therefore replays migration 0015 after the generated schema before exercising activation semantics.
+
+A deployment path that creates a fresh schema must preserve these migration-owned authority objects; a table-only Drizzle schema is not sufficient release authority.
+
 ## Lifecycle
 
 Approved mappings are versioned rows. If an approved mapping is moved out of `approved`, active priors linked to that authority are automatically retired.
