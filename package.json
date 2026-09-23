@@ -20,6 +20,9 @@
     "legacy-freemium:audit": "node scripts/content/legacy-freemium-authority-audit.mjs",
     "science:rr-audit": "node scripts/science/rr-variability-window-audit.mjs",
     "science:rr-audit:test": "node --test scripts/science/rr-variability-window-audit.test.mjs",
+    "control:pointer-audit": "node scripts/control/control-register-pointer-audit.mjs",
+    "control:pointer-audit:test": "node --test scripts/control/control-register-pointer-audit.test.mjs",
+    "control:eli-contract:test": "node --test scripts/control/eli-result-contract.test.mjs",
     "hardware:tag-source-coherence": "node scripts/hardware/tag-source-coherence.mjs",
     "hardware:tag-source-coherence:test": "node --test scripts/hardware/tag-source-coherence.test.mjs"
   },

@@ -59,7 +59,14 @@ export function detectRecurringHour(
       modeHour = h;
     }
   }
-  // Occurrences within Â±30 min of mode hour => within the same hour bucket
+  // APPROXIMATION, not an equivalence (#89). This is the share of occurrences
+  // falling in the modal UTC hour bucket, which is NOT the documented "within
+  // +/-30 min of the mode hour": 07:45 and 08:15 are 30 min apart and land in
+  // different buckets, while 08:05 and 08:55 are 50 min apart and share one.
+  // The bucket therefore splits tight clusters and merges loose ones. Bucketing
+  // is also in UTC for a local-time behaviour, so a window crossing a DST
+  // change can split across two buckets with no change in the dog's routine.
+  // Do not change this without #89: it moves the eligibility gate.
   const coverage = modeCount / occurrences.length;
   if (coverage < 0.5) return null;
   return { hour: modeHour, coverage };

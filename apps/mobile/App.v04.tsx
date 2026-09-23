@@ -1,3 +1,28 @@
+// HISTORICAL / SUPERSEDED — NOT THE APP ROOT.
+//
+// Header applied 2026-09-22. This file is not an entry point: package.json sets
+// `main: expo-router/entry`, and the live app is `app/` + `src/theme` +
+// `src/components/ui`. A repository-wide search finds no importer of this file.
+// It is still typechecked, and it still pins dependencies.
+//
+// Why it is contained rather than deleted: it is a historical artefact, and
+// CLAUDE.md requires an explicit decision before removing one. Retiring it, and
+// the parallel `src/tokens` / `src/ui` / `src/screens` stack it is the only
+// entry to, is a containment decision in the same family as #242 — not a side
+// effect of a typography fix.
+//
+// Consequence to know before touching #238: this file imports the Source Sans 3
+// weights, and `src/tokens/index.ts` declares `sans: 'SourceSans3'` for it. That
+// is why `@expo-google-fonts/source-sans-3` cannot be removed from
+// package.json, and why the #238 criterion "remove it once no longer referenced"
+// has a false condition rather than an unmet one. This stack is NOT covered by
+// BRAND-AUTHORITY-001 migration: it renders nothing.
+//
+// Do not build new screens here. Do not treat its tokens as current brand
+// authority.
+//
+// Original header follows.
+//
 // EMOPET · App root
 // IA : 5 tabs (Home/Chat/Journal/Services/Profile) + stack on Home tab for Trends.
 

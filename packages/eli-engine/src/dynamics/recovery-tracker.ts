@@ -1,12 +1,22 @@
 /**
  * RecoveryTracker — detects activation episodes and measures time-to-baseline.
  *
- * An activation episode begins when arousal a_t exceeds
- *   baseline.rrMean-derived threshold + 1.5*std  (expressed in arousal units)
- * and ends when a_t stays below
- *   baseline + 0.5*std
- * for at least 5 consecutive minutes. The elapsed time between these two
- * moments is the recovery_minutes value, which is:
+ * An activation episode begins on the FIRST sample where arousal a_t exceeds
+ * the caller-supplied `thresholdHigh`, and ends when a_t has stayed below
+ * `thresholdLow` for at least 5 consecutive minutes.
+ *
+ * Two corrections to what this comment previously claimed (#90):
+ *   - it described the thresholds as `baseline.rrMean`-derived "+ 1.5*std",
+ *     contradicting `update()` below, which states that arousal is unitless in
+ *     [0,1] so the thresholds are absolute rather than in RR/std units. The
+ *     thresholds are in fact parameters; no caller derives them, because this
+ *     class is never constructed outside its own test;
+ *   - it implied the documented ">= 60 s sustained" start rule. There is no
+ *     sustain check here — see the divergence table in `docs/eli_model.md`.
+ *
+ * The elapsed time between those two moments is the recovery_minutes value,
+ * measured to the FIRST crossing below `thresholdLow`, not to the end of the
+ * 5-minute confirmation, which is:
  *   - persisted to `recovery_events` for longitudinal analysis
  *   - folded into the sub-baseline EMA (alpha 0.1)
  *   - used to compute a 4-week trend per slot (see computeRecoveryTrend4w)
