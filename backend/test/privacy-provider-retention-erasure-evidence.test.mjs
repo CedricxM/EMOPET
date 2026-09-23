@@ -119,6 +119,35 @@ test('weather providers remain separate because web Open-Meteo and backend OpenW
   assert.match(backendWeather, /OPENWEATHERMAP_API_KEY/);
 });
 
+test('Mapbox and Overpass repository-flow evidence follows the reviewed HOLD runtime boundaries', async () => {
+  assert.equal(
+    byProvider.Mapbox.repositoryFlow.status,
+    'REVIEWED_AUTHORITY_GATED_CLIENT_INTEGRATION_CURRENTLY_HOLD',
+  );
+  assert.equal(
+    byProvider.OpenStreetMap_Overpass.repositoryFlow.status,
+    'REVIEWED_AUTHORITY_GATED_RUNTIME_INTEGRATION_CURRENTLY_HOLD',
+  );
+
+  const mapboxAuthority = await readFile(
+    new URL('../../apps/web/lib/mapbox-service-authority.ts', import.meta.url),
+    'utf8',
+  );
+  const overpassAuthority = await readFile(
+    new URL('../../apps/web/lib/overpass-rights.ts', import.meta.url),
+    'utf8',
+  );
+  assert.match(mapboxAuthority, /disposition:\s*'HOLD'/);
+  assert.match(overpassAuthority, /disposition:\s*'HOLD'/);
+
+  assert.match(byProvider.Mapbox.emopetErasureReadiness.subjectMapping, /NO_CANONICAL_EMOPET_SUBJECT_IDENTIFIER/);
+  assert.match(byProvider.OpenStreetMap_Overpass.emopetErasureReadiness.subjectMapping, /NO_CANONICAL_EMOPET_SUBJECT_IDENTIFIER/);
+  assert.equal(
+    byProvider.OpenStreetMap_Overpass.publicEvidence.status,
+    'OPERATOR_RETENTION_AND_SUBJECT_ERASURE_POLICY_NOT_ESTABLISHED_BY_CURRENT_REVIEW',
+  );
+});
+
 test('Mapbox and Overpass remain non-addressable by canonical EMOPET subject id', () => {
   assert.match(byProvider.Mapbox.emopetErasureReadiness.subjectMapping, /NO_CANONICAL_EMOPET_SUBJECT_IDENTIFIER/);
   assert.match(byProvider.OpenStreetMap_Overpass.emopetErasureReadiness.subjectMapping, /NO_CANONICAL_EMOPET_SUBJECT_IDENTIFIER/);
