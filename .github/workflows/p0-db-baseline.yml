@@ -191,6 +191,16 @@ jobs:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: pnpm exec drizzle-kit migrate --config=db/drizzle.p0-baseline.config.ts
 
+      # Drizzle schema generation does not emit PostgreSQL trigger/function objects.
+      # Replay the canonical migration that owns the ELI behavioural authority trigger
+      # before testing the generated baseline. The migration is idempotent for schema
+      # objects already generated from Drizzle metadata.
+      - name: Apply ELI-BEHAV non-Drizzle authority objects
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/0015_behavioral_eli_mapping_authority.sql
+
       - name: BEHAV-DATA-01 behavioural applicability and context contract
         working-directory: backend
         env:
