@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS behavioral_eli_mapping_authorities (
   status VARCHAR(20) NOT NULL DEFAULT 'research_only',
   rationale JSONB DEFAULT '{}'::jsonb,
   approved_at TIMESTAMPTZ,
+  activated_at TIMESTAMPTZ,
   retired_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -30,7 +31,7 @@ CREATE TABLE IF NOT EXISTS behavioral_eli_mapping_authorities (
   CONSTRAINT chk_behavioral_eli_mapping_status CHECK (status IN ('research_only','approved','retired','rejected')),
   CONSTRAINT chk_behavioral_eli_mapping_approved_evidence CHECK (
     status <> 'approved'
-    OR (review_authority IS NOT NULL AND approved_at IS NOT NULL AND length(trim(protocol_reference)) > 0)
+    OR (review_authority IS NOT NULL AND approved_at IS NOT NULL AND activated_at IS NOT NULL AND length(trim(protocol_reference)) > 0)
   )
 );
 
@@ -87,6 +88,8 @@ BEGIN
       AND ba.instrument_version IS NOT NULL
       AND ba.scientific_use_status = 'scoring_allowed'
       AND ma.status = 'approved'
+      AND ma.activated_at IS NOT NULL
+      AND ma.activated_at <= NOW()
       AND ma.retired_at IS NULL
       AND ma.source_instrument_code = ba.instrument_code
       AND ma.source_instrument_version = ba.instrument_version
