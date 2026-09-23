@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "emopet-behavioral-eli-mapping-authority-v1",
+  "status": "CONTROLLED_DEFAULT_DISPOSITION",
+  "globalDefault": "NO_ACTIVE_PRIOR_WITHOUT_MATCHING_APPROVED_DB_AUTHORITY",
+  "instruments": {
+    "cbarq": {
+      "instrumentCode": "cbarq",
+      "scientificUseStatus": "RESEARCH_ONLY",
+      "productionPriorActivation": "NO_ACTIVE_PRIOR",
+      "reason": "No EMOPET C-BARQ -> ELI mapping has been prospectively validated or approved. Owner-reported C-BARQ evidence is an external-criterion candidate, not latent-state ground truth.",
+      "authority": "docs/science/EMOPET_CBARQ_UPENN_SCIENTIFIC_AUTHORITY_2026-09-23.md"
+    }
+  },
+  "prohibitions": [
+    "guardian reports aggression -> ELI fear/aggression state",
+    "factor score eligibility flag alone -> active ELI prior",
+    "instrument or scoring version mismatch -> active ELI prior",
+    "research-only assessment -> active product ELI prior"
+  ]
+}
