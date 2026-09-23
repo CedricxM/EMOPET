@@ -12,6 +12,7 @@ A behavioural factor score can exist without being allowed to affect ELI.
 
 An `eli_behavioral_priors` row may become `active` only when PostgreSQL can resolve a matching `behavioral_eli_mapping_authorities` row whose:
 
+- validation status is `validated_for_mapping`;
 - lifecycle status is `approved`;
 - assessment scientific-use status is `scoring_allowed`;
 - dog, assessment and factor-score lineage agree;
@@ -25,6 +26,12 @@ An `eli_behavioral_priors` row may become `active` only when PostgreSQL can reso
 - the mapping authority has an explicit activation timestamp.
 
 Absence or mismatch is a hard failure.
+
+## Authority state model
+
+Validation and lifecycle are deliberately separate. `validation_status` records the scientific disposition (`unvalidated`, `research_only`, `validated_for_mapping`), while `status` records lifecycle (`draft`, `approved`, `retired`, `rejected`). An authority cannot be active merely because one of these axes looks permissive.
+
+`retired` and `rejected` are terminal. A changed or renewed mapping requires a new authority version.
 
 ## C-BARQ default
 
