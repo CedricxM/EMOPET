@@ -159,6 +159,26 @@ test('active behavioural priors require exact approved mapping authority', { ski
     const active = await sql`SELECT status FROM eli_behavioral_priors WHERE id = ${activePriorId}`;
     assert.equal(active[0].status, 'active');
 
+    await assert.rejects(
+      sql`UPDATE behavioral_factor_scores SET eligible_for_eli_prior = FALSE WHERE id = ${factorId}`,
+      /chk_eli_behavioral_prior_active_factor_source_immutable|retire the prior first/i,
+    );
+
+    await assert.rejects(
+      sql`UPDATE behavioral_factor_scores SET scoring_version = 'score-v2' WHERE id = ${factorId}`,
+      /chk_eli_behavioral_prior_active_factor_source_immutable|retire the prior first/i,
+    );
+
+    await assert.rejects(
+      sql`UPDATE behavioral_assessments SET scientific_use_status = 'research_only' WHERE id = ${assessmentId}`,
+      /chk_eli_behavioral_prior_active_assessment_source_immutable|retire the prior first/i,
+    );
+
+    await assert.rejects(
+      sql`UPDATE behavioral_eli_mapping_authorities SET max_prior_value = 2 WHERE id = ${approvedAuthorityId}`,
+      /chk_behavioral_eli_mapping_approved_immutable|new authority version/i,
+    );
+
     await sql`
       UPDATE behavioral_eli_mapping_authorities
       SET status = 'retired', retired_at = NOW()
