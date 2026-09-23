@@ -48,7 +48,7 @@ export type BreachRecipientEnumeration =
     };
 
 const SURFACE_BY_ID = new Map<string, BreachRecipientSurfaceDescriptor>(
-  BREACH_RECIPIENT_SURFACES.map((entry) => [entry.surface, entry]),
+  BREACH_RECIPIENT_SURFACES.map((entry) => [entry.surface, entry] as const),
 );
 const OBJECT_KEYS = Object.freeze(['surface', 'ref']);
 const RESOLVED_KEYS = Object.freeze(['status', 'personRefs']);
