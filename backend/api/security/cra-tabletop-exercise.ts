@@ -276,13 +276,14 @@ export function runCraTabletopExercise(input: unknown): CraTabletopResult {
       pushGap(gaps, 'not_required_path_contains_submission', 'notification_path');
     }
   } else {
+    const reviewedAt = mainNotification.reviewedAt;
     if (
       earlyWarning.disposition !== 'SIMULATED_NOT_SENT'
       || earlyWarning.draftedOrBuiltAt === null
       || earlyWarning.checkpointAt === null
       || mainNotification.disposition !== 'SIMULATED_NOT_SENT'
       || mainNotification.draftedOrBuiltAt === null
-      || mainNotification.reviewedAt === null
+      || typeof reviewedAt !== 'string'
       || mainNotification.checkpointAt === null
     ) {
       pushGap(gaps, 'required_preparation_missing', 'notification_path');
@@ -290,7 +291,7 @@ export function runCraTabletopExercise(input: unknown): CraTabletopResult {
       const earlyDraftMs = Date.parse(earlyWarning.draftedOrBuiltAt);
       const earlyCheckpointMs = Date.parse(earlyWarning.checkpointAt);
       const mainBuildMs = Date.parse(mainNotification.draftedOrBuiltAt);
-      const reviewMs = Date.parse(mainNotification.reviewedAt);
+      const reviewMs = Date.parse(reviewedAt);
       const mainCheckpointMs = Date.parse(mainNotification.checkpointAt);
 
       if (
