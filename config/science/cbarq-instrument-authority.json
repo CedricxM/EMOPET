@@ -15,11 +15,11 @@
   ],
   "formVariants": [
     {
-      "variantKey": "CURRENT_PENN_AUTHORIZED_FULL",
+      "variantKey": "full-current",
       "state": "UNREVIEWED"
     },
     {
-      "variantKey": "FRENCH_2025_EFA_63",
+      "variantKey": "fr-2025-efa-63",
       "state": "UNREVIEWED",
       "disposition": "NOT_AUTHORIZED_SHORT_FORM"
     }
