@@ -45,6 +45,11 @@ export const REGISTERS = [
     idPattern: '(?:DATA-SRC|VBO-FILE)-\\d+',
     owner: '#116',
   },
+  {
+    path: 'docs/control/P0_ELI_CANONICAL_RUNTIME_RECONCILIATION.md',
+    idPattern: 'ELI-SRC-\\d+',
+    owner: '#118',
+  },
 ];
 
 function git(args) {

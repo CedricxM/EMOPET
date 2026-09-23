@@ -15,9 +15,9 @@ const IP = REGISTERS.find((r) => r.owner === '#114');
 const DATA = REGISTERS.find((r) => r.owner === '#116');
 const SNAPSHOT = '3fa5c5298247fc88412ce2c8294fdb4f36024f56';
 
-test('both registers are covered, declare a resolvable snapshot, and every pointer holds at it', () => {
+test('every register is covered, declares a resolvable snapshot, and every pointer holds at it', () => {
   const results = audit();
-  assert.equal(results.length, 2, 'both P0 control registers must be audited');
+  assert.equal(results.length, 3, 'every P0 control register must be audited');
   for (const r of results) {
     assert.equal(r.snapshot, SNAPSHOT, `${r.path}: snapshot boundary`);
     assert.equal(r.snapshotAvailable, true, `${r.path}: snapshot commit must resolve`);
@@ -25,6 +25,7 @@ test('both registers are covered, declare a resolvable snapshot, and every point
   }
   assert.equal(results.find((r) => r.owner === '#114').pointers.length, 13);
   assert.equal(results.find((r) => r.owner === '#116').pointers.length, 24);
+  assert.equal(results.find((r) => r.owner === '#118').pointers.length, 14);
 });
 
 /** The #117 defect: a well-formed identifier that is not the blob at the snapshot. */
@@ -94,4 +95,20 @@ test('the register does not describe the directory seed as verified or cleared',
     assert.ok(!new RegExp(`DIRECTORY[^\\n]*${word}`).test(claims), `the directory must never be described as ${word}`);
   }
   assert.match(source, /REPRESENTATION AS A VERIFIED PUBLIC OR PRODUCTION DIRECTORY = HOLD/);
+});
+
+test('the ELI register records its reconstruction, the G2 regression and the valence finding', () => {
+  const ELI = REGISTERS.find((r) => r.owner === '#118');
+  const source = readFileSync(ROOT + ELI.path, 'utf8');
+  assert.match(source, /PR #119\]\(https:\/\/github\.com\/CedricxM\/EMOPET\/pull\/119\)/);
+  assert.match(source, /That PR never merged/);
+  assert.match(source, /G2 has been lost once already/);
+  assert.match(source, /`valence` in the shared result/);
+  // Containment must never read as a live runtime.
+  assert.match(source, /G-ELI-CANONICAL-RUNTIME-01 = OPEN/);
+  assert.match(source, /LIVE END-TO-END ELI RUNTIME = NOT ESTABLISHED/);
+  for (const gate of ['G1', 'G4', 'G5', 'G6', 'G8']) {
+    assert.match(source, new RegExp(`ELI-ARCH-${gate} [^|]*\\|\\s*\`OPEN`), `${gate} must stay OPEN`);
+  }
+  assert.doesNotMatch(source, /ELI-ARCH-G7[^|]*\|\s*`DELIVERED`/, 'G7 is interim truth only, never plain DELIVERED');
 });
