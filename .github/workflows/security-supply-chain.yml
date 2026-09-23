@@ -37,6 +37,8 @@ jobs:
           pnpm licenses list --json --long > pnpm-licenses-all.json
           pnpm licenses list --prod --json --long > pnpm-licenses-production.json
       - name: Summarize exact-head dependency licence evidence
+        env:
+          EMOPET_CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           node scripts/security/summarize-pnpm-licenses.mjs \
             pnpm-licenses-all.json \
