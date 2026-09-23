@@ -22,8 +22,11 @@ An `eli_behavioral_priors` row may become `active` only when PostgreSQL can reso
 - target prior key matches exactly;
 - algorithm version matches exactly;
 - requested prior value is inside approved bounds;
+- every provenance key required by that mapping authority is present on the factor score;
 - reviewed protocol and review authority are present;
 - the mapping authority has an explicit activation timestamp.
+
+Each authority declares `required_factor_provenance_keys`. An approved mapping must require at least one provenance key, and PostgreSQL verifies that the linked factor score carries every declared key before activation.
 
 Absence or mismatch is a hard failure.
 
