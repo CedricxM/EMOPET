@@ -98,6 +98,8 @@ jobs:
         run: |
           pnpm control:pointer-audit
           pnpm control:pointer-audit:test
+      - name: Enforce mandatory scientific context pointers (C-BARQ / Penn / ELI)
+        run: node --test scripts/control/mandatory-scientific-context.test.mjs
       - name: Enforce single InferenceResult authority (ELI-ARCH-G2, #118)
         run: pnpm control:eli-contract:test
       - name: Enforce rr_variability window reachability (#86)
