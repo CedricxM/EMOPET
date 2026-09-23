@@ -21,7 +21,8 @@ An `eli_behavioral_priors` row may become `active` only when PostgreSQL can reso
 - target prior key matches exactly;
 - algorithm version matches exactly;
 - requested prior value is inside approved bounds;
-- reviewed protocol and review authority are present.
+- reviewed protocol and review authority are present;
+- the mapping authority has an explicit activation timestamp.
 
 Absence or mismatch is a hard failure.
 
@@ -45,7 +46,7 @@ A deployment path that creates a fresh schema must preserve these migration-owne
 
 ## Lifecycle
 
-Approved mappings are versioned rows. If an approved mapping is moved out of `approved`, active priors linked to that authority are automatically retired.
+Approved mappings are versioned rows with separate approval and activation timestamps. If an approved mapping is moved out of `approved`, active priors linked to that authority are automatically retired.
 
 Changing the scientific mapping should create a new authority version rather than silently reinterpreting prior historical evidence.
 
