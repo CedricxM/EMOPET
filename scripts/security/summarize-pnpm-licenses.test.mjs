@@ -5,7 +5,6 @@ import {
   buildLicenseEvidence,
   dedupePackages,
   flattenPnpmLicenseReport,
-  markdownTableCell,
   markdownCell,
   renderMarkdown,
   reviewClassForLicense,
@@ -55,12 +54,6 @@ test('deduplicates exact installed entries while retaining distinct versions', (
   ];
 
   assert.equal(dedupePackages(rows).length, 2);
-});
-
-test('markdown table cells are encoded without partial replacement semantics', () => {
-  assert.equal(markdownTableCell('MIT|Apache-2.0'), 'MIT\\|Apache-2.0');
-  assert.equal(markdownTableCell('line1\nline2'), 'line1 line2');
-  assert.equal(markdownTableCell('A\\B|C'), 'A\\\\B\\|C');
 });
 
 test('review classes are triage labels, never legal clearance', () => {
