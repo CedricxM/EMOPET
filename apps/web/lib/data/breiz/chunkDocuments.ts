@@ -27,7 +27,7 @@ export function chunkBreizDocument(document: BreizDocument, options: ChunkOption
     const content = words.slice(start, end).join(' ');
     const { content: _content, ...metadata } = document;
     chunks.push({
-      id: `${document.id}::${chunks.length}`,
+      id: document.id + '::' + chunks.length,
       document_id: document.id,
       chunk_index: chunks.length,
       title: document.title,
@@ -47,25 +47,33 @@ export function chunkBreizDocuments(documents: BreizDocument[], options: ChunkOp
 }
 
 export function exportChunksForVectorStore(chunks: BreizDocumentChunk[]) {
-  return chunks.map((chunk) => ({
-    id: chunk.id,
-    text: chunk.content,
-    metadata: {
-      document_id: chunk.document_id,
-      title: chunk.title,
-      source_name: chunk.metadata.source_name,
-      source_url: chunk.metadata.source_url,
-      license: chunk.metadata.license,
-      territory: chunk.metadata.territory,
-      region: chunk.metadata.region,
-      department: chunk.metadata.department,
-      commune: chunk.metadata.commune,
-      theme: chunk.metadata.theme,
-      tags: chunk.metadata.tags,
-      reliability_level: chunk.metadata.reliability_level,
-      last_checked_at: chunk.metadata.last_checked_at,
-      allowed_usage: chunk.metadata.allowed_usage,
-      chunk_index: chunk.chunk_index,
-    },
-  }));
+  return chunks.map((chunk) => {
+    const binding = chunk.metadata.source_authority_binding;
+    return {
+      id: chunk.id,
+      text: chunk.content,
+      metadata: {
+        document_id: chunk.document_id,
+        title: chunk.title,
+        source_name: chunk.metadata.source_name,
+        source_url: chunk.metadata.source_url,
+        source_registry_id: chunk.metadata.source_registry_id ?? null,
+        source_authority_revision: binding?.authority_revision ?? null,
+        source_immutable_version: binding?.immutable_source_version ?? null,
+        source_receipt_path: binding?.receipt_path ?? null,
+        source_attribution_text: binding?.attribution_text ?? null,
+        license: chunk.metadata.license,
+        territory: chunk.metadata.territory,
+        region: chunk.metadata.region,
+        department: chunk.metadata.department,
+        commune: chunk.metadata.commune,
+        theme: chunk.metadata.theme,
+        tags: chunk.metadata.tags,
+        reliability_level: chunk.metadata.reliability_level,
+        last_checked_at: chunk.metadata.last_checked_at,
+        allowed_usage: chunk.metadata.allowed_usage,
+        chunk_index: chunk.chunk_index,
+      },
+    };
+  });
 }
