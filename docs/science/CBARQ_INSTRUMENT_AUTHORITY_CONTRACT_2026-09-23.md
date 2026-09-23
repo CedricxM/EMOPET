@@ -40,7 +40,7 @@ Allowed authority states are:
 
 The 63-item EFA result reported in the 2025 French study remains:
 
-`FRENCH_2025_EFA_63 = NOT_AUTHORIZED_SHORT_FORM`
+`fr-2025-efa-63 = NOT_AUTHORIZED_SHORT_FORM`
 
 It must not become `AUTHORIZED_SHORT_FORM` without explicit instrument authority.
 
@@ -134,6 +134,6 @@ The separate authorities remain:
 
 `PRODUCTION_CBARQ_USE = FAIL_CLOSED`
 
-`FRENCH_2025_EFA_63 = NOT_AUTHORIZED_SHORT_FORM`
+`fr-2025-efa-63 = NOT_AUTHORIZED_SHORT_FORM`
 
 `PENN_LICENSING_RESPONSE_REQUIRED_FOR_AUTHORIZATION = TRUE`
