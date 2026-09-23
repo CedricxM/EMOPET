@@ -1,0 +1,86 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+
+import {
+  buildLicenseEvidence,
+  dedupePackages,
+  flattenPnpmLicenseReport,
+  renderMarkdown,
+  reviewClassForLicense,
+} from './summarize-pnpm-licenses.mjs';
+
+test('flattens pnpm licence-bucket JSON without inventing licence metadata', () => {
+  const rows = flattenPnpmLicenseReport({
+    MIT: [{ name: 'alpha', version: '1.0.0', path: '/alpha' }],
+    'Apache-2.0': [{ name: 'beta', version: '2.0.0', license: 'Apache-2.0', path: '/beta' }],
+  });
+
+  assert.deepEqual(
+    rows.map((row) => [row.name, row.version, row.license]),
+    [
+      ['alpha', '1.0.0', 'MIT'],
+      ['beta', '2.0.0', 'Apache-2.0'],
+    ],
+  );
+});
+
+test('deduplicates exact installed entries while retaining distinct versions', () => {
+  const rows = [
+    { name: 'alpha', version: '1.0.0', license: 'MIT', path: '/a' },
+    { name: 'alpha', version: '1.0.0', license: 'MIT', path: '/a' },
+    { name: 'alpha', version: '2.0.0', license: 'MIT', path: '/b' },
+  ];
+
+  assert.equal(dedupePackages(rows).length, 2);
+});
+
+test('review classes are triage labels, never legal clearance', () => {
+  assert.equal(reviewClassForLicense('UNKNOWN'), 'MISSING_OR_NONSTANDARD_METADATA_REVIEW');
+  assert.equal(reviewClassForLicense('GPL-3.0-only'), 'RECIPROCAL_OR_SOURCE_OBLIGATION_REVIEW');
+  assert.equal(reviewClassForLicense('MPL-2.0'), 'RECIPROCAL_OR_SOURCE_OBLIGATION_REVIEW');
+  assert.equal(reviewClassForLicense('MIT'), 'GENERAL_NOTICE_AND_DISTRIBUTION_REVIEW');
+});
+
+test('evidence remains OPEN even when metadata is complete', () => {
+  const evidence = buildLicenseEvidence({
+    allReport: {
+      MIT: [{ name: 'alpha', version: '1.0.0', path: '/alpha' }],
+      'GPL-3.0-only': [{ name: 'beta', version: '2.0.0', path: '/beta' }],
+    },
+    productionReport: {
+      MIT: [{ name: 'alpha', version: '1.0.0', path: '/alpha' }],
+    },
+    metadata: {
+      generatedAt: '2026-09-23T00:00:00.000Z',
+      candidateSha: '0123456789abcdef0123456789abcdef01234567',
+      packageManager: 'pnpm@10.33.0',
+      sourceArtifacts: [],
+    },
+  });
+
+  assert.equal(evidence.claimsLegalClearance, false);
+  assert.equal(evidence.claimsDistributionCompatibility, false);
+  assert.equal(evidence.claimsNoticeCompleteness, false);
+  assert.equal(evidence.disposition, 'OPEN_REVIEW_REQUIRED');
+  assert.equal(evidence.allDependencies.packageCount, 2);
+  assert.equal(evidence.productionDependencies.packageCount, 1);
+  assert.match(renderMarkdown(evidence), /Engineering inventory only/);
+  assert.match(renderMarkdown(evidence), /OPEN_REVIEW_REQUIRED/);
+});
+
+test('empty production evidence fails closed', () => {
+  assert.throws(
+    () =>
+      buildLicenseEvidence({
+        allReport: { MIT: [{ name: 'alpha', version: '1.0.0', path: '/alpha' }] },
+        productionReport: {},
+        metadata: {
+          generatedAt: '2026-09-23T00:00:00.000Z',
+          candidateSha: '0123456789abcdef0123456789abcdef01234567',
+          packageManager: 'pnpm@10.33.0',
+          sourceArtifacts: [],
+        },
+      }),
+    /contains no packages/,
+  );
+});
