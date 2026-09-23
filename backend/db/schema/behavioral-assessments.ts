@@ -9,6 +9,7 @@ import {
   boolean,
   index,
   uniqueIndex,
+  unique,
   foreignKey,
   check,
 } from 'drizzle-orm/pg-core';
@@ -72,7 +73,7 @@ export const behavioralAssessments = pgTable('behavioral_assessments', {
 }, (table) => [
   index('idx_behavioral_assessment_dog').on(table.dogId),
   index('idx_behavioral_assessment_instrument').on(table.instrumentCode),
-  uniqueIndex('uq_behavioral_assessment_instrument_binding').on(
+  unique('uq_behavioral_assessment_instrument_binding').on(
     table.id,
     table.instrumentCode,
     table.instrumentVersion,
@@ -169,7 +170,7 @@ export const behavioralFactorScores = pgTable('behavioral_factor_scores', {
   computedAt: timestamp('computed_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => [
   uniqueIndex('uq_behavioral_factor_assessment_factor').on(table.assessmentId, table.factorKey),
-  uniqueIndex('uq_behavioral_factor_binding').on(table.id, table.assessmentId, table.factorKey),
+  unique('uq_behavioral_factor_binding').on(table.id, table.assessmentId, table.factorKey),
   index('idx_behavioral_factor_assessment').on(table.assessmentId),
 ]);
 
@@ -213,7 +214,7 @@ export const eliBehavioralMappingAuthorities = pgTable('eli_behavioral_mapping_a
     table.algorithmVersion,
     table.authorityVersion,
   ),
-  uniqueIndex('uq_eli_behavioral_mapping_authority_binding').on(
+  unique('uq_eli_behavioral_mapping_authority_binding').on(
     table.id,
     table.instrumentCode,
     table.instrumentVersion,
