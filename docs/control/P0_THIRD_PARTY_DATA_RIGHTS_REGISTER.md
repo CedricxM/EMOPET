@@ -60,10 +60,11 @@ Consequences, recorded rather than smoothed over:
 
 Durable rule for this document and for `P0_IP_PROVENANCE_EVIDENCE_REGISTER.md`:
 
-> A blob identifier is written only from the output of `git rev-parse HEAD:<path>` at the
-> declared snapshot boundary, never abbreviated in the source of truth, and never expanded
-> by hand. `pnpm control:pointer-audit` re-checks every declared pointer in both registers
-> and fails on drift. A pointer no process re-checks is a dated claim, not evidence.
+> A blob identifier is written only from the output of `git rev-parse <snapshot>:<path>` at
+> the declared snapshot boundary, never abbreviated in the source of truth, and never
+> expanded by hand. `pnpm control:pointer-audit` resolves every declared pointer in both
+> registers **at their declared snapshot** and fails if any is false there; it runs in CI.
+> A pointer no process re-checks is a dated claim, not evidence.
 
 ### 0.2 What changed on `main` between the two anchors
 
@@ -596,11 +597,22 @@ product authority.
 
 ## 16. Self-check
 
-`pnpm control:pointer-audit` re-resolves every `VERIFIED_POINTER` declared in this register
-and in `P0_IP_PROVENANCE_EVIDENCE_REGISTER.md`, and exits non-zero on drift. A PASS proves
-only that the declared paths still carry the declared blobs. It is not rights review, not
-clearance and not release authority; every gate above stays `OPEN` regardless of its result.
+`pnpm control:pointer-audit` checks every declared pointer in this register and in
+`P0_IP_PROVENANCE_EVIDENCE_REGISTER.md` in two separate ways, because they fail for different
+reasons:
 
-On a drift failure: re-verify the underlying fact first, then update the row **and** its
-snapshot boundary. Do not overwrite a hash to make the audit pass — that is the failure §0.1
-documents.
+- **Integrity — blocking, in CI.** Each pointer must resolve at the snapshot boundary this
+  register declares. A pointer that is false at its own snapshot is the §0.1 defect, and the
+  register is wrong whatever the tree looks like today.
+- **Staleness — reported, not blocking.** Pointed files that changed between the snapshot and
+  `HEAD` are listed. This register describes a dated snapshot, and files such as
+  `apps/web/package.json` change with every dependency bump; failing CI on that would teach
+  people to overwrite hashes to go green. A stale row means a re-verification is due before
+  anyone relies on it. `--strict` makes staleness blocking for that review.
+
+A PASS is not rights review, not clearance and not release authority; every gate above stays
+`OPEN` regardless of its result.
+
+To re-anchor: re-verify each underlying fact first, then update the rows **and** the snapshot
+boundary together. Never overwrite a hash alone to make the audit pass — that is the failure
+§0.1 documents.

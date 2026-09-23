@@ -2,29 +2,30 @@
  * Control-register pointer audit — static, read-only.
  *
  * A PASS is NOT legal review, chain-of-title, rights clearance or release
- * authority. It proves one narrow thing: that the `VERIFIED_POINTER` rows in the
- * P0 control registers still describe the tree.
+ * authority. It proves two narrow things about the P0 control registers, and
+ * keeps them separate because they fail for different reasons.
  *
- * Why this exists, in two parts.
+ * 1. INTEGRITY (blocking). Every declared pointer must resolve at the snapshot
+ *    boundary the register itself declares. This is the #117 defect: seven of
+ *    twelve 40-character blob identifiers in that draft resolved to no Git
+ *    object in 2,370 commits — each a correctly observed short hash expanded by
+ *    hand into a full identifier nobody read back. A register's evidence is a
+ *    claim about its snapshot; if it is false *at its snapshot*, the register
+ *    is wrong, whatever the tree looks like today.
  *
- * #114's register spent weeks stranded in an unmerged PR anchored to a
- * long-superseded `main`. Its pointers happened to survive, but nothing would
- * have said so. A pointer nobody re-checks is not verified — it is a claim with
- * a date on it.
+ * 2. STALENESS (report only). Which pointed files changed between the snapshot
+ *    and HEAD. That is not an error — the register describes a dated snapshot,
+ *    and `apps/web/package.json` changes with every dependency bump. Failing CI
+ *    on it would teach people to overwrite hashes to go green, which is the
+ *    failure this script exists to prevent. It tells a reviewer a
+ *    re-verification is due; `--strict` makes it blocking for that review.
  *
- * #116's register was worse, and is the reason this script now covers both.
- * Seven of the twelve 40-character blob identifiers in PR #117 resolved to no
- * Git object anywhere in 2,370 commits. Each shared four to eight leading hex
- * characters with the blob that really sat at that path at that commit, then
- * diverged: a correctly observed *short* hash expanded by hand into a full
- * identifier that was never read back. The observations were real; the
- * identifiers recording them were not, and the document gave no way to tell.
- * Nothing in a prose register makes that visible. A resolver does.
- *
- * This asserts nothing about rights, creators, ownership or licences. Every gate
+ * It asserts nothing about rights, creators, ownership or licences. Every gate
  * in both registers stays OPEN regardless of the result. Owners: #114, #116.
  *
- * No network. No writes.
+ * Reads the working tree and Git objects; fetches a missing snapshot commit
+ * from `origin` by SHA when run in a shallow checkout. No other network use.
+ * No writes to the tree.
  */
 
 import { execFileSync } from 'node:child_process';
@@ -46,13 +47,38 @@ export const REGISTERS = [
   },
 ];
 
-function blobOf(path) {
+function git(args) {
+  return execFileSync('git', args, { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+}
+
+function blobAt(rev, path) {
   try {
-    return execFileSync('git', ['rev-parse', `HEAD:${path}`], { cwd: ROOT })
-      .toString().trim();
+    return git(['rev-parse', `${rev}:${path}`]);
   } catch {
     return null;
   }
+}
+
+/** CI checks out depth 1; the snapshot commit may need fetching by SHA. */
+export function ensureCommit(sha) {
+  try {
+    git(['cat-file', '-e', `${sha}^{commit}`]);
+    return true;
+  } catch {
+    try {
+      git(['fetch', '--no-tags', '--depth=1', 'origin', sha]);
+      git(['cat-file', '-e', `${sha}^{commit}`]);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+
+/** `Snapshot boundary: \`main@<40 hex>\`` — the register's own declaration. */
+export function declaredSnapshot(source) {
+  const m = source.match(/^Snapshot boundary:\s*`main@([0-9a-f]{40})`/m);
+  return m ? m[1] : null;
 }
 
 /**
@@ -70,40 +96,55 @@ export function declaredPointers(idPattern, source) {
   return [...source.matchAll(row)].map(([, id, path, blob]) => ({ id, path, blob }));
 }
 
-export function auditRegister(register) {
-  const source = readFileSync(ROOT + register.path, 'utf8');
+export function auditRegister(register, source = readFileSync(ROOT + register.path, 'utf8')) {
+  const snapshot = declaredSnapshot(source);
   const pointers = declaredPointers(register.idPattern, source);
-  const drifted = [];
+  const snapshotAvailable = snapshot !== null && ensureCommit(snapshot);
+  const broken = [];
+  const stale = [];
   for (const p of pointers) {
-    const actual = blobOf(p.path);
-    if (actual !== p.blob) drifted.push({ ...p, actual });
+    const atSnapshot = snapshotAvailable ? blobAt(snapshot, p.path) : null;
+    if (atSnapshot !== p.blob) broken.push({ ...p, atSnapshot });
+    else {
+      const atHead = blobAt('HEAD', p.path);
+      if (atHead !== p.blob) stale.push({ ...p, atHead });
+    }
   }
-  return { ...register, pointers, drifted };
+  return { ...register, snapshot, snapshotAvailable, pointers, broken, stale };
 }
 
 export function audit() {
-  return REGISTERS.map(auditRegister);
+  return REGISTERS.map((r) => auditRegister(r));
 }
 
 const invokedDirectly =
   process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop());
 if (invokedDirectly) {
-  const results = audit();
-  let failed = 0;
-  for (const r of results) {
+  const strict = process.argv.includes('--strict');
+  let failed = false;
+  for (const r of audit()) {
     console.log(
-      `${r.path}: ${r.pointers.length} declared pointers, ${r.drifted.length} drifted  (owner ${r.owner})`,
+      `${r.path}  (owner ${r.owner})\n  snapshot ${r.snapshot ?? '(none declared)'}\n` +
+        `  ${r.pointers.length} declared pointers, ${r.broken.length} broken at snapshot, ` +
+        `${r.stale.length} changed since snapshot`,
     );
-    for (const d of r.drifted) {
-      failed += 1;
-      console.error(`  ${d.id} ${d.path}\n    declared ${d.blob}\n    actual   ${d.actual ?? '(path absent)'}`);
+    if (!r.snapshot || !r.snapshotAvailable) {
+      failed = true;
+      console.error(`  FAIL: snapshot boundary ${r.snapshot ? 'cannot be resolved' : 'is not declared'}`);
+    }
+    for (const b of r.broken) {
+      failed = true;
+      console.error(`  BROKEN ${b.id} ${b.path}\n    declared    ${b.blob}\n    at snapshot ${b.atSnapshot ?? '(path absent)'}`);
+    }
+    for (const s of r.stale) {
+      if (strict) failed = true;
+      console.log(`  stale  ${s.id} ${s.path} — changed since snapshot; re-verify before relying on this row`);
     }
   }
-  if (failed > 0) {
+  if (failed) {
     console.error(
-      '\nFAIL: these rows are stated as VERIFIED_POINTER. Re-verify the underlying fact, then ' +
-        'update the row and its snapshot boundary. Do not overwrite a hash to make this pass — ' +
-        'that is the defect recorded in §0.1 of the third-party rights register. See #114, #116.',
+      '\nFAIL. A BROKEN row states something false about its own snapshot: correct the observation, ' +
+        'never the hash alone. Stale rows fail only under --strict. See #114, #116.',
     );
     process.exit(1);
   }
