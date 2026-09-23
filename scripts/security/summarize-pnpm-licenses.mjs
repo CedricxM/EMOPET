@@ -187,6 +187,20 @@ export function buildLicenseEvidence({ allReport, productionReport, metadata }) 
   };
 }
 
+export function markdownCell(value) {
+  const output = [];
+  for (const char of String(value)) {
+    if (char === '&') output.push('&amp;');
+    else if (char === '<') output.push('&lt;');
+    else if (char === '>') output.push('&gt;');
+    else if (char === '|') output.push('&#124;');
+    else if (char === '\r' || char === '\n') output.push(' ');
+    else if (char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127) output.push(' ');
+    else output.push(char);
+  }
+  return output.join('').trim();
+}
+
 export function renderMarkdown(evidence) {
   const lines = [
     '# EMOPET exact-head dependency licence evidence',
