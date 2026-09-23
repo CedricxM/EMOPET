@@ -199,11 +199,24 @@ These controls are documentary/operational and do not require a Phase 0 architec
 - [x] designate the Founder / Product Authority as interim accountable Incident Commander role;
 - [ ] nominate a backup Incident Commander / evidence custodian;
 - [ ] record privacy/DPO and legal/regulatory escalation contacts when appointed;
-- [ ] verify the live ENISA CRA Single Reporting Platform URL/process when published/operational;
-- [ ] perform one tabletop exercise from T+0 through mock T+72h;
+- [x] verify the **public** ENISA CRA Single Reporting Platform operational status and current registration/submission guidance — rechecked 2026-09-23; EMOPET Assigned Representative access/MFA/continuity remains separately OPEN under #239;
+- [ ] perform one **human/operational** tabletop exercise from T+0 through mock T+72h; `CRA_TABLETOP_DRY_RUN_2026-09-23.md` is a repository dry-run and does not close this item;
 - [ ] prove that a release can be mapped to firmware/software versions, commit, artifact hashes and SBOM;
 - [ ] verify evidence-retention location and access controls;
 - [ ] confirm supplier escalation contacts for MAT/TAG manufacturing and critical software/cloud dependencies.
+
+## Current public SRP status — rechecked 23 September 2026
+
+ENISA and European Commission public guidance now state that the CRA Single Reporting Platform is operational from 11 September 2026. Current ENISA Assigned Representative guidance requires EU Login with MFA and states that validation of the manufacturer association is not a prerequisite for submitting a notification.
+
+Public process verification does **not** establish that EMOPET has a configured or tested Primary/Secondary Assigned Representative. Human access and continuity evidence remains owned by #239.
+
+Official references:
+
+- https://www.enisa.europa.eu/topics/product-security/vulnerability-services/eu-incident-response-and-cyber-crisis-management/single-reporting-platform-srp
+- https://www.enisa.europa.eu/topics/product-security/single-reporting-platform-srp/cra-srp-guidance-ar-user-registration
+- https://www.enisa.europa.eu/topics/product-security/single-reporting-platform-srp/cra-srp-guidance-ar-notification-submission-and-update
+- https://digital-strategy.ec.europa.eu/en/policies/cra-reporting
 
 ## Contacts registry
 

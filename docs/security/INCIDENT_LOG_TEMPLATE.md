@@ -13,6 +13,12 @@ Status: `OPEN | CONTAINED | REMEDIATING | MONITORING | CLOSED`
 - Evidence Custodian:
 - Privacy/DPO reviewer:
 - Legal/regulatory reviewer:
+- CRA Primary Assigned Representative:
+- Primary AR EU Login + MFA evidence reference:
+- CRA Secondary/backup Assigned Representative:
+- Secondary AR EU Login + MFA evidence reference:
+- Manufacturer association validation status: `UNVERIFIED | PENDING | VERIFIED`
+- Off-SRP reporting package location/reference:
 
 ## Timeline
 
@@ -70,6 +76,9 @@ Status: `OPEN | CONTAINED | REMEDIATING | MONITORING | CLOSED`
 - Submitted information snapshot/reference:
 - Submitter:
 - Approver:
+- SRP access status at submission checkpoint: `UNVERIFIED | AVAILABLE | UNAVAILABLE`
+- Assigned Representative used:
+- If unavailable/pending, escalation/fallback reference (do not share another person's credentials/MFA):
 
 ### CRA 72-hour main notification
 
