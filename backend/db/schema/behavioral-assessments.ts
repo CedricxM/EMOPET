@@ -172,7 +172,8 @@ export const behavioralEliMappingAuthorities = pgTable('behavioral_eli_mapping_a
   maxPriorValue: real('max_prior_value').notNull(),
   protocolReference: varchar('protocol_reference', { length: 255 }).notNull(),
   reviewAuthority: varchar('review_authority', { length: 255 }),
-  status: varchar('status', { length: 20 }).notNull().default('research_only'),
+  validationStatus: varchar('validation_status', { length: 30 }).notNull().default('unvalidated'),
+  status: varchar('status', { length: 20 }).notNull().default('draft'),
 
   rationale: jsonb('rationale').default({}),
   approvedAt: timestamp('approved_at', { withTimezone: true }),
@@ -185,8 +186,12 @@ export const behavioralEliMappingAuthorities = pgTable('behavioral_eli_mapping_a
   index('idx_behavioral_eli_mapping_source').on(table.sourceInstrumentCode, table.sourceFactorKey),
   check('chk_behavioral_eli_mapping_bounds', sql`${table.minPriorValue} <= ${table.maxPriorValue}`),
   check(
+    'chk_behavioral_eli_mapping_validation_status',
+    sql`${table.validationStatus} IN ('unvalidated','research_only','validated_for_mapping')`,
+  ),
+  check(
     'chk_behavioral_eli_mapping_status',
-    sql`${table.status} IN ('research_only','approved','retired','rejected')`,
+    sql`${table.status} IN ('draft','approved','retired','rejected')`,
   ),
   check(
     'chk_behavioral_eli_mapping_retirement',
@@ -198,7 +203,8 @@ export const behavioralEliMappingAuthorities = pgTable('behavioral_eli_mapping_a
   check(
     'chk_behavioral_eli_mapping_approved_evidence',
     sql`${table.status} <> 'approved' OR (
-      ${table.reviewAuthority} IS NOT NULL
+      ${table.validationStatus} = 'validated_for_mapping'
+      AND ${table.reviewAuthority} IS NOT NULL
       AND ${table.approvedAt} IS NOT NULL
       AND ${table.activatedAt} IS NOT NULL
       AND length(trim(${table.protocolReference})) > 0
