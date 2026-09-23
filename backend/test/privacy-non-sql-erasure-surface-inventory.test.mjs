@@ -81,6 +81,8 @@ test('provider-held-copy inventory distinguishes active runtime integrations fro
   const mapbox = await text('apps/web/components/bretagne-map/MapboxMap.tsx');
   const mapboxRights = await text('apps/web/lib/mapbox-rights.ts');
   const mapboxAuthority = await text('apps/web/lib/mapbox-service-authority.ts');
+  const overpassRights = await text('apps/web/lib/overpass-rights.ts');
+  const osmSpots = await text('apps/web/lib/osm-spots.ts');
   const stack = await text('docs/STACK_GAPS.md');
   const securityDiscovery = await text(
     'docs/security/PRIV_SECURITY_AUDIT_SINK_DISCOVERY_2026-09-21.md',
@@ -94,6 +96,8 @@ test('provider-held-copy inventory distinguishes active runtime integrations fro
   assert.match(mapboxRights, /NEXT_PUBLIC_MAPBOX_TOKEN/);
   assert.match(mapboxRights, /NEXT_PUBLIC_EMOPET_MAPBOX_RIGHTS_GATE/);
   assert.match(mapboxAuthority, /disposition:\s*'HOLD'/);
+  assert.match(overpassRights, /disposition:\s*'HOLD'/);
+  assert.match(osmSpots, /getControlledOverpassEndpoint/);
   assert.match(stack, /Paiement.*schéma freemium en DB, rien de branché/s);
   assert.match(securityDiscovery, /Sentry.*PLACEHOLDER_ONLY/s);
   assert.match(securityDiscovery, /PostHog.*PLACEHOLDER_ONLY/s);
@@ -106,6 +110,10 @@ test('provider-held-copy inventory distinguishes active runtime integrations fro
   assert.equal(
     providers.Mapbox.repositoryStatus,
     'REVIEWED_AUTHORITY_GATED_CLIENT_INTEGRATION_CURRENTLY_HOLD',
+  );
+  assert.equal(
+    providers.OpenStreetMap_Overpass.repositoryStatus,
+    'REVIEWED_AUTHORITY_GATED_RUNTIME_INTEGRATION_CURRENTLY_HOLD',
   );
   assert.equal(
     providers.Stripe.repositoryStatus,
