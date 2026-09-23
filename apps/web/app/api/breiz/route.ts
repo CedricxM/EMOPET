@@ -2,11 +2,13 @@
  * Route serveur de l'assistant régional (Breiz).
  *
  * Assemble le prompt système via le MOTEUR régional (commun + profil + savoir
- * filtré) et appelle l'API Anthropic SI `ANTHROPIC_API_KEY` est défini. Sinon,
- * renvoie un signal de repli : le client utilise la base RAG locale (R4).
+ * filtré). L'API Anthropic n'est appelée que si la clé, le modèle, le gate
+ * opérateur exact et l'autorité fournisseur/processor revue sont tous présents.
+ * Sinon, le client utilise la base RAG locale (R4).
  *
- * La clé reste côté serveur (jamais exposée au client). Prompt caching activé
- * sur le prompt système (cache_control ephemeral).
+ * La clé reste côté serveur (jamais exposée au client). La présence d'une clé
+ * ou d'un modèle ne constitue pas une autorité d'egress. Prompt caching reste
+ * limité au prompt système via cache_control ephemeral.
  */
 
 import { NextResponse } from 'next/server';
