@@ -25,6 +25,7 @@ test('active behavioural priors require exact approved mapping authority', { ski
   const wrongVersionAuthorityId = randomUUID();
   const wrongScoringAuthorityId = randomUUID();
   const wrongInstrumentAuthorityId = randomUUID();
+  const wrongProvenanceAuthorityId = randomUUID();
   const activePriorId = randomUUID();
   const email = `eli-behav-${randomUUID()}@example.test`;
 
@@ -44,19 +45,19 @@ test('active behavioural priors require exact approved mapping authority', { ski
     `;
     await sql`
       INSERT INTO behavioral_factor_scores (
-        id, assessment_id, factor_key, score, scoring_method, scoring_version, eligible_for_eli_prior
-      ) VALUES (${factorId}, ${assessmentId}, 'factor-a', 2.5, 'qa-method', 'score-v1', FALSE)
+        id, assessment_id, factor_key, score, scoring_method, scoring_version, eligible_for_eli_prior, provenance
+      ) VALUES (${factorId}, ${assessmentId}, 'factor-a', 2.5, 'qa-method', 'score-v1', FALSE, '{"source_revision":"qa-rev-1"}'::jsonb)
     `;
 
     await sql`
       INSERT INTO behavioral_eli_mapping_authorities (
         id, authority_key, authority_version, source_instrument_code, source_instrument_version,
         source_scoring_version, source_factor_key, target_prior_key, algorithm_version,
-        min_prior_value, max_prior_value, protocol_reference, review_authority, validation_status, status, approved_at, activated_at
+        min_prior_value, max_prior_value, protocol_reference, required_factor_provenance_keys, review_authority, validation_status, status, approved_at, activated_at
       ) VALUES (
         ${approvedAuthorityId}, 'qa-approved', '1', 'qa-instrument', 'qa-v1',
         'score-v1', 'factor-a', 'eli-prior-a', 'map-v1',
-        -1, 1, 'protocol://qa-approved', 'QA SCIENCE REVIEW', 'validated_for_mapping', 'approved', NOW(), NOW()
+        -1, 1, 'protocol://qa-approved', '["source_revision"]'::jsonb, 'QA SCIENCE REVIEW', 'validated_for_mapping', 'approved', NOW(), NOW()
       )
     `;
 
@@ -76,11 +77,11 @@ test('active behavioural priors require exact approved mapping authority', { ski
       INSERT INTO behavioral_eli_mapping_authorities (
         id, authority_key, authority_version, source_instrument_code, source_instrument_version,
         source_scoring_version, source_factor_key, target_prior_key, algorithm_version,
-        min_prior_value, max_prior_value, protocol_reference, review_authority, validation_status, status, approved_at, activated_at
+        min_prior_value, max_prior_value, protocol_reference, required_factor_provenance_keys, review_authority, validation_status, status, approved_at, activated_at
       ) VALUES (
         ${wrongVersionAuthorityId}, 'qa-wrong-version', '1', 'qa-instrument', 'qa-v2',
         'score-v1', 'factor-a', 'eli-prior-a', 'map-v1',
-        -1, 1, 'protocol://qa-wrong', 'QA SCIENCE REVIEW', 'validated_for_mapping', 'approved', NOW(), NOW()
+        -1, 1, 'protocol://qa-wrong', '["source_revision"]'::jsonb, 'QA SCIENCE REVIEW', 'validated_for_mapping', 'approved', NOW(), NOW()
       )
     `;
 
@@ -88,11 +89,11 @@ test('active behavioural priors require exact approved mapping authority', { ski
       INSERT INTO behavioral_eli_mapping_authorities (
         id, authority_key, authority_version, source_instrument_code, source_instrument_version,
         source_scoring_version, source_factor_key, target_prior_key, algorithm_version,
-        min_prior_value, max_prior_value, protocol_reference, review_authority, validation_status, status, approved_at, activated_at
+        min_prior_value, max_prior_value, protocol_reference, required_factor_provenance_keys, review_authority, validation_status, status, approved_at, activated_at
       ) VALUES (
         ${wrongScoringAuthorityId}, 'qa-wrong-scoring', '1', 'qa-instrument', 'qa-v1',
         'score-v2', 'factor-a', 'eli-prior-a', 'map-v1',
-        -1, 1, 'protocol://qa-wrong-scoring', 'QA SCIENCE REVIEW', 'validated_for_mapping', 'approved', NOW(), NOW()
+        -1, 1, 'protocol://qa-wrong-scoring', '["source_revision"]'::jsonb, 'QA SCIENCE REVIEW', 'validated_for_mapping', 'approved', NOW(), NOW()
       )
     `;
 
@@ -100,11 +101,25 @@ test('active behavioural priors require exact approved mapping authority', { ski
       INSERT INTO behavioral_eli_mapping_authorities (
         id, authority_key, authority_version, source_instrument_code, source_instrument_version,
         source_scoring_version, source_factor_key, target_prior_key, algorithm_version,
-        min_prior_value, max_prior_value, protocol_reference, review_authority, validation_status, status, approved_at, activated_at
+        min_prior_value, max_prior_value, protocol_reference, required_factor_provenance_keys, review_authority, validation_status, status, approved_at, activated_at
       ) VALUES (
         ${wrongInstrumentAuthorityId}, 'qa-wrong-instrument', '1', 'qa-other-instrument', 'qa-v1',
         'score-v1', 'factor-a', 'eli-prior-a', 'map-v1',
-        -1, 1, 'protocol://qa-wrong-instrument', 'QA SCIENCE REVIEW', 'validated_for_mapping', 'approved', NOW(), NOW()
+        -1, 1, 'protocol://qa-wrong-instrument', '["source_revision"]'::jsonb, 'QA SCIENCE REVIEW', 'validated_for_mapping', 'approved', NOW(), NOW()
+      )
+    `;
+
+    await sql`
+      INSERT INTO behavioral_eli_mapping_authorities (
+        id, authority_key, authority_version, source_instrument_code, source_instrument_version,
+        source_scoring_version, source_factor_key, target_prior_key, algorithm_version,
+        min_prior_value, max_prior_value, protocol_reference, required_factor_provenance_keys,
+        review_authority, validation_status, status, approved_at, activated_at
+      ) VALUES (
+        ${wrongProvenanceAuthorityId}, 'qa-missing-provenance', '1', 'qa-instrument', 'qa-v1',
+        'score-v1', 'factor-a', 'eli-prior-a', 'map-v1',
+        -1, 1, 'protocol://qa-missing-provenance', '["source_revision","missing_key"]'::jsonb,
+        'QA SCIENCE REVIEW', 'validated_for_mapping', 'approved', NOW(), NOW()
       )
     `;
 
@@ -147,6 +162,11 @@ test('active behavioural priors require exact approved mapping authority', { ski
 
     await assert.rejects(
       () => insertActive(randomUUID(), wrongInstrumentAuthorityId),
+      /chk_eli_behavioral_prior_active_authority|matching approved mapping authority/i,
+    );
+
+    await assert.rejects(
+      () => insertActive(randomUUID(), wrongProvenanceAuthorityId),
       /chk_eli_behavioral_prior_active_authority|matching approved mapping authority/i,
     );
 
@@ -195,7 +215,7 @@ test('active behavioural priors require exact approved mapping authority', { ski
     );
   } finally {
     await sql`DELETE FROM eli_behavioral_priors WHERE assessment_id = ${assessmentId}`;
-    await sql`DELETE FROM behavioral_eli_mapping_authorities WHERE id IN (${approvedAuthorityId}, ${researchAuthorityId}, ${wrongVersionAuthorityId}, ${wrongScoringAuthorityId}, ${wrongInstrumentAuthorityId})`;
+    await sql`DELETE FROM behavioral_eli_mapping_authorities WHERE id IN (${approvedAuthorityId}, ${researchAuthorityId}, ${wrongVersionAuthorityId}, ${wrongScoringAuthorityId}, ${wrongInstrumentAuthorityId}, ${wrongProvenanceAuthorityId})`;
     await sql`DELETE FROM behavioral_factor_scores WHERE assessment_id = ${assessmentId}`;
     await sql`DELETE FROM behavioral_assessments WHERE id = ${assessmentId}`;
     await sql`DELETE FROM dogs WHERE id = ${dogId}`;
