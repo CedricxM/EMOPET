@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS behavioral_eli_mapping_authorities (
   min_prior_value REAL NOT NULL,
   max_prior_value REAL NOT NULL,
   protocol_reference VARCHAR(255) NOT NULL,
+  required_factor_provenance_keys JSONB NOT NULL DEFAULT '[]'::jsonb,
   review_authority VARCHAR(255),
   validation_status VARCHAR(30) NOT NULL DEFAULT 'unvalidated',
   status VARCHAR(20) NOT NULL DEFAULT 'draft',
@@ -29,6 +30,7 @@ CREATE TABLE IF NOT EXISTS behavioral_eli_mapping_authorities (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT chk_behavioral_eli_mapping_bounds CHECK (min_prior_value <= max_prior_value),
+  CONSTRAINT chk_behavioral_eli_mapping_required_provenance CHECK (jsonb_typeof(required_factor_provenance_keys) = 'array'),
   CONSTRAINT chk_behavioral_eli_mapping_validation_status CHECK (validation_status IN ('unvalidated','research_only','validated_for_mapping')),
   CONSTRAINT chk_behavioral_eli_mapping_status CHECK (status IN ('draft','approved','retired','rejected')),
   CONSTRAINT chk_behavioral_eli_mapping_retirement CHECK (
@@ -37,7 +39,7 @@ CREATE TABLE IF NOT EXISTS behavioral_eli_mapping_authorities (
   ),
   CONSTRAINT chk_behavioral_eli_mapping_approved_evidence CHECK (
     status <> 'approved'
-    OR (validation_status = 'validated_for_mapping' AND review_authority IS NOT NULL AND approved_at IS NOT NULL AND activated_at IS NOT NULL AND length(trim(protocol_reference)) > 0)
+    OR (validation_status = 'validated_for_mapping' AND jsonb_array_length(required_factor_provenance_keys) > 0 AND review_authority IS NOT NULL AND approved_at IS NOT NULL AND activated_at IS NOT NULL AND length(trim(protocol_reference)) > 0)
   )
 );
 
@@ -104,6 +106,13 @@ BEGIN
       AND ma.source_factor_key = bfs.factor_key
       AND ma.target_prior_key = NEW.target_prior_key
       AND ma.algorithm_version = NEW.algorithm_version
+      AND bfs.provenance IS NOT NULL
+      AND jsonb_typeof(bfs.provenance) = 'object'
+      AND NOT EXISTS (
+        SELECT 1
+        FROM jsonb_array_elements_text(ma.required_factor_provenance_keys) AS required(key)
+        WHERE NOT (bfs.provenance ? required.key)
+      )
       AND NEW.prior_value BETWEEN ma.min_prior_value AND ma.max_prior_value
   ) THEN
     RAISE EXCEPTION USING
@@ -142,6 +151,7 @@ BEGIN
     OR NEW.min_prior_value IS DISTINCT FROM OLD.min_prior_value
     OR NEW.max_prior_value IS DISTINCT FROM OLD.max_prior_value
     OR NEW.protocol_reference IS DISTINCT FROM OLD.protocol_reference
+    OR NEW.required_factor_provenance_keys IS DISTINCT FROM OLD.required_factor_provenance_keys
     OR NEW.review_authority IS DISTINCT FROM OLD.review_authority
     OR NEW.validation_status IS DISTINCT FROM OLD.validation_status
     OR NEW.rationale IS DISTINCT FROM OLD.rationale
