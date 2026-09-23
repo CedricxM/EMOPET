@@ -73,12 +73,15 @@ test('evidence remains OPEN even when metadata is complete', () => {
     },
     metadata: {
       generatedAt: '2026-09-23T00:00:00.000Z',
-      candidateSha: '0123456789abcdef0123456789abcdef01234567',
+      candidateHeadSha: '0123456789abcdef0123456789abcdef01234567',
+      evaluatedCheckoutSha: 'fedcba9876543210fedcba9876543210fedcba98',
       packageManager: 'pnpm@10.33.0',
       sourceArtifacts: [],
     },
   });
 
+  assert.equal(evidence.candidateHeadSha, '0123456789abcdef0123456789abcdef01234567');
+  assert.equal(evidence.evaluatedCheckoutSha, 'fedcba9876543210fedcba9876543210fedcba98');
   assert.equal(evidence.claimsLegalClearance, false);
   assert.equal(evidence.claimsDistributionCompatibility, false);
   assert.equal(evidence.claimsNoticeCompleteness, false);
