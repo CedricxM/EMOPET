@@ -1,6 +1,7 @@
 # EMOPET — Scientific Framework Register
 
 **Control date:** 2026-09-07  
+**Latest reconciliation:** 2026-09-23  
 **Status:** CONTROLLED SCIENTIFIC-MEMORY INDEX
 
 ## Purpose
@@ -44,7 +45,29 @@ A scientific exchange is not automatically a validation, endorsement or partners
 | `Controlled Research Brief — ELI Co-Pilot Training Proposal.pdf` transmission | `NOT_PROVEN` | Exact connected-Gmail filename search returned no result on 2026-09-07 | May remain an EMOPET internal/proposed framework, but do not call it sent for Serpell review without evidence | Attachment register + Serpell record |
 | ELI scientific validation by Prof. Serpell | `NOT_PROVEN` | No controlled evidence establishing validation | Must not be claimed | Serpell communications record |
 | UPenn institutional partnership / endorsement | `NOT_PROVEN` | No controlled institutional agreement | Must not be claimed | Serpell communications record |
+| French C-BARQ factorial validation | `PUBLISHED / PEER-REVIEWED EXTERNAL EVIDENCE` | Besegher et al. (2025), *Applied Animal Behaviour Science* 292, 106816; DOI `10.1016/j.applanim.2025.106816` | Treat French-language psychometric evidence as a new evidence layer; do not convert it into product licence, Penn endorsement or ELI validation | `docs/science/EMOPET_CBARQ_UPENN_SCIENTIFIC_AUTHORITY_2026-09-23.md` |
+| French-study 63-item EFA retention result | `STUDY RESULT / NOT AN EMOPET SHORT FORM` | Besegher et al. (2025) | Do not implement a 63-item product form from the paper; any shortened form requires instrument-owner/licensing and independent validation authority | canonical 2026-09-23 scientific authority |
+| C-BARQ as ELI external criterion | `EMOPET RESEARCH DIRECTION / NOT PERFORMED` | EMOPET reconciliation after Besegher et al. (2025) | May inform prospective validation design; must not be treated as ground truth or an already validated ELI mapping | canonical 2026-09-23 scientific authority; #551; #554 |
+| French C-BARQ commercial/digital licence | `LICENSING_REQUIRED / NOT_ESTABLISHED` | Article use permission is study-specific evidence, not EMOPET permission | Product integration remains blocked pending explicit Penn/instrument-owner terms | canonical 2026-09-23 scientific authority; #553 |
 
+## 2026-09-23 evidence-layer reconciliation
+
+The 2025 French factorial-validation paper is a **new external evidence layer**. It does not
+retroactively change what Professor Serpell said in July 2026, and it does not change the
+historical fact that EMOPET independently chose a conservative complete-instrument direction
+after receiving his feedback.
+
+Keep these layers separate:
+
+1. Flint et al. / earlier literature;
+2. Prof. Serpell's July 2026 feedback;
+3. EMOPET's subsequent complete-instrument project decision;
+4. Besegher et al. 2025 French factorial-validation evidence;
+5. Penn licensing/instrument permission;
+6. any future EMOPET × Penn validation protocol/results.
+
+The current mandatory scientific authority is:
+`docs/science/EMOPET_CBARQ_UPENN_SCIENTIFIC_AUTHORITY_2026-09-23.md`.
 ## Exact Serpell attribution currently controlled
 
 The July 2026 feedback is materially narrower and more useful than the shorthand previously recorded.
