@@ -153,7 +153,8 @@ export function buildLicenseEvidence({ allReport, productionReport, metadata }) 
   return {
     schemaVersion: 'emopet-pnpm-license-evidence-v1',
     generatedAt: metadata.generatedAt,
-    candidateSha: metadata.candidateSha,
+    candidateHeadSha: metadata.candidateHeadSha,
+    evaluatedCheckoutSha: metadata.evaluatedCheckoutSha,
     packageManager: metadata.packageManager,
     sourceCommand: {
       all: 'pnpm licenses list --json --long',
@@ -179,7 +180,8 @@ export function renderMarkdown(evidence) {
   const lines = [
     '# EMOPET exact-head dependency licence evidence',
     '',
-    'Candidate SHA: ' + evidence.candidateSha,
+    'Candidate head SHA: ' + evidence.candidateHeadSha,
+    'Evaluated checkout SHA: ' + evidence.evaluatedCheckoutSha,
     'Generated: ' + evidence.generatedAt,
     'Package manager: ' + evidence.packageManager,
     '',
@@ -234,7 +236,8 @@ function main() {
     productionReport: readJson(productionPath),
     metadata: {
       generatedAt: new Date().toISOString(),
-      candidateSha: process.env.GITHUB_SHA ?? process.env.CODEQL_EXPECTED_SHA ?? 'LOCAL_UNPINNED',
+      candidateHeadSha: process.env.EMOPET_CANDIDATE_SHA ?? process.env.GITHUB_SHA ?? 'LOCAL_UNPINNED',
+      evaluatedCheckoutSha: process.env.GITHUB_SHA ?? 'LOCAL_UNPINNED',
       packageManager: packageJson.packageManager ?? 'UNKNOWN',
       sourceArtifacts: [
         { file: basename(allPath), sha256: sha256(allPath), scope: 'ALL_INSTALLED' },
@@ -250,7 +253,8 @@ function main() {
     JSON.stringify(
       {
         disposition: evidence.disposition,
-        candidateSha: evidence.candidateSha,
+        candidateHeadSha: evidence.candidateHeadSha,
+        evaluatedCheckoutSha: evidence.evaluatedCheckoutSha,
         allPackages: evidence.allDependencies.packageCount,
         productionPackages: evidence.productionDependencies.packageCount,
         outputJson,
