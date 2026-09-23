@@ -20,7 +20,8 @@ CREATE TABLE IF NOT EXISTS behavioral_eli_mapping_authorities (
   max_prior_value REAL NOT NULL,
   protocol_reference VARCHAR(255) NOT NULL,
   review_authority VARCHAR(255),
-  status VARCHAR(20) NOT NULL DEFAULT 'research_only',
+  validation_status VARCHAR(30) NOT NULL DEFAULT 'unvalidated',
+  status VARCHAR(20) NOT NULL DEFAULT 'draft',
   rationale JSONB DEFAULT '{}'::jsonb,
   approved_at TIMESTAMPTZ,
   activated_at TIMESTAMPTZ,
@@ -28,14 +29,15 @@ CREATE TABLE IF NOT EXISTS behavioral_eli_mapping_authorities (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT chk_behavioral_eli_mapping_bounds CHECK (min_prior_value <= max_prior_value),
-  CONSTRAINT chk_behavioral_eli_mapping_status CHECK (status IN ('research_only','approved','retired','rejected')),
+  CONSTRAINT chk_behavioral_eli_mapping_validation_status CHECK (validation_status IN ('unvalidated','research_only','validated_for_mapping')),
+  CONSTRAINT chk_behavioral_eli_mapping_status CHECK (status IN ('draft','approved','retired','rejected')),
   CONSTRAINT chk_behavioral_eli_mapping_retirement CHECK (
     (status = 'retired' AND retired_at IS NOT NULL)
     OR (status <> 'retired' AND retired_at IS NULL)
   ),
   CONSTRAINT chk_behavioral_eli_mapping_approved_evidence CHECK (
     status <> 'approved'
-    OR (review_authority IS NOT NULL AND approved_at IS NOT NULL AND activated_at IS NOT NULL AND length(trim(protocol_reference)) > 0)
+    OR (validation_status = 'validated_for_mapping' AND review_authority IS NOT NULL AND approved_at IS NOT NULL AND activated_at IS NOT NULL AND length(trim(protocol_reference)) > 0)
   )
 );
 
@@ -92,6 +94,7 @@ BEGIN
       AND ba.instrument_version IS NOT NULL
       AND ba.scientific_use_status = 'scoring_allowed'
       AND ma.status = 'approved'
+      AND ma.validation_status = 'validated_for_mapping'
       AND ma.activated_at IS NOT NULL
       AND ma.activated_at <= NOW()
       AND ma.retired_at IS NULL
@@ -140,6 +143,7 @@ BEGIN
     OR NEW.max_prior_value IS DISTINCT FROM OLD.max_prior_value
     OR NEW.protocol_reference IS DISTINCT FROM OLD.protocol_reference
     OR NEW.review_authority IS DISTINCT FROM OLD.review_authority
+    OR NEW.validation_status IS DISTINCT FROM OLD.validation_status
     OR NEW.rationale IS DISTINCT FROM OLD.rationale
     OR NEW.approved_at IS DISTINCT FROM OLD.approved_at
     OR NEW.activated_at IS DISTINCT FROM OLD.activated_at
@@ -158,6 +162,35 @@ CREATE TRIGGER trg_behavioral_mapping_approved_immutable
 BEFORE UPDATE ON behavioral_eli_mapping_authorities
 FOR EACH ROW
 EXECUTE FUNCTION prevent_approved_behavioral_mapping_rewrite();
+
+CREATE OR REPLACE FUNCTION enforce_behavioral_mapping_lifecycle()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $
+BEGIN
+  IF OLD.status = 'approved' AND NEW.status NOT IN ('approved','retired','rejected') THEN
+    RAISE EXCEPTION USING
+      ERRCODE = '23514',
+      CONSTRAINT = 'chk_behavioral_eli_mapping_lifecycle',
+      MESSAGE = 'approved behavioural ELI mapping authority may only remain approved or close as retired/rejected';
+  END IF;
+
+  IF OLD.status IN ('retired','rejected') AND NEW.status IS DISTINCT FROM OLD.status THEN
+    RAISE EXCEPTION USING
+      ERRCODE = '23514',
+      CONSTRAINT = 'chk_behavioral_eli_mapping_lifecycle',
+      MESSAGE = 'retired/rejected behavioural ELI mapping authority is terminal; create a new authority version';
+  END IF;
+
+  RETURN NEW;
+END
+$;
+
+DROP TRIGGER IF EXISTS trg_behavioral_mapping_lifecycle ON behavioral_eli_mapping_authorities;
+CREATE TRIGGER trg_behavioral_mapping_lifecycle
+BEFORE UPDATE OF status ON behavioral_eli_mapping_authorities
+FOR EACH ROW
+EXECUTE FUNCTION enforce_behavioral_mapping_lifecycle();
 
 CREATE OR REPLACE FUNCTION prevent_active_behavioral_factor_source_rewrite()
 RETURNS trigger
