@@ -13,18 +13,26 @@ import {
 
 const IP = REGISTERS.find((r) => r.owner === '#114');
 const DATA = REGISTERS.find((r) => r.owner === '#116');
-const SNAPSHOT = '3fa5c5298247fc88412ce2c8294fdb4f36024f56';
+const HISTORICAL_SNAPSHOT = '3fa5c5298247fc88412ce2c8294fdb4f36024f56';
+const DATA_RIGHTS_SNAPSHOT = '7427d0f218d1066d2e905ae178ff96bd80d10076';
 
-test('every register is covered, declares a resolvable snapshot, and every pointer holds at it', () => {
+test('every register is covered, declares its own resolvable snapshot, and every pointer holds there', () => {
   const results = audit();
   assert.equal(results.length, 3, 'every P0 control register must be audited');
+
+  const expectedSnapshots = {
+    '#114': HISTORICAL_SNAPSHOT,
+    '#116': DATA_RIGHTS_SNAPSHOT,
+    '#118': HISTORICAL_SNAPSHOT,
+  };
+
   for (const r of results) {
-    assert.equal(r.snapshot, SNAPSHOT, `${r.path}: snapshot boundary`);
+    assert.equal(r.snapshot, expectedSnapshots[r.owner], `${r.path}: snapshot boundary`);
     assert.equal(r.snapshotAvailable, true, `${r.path}: snapshot commit must resolve`);
     assert.deepEqual(r.broken, [], `${r.path}: a pointer is false at its own snapshot`);
   }
   assert.equal(results.find((r) => r.owner === '#114').pointers.length, 13);
-  assert.equal(results.find((r) => r.owner === '#116').pointers.length, 24);
+  assert.equal(results.find((r) => r.owner === '#116').pointers.length, 31);
   assert.equal(results.find((r) => r.owner === '#118').pointers.length, 14);
 });
 
@@ -81,7 +89,11 @@ test('the third-party register records its reconstruction and keeps every gate o
   assert.match(source, /no Git object anywhere in this\n?repository's history/);
   assert.match(source, /G-THIRD-PARTY-DATA-RIGHTS-01 = OPEN/);
   assert.match(source, /PRODUCT OR RELEASE AUTHORITY = NOT GRANTED/);
-  assert.match(source, /Landed enforcement is not landed evidence/);
+  assert.match(source, /Landed enforcement is not landed external evidence|Landed enforcement is not landed evidence/);
+  assert.match(source, /#533.*unmerged/i);
+  assert.match(source, /#534.*unmerged/i);
+  assert.match(source, /OSM\/OVERPASS RUNTIME AUTHORITY = HOLD/);
+  assert.match(source, /MAPBOX RUNTIME AUTHORITY = HOLD/);
   for (const gate of ['G1', 'G2', 'G4', 'G5', 'G6', 'G7', 'G8']) {
     assert.match(source, new RegExp(`DATA-LIC-${gate} \\|[^|]*\\|[^|]*\`OPEN\``), `${gate} must stay OPEN`);
   }

@@ -88,11 +88,14 @@
     {
       "provider": "Mapbox",
       "repositoryFlow": {
-        "status": "ACTIVE_ENV_GATED_CLIENT_INTEGRATION",
+        "status": "REVIEWED_AUTHORITY_GATED_CLIENT_INTEGRATION_CURRENTLY_HOLD",
         "paths": [
+          "apps/web/lib/mapbox-service-authority.ts",
+          "apps/web/lib/mapbox-rights.ts",
+          "apps/web/components/bretagne-map/CommunityMap.tsx",
           "apps/web/components/bretagne-map/MapboxMap.tsx"
         ],
-        "dataBoundary": "Mapbox GL map requests are client-side when a public token is configured; the component also exposes a high-accuracy GeolocateControl.",
+        "dataBoundary": "Mapbox client integration is structurally present but the checked-in service authority is HOLD. Token/env presence cannot authorize provider requests; any future GO requires the reviewed account/billing/terms/token-custody/attribution/privacy authority.",
         "canonicalSubjectIdSent": false,
         "providerObjectIdPersistedByEmopet": false
       },
@@ -206,11 +209,12 @@
     {
       "provider": "OpenStreetMap_Overpass",
       "repositoryFlow": {
-        "status": "ACTIVE_RUNTIME_CLIENT_INTEGRATION",
+        "status": "REVIEWED_AUTHORITY_GATED_RUNTIME_INTEGRATION_CURRENTLY_HOLD",
         "paths": [
+          "apps/web/lib/overpass-rights.ts",
           "apps/web/lib/osm-spots.ts"
         ],
-        "dataBoundary": "Viewport bounding-box POI queries are sent to the public Overpass endpoint; no EMOPET account/dog identifier is attached.",
+        "dataBoundary": "Overpass POI integration is structurally present but the checked-in service authority is HOLD. Endpoint/env presence cannot authorize live queries; any future GO is limited to the reviewed live-query flow with ephemeral bounded cache and no canonical EMOPET subject identifier.",
         "canonicalSubjectIdSent": false,
         "providerObjectIdPersistedByEmopet": false
       },

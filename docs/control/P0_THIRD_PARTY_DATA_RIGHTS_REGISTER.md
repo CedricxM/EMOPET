@@ -1,8 +1,8 @@
 # EMOPET — P0 Third-Party Data and Service-Rights Evidence Register
 
 Status: `P0 CONTROLLED EVIDENCE INTAKE / OPEN / NOT LEGAL SIGN-OFF / NOT RELEASE AUTHORITY`
-Control date: `2026-09-22`
-Snapshot boundary: `main@3fa5c5298247fc88412ce2c8294fdb4f36024f56`
+Control date: `2026-09-23`
+Snapshot boundary: `main@7427d0f218d1066d2e905ae178ff96bd80d10076`
 Work item: [#116 — DATA-LIC-01](https://github.com/CedricxM/EMOPET/issues/116)
 Related provenance register: `docs/control/P0_IP_PROVENANCE_EVIDENCE_REGISTER.md` ([#114](https://github.com/CedricxM/EMOPET/issues/114))
 Pointer self-check: `pnpm control:pointer-audit`
@@ -66,22 +66,27 @@ Durable rule for this document and for `P0_IP_PROVENANCE_EVIDENCE_REGISTER.md`:
 > registers **at their declared snapshot** and fails if any is false there; it runs in CI.
 > A pointer no process re-checks is a dated claim, not evidence.
 
-### 0.2 What changed on `main` between the two anchors
+### 0.2 What changed on `main` between the reconstruction anchor and this snapshot
 
-Re-verification also established that four gates moved while the draft sat unmerged. A
-register carried forward unchanged would have understated the tree and left landed
-enforcement invisible.
+Re-verification on 2026-09-23 established that the earlier 2026-09-22 register had become
+stale in exactly the areas where INT-07 containment landed. The changes below are code/runtime
+facts only; none supplies the missing external rights, account, provider-policy or legal evidence.
 
-| Gate | Movement observed at `main@3fa5c52` | Gate state |
+| Gate | Movement observed at `main@7427d0f` | Gate state |
 |---|---|---|
-| DATA-LIC-G2 | `data/vbo/committed-snapshot-evidence.json` proves byte equivalence to an immutable upstream commit; a CI-enforced audit guards it | still `OPEN` |
-| DATA-LIC-G3 | `backend/db/seeds/local-directory-release-authority.ts` makes production publication require a reviewed repository record, not an environment variable | still `HOLD` |
-| DATA-LIC-G5 | `apps/web/lib/map/mapSurface.ts` distinguishes unconfigured / unavailable / ready and refuses a blank token | still `OPEN` |
-| DATA-LIC-G6 | `evaluateBreizSourceRights` enforces fail-closed source rights; `sourceProvenance.ts` refuses to call a source fresh with no recheck rule | still `OPEN` |
+| DATA-LIC-G2 | VBO immutable-upstream byte equivalence remains CI-guarded; no independent retrieval receipt has appeared | still `OPEN` |
+| DATA-LIC-G3 | Local-directory production publication remains behind the reviewed repository authority record, still committed `HOLD` | still `HOLD` |
+| DATA-LIC-G4 | #532 landed a separate Overpass authority record, exact operator gate, explicit HTTPS endpoint requirement, bounded ephemeral cache and item/rendered OSM provenance; checked-in authority is `HOLD` | still `OPEN` |
+| DATA-LIC-G5 | #532 landed Mapbox reviewed-service authority; token/env presence is insufficient and the checked-in authority is `HOLD` | still `OPEN` |
+| DATA-LIC-G6 | #531 landed immutable Breiz authority binding: stale/unbound chunks and source identity/version/receipt/licence mismatches fail closed; raw ingestion cannot self-promote | still `OPEN` |
+| DATA-LIC-G7 | `main` still has SBOM/security evidence only. #534 has a green exact-head licence-inventory candidate, but it is unmerged and therefore not a landed snapshot fact | still `OPEN` |
 
-No gate closes. Landed enforcement is not landed evidence, and this register does not
-convert one into the other.
+One additional external-service residual is now explicit: current `main` still permits Anthropic
+Breiz egress when `ANTHROPIC_API_KEY` is configured. #533 contains a reviewed-authority HOLD
+candidate, but it is unmerged and creates no provider/processor authority.
 
+No gate closes. Landed enforcement is not landed external evidence, and green unmerged
+candidate evidence is not a landed control.
 ## 1. Purpose and authority boundary
 
 This register records repository-observable facts, official-source checks and missing
@@ -146,29 +151,36 @@ aggregate conclusions unless the exact scope, reviewer, evidence and date are re
 
 ## 4. Repository evidence re-verified at the snapshot boundary
 
-Each row below was re-observed on 2026-09-22 against `main@3fa5c52`. The blob column is the
-output of `git rev-parse HEAD:<path>` and is machine-re-checked.
+Each row below was re-observed on 2026-09-23 against `main@7427d0f`. The blob column is the
+exact blob returned for that path at the declared snapshot and is machine-re-checked.
 
 | Evidence ID | Path | Blob at snapshot | Narrow fact established | State |
 |---|---|---|---|---|
 | DATA-SRC-001 | `data/registry/real-datasets.json` | `033982c43d517b41dec1d440be47db8718573520` | Four external datasets are registered; all four `checksumSha256` values are `null` | `REPOSITORY_FACT` |
 | DATA-SRC-002 | `docs/data/REAL_DATASET_INGESTION.md` | `c9891dac67c0886725dca407ac1370896d39e5b9` | The guide requires controlled receipts under `data/registry/receipts/` and documents the command that writes them | `REPOSITORY_FACT` |
-| DATA-SRC-003 | `scripts/data/register-dataset-file.mjs` | `ac21dfa7f5702055ac3183cbaad8232a8d8d5e87` | Receipt-writing tooling exists: it computes SHA-256, byte size and a `emopet-dataset-receipt-v1` record | `TOOLING_PRESENT_EVIDENCE_ABSENT` |
-| DATA-SRC-004 | `data/registry/real-datasets.json` | `033982c43d517b41dec1d440be47db8718573520` | `data/registry/` contains only this file; `data/registry/receipts/` is absent, so the tooling of DATA-SRC-003 has produced no receipt | `RECEIPT_MISSING` |
+| DATA-SRC-003 | `scripts/data/register-dataset-file.mjs` | `ac21dfa7f5702055ac3183cbaad8232a8d8d5e87` | Receipt-writing tooling exists: it computes SHA-256, byte size and an `emopet-dataset-receipt-v1` record | `TOOLING_PRESENT_EVIDENCE_ABSENT` |
+| DATA-SRC-004 | `data/registry/real-datasets.json` | `033982c43d517b41dec1d440be47db8718573520` | Registered payload checksums remain null and no committed per-payload receipt is established by this file | `RECEIPT_MISSING` |
 | DATA-SRC-005 | `backend/db/seeds/local-directory-lorient.ts` | `6781aa6a58ae136ed5ae24ffa2715bd28cd66a56` | The header gives aggregate source claims; all 41 rows carry `sourceId: null` | `REPOSITORY_FACT` |
-| DATA-SRC-006 | `backend/db/seeds/local-directory-release-authority.ts` | `7c643b2b43c10e5c2162054814c1b468a8e85c7e` | Production directory publication requires a reviewed authority record; the committed record is `HOLD` with a null reviewer and null evidence revision | `REPOSITORY_FACT` |
-| DATA-SRC-007 | `apps/web/lib/osm-spots.ts` | `357d4a46e9384b3ae24619b24e1878731924ca28` | The app queries the public `https://overpass-api.de/api/interpreter` endpoint, capped at 120 results per query; successful loads (including a legitimately empty one) are held in a process-lifetime in-memory `Map` keyed on the bbox rounded to two decimals, with no expiry and no persistence; a failure returns `unavailable` and is not cached | `REPOSITORY_FACT` |
-| DATA-SRC-008 | `apps/web/components/bretagne-map/MapboxMap.tsx` | `6e0a20d3605da5cfac8dd13876ce5b3ca480a524` | `attributionControl: true` is set, the style is `mapbox://styles/mapbox/outdoors-v12`, and popup content appends a plain-text `- OpenStreetMap` label | `REPOSITORY_FACT` |
-| DATA-SRC-009 | `apps/web/lib/map/mapSurface.ts` | `3d2eebaba8b138ad5681d9a7770627ca55a4c4a4` | A blank or whitespace Mapbox token resolves to `unconfigured`; `unavailable` and `unconfigured` are distinct user-visible states | `REPOSITORY_FACT` |
+| DATA-SRC-006 | `backend/db/seeds/local-directory-release-authority.ts` | `7c643b2b43c10e5c2162054814c1b468a8e85c7e` | Production directory publication requires a reviewed authority record; the committed record remains `HOLD` | `REPOSITORY_FACT` |
+| DATA-SRC-007 | `apps/web/lib/osm-spots.ts` | `226e4992cf996257e0122d339a6afa8f2e56c385` | Overpass runtime requires the controlled endpoint helper; the cache is in-memory only, 5-minute TTL, max 40 bbox entries; projected POIs carry source element URL, attribution and licence URL | `ENFORCEMENT_LANDED_EVIDENCE_OPEN` |
+| DATA-SRC-008 | `apps/web/components/bretagne-map/MapboxMap.tsx` | `570c0264105302317291e79aa05438300ffd75f9` | Mapbox initialization rechecks controlled authority; OSM popups and the rendered map expose source/licence links; Mapbox attribution control remains enabled | `ENFORCEMENT_LANDED_EVIDENCE_OPEN` |
+| DATA-SRC-009 | `apps/web/lib/map/mapSurface.ts` | `3d2eebaba8b138ad5681d9a7770627ca55a4c4a4` | `unconfigured`, `unavailable` and `ready` remain distinct user-visible map states | `REPOSITORY_FACT` |
 | DATA-SRC-010 | `apps/web/package.json` | `8d49c8df5564ba54c1cd06cfbfc157f14dd5e12d` | The web app declares `mapbox-gl@^3.24.0` and `@types/mapbox-gl@^3.5.0` | `REPOSITORY_FACT` |
-| DATA-SRC-011 | `docs/STACK_GAPS.md` | `8cace0c76f4982da3cba7038ec8e15215cf44bff` | The stack table says `Mapbox GL (token Cédric)`; this does not establish current legal account authority | `UNVERIFIED_CLAIM` |
-| DATA-SRC-012 | `apps/web/lib/data/breiz/sourceRegistry.ts` | `53cd0e4878929bf5624c30814e1db7ad1a23d041` | Nine sources are catalogued; eight carry `license: null`; the two enabled sources (`region-bretagne-open-data`, `data-gouv-fr`) are both null-licence | `REPOSITORY_FACT` |
-| DATA-SRC-013 | `apps/web/lib/data/breiz/sourceRegistry.ts` | `53cd0e4878929bf5624c30814e1db7ad1a23d041` | `evaluateBreizSourceRights` blocks ingestion on `SOURCE_DISABLED`, `NO_LICENCE_RECEIPT`, `NO_RECHECK_RULE` or `PARTNER_PERMISSION_REQUIRED`; `canStoreFullText` now derives from it | `ENFORCEMENT_LANDED_EVIDENCE_OPEN` |
+| DATA-SRC-011 | `docs/STACK_GAPS.md` | `8cace0c76f4982da3cba7038ec8e15215cf44bff` | The stack table says `Mapbox GL (token Cédric)`; this does not establish current account, billing or terms authority | `UNVERIFIED_CLAIM` |
+| DATA-SRC-012 | `apps/web/lib/data/breiz/sourceRegistry.ts` | `77c449f0211cc4e9f4f6a11d876e7c3219857d21` | Nine sources remain catalogued; eight carry `license: null`; reviewed `rightsEvidence` is optional and no catalogue row is thereby promoted to GO | `REPOSITORY_FACT` |
+| DATA-SRC-013 | `apps/web/lib/data/breiz/sourceRegistry.ts` | `77c449f0211cc4e9f4f6a11d876e7c3219857d21` | Ingestion rights still fail closed; public release readiness additionally requires complete `SOURCE_CONFIRMED`/`GO` reviewed evidence with non-empty revision/version/receipt/attribution fields | `ENFORCEMENT_LANDED_EVIDENCE_OPEN` |
 | DATA-SRC-014 | `apps/web/lib/data/breiz/sourceProvenance.ts` | `b4dd3109d7a02c15aba6910d56548b0705d3007f` | `evaluateFreshness` returns `no_recheck_rule` where a recheck rule is absent, and `isFresh` is true only for `fresh` | `REPOSITORY_FACT` |
-| DATA-SRC-015 | `.github/workflows/security-supply-chain.yml` | `e21e3e1ec510f9716c6ce424b4d40baf33ef261e` | CI generates CycloneDX and SPDX SBOM artifacts with Syft; no step records a dependency-licence disposition | `REPOSITORY_FACT` |
-| DATA-SRC-016 | `.github/workflows/p0-db-baseline.yml` | `2c8e7e1b9af8f46888544aff0a4d59751058665b` | CI runs `scripts/data/vbo-committed-snapshot-audit.mjs`, so the VBO traceability record is guarded against silent drift | `REPOSITORY_FACT` |
+| DATA-SRC-015 | `.github/workflows/security-supply-chain.yml` | `dd54219facd7e28a543f52f45897a639d9f276b4` | `main` generates CycloneDX/SPDX SBOM and security evidence; it does not yet retain a pnpm licence inventory or legal/distribution disposition | `REPOSITORY_FACT` |
+| DATA-SRC-016 | `.github/workflows/p0-db-baseline.yml` | `93a96d2fdba2171b19bb1057b41d9b40d9f4ceac` | CI still runs the committed VBO snapshot audit, guarding the immutable-upstream equivalence record | `REPOSITORY_FACT` |
+| DATA-SRC-017 | `apps/web/lib/overpass-rights.ts` | `2a8e364c35cb2f755aa029625d5ab15ac7f8cbe5` | Checked-in Overpass release authority is `HOLD`; live use requires reviewed provider-policy and rendered-attribution evidence plus bounded flow classifications | `ENFORCEMENT_LANDED_EVIDENCE_OPEN` |
+| DATA-SRC-018 | `apps/web/lib/mapbox-service-authority.ts` | `45237d5791ff707b1fdf9e2ce681d7f7a62edfb5` | Checked-in Mapbox release authority is `HOLD`; account, billing, terms, token custody, rendered attribution and privacy evidence are all required for GO | `ENFORCEMENT_LANDED_EVIDENCE_OPEN` |
+| DATA-SRC-019 | `apps/web/lib/mapbox-rights.ts` | `97cdc21aef3d845a0cdfdb0aa6eda9481d074cfe` | Controlled Mapbox activation requires exact runtime `GO`, reviewed repository authority and a public `pk.*` browser token | `ENFORCEMENT_LANDED_EVIDENCE_OPEN` |
+| DATA-SRC-020 | `apps/web/components/bretagne-map/CommunityMap.tsx` | `6eb0c32372093c7dd2a22d040c34fb84db2731b2` | The external Mapbox renderer is selected only when controlled authority resolves; otherwise the internal SVG map is used | `REPOSITORY_FACT` |
+| DATA-SRC-021 | `apps/web/lib/data/breiz/breizRetriever.ts` | `d42368d76d8916b8d0e1bd20c7ddb3764e21cb4e` | Public Breiz retrieval compares authority revision, immutable source version, receipt, attribution, source name, URL and licence; stale/mismatched bindings fail closed | `ENFORCEMENT_LANDED_EVIDENCE_OPEN` |
+| DATA-SRC-022 | `apps/web/lib/data/breiz/ingestDocuments.ts` | `836a66a102ea595e60ede627c1de761d8db147e1` | Generic/local ingestion cannot mint registry authority: public usage is downgraded, reviewed-source status is not accepted and controlled binding fields are not copied | `ENFORCEMENT_LANDED_EVIDENCE_OPEN` |
+| DATA-SRC-023 | `apps/web/app/api/breiz/route.ts` | `c0698b8af1eccef92395f9512c52bfcc9d2398c6` | Current `main` performs Anthropic Messages API egress when `ANTHROPIC_API_KEY` is present; no separate reviewed provider/processor authority is enforced on this snapshot | `OPEN` |
 
-Repository review role for DATA-SRC-001 through DATA-SRC-016: `candidate evidence reviewer`.
+Repository review role for DATA-SRC-001 through DATA-SRC-023: `candidate evidence reviewer`.
 These rows establish only the narrow facts stated.
 
 ## 5. Official-source checks
@@ -394,38 +406,46 @@ against each other before either is published, since one of them is wrong.
 
 | Flow | Behavior at snapshot | Evidence gap | State | Required owner |
 |---|---|---|---|---|
-| Live POI lookup | Web code queries `https://overpass-api.de/api/interpreter` with a 20 s server-side timeout and `out center 120` | Provider usage policy, expected request volume and production-service decision not recorded; the 120-result cap is an undocumented truncation of what a viewport actually contains | `OPEN` | Engineering |
-| Local caching | Process-lifetime in-memory `Map`, no expiry, no persistence, cleared only by a test helper; only successful loads are cached, a failure stays retryable, and an empty area is cached as empty rather than as a failure | Cache keys round the bbox to two decimals, so different viewports share an entry — acceptable for display, unassessed for anything derived from it; unbounded growth and cross-request reuse inside a server process not assessed; no database or disk persistence exists to classify | `OPEN` | Engineering/Data |
-| OSM attribution | `osm-spots.ts` carries `Données ouvertes © contributeurs OpenStreetMap (ODbL)` as a source comment; `MapboxMap.tsx` enables `attributionControl` and appends a plain-text `- OpenStreetMap` popup label | No rendered, clickable, legible attribution and no ODbL link captured on any surface; the only attribution test on `main` covers Breiz answers, not the map | `OPEN` | Product/Frontend |
-| Export or API response | No controlled flow classification recorded | Attribution and database-rights treatment for redistributed results not recorded | `OPEN` | Engineering + licensing review |
-| Derived directory | Seven seed rows labelled `osm` carry no source IDs | Upstream object IDs, field provenance, retrieval date and modification history absent | `HOLD` | Data owner |
-| Future analytics/model use | No authority selected | Input/output/database classification not recorded | `OPEN` | Data/Research + licensing review |
+| Live POI lookup | Checked-in Overpass authority is `HOLD`. Runtime requires exact operator GO, complete reviewed repository authority and an explicit clean HTTPS endpoint; with the committed HOLD it returns unavailable before provider egress | Actual provider/operator policy, expected request volume and approved production-service selection remain absent | `OPEN` | Engineering + Product |
+| Local caching | If a future reviewed GO exists, successful results use process/browser memory only, 5-minute TTL and max 40 bbox entries; failures are not cached | The bounded display cache is classified, but any broader reuse or different deployment topology requires re-review | `OPEN` | Engineering/Data |
+| OSM provenance/attribution | Projected POIs carry source element URL, `© OpenStreetMap contributors` and the OSM copyright/licence URL; popups and an on-map surface render clickable source/licence links when OSM POIs are shown | Controlled rendered-surface evidence and qualified attribution/licensing review remain absent | `OPEN` | Product/Frontend + licensing review |
+| Export or API redistribution | Checked-in Overpass authority marks export `PROHIBITED` | Any future export/redistribution requires a separate use classification and authority | `HOLD` | Engineering + licensing review |
+| Derived database | Checked-in authority marks derived-database flow `PROHIBITED`; historical directory seed rows labelled `osm` still lack source IDs | Upstream object IDs/field provenance and any derivative-database obligations remain unresolved | `HOLD` | Data owner + licensing review |
+| Future analytics/model use | Not authorized by the current service authority | Input/output/database classification not recorded | `OPEN` | Data/Research + licensing review |
 
-DATA-LIC-G4 cannot close from a source-code string. A comment naming ODbL is a developer
-note, not attribution to a user. Closure requires rendered evidence per supported surface and
-a data-flow disposition for query, cache, export and derivative uses.
+DATA-LIC-G4 remains `OPEN`. #532 converted a fail-open technical path into a fail-closed
+reviewed-authority boundary; it did not select an Overpass operator or establish service-policy
+or licensing clearance.
 
 ## 10. Mapbox service-authority register
 
 | Control item | Repository fact at snapshot | Required evidence | State |
 |---|---|---|---|
-| Package | `mapbox-gl@^3.24.0` and `@types/mapbox-gl@^3.5.0` are declared | Exact lockfile-resolved version and bundled licence/notice review | `OPEN` |
-| Hosted product | Style `mapbox://styles/mapbox/outdoors-v12` is used | Intended product/use, plan and terms/product-terms snapshot | `OPEN` |
-| Account authority | `docs/STACK_GAPS.md` says `token Cédric` | Legal account holder, organization, authorized signer/admin and account custody | `UNVERIFIED_CLAIM` |
-| Billing | Not established in this register | Plan, billing owner, limits, monitoring and budget authority | `OPEN` |
-| Token handling | `resolveMapboxToken` treats missing, empty and whitespace-only tokens as `unconfigured`, and the surface distinguishes `unavailable` from `unconfigured` | Scope, URL restrictions, owner, rotation date and incident/revocation owner | `OPEN` |
-| Token custody | `NEXT_PUBLIC_MAPBOX_TOKEN` is read at build/runtime; no value appears in the repository or here | Custody record and rotation procedure | `OPEN` |
-| Attribution | `attributionControl: true` is present | Rendered attribution, links, overlays and supported viewport evidence | `OPEN` |
-| Data handling | Current terms describe service data handling | Applicable privacy/data-processing review for the actual integration | `OPEN` |
+| Package | `mapbox-gl@^3.24.0` and `@types/mapbox-gl@^3.5.0` are declared | Exact shipped package/licence/notice review | `OPEN` |
+| Runtime authority | Checked-in `MAPBOX_PRODUCTION_AUTHORITY` is `HOLD`; exact env GO and a public token are insufficient without complete reviewed authority | Reviewed evidence revision and authorized reviewer/date | `HOLD` |
+| Account authority | Authority requires account evidence; committed value is null | Legal account holder, organization, authorized signer/admin and account custody | `OPEN` |
+| Billing | Authority requires billing evidence; committed value is null | Plan, billing owner, limits, monitoring and budget authority | `OPEN` |
+| Terms/product use | Authority requires a terms receipt; committed value is null | Accepted terms/product-terms version and intended-use review | `OPEN` |
+| Token handling | `getControlledMapboxToken` requires exact GO, complete reviewed authority and `pk.*`; secret/arbitrary token shapes fail closed | URL restrictions, owner, rotation date and incident/revocation owner | `OPEN` |
+| Renderer selection | `CommunityMap` falls back to the internal SVG map when controlled Mapbox authority is absent | No external authority is inferred from fallback availability | `REPOSITORY_FACT` |
+| Attribution | Mapbox attribution control remains enabled; authority separately requires controlled rendered-attribution evidence | Reviewed rendered attribution/overlay evidence | `OPEN` |
+| Data handling/privacy | Authority requires privacy-review evidence; committed value is null | Applicable privacy/data-processing review for actual integration | `OPEN` |
 | Exit/change plan | Not established | Provider change/export/cache implications and responsible owner | `OPEN` |
 
-The `mapSurface.ts` work closes a user-facing failure mode the 2026-09-02 draft had not
-identified: a revoked, invalid or over-quota token produced no `load` event and therefore no
-message, leaving an empty bordered rectangle indefinitely. Its own comment records that this
-is not theoretical precisely because DATA-LIC-G5 leaves token custody and rotation open.
-None of that supplies account, billing or attribution authority.
+DATA-LIC-G5 remains `OPEN`. #532 makes account/billing/terms/token/privacy evidence a runtime
+precondition instead of treating token presence as authority. The committed authority deliberately
+does not contain those receipts.
 
-No account or token value may be added to this register.
+### Anthropic external-model residual
+
+At this snapshot, `apps/web/app/api/breiz/route.ts` still performs real Anthropic egress when
+`ANTHROPIC_API_KEY` is configured. Repository public-retention evidence exists, but no separate
+reviewed provider/processor release authority is enforced on `main`.
+
+PR #533 (`7c6b55063f0ff39c23155272d0a5df86d1e77a0d`) is an exact-head green, unmerged candidate
+that would add a HOLD authority covering provider terms, processor/privacy, transfer, credential
+custody, retention/use and model-specific review. It is **not** part of this snapshot and grants
+no Anthropic provider, model, retention/ZDR or transfer authority.
 
 ## 11. Breiz source-control register
 
@@ -442,73 +462,58 @@ No account or token value may be added to this register.
 | `datatourisme` | No | `null` | API | `OPEN` | Provider- and record-level licence/attribution |
 
 The single non-null licence value is conditional on its face (`where applicable`) and belongs
-to a disabled source. Both enabled sources carry no licence receipt.
+to a disabled source. Both enabled sources still carry no licence receipt.
 
-### The permissive default is now closed
+### Fail-closed source rights and immutable provenance binding are now landed
 
-On 2026-09-02 the registry described rights without applying them: `license` was `null` on
-eight of nine entries, two of them enabled, and no code read the field. The default was
-permissive by omission. At the snapshot boundary:
+- `evaluateBreizSourceRights` still blocks missing licence/recheck/partner evidence.
+- `isBreizSourceReleaseReady` additionally requires a complete reviewed `SOURCE_CONFIRMED` + `GO` record with immutable authority revision, source version, receipt pointer and attribution.
+- `breizRetriever.ts` binds public eligibility to the exact reviewed revision/version/receipt and source identity. A later registry GO cannot retroactively authorize an older or mismatched chunk.
+- `ingestDocuments.ts` preserves the anti-self-promotion boundary: local JSON/CSV/Markdown cannot mint controlled registry identity, reviewed authority, `source_verified`, or public-answer eligibility.
+- freshness still fails closed where no recheck rule exists.
 
-- `evaluateBreizSourceRights` returns explicit blockers — `SOURCE_DISABLED`,
-  `NO_LICENCE_RECEIPT`, `NO_RECHECK_RULE`, `PARTNER_PERMISSION_REQUIRED` — and permits
-  ingestion only when the list is empty. With eight null licences, no catalogued source is
-  currently ingestible.
-- `canStoreFullText` no longer reads `usagePolicy` alone. A source flagged
-  `FULL_TEXT_ALLOWED` with no licence would previously have been cleared to store full text.
-  No registry entry carries that flag today, so the defect was latent rather than reached —
-  it was waiting for the first source to set it.
-- `evaluateFreshness` distinguishes `no_recheck_rule` from `stale`: absence of a rule no
-  longer reads as compliance. `isFresh` is true only for `fresh`.
-- `apps/web/lib/data/breiz/__tests__/sourceRights.test.ts` and `answerAttribution.test.ts`
-  hold these behaviours.
+This is stronger enforcement, not stronger external evidence. No current catalogue entry receives
+a reviewed GO merely because these predicates exist. DATA-LIC-G6 therefore stays `OPEN`: enabled
+connectors still need item-level licence/rights receipts that the enforcement can actually read.
 
-This is enforcement, not evidence. `DATA-SRC-013` is therefore
-`ENFORCEMENT_LANDED_EVIDENCE_OPEN` and DATA-LIC-G6 stays `OPEN`: the gate asks for
-item-level rights evidence, and the code now correctly refuses to act in its absence.
-
-Minimum per-item provenance fields:
-
-- source registry ID;
-- publisher and canonical item/dataset URL;
-- source item ID and immutable version where available;
-- retrieval and source-update timestamps;
-- licence/rights statement plus URI;
-- allowed storage, transformation, display and redistribution classes;
-- attribution text and placement;
-- checksum for retrieved payload where practical;
-- expiry/recheck date;
-- connector/version and reviewer.
-
-Catalogue metadata alone must not be promoted to a full-text or media reuse authority.
+Minimum per-item provenance remains: registry/source identity, publisher/canonical URL, immutable
+item/version where available, retrieval/update timestamps, rights statement + URI, allowed-use
+classes, attribution placement, payload checksum where practical, recheck date, connector version
+and reviewer.
 
 ## 12. Software dependency licence control
 
-Unchanged since 2026-09-02, and re-verified: no `NOTICE`, `COPYING`, third-party licence
-inventory or generated attribution bundle is tracked anywhere in the tree. No `LICENSE` file
-is tracked either — recorded as an observation, not as a recommendation, since selecting a
-repository-wide licence is outside this register's authority (§1).
+At the declared `main` snapshot, the supply-chain workflow still provides CycloneDX/SPDX SBOM
+and vulnerability/security evidence but does **not** retain a pnpm dependency-licence inventory.
+No final `NOTICE`, `COPYING`, generated third-party attribution bundle or repository-wide `LICENSE`
+is established by this register.
 
-The supply-chain workflow provides CycloneDX and SPDX SBOM artifacts and security-advisory
-evidence. An SBOM is an inventory input, not a licensing disposition.
+### Unmerged exact-head candidate evidence
 
-DATA-LIC-G7 requires an exact candidate-head inventory covering direct and transitive
-dependencies for all workspaces and shipped artifacts.
+PR #534 has produced a real-workspace exact-head candidate on
+`f9c1f1f9965a879fcc8c470a2e233a49200efdd5`: 1,218 installed dependency entries,
+958 production entries, and a retained licence artifact. Its artifact deliberately records
+`claimsLegalClearance=false`, `claimsDistributionCompatibility=false`,
+`claimsNoticeCompleteness=false` and `OPEN_REVIEW_REQUIRED`.
+
+Mechanical triage on that candidate places 954 production entries in general notice/distribution
+review and four in reciprocal/source-obligation review. This is review prioritization, not a
+legal compatibility conclusion. #534 is unmerged and therefore is not a landed fact of this
+snapshot.
 
 | Control | Required evidence | State |
 |---|---|---|
-| Exact dependency graph | Lockfile/candidate-head identity and package/version list | `OPEN` |
-| Declared licence data | Machine-readable package licence expressions plus source pointers | `OPEN` |
+| Exact dependency graph | Lockfile/candidate-head identity and package/version list | `OPEN` — green candidate exists, not merged/reviewed |
+| Declared licence data | Machine-readable package licence expressions plus source pointers | `OPEN` — candidate inventory exists |
 | Unknown/custom entries | Manual package-source and licence-file review | `OPEN` |
-| Copyleft/reciprocal entries | Use/link/distribution analysis and required action | `OPEN` |
+| Reciprocal/source-obligation entries | Use/link/distribution analysis and required action | `OPEN` |
 | Notice obligations | Generated NOTICE/attribution bundle tied to shipped artifact | `OPEN` |
 | Source-offer obligations | Applicable decision and controlled delivery process | `OPEN` |
 | Fonts/assets/native binaries | Separate inventory beyond JavaScript package metadata | `OPEN` |
 | Firmware/toolchain SDKs | Inventory when the complete firmware build exists | `OPEN` |
 | Reviewer/disposition | Dated owner, limitations and `GO | HOLD | REMEDIATE` result | `OPEN` |
 
-Do not infer absence of a licence family from package names or from a lockfile that does not
-carry authoritative licence text.
+DATA-LIC-G7 cannot close from package metadata or a green CI artifact alone.
 
 ## 13. Gate closure evidence
 
@@ -534,26 +539,19 @@ one telephone value must each be dispositioned before any row is represented as 
 
 ### DATA-LIC-G4 — OSM/Overpass use classification
 
-Close only after every query/cache/export/derivative flow is classified, the service
-architecture is approved, and attribution/licence links are verified in rendered surfaces. A
-source comment naming ODbL does not count.
+Technical query/cache/export/derivative classifications are now enforced fail-closed and source/licence links are rendered in code. Close only after the actual provider/operator policy and production architecture are approved and controlled rendered-surface evidence receives the required review.
 
 ### DATA-LIC-G5 — Mapbox service authority
 
-Token resolution and failure messaging are handled. Close only after account/signing
-authority, accepted terms/product terms, billing, intended volume, token custody/restrictions,
-attribution and applicable data-handling review are recorded.
+Token/env presence is now insufficient and the checked-in service authority is HOLD. Close only after account/signing authority, accepted terms/product terms, billing, intended volume, token custody/restrictions, rendered attribution and applicable data-handling review are recorded.
 
 ### DATA-LIC-G6 — Breiz item-level source controls
 
-Fail-closed enforcement has landed and is tested. Close only when enabled connectors retain
-item-level rights evidence — that is, when the enforcement has something to read.
+Fail-closed rights plus immutable provenance binding have landed and are tested. Close only when enabled connectors retain reviewed item-level rights evidence and promoted chunks are bound to that evidence.
 
 ### DATA-LIC-G7 — Dependency licence inventory
 
-Close only when exact-head direct/transitive packages and shipped assets have a reviewed
-inventory, required notices are generated, and unknown/custom/reciprocal entries have
-dispositions.
+An exact-head package inventory candidate exists in unmerged #534. Close only when the landed candidate and shipped assets have a reviewed inventory, required notices are generated, and unknown/custom/reciprocal or source-obligation entries have explicit dispositions.
 
 ### DATA-LIC-G8 — Controlled review and release disposition
 
@@ -583,17 +581,18 @@ Do not complete this section until DATA-LIC-G1 through G8 have evidence-backed d
 `OFFICIAL SOURCE LABELS = PARTIALLY CONFIRMED (2026-09-02, NOT RE-CHECKED)`
 `IMMUTABLE RETRIEVAL RECEIPTS = NOT ESTABLISHED`
 `VBO UPSTREAM BYTE EQUIVALENCE = PROVEN, RECEIPT STILL MISSING`
-`LORIENT DIRECTORY PRODUCTION REPRESENTATION = HOLD, NOW ENFORCED IN CODE`
-`OSM/OVERPASS PRODUCT-USE DISPOSITION = OPEN`
-`MAPBOX PRODUCTION AUTHORITY = OPEN`
-`BREIZ ITEM-LEVEL RIGHTS ENFORCEMENT = LANDED, EVIDENCE OPEN`
-`DEPENDENCY LICENCE DISPOSITION = OPEN`
+`LORIENT DIRECTORY PRODUCTION REPRESENTATION = HOLD, ENFORCED IN CODE`
+`OSM/OVERPASS RUNTIME AUTHORITY = HOLD, FAIL-CLOSED; PROVIDER/SERVICE RIGHTS = OPEN`
+`MAPBOX RUNTIME AUTHORITY = HOLD, FAIL-CLOSED; ACCOUNT/TERMS/BILLING/PRIVACY AUTHORITY = OPEN`
+`BREIZ ITEM-LEVEL RIGHTS + IMMUTABLE BINDING ENFORCEMENT = LANDED; SOURCE EVIDENCE = OPEN`
+`ANTHROPIC PROVIDER/PROCESSOR AUTHORITY = ABSENT ON MAIN; #533 CANDIDATE UNMERGED`
+`DEPENDENCY LICENCE INVENTORY = #534 CANDIDATE GREEN BUT UNMERGED; LEGAL/NOTICE DISPOSITION = OPEN`
 `PRODUCT OR RELEASE AUTHORITY = NOT GRANTED`
 `G-THIRD-PARTY-DATA-RIGHTS-01 = OPEN`
 
-This register permits controlled evidence collection. It does not convert an official licence
-label, repository metadata, landed enforcement code or a public endpoint into automatic
-product authority.
+This register permits controlled evidence collection and fail-closed engineering containment.
+It does not convert a licence label, repository metadata, CI success, token/key, public endpoint
+or unmerged candidate into automatic product authority.
 
 ## 16. Self-check
 
