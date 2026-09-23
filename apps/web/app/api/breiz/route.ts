@@ -2,14 +2,17 @@
  * Route serveur de l'assistant régional (Breiz).
  *
  * Assemble le prompt système via le MOTEUR régional (commun + profil + savoir
- * filtré) et appelle l'API Anthropic SI `ANTHROPIC_API_KEY` est défini. Sinon,
- * renvoie un signal de repli : le client utilise la base RAG locale (R4).
+ * filtré). L'API Anthropic n'est appelée que si la clé, le modèle, le gate
+ * opérateur exact et l'autorité fournisseur/processor revue sont tous présents.
+ * Sinon, le client utilise la base RAG locale (R4).
  *
- * La clé reste côté serveur (jamais exposée au client). Prompt caching activé
- * sur le prompt système (cache_control ephemeral).
+ * La clé reste côté serveur (jamais exposée au client). La présence d'une clé
+ * ou d'un modèle ne constitue pas une autorité d'egress. Prompt caching reste
+ * limité au prompt système via cache_control ephemeral.
  */
 
 import { NextResponse } from 'next/server';
+import { getControlledAnthropicEgress } from '../../../lib/anthropic-rights';
 import { buildAssistantSystemPrompt } from '../../../lib/regional/build-system-prompt';
 import { detectRegion } from '../../../lib/regional/detect-region';
 import type { ConversationContext } from '../../../lib/regional/types';
@@ -69,11 +72,11 @@ export async function POST(req: Request) {
     userDepartment: body.department,
   });
 
-  const apiKey = process.env['ANTHROPIC_API_KEY'];
+  const anthropic = getControlledAnthropicEgress();
 
-  // Pas de clé → repli RAG côté client. La réponse reste explicitement identifiée
-  // comme une interaction avec l'assistant IA, mais le mode de réponse est retrieval.
-  if (!apiKey) {
+  // Aucune autorité fournisseur/processor revue => repli local. Une clé API,
+  // un modèle et un flag GO ne suffisent jamais à créer cette autorité.
+  if (!anthropic) {
     return NextResponse.json({
       via: 'fallback',
       assistantName: region.profile.assistantName,
@@ -88,16 +91,15 @@ export async function POST(req: Request) {
 
   // Chemin modèle réel : API Anthropic, prompt système caché.
   try {
-    const model = process.env['ANTHROPIC_MODEL'] ?? 'claude-3-5-haiku-latest';
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-api-key': apiKey,
+        'x-api-key': anthropic.apiKey,
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model,
+        model: anthropic.model,
         max_tokens: 600,
         system: [{ type: 'text', text: built.prompt, cache_control: { type: 'ephemeral' } }],
         messages: [{ role: 'user', content: userMessage }],
@@ -127,7 +129,7 @@ export async function POST(req: Request) {
       transparency: {
         ...transparencyMetadata(context, 'model'),
         modelProvider: 'Anthropic',
-        modelId: model,
+        modelId: anthropic.model,
       },
     });
   } catch {
