@@ -11,7 +11,7 @@ const baseRequest = {
   capability: 'PRODUCT_DISPLAY',
   languageCode: 'fr-FR',
   instrumentVersion: 'penn-current',
-  formVariantKey: 'CURRENT_PENN_AUTHORIZED_FULL',
+  formVariantKey: 'full-current',
   administrationProtocolVersion: 'admin-v1',
 };
 
@@ -28,10 +28,10 @@ function fullyAuthorizedFixture() {
       status: 'AUTHORIZED',
     }],
     formVariants: [{
-      variantKey: 'CURRENT_PENN_AUTHORIZED_FULL',
+      variantKey: 'full-current',
       state: 'FULL_AUTHORIZED',
     }, {
-      variantKey: 'FRENCH_2025_EFA_63',
+      variantKey: 'fr-2025-efa-63',
       state: 'UNREVIEWED',
       disposition: 'NOT_AUTHORIZED_SHORT_FORM',
     }],
@@ -74,7 +74,7 @@ test('CBARQ-INSTRUMENT-01 checked-in authority fails closed for production use',
     reason: 'AUTHORITY_NOT_ESTABLISHED',
   });
   assert.equal(authority.licence.status, 'NOT_ESTABLISHED');
-  assert.equal(authority.formVariants.find((row) => row.variantKey === 'FRENCH_2025_EFA_63').disposition,
+  assert.equal(authority.formVariants.find((row) => row.variantKey === 'fr-2025-efa-63').disposition,
     'NOT_AUTHORIZED_SHORT_FORM');
 });
 
@@ -99,7 +99,7 @@ test('CBARQ-INSTRUMENT-01 exact authorized fixture permits only matching authori
   assert.equal(
     evaluateCbarqInstrumentUse(fixture, {
       ...baseRequest,
-      formVariantKey: 'FRENCH_2025_EFA_63',
+      formVariantKey: 'fr-2025-efa-63',
     }, now).allowed,
     false,
   );
