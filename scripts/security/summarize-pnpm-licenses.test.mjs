@@ -9,19 +9,40 @@ import {
   reviewClassForLicense,
 } from './summarize-pnpm-licenses.mjs';
 
-test('flattens pnpm licence-bucket JSON without inventing licence metadata', () => {
+test('flattens pnpm v9+ grouped versions without inventing licence metadata', () => {
   const rows = flattenPnpmLicenseReport({
-    MIT: [{ name: 'alpha', version: '1.0.0', path: '/alpha' }],
-    'Apache-2.0': [{ name: 'beta', version: '2.0.0', license: 'Apache-2.0', path: '/beta' }],
+    MIT: [{
+      name: 'alpha',
+      versions: ['1.0.0', '1.1.0'],
+      paths: ['/alpha-1.0.0', '/alpha-1.1.0'],
+      license: 'MIT',
+    }],
+    'Apache-2.0': [{
+      name: 'beta',
+      versions: ['2.0.0'],
+      paths: ['/beta-2.0.0'],
+      license: 'Apache-2.0',
+    }],
   });
 
   assert.deepEqual(
-    rows.map((row) => [row.name, row.version, row.license]),
+    rows.map((row) => [row.name, row.version, row.path, row.license]),
     [
-      ['alpha', '1.0.0', 'MIT'],
-      ['beta', '2.0.0', 'Apache-2.0'],
+      ['alpha', '1.0.0', '/alpha-1.0.0', 'MIT'],
+      ['alpha', '1.1.0', '/alpha-1.1.0', 'MIT'],
+      ['beta', '2.0.0', '/beta-2.0.0', 'Apache-2.0'],
     ],
   );
+});
+
+test('retains compatibility with one-version licence rows', () => {
+  const rows = flattenPnpmLicenseReport([
+    { name: 'legacy', version: '3.0.0', path: '/legacy', license: 'ISC' },
+  ]);
+
+  assert.deepEqual(rows.map((row) => [row.name, row.version, row.license]), [
+    ['legacy', '3.0.0', 'ISC'],
+  ]);
 });
 
 test('deduplicates exact installed entries while retaining distinct versions', () => {
