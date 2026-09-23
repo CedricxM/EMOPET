@@ -188,10 +188,6 @@ export const eliBehavioralMappingAuthorities = pgTable('eli_behavioral_mapping_a
   instrumentVersion: varchar('instrument_version', { length: 100 })
     .notNull()
     .default('UNVERSIONED'),
-  sourceInstrumentCode: varchar('source_instrument_code', { length: 50 }).notNull(),
-  sourceInstrumentVersion: varchar('source_instrument_version', { length: 100 })
-    .notNull()
-    .default('UNVERSIONED'),
   sourceFactorKey: varchar('source_factor_key', { length: 100 }).notNull(),
   targetPriorKey: varchar('target_prior_key', { length: 100 }).notNull(),
   algorithmVersion: varchar('algorithm_version', { length: 100 }).notNull(),
