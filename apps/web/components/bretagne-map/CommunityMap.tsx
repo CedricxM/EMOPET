@@ -1,17 +1,16 @@
 'use client';
 
 /**
- * Wrapper de carte (Réalité R1).
- * - Si NEXT_PUBLIC_MAPBOX_TOKEN est défini → carte Mapbox réelle + POI OSM.
- * - Sinon → repli sur la carte SVG stylisée (BretagneMap), projection maison.
+ * Controlled map wrapper.
  *
- * Les données entrent toujours en (lon, lat) ; la projection vers le repère
- * SVG est faite ici pour le fallback.
+ * Mapbox is available only when the public browser token, exact runtime GO gate
+ * and separately reviewed repository authority all agree. Token presence alone
+ * never selects the external renderer.
  */
 
 import dynamic from 'next/dynamic';
 import { useMemo } from 'react';
-import { resolveMapboxToken } from '../../lib/map/mapSurface';
+import { getControlledMapboxToken } from '../../lib/mapbox-rights';
 import { BretagneMap } from './Map';
 import type { SpotMarker } from './Map';
 import type { MapboxEvent } from './MapboxMap';
@@ -27,7 +26,6 @@ export interface CommunityMapProps {
   selectedSpotId?: string | null;
   onSpotClick?: (id: string) => void;
   onEventClick?: (id: string) => void;
-  /** Interactions propres à la carte SVG (villes / phares / événement démo). */
   svg?: {
     onCityClick?: (id: CityId) => void;
     onLighthouseClick?: (id: LighthouseId) => void;
@@ -35,15 +33,19 @@ export interface CommunityMapProps {
   };
 }
 
-// `!!token` acceptait un jeton fait d'espaces : le repli SVG était alors
-// abandonné au profit d'une carte qui ne pouvait pas se charger.
-const HAS_MAPBOX = resolveMapboxToken(process.env.NEXT_PUBLIC_MAPBOX_TOKEN).status === 'configured';
+const HAS_CONTROLLED_MAPBOX = getControlledMapboxToken() !== null;
 
 export function CommunityMap({ spots, events, selectedSpotId, onSpotClick, onEventClick, svg }: CommunityMapProps) {
   const spotMarkers = useMemo<SpotMarker[]>(
     () => spots.map((s) => {
       const { x, y } = lonLatToXY(s.lon, s.lat);
-      return { id: s.id, x, y, color: categoryMeta(s.category).color, label: `${s.name}, catégorie ${categoryMeta(s.category).label}` };
+      return {
+        id: s.id,
+        x,
+        y,
+        color: categoryMeta(s.category).color,
+        label: s.name + ', catégorie ' + categoryMeta(s.category).label,
+      };
     }),
     [spots],
   );
@@ -51,12 +53,12 @@ export function CommunityMap({ spots, events, selectedSpotId, onSpotClick, onEve
   const eventMarkers = useMemo<SpotMarker[]>(
     () => events.map((e) => {
       const { x, y } = lonLatToXY(e.lon, e.lat);
-      return { id: e.id, x, y, color: 'var(--terracotta-600)', label: `Événement : ${e.title}` };
+      return { id: e.id, x, y, color: 'var(--terracotta-600)', label: 'Événement : ' + e.title };
     }),
     [events],
   );
 
-  if (HAS_MAPBOX) {
+  if (HAS_CONTROLLED_MAPBOX) {
     return <MapboxMap spots={spots} events={events} selectedSpotId={selectedSpotId} onSpotClick={onSpotClick} onEventClick={onEventClick} />;
   }
 

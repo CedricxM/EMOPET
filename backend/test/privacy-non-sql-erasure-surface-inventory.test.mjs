@@ -79,6 +79,8 @@ test('provider-held-copy inventory distinguishes active runtime integrations fro
   const notify = await text('apps/web/lib/server/notify.ts');
   const breiz = await text('apps/web/app/api/breiz/route.ts');
   const mapbox = await text('apps/web/components/bretagne-map/MapboxMap.tsx');
+  const mapboxRights = await text('apps/web/lib/mapbox-rights.ts');
+  const mapboxAuthority = await text('apps/web/lib/mapbox-service-authority.ts');
   const stack = await text('docs/STACK_GAPS.md');
   const securityDiscovery = await text(
     'docs/security/PRIV_SECURITY_AUDIT_SINK_DISCOVERY_2026-09-21.md',
@@ -88,7 +90,10 @@ test('provider-held-copy inventory distinguishes active runtime integrations fro
   assert.match(notify, /req\.contactValue/);
   assert.match(breiz, /https:\/\/api\.anthropic\.com\/v1\/messages/);
   assert.match(breiz, /userMessage/);
-  assert.match(mapbox, /NEXT_PUBLIC_MAPBOX_TOKEN/);
+  assert.match(mapbox, /getControlledMapboxToken/);
+  assert.match(mapboxRights, /NEXT_PUBLIC_MAPBOX_TOKEN/);
+  assert.match(mapboxRights, /NEXT_PUBLIC_EMOPET_MAPBOX_RIGHTS_GATE/);
+  assert.match(mapboxAuthority, /disposition:\s*'HOLD'/);
   assert.match(stack, /Paiement.*schéma freemium en DB, rien de branché/s);
   assert.match(securityDiscovery, /Sentry.*PLACEHOLDER_ONLY/s);
   assert.match(securityDiscovery, /PostHog.*PLACEHOLDER_ONLY/s);
@@ -98,7 +103,10 @@ test('provider-held-copy inventory distinguishes active runtime integrations fro
   );
   assert.equal(providers.Resend.repositoryStatus, 'ACTIVE_ENV_GATED_RUNTIME_INTEGRATION');
   assert.equal(providers.Anthropic.repositoryStatus, 'ACTIVE_ENV_GATED_RUNTIME_INTEGRATION');
-  assert.equal(providers.Mapbox.repositoryStatus, 'ACTIVE_ENV_GATED_CLIENT_INTEGRATION');
+  assert.equal(
+    providers.Mapbox.repositoryStatus,
+    'REVIEWED_AUTHORITY_GATED_CLIENT_INTEGRATION_CURRENTLY_HOLD',
+  );
   assert.equal(
     providers.Stripe.repositoryStatus,
     'SCHEMA_AND_CONFIG_PLACEHOLDER_NO_RUNTIME_PAYMENT_INTEGRATION_FOUND',

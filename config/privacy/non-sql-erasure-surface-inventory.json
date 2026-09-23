@@ -75,12 +75,15 @@
         },
         {
           "provider": "Mapbox",
-          "repositoryStatus": "ACTIVE_ENV_GATED_CLIENT_INTEGRATION",
+          "repositoryStatus": "REVIEWED_AUTHORITY_GATED_CLIENT_INTEGRATION_CURRENTLY_HOLD",
           "evidence": [
+            "apps/web/lib/mapbox-service-authority.ts",
+            "apps/web/lib/mapbox-rights.ts",
             "apps/web/components/bretagne-map/MapboxMap.tsx",
-            "NEXT_PUBLIC_MAPBOX_TOKEN"
+            "NEXT_PUBLIC_MAPBOX_TOKEN",
+            "NEXT_PUBLIC_EMOPET_MAPBOX_RIGHTS_GATE"
           ],
-          "dataBoundary": "Map runtime and geolocation/map requests may reach Mapbox when configured; repository discovery does not establish provider retention.",
+          "dataBoundary": "Checked-in Mapbox service authority is HOLD, so provider requests are not product-authorized by token/env presence alone. A future reviewed GO could enable map/geolocation requests; repository discovery still does not establish provider retention or deletion.",
           "deletionEvidence": "EXTERNAL_UNVERIFIED",
           "providerEvidenceRef": "config/privacy/provider-retention-erasure-evidence.json#Mapbox"
         },
