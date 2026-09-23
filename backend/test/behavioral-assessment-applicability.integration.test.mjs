@@ -99,14 +99,15 @@ test('BEHAV-DATA-01 preserves applicability states and household context without
       INSERT INTO behavioral_assessments (
         id, dog_id, respondent_user_id, respondent_role,
         instrument_code, administration_mode, scientific_use_status, status,
-        household_dog_count
+        household_dog_count, household_context_version, household_context_captured_at
       ) VALUES (
         ${randomUUID()}, ${DOG_ID}, ${USER_ID}, 'owner',
         'TEST', 'standardized', 'unreviewed', 'in_progress',
-        0
+        0, 'household-context-v1', now()
       )
     `,
     /chk_behavioral_assessment_household_dog_count/,
+    'household dog count zero must fail even when snapshot authority is otherwise complete',
   );
 
   await assert.rejects(
