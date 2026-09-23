@@ -48,7 +48,9 @@ A deployment path that creates a fresh schema must preserve these migration-owne
 
 Approved mappings are versioned rows with separate approval and activation timestamps. If an approved mapping is moved out of `approved`, active priors linked to that authority are automatically retired.
 
-Changing the scientific mapping should create a new authority version rather than silently reinterpreting prior historical evidence.
+Once approved, the scientific fields of a mapping authority are immutable. Changing the mapping requires a new authority version rather than silently reinterpreting historical evidence.
+
+While an ELI behavioural prior is active, its linked factor-score provenance and the assessment fields that establish dog/instrument/scientific-use identity cannot be rewritten. The prior must be retired first.
 
 ## Non-authorities
 
