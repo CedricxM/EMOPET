@@ -32,6 +32,10 @@ const allowedReadOnlyReferences = new Set([
   // Reviewed read-only composition only: consumes the canonical AI readiness
   // result and never reads or mutates ai_messages directly.
   'backend/api/services/retention-execution-plan.ts',
+  // Generated read-only incident-topology catalogue: records that ai_messages
+  // exists as an affected surface so breach scoping cannot silently omit it.
+  // It has no database handle or mutation path; mutationPatterns still apply.
+  'backend/api/privacy/breach-recipient-surfaces.generated.ts',
 ]);
 
 const skippedDirectoryNames = new Set([
