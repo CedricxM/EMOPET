@@ -166,7 +166,7 @@ EXECUTE FUNCTION prevent_approved_behavioral_mapping_rewrite();
 CREATE OR REPLACE FUNCTION enforce_behavioral_mapping_lifecycle()
 RETURNS trigger
 LANGUAGE plpgsql
-AS $
+AS $$
 BEGIN
   IF OLD.status = 'approved' AND NEW.status NOT IN ('approved','retired','rejected') THEN
     RAISE EXCEPTION USING
@@ -184,7 +184,7 @@ BEGIN
 
   RETURN NEW;
 END
-$;
+$$;
 
 DROP TRIGGER IF EXISTS trg_behavioral_mapping_lifecycle ON behavioral_eli_mapping_authorities;
 CREATE TRIGGER trg_behavioral_mapping_lifecycle
