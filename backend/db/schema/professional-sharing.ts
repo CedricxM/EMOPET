@@ -15,9 +15,9 @@ import { users } from './users.js';
 /**
  * Durable Owner-controlled professional sharing authority.
  *
- * Persisted and TypeScript identifiers are both canonical Owner terminology
- * from frozen #224; historical 0006/0009 remain provenance only.
- * INT-05 reconstructs the final schema directly for fresh-baseline evidence.
+ * Persisted and TypeScript identifiers use canonical Owner terminology.
+ * Current-main migration 0013 promotes this final shape under Model A while
+ * retaining frozen #224 migration 0006/0009 provenance in the SQL header.
  *
  * This table stores grants, not reusable bearer links. Recipient identity is
  * deliberately represented separately from display/email metadata so access
