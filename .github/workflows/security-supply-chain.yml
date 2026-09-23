@@ -30,7 +30,35 @@ jobs:
           cache: pnpm
       - name: Install exact locked dependency graph
         run: pnpm install --frozen-lockfile
+      - name: Test dependency licence evidence summarizer
+        run: node --test scripts/security/summarize-pnpm-licenses.test.mjs
+      - name: Collect exact-head dependency licence inventories
+        run: |
+          pnpm licenses list --json --long > pnpm-licenses-all.json
+          pnpm licenses list --prod --json --long > pnpm-licenses-production.json
+      - name: Summarize exact-head dependency licence evidence
+        env:
+          EMOPET_CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          node scripts/security/summarize-pnpm-licenses.mjs \
+            pnpm-licenses-all.json \
+            pnpm-licenses-production.json \
+            pnpm-license-evidence.json \
+            pnpm-license-summary.md
+      - name: Upload dependency licence evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: pnpm-license-evidence
+          path: |
+            pnpm-licenses-all.json
+            pnpm-licenses-production.json
+            pnpm-license-evidence.json
+            pnpm-license-summary.md
+          if-no-files-found: error
+          retention-days: 14
       - name: Audit dependencies and preserve machine-readable evidence
+        if: always()
         shell: bash
         run: |
           set +e
