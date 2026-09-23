@@ -120,6 +120,14 @@ jobs:
             psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$file"
           done
 
+      - name: ELI-BEHAV-01 mapping authority on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          BEHAVIORAL_ELI_MAPPING_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/behavioral-eli-mapping-authority.integration.test.mjs
+
       - name: Capture first schema
         run: |
           pg_dump --schema-only --no-owner --no-privileges "$DATABASE_URL" > /tmp/schema-a.sql
@@ -190,6 +198,21 @@ jobs:
         env:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: pnpm exec drizzle-kit migrate --config=db/drizzle.p0-baseline.config.ts
+
+      # Drizzle emits table/column constraints but not PostgreSQL trigger/function authority.
+      - name: Apply ELI-BEHAV non-Drizzle authority objects
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/0015_behavioral_eli_mapping_authority.sql
+
+      - name: ELI-BEHAV-01 mapping authority on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          BEHAVIORAL_ELI_MAPPING_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/behavioral-eli-mapping-authority.integration.test.mjs
 
       - name: ID-01 canonical identity and FK checks
         env:
