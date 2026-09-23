@@ -368,6 +368,9 @@ dogs.get('/:id/vet-report-link', async (c) => {
   const denied = await requireDogOwnership(c, id);
   if (denied) return denied;
 
+  const days = parseVetReportDays(c.req.query('days'));
+  if (days === null) return c.json({ error: 'invalid_report_period' }, 400);
+
   if (!legacyGenericVetShareAllowed()) {
     return c.json({
       error: 'Generic professional sharing is disabled',
@@ -376,9 +379,6 @@ dogs.get('/:id/vet-report-link', async (c) => {
       message: 'Create a recipient-bound, scoped, expiring professional grant instead.',
     }, 409);
   }
-
-  const days = parseVetReportDays(c.req.query('days'));
-  if (days === null) return c.json({ error: 'invalid_report_period' }, 400);
 
   const userId = String(getUserId(c) ?? '');
   const token = await createVetReportShareToken(userId, id, days);
