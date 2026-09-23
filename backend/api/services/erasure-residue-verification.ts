@@ -1,4 +1,4 @@
-import { eq, inArray, sql } from 'drizzle-orm';
+import { eq, inArray, or, sql } from 'drizzle-orm';
 
 import { db } from '../../db/index.js';
 import {
@@ -25,6 +25,8 @@ import {
   eliStates,
   healthEntries,
   posts,
+  professionalShareAccessAudits,
+  professionalShareGrants,
   recoveryEvents,
   researchDataConsents,
   routineStability,
@@ -45,6 +47,7 @@ export interface ErasureVerificationSnapshot {
   dogIds: string[];
   assessmentIds: string[];
   factorScoreIds: string[];
+  professionalShareGrantIds: string[];
 }
 
 export type ErasureSnapshotFailure = {
@@ -133,7 +136,8 @@ function validSnapshot(
   const dogIds = sortedUniqueCanonicalIds(snapshot.dogIds);
   const assessmentIds = sortedUniqueCanonicalIds(snapshot.assessmentIds);
   const factorScoreIds = sortedUniqueCanonicalIds(snapshot.factorScoreIds);
-  if (!dogIds || !assessmentIds || !factorScoreIds) return null;
+  const professionalShareGrantIds = sortedUniqueCanonicalIds(snapshot.professionalShareGrantIds);
+  if (!dogIds || !assessmentIds || !factorScoreIds || !professionalShareGrantIds) return null;
   if (snapshot.scope === 'DOG' && dogIds.length !== 1) return null;
 
   return {
@@ -143,6 +147,7 @@ function validSnapshot(
     dogIds,
     assessmentIds,
     factorScoreIds,
+    professionalShareGrantIds,
   };
 }
 
@@ -215,6 +220,21 @@ export async function captureErasureVerificationSnapshot(
 
       const dogIds = requestedDogId === undefined ? ownedDogIds : [requestedDogId];
 
+      const professionalShareGrantRows = await tx
+        .select({ id: professionalShareGrants.id })
+        .from(professionalShareGrants)
+        .where(
+          requestedDogId === undefined
+            ? (dogIds.length === 0
+              ? eq(professionalShareGrants.ownerUserId, userId)
+              : or(
+                eq(professionalShareGrants.ownerUserId, userId),
+                inArray(professionalShareGrants.dogId, dogIds),
+              ))
+            : inArray(professionalShareGrants.dogId, dogIds),
+        );
+      const professionalShareGrantIds = professionalShareGrantRows.map((row) => row.id).sort();
+
       const assessmentRows = dogIds.length === 0
         ? []
         : await tx
@@ -242,6 +262,7 @@ export async function captureErasureVerificationSnapshot(
           dogIds,
           assessmentIds,
           factorScoreIds,
+          professionalShareGrantIds,
         },
       } as const;
     });
@@ -309,6 +330,11 @@ export async function verifyErasureResidue(
           probe('community_rules_acceptances.user_id', await countWhere(tx, communityRulesAcceptances, eq(communityRulesAcceptances.userId, snapshot.accountId))),
           probe('dogs.owner_id', await countWhere(tx, dogs, eq(dogs.ownerId, snapshot.accountId))),
           probe('posts.author_id', await countWhere(tx, posts, eq(posts.authorId, snapshot.accountId))),
+          probe('professional_share_grants.owner_user_id', await countWhere(
+            tx,
+            professionalShareGrants,
+            eq(professionalShareGrants.ownerUserId, snapshot.accountId),
+          )),
           probe('research_data_consents.user_id', await countWhere(tx, researchDataConsents, eq(researchDataConsents.userId, snapshot.accountId))),
           probe('subscriptions.user_id', await countWhere(tx, subscriptions, eq(subscriptions.userId, snapshot.accountId))),
           probe('user_config.user_id', await countWhere(tx, userConfig, eq(userConfig.userId, snapshot.accountId))),
@@ -326,6 +352,18 @@ export async function verifyErasureResidue(
         probe('eli_behavioral_priors.dog_id', await countIn(tx, eliBehavioralPriors, eliBehavioralPriors.dogId, snapshot.dogIds)),
         probe('eli_states.dog_id', await countIn(tx, eliStates, eliStates.dogId, snapshot.dogIds)),
         probe('health_entries.dog_id', await countIn(tx, healthEntries, healthEntries.dogId, snapshot.dogIds)),
+        probe('professional_share_grants.dog_id', await countIn(
+          tx,
+          professionalShareGrants,
+          professionalShareGrants.dogId,
+          snapshot.dogIds,
+        )),
+        probe('professional_share_access_audits.dog_id', await countIn(
+          tx,
+          professionalShareAccessAudits,
+          professionalShareAccessAudits.dogId,
+          snapshot.dogIds,
+        )),
         probe('recovery_events.dog_id', await countIn(tx, recoveryEvents, recoveryEvents.dogId, snapshot.dogIds)),
         probe('research_data_consents.dog_id', await countIn(tx, researchDataConsents, researchDataConsents.dogId, snapshot.dogIds)),
         probe('routine_stability.dog_id', await countIn(tx, routineStability, routineStability.dogId, snapshot.dogIds)),
@@ -362,6 +400,15 @@ export async function verifyErasureResidue(
         probe(
           'eli_behavioral_priors.factor_score_id',
           await countIn(tx, eliBehavioralPriors, eliBehavioralPriors.factorScoreId, snapshot.factorScoreIds),
+        ),
+        probe(
+          'professional_share_access_audits.grant_id',
+          await countIn(
+            tx,
+            professionalShareAccessAudits,
+            professionalShareAccessAudits.grantId,
+            snapshot.professionalShareGrantIds,
+          ),
         ),
       ];
 
