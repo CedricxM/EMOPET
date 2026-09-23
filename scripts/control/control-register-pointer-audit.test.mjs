@@ -88,6 +88,32 @@ test('the third-party register records its reconstruction and keeps every gate o
   assert.match(source, /DATA-LIC-G3 \|[^|]*\|[^|]*`HOLD`/, 'G3 must stay HOLD');
 });
 
+test('the third-party register keeps historical pointers separate from current reconciliation', () => {
+  const source = readFileSync(ROOT + DATA.path, 'utf8');
+  assert.match(
+    source,
+    /^Snapshot boundary: `main@3fa5c5298247fc88412ce2c8294fdb4f36024f56`$/m,
+    'historical pointer snapshot must remain unchanged',
+  );
+  assert.match(
+    source,
+    /^Current reconciliation boundary: `main@3153422160740314904fef70c802e9ee9859d043`$/m,
+    'current reconciliation must be a separate non-pointer boundary',
+  );
+  assert.equal(
+    (source.match(/^Snapshot boundary:/gm) ?? []).length,
+    1,
+    'there must be exactly one pointer-audited snapshot boundary',
+  );
+  assert.match(source, /INT07-REC-002[^\n]*#531[^\n]*c075f6e656d5fb932ee73fdda10ca5779abad1c3/);
+  assert.match(source, /INT07-REC-003[^\n]*#532[^\n]*7427d0f218d1066d2e905ae178ff96bd80d10076/);
+  assert.match(source, /INT07-REC-005[^\n]*#533[^\n]*8162a3c19d72098728b1ed71212254591cfbc6d5/);
+  assert.match(source, /INT07-REC-006[^\n]*#534[^\n]*3153422160740314904fef70c802e9ee9859d043/);
+  assert.match(source, /claimsLegalClearance = false/);
+  assert.match(source, /disposition = OPEN_REVIEW_REQUIRED/);
+  assert.match(source, /G-THIRD-PARTY-DATA-RIGHTS-01 = OPEN/);
+  assert.doesNotMatch(source, /G-THIRD-PARTY-DATA-RIGHTS-01 = GO/);
+});
 test('the register does not describe the directory seed as verified or cleared', () => {
   const source = readFileSync(ROOT + DATA.path, 'utf8');
   const claims = source.replace(/`(CLEARED|COMPLIANT|LICENSED|APPROVED|RELEASED)`/g, '');

@@ -1,8 +1,10 @@
 # EMOPET — P0 Third-Party Data and Service-Rights Evidence Register
 
 Status: `P0 CONTROLLED EVIDENCE INTAKE / OPEN / NOT LEGAL SIGN-OFF / NOT RELEASE AUTHORITY`
-Control date: `2026-09-22`
+Control date: `2026-09-22` (historical pointer snapshot)
+Latest reconciliation: `2026-09-23`
 Snapshot boundary: `main@3fa5c5298247fc88412ce2c8294fdb4f36024f56`
+Current reconciliation boundary: `main@3153422160740314904fef70c802e9ee9859d043`
 Work item: [#116 — DATA-LIC-01](https://github.com/CedricxM/EMOPET/issues/116)
 Related provenance register: `docs/control/P0_IP_PROVENANCE_EVIDENCE_REGISTER.md` ([#114](https://github.com/CedricxM/EMOPET/issues/114))
 Pointer self-check: `pnpm control:pointer-audit`
@@ -82,6 +84,36 @@ enforcement invisible.
 No gate closes. Landed enforcement is not landed evidence, and this register does not
 convert one into the other.
 
+### 0.3 Current-main reconciliation — 2026-09-23
+
+This section reconciles the active ledger with engineering controls that landed after the
+historical pointer snapshot. It does **not** replace the `Snapshot boundary` above. The
+pointer-audited DATA-SRC/VBO-FILE rows in §4 and §7 remain claims about
+`main@3fa5c5298247fc88412ce2c8294fdb4f36024f56` and must continue to resolve there.
+
+Current reconciliation boundary:
+`main@3153422160740314904fef70c802e9ee9859d043`.
+
+The reconciliation records **landed containment and evidence movement only**. A technical
+gate becoming harder to bypass is not legal/service/data authority, and no row below changes
+a source or service to GO.
+
+| Reconciliation ID | Area | Landed receipt | Current-main fact | Current disposition |
+|---|---|---|---|---|
+| INT07-REC-001 | DATA-LIC-G3 local directory | PR #345 / merge `44b0f64c5cdd2ccb51e65ba221664657e12fb420` | Directory APIs now fail closed to `DATA_RIGHTS_GATE_HOLD` unless both the production runtime gate and separately reviewed repository authority are GO; non-production demo requires explicit opt-in and strips rating/verification/source claims | `HOLD` — row-level provenance/permitted-use review remains open |
+| INT07-REC-002 | DATA-LIC-G6 Breiz source/retrieval authority | PR #531 / merge `c075f6e656d5fb932ee73fdda10ca5779abad1c3` | Raw/local ingestion cannot self-mint reviewed/public authority; public retrieval requires immutable source-authority binding that still matches the current reviewed registry record; no current catalogue entry has a GO rights record | `OPEN` — enforcement landed, source/item evidence absent |
+| INT07-REC-003 | DATA-LIC-G4 Overpass / OSM | PR #532 / merge `7427d0f218d1066d2e905ae178ff96bd80d10076` | No default public Overpass provider is silently selected; exact GO + complete reviewed repository authority + explicit clean HTTPS endpoint are required; OSM POIs carry item provenance; cache is ephemeral with 5-minute TTL and max 40 bbox entries; export/derived-database flow remains prohibited | `OPEN` — checked-in authority is HOLD; provider policy, rendered evidence and live-flow review remain open |
+| INT07-REC-004 | DATA-LIC-G5 Mapbox | PR #532 / merge `7427d0f218d1066d2e905ae178ff96bd80d10076` | Token presence is not authority; exact GO + complete reviewed account/billing/terms/custody/attribution/privacy record + public `pk.*` token are required before renderer activation | `OPEN` — checked-in authority is HOLD; external/account evidence absent |
+| INT07-REC-005 | Related processor/service boundary — Anthropic Breiz egress | PR #533 / merge `8162a3c19d72098728b1ed71212254591cfbc6d5` | API key, model and operator flag cannot by themselves authorize egress; reviewed provider/processor authority is additionally required and bound to an explicit reviewed model set | `HOLD / OPEN` — checked-in authority is HOLD; provider/privacy/transfer/retention/model evidence remains open under #69/#116 |
+| INT07-REC-006 | DATA-LIC-G7 dependency licences | PR #534 / merge `3153422160740314904fef70c802e9ee9859d043` | Canonical security workflow now preserves all-dependency and production-only pnpm licence inventories plus SHA-256-bound evidence; latest promoted candidate inventory observed 1,218 installed and 958 production entries, with 4 production entries mechanically triaged for reciprocal/source-obligation review | `OPEN` — inventory exists; legal/distribution/NOTICE/source-offer review remains open |
+| INT07-REC-007 | DATA-LIC-G1 datasets | no new landing receipt | `real-datasets.json` still carries `checksumSha256: null` for all four registered datasets and no historical upstream payload receipt was manufactured from transformed/repository artifacts | `OPEN` — immutable retrieval receipts remain missing |
+| INT07-REC-008 | DATA-LIC-G2 VBO | existing committed snapshot evidence retained | Committed VBO payload remains byte-equivalent to immutable upstream commit `323e8a3dbdb13696b41408f0f2f70454ba37b6f6`; the evidence explicitly does not claim upstream release equivalence or product-use clearance | `OPEN` — traceability proven; historical retrieval receipt remains missing |
+
+Engineering reconciliation therefore narrows several bypass paths but does not change the
+aggregate gate:
+
+`G-THIRD-PARTY-DATA-RIGHTS-01 = OPEN`.
+
 ## 1. Purpose and authority boundary
 
 This register records repository-observable facts, official-source checks and missing
@@ -134,12 +166,12 @@ aggregate conclusions unless the exact scope, reviewer, evidence and date are re
 | Gate | Required outcome | State | Closing authority |
 |---|---|---|---|
 | DATA-LIC-G1 | Dataset identity and immutable retrieval receipts | `OPEN` | Data owner + Engineering + licensing review |
-| DATA-LIC-G2 | VBO payload and derivative traceability | `OPEN` | Data owner + Engineering |
-| DATA-LIC-G3 | Local-directory item-level provenance or explicit demo classification | `HOLD` | Product/Data owner + qualified review where relied upon |
-| DATA-LIC-G4 | OSM/Overpass flow classification and rendered attribution evidence | `OPEN` | Engineering + Product + licensing review |
-| DATA-LIC-G5 | Mapbox account, terms, billing, token and attribution authority | `OPEN` | Founder/authorized account owner + Engineering |
-| DATA-LIC-G6 | Breiz item-level licence controls | `OPEN` | Data owner + connector owner |
-| DATA-LIC-G7 | Exact-head dependency licence inventory and notices | `OPEN` | Engineering + licensing review |
+| DATA-LIC-G2 | VBO payload/derivative traceability plus retained retrieval receipt | `OPEN` — immutable-commit byte equivalence proven; historical receipt open | Data owner + Engineering |
+| DATA-LIC-G3 | Local-directory item-level provenance or explicit demo classification | `HOLD` — runtime containment landed; row-level evidence open | Product/Data owner + qualified review where relied upon |
+| DATA-LIC-G4 | OSM/Overpass flow classification and rendered attribution evidence | `OPEN` — runtime authority is HOLD; provider/review evidence open | Engineering + Product + licensing review |
+| DATA-LIC-G5 | Mapbox account, terms, billing, token and attribution authority | `OPEN` — runtime authority is HOLD; external/account evidence open | Founder/authorized account owner + Engineering |
+| DATA-LIC-G6 | Breiz item-level licence controls | `OPEN` — provenance-bound enforcement landed; no source GO record | Data owner + connector owner |
+| DATA-LIC-G7 | Exact-head dependency licence inventory and notices | `OPEN` — exact-head inventory available; legal/distribution/NOTICE review open | Engineering + licensing review |
 | DATA-LIC-G8 | Controlled residual-gap and release disposition | `OPEN` | Founder/Product authority with qualified review |
 
 `G-THIRD-PARTY-DATA-RIGHTS-01 = OPEN`
@@ -484,16 +516,35 @@ Catalogue metadata alone must not be promoted to a full-text or media reuse auth
 
 ## 12. Software dependency licence control
 
-Unchanged since 2026-09-02, and re-verified: no `NOTICE`, `COPYING`, third-party licence
-inventory or generated attribution bundle is tracked anywhere in the tree. No `LICENSE` file
-is tracked either — recorded as an observation, not as a recommendation, since selecting a
-repository-wide licence is outside this register's authority (§1).
+At the historical 2026-09-22 snapshot, no `NOTICE`, `COPYING`, third-party licence
+inventory or generated attribution bundle was tracked in the tree. That remains the historical
+fact for the pointer snapshot; it is **not** the current-main state.
 
-The supply-chain workflow provides CycloneDX and SPDX SBOM artifacts and security-advisory
-evidence. An SBOM is an inventory input, not a licensing disposition.
+PR #534, promoted at `main@3153422160740314904fef70c802e9ee9859d043`, extends the
+canonical security workflow to preserve raw pnpm licence inventories for all installed and
+production-only dependencies and to generate SHA-256-bound exact-head evidence. The promoted
+candidate evidence observed 1,218 installed dependency entries and 958 production entries.
+Its mechanical production triage placed 954 entries in general notice/distribution review and
+4 entries in reciprocal/source-obligation review.
 
-DATA-LIC-G7 requires an exact candidate-head inventory covering direct and transitive
-dependencies for all workspaces and shipped artifacts.
+The evidence deliberately records:
+- `claimsLegalClearance = false`;
+- `claimsDistributionCompatibility = false`;
+- `claimsNoticeCompleteness = false`;
+- `disposition = OPEN_REVIEW_REQUIRED`.
+
+The four focused production-review entries observed at promotion were
+`@img/sharp-libvips-linux-x64@1.3.3`, `lightningcss@1.27.0`,
+`lightningcss-linux-x64-gnu@1.27.0` and `node-forge@1.4.0`. Their mechanical
+classification is a review queue, not a legal conclusion.
+
+CycloneDX/SPDX SBOM, package-manager licence metadata and exact-head inventory are evidence
+inputs, not licensing dispositions. Copied assets, fonts, native binaries,
+firmware/toolchain SDKs, final NOTICE contents, source-offer obligations and actual shipped
+artifact composition remain separately reviewable.
+
+DATA-LIC-G7 therefore has an exact-head evidence inventory but remains OPEN for legal,
+distribution and notice review.
 
 | Control | Required evidence | State |
 |---|---|---|
@@ -583,11 +634,12 @@ Do not complete this section until DATA-LIC-G1 through G8 have evidence-backed d
 `OFFICIAL SOURCE LABELS = PARTIALLY CONFIRMED (2026-09-02, NOT RE-CHECKED)`
 `IMMUTABLE RETRIEVAL RECEIPTS = NOT ESTABLISHED`
 `VBO UPSTREAM BYTE EQUIVALENCE = PROVEN, RECEIPT STILL MISSING`
-`LORIENT DIRECTORY PRODUCTION REPRESENTATION = HOLD, NOW ENFORCED IN CODE`
-`OSM/OVERPASS PRODUCT-USE DISPOSITION = OPEN`
-`MAPBOX PRODUCTION AUTHORITY = OPEN`
-`BREIZ ITEM-LEVEL RIGHTS ENFORCEMENT = LANDED, EVIDENCE OPEN`
-`DEPENDENCY LICENCE DISPOSITION = OPEN`
+`LORIENT DIRECTORY PRODUCTION REPRESENTATION = HOLD, FAIL-CLOSED RUNTIME ENFORCED`
+`OSM/OVERPASS PRODUCT-USE DISPOSITION = OPEN; CHECKED-IN SERVICE AUTHORITY = HOLD`
+`MAPBOX PRODUCTION AUTHORITY = OPEN; CHECKED-IN SERVICE AUTHORITY = HOLD`
+`BREIZ ITEM-LEVEL RIGHTS = OPEN; PROVENANCE-BOUND ENFORCEMENT LANDED, NO SOURCE GO RECORD`
+`ANTHROPIC BREIZ EGRESS = HOLD / OPEN; PROVIDER-PROCESSOR AUTHORITY NOT ESTABLISHED`
+`DEPENDENCY LICENCE DISPOSITION = EVIDENCE INVENTORY AVAILABLE / REVIEW OPEN`
 `PRODUCT OR RELEASE AUTHORITY = NOT GRANTED`
 `G-THIRD-PARTY-DATA-RIGHTS-01 = OPEN`
 
