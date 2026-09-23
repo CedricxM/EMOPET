@@ -222,7 +222,7 @@ export function renderMarkdown(evidence) {
     '| Licence metadata | Packages |',
     '|---|---:|',
     ...evidence.productionDependencies.licenseBuckets.map(
-      (row) => '| ' + markdownTableCell(row.license) + ' | ' + row.packageCount + ' |',
+      (row) => '| ' + markdownCell(row.license) + ' | ' + row.packageCount + ' |',
     ),
     '',
     '## Mechanical review buckets',
