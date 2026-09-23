@@ -1,6 +1,6 @@
 # EMOPET — Retrospective Memory Index
 
-**Control date:** 2026-09-07 (last entry added 2026-09-22)  
+**Control date:** 2026-09-07 (last entry added 2026-09-23)  
 **Status:** `CONTROLLED MEMORY INDEX`
 
 This folder preserves historical project lineage, supersessions and retrospective reconstruction. It complements current strategy/product authorities and must not be used to promote historical architecture into current Product truth.
@@ -27,6 +27,7 @@ This folder preserves historical project lineage, supersessions and retrospectiv
 - `CURRENT_SYSTEM_STATE_AUDIT_2026-09-22_ADDENDUM_02.md` — records two further post-snapshot findings and one self-correction: the committed lockfile was not reproducible under the repository's own trust policy until a pnpm rule-matching trap was understood (#482, zero resolved versions changed), a guarded and fully green typography change still named a web font family nothing registers, and a branch derivation of a #142 maximum horizon from the 36-month retention categories was wrong because both call sites read nothing and #140 uses a separate parser.
 - `CURRENT_SYSTEM_STATE_AUDIT_2026-09-22_ADDENDUM_03.md` — records the full five-feature ELI science pass: four distinct failure mechanisms rather than one class of contradiction, the observation models being additive in `docs/eli_model.md` and proportional in code with six ungrounded gains, and the finding that the engine's unit tests are not independent evidence about the model document. Also lists the three claims this session published and retracted, and their common cause.
 - `CURRENT_SYSTEM_STATE_AUDIT_2026-09-22_ADDENDUM_04.md` — records a failure mode in the evidence layer itself: seven of the twelve blob identifiers declared by PR #117's third-party rights register resolve to no Git object in 2,370 commits, each sharing four to eight leading hex characters with the blob that really sat at that path, while #114's thirteen all resolved. Also records that the same defect was reproduced and caught by a resolver rather than by re-reading, that parsing the Lorient seed row-by-row exposes a telephone value shared between a `verified: true` and a `verified: false` row where per-column counts could not, and that four DATA-LIC gates advanced on `main` while the register sat stranded — none of them closing, because landed enforcement is not landed evidence.
+- `CURRENT_SYSTEM_STATE_AUDIT_2026-09-23_ADDENDUM_05.md` — records the close-without-merge disposition for document-control PRs #44/#52/#62/#104: verified custody hashes where available, the #62 stale README manifest row with intact chunk reassembly, and the superseded/datetime authority reasons these snapshots remain provenance rather than current tree authority.
 - `HISTORICAL_STRATEGY_SUPERSESSIONS_2026-09-07.md` — high-risk historical concepts that must not silently re-enter current authority.
 
 ## Scientific communication lineage
