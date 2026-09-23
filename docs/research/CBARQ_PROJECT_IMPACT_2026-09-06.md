@@ -2,6 +2,7 @@
 
 **Date:** 2026-09-06  
 **Reconciled:** 2026-09-07 against connected Gmail correspondence  
+**Latest evidence reconciliation:** 2026-09-23 — Besegher et al. 2025 French C-BARQ factorial validation  
 **Status:** Scientific architecture review  
 **Scope:** C-BARQ integration, ELI priors, behavioural data model, claims, research governance
 
@@ -33,6 +34,61 @@ EMOPET subsequently chose a **more conservative project direction**: seek the ap
 
 That is an EMOPET design decision triggered by the feedback, **not a direct Serpell requirement to always use the full instrument**.
 
+## 2026-09-23 addendum — French factorial-validation evidence
+
+Since this impact assessment was written, EMOPET added a new peer-reviewed evidence layer:
+
+Audrey Besegher, Nancy Rebout, Dalila Bovet, Sarah Jeannin, Thierry Bedossa,
+James A. Serpell and Sara Hoummady (2025), *Evaluation of the factorial structures of the
+canine behavioral assessment and research questionnaire (C-BARQ) in France*,
+*Applied Animal Behaviour Science* 292, 106816.
+DOI: `10.1016/j.applanim.2025.106816`.
+
+Primary source:
+https://www.sciencedirect.com/science/article/pii/S0168159125003144
+
+This addendum **does not rewrite the 2026-09-06 reasoning above/below**. It records what the
+new evidence changes prospectively.
+
+### What the French study adds
+
+- the study used the then-most-recent 100-item / 14-subscale C-BARQ with permission;
+- a French translation supplied by James Serpell and revised in consultation with him was used;
+- 246 completed questionnaires were retained;
+- EFA reported KMO 0.77, significant Bartlett test, 13 retained factors, 63 items with loadings >= 0.40, 54.1% explained variance and alpha 0.693–0.914;
+- CFA showed strong correspondence to the prior US model (CFI 0.970, TLI 0.969, RMSEA 0.047; SRMR 0.090);
+- study-specific French findings included combined stranger-directed aggression/fear, passerby-directed aggression, compulsive-like behaviour and social excitability/energy;
+- Dog rivalry could not be retained comparably because relevant responses were insufficient.
+
+### What it does NOT establish
+
+- no EMOPET C-BARQ licence;
+- no permission for EMOPET to reproduce the French wording;
+- no validated 63-item EMOPET short form;
+- no sensor-to-emotion mapping;
+- no C-BARQ -> ELI mapping authority;
+- no Penn/Serpell endorsement;
+- no completed ELI validation study.
+
+### New engineering/science consequences
+
+1. Preserve `NOT_APPLICABLE`, `NOT_OBSERVED`, `MISSING` and `SKIPPED` as distinct evidence states; none is numeric zero.
+2. Snapshot household/multi-dog context at assessment time where applicability depends on it.
+3. Require an explicit versioned scientific authority before any behavioural factor can activate an ELI prior.
+4. Treat C-BARQ as a candidate external criterion for prospective validation, not as latent-state ground truth.
+5. Keep contextual Guardian annotations distinct from sensor observation and causal interpretation.
+
+Implementation gates created from this reconciliation:
+- #550 `BEHAV-DATA-01`;
+- #551 `ELI-BEHAV-01`;
+- #553 `CBARQ-INSTRUMENT-01`;
+- #554 `ELI-VALID-CBARQ-01`;
+- #555 `BEHAV-CONTEXT-01`;
+- #557 `SCI-CBARQ-RECON-01`;
+- #558 `BEHAV-COPY-01`.
+
+Canonical current authority:
+`docs/science/EMOPET_CBARQ_UPENN_SCIENTIFIC_AUTHORITY_2026-09-23.md`.
 ### Impact level by subsystem
 
 | Subsystem | Impact | Decision |
