@@ -184,6 +184,28 @@
       "erasure": "DELETE_AFTER_RETENTION_WINDOW_OR_ON_VALID_REQUEST"
     },
     {
+      "id": "professional_sharing",
+      "data": [
+        "owner_user_id",
+        "dog_id",
+        "recipient display/organization/email metadata",
+        "recipient principal binding identifier when verified",
+        "declared purpose and scopes",
+        "data window and access expiry",
+        "grant lifecycle status/timestamps",
+        "sanitized professional-share policy-decision audit references"
+      ],
+      "purpose": "Owner-controlled, recipient-bound professional sharing authority and minimal audit evidence",
+      "legalBasis": "TO_CONFIRM_BEFORE_PRODUCTION",
+      "retention": "TO_CONFIRM_BEFORE_PRODUCTION; NO_FINAL_RETENTION_SCHEDULE_AUTHORITY",
+      "thirdParties": [
+        "Owner-selected professional recipient only after separately approved identity/binding flow"
+      ],
+      "internationalTransfer": "RECIPIENT_OR_PROVIDER_SPECIFIC_REVIEW_REQUIRED_BEFORE_PRODUCTION",
+      "exportable": "SUBJECT_TO_OWNER_AND_RECIPIENT_RIGHTS_REVIEW",
+      "erasure": "TO_CONFIRM_BEFORE_DESTRUCTIVE_ERASURE_AUTHORITY"
+    },
+    {
       "id": "security_logs",
       "data": [
         "security events",
