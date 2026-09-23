@@ -125,7 +125,7 @@ EXECUTE FUNCTION enforce_active_eli_behavioral_prior_authority();
 CREATE OR REPLACE FUNCTION prevent_approved_behavioral_mapping_rewrite()
 RETURNS trigger
 LANGUAGE plpgsql
-AS $
+AS $$
 BEGIN
   IF OLD.status = 'approved' AND (
     NEW.authority_key IS DISTINCT FROM OLD.authority_key
@@ -151,7 +151,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END
-$;
+$$;
 
 DROP TRIGGER IF EXISTS trg_behavioral_mapping_approved_immutable ON behavioral_eli_mapping_authorities;
 CREATE TRIGGER trg_behavioral_mapping_approved_immutable
@@ -162,7 +162,7 @@ EXECUTE FUNCTION prevent_approved_behavioral_mapping_rewrite();
 CREATE OR REPLACE FUNCTION prevent_active_behavioral_factor_source_rewrite()
 RETURNS trigger
 LANGUAGE plpgsql
-AS $
+AS $$
 BEGIN
   IF EXISTS (
     SELECT 1
@@ -186,7 +186,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END
-$;
+$$;
 
 DROP TRIGGER IF EXISTS trg_active_behavioral_factor_source_immutable ON behavioral_factor_scores;
 CREATE TRIGGER trg_active_behavioral_factor_source_immutable
@@ -197,7 +197,7 @@ EXECUTE FUNCTION prevent_active_behavioral_factor_source_rewrite();
 CREATE OR REPLACE FUNCTION prevent_active_behavioral_assessment_source_rewrite()
 RETURNS trigger
 LANGUAGE plpgsql
-AS $
+AS $$
 BEGIN
   IF EXISTS (
     SELECT 1
@@ -217,7 +217,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END
-$;
+$$;
 
 DROP TRIGGER IF EXISTS trg_active_behavioral_assessment_source_immutable ON behavioral_assessments;
 CREATE TRIGGER trg_active_behavioral_assessment_source_immutable
