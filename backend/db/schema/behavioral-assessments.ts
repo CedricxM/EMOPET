@@ -254,6 +254,10 @@ export const eliBehavioralPriors = pgTable('eli_behavioral_priors', {
   factorScoreId: uuid('factor_score_id')
     .references(() => behavioralFactorScores.id),
 
+  sourceInstrumentCode: varchar('source_instrument_code', { length: 50 }).notNull(),
+  sourceInstrumentVersion: varchar('source_instrument_version', { length: 100 })
+    .notNull()
+    .default('UNVERSIONED'),
   sourceFactorKey: varchar('source_factor_key', { length: 100 }).notNull(),
   targetPriorKey: varchar('target_prior_key', { length: 100 }).notNull(),
   priorValue: real('prior_value').notNull(),
