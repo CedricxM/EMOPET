@@ -163,6 +163,10 @@ jobs:
           NODE_ENV: test
         run: node --test test/behavioral-response-semantics.integration.test.mjs
 
+      - name: BEHAV-DATA-01 reject silent zero coercion
+        working-directory: backend
+        run: node --test test/behavioral-response-zero-coercion.test.mjs
+
       - name: PRIV-RETENTION device unbind clock on historical migrations
         working-directory: backend
         env:
