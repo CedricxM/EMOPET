@@ -23,6 +23,8 @@ test('active behavioural priors require exact approved mapping authority', { ski
   const approvedAuthorityId = randomUUID();
   const researchAuthorityId = randomUUID();
   const wrongVersionAuthorityId = randomUUID();
+  const wrongScoringAuthorityId = randomUUID();
+  const wrongInstrumentAuthorityId = randomUUID();
   const activePriorId = randomUUID();
   const email = `eli-behav-${randomUUID()}@example.test`;
 
@@ -82,6 +84,30 @@ test('active behavioural priors require exact approved mapping authority', { ski
       )
     `;
 
+    await sql`
+      INSERT INTO behavioral_eli_mapping_authorities (
+        id, authority_key, authority_version, source_instrument_code, source_instrument_version,
+        source_scoring_version, source_factor_key, target_prior_key, algorithm_version,
+        min_prior_value, max_prior_value, protocol_reference, review_authority, status, approved_at
+      ) VALUES (
+        ${wrongScoringAuthorityId}, 'qa-wrong-scoring', '1', 'qa-instrument', 'qa-v1',
+        'score-v2', 'factor-a', 'eli-prior-a', 'map-v1',
+        -1, 1, 'protocol://qa-wrong-scoring', 'QA SCIENCE REVIEW', 'approved', NOW()
+      )
+    `;
+
+    await sql`
+      INSERT INTO behavioral_eli_mapping_authorities (
+        id, authority_key, authority_version, source_instrument_code, source_instrument_version,
+        source_scoring_version, source_factor_key, target_prior_key, algorithm_version,
+        min_prior_value, max_prior_value, protocol_reference, review_authority, status, approved_at
+      ) VALUES (
+        ${wrongInstrumentAuthorityId}, 'qa-wrong-instrument', '1', 'qa-other-instrument', 'qa-v1',
+        'score-v1', 'factor-a', 'eli-prior-a', 'map-v1',
+        -1, 1, 'protocol://qa-wrong-instrument', 'QA SCIENCE REVIEW', 'approved', NOW()
+      )
+    `;
+
     const insertActive = (id, authorityId, priorValue = 0.4) => sql`
       INSERT INTO eli_behavioral_priors (
         id, dog_id, assessment_id, factor_score_id, mapping_authority_id,
@@ -115,6 +141,16 @@ test('active behavioural priors require exact approved mapping authority', { ski
     );
 
     await assert.rejects(
+      () => insertActive(randomUUID(), wrongScoringAuthorityId),
+      /chk_eli_behavioral_prior_active_authority|matching approved mapping authority/i,
+    );
+
+    await assert.rejects(
+      () => insertActive(randomUUID(), wrongInstrumentAuthorityId),
+      /chk_eli_behavioral_prior_active_authority|matching approved mapping authority/i,
+    );
+
+    await assert.rejects(
       () => insertActive(randomUUID(), approvedAuthorityId, 2),
       /chk_eli_behavioral_prior_active_authority|matching approved mapping authority/i,
     );
@@ -134,7 +170,7 @@ test('active behavioural priors require exact approved mapping authority', { ski
     assert.ok(retired[0].retired_at);
   } finally {
     await sql`DELETE FROM eli_behavioral_priors WHERE assessment_id = ${assessmentId}`;
-    await sql`DELETE FROM behavioral_eli_mapping_authorities WHERE id IN (${approvedAuthorityId}, ${researchAuthorityId}, ${wrongVersionAuthorityId})`;
+    await sql`DELETE FROM behavioral_eli_mapping_authorities WHERE id IN (${approvedAuthorityId}, ${researchAuthorityId}, ${wrongVersionAuthorityId}, ${wrongScoringAuthorityId}, ${wrongInstrumentAuthorityId})`;
     await sql`DELETE FROM behavioral_factor_scores WHERE assessment_id = ${assessmentId}`;
     await sql`DELETE FROM behavioral_assessments WHERE id = ${assessmentId}`;
     await sql`DELETE FROM dogs WHERE id = ${dogId}`;
