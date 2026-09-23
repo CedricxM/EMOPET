@@ -92,17 +92,6 @@ function normalizeExpression(value) {
   return value.toUpperCase().split(/\s+/u).filter(Boolean).join(' ').trim();
 }
 
-export function markdownTableCell(value) {
-  let output = '';
-  for (const char of String(value)) {
-    if (char === '|') output += '\\|';
-    else if (char === '\n' || char === '\r') output += ' ';
-    else if (char === '\\') output += '\\\\';
-    else output += char;
-  }
-  return output;
-}
-
 export function reviewClassForLicense(license) {
   const expression = normalizeExpression(license || 'UNKNOWN');
 
