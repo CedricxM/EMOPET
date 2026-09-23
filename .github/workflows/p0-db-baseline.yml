@@ -191,6 +191,14 @@ jobs:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: pnpm exec drizzle-kit migrate --config=db/drizzle.p0-baseline.config.ts
 
+      - name: BEHAV-DATA-01 behavioural applicability and context contract
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          BEHAVIORAL_ASSESSMENT_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/behavioral-assessment-applicability.integration.test.mjs
+
       - name: ID-01 canonical identity and FK checks
         env:
           GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
