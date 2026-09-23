@@ -191,6 +191,17 @@ test('PRIV-ERASURE-TOPOLOGY static controls remain fail closed', () => {
   assert.match(mappedByTable.behavioral_assessments.mappingRationale, /administration_mode='research'/);
   assert.match(mappedByTable.behavioral_assessments.mappingRationale, /product rows/);
 
+  assert.equal(mappedByTable.professional_share_grants.classificationStatus, 'MAPPED_TO_EXISTING_PRIVACY_CATEGORY');
+  assert.deepEqual(mappedByTable.professional_share_grants.inventoryCategories, ['professional_sharing']);
+  assert.match(mappedByTable.professional_share_grants.mappingRationale, /recipient binding\/contact/);
+
+  assert.equal(mappedByTable.professional_share_access_audits.classificationStatus, 'MAPPED_TO_EXISTING_PRIVACY_CATEGORY');
+  assert.deepEqual(
+    mappedByTable.professional_share_access_audits.inventoryCategories,
+    ['professional_sharing', 'security_logs'],
+  );
+  assert.match(mappedByTable.professional_share_access_audits.mappingRationale, /security-log/);
+
   assert.equal(mappedByTable.user_config.classificationStatus, 'MAPPED_TO_EXISTING_PRIVACY_CATEGORY');
   assert.deepEqual(mappedByTable.user_config.inventoryCategories, ['account', 'dog_profile']);
   assert.equal(typeof mappedByTable.user_config.mappingRationale, 'string');
