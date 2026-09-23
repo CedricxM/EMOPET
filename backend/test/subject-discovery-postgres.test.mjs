@@ -186,10 +186,12 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
   await sql`
     INSERT INTO eli_behavioral_priors (
       id, dog_id, assessment_id, factor_score_id,
+      source_instrument_code, source_instrument_version,
       source_factor_key, target_prior_key, prior_value, confidence,
       algorithm_version, status
     ) VALUES (
       ${PRIOR_A}, ${DOG_A}, ${ASSESSMENT_A}, ${FACTOR_A},
+      'TEST', 'UNVERSIONED',
       'test-factor', 'test-prior', 0.25, 0.8, 'test-v1', 'candidate'
     )
   `;

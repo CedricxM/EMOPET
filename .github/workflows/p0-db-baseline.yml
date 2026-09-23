@@ -127,6 +127,13 @@ jobs:
           BEHAVIORAL_ASSESSMENT_DB_INTEGRATION: '1'
           NODE_ENV: test
         run: node --test test/behavioral-assessment-semantics.integration.test.mjs
+      - name: ELI-BEHAV-01 historical mapping authority
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          ELI_BEHAVIORAL_AUTHORITY_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/eli-behavioral-mapping-authority.integration.test.mjs
 
       - name: Capture first schema
         run: |
@@ -206,6 +213,13 @@ jobs:
           BEHAVIORAL_ASSESSMENT_DB_INTEGRATION: '1'
           NODE_ENV: test
         run: node --test test/behavioral-assessment-semantics.integration.test.mjs
+      - name: ELI-BEHAV-01 generated-baseline mapping authority
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          ELI_BEHAVIORAL_AUTHORITY_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/eli-behavioral-mapping-authority.integration.test.mjs
 
       - name: ID-01 canonical identity and FK checks
         env:
@@ -399,5 +413,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, BEHAV-DATA-01 questionnaire applicability/household semantics, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification, retention-readiness probes, INT-04A bounded export authority, and INT-05 recipient-bound professional sharing.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, BEHAV-DATA-01 questionnaire applicability/household semantics, ELI-BEHAV-01 exact behavioural-prior authority, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification, retention-readiness probes, INT-04A bounded export authority, and INT-05 recipient-bound professional sharing.'
           echo 'It does not authorize production migration, deployment, or release.'
