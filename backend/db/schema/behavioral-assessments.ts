@@ -26,8 +26,8 @@ import { users } from './users.js';
  *   classes and must remain distinguishable in provenance.
  * - A progressive/adaptive administration mode must never be assumed equivalent
  *   to the validated/standard administration. `scientificUseStatus` is the gate.
- * - Missing / skipped / not-applicable responses are preserved explicitly rather
- *   than silently imputed.
+ * - Missing / skipped / not-applicable / not-observed responses are preserved
+ *   explicitly rather than silently imputed or coerced to zero.
  */
 
 export const behavioralAssessments = pgTable('behavioral_assessments', {
@@ -50,6 +50,15 @@ export const behavioralAssessments = pgTable('behavioral_assessments', {
 
   expectedItemCount: integer('expected_item_count'),
   answeredItemCount: integer('answered_item_count').notNull().default(0),
+
+  // Assessment-time household context is snapshotted here so later household
+  // changes cannot retroactively change questionnaire applicability semantics.
+  // `multiDogHousehold` is derived canonically as householdDogCount > 1 when
+  // householdDogCount is known; do not persist a second mutable boolean.
+  householdDogCount: integer('household_dog_count'),
+  householdContextVersion: varchar('household_context_version', { length: 50 }),
+  householdContextCapturedAt: timestamp('household_context_captured_at', { withTimezone: true }),
+  householdContext: jsonb('household_context').default({}),
 
   startedAt: timestamp('started_at', { withTimezone: true }).defaultNow().notNull(),
   completedAt: timestamp('completed_at', { withTimezone: true }),
@@ -79,6 +88,10 @@ export const behavioralAssessments = pgTable('behavioral_assessments', {
     'chk_behavioral_assessment_counts',
     sql`(${table.expectedItemCount} IS NULL OR ${table.expectedItemCount} >= 0) AND ${table.answeredItemCount} >= 0`,
   ),
+  check(
+    'chk_behavioral_assessment_household_dog_count',
+    sql`${table.householdDogCount} IS NULL OR ${table.householdDogCount} >= 1`,
+  ),
 ]);
 
 export const behavioralResponses = pgTable('behavioral_responses', {
@@ -106,14 +119,14 @@ export const behavioralResponses = pgTable('behavioral_responses', {
   index('idx_behavioral_response_assessment').on(table.assessmentId),
   check(
     'chk_behavioral_response_status',
-    sql`${table.responseStatus} IN ('answered','not_applicable','skipped','missing')`,
+    sql`${table.responseStatus} IN ('answered','not_applicable','not_observed','skipped','missing')`,
   ),
   check(
     'chk_behavioral_response_scale',
     sql`${table.scaleMin} <= ${table.scaleMax} AND (
       (${table.responseStatus} = 'answered' AND ${table.responseValue} IS NOT NULL AND ${table.responseValue} BETWEEN ${table.scaleMin} AND ${table.scaleMax})
       OR
-      (${table.responseStatus} IN ('not_applicable','skipped','missing') AND ${table.responseValue} IS NULL)
+      (${table.responseStatus} IN ('not_applicable','not_observed','skipped','missing') AND ${table.responseValue} IS NULL)
     )`,
   ),
 ]);
