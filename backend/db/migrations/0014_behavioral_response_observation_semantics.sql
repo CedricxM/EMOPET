@@ -47,6 +47,13 @@ ALTER TABLE behavioral_assessments
 ALTER TABLE behavioral_responses
   DROP CONSTRAINT IF EXISTS chk_behavioral_response_status;
 
+-- Historical 0005 declared this CHECK inline, so PostgreSQL named it
+-- behavioral_responses_response_status_check. Generated Drizzle baselines use
+-- the explicit chk_* name above. Drop both representations before installing
+-- the single current constraint.
+ALTER TABLE behavioral_responses
+  DROP CONSTRAINT IF EXISTS behavioral_responses_response_status_check;
+
 ALTER TABLE behavioral_responses
   ADD CONSTRAINT chk_behavioral_response_status
   CHECK (
