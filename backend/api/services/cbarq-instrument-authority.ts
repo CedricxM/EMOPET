@@ -155,7 +155,7 @@ export function evaluateCbarqInstrumentUse(
     .map(record)
     .find((entry) => entry?.variantKey === request.formVariantKey);
   if (!variant) return denied('FORM_VARIANT_NOT_AUTHORIZED');
-  if (request.formVariantKey === 'FRENCH_2025_EFA_63'
+  if (request.formVariantKey === 'fr-2025-efa-63'
       && variant.disposition !== 'AUTHORIZED_SHORT_FORM') {
     return denied('SHORT_FORM_NOT_AUTHORIZED');
   }
