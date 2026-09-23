@@ -120,6 +120,14 @@ jobs:
             psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$file"
           done
 
+      - name: BEHAV-DATA-01 historical migration semantics
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          BEHAVIORAL_ASSESSMENT_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/behavioral-assessment-semantics.integration.test.mjs
+
       - name: Capture first schema
         run: |
           pg_dump --schema-only --no-owner --no-privileges "$DATABASE_URL" > /tmp/schema-a.sql
@@ -190,6 +198,14 @@ jobs:
         env:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: pnpm exec drizzle-kit migrate --config=db/drizzle.p0-baseline.config.ts
+
+      - name: BEHAV-DATA-01 generated-baseline semantics
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          BEHAVIORAL_ASSESSMENT_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/behavioral-assessment-semantics.integration.test.mjs
 
       - name: ID-01 canonical identity and FK checks
         env:
@@ -383,5 +399,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification, retention-readiness probes, INT-04A bounded export authority, and INT-05 recipient-bound professional sharing.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, BEHAV-DATA-01 questionnaire applicability/household semantics, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification, retention-readiness probes, INT-04A bounded export authority, and INT-05 recipient-bound professional sharing.'
           echo 'It does not authorize production migration, deployment, or release.'
