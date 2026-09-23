@@ -29,9 +29,14 @@ ALTER TABLE behavioral_assessments
   ADD CONSTRAINT chk_behavioral_assessment_cohabitation_context_shape
     CHECK (cohabitation_context IS NULL OR jsonb_typeof(cohabitation_context) = 'object');
 
+-- Historical 0005 named only the scale constraint. PostgreSQL therefore
+-- generated behavioral_responses_response_status_check for the inline status
+-- CHECK. Drop both possible canonical/legacy names so the final constraint
+-- names become deterministic without rewriting historical migration 0005.
 ALTER TABLE behavioral_responses
-  DROP CONSTRAINT chk_behavioral_response_status,
-  DROP CONSTRAINT chk_behavioral_response_scale;
+  DROP CONSTRAINT IF EXISTS behavioral_responses_response_status_check,
+  DROP CONSTRAINT IF EXISTS chk_behavioral_response_status,
+  DROP CONSTRAINT IF EXISTS chk_behavioral_response_scale;
 
 ALTER TABLE behavioral_responses
   ADD CONSTRAINT chk_behavioral_response_status
