@@ -5,12 +5,8 @@ export interface LocalDocumentSource {
   filename: string;
   content: string;
   /**
-   * Reçu de licence couvrant ce fichier, quand le format n'a pas de champ pour
-   * le porter — c'est le cas du markdown, qui ne transporte que titre et texte.
-   *
-   * Sans ce reçu, et sans licence dans l'enregistrement lui-même, le document
-   * part en `rejected`. L'opérateur déclare la preuve ; le code ne l'invente
-   * pas à sa place.
+   * Licence receipt covering this file when the file format cannot carry one.
+   * Without explicit evidence, the document is rejected.
    */
   license?: string;
 }
@@ -28,22 +24,36 @@ function normalizeTags(tags: string[] | string | undefined): string[] {
   return [];
 }
 
+/**
+ * Generic/local ingestion is not release authority.
+ *
+ * A local payload may become more restrictive, never more authoritative.
+ * Public-answer authority requires a separate controlled promotion step.
+ */
+function normalizeIngestedUsage(value: BreizDocument['allowed_usage'] | undefined): BreizDocument['allowed_usage'] {
+  if (value === 'do_not_answer') return 'do_not_answer';
+  if (value === 'internal_reference') return 'internal_reference';
+  return 'retrieval_only';
+}
+
+/** Imported files cannot self-declare a reviewed source identity. */
+function normalizeIngestedReliability(
+  value: BreizDocument['reliability_level'] | undefined,
+): BreizDocument['reliability_level'] {
+  if (value === 'community_pending') return 'community_pending';
+  return 'unknown';
+}
+
 function withDefaults(raw: PartialDocument, source: LocalDocumentSource): BreizDocument {
   const now = new Date().toISOString().slice(0, 10);
   const title = raw.title?.trim() || source.filename.replace(/\.[^.]+$/, '');
   return {
-    id: raw.id?.trim() || `local-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`,
+    id: raw.id?.trim() || 'local-' + title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
     title,
     source_name: raw.source_name?.trim() || 'Local file',
     source_url: raw.source_url ?? null,
-    // Une licence absente reste absente.
-    //
-    // La valeur par défaut d'origine était la phrase « License review required
-    // before public use ». Elle rendait le champ non vide, donc la règle
-    // `license is required` de `validateBreizDocument` ne pouvait plus jamais
-    // se déclencher sur ce chemin : tout document sans licence était accepté,
-    // porteur d'une phrase occupant la place d'un reçu. Laisser le champ vide
-    // rend cette règle à son office et envoie le document dans `rejected`.
+    // Deliberately do not copy source_registry_id or source_authority_binding.
+    // Those fields are minted only by a controlled promotion/review step.
     license: raw.license?.trim() || source.license?.trim() || '',
     territory: raw.territory?.trim() || 'Bretagne',
     region: raw.region?.trim() || 'Bretagne',
@@ -53,9 +63,9 @@ function withDefaults(raw: PartialDocument, source: LocalDocumentSource): BreizD
     tags: normalizeTags(raw.tags),
     summary: raw.summary?.trim() || title,
     content: raw.content?.trim() || '',
-    reliability_level: raw.reliability_level ?? 'unknown',
+    reliability_level: normalizeIngestedReliability(raw.reliability_level),
     last_checked_at: raw.last_checked_at?.trim() || now,
-    allowed_usage: raw.allowed_usage ?? 'retrieval_only',
+    allowed_usage: normalizeIngestedUsage(raw.allowed_usage),
   };
 }
 
@@ -90,7 +100,7 @@ export function parseLocalDocumentSource(source: LocalDocumentSource): PartialDo
   }
   if (source.filename.endsWith('.csv')) return parseCsv(source.content);
   if (source.filename.endsWith('.md') || source.filename.endsWith('.markdown')) return [parseMarkdown(source)];
-  throw new Error(`Unsupported local document extension: ${source.filename}`);
+  throw new Error('Unsupported local document extension: ' + source.filename);
 }
 
 export function ingestBreizDocuments(sources: LocalDocumentSource[]): IngestResult {
