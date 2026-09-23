@@ -29,6 +29,10 @@ CREATE TABLE IF NOT EXISTS behavioral_eli_mapping_authorities (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT chk_behavioral_eli_mapping_bounds CHECK (min_prior_value <= max_prior_value),
   CONSTRAINT chk_behavioral_eli_mapping_status CHECK (status IN ('research_only','approved','retired','rejected')),
+  CONSTRAINT chk_behavioral_eli_mapping_retirement CHECK (
+    (status = 'retired' AND retired_at IS NOT NULL)
+    OR (status <> 'retired' AND retired_at IS NULL)
+  ),
   CONSTRAINT chk_behavioral_eli_mapping_approved_evidence CHECK (
     status <> 'approved'
     OR (review_authority IS NOT NULL AND approved_at IS NOT NULL AND activated_at IS NOT NULL AND length(trim(protocol_reference)) > 0)
@@ -117,6 +121,109 @@ BEFORE INSERT OR UPDATE OF
 ON eli_behavioral_priors
 FOR EACH ROW
 EXECUTE FUNCTION enforce_active_eli_behavioral_prior_authority();
+
+CREATE OR REPLACE FUNCTION prevent_approved_behavioral_mapping_rewrite()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $
+BEGIN
+  IF OLD.status = 'approved' AND (
+    NEW.authority_key IS DISTINCT FROM OLD.authority_key
+    OR NEW.authority_version IS DISTINCT FROM OLD.authority_version
+    OR NEW.source_instrument_code IS DISTINCT FROM OLD.source_instrument_code
+    OR NEW.source_instrument_version IS DISTINCT FROM OLD.source_instrument_version
+    OR NEW.source_scoring_version IS DISTINCT FROM OLD.source_scoring_version
+    OR NEW.source_factor_key IS DISTINCT FROM OLD.source_factor_key
+    OR NEW.target_prior_key IS DISTINCT FROM OLD.target_prior_key
+    OR NEW.algorithm_version IS DISTINCT FROM OLD.algorithm_version
+    OR NEW.min_prior_value IS DISTINCT FROM OLD.min_prior_value
+    OR NEW.max_prior_value IS DISTINCT FROM OLD.max_prior_value
+    OR NEW.protocol_reference IS DISTINCT FROM OLD.protocol_reference
+    OR NEW.review_authority IS DISTINCT FROM OLD.review_authority
+    OR NEW.rationale IS DISTINCT FROM OLD.rationale
+    OR NEW.approved_at IS DISTINCT FROM OLD.approved_at
+    OR NEW.activated_at IS DISTINCT FROM OLD.activated_at
+  ) THEN
+    RAISE EXCEPTION USING
+      ERRCODE = '23514',
+      CONSTRAINT = 'chk_behavioral_eli_mapping_approved_immutable',
+      MESSAGE = 'approved behavioural ELI mapping authority is immutable; create a new authority version';
+  END IF;
+  RETURN NEW;
+END
+$;
+
+DROP TRIGGER IF EXISTS trg_behavioral_mapping_approved_immutable ON behavioral_eli_mapping_authorities;
+CREATE TRIGGER trg_behavioral_mapping_approved_immutable
+BEFORE UPDATE ON behavioral_eli_mapping_authorities
+FOR EACH ROW
+EXECUTE FUNCTION prevent_approved_behavioral_mapping_rewrite();
+
+CREATE OR REPLACE FUNCTION prevent_active_behavioral_factor_source_rewrite()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM eli_behavioral_priors p
+    WHERE p.factor_score_id = OLD.id
+      AND p.status = 'active'
+  ) AND (
+    NEW.assessment_id IS DISTINCT FROM OLD.assessment_id
+    OR NEW.factor_key IS DISTINCT FROM OLD.factor_key
+    OR NEW.score IS DISTINCT FROM OLD.score
+    OR NEW.scoring_method IS DISTINCT FROM OLD.scoring_method
+    OR NEW.scoring_version IS DISTINCT FROM OLD.scoring_version
+    OR NEW.eligible_for_eli_prior IS DISTINCT FROM OLD.eligible_for_eli_prior
+    OR NEW.provenance IS DISTINCT FROM OLD.provenance
+    OR NEW.computed_at IS DISTINCT FROM OLD.computed_at
+  ) THEN
+    RAISE EXCEPTION USING
+      ERRCODE = '23514',
+      CONSTRAINT = 'chk_eli_behavioral_prior_active_factor_source_immutable',
+      MESSAGE = 'factor-score provenance referenced by an active ELI behavioural prior is immutable; retire the prior first';
+  END IF;
+  RETURN NEW;
+END
+$;
+
+DROP TRIGGER IF EXISTS trg_active_behavioral_factor_source_immutable ON behavioral_factor_scores;
+CREATE TRIGGER trg_active_behavioral_factor_source_immutable
+BEFORE UPDATE ON behavioral_factor_scores
+FOR EACH ROW
+EXECUTE FUNCTION prevent_active_behavioral_factor_source_rewrite();
+
+CREATE OR REPLACE FUNCTION prevent_active_behavioral_assessment_source_rewrite()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM eli_behavioral_priors p
+    WHERE p.assessment_id = OLD.id
+      AND p.status = 'active'
+  ) AND (
+    NEW.dog_id IS DISTINCT FROM OLD.dog_id
+    OR NEW.instrument_code IS DISTINCT FROM OLD.instrument_code
+    OR NEW.instrument_version IS DISTINCT FROM OLD.instrument_version
+    OR NEW.scientific_use_status IS DISTINCT FROM OLD.scientific_use_status
+  ) THEN
+    RAISE EXCEPTION USING
+      ERRCODE = '23514',
+      CONSTRAINT = 'chk_eli_behavioral_prior_active_assessment_source_immutable',
+      MESSAGE = 'assessment provenance referenced by an active ELI behavioural prior is immutable; retire the prior first';
+  END IF;
+  RETURN NEW;
+END
+$;
+
+DROP TRIGGER IF EXISTS trg_active_behavioral_assessment_source_immutable ON behavioral_assessments;
+CREATE TRIGGER trg_active_behavioral_assessment_source_immutable
+BEFORE UPDATE ON behavioral_assessments
+FOR EACH ROW
+EXECUTE FUNCTION prevent_active_behavioral_assessment_source_rewrite();
 
 CREATE OR REPLACE FUNCTION retire_priors_when_mapping_authority_closes()
 RETURNS trigger
