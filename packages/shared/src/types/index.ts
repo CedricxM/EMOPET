@@ -9,3 +9,4 @@ export * from './freemium.js';
 export * from './feature-vector.js';
 export * from './sub-baseline.js';
 export * from './inference.js';
+export * from './professional-share.js';
