@@ -31,7 +31,8 @@
     {
       "key": "PROFESSIONAL_SHARE_GRANT_IDS_SNAPSHOT",
       "source": "professional_share_grants.id",
-      "captureRule": "CAPTURE_GRANTS_LINKED_TO_TARGET_OWNER_OR_DOGS_BEFORE_PARENT_MUTATION"
+      "captureRule": "CAPTURE_GRANTS_LINKED_TO_TARGET_OWNER_OR_DOGS_BEFORE_PARENT_MUTATION",
+      "captureStatus": "IMPLEMENTED_READ_ONLY"
     }
   ],
   "relationProbeRoutes": [
@@ -66,7 +67,7 @@
         "UNCONSTRAINED_IDENTIFIER"
       ],
       "snapshotKey": "PROFESSIONAL_SHARE_GRANT_IDS_SNAPSHOT",
-      "probeStatus": "NOT_IMPLEMENTED"
+      "probeStatus": "IMPLEMENTED_READ_ONLY"
     }
   ],
   "nonSqlProbes": [
