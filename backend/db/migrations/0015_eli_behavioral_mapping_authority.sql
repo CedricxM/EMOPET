@@ -15,15 +15,17 @@ ALTER TABLE behavioral_assessments
   ALTER COLUMN instrument_version SET DEFAULT 'UNVERSIONED',
   ALTER COLUMN instrument_version SET NOT NULL;
 
-CREATE UNIQUE INDEX uq_behavioral_assessment_instrument_binding
-  ON behavioral_assessments (
+ALTER TABLE behavioral_assessments
+  ADD CONSTRAINT uq_behavioral_assessment_instrument_binding
+  UNIQUE (
     id,
     instrument_code,
     instrument_version
   );
 
-CREATE UNIQUE INDEX uq_behavioral_factor_binding
-  ON behavioral_factor_scores (
+ALTER TABLE behavioral_factor_scores
+  ADD CONSTRAINT uq_behavioral_factor_binding
+  UNIQUE (
     id,
     assessment_id,
     factor_key
@@ -73,8 +75,9 @@ CREATE UNIQUE INDEX uq_eli_behavioral_mapping_authority_natural
     authority_version
   );
 
-CREATE UNIQUE INDEX uq_eli_behavioral_mapping_authority_binding
-  ON eli_behavioral_mapping_authorities (
+ALTER TABLE eli_behavioral_mapping_authorities
+  ADD CONSTRAINT uq_eli_behavioral_mapping_authority_binding
+  UNIQUE (
     id,
     instrument_code,
     instrument_version,
