@@ -1,6 +1,7 @@
 # EMOPET — Scientific Framework Register
 
 **Control date:** 2026-09-07  
+**Latest reconciliation:** 2026-09-23  
 **Status:** CONTROLLED SCIENTIFIC-MEMORY INDEX
 
 ## Purpose
@@ -25,6 +26,8 @@ A scientific exchange is not automatically a validation, endorsement or partners
 - `WORKING_FRAMEWORK`
 - `PROJECT_DECISION`
 - `VALIDATED_EXTERNAL_INSTRUMENT`
+- `PUBLISHED_PEER_REVIEWED_EVIDENCE`
+- `PROPOSED_NOT_PERFORMED`
 - `LICENSING_REQUIRED`
 - `SCHEDULED_NOT_SENT`
 - `NOT_PROVEN`
@@ -34,6 +37,9 @@ A scientific exchange is not automatically a validation, endorsement or partners
 
 | Framework / topic | Current status | Source / authority | Current EMOPET consequence | Controlled record |
 |---|---|---|---|---|
+| French C-BARQ factorial evidence (Besegher et al., 2025) | `PUBLISHED_PEER_REVIEWED_EVIDENCE` | Applied Animal Behaviour Science 292, 106816; DOI `10.1016/j.applanim.2025.106816` | Treat the French instrument as having published factorial evidence while preserving sample/owner-report limitations; do not infer commercial licence or a validated 63-item short form | `docs/science/EMOPET_CBARQ_UPENN_SCIENTIFIC_AUTHORITY_2026-09-23.md` |
+| C-BARQ as external criterion for ELI validation | `EMOPET_PROPOSAL / PROPOSED_NOT_PERFORMED` | EMOPET research direction informed by 2025 French evidence; no validation study executed | Design construct-specific prospective validation; C-BARQ remains external criterion candidate, not ground truth | `docs/science/EMOPET_CBARQ_UPENN_SCIENTIFIC_AUTHORITY_2026-09-23.md`; #541 |
+| C-BARQ 63-item French EFA subset as EMOPET short form | `NOT_PROVEN / NOT_AUTHORIZED` | 63 items loaded >=0.40 in one French EFA sample; no EMOPET/Penn short-form authority | Do not implement or describe as a validated short form | `docs/science/EMOPET_CBARQ_UPENN_SCIENTIFIC_AUTHORITY_2026-09-23.md`; #540 |
 | Earlier reduced C-BARQ selection concept | `SUPERSEDED` | Historical EMOPET proposal reviewed by Prof. James Serpell | Do not implement the old subset as current production strategy | `docs/research/cbarq/EMOPET_CBARQ_SELECTION_LEGACY.md` |
 | C-BARQ item wording / owner extremity judgements / item elimination | `EXTERNAL_FEEDBACK / SCIENTIFIC_RECOMMENDATION` | Prof. James Serpell, 2 July 2026 written feedback | Preserve wording validity; avoid subjective owner extremity judgements; any item elimination must be psychometrically justified rather than UX-driven | `docs/records/communications/science/SERPELL_UPENN_COMMUNICATIONS.md` |
 | Conservative complete-instrument direction | `PROJECT_DECISION / SCIENTIFIC_REVIEW_REQUIRED` | EMOPET decision after Serpell feedback, not a blanket Serpell instruction | Seek the appropriate licence and investigate complete licensed use; progressive sequencing remains an open scientific question | `docs/research/CBARQ_PROJECT_IMPACT_2026-09-06.md`; Serpell communications record |
@@ -44,6 +50,24 @@ A scientific exchange is not automatically a validation, endorsement or partners
 | `Controlled Research Brief — ELI Co-Pilot Training Proposal.pdf` transmission | `NOT_PROVEN` | Exact connected-Gmail filename search returned no result on 2026-09-07 | May remain an EMOPET internal/proposed framework, but do not call it sent for Serpell review without evidence | Attachment register + Serpell record |
 | ELI scientific validation by Prof. Serpell | `NOT_PROVEN` | No controlled evidence establishing validation | Must not be claimed | Serpell communications record |
 | UPenn institutional partnership / endorsement | `NOT_PROVEN` | No controlled institutional agreement | Must not be claimed | Serpell communications record |
+
+## 2026-09-23 reconciliation — French validation evidence
+
+The 2025 France factorial-validation paper is a **new evidence layer**, not a rewrite of the July 2026 Serpell correspondence or of EMOPET's earlier design decisions.
+
+Controlled distinctions:
+
+- Flint 2017 remains prior behavioural literature and does not become superseded by the France study;
+- Prof. Serpell's July 2026 feedback remains attributed to that communication only;
+- EMOPET's conservative complete-instrument direction remains a project decision;
+- Besegher et al. 2025 adds published French psychometric/factorial evidence;
+- the article's open-access status does not grant EMOPET C-BARQ product/commercial rights;
+- the 63 retained EFA items do not create an authorized EMOPET short form;
+- ELI validation against C-BARQ remains proposed and not performed;
+- Penn institutional collaboration/endorsement remains unproven unless separately contracted/evidenced.
+
+Canonical current authority:
+`docs/science/EMOPET_CBARQ_UPENN_SCIENTIFIC_AUTHORITY_2026-09-23.md`.
 
 ## Exact Serpell attribution currently controlled
 
