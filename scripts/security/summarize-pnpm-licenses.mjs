@@ -89,7 +89,18 @@ export function dedupePackages(rows) {
 }
 
 function normalizeExpression(value) {
-  return value.toUpperCase().replace(/\s+/g, ' ').trim();
+  return value.toUpperCase().split(/\s+/u).filter(Boolean).join(' ').trim();
+}
+
+export function markdownTableCell(value) {
+  let output = '';
+  for (const char of String(value)) {
+    if (char === '|') output += '\\|';
+    else if (char === '\n' || char === '\r') output += ' ';
+    else if (char === '\\') output += '\\\\';
+    else output += char;
+  }
+  return output;
 }
 
 export function reviewClassForLicense(license) {
@@ -197,7 +208,7 @@ export function renderMarkdown(evidence) {
     '| Licence metadata | Packages |',
     '|---|---:|',
     ...evidence.productionDependencies.licenseBuckets.map(
-      (row) => '| ' + String(row.license).replace(/\|/g, '\\|') + ' | ' + row.packageCount + ' |',
+      (row) => '| ' + markdownTableCell(row.license) + ' | ' + row.packageCount + ' |',
     ),
     '',
     '## Mechanical review buckets',
