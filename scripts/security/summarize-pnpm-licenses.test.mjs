@@ -6,6 +6,7 @@ import {
   dedupePackages,
   flattenPnpmLicenseReport,
   markdownTableCell,
+  markdownCell,
   renderMarkdown,
   reviewClassForLicense,
 } from './summarize-pnpm-licenses.mjs';
@@ -67,6 +68,13 @@ test('review classes are triage labels, never legal clearance', () => {
   assert.equal(reviewClassForLicense('GPL-3.0-only'), 'RECIPROCAL_OR_SOURCE_OBLIGATION_REVIEW');
   assert.equal(reviewClassForLicense('MPL-2.0'), 'RECIPROCAL_OR_SOURCE_OBLIGATION_REVIEW');
   assert.equal(reviewClassForLicense('MIT'), 'GENERAL_NOTICE_AND_DISTRIBUTION_REVIEW');
+});
+
+
+test('markdown evidence neutralizes table and markup injection from licence metadata', () => {
+  const rendered = markdownCell('MIT|custom\n<script>&x</script>');
+  assert.equal(rendered, 'MIT&#124;custom &lt;script&gt;&amp;x&lt;/script&gt;');
+  assert.doesNotMatch(rendered, /[|\r\n<>]/);
 });
 
 test('evidence remains OPEN even when metadata is complete', () => {
