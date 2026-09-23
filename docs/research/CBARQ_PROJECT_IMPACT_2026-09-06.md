@@ -2,8 +2,50 @@
 
 **Date:** 2026-09-06  
 **Reconciled:** 2026-09-07 against connected Gmail correspondence  
+**Scientific reconciliation addendum:** 2026-09-23 against Besegher et al. 2025 French C-BARQ factorial evidence  
 **Status:** Scientific architecture review  
 **Scope:** C-BARQ integration, ELI priors, behavioural data model, claims, research governance
+
+## 2026-09-23 addendum — French factorial-validation evidence
+
+This document remains the historical 2026-09-06/07 impact assessment for Flint 2017 + Serpell correspondence. It is **not** overwritten. The following current evidence must now be read alongside it.
+
+Primary current authority:
+`docs/science/EMOPET_CBARQ_UPENN_SCIENTIFIC_AUTHORITY_2026-09-23.md`.
+
+### What changed
+
+Besegher et al. (2025), *Evaluation of the factorial structures of the canine behavioral assessment and research questionnaire (C-BARQ) in France*, Applied Animal Behaviour Science 292:106816, DOI `10.1016/j.applanim.2025.106816`, provides peer-reviewed French factorial evidence using the 100-item / 14-subscale C-BARQ and a French translation revised in consultation with Prof. James A. Serpell.
+
+Material current consequences:
+
+- French factorial evidence is now `PUBLISHED / PEER-REVIEWED`;
+- owner-report remains a separate evidence class, not latent-state ground truth;
+- `not_applicable`, `not_observed`, `missing` and `skipped` must remain distinct from answered zero (#538);
+- stranger-directed fear/aggression overlap reinforces the ban on direct owner-label -> ELI-state mappings (#539);
+- household/multi-dog context becomes first-class applicability provenance;
+- the 63 items retained by the study's EFA are **not** an authorized/validated EMOPET short form (#540);
+- C-BARQ may be considered as an external criterion in a prospective construct-specific ELI validation protocol, but that validation is `PROPOSED / NOT PERFORMED` (#541);
+- contextual-event research can link declared context with TAG/MAT windows without claiming that sensors identified the cause/stimulus (#542).
+
+### What did not change
+
+- MAT/TAG hardware is not redesigned because of this paper;
+- ELI core mathematics is not validated or replaced by this paper;
+- C-BARQ licensing remains `NOT_ESTABLISHED` until written Penn/instrument authority exists;
+- Penn/Serpell endorsement or institutional collaboration must not be inferred;
+- the historical Serpell feedback and Flint evidence remain separate evidence layers.
+
+### Current implementation workstreams
+
+- #538 `BEHAV-DATA-01` — applicability + household-context provenance;
+- #539 `ELI-BEHAV-01` — behavioural-assessment -> ELI mapping authority;
+- #540 `CBARQ-INSTRUMENT-01` — version/language/scoring/licence contract;
+- #541 `ELI-VALID-CBARQ-01` — prospective external-criterion validation protocol;
+- #542 `BEHAV-CONTEXT-01` — contextual event provenance;
+- #543 `SCI-CBARQ-2025` — this scientific-memory reconciliation.
+
+---
 
 ## Executive conclusion
 
