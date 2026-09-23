@@ -189,6 +189,13 @@ export const behavioralEliMappingAuthorities = pgTable('behavioral_eli_mapping_a
     sql`${table.status} IN ('research_only','approved','retired','rejected')`,
   ),
   check(
+    'chk_behavioral_eli_mapping_retirement',
+    sql`(
+      (${table.status} = 'retired' AND ${table.retiredAt} IS NOT NULL)
+      OR (${table.status} <> 'retired' AND ${table.retiredAt} IS NULL)
+    )`,
+  ),
+  check(
     'chk_behavioral_eli_mapping_approved_evidence',
     sql`${table.status} <> 'approved' OR (
       ${table.reviewAuthority} IS NOT NULL
