@@ -348,6 +348,9 @@ jobs:
             test/privacy-dog-export-coverage.test.mjs \
             test/data-export-runtime.integration.test.mjs
 
+      - name: INT-05 backend authority guard
+        run: node scripts/security/professional-share-authority-audit.mjs
+
       - name: INT-05 recipient-bound professional sharing
         working-directory: backend
         env:
