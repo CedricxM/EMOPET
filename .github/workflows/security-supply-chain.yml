@@ -106,6 +106,10 @@ jobs:
         run: |
           pnpm science:rr-audit
           pnpm science:rr-audit:test
+      - name: Enforce CRA tabletop dry-run truth boundary (#37, #239)
+        run: |
+          pnpm cra:tabletop-audit
+          pnpm cra:tabletop-audit:test
       - name: Typecheck workspace
         id: typecheck
         shell: bash

@@ -1,0 +1,253 @@
+{
+  "schemaVersion": "emopet-cra-tabletop-dry-run-v1",
+  "recordDate": "2026-09-23",
+  "status": "REPOSITORY_DRY_RUN_COMPLETED_WITH_OPEN_HUMAN_CORRECTIVE_ACTIONS",
+  "claimsOperationalReadiness": false,
+  "claimsRealIncident": false,
+  "claimsRealNotificationSubmission": false,
+  "claimsLegalReportabilityDecision": false,
+  "scopeBoundary": [
+    "Synthetic exercise only; no real vulnerability, incident, user data or notification.",
+    "The exercise proves repository-side chronology, evidence lookup and fail-closed gaps only.",
+    "Human operational readiness remains open under issue #37 and SRP access continuity remains open under #239."
+  ],
+  "scenario": {
+    "synthetic": true,
+    "id": "CRA-TT-2026-09-23-01",
+    "awarenessAt": "2026-09-23T08:00:00.000Z",
+    "description": "Synthetic future-market scenario: credible evidence alleges active exploitation of an authorization bypass in an owner-scoped backend export endpoint, with possible cross-Guardian export exposure. Root cause and affected population are initially unknown.",
+    "marketAvailability": "TABLETOP_ASSUME_EU_MARKET_RELEASE_ONLY",
+    "triggerClass": "TABLETOP_ASSUME_ACTIVELY_EXPLOITED_VULNERABILITY",
+    "realVulnerabilityClaim": false
+  },
+  "publicCraSrpStatus": {
+    "checkedAt": "2026-09-23",
+    "srpOperationalSince": "2026-09-11",
+    "reportingObligationsApplicableSince": "2026-09-11",
+    "earlyWarningHours": 24,
+    "mainNotificationHours": 72,
+    "activelyExploitedVulnerabilityFinalReportRule": "NO_LATER_THAN_14_DAYS_AFTER_CORRECTIVE_OR_MITIGATING_MEASURE_AVAILABLE",
+    "severeIncidentFinalReportRule": "WITHIN_ONE_MONTH_FROM_72_HOUR_NOTIFICATION",
+    "assignedRepresentativeAuthentication": "EU_LOGIN_WITH_MFA",
+    "manufacturerAssociationValidationRequiredBeforeSubmission": false,
+    "emopetAssignedRepresentativeAccessStatus": "UNVERIFIED",
+    "emopetPrimaryArStatus": "UNVERIFIED",
+    "emopetSecondaryArStatus": "UNVERIFIED",
+    "canonicalOperationalIssue": 239,
+    "sources": [
+      "https://www.enisa.europa.eu/topics/product-security/vulnerability-services/eu-incident-response-and-cyber-crisis-management/single-reporting-platform-srp",
+      "https://www.enisa.europa.eu/topics/product-security/single-reporting-platform-srp/cra-srp-guidance-ar-user-registration",
+      "https://www.enisa.europa.eu/topics/product-security/single-reporting-platform-srp/cra-srp-guidance-ar-notification-submission-and-update",
+      "https://digital-strategy.ec.europa.eu/en/policies/cra-reporting"
+    ]
+  },
+  "representativeReleaseEvidence": {
+    "status": "PARTIAL_REPOSITORY_TRACEABILITY_ONLY",
+    "repositoryCommit": "db7e3dbf03d0f06b54bbe658521e00f8134f1dd9",
+    "firmwareDeclaredVersion": "6.0.0",
+    "mobileDeclaredVersion": "1.0.0",
+    "webDeclaredVersion": "1.0.0",
+    "backendDeclaredVersion": "1.0.0",
+    "securitySupplyChainRunId": 35839453533,
+    "securitySupplyChainRunConclusion": "PASS",
+    "sbomArtifacts": [
+      {
+        "name": "emopet-sbom",
+        "artifactId": 10740358583,
+        "digest": "sha256:80fcb5d5f8f7a4e4423992e4cde5c7cdd9fb64b5f7c07a4fd63d918b2cd63976",
+        "expiresAt": "2026-12-22T08:50:50Z"
+      },
+      {
+        "name": "EMOPET-sbom.cyclonedx.json",
+        "artifactId": 10741185291,
+        "digest": "sha256:1d2967a2a0e94b8350b24f98769b43d8df64f4fc7a10d6fddd83dfb52b835b5a",
+        "expiresAt": "2026-12-22T08:50:50Z"
+      },
+      {
+        "name": "EMOPET-sbom-2.spdx.json",
+        "artifactId": 10740408642,
+        "digest": "sha256:0853199d33894576687dc90c84ece8d3ab2e6ed66967d1c10b5820ccf3e1a597",
+        "expiresAt": "2026-12-22T08:50:50Z"
+      }
+    ],
+    "releaseArtifactHashOrSignatureStatus": "NOT_ESTABLISHED",
+    "physicalFirmwareReleaseArtifactStatus": "NOT_ESTABLISHED",
+    "marketReleaseEvidenceStatus": "TABLETOP_ASSUMPTION_ONLY"
+  },
+  "roles": {
+    "incidentCommander": "FOUNDER_PRODUCT_AUTHORITY_INTERIM_ROLE",
+    "technicalLead": "AFFECTED_COMPONENT_OWNER_ROLE",
+    "evidenceCustodian": "INCIDENT_COMMANDER_OR_NAMED_DELEGATE_ROLE",
+    "backupIncidentCommander": "TO_NOMINATE",
+    "privacyDpoReviewer": "TO_CONFIRM",
+    "legalRegulatoryReviewer": "TO_CONFIRM"
+  },
+  "checkpoints": [
+    {
+      "id": "T0_AWARENESS",
+      "offsetHours": 0,
+      "simulatedAt": "2026-09-23T08:00:00.000Z",
+      "status": "EXERCISED",
+      "outcome": "SYNTHETIC_INCIDENT_RECORD_OPENED_AND_CLOCK_STARTED"
+    },
+    {
+      "id": "T4_QUALIFICATION",
+      "offsetHours": 4,
+      "simulatedAt": "2026-09-23T12:00:00.000Z",
+      "status": "EXERCISED",
+      "outcome": "TABLETOP_CRA_CANDIDATE_WITH_KNOWN_UNKNOWN_NOT_APPLICABLE_FIELDS"
+    },
+    {
+      "id": "T12_CONTAINMENT",
+      "offsetHours": 12,
+      "simulatedAt": "2026-09-23T20:00:00.000Z",
+      "status": "EXERCISED",
+      "outcome": "SIMULATED_CONTAINMENT_WITH_EVIDENCE_PRESERVATION"
+    },
+    {
+      "id": "T20_REPORTING_DECISION",
+      "offsetHours": 20,
+      "simulatedAt": "2026-09-24T04:00:00.000Z",
+      "status": "EXERCISED",
+      "outcome": "TABLETOP_ASSUME_REPORT_REQUIRED_FOR_EXERCISE_ONLY",
+      "legalDecisionClaim": false
+    },
+    {
+      "id": "T24_EARLY_WARNING",
+      "offsetHours": 24,
+      "simulatedAt": "2026-09-24T08:00:00.000Z",
+      "status": "EXERCISED_WITH_BLOCKERS",
+      "submissionMode": "SIMULATED_NOT_SUBMITTED",
+      "packageStatus": "DRAFTABLE_WITH_OPEN_HUMAN_FIELDS",
+      "blockers": [
+        "F1_SECURITY_MAILBOX",
+        "F5_SRP_AR_ACCESS"
+      ]
+    },
+    {
+      "id": "T60_MAIN_NOTIFICATION_BUILD",
+      "offsetHours": 60,
+      "simulatedAt": "2026-09-25T20:00:00.000Z",
+      "status": "EXERCISED",
+      "outcome": "MAIN_NOTIFICATION_PACKAGE_UPDATED_WITH_UNCERTAINTY_PRESERVED"
+    },
+    {
+      "id": "T68_REVIEW",
+      "offsetHours": 68,
+      "simulatedAt": "2026-09-26T04:00:00.000Z",
+      "status": "EXERCISED_WITH_BLOCKERS",
+      "outcome": "FACTUAL_REVIEW_COMPLETE_BUT_HUMAN_REGULATORY_APPROVAL_NOT_ESTABLISHED",
+      "blockers": [
+        "F3_PRIVACY_CONTACT",
+        "F4_LEGAL_CONTACT",
+        "F5_SRP_AR_ACCESS"
+      ]
+    },
+    {
+      "id": "T72_MAIN_NOTIFICATION",
+      "offsetHours": 72,
+      "simulatedAt": "2026-09-26T08:00:00.000Z",
+      "status": "EXERCISED_WITH_BLOCKERS",
+      "submissionMode": "SIMULATED_NOT_SUBMITTED",
+      "packageStatus": "DRAFTABLE_WITH_OPEN_HUMAN_FIELDS",
+      "blockers": [
+        "F5_SRP_AR_ACCESS"
+      ]
+    },
+    {
+      "id": "FINAL_REPORT_HANDOFF",
+      "offsetHours": null,
+      "simulatedAt": "2026-09-26T08:05:00.000Z",
+      "status": "HANDOFF_EXERCISED",
+      "triggerClass": "ACTIVELY_EXPLOITED_VULNERABILITY",
+      "finalDeadlineStatus": "UNRESOLVED_PENDING_CORRECTIVE_MEASURE_TIMESTAMP",
+      "outcome": "CAPA_AND_FINAL_REPORT_OWNER_HANDOFF_RECORDED_NO_SUBMISSION"
+    }
+  ],
+  "privacyCompositionEvidence": {
+    "breachRecipientMergeCommit": "e2c0c19929126336a4bea037c1e5c7845f6bc6a8",
+    "noSendTabletopMergeCommit": "db7e3dbf03d0f06b54bbe658521e00f8134f1dd9",
+    "affectedRecipientScope": "CURRENT_48_SURFACE_FAIL_CLOSED_AUTHORITY",
+    "notificationMode": "SIMULATED_NOT_SENT",
+    "realContactLookup": false
+  },
+  "correctiveActions": [
+    {
+      "id": "F1_SECURITY_MAILBOX",
+      "status": "OPEN_HUMAN_ACTION_REQUIRED",
+      "finding": "SECURITY.md still identifies security@emopet.example as a placeholder; no monitored intake test is evidenced.",
+      "ownerRole": "FOUNDER_PRODUCT_AUTHORITY",
+      "dueDate": "TO_SET_BY_HUMAN_OWNER",
+      "canonicalIssue": 37
+    },
+    {
+      "id": "F2_BACKUP_IC",
+      "status": "OPEN_HUMAN_ACTION_REQUIRED",
+      "finding": "Backup Incident Commander / evidence custodian remains unassigned.",
+      "ownerRole": "FOUNDER_PRODUCT_AUTHORITY",
+      "dueDate": "TO_SET_BY_HUMAN_OWNER",
+      "canonicalIssue": 37
+    },
+    {
+      "id": "F3_PRIVACY_CONTACT",
+      "status": "OPEN_HUMAN_ACTION_REQUIRED",
+      "finding": "Privacy/DPO escalation contact is not established.",
+      "ownerRole": "PRIVACY_DPO_ROLE_TO_BE_APPOINTED",
+      "dueDate": "TO_SET_BY_HUMAN_OWNER",
+      "canonicalIssue": 37
+    },
+    {
+      "id": "F4_LEGAL_CONTACT",
+      "status": "OPEN_HUMAN_ACTION_REQUIRED",
+      "finding": "Legal/regulatory escalation contact is not established.",
+      "ownerRole": "LEGAL_REGULATORY_ROLE_TO_BE_APPOINTED",
+      "dueDate": "TO_SET_BY_HUMAN_OWNER",
+      "canonicalIssue": 37
+    },
+    {
+      "id": "F5_SRP_AR_ACCESS",
+      "status": "OPEN_EXTERNAL_HUMAN_EVIDENCE_REQUIRED",
+      "finding": "Public SRP operation is verified, but EMOPET Primary/Secondary Assigned Representative access, EU Login+MFA and continuity are not evidenced.",
+      "ownerRole": "FOUNDER_PRODUCT_AUTHORITY",
+      "dueDate": "TO_SET_BY_HUMAN_OWNER",
+      "canonicalIssue": 239
+    },
+    {
+      "id": "F6_EVIDENCE_RETENTION",
+      "status": "OPEN_HUMAN_ACTION_REQUIRED",
+      "finding": "Restricted incident-evidence location and retention owner are not established.",
+      "ownerRole": "FOUNDER_PRODUCT_AUTHORITY",
+      "dueDate": "TO_SET_BY_HUMAN_OWNER",
+      "canonicalIssue": 37
+    },
+    {
+      "id": "F7_SUPPLIER_ESCALATION",
+      "status": "OPEN_HUMAN_ACTION_REQUIRED",
+      "finding": "A controlled supplier escalation registry covering MAT/TAG and critical cloud/software dependencies is not established on current main.",
+      "ownerRole": "FOUNDER_PRODUCT_AUTHORITY",
+      "dueDate": "TO_SET_BY_HUMAN_OWNER",
+      "canonicalIssue": 37
+    },
+    {
+      "id": "F8_RELEASE_SIGNATURE",
+      "status": "OPEN_ENGINEERING_AND_RELEASE_EVIDENCE_REQUIRED",
+      "finding": "Repository commit, declared software/firmware versions and CI SBOMs are traceable, but a representative signed release artifact / physical firmware release mapping is not established.",
+      "ownerRole": "TECHNICAL_RELEASE_OWNER",
+      "dueDate": "TO_SET_BY_HUMAN_OWNER",
+      "canonicalIssue": 37
+    },
+    {
+      "id": "F9_CORRECTIVE_ACTION_DUE_DATES",
+      "status": "OPEN_HUMAN_ACTION_REQUIRED",
+      "finding": "Calendar due dates for the human corrective actions are not authorised by repository evidence and must be assigned by the accountable human owner.",
+      "ownerRole": "FOUNDER_PRODUCT_AUTHORITY",
+      "dueDate": "TO_SET_BY_HUMAN_OWNER",
+      "canonicalIssue": 37
+    }
+  ],
+  "closureBoundary": {
+    "issue37MayClose": false,
+    "issue239MayClose": false,
+    "reason": "Repository dry-run evidence does not replace monitored mailbox, named humans, tested SRP access, evidence-retention ownership, supplier contacts or a human operational tabletop."
+  }
+}

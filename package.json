@@ -24,7 +24,9 @@
     "control:pointer-audit:test": "node --test scripts/control/control-register-pointer-audit.test.mjs",
     "control:eli-contract:test": "node --test scripts/control/eli-result-contract.test.mjs",
     "hardware:tag-source-coherence": "node scripts/hardware/tag-source-coherence.mjs",
-    "hardware:tag-source-coherence:test": "node --test scripts/hardware/tag-source-coherence.test.mjs"
+    "hardware:tag-source-coherence:test": "node --test scripts/hardware/tag-source-coherence.test.mjs",
+    "cra:tabletop-audit": "node scripts/security/cra-tabletop-evidence-audit.mjs",
+    "cra:tabletop-audit:test": "node --test scripts/security/cra-tabletop-evidence-audit.test.mjs"
   },
   "devDependencies": {
     "@types/react": "19.2.15",
