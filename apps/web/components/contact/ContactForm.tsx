@@ -147,11 +147,17 @@ export function ContactForm({ onCreated }: { onCreated?: () => void }) {
       {/* Créneaux */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <span style={LABEL}>{t('contact', 'slots')}</span>
+        {/* `flex: 1` ne pouvait pas reduire ces champs : la largeur intrinseque
+            d'un `datetime-local` (~236 px ici) est leur min-content, et
+            `min-width: auto` l'empeche de descendre en dessous. Deux champs cote
+            a cote depassaient donc les 252 px disponibles a 390 px de viewport.
+            Une base de 200 px les fait passer a la ligne plutot que deborder,
+            sans rien changer la ou la place existe. */}
         {slots.map((s, i) => (
-          <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <input type="datetime-local" value={s.start} onChange={(e) => setSlot(i, 'start', e.target.value)} style={{ ...FIELD, flex: 1 }} aria-label={`Début créneau ${i + 1}`} />
+          <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <input type="datetime-local" value={s.start} onChange={(e) => setSlot(i, 'start', e.target.value)} style={{ ...FIELD, flex: '1 1 200px', minWidth: 0 }} aria-label={`Début créneau ${i + 1}`} />
             <span style={{ color: 'var(--fg-muted)' }}>→</span>
-            <input type="datetime-local" value={s.end} onChange={(e) => setSlot(i, 'end', e.target.value)} style={{ ...FIELD, flex: 1 }} aria-label={`Fin créneau ${i + 1}`} />
+            <input type="datetime-local" value={s.end} onChange={(e) => setSlot(i, 'end', e.target.value)} style={{ ...FIELD, flex: '1 1 200px', minWidth: 0 }} aria-label={`Fin créneau ${i + 1}`} />
             {slots.length > 1 && (
               <button type="button" onClick={() => setSlots((p) => p.filter((_, idx) => idx !== i))} aria-label="Retirer ce créneau" style={{ background: 'none', border: 'none', color: 'var(--fg-muted)', cursor: 'pointer' }}>
                 <Icon name="close" size={16} />
