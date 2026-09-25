@@ -16,6 +16,10 @@ test('ELI dynamics parameter map keeps anticipation/recovery constants unvalidat
   assert.equal(cfg.anticipation.publicationGate.defaultAuthorized, false);
   assert.equal(cfg.recovery.guardianPublicationAuthorized, false);
   assert.equal(cfg.recovery.publicationGate.defaultAuthorized, false);
+  assert.equal(cfg.anticipation.semanticStatus, 'HOLD_PENDING_SEMANTIC_DECISION');
+  assert.match(cfg.anticipation.documentedAlternative.recurrenceMethod, /PLUS_OR_MINUS_30_MINUTES/);
+  assert.equal(cfg.recovery.semanticStatus, 'HOLD_PENDING_SEMANTIC_DECISION');
+  assert.equal(cfg.recovery.documentedAlternative.episodeStart, 'SUSTAINED_ABOVE_HIGH_FOR_60_SECONDS');
 });
 
 test('anticipation result exposes raw occurrences separately from threshold hits', async () => {
