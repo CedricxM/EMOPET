@@ -1,12 +1,16 @@
 /**
- * Données ELI v6 simulées (Sprint 03, réaligné sur EMOPET_ELI_v6).
+ * Données ELI v6 simulées (Sprint 03).
  *
- * Terminologie FIDÈLE au modèle :
+ * PROTOTYPE / DEMO ONLY (#91). The WQI/RSI formulas and thresholds below are
+ * presentation mock semantics, not recovered Product V1 or scientific authority.
+ *
+ * Current demo terminology:
  *  - Indicateur de bien-être global : composite issu de l'arousal/charge (0-100).
- *  - WQI = Walk Quality Index : qualité de balade = exercice (0.40) + exploration
- *    (0.35) + social (0.25). PAS l'indicateur global.
- *  - RSI = Routine Stability Index : similarité cosinus du pattern 24 h vs moyenne
- *    14 j (0-100 ; ≥80 stable, <50 trois jours → signal).
+ *  - WQI demo = Walk Quality Index : exercice (0.40) + exploration
+ *    (0.35) + social (0.25). These weights are unvalidated prototype constants.
+ *  - RSI demo = a simulated routine-stability score. The historical prototype
+ *    describes cosine similarity / 14 d / 80 / 50 / three-day persistence, but
+ *    this mock does not establish or faithfully implement that Product contract.
  *  - Gating de publication : PUBLISH (≥0.70) / DEGRADE (0.40-0.70) / REJECT (<0.40).
  *  - Quality tier de la fenêtre : GOLD / SILVER / BRONZE / REJECTED.
  *  - v6 : recovery speed (McEwen type 3), anticipation index, baseline freeze→véto.
@@ -129,14 +133,14 @@ export function generateSnapshots(): DailySnapshot[] {
       famScore.regulation * FAMILY_WEIGHTS.regulation +
       famScore.sociabilite * FAMILY_WEIGHTS.sociabilite;
 
-    // WQI — Walk Quality (exercice 0.40 + exploration 0.35 + social 0.25), seedé.
+    // WQI DEMO ONLY (#91): unvalidated prototype weights, seeded presentation data.
     const wq = mulberry32(strSeed('wqi') + dayIndex * 40503);
     const exercise = Math.max(35, Math.min(98, 72 + 14 * Math.sin(dayIndex / 6) + (wq() - 0.5) * 16));
     const exploration = Math.max(30, Math.min(96, 66 + 12 * Math.sin(dayIndex / 5 + 1) + (wq() - 0.5) * 18));
     const social = Math.max(20, Math.min(95, 58 + 16 * Math.sin(dayIndex / 8 + 2) + (wq() - 0.5) * 20));
     const walkQualityScore = exercise * 0.40 + exploration * 0.35 + social * 0.25;
 
-    // RSI — Routine Stability (cosine-sim mock, mostly stable 78-94).
+    // RSI DEMO ONLY (#91): seeded presentation score, NOT an actual cosine-sim implementation.
     const rs = mulberry32(strSeed('rsi') + dayIndex * 19349663);
     const routineStability = Math.max(45, Math.min(96, 86 + 6 * Math.sin(dayIndex / 11) + (rs() - 0.5) * 8));
 
