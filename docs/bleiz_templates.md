@@ -32,10 +32,12 @@ to generic enrichment ideas and never prescribes treatment.
 | Priority | 80 |
 | Cooldown | 21 days per dog |
 | Tone | Measured, concerned but non-alarmist |
-| Trigger | `recoverySpeedCurrent.trend4wPct > 20%` sustained ≥ 7 days |
+| Trigger | `recovery_trend_4w_pct > 20%` AND explicit `recovery_trend_sustained_7d_met === true` AND `recovery_contract_authorized === true` |
 
 **Never say**: `"charge allostatique"`, `"stress chronique"`, `"cortisol"`,
 `"épuisement"`.
+
+Publication is fail-closed under #90: the scheduler requires an explicit semantic-authority field and a separately computed >=7-day persistence fact. A one-shot >20% value is insufficient.
 
 Appends a vet-referral suffix: *"Si cela persiste, en parler à votre
 vétérinaire."*
