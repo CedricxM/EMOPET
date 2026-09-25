@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "emopet-rr-variability-semantic-v1",
+  "status": "DECISION_CANDIDATE / REVIEW_REQUIRED",
+  "issue": 86,
+  "legacyField": {
+    "name": "rr_variability",
+    "status": "DEPRECATED_AMBIGUOUS",
+    "newPersistence": "HOLD"
+  },
+  "recommendedOption": "SPLIT_EXPLICIT_SD_AND_CV_300S / ELI_MAPPING_HOLD",
+  "windowSeconds": 300,
+  "minimumValidIbiCount": 30,
+  "candidateIbiBoundsSeconds": {
+    "minExclusive": 0.3,
+    "maxExclusive": 10.0,
+    "validationStatus": "ENGINEERING_CARRY_FORWARD / NOT PHYSIOLOGY_VALIDATION"
+  },
+  "metrics": {
+    "resp_ibi_sd_s_300s": {
+      "unit": "seconds",
+      "definition": "sample_standard_deviation",
+      "status": "MEASUREMENT_CANDIDATE"
+    },
+    "resp_ibi_cv_300s": {
+      "unit": "ratio",
+      "definition": "sample_sd_divided_by_mean_ibi",
+      "status": "MEASUREMENT_CANDIDATE"
+    }
+  },
+  "eliMapping": "HOLD / NOT VALIDATED",
+  "productClaim": "NOT AUTHORIZED"
+}
