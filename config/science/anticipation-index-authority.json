@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "emopet-anticipation-authority-v1",
+  "issue": 89,
+  "status": "HOLD_PENDING_SEMANTIC_DECISION",
+  "currentImplementation": {
+    "recurrenceMethod": "modal_UTC_hour_bucket",
+    "minimumRawEvents": 7,
+    "ratioThreshold": 1.5,
+    "preEventWindowMinutes": 15,
+    "coverageThreshold": 0.5,
+    "trailingDays": 30,
+    "publicationCountMeaning": "above_threshold_historical_hits",
+    "guardianPublicationAuthorized": false
+  },
+  "documentedAlternative": {
+    "recurrenceMethod": "plus_or_minus_30_minutes_around_recurring_time",
+    "publicationCountMeaning": "ambiguous_between_raw_events_and_hits"
+  },
+  "parameterProvenance": {
+    "minimumRawEvents": "EMOPET_DESIGN_PARAMETER_UNVALIDATED",
+    "ratioThreshold": "EMOPET_DESIGN_PARAMETER_UNVALIDATED",
+    "preEventWindowMinutes": "EMOPET_DESIGN_PARAMETER_UNVALIDATED",
+    "coverageThreshold": "EMOPET_DESIGN_PARAMETER_UNVALIDATED",
+    "trailingDays": "EMOPET_DESIGN_PARAMETER_UNVALIDATED"
+  },
+  "openDecisions": [
+    "recurrence semantics",
+    "UTC versus dog-local time",
+    "event occurrence count versus above-threshold hit count",
+    "publication criterion",
+    "Guardian-facing interpretation"
+  ],
+  "publicationGateField": "sensor.anticipation_contract_authorized",
+  "publicationGateDefault": false
+}
