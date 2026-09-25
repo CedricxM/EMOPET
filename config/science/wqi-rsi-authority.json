@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "emopet-wqi-rsi-authority-v1",
+  "status": "PROTOTYPE_ONLY / NOT_AUTHORIZED_FOR_PRODUCTION",
+  "issue": 91,
+  "wqi": {
+    "runtimeAuthority": "NONE",
+    "currentMock": {
+      "exerciseWeight": 0.4,
+      "explorationWeight": 0.35,
+      "socialWeight": 0.25
+    },
+    "provenance": "UI_PROTOTYPE",
+    "scientificValidation": "NOT_PERFORMED",
+    "productFreeze": "PROHIBITED"
+  },
+  "rsi": {
+    "runtimeAuthority": "NONE",
+    "historicalPrototypeDescription": {
+      "metric": "cosine similarity of 24 h routine pattern vs 14 d mean",
+      "stableThreshold": 80,
+      "alertThreshold": 50,
+      "persistenceDays": 3
+    },
+    "currentMockImplementation": "SEEDED_PRESENTATION_SCORE / NOT ACTUAL COSINE SIMILARITY",
+    "provenance": "UI_PROTOTYPE",
+    "scientificValidation": "NOT_PERFORMED",
+    "productFreeze": "PROHIBITED"
+  },
+  "phantomReferences": {
+    "ELI v6 §7": "NOT_RECOVERED_AS_CONTROLLED_AUTHORITY",
+    "ELI v6 §8": "NOT_RECOVERED_AS_CONTROLLED_AUTHORITY"
+  },
+  "activationRequirements": [
+    "controlled Product/Science specification",
+    "source feature definitions and provenance",
+    "missing-data and abstention semantics",
+    "versioned backend computation",
+    "end-to-end conformance tests",
+    "validation/calibration plan"
+  ]
+}
