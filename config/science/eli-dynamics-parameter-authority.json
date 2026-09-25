@@ -32,7 +32,19 @@
     "publicationGate": {
       "contractAuthorityField": "sensor.anticipation_contract_authorized",
       "defaultAuthorized": false
-    }
+    },
+    "semanticStatus": "HOLD_PENDING_SEMANTIC_DECISION",
+    "documentedAlternative": {
+      "recurrenceMethod": "PLUS_OR_MINUS_30_MINUTES_AROUND_RECURRING_TIME",
+      "publicationCountMeaning": "AMBIGUOUS_BETWEEN_RAW_EVENTS_AND_HITS"
+    },
+    "openDecisions": [
+      "recurrence semantics",
+      "UTC versus dog-local time",
+      "event occurrence count versus above-threshold hit count",
+      "publication criterion",
+      "Guardian-facing interpretation and validation plan"
+    ]
   },
   "recovery": {
     "gate": "#90",
@@ -78,7 +90,23 @@
       "persistenceField": "sensor.recovery_trend_sustained_days",
       "requiredPersistenceDays": 7,
       "defaultAuthorized": false
-    }
+    },
+    "semanticStatus": "HOLD_PENDING_SEMANTIC_DECISION",
+    "documentedAlternative": {
+      "episodeStart": "SUSTAINED_ABOVE_HIGH_FOR_60_SECONDS",
+      "bounceResetThreshold": "HIGH_THRESHOLD",
+      "reportedRecoveryDurationEndpoint": "DOCUMENTED_AS_EPISODE_END_AMBIGUOUS"
+    },
+    "openDecisions": [
+      "sustained-high start versus first-sample start",
+      "bounce at low versus high threshold",
+      "first crossing versus confirmation timestamp",
+      "recovery duration endpoint",
+      "threshold derivation and units",
+      "minimum trend samples",
+      "canonical tracker-to-persistence-to-Bleiz payload",
+      "validation and tuning of numerical parameters"
+    ]
   },
   "literatureBoundary": {
     "mcewen1998": "Conceptual allostasis context; does not establish EMOPET numerical constants.",
