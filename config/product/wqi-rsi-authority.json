@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "emopet-wqi-rsi-authority-v1",
+  "status": "HOLD",
+  "issue": 91,
+  "walkQuality": {
+    "runtimeAuthority": "NONE",
+    "productEntitlementAuthorized": false,
+    "prototypeWeights": {
+      "exercise": 0.40,
+      "exploration": 0.35,
+      "social": 0.25
+    },
+    "weightsEvidenceStatus": "EMOPET_PROTOTYPE_CHOICE"
+  },
+  "routineStability": {
+    "runtimeAuthority": "NONE",
+    "productEntitlementAuthorized": false,
+    "prototypeAlgorithm": "cosine-like demo against 14-day mean",
+    "prototypeStableThreshold": 80,
+    "prototypeAlertThreshold": 50,
+    "thresholdEvidenceStatus": "EMOPET_PROTOTYPE_CHOICE"
+  },
+  "productionRule": "No paid-tier entitlement or production fallback until #91 selects controlled semantics and #118/#124 provide a canonical runtime."
+}
