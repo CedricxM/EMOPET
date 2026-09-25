@@ -94,6 +94,8 @@ export const ALLO_RECOVERY_SLOWING: BleizTemplate = createTemplate({
     'sensor.recovery_minutes_current',
     'sensor.recovery_minutes_baseline',
     'sensor.recovery_trend_4w_pct',
+    // Fail closed until a real persistence owner supplies this field (#90).
+    'sensor.recovery_trend_sustained_days',
   ],
   triggers: [
     {
@@ -101,7 +103,14 @@ export const ALLO_RECOVERY_SLOWING: BleizTemplate = createTemplate({
       field: 'sensor.recovery_trend_4w_pct',
       operator: 'gt',
       value: 20,
-      description: 'Any sub-baseline recovery_time 4-week trend > +20%',
+      description: 'EMOPET candidate threshold: recovery_time 4-week trend > +20%',
+    },
+    {
+      type: 'computed',
+      field: 'sensor.recovery_trend_sustained_days',
+      operator: 'gte',
+      value: 7,
+      description: 'Required persistence guard: condition sustained for at least 7 days',
     },
   ],
   targeting: {},
