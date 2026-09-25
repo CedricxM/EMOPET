@@ -1,0 +1,172 @@
+{
+  "schemaVersion": "emopet-eli-proxy-evidence-v1",
+  "status": "CONTROLLED_GUARDIAN_CLAIM_PROVENANCE",
+  "allowedStatuses": [
+    "SUPPORTED",
+    "MEASUREMENT_CONTEXT",
+    "CONCEPTUAL_CONTEXT",
+    "HYPOTHESIS",
+    "UNVERIFIED",
+    "SEPARATE_GATE",
+    "REJECTED"
+  ],
+  "guardianPolicy": {
+    "directValidationLanguageRequires": [
+      "SUPPORTED"
+    ],
+    "contextOnlyStatuses": [
+      "MEASUREMENT_CONTEXT",
+      "CONCEPTUAL_CONTEXT"
+    ],
+    "noValidationImplicationStatuses": [
+      "HYPOTHESIS",
+      "UNVERIFIED",
+      "SEPARATE_GATE",
+      "REJECTED"
+    ]
+  },
+  "bibliography": {
+    "russell1980": {
+      "citation": "Russell JA (1980), A Circumplex Model of Affect, JPSP 39(6):1161–1178",
+      "doi": "10.1037/h0077714",
+      "scope": "Human affect conceptual framework; not canine proxy validation."
+    },
+    "mcewen1998": {
+      "citation": "McEwen BS (1998), Stress, adaptation, and disease. Allostasis and allostatic load, Ann NY Acad Sci 840:33–44",
+      "doi": "10.1111/j.1749-6632.1998.tb09546.x",
+      "scope": "Allostasis/allostatic-load conceptual context; not EMOPET metric/threshold validation."
+    },
+    "homma2008": {
+      "citation": "Homma I, Masaoka Y (2008), Breathing rhythms and emotions, Exp Physiol 93(9):1011–1021",
+      "doi": "10.1113/expphysiol.2008.042424",
+      "scope": "Respiration/emotion physiology review; not EMOPET proxy-specific validation."
+    },
+    "brugarolas2015": {
+      "citation": "Brugarolas et al., Wearable Heart Rate Sensor Systems for Wireless Canine Health Monitoring, IEEE Sensors Journal 16(10):3454–3464",
+      "doi": "10.1109/JSEN.2015.2485210",
+      "scope": "Canine wearable measurement context; not blanket validation of EMOPET activity/posture/vocal proxies."
+    },
+    "foster2021": {
+      "citation": "Foster et al. (2021), ECG and Respiration Signal Reconstruction from an IMU at Various Orientations during Rest or Sleep for Dog Welfare Monitoring, ACI 2021",
+      "doi": "10.1145/3493842.3493905",
+      "scope": "Rest/sleep sensing context; not blanket validation of EMOPET rest/social proxies."
+    }
+  },
+  "proxies": {
+    "A01": {
+      "claimStatus": "MEASUREMENT_CONTEXT",
+      "validationEvidence": null,
+      "note": "Source relevant to canine wearable measurement context; exact proxy-specific validity is not established by this citation."
+    },
+    "A02": {
+      "claimStatus": "MEASUREMENT_CONTEXT",
+      "validationEvidence": null,
+      "note": "Source relevant to canine wearable measurement context; exact proxy-specific validity is not established by this citation."
+    },
+    "A03": {
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "validationEvidence": null,
+      "note": "The cited source does not establish this exact active/rest transition proxy."
+    },
+    "A04": {
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "validationEvidence": null,
+      "note": "The cited source does not establish this exact nocturnal-activity proxy."
+    },
+    "A05": {
+      "claimStatus": "MEASUREMENT_CONTEXT",
+      "validationEvidence": null,
+      "note": "Source supports measurement context, not this exact daily peak definition."
+    },
+    "A06": {
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "validationEvidence": null,
+      "note": "Russell (1980) is a human affect framework and does not validate canine activity-cycle regularity."
+    },
+    "R01": {
+      "claimStatus": "MEASUREMENT_CONTEXT",
+      "validationEvidence": null,
+      "note": "Source is relevant to rest/sleep sensing context; exact 24 h rest-duration validity is not established here."
+    },
+    "R02": {
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "validationEvidence": null,
+      "note": "The cited source does not validate EMOPET deep-rest estimation."
+    },
+    "R03": {
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "validationEvidence": null,
+      "note": "Russell (1980) does not validate canine bedtime regularity."
+    },
+    "R04": {
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "validationEvidence": null,
+      "note": "The cited source does not establish EMOPET sleep-latency semantics."
+    },
+    "R05": {
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "validationEvidence": null,
+      "note": "The cited source does not establish EMOPET rest-interruption semantics."
+    },
+    "R06": {
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "validationEvidence": null,
+      "note": "The cited source does not establish this rest-continuity index."
+    },
+    "R07": {
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "validationEvidence": null,
+      "note": "The cited source does not establish this daytime-rest proxy."
+    },
+    "G01": {
+      "claimStatus": "CONCEPTUAL_CONTEXT",
+      "validationEvidence": null,
+      "note": "Respiration physiology context only; sensor validity and canine product thresholds require separate evidence."
+    },
+    "G02": {
+      "claimStatus": "SEPARATE_GATE",
+      "validationEvidence": null,
+      "note": "Definition/evidence is controlled by the dedicated rr_variability scientific gate (#86)."
+    },
+    "G03": {
+      "claimStatus": "CONCEPTUAL_CONTEXT",
+      "validationEvidence": null,
+      "note": "McEwen provides allostasis context, not this operational calm-phase count."
+    },
+    "G04": {
+      "claimStatus": "CONCEPTUAL_CONTEXT",
+      "validationEvidence": null,
+      "note": "McEwen provides recovery/allostasis context, not EMOPET's exact recovery metric or thresholds."
+    },
+    "G05": {
+      "claimStatus": "MEASUREMENT_CONTEXT",
+      "validationEvidence": null,
+      "note": "Source is relevant to canine sensing context; this posture-stability index is not directly validated by it."
+    },
+    "S01": {
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "validationEvidence": null,
+      "note": "The cited source does not establish shared calm phases with owner presence."
+    },
+    "S02": {
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "validationEvidence": null,
+      "note": "The cited wearable source does not establish EMOPET TAG vocalisation detection."
+    },
+    "S03": {
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "validationEvidence": null,
+      "note": "The cited source does not establish owner-proximity duration."
+    },
+    "S04": {
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "validationEvidence": null,
+      "note": "Russell (1980) does not validate reactions to passers-by."
+    },
+    "S05": {
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "validationEvidence": null,
+      "note": "The cited source does not establish synchronization to household routines."
+    }
+  }
+}
