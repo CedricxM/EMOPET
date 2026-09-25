@@ -155,7 +155,11 @@ export const GATE_META: Record<'PUBLISH' | 'DEGRADE' | 'REJECT', { label: string
   REJECT: { label: 'Silence · données insuffisantes', color: 'var(--rouge)' },
 };
 
-/** Dimensions du WQI (Walk Quality Index) — ELI v6 §7. */
+/**
+ * WQI prototype dimensions.
+ * PROTOTYPE ONLY / NOT PRODUCT OR SCIENTIFIC AUTHORITY (#91).
+ * No controlled "ELI v6 §7" authority has been recovered for these weights.
+ */
 export const WQI_DIMENSIONS = [
   { id: 'exercise', label: 'Exercice', weight: 0.40 },
   { id: 'exploration', label: 'Exploration', weight: 0.35 },
@@ -170,7 +174,12 @@ export const TIER_META: Record<'GOLD' | 'SILVER' | 'BRONZE' | 'REJECTED', { labe
   REJECTED: { label: 'Rejeté', color: 'var(--rouge)' },
 };
 
-/** Seuils RSI (ELI v6 §8) : ≥80 routine stable ; <50 trois jours → signal. */
+/**
+ * RSI prototype thresholds.
+ * PROTOTYPE ONLY / NOT PRODUCT OR SCIENTIFIC AUTHORITY (#91).
+ * No controlled "ELI v6 §8" authority has been recovered for 80/50 or the
+ * three-day publication rule.
+ */
 export const RSI_STABLE_THRESHOLD = 80;
 export const RSI_ALERT_THRESHOLD = 50;
 
