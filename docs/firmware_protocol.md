@@ -4,8 +4,17 @@ Firmware version: **6.0.0** (`firmware/FIRMWARE_VERSION.h`).
 
 > **Maturity note — 2026-09-07:** this document describes software/firmware feature contracts and implementation intent. It does **not** establish physical MAT signal feasibility, validated IBI extraction, or scientific/product validation. The current MAT Phase 0 hardware remains evidence-gated.
 
-v6 adds three sensor-side computations and three new fields in the uplink
-`FeatureVector`. No wire-format breaking changes beyond the additive fields.
+v6 adds sensor-side computations and corresponding fields to the canonical
+`FeatureVector` contract.
+
+> **Transport correction — #122 / 2026-09-25:** the current BLE V1 frame
+> (`packages/ble-protocol/src/frames/types.ts`) does **not** serialize
+> `activity_variability`, `rr_variability`, `tremor_detected`,
+> `lateral_acc_rms` or `gyro_std_deg_s`. Those fields exist in the shared
+> feature contract and some have firmware implementations, but the current
+> parsed MAT/TAG payload does not carry them. Therefore “field exists in
+> FeatureVector” must not be read as “field is currently uplinked end-to-end”.
+> A versioned feature transport remains open under #122.
 
 ## Sensor-modality naming
 

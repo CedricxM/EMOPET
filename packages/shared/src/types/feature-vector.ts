@@ -1,9 +1,15 @@
 /**
- * FeatureVector — per-window features sent from firmware to backend.
+ * FeatureVector — canonical per-window feature contract.
+ *
+ * IMPORTANT (#122): this type is NOT evidence that every field is serialized
+ * by the current BLE V1 wire frame or reaches the backend end-to-end. Some
+ * firmware-computed features (including activity_variability) currently have no
+ * field in packages/ble-protocol/src/frames/types.ts.
  *
  * A FeatureVector is the canonical input to the ELI EKF observation update.
- * Each field is extracted by firmware on a sliding window (typically 5 min
- * for respiratory features, 30 min for activity features). Null means the
+ * Where a firmware producer exists, fields are extracted on controlled sliding
+ * windows (typically respiratory/activity windows). Producer and transport
+ * authority remain feature-specific. Null means the
  * feature could not be computed on this window (insufficient valid samples).
  * The EKF treats null as a missing observation (R_t -> infinity), never
  * substitutes a mean or zero.
