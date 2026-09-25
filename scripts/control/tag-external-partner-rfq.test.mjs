@@ -27,4 +27,9 @@ test('RFQ package requires evidence handover and exact lab scope', async () => {
   assert.ok(source.includes('raw or minimally processed data'));
   assert.ok(source.includes('exact accreditation scope'));
   assert.ok(source.includes('no long-term lock-in'));
+  assert.ok(source.includes('3.0 V'));
+  assert.ok(source.includes('calibration identity/date'));
+  assert.ok(source.includes('subcontracted'));
+  assert.ok(source.includes('re-test pricing'));
+  assert.ok(source.includes('standards and bands'));
 });
