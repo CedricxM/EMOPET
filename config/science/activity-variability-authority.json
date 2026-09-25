@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "emopet-activity-variability-authority-v1",
+  "issue": 87,
+  "measurement": {
+    "status": "DETERMINISTIC_FEATURE_CONTRACT_COHERENT",
+    "sourceDevice": "TAG",
+    "input": "1 Hz ODBA",
+    "windowSeconds": 1800,
+    "minimumValidSeconds": 900,
+    "bodyShakeSuppressed": true,
+    "statistic": "sample_std_over_mean",
+    "nearZeroMeanGuard": 0.001,
+    "invalidResult": "NaN/null"
+  },
+  "interpretation": {
+    "status": "EMOPET_HYPOTHESIS_UNVALIDATED",
+    "hypothesis": "Higher 30-minute ODBA CV is monotonically associated with higher latent arousal/activation.",
+    "literatureStatus": "NOT_ESTABLISHED_BY_CURRENT_CITATIONS",
+    "canineValidationStatus": "NOT_PERFORMED"
+  },
+  "observationModel": {
+    "status": "CONTESTED_FUNCTIONAL_FORM",
+    "documentedForm": "baseline.activityVariabilityMean + arousal * k2",
+    "documentedK2": null,
+    "implementedForm": "baseline.activityVariabilityMean * (1 + 0.4 * arousal)",
+    "implementedGain": 0.4,
+    "implementedGainProvenance": "EMOPET_ENGINEERING_PARAMETER_UNVALIDATED",
+    "activationAuthority": "NO_PRODUCTION_AUTHORITY"
+  },
+  "validationGate": {
+    "requiresWithinDogRepeatability": true,
+    "requiresContextConfoundAnalysis": true,
+    "requiresIncrementalValueBeyondMeanActivity": true,
+    "requiresShapeAndDirectionTest": true,
+    "requiresAbstentionNullValidation": true,
+    "requiresIndependentCanineEvidence": true
+  }
+}
