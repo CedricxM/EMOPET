@@ -81,8 +81,9 @@ variance is set to `1e6` so the update has effectively zero gain.
 
 ## New observation: activity_variability
 
-Coefficient of variation of per-second ODBA within a 30-min window (Robert et al.,
-2009).
+Coefficient of variation of per-second ODBA within a 30-min window. The 30-minute
+CV transform is an EMOPET engineering feature; the currently cited ODBA literature
+is measurement context and does not establish its affective interpretation.
 
 `h_activity_variability(a, baseline) = baseline.activityVariabilityMean + a · k2`
 
