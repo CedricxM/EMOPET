@@ -104,7 +104,9 @@ jobs:
 
       - name: Repository-only migration checks
         working-directory: backend
-        run: node --test test/migration-baseline-static.test.mjs
+        run: |
+          node --test test/migration-baseline-static.test.mjs
+          node --test test/behavioral-assessment-context-static.test.mjs
 
       - name: Apply all draft prerequisites in order
         run: |
@@ -174,6 +176,14 @@ jobs:
       - name: Build backend dependency closure
         run: pnpm --filter @emopet/api... build
 
+      - name: BEHAV-DATA-01 semantics on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          EMOPET_DB_INTEGRATION_TEST: '1'
+          NODE_ENV: test
+        run: node --test test/behavioral-assessment-context.integration.test.mjs
+
       - name: Generate isolated Drizzle fresh baseline
         working-directory: backend
         run: |
@@ -213,6 +223,14 @@ jobs:
           BEHAVIORAL_ELI_MAPPING_DB_INTEGRATION: '1'
           NODE_ENV: test
         run: node --test test/behavioral-eli-mapping-authority.integration.test.mjs
+
+      - name: BEHAV-DATA-01 semantics on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          EMOPET_DB_INTEGRATION_TEST: '1'
+          NODE_ENV: test
+        run: node --test test/behavioral-assessment-context.integration.test.mjs
 
       - name: ID-01 canonical identity and FK checks
         env:
@@ -406,5 +424,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification, retention-readiness probes, INT-04A bounded export authority, and INT-05 recipient-bound professional sharing.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, BEHAV-DATA-01 response/applicability semantics, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification, retention-readiness probes, INT-04A bounded export authority, and INT-05 recipient-bound professional sharing.'
           echo 'It does not authorize production migration, deployment, or release.'
