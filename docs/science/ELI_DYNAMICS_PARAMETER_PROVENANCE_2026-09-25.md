@@ -23,6 +23,8 @@ The legacy `occurrences_count` remains only as a compatibility alias for above-t
 
 Guardian copy is constrained to factual pattern language; it must not claim the dog “is anxious” or that the detector is validated.
 
+Publication remains fail-closed while #89 is unresolved: Bleiz additionally requires `sensor.anticipation_contract_authorized === true`. No current runtime is treated as producing that authority by this record, so a detector threshold hit alone is insufficient for Guardian publication.
+
 ## Recovery
 
 Current implementation semantics are recorded rather than silently rewritten:
@@ -40,7 +42,7 @@ The numerical constants (EMA 0.1, 28/14 d trend, minimum 4 samples, +20%, ×1.10
 
 The documented “trend >20% sustained for >=7 days” condition was not represented by the template.
 
-The template now requires a separate `sensor.recovery_trend_sustained_days >= 7` field. Until a runtime owner computes that field, publication fails closed rather than treating cooldown as persistence.
+The template now requires both `sensor.recovery_contract_authorized === true` and a separate `sensor.recovery_trend_sustained_days >= 7` field. Until a runtime owner supplies explicit #90 contract authority and computes the persistence field, publication fails closed rather than treating cooldown or a one-shot >20% trend as persistence.
 
 ## Remaining decisions
 
