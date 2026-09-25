@@ -36,44 +36,53 @@ export const FAMILIES: Family[] = [
   { id: 'sociabilite', label: 'Sociabilité', description: 'Interactions détectées, proximité, routines.', color: 'var(--terracotta-700)' },
 ];
 
+export type ProxyEvidenceStatus =
+  | 'MEASUREMENT_CONTEXT'
+  | 'CONCEPTUAL_CONTEXT'
+  | 'NOT_ESTABLISHED_BY_CITED_SOURCE'
+  | 'SEPARATE_GATE';
+
 export interface Proxy {
   id: string;
   family: FamilyId;
   label: string;
   unit: string;
   description: string;
+  /** Context source only. Never render this field as proxy-specific validation authority. */
   reference: string;
+  evidenceStatus: ProxyEvidenceStatus;
+  evidenceNote: string;
 }
 
 /** 23 proxies — catalogue de référence. */
 export const PROXIES: Proxy[] = [
   // Activité (6)
-  { id: 'A01', family: 'activite', label: 'Temps actif quotidien', unit: 'min', description: "Durée cumulée des phases d'activité sur 24 h.", reference: 'Brugarolas et al. (2015)' },
-  { id: 'A02', family: 'activite', label: "Intensité moyenne d'activité", unit: 'g', description: "Accélération moyenne pendant les phases actives.", reference: 'Brugarolas et al. (2015)' },
-  { id: 'A03', family: 'activite', label: 'Transitions actif / repos', unit: '/jour', description: "Nombre de bascules entre activité et repos.", reference: 'Foster et al. (2021)' },
-  { id: 'A04', family: 'activite', label: 'Activité nocturne (00 h – 06 h)', unit: 'min', description: "Activité observée pendant la fenêtre nocturne.", reference: 'Foster et al. (2021)' },
-  { id: 'A05', family: 'activite', label: "Pic d'activité diurne", unit: 'g', description: "Intensité du pic d'activité de la journée.", reference: 'Brugarolas et al. (2015)' },
-  { id: 'A06', family: 'activite', label: "Régularité du cycle d'activité", unit: 'coeff.', description: "Stabilité du rythme actif/repos d'un jour à l'autre.", reference: 'Russell (1980)' },
+  { id: 'A01', family: 'activite', label: 'Temps actif quotidien', unit: 'min', description: "Durée cumulée des phases d'activité sur 24 h.", reference: 'Brugarolas et al. (2015)', evidenceStatus: 'MEASUREMENT_CONTEXT', evidenceNote: 'Source relevant to canine wearable measurement context; exact proxy-specific validity is not established by this citation.' },
+  { id: 'A02', family: 'activite', label: "Intensité moyenne d'activité", unit: 'g', description: "Accélération moyenne pendant les phases actives.", reference: 'Brugarolas et al. (2015)', evidenceStatus: 'MEASUREMENT_CONTEXT', evidenceNote: 'Source relevant to canine wearable measurement context; exact proxy-specific validity is not established by this citation.' },
+  { id: 'A03', family: 'activite', label: 'Transitions actif / repos', unit: '/jour', description: "Nombre de bascules entre activité et repos.", reference: 'Foster et al. (2021)', evidenceStatus: 'NOT_ESTABLISHED_BY_CITED_SOURCE', evidenceNote: 'The cited source does not establish this exact active/rest transition proxy.' },
+  { id: 'A04', family: 'activite', label: 'Activité nocturne (00 h – 06 h)', unit: 'min', description: "Activité observée pendant la fenêtre nocturne.", reference: 'Foster et al. (2021)', evidenceStatus: 'NOT_ESTABLISHED_BY_CITED_SOURCE', evidenceNote: 'The cited source does not establish this exact nocturnal-activity proxy.' },
+  { id: 'A05', family: 'activite', label: "Pic d'activité diurne", unit: 'g', description: "Intensité du pic d'activité de la journée.", reference: 'Brugarolas et al. (2015)', evidenceStatus: 'MEASUREMENT_CONTEXT', evidenceNote: 'Source supports measurement context, not this exact daily peak definition.' },
+  { id: 'A06', family: 'activite', label: "Régularité du cycle d'activité", unit: 'coeff.', description: "Stabilité du rythme actif/repos d'un jour à l'autre.", reference: 'Russell (1980)', evidenceStatus: 'NOT_ESTABLISHED_BY_CITED_SOURCE', evidenceNote: 'Russell (1980) is a human affect framework and does not validate canine activity-cycle regularity.' },
   // Repos (7)
-  { id: 'R01', family: 'repos', label: 'Durée totale de repos', unit: 'h', description: 'Temps de repos cumulé sur 24 h (proxy ballisto).', reference: 'Foster et al. (2021)' },
-  { id: 'R02', family: 'repos', label: 'Repos profond estimé', unit: 'h', description: 'Phases de repos profond estimées (respiration + ballisto).', reference: 'Homma & Masaoka (2008)' },
-  { id: 'R03', family: 'repos', label: 'Régularité des heures de coucher', unit: 'σ min', description: 'Écart-type des heures de début de repos.', reference: 'Russell (1980)' },
-  { id: 'R04', family: 'repos', label: "Latence d'endormissement", unit: 'min', description: 'Temps observé avant la première phase de repos stable.', reference: 'Foster et al. (2021)' },
-  { id: 'R05', family: 'repos', label: 'Interruptions de repos', unit: '/nuit', description: 'Nombre de réveils détectés pendant la nuit.', reference: 'Foster et al. (2021)' },
-  { id: 'R06', family: 'repos', label: 'Continuité du repos', unit: 'indice', description: 'Indice de continuité des phases de repos.', reference: 'Homma & Masaoka (2008)' },
-  { id: 'R07', family: 'repos', label: 'Repos diurne', unit: 'min', description: 'Repos observé en journée (hors nuit).', reference: 'Foster et al. (2021)' },
+  { id: 'R01', family: 'repos', label: 'Durée totale de repos', unit: 'h', description: 'Temps de repos cumulé sur 24 h (proxy ballisto).', reference: 'Foster et al. (2021)', evidenceStatus: 'MEASUREMENT_CONTEXT', evidenceNote: 'Source is relevant to rest/sleep sensing context; exact 24 h rest-duration validity is not established here.' },
+  { id: 'R02', family: 'repos', label: 'Repos profond estimé', unit: 'h', description: 'Phases de repos profond estimées (respiration + ballisto).', reference: 'Homma & Masaoka (2008)', evidenceStatus: 'NOT_ESTABLISHED_BY_CITED_SOURCE', evidenceNote: 'The cited source does not validate EMOPET deep-rest estimation.' },
+  { id: 'R03', family: 'repos', label: 'Régularité des heures de coucher', unit: 'σ min', description: 'Écart-type des heures de début de repos.', reference: 'Russell (1980)', evidenceStatus: 'NOT_ESTABLISHED_BY_CITED_SOURCE', evidenceNote: 'Russell (1980) does not validate canine bedtime regularity.' },
+  { id: 'R04', family: 'repos', label: "Latence d'endormissement", unit: 'min', description: 'Temps observé avant la première phase de repos stable.', reference: 'Foster et al. (2021)', evidenceStatus: 'NOT_ESTABLISHED_BY_CITED_SOURCE', evidenceNote: 'The cited source does not establish EMOPET sleep-latency semantics.' },
+  { id: 'R05', family: 'repos', label: 'Interruptions de repos', unit: '/nuit', description: 'Nombre de réveils détectés pendant la nuit.', reference: 'Foster et al. (2021)', evidenceStatus: 'NOT_ESTABLISHED_BY_CITED_SOURCE', evidenceNote: 'The cited source does not establish EMOPET rest-interruption semantics.' },
+  { id: 'R06', family: 'repos', label: 'Continuité du repos', unit: 'indice', description: 'Indice de continuité des phases de repos.', reference: 'Homma & Masaoka (2008)', evidenceStatus: 'NOT_ESTABLISHED_BY_CITED_SOURCE', evidenceNote: 'The cited source does not establish this rest-continuity index.' },
+  { id: 'R07', family: 'repos', label: 'Repos diurne', unit: 'min', description: 'Repos observé en journée (hors nuit).', reference: 'Foster et al. (2021)', evidenceStatus: 'NOT_ESTABLISHED_BY_CITED_SOURCE', evidenceNote: 'The cited source does not establish this daytime-rest proxy.' },
   // Régulation (5)
-  { id: 'G01', family: 'regulation', label: 'Fréquence respiratoire au repos', unit: 'cycles/min', description: 'Cadence respiratoire estimée au repos.', reference: 'Homma & Masaoka (2008)' },
-  { id: 'G02', family: 'regulation', label: 'Variabilité respiratoire', unit: 'coeff.', description: 'Variabilité de la respiration au repos.', reference: 'Homma & Masaoka (2008)' },
-  { id: 'G03', family: 'regulation', label: 'Phases de calme prolongé', unit: '/jour', description: 'Nombre de phases de calme prolongé détectées.', reference: 'McEwen (1998)' },
-  { id: 'G04', family: 'regulation', label: 'Temps de retour au calme', unit: 'min', description: "Durée observée pour revenir à la ligne de base après une activation.", reference: 'McEwen (1998)' },
-  { id: 'G05', family: 'regulation', label: 'Stabilité posturale au repos', unit: 'indice', description: 'Stabilité de la posture pendant le repos.', reference: 'Brugarolas et al. (2015)' },
+  { id: 'G01', family: 'regulation', label: 'Fréquence respiratoire au repos', unit: 'cycles/min', description: 'Cadence respiratoire estimée au repos.', reference: 'Homma & Masaoka (2008)', evidenceStatus: 'CONCEPTUAL_CONTEXT', evidenceNote: 'Respiration physiology context only; sensor validity and canine product thresholds require separate evidence.' },
+  { id: 'G02', family: 'regulation', label: 'Variabilité respiratoire', unit: 'coeff.', description: 'Variabilité de la respiration au repos.', reference: 'Homma & Masaoka (2008)', evidenceStatus: 'SEPARATE_GATE', evidenceNote: 'Definition/evidence is controlled by the dedicated rr_variability scientific gate (#86).' },
+  { id: 'G03', family: 'regulation', label: 'Phases de calme prolongé', unit: '/jour', description: 'Nombre de phases de calme prolongé détectées.', reference: 'McEwen (1998)', evidenceStatus: 'CONCEPTUAL_CONTEXT', evidenceNote: 'McEwen provides allostasis context, not this operational calm-phase count.' },
+  { id: 'G04', family: 'regulation', label: 'Temps de retour au calme', unit: 'min', description: "Durée observée pour revenir à la ligne de base après une activation.", reference: 'McEwen (1998)', evidenceStatus: 'CONCEPTUAL_CONTEXT', evidenceNote: 'McEwen provides recovery/allostasis context, not EMOPET\'s exact recovery metric or thresholds.' },
+  { id: 'G05', family: 'regulation', label: 'Stabilité posturale au repos', unit: 'indice', description: 'Stabilité de la posture pendant le repos.', reference: 'Brugarolas et al. (2015)', evidenceStatus: 'MEASUREMENT_CONTEXT', evidenceNote: 'Source is relevant to canine sensing context; this posture-stability index is not directly validated by it.' },
   // Sociabilité (5)
-  { id: 'S01', family: 'sociabilite', label: 'Phases de calme prolongé partagées', unit: '/jour', description: 'Phases de calme observées en présence du propriétaire.', reference: 'Foster et al. (2021)' },
-  { id: 'S02', family: 'sociabilite', label: 'Vocalisations détectées', unit: 'évén.', description: 'Événements de vocalisation détectés (TAG).', reference: 'Brugarolas et al. (2015)' },
-  { id: 'S03', family: 'sociabilite', label: 'Proximité propriétaire', unit: 'min', description: 'Temps de proximité détectée avec le propriétaire.', reference: 'Foster et al. (2021)' },
-  { id: 'S04', family: 'sociabilite', label: 'Réactivité aux passages', unit: 'évén.', description: "Réactions observées lors de passages extérieurs.", reference: 'Russell (1980)' },
-  { id: 'S05', family: 'sociabilite', label: 'Synchronisation aux routines', unit: 'indice', description: 'Alignement de l’activité sur les routines du foyer.', reference: 'Foster et al. (2021)' },
+  { id: 'S01', family: 'sociabilite', label: 'Phases de calme prolongé partagées', unit: '/jour', description: 'Phases de calme observées en présence du propriétaire.', reference: 'Foster et al. (2021)', evidenceStatus: 'NOT_ESTABLISHED_BY_CITED_SOURCE', evidenceNote: 'The cited source does not establish shared calm phases with owner presence.' },
+  { id: 'S02', family: 'sociabilite', label: 'Vocalisations détectées', unit: 'évén.', description: 'Événements de vocalisation détectés (TAG).', reference: 'Brugarolas et al. (2015)', evidenceStatus: 'NOT_ESTABLISHED_BY_CITED_SOURCE', evidenceNote: 'The cited wearable source does not establish EMOPET TAG vocalisation detection.' },
+  { id: 'S03', family: 'sociabilite', label: 'Proximité propriétaire', unit: 'min', description: 'Temps de proximité détectée avec le propriétaire.', reference: 'Foster et al. (2021)', evidenceStatus: 'NOT_ESTABLISHED_BY_CITED_SOURCE', evidenceNote: 'The cited source does not establish owner-proximity duration.' },
+  { id: 'S04', family: 'sociabilite', label: 'Réactivité aux passages', unit: 'évén.', description: "Réactions observées lors de passages extérieurs.", reference: 'Russell (1980)', evidenceStatus: 'NOT_ESTABLISHED_BY_CITED_SOURCE', evidenceNote: 'Russell (1980) does not validate reactions to passers-by.' },
+  { id: 'S05', family: 'sociabilite', label: 'Synchronisation aux routines', unit: 'indice', description: 'Alignement de l’activité sur les routines du foyer.', reference: 'Foster et al. (2021)', evidenceStatus: 'NOT_ESTABLISHED_BY_CITED_SOURCE', evidenceNote: 'The cited source does not establish synchronization to household routines.' },
 ];
 
 export function proxiesOf(family: FamilyId): Proxy[] {
@@ -125,7 +134,7 @@ export const OWNER_CONTEXTS: OwnerContext[] = [
 
 /** Référence scientifique permanente (footer). */
 export const SCIENTIFIC_FOOTER =
-  'Indicateurs basés sur Russell (1980), McEwen (1998), Homma & Masaoka (2008), Brugarolas et al. (2015), Foster et al. (2021). Méthode propriétaire EMOPET — non médicale.';
+  'Sources de contexte scientifique : Russell (1980), McEwen (1998), Homma & Masaoka (2008), Brugarolas et al. (2015/2016), Foster et al. (2021). Ces sources ne constituent pas une validation proxy par proxy. Méthode propriétaire EMOPET — non médicale.';
 
 export const RGPD_NOTICE =
   'Vos données sont chiffrées et restent vôtres. Vous pouvez les exporter ou les supprimer à tout moment.';
