@@ -12,6 +12,10 @@ test('ELI dynamics parameter map keeps anticipation/recovery constants unvalidat
     assert.equal(p.status, 'EMOPET_HEURISTIC_UNVALIDATED');
   }
   assert.equal(cfg.recovery.bleizPersistence.status, 'FAIL_CLOSED_UNTIL_RUNTIME_FIELD_EXISTS');
+  assert.equal(cfg.anticipation.guardianPublicationAuthorized, false);
+  assert.equal(cfg.anticipation.publicationGate.defaultAuthorized, false);
+  assert.equal(cfg.recovery.guardianPublicationAuthorized, false);
+  assert.equal(cfg.recovery.publicationGate.defaultAuthorized, false);
 });
 
 test('anticipation result exposes raw occurrences separately from threshold hits', async () => {
@@ -22,9 +26,20 @@ test('anticipation result exposes raw occurrences separately from threshold hits
   assert.ok(source.includes('@deprecated Ambiguous v6 field retained for compatibility'));
 });
 
-test('recovery Bleiz publication requires explicit seven-day persistence field', async () => {
+test('anticipation Bleiz publication requires explicit #89 contract authority', async () => {
   const url = new URL('../../packages/ai-personality/src/bleiz/bleiz-v6-templates.ts', import.meta.url);
   const source = await readFile(url, 'utf8');
+  assert.ok(source.includes("'sensor.anticipation_contract_authorized'"));
+  assert.ok(source.includes("field: 'sensor.anticipation_contract_authorized'"));
+  assert.ok(source.includes('Anticipation contract explicitly authorized under #89'));
+});
+
+test('recovery Bleiz publication requires #90 contract authority plus seven-day persistence', async () => {
+  const url = new URL('../../packages/ai-personality/src/bleiz/bleiz-v6-templates.ts', import.meta.url);
+  const source = await readFile(url, 'utf8');
+  assert.ok(source.includes("'sensor.recovery_contract_authorized'"));
+  assert.ok(source.includes("field: 'sensor.recovery_contract_authorized'"));
+  assert.ok(source.includes('Recovery contract explicitly authorized under #90'));
   assert.ok(source.includes("'sensor.recovery_trend_sustained_days'"));
   assert.ok(source.includes("field: 'sensor.recovery_trend_sustained_days'"));
   assert.ok(source.includes("operator: 'gte'"));
