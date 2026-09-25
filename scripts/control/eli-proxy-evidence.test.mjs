@@ -32,3 +32,12 @@ test('scientific footer disclaims blanket proxy validation', async () => {
   const source = await readFile(url, 'utf8');
   assert.ok(source.includes('Ces sources ne constituent pas une validation proxy par proxy'));
 });
+
+
+test('G02 remains behind the dedicated respiratory-variability gate', async () => {
+  const url = new URL('../../config/science/eli-proxy-evidence.json', import.meta.url);
+  const map = JSON.parse(await readFile(url, 'utf8'));
+  assert.equal(map.proxies.G02.claimStatus, 'SEPARATE_GATE');
+  assert.match(map.proxies.G02.note, /#86/);
+  assert.equal(map.proxies.G02.validationEvidence, null);
+});
