@@ -10,8 +10,9 @@
  *     reduce variability); we use a piecewise-linear expectation that
  *     grows with arousal up to a = 0.7, then plateaus. Per
  *     Homma & Masaoka (2008) Exp Physiol.
- *   - activity_variability — monotone-increasing in arousal (unstable
- *     activity pattern). Linear observation model vs arousal.
+ *   - activity_variability — deterministic 30-min ODBA CV measurement.
+ *     Its monotone arousal relationship is an EMOPET hypothesis under #87,
+ *     not a literature-validated canine relationship.
  */
 
 import type { FeatureVector, SubBaseline } from '@emopet/shared';
@@ -91,8 +92,10 @@ function h_odba_mean(x: StateVector, baseline: SubBaseline, fv: FeatureVector): 
 }
 
 /**
- * v6: activity_variability (CV of 1s ODBA). Linear growth in arousal —
- * elevated arousal makes activity more irregular.
+ * v6: activity_variability (CV of 1s ODBA). The proportional positive
+ * arousal slope below is the currently implemented EMOPET hypothesis (#87).
+ * It is not established by the ODBA measurement-context citations and the
+ * 0.4 gain is an unvalidated engineering parameter.
  */
 function h_activity_variability(x: StateVector, baseline: SubBaseline, fv: FeatureVector): ObservationRow {
   const value = safeNum(fv.activity_variability);
