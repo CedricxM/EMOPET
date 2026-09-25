@@ -1,6 +1,6 @@
-provider,track,contact,location,public_source_status,can_design_fixture,can_write_scripts,can_validate_5_prototypes,handover_editable_cad,handover_bom,handover_source_scripts,moko_can_reproduce,one_time_nre,fixture_price,script_price,5_proto_test_price,lead_time_days,lte_m_nb_iot_conducted,gnss,antenna_vna_s11,body_loaded_rf,ble_lte_gnss_coexistence,emc_prescan,pdn_transient,temperature,humidity,vibration,drop,ip_water_dust,raw_data_included,plots_included,exact_accreditation_scope_received,nda_available,ip_terms_received,quote_validity,shipping_terms,status,notes
-BELI Technologies,A,beli@belitechnologies.com,"Shenzhen, China",WEBSITE_CLAIM_ONLY,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,RFQ_NOT_SENT,
-STHL,A,info@sthlpcba.com,"Shenzhen, China",WEBSITE_CLAIM_ONLY,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,RFQ_NOT_SENT,
-OPD Design,A+,hello@opd-design.com,"Shenzhen, China",WEBSITE_CLAIM_ONLY,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,RFQ_NOT_SENT,
-NTEK,B,ntek@ntek.org.cn,"Shenzhen, China",WEBSITE_CLAIM_ONLY,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,RFQ_NOT_SENT,
-Waltek Testing Group,B,info@waltek.com.cn,"Shenzhen, China",WEBSITE_CLAIM_ONLY,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,RFQ_NOT_SENT,
+provider,track,contact,location,public_source_status,can_design_fixture,can_write_scripts,can_validate_5_prototypes,handover_editable_cad,handover_bom,handover_source_scripts,moko_can_reproduce,one_time_nre,fixture_price,script_price,5_proto_test_price,lead_time_days,lte_m_nb_iot_conducted,gnss,antenna_vna_s11,body_loaded_rf,ble_lte_gnss_coexistence,emc_prescan,pdn_transient,temperature,humidity,vibration,drop,ip_water_dust,raw_data_included,plots_included,exact_accreditation_scope_received,nda_available,ip_terms_received,quote_validity,shipping_terms,formal_certification_price,minimum_engineering_charge,retest_price,subcontracted_work,standards_bands_received,calibration_evidence_received,sample_return_terms,status,notes
+BELI Technologies,A,beli@belitechnologies.com,"Shenzhen, China",WEBSITE_CLAIM_ONLY,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,RFQ_NOT_SENT,
+STHL,A,info@sthlpcba.com,"Shenzhen, China",WEBSITE_CLAIM_ONLY,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,RFQ_NOT_SENT,
+OPD Design,A+,hello@opd-design.com,"Shenzhen, China",WEBSITE_CLAIM_ONLY,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,RFQ_NOT_SENT,
+NTEK,B,ntek@ntek.org.cn,"Shenzhen, China",WEBSITE_CLAIM_ONLY,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,RFQ_NOT_SENT,
+Waltek Testing Group,B,info@waltek.com.cn,"Shenzhen, China",WEBSITE_CLAIM_ONLY,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,RFQ_NOT_SENT,
