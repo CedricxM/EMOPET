@@ -53,10 +53,11 @@ The quotation must state whether EMOPET receives:
 - instrument setup;
 - test procedure;
 - limits;
-- calibration assumptions;
+- calibration/check procedure and assumptions;
+- maintenance/spares information where a custom fixture is used;
 - revision history.
 
-EMOPET's target is **no long-term lock-in** for routine production execution.
+No proprietary executable-only handoff is acceptable unless explicitly agreed before award. EMOPET's target is **no long-term lock-in** for routine production execution.
 
 ### Initial functional coverage
 
@@ -108,10 +109,12 @@ Please state whether you can support:
 
 #### PDN / power
 - LTE burst-current capture;
-- battery terminal / switched rail / nRF9151 VDD capture;
+- battery terminal / source-side reservoir / switched rail / nRF9151 VDD and VDD_GPIO capture where accessible;
 - transient droop;
-- reset/brownout observation;
+- reset/brownout and switch/protection-trip observation;
 - sequencing capture.
+
+For the currently controlled #503 engineering campaign, quote against the candidate criterion that nRF9151 VDD must not fall below **3.0 V** during the tested representative sequence, with no modem reset/brownout or switch/protection trip. This is an engineering acceptance criterion for Phase 0, not a certification statement.
 
 #### Environmental / mechanical where available
 - temperature;
@@ -131,7 +134,9 @@ For every test session, EMOPET requires a traceable evidence package containing,
 - firmware version/commit;
 - battery configuration;
 - enclosure revision;
-- test equipment;
+- test equipment make/model;
+- calibration identity/date where relevant;
+- test-station identity where relevant;
 - setup description/photo;
 - test conditions;
 - raw or minimally processed data;
@@ -155,20 +160,39 @@ Please quote separately:
 - testing of 5 prototypes;
 - engineering support hourly/day rate if relevant;
 - environmental/RF lab time;
+- formal certification pricing separately from engineering/pre-compliance work;
 - report/raw-data package;
 - shipping/return;
+- re-test pricing;
+- minimum order / minimum engineering charge;
 - taxes/other mandatory fees.
 
 Also state:
 
 - lead time;
 - payment terms;
-- prototype shipping requirements;
+- prototype shipping and return requirements;
+- any subcontracted part of the requested work;
 - NDA/IP terms;
 - validity period of quote;
 - what is explicitly **not included**.
 
-## 6. Handover to MOKO
+## 6. Required response questions
+
+Please answer explicitly:
+
+1. Can you design the physical functional-test fixture from requirements plus PCB/test-point data, or do you require finished fixture CAD from EMOPET?
+2. Can you create or complete the test scripts and deterministic pass/fail logic?
+3. Will EMOPET receive editable fixture CAD, full BOM, script source, SOP, limits and calibration/check instructions?
+4. Can MOKO reproduce/build and operate the fixture from the handover package?
+5. Can you support execution on five Phase-0 prototypes?
+6. Which requested measurements are performed in-house?
+7. Which requested work, if any, is subcontracted?
+8. What exact accreditation scope, standards and bands apply to the quoted RF/EMC work?
+9. Can you provide raw data and plots, not report-only output?
+10. What design changes or additional inputs are required before you can quote accurately?
+
+## 7. Handover to MOKO
 
 For Track A, please confirm whether the completed fixture/test package can be transferred to another EMS factory for repeated execution.
 
@@ -178,13 +202,13 @@ Preferred end state:
 
 If your commercial model requires that the fixture/software remain proprietary or only executable at your facility, state that clearly.
 
-## 7. Accreditation boundary
+## 8. Accreditation boundary
 
 For Track B, provide the **exact accreditation scope** relevant to the requested RF/EMC/environmental work.
 
-General company accreditation is not automatically evidence that every requested method is covered.
+General company accreditation is not automatically evidence that every requested method is covered. The response should identify the applicable standards/bands and distinguish engineering/pre-compliance work from formally accredited testing.
 
-## 8. Current technical maturity
+## 9. Current technical maturity
 
 The TAG is an engineering prototype. Current gates remain open for:
 
@@ -199,7 +223,7 @@ The TAG is an engineering prototype. Current gates remain open for:
 
 The RFQ is intended to generate engineering evidence and quotations, not to represent the design as production validated.
 
-## 9. Selection status
+## 10. Selection status
 
 `TAG_EXTERNAL_TEST_PARTNER = RFQ / NO PROVIDER SELECTED`
 
