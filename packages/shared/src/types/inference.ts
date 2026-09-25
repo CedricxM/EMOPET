@@ -20,9 +20,16 @@ export interface AnticipationDetected {
   pre_event_window_minutes: 15;
   /** mean(activity_pre_event) / mean(activity_baseline_same_hour) */
   activity_ratio: number;
-  /** Count of occurrences where the ratio exceeded 1.5 in the trailing 30d. */
+  /** Raw recurring-event occurrences supplied in the trailing analysis window. */
+  event_occurrence_count: number;
+  /** Historical event windows whose activity ratio exceeded the current threshold. */
+  above_threshold_hit_count: number;
+  /**
+   * @deprecated Ambiguous v6 field retained for compatibility.
+   * Equals above_threshold_hit_count, not raw event occurrences.
+   */
   occurrences_count: number;
-  /** True when ratio > 1.5 AND occurrences_count >= 7. */
+  /** Current implementation: ratio > 1.5 AND above_threshold_hit_count >= 7. */
   detection_threshold_met: boolean;
 }
 

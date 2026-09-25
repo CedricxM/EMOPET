@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "emopet-eli-dynamics-parameter-authority-v1",
+  "status": "CONTROLLED_PROVENANCE / NOT SCIENTIFICALLY VALIDATED",
+  "anticipation": {
+    "gate": "#89",
+    "recurrenceImplementation": "UTC_HOUR_BUCKET_APPROXIMATION",
+    "recurrenceIntendedContract": "UNRESOLVED",
+    "parameters": {
+      "trailingDays": {
+        "value": 30,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      },
+      "minOccurrences": {
+        "value": 7,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      },
+      "recurrenceCoverage": {
+        "value": 0.5,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      },
+      "preEventWindowMinutes": {
+        "value": 15,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      },
+      "activityRatioThreshold": {
+        "value": 1.5,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      }
+    },
+    "guardianClaim": "FACTUAL_PATTERN_ONLY / NO EMOTION LABEL",
+    "guardianPublicationAuthorized": false,
+    "publicationGate": {
+      "contractAuthorityField": "sensor.anticipation_contract_authorized",
+      "defaultAuthorized": false
+    },
+    "semanticStatus": "HOLD_PENDING_SEMANTIC_DECISION",
+    "documentedAlternative": {
+      "recurrenceMethod": "PLUS_OR_MINUS_30_MINUTES_AROUND_RECURRING_TIME",
+      "publicationCountMeaning": "AMBIGUOUS_BETWEEN_RAW_EVENTS_AND_HITS"
+    },
+    "openDecisions": [
+      "recurrence semantics",
+      "UTC versus dog-local time",
+      "event occurrence count versus above-threshold hit count",
+      "publication criterion",
+      "Guardian-facing interpretation and validation plan"
+    ]
+  },
+  "recovery": {
+    "gate": "#90",
+    "implementationSemantics": {
+      "start": "FIRST_SAMPLE_ABOVE_HIGH",
+      "returnConfirmationSeconds": 300,
+      "reportedReturnTimestamp": "FIRST_LOW_CROSSING_LATER_CONFIRMED",
+      "resetDuringConfirmation": "AT_OR_ABOVE_LOW_THRESHOLD"
+    },
+    "parameters": {
+      "emaAlpha": {
+        "value": 0.1,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      },
+      "trendWindowDays": {
+        "value": 28,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      },
+      "trendSplitDays": {
+        "value": 14,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      },
+      "minTrendSamples": {
+        "value": 4,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      },
+      "trendThresholdPct": {
+        "value": 20,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      },
+      "loadDecayMultiplier": {
+        "value": 1.1,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      }
+    },
+    "bleizPersistence": {
+      "requiredDays": 7,
+      "status": "FAIL_CLOSED_UNTIL_RUNTIME_FIELD_EXISTS"
+    },
+    "guardianPublicationAuthorized": false,
+    "publicationGate": {
+      "contractAuthorityField": "sensor.recovery_contract_authorized",
+      "persistenceField": "sensor.recovery_trend_sustained_days",
+      "requiredPersistenceDays": 7,
+      "defaultAuthorized": false
+    },
+    "semanticStatus": "HOLD_PENDING_SEMANTIC_DECISION",
+    "documentedAlternative": {
+      "episodeStart": "SUSTAINED_ABOVE_HIGH_FOR_60_SECONDS",
+      "bounceResetThreshold": "HIGH_THRESHOLD",
+      "reportedRecoveryDurationEndpoint": "DOCUMENTED_AS_EPISODE_END_AMBIGUOUS"
+    },
+    "openDecisions": [
+      "sustained-high start versus first-sample start",
+      "bounce at low versus high threshold",
+      "first crossing versus confirmation timestamp",
+      "recovery duration endpoint",
+      "threshold derivation and units",
+      "minimum trend samples",
+      "canonical tracker-to-persistence-to-Bleiz payload",
+      "validation and tuning of numerical parameters"
+    ]
+  },
+  "literatureBoundary": {
+    "mcewen1998": "Conceptual allostasis context; does not establish EMOPET numerical constants.",
+    "hommaMasaoka2008": "Respiration/emotion physiology context; does not establish the anticipation detector."
+  }
+}

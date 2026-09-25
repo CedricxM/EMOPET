@@ -8,8 +8,10 @@
  * The dynamics are intentionally simple — inference quality comes from
  * the observation model and from the sub-baselines, not from a complex
  * state equation. v6 does NOT change the equations; it only makes
- * alpha_L context-dependent (multiplier 1.10 when recovery is slowing)
- * per McEwen (1998) allostatic load Type 3.
+ * alpha_L context-dependent (multiplier 1.10 when recovery is slowing).
+ * McEwen (1998) provides conceptual allostasis context only; the +20%
+ * threshold and 1.10 multiplier are EMOPET parameters pending validation
+ * under #90.
  */
 
 import type { StateVector, Covariance3, EKFContext } from './types.js';
@@ -19,8 +21,10 @@ export const VALENCE_DECAY_PER_MIN = 0.05;
 export const LOAD_ACCUMULATION_GAIN = 0.002;   // dL = gain * max(a - 0.3, 0) * dt
 export const LOAD_DECAY_PER_DAY_BASE = 1 / 90; // half-life ~62 days
 /** Multiplier applied to alpha_L when recovery_trend_4w_pct > threshold. */
+/** EMOPET heuristic / unvalidated scientific parameter. See #90. */
 export const LOAD_DECAY_TREND_MULTIPLIER = 1.10;
 /** Threshold beyond which allostatic load decay is INHIBITED (dynamic). */
+/** EMOPET heuristic / unvalidated scientific parameter. See #90. */
 export const RECOVERY_TREND_PCT_THRESHOLD = 20.0;
 
 /** Stable clamp. */
