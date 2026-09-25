@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "emopet-eli-proxy-evidence-v1",
+  "status": "CONTROLLED_PROVENANCE_CLASSIFICATION",
+  "claimRule": "Context literature must not be rendered as proxy-specific validation unless claimStatus explicitly permits it.",
+  "allowedStatuses": [
+    "MEASUREMENT_CONTEXT",
+    "CONCEPTUAL_CONTEXT",
+    "NOT_ESTABLISHED_BY_CITED_SOURCE",
+    "SEPARATE_GATE"
+  ],
+  "proxies": {
+    "A01": {
+      "source": "Brugarolas et al. (2015/2016 identifiable canine wearable work)",
+      "claimStatus": "MEASUREMENT_CONTEXT",
+      "note": "Relevant to canine wearable sensing context; does not by itself validate EMOPET daily active-time semantics."
+    },
+    "A02": {
+      "source": "Brugarolas et al. (2015/2016 identifiable canine wearable work)",
+      "claimStatus": "MEASUREMENT_CONTEXT",
+      "note": "Relevant to canine wearable/IMU measurement context; exact EMOPET intensity proxy remains separately unvalidated."
+    },
+    "A03": {
+      "source": "Foster et al. (2021)",
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "note": "The identified study does not directly establish active/rest transition counts as an EMOPET welfare proxy."
+    },
+    "A04": {
+      "source": "Foster et al. (2021)",
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "note": "The identified study concerns rest/sleep physiological reconstruction, not this exact nocturnal-activity proxy."
+    },
+    "A05": {
+      "source": "Brugarolas et al. (2015/2016 identifiable canine wearable work)",
+      "claimStatus": "MEASUREMENT_CONTEXT",
+      "note": "Supports sensing context only; exact peak-intensity proxy is not established by this source."
+    },
+    "A06": {
+      "source": "Russell (1980)",
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "note": "Human affective circumplex work does not establish canine activity-cycle regularity."
+    },
+    "R01": {
+      "source": "Foster et al. (2021)",
+      "claimStatus": "MEASUREMENT_CONTEXT",
+      "note": "Supports rest/sleep sensing context; exact 24 h rest-duration validity is not established by this source."
+    },
+    "R02": {
+      "source": "Homma & Masaoka (2008)",
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "note": "Respiration/emotion review does not validate EMOPET deep-rest estimation."
+    },
+    "R03": {
+      "source": "Russell (1980)",
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "note": "Human affective circumplex work does not establish canine bedtime regularity."
+    },
+    "R04": {
+      "source": "Foster et al. (2021)",
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "note": "The identified study does not validate EMOPET sleep-latency semantics."
+    },
+    "R05": {
+      "source": "Foster et al. (2021)",
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "note": "The identified study does not validate EMOPET rest-interruption counts."
+    },
+    "R06": {
+      "source": "Homma & Masaoka (2008)",
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "note": "The source does not define or validate EMOPET rest-continuity scoring."
+    },
+    "R07": {
+      "source": "Foster et al. (2021)",
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "note": "The identified study does not establish this daytime-rest proxy."
+    },
+    "G01": {
+      "source": "Homma & Masaoka (2008)",
+      "claimStatus": "CONCEPTUAL_CONTEXT",
+      "note": "Relevant respiratory physiology context; sensor accuracy and canine product semantics require separate evidence."
+    },
+    "G02": {
+      "source": "Homma & Masaoka (2008)",
+      "claimStatus": "SEPARATE_GATE",
+      "note": "Respiratory-variability semantics/evidence remain controlled by #86 and must not be presented as validated here."
+    },
+    "G03": {
+      "source": "McEwen (1998)",
+      "claimStatus": "CONCEPTUAL_CONTEXT",
+      "note": "Allostasis literature motivates recovery/load hypotheses but does not define EMOPET calm-phase counts."
+    },
+    "G04": {
+      "source": "McEwen (1998)",
+      "claimStatus": "CONCEPTUAL_CONTEXT",
+      "note": "Supports a broad recovery/allostasis concept only; exact EMOPET recovery semantics remain under #90."
+    },
+    "G05": {
+      "source": "Brugarolas et al. (2015/2016 identifiable canine wearable work)",
+      "claimStatus": "MEASUREMENT_CONTEXT",
+      "note": "Canine wearable sensing context only; exact postural-stability index is not established."
+    },
+    "S01": {
+      "source": "Foster et al. (2021)",
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "note": "The identified study does not establish shared calm phases with owner presence."
+    },
+    "S02": {
+      "source": "Brugarolas et al. (2015/2016 identifiable canine wearable work)",
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "note": "The identified wearable system does not provide acoustic validation for EMOPET vocalisation detection."
+    },
+    "S03": {
+      "source": "Foster et al. (2021)",
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "note": "The identified study does not establish owner-proximity duration."
+    },
+    "S04": {
+      "source": "Russell (1980)",
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "note": "Human affective circumplex work does not establish canine passerby reactivity."
+    },
+    "S05": {
+      "source": "Foster et al. (2021)",
+      "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
+      "note": "The identified study does not establish household-routine synchronisation."
+    }
+  }
+}
