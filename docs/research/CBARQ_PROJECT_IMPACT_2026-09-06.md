@@ -1,7 +1,7 @@
 # EMOPET — C-BARQ / Flint 2017 Project Impact Assessment
 
 **Date:** 2026-09-06  
-**Reconciled:** 2026-09-07 against connected Gmail correspondence  
+**Reconciled:** 2026-09-25 against connected Gmail correspondence and the 2025 peer-reviewed French factorial-validation evidence  
 **Status:** Scientific architecture review  
 **Scope:** C-BARQ integration, ELI priors, behavioural data model, claims, research governance
 
@@ -258,3 +258,65 @@ The behavioural work does not break EMOPET. It **forces a cleaner scientific arc
 C-BARQ should not be treated as casual onboarding metadata. EMOPET currently chooses the conservative route of a licensed, instrument-aware integration while keeping open the scientific question of administration format.
 
 That distinction matters: **external feedback constrains the problem; EMOPET still owns its Product decision.**
+
+
+---
+
+## 2026-09-25 reconciliation — French factorial evidence changes the evidence state, not the licence state
+
+The 2025 peer-reviewed French C-BARQ factorial study is now part of current EMOPET scientific authority:
+
+**Besegher A., Rebout N., Bovet D., Jeannin S., Bedossa T., Serpell J.A., Hoummady S. (2025). _Evaluation of the factorial structures of the canine behavioral assessment and research questionnaire (C-BARQ) in France_. Applied Animal Behaviour Science 292, 106816. DOI 10.1016/j.applanim.2025.106816.**
+
+This evidence must be kept distinct from both Flint 2017 and Professor Serpell's July 2026 correspondence.
+
+### What is now established
+
+- French factorial C-BARQ evidence exists and is `PUBLISHED / PEER-REVIEWED`.
+- The study used a then-current 100-item / 14-subscale C-BARQ and a revised French version developed with Prof. Serpell.
+- The French EFA retained 13 factors and 63 items meeting its loading criterion in that sample.
+- The study provides relevant French psychometric/context evidence for future EMOPET research design.
+
+### What is not established by that paper
+
+- **No EMOPET commercial C-BARQ licence.**
+- **No permission for EMOPET to reproduce protected item wording.**
+- **No authorization to treat the 63-item EFA retained set as a short form.**
+- **No ELI validation.**
+- **No Penn institutional collaboration or endorsement.**
+- **No direct sensor-to-behaviour mapping authority.**
+
+The current controlled states are therefore:
+
+`FRENCH_CBARQ_PSYCHOMETRIC_EVIDENCE = PUBLISHED / PEER-REVIEWED`
+
+`EMOPET_CBARQ_LICENCE = NOT_ESTABLISHED`
+
+`C_BARQ_63_ITEM_SHORT_FORM = NOT_VALIDATED_FOR_EMOPET / NOT_AUTHORIZED_SHORT_FORM`
+
+`ELI_VALIDATION_AGAINST_CBARQ = PROPOSED / NOT_PERFORMED`
+
+`PENN_RESEARCH_COLLABORATION = DISCUSSION / NOT_AGREED`
+
+### Research consequence
+
+The scientifically defensible direction is to treat an appropriately licensed C-BARQ as a **guardian-reported external criterion candidate**, not as ground truth of internal canine state.
+
+Future validation should therefore prefer construct-specific, preregistered, longitudinal hypotheses with explicit missingness/applicability semantics, within-dog baselines, uncertainty/abstention and an external holdout rather than a single global ELI↔questionnaire correlation.
+
+### Data-model consequence
+
+Future instrument handling must preserve at least:
+
+- questionnaire version;
+- language / translation provenance;
+- administration timestamp;
+- item response versus derived-score separation;
+- `NOT_APPLICABLE`;
+- `NOT_OBSERVED`;
+- `MISSING`;
+- scoring-version provenance;
+- licence/use authority;
+- research-versus-product publication status.
+
+No product runtime change is authorized by this documentation reconciliation alone.
