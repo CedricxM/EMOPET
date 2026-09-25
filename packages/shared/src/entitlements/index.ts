@@ -35,8 +35,7 @@ export const FEATURE_ENTITLEMENTS: FeatureEntitlement[] = [
   { feature_id: 'absence_mode', min_tier: 'kit', description_fr: 'Mode absence',
     preview_data: { example: 'Pixel est calme quand vous partez avant 8h' } },
   { feature_id: 'vet_report', min_tier: 'kit', description_fr: 'Rapport vétérinaire 14 jours' },
-  { feature_id: 'walk_quality', min_tier: 'kit', description_fr: 'Qualité de promenade' },
-  { feature_id: 'routine_stability', min_tier: 'kit', description_fr: 'Indice de stabilité de routine' },
+  // WQI / RSI remain demo-only under #91 and are intentionally absent from paid entitlements.
 
   // PREMIUM tier (future)
   { feature_id: 'multi_dog', min_tier: 'premium', description_fr: 'Suivi multi-chiens' },
