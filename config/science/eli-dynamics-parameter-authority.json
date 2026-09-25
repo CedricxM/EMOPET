@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "emopet-eli-dynamics-parameter-authority-v1",
+  "status": "CONTROLLED_PROVENANCE / NOT SCIENTIFICALLY VALIDATED",
+  "anticipation": {
+    "gate": "#89",
+    "recurrenceImplementation": "UTC_HOUR_BUCKET_APPROXIMATION",
+    "recurrenceIntendedContract": "UNRESOLVED",
+    "parameters": {
+      "trailingDays": {
+        "value": 30,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      },
+      "minOccurrences": {
+        "value": 7,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      },
+      "recurrenceCoverage": {
+        "value": 0.5,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      },
+      "preEventWindowMinutes": {
+        "value": 15,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      },
+      "activityRatioThreshold": {
+        "value": 1.5,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      }
+    },
+    "guardianClaim": "FACTUAL_PATTERN_ONLY / NO EMOTION LABEL"
+  },
+  "recovery": {
+    "gate": "#90",
+    "implementationSemantics": {
+      "start": "FIRST_SAMPLE_ABOVE_HIGH",
+      "returnConfirmationSeconds": 300,
+      "reportedReturnTimestamp": "FIRST_LOW_CROSSING_LATER_CONFIRMED",
+      "resetDuringConfirmation": "AT_OR_ABOVE_LOW_THRESHOLD"
+    },
+    "parameters": {
+      "emaAlpha": {
+        "value": 0.1,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      },
+      "trendWindowDays": {
+        "value": 28,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      },
+      "trendSplitDays": {
+        "value": 14,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      },
+      "minTrendSamples": {
+        "value": 4,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      },
+      "trendThresholdPct": {
+        "value": 20,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      },
+      "loadDecayMultiplier": {
+        "value": 1.1,
+        "status": "EMOPET_HEURISTIC_UNVALIDATED"
+      }
+    },
+    "bleizPersistence": {
+      "requiredDays": 7,
+      "status": "FAIL_CLOSED_UNTIL_RUNTIME_FIELD_EXISTS"
+    }
+  },
+  "literatureBoundary": {
+    "mcewen1998": "Conceptual allostasis context; does not establish EMOPET numerical constants.",
+    "hommaMasaoka2008": "Respiration/emotion physiology context; does not establish the anticipation detector."
+  }
+}
