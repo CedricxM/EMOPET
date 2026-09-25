@@ -10,8 +10,9 @@
  *     Masaoka via the computed trigger field, not in the visible text.
  *
  *   ALLO_RECOVERY_SLOWING
- *     Triggered when any sub-baseline's recovery_time 4-week trend
- *     exceeds +20%. Uses vet_disclaimer suffix per allostatic-load rules.
+ *     Candidate trigger based on recovery trend. Under #90 publication is
+ *     fail-closed until the semantic contract is explicitly authorized and
+ *     the documented >=7-day persistence has been produced by runtime state.
  */
 
 import type { BleizTemplate } from './bleiz-content-templates.js';
@@ -94,6 +95,8 @@ export const ALLO_RECOVERY_SLOWING: BleizTemplate = createTemplate({
     'sensor.recovery_minutes_current',
     'sensor.recovery_minutes_baseline',
     'sensor.recovery_trend_4w_pct',
+    'sensor.recovery_contract_authorized',
+    'sensor.recovery_trend_sustained_7d_met',
   ],
   triggers: [
     {
@@ -101,7 +104,21 @@ export const ALLO_RECOVERY_SLOWING: BleizTemplate = createTemplate({
       field: 'sensor.recovery_trend_4w_pct',
       operator: 'gt',
       value: 20,
-      description: 'Any sub-baseline recovery_time 4-week trend > +20%',
+      description: 'Current recovery trend threshold > +20%; parameter remains controlled by #90',
+    },
+    {
+      type: 'computed',
+      field: 'sensor.recovery_contract_authorized',
+      operator: 'eq',
+      value: true,
+      description: 'Recovery contract explicitly authorized under #90',
+    },
+    {
+      type: 'computed',
+      field: 'sensor.recovery_trend_sustained_7d_met',
+      operator: 'eq',
+      value: true,
+      description: 'Recovery trend persistence >=7 days confirmed under #90',
     },
   ],
   targeting: {},
