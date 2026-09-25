@@ -24,7 +24,8 @@
     "control:pointer-audit:test": "node --test scripts/control/control-register-pointer-audit.test.mjs",
     "control:eli-contract:test": "node --test scripts/control/eli-result-contract.test.mjs",
     "hardware:tag-source-coherence": "node scripts/hardware/tag-source-coherence.mjs",
-    "hardware:tag-source-coherence:test": "node --test scripts/hardware/tag-source-coherence.test.mjs"
+    "hardware:tag-source-coherence:test": "node --test scripts/hardware/tag-source-coherence.test.mjs",
+    "control:activity-variability-authority:test": "node --test scripts/control/activity-variability-authority.test.mjs"
   },
   "devDependencies": {
     "@types/react": "19.2.15",
