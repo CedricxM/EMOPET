@@ -1,0 +1,24 @@
+Subject: EMOPET TAG — functional test fixture and prototype bring-up RFQ
+
+Dear [Name],
+
+We are preparing a first engineering build of five prototypes for EMOPET, a compact connected wearable TAG using BLE plus an nRF9151 LTE-M/NB-IoT and GNSS path.
+
+We are looking for a one-off engineering partner to help us turn our test requirements, schematics and test points into a repeatable functional-test method and, if needed, the physical fixture itself.
+
+Our main question is whether your team can design the fixture from our PCB/design files and test requirements, rather than requiring us to provide finished fixture CAD.
+
+For the project we would need:
+- fixture design and manufacturing support;
+- functional test scripts and pass/fail criteria;
+- bring-up/test of five prototypes;
+- raw test logs;
+- complete handover of editable fixture CAD, BOM, script source, SOP and limits so the fixture can later be reproduced and operated by our PCBA manufacturer.
+
+Please also quote one-off engineering/NRE, fixture cost, prototype execution and lead time separately where possible.
+
+A detailed technical RFQ can be provided immediately.
+
+Best regards,
+Cedric
+EMOPET
