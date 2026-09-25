@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "emopet-mat-incremental-value-v1",
+  "status": "EXECUTION_PLAN_READY / EVIDENCE_NOT_RUN",
+  "issue": 230,
+  "allowedFinalDispositions": [
+    "MAT_CORE",
+    "MAT_OPTIONAL",
+    "MAT_POST_V1",
+    "MAT_REDIRECT",
+    "MAT_KILL"
+  ],
+  "observationClasses": {
+    "qualified_rest_occupancy": "PRIMARY_PHASE0",
+    "rest_repositioning": "PRIMARY_PHASE0",
+    "environmental_context": "PRIMARY_PHASE0",
+    "respiratory_proxy": "SEPARATE_SCIENTIFIC_GATE",
+    "weight_load": "SEPARATE_SENSOR_MECHANICAL_GATE"
+  },
+  "claims": {
+    "matMoreAccurateThanTag": "NOT_ESTABLISHED",
+    "matPlusTagMoreReliable": "NOT_ESTABLISHED",
+    "clinicalSuperiority": "FORBIDDEN_WITHOUT_SEPARATE_AUTHORITY"
+  },
+  "evidence": {
+    "technicalComparisonExecuted": false,
+    "householdBurdenExecuted": false,
+    "commercialComprehensionExecuted": false
+  },
+  "currentDecision": null
+}
