@@ -27,7 +27,12 @@
         "status": "EMOPET_HEURISTIC_UNVALIDATED"
       }
     },
-    "guardianClaim": "FACTUAL_PATTERN_ONLY / NO EMOTION LABEL"
+    "guardianClaim": "FACTUAL_PATTERN_ONLY / NO EMOTION LABEL",
+    "guardianPublicationAuthorized": false,
+    "publicationGate": {
+      "contractAuthorityField": "sensor.anticipation_contract_authorized",
+      "defaultAuthorized": false
+    }
   },
   "recovery": {
     "gate": "#90",
@@ -66,6 +71,13 @@
     "bleizPersistence": {
       "requiredDays": 7,
       "status": "FAIL_CLOSED_UNTIL_RUNTIME_FIELD_EXISTS"
+    },
+    "guardianPublicationAuthorized": false,
+    "publicationGate": {
+      "contractAuthorityField": "sensor.recovery_contract_authorized",
+      "persistenceField": "sensor.recovery_trend_sustained_days",
+      "requiredPersistenceDays": 7,
+      "defaultAuthorized": false
     }
   },
   "literatureBoundary": {
