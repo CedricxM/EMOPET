@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "emopet-eli-runtime-slice-v1",
+  "status": "CANDIDATE / NOT RUNTIME ACTIVATION",
+  "issue": 479,
+  "runtimeOwnership": {
+    "algorithm": "packages/eli-engine",
+    "crossSurfaceContracts": "packages/shared",
+    "durableOrchestrationCandidate": "backend/api",
+    "webMobileRole": "projection-only / no canonical recompute",
+    "humanRuntimeApprover": null,
+    "humanScienceApprover": null
+  },
+  "firstSlice": {
+    "feature": "activity_variability",
+    "source": "TAG",
+    "measurementContract": "1 Hz ODBA coefficient-of-variation over trailing 30 min; BODY_SHAKE-suppressed samples excluded; null below 50% valid coverage",
+    "measurementStatus": "TECHNICAL_CONTRACT_COHERENT",
+    "featureContractVersion": "tag-activity-variability-cv30m-v1",
+    "affectiveMappingStatus": "EMOPET_HYPOTHESIS_UNVALIDATED",
+    "scienceGate": 87,
+    "publicationMode": "ABSTENTION_ONLY_UNTIL_SCIENCE_APPROVAL"
+  },
+  "projection": {
+    "allowedLatent": "arousal_activation_only",
+    "valence": "INTERNAL_ONLY",
+    "load": "NOT_USER_PROJECTION",
+    "nakedNumericArousal": false,
+    "requiredObservationFields": [
+      "context",
+      "timeWindow",
+      "reference",
+      "sourceProvenance",
+      "qualityConfidence",
+      "limits",
+      "modelVersion",
+      "publicationState"
+    ]
+  },
+  "endpoint": {
+    "existingPlaceholder": "/api/sensors/eli/:dogId",
+    "activation": "HOLD",
+    "current501MustRemain": true
+  },
+  "persistence": {
+    "activation": "HOLD",
+    "reason": "No approved writer/provenance schema for canonical ELI state exists yet."
+  }
+}
