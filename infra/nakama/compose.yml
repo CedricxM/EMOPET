@@ -1,0 +1,48 @@
+# SPIKE / NOT PRODUCTION AUTHORITY. Independent of the repository root Compose.
+name: emopet-world-spike
+services:
+  postgres:
+    image: postgres:16.8-alpine
+    environment:
+      POSTGRES_DB: nakama
+      POSTGRES_USER: nakama
+      POSTGRES_PASSWORD: ${NAKAMA_DB_PASSWORD:?generate local credentials}
+    volumes:
+      - nakama-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U nakama -d nakama']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    networks: [spike]
+  nakama:
+    image: registry.heroiclabs.com/heroiclabs/nakama:3.37.0
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint: [/bin/sh, /spike/start.sh]
+    environment:
+      NAKAMA_DB_PASSWORD: ${NAKAMA_DB_PASSWORD:?generate local credentials}
+      NAKAMA_HTTP_KEY: ${NAKAMA_HTTP_KEY:?generate local credentials}
+      NAKAMA_SERVER_KEY: ${NAKAMA_SERVER_KEY:?generate local credentials}
+      NAKAMA_SESSION_KEY: ${NAKAMA_SESSION_KEY:?generate local credentials}
+      NAKAMA_REFRESH_KEY: ${NAKAMA_REFRESH_KEY:?generate local credentials}
+      NAKAMA_CONSOLE_PASSWORD: ${NAKAMA_CONSOLE_PASSWORD:?generate local credentials}
+      NAKAMA_CONSOLE_KEY: ${NAKAMA_CONSOLE_KEY:?generate local credentials}
+      WORLD_SPIKE_TEST_USER_IDS: ${WORLD_SPIKE_TEST_USER_IDS:?configure synthetic accounts}
+    volumes:
+      - ./start.sh:/spike/start.sh:ro
+      - ./runtime:/nakama/data/modules:ro
+    ports:
+      - '127.0.0.1:7350:7350'
+      - '127.0.0.1:7351:7351'
+    healthcheck:
+      test: [CMD, /nakama/nakama, healthcheck]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks: [spike]
+volumes:
+  nakama-data:
+networks:
+  spike:
