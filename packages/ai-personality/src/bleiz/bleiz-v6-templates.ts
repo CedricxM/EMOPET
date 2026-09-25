@@ -6,8 +6,9 @@
  *   SEP_ANTICIPATION_DETECTED
  *     Triggered when anticipation_detected.detection_threshold_met flips
  *     to true for the first time or after 30 days since last delivery.
- *     Non-medical, never labels the dog. References McEwen + Homma &
- *     Masaoka via the computed trigger field, not in the visible text.
+ *     Non-medical, never labels the dog. The detector constants remain
+ *     unvalidated EMOPET design parameters under #89; publication is
+ *     additionally fail-closed behind an explicit contract-authority field.
  *
  *   ALLO_RECOVERY_SLOWING
  *     Triggered when any sub-baseline's recovery_time 4-week trend
@@ -56,6 +57,7 @@ export const SEP_ANTICIPATION_DETECTED: BleizTemplate = createTemplate({
     'sensor.anticipation_activity_ratio',
     'sensor.anticipation_occurrences_count',
     'sensor.anticipation_detection_threshold_met',
+    'sensor.anticipation_contract_authorized',
   ],
   triggers: [
     {
@@ -63,7 +65,14 @@ export const SEP_ANTICIPATION_DETECTED: BleizTemplate = createTemplate({
       field: 'sensor.anticipation_detection_threshold_met',
       operator: 'eq',
       value: true,
-      description: 'Pre-event activity ratio >1.5 with >=7 occurrences in 30d',
+      description: 'Current detector threshold met; semantics remain controlled by #89',
+    },
+    {
+      type: 'computed',
+      field: 'sensor.anticipation_contract_authorized',
+      operator: 'eq',
+      value: true,
+      description: 'Anticipation contract explicitly authorized under #89',
     },
   ],
   targeting: {},
