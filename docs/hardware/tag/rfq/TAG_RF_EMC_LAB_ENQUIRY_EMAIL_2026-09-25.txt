@@ -1,0 +1,25 @@
+Subject: EMOPET TAG — Phase-0 RF / GNSS / EMC engineering test enquiry
+
+Dear [Name],
+
+We are preparing five Phase-0 prototypes of EMOPET TAG, a compact BLE + nRF9151 LTE-M/NB-IoT/GNSS wearable device.
+
+Before routing/production decisions are frozen, we want to qualify a laboratory for engineering and pre-compliance work, particularly:
+
+- LTE-M/NB-IoT conducted bring-up;
+- GNSS path / TTFF / sensitivity work;
+- VNA/S11 and antenna tuning support;
+- enclosure/body-loading comparisons;
+- BLE/LTE/GNSS coexistence;
+- EMC pre-scan;
+- battery/PDN transient capture during LTE transmit activity.
+
+Could you confirm which of these tests you can perform in-house, the relevant accreditation scope where applicable, the expected inputs/prototype quantity, lead time and indicative engineering/NRE pricing?
+
+We would also require raw data/plots and documented test setups in addition to the final report.
+
+A detailed technical RFQ is ready and can be sent for quotation.
+
+Best regards,
+Cedric
+EMOPET
