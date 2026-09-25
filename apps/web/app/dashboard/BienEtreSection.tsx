@@ -102,7 +102,7 @@ export function BienEtreSection() {
           </div>
         </Card>
 
-        {/* WQI (Walk Quality) + RSI (Routine Stability) — définitions fidèles au modèle */}
+        {/* WQI + RSI — PROTOTYPE DEMO ONLY. Values/thresholds are not Product V1 authority (#91). */}
         <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
           <Card>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -126,7 +126,7 @@ export function BienEtreSection() {
                   <Bar pct={d.v} color="var(--lichen-500)" />
                 </div>
               ))}
-              <P2 style={{ color: 'var(--fg-muted)' }}>Exercice 40 % · exploration 35 % · social 25 % (ELI v6 §7).</P2>
+              <P2 style={{ color: 'var(--fg-muted)' }}>Démo : exercice 40 % · exploration 35 % · social 25 %. Pondérations prototype, non validées pour la production.</P2>
             </div>
           </Card>
 
@@ -141,7 +141,7 @@ export function BienEtreSection() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <DeltaText delta={summary.rsi.delta} />
                   <P2 style={{ color: summary.rsi.current < RSI_ALERT_THRESHOLD ? 'var(--eli-degraded-ink)' : 'var(--fg-2)', fontStyle: 'italic' }}>{rsiState}</P2>
-                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--fg-muted)' }}>similarité du jour vs moyenne 14 j</span>
+                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--fg-muted)' }}>Démo prototype · score simulé, seuils non validés pour la production</span>
                 </div>
               </div>
             </div>
