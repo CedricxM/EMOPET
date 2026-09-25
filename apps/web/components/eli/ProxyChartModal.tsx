@@ -9,6 +9,7 @@ import { Modal } from '@/lib/heroui-compat';
 import { CONFIDENCE_META } from '../../lib/eli/catalog';
 import type { Proxy } from '../../lib/eli/catalog';
 import type { ProxyHistoryPoint } from '../../lib/eli/mock';
+import proxyEvidence from '../../lib/eli/eli-proxy-evidence.json';
 
 const W = 600;
 const H = 280;
@@ -34,6 +35,7 @@ export function ProxyChartModal({
     );
   }
 
+  const evidence = proxyEvidence.proxies[proxy.id as keyof typeof proxyEvidence.proxies];
   const values = history.map((h) => h.value);
   const bandLo = baseline.mean - 2 * baseline.std;
   const bandHi = baseline.mean + 2 * baseline.std;
@@ -97,9 +99,14 @@ export function ProxyChartModal({
                   <span><strong style={{ color: 'var(--fg-strong)' }}>Capteurs</strong> : MAT · TAG</span>
                 </div>
 
-                <p style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-muted)' }}>
-                  Référence : {proxy.reference}
-                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '10px 12px', background: 'var(--prudence-bg)', borderRadius: 'var(--radius-sm)' }}>
+                  <p style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-muted)' }}>
+                    Source de contexte : {proxy.reference}
+                  </p>
+                  <p style={{ margin: 0, fontFamily: 'var(--font-sans)', fontSize: 11, lineHeight: 1.5, color: 'var(--fg-2)' }}>
+                    Statut de preuve : {evidence?.claimStatus ?? 'NON_CLASSÉ'} · {evidence?.note ?? 'Aucune autorité proxy-spécifique enregistrée.'}
+                  </p>
+                </div>
               </div>
             </Modal.Body>
           </Modal.Dialog>
