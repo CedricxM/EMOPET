@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "emopet-device-trust-authority-v1",
+  "status": "PRE_PRODUCTION / FAIL_CLOSED",
+  "issue": 66,
+  "devicePrincipal": {
+    "canonicalIdentity": "HARDWARE_BOUND_IDENTITY_REQUIRED",
+    "macAddressAuthority": "NOT_AUTHORITY",
+    "manufacturingCredential": "OPEN",
+    "productionKeyInjection": "OPEN",
+    "credentialRotation": "OPEN",
+    "revocation": "OPEN"
+  },
+  "claimBinding": {
+    "firstClaim": "OPEN",
+    "proofOfPossession": "REQUIRED",
+    "guardianDogBinding": "SERVER_AUTHORITY_REQUIRED",
+    "rebindTransfer": "OPEN",
+    "factoryReset": "MUST_NOT_BYPASS_SERVER_OR_DEVICE_AUTHORITY",
+    "lostStolenRecovery": "OPEN"
+  },
+  "commands": {
+    "rawBleBuilders": "UNAUTHENTICATED_PAYLOAD_ONLY",
+    "canonicalDevicePrincipalBinding": "REQUIRED",
+    "guardianAuthorization": "REQUIRED",
+    "nonce": "REQUIRED",
+    "monotonicSequence": "REQUIRED",
+    "expiry": "REQUIRED",
+    "keyVersion": "REQUIRED",
+    "signature": "REQUIRED",
+    "replayCacheOrCounter": "REQUIRED",
+    "runtime": "NOT_IMPLEMENTED"
+  },
+  "ota": {
+    "secureBoot": "OPEN",
+    "imageSigning": "OPEN",
+    "antiRollback": "OPEN",
+    "devProdKeySeparation": "OPEN",
+    "interruptedUpdateRecovery": "OPEN",
+    "distributionChannel": "OPEN",
+    "firmwareSbom": "OPEN",
+    "versionIncidentMapping": "OPEN"
+  },
+  "offlineResync": {
+    "idempotency": "REQUIRED",
+    "ordering": "REQUIRED",
+    "boundedQueue": "REQUIRED",
+    "clockResetWrapPolicy": "OPEN",
+    "conflictPolicy": "OPEN"
+  },
+  "releaseRule": "NO CLAIM/BIND/COMMAND/OTA PRODUCTION AUTHORITY UNTIL TARGET-HARDWARE EVIDENCE EXISTS"
+}
