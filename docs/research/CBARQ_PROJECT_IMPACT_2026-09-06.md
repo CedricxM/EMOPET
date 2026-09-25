@@ -315,8 +315,22 @@ Future instrument handling must preserve at least:
 - `NOT_APPLICABLE`;
 - `NOT_OBSERVED`;
 - `MISSING`;
+- `SKIPPED`;
 - scoring-version provenance;
 - licence/use authority;
 - research-versus-product publication status.
 
 No product runtime change is authorized by this documentation reconciliation alone.
+
+### Current controlled workstreams
+
+The French-study reconciliation is implemented through separate gates rather than one monolithic “C-BARQ integration” change:
+
+- #538 `BEHAV-DATA-01`: preserve applicability, household context and distinct `NOT_APPLICABLE / NOT_OBSERVED / MISSING / SKIPPED` states; answered zero remains a real answer.
+- #539 `ELI-BEHAV-01`: prevent guardian-reported labels or questionnaire factors from becoming direct ELI latent-state authority.
+- #540 `CBARQ-INSTRUMENT-01`: control exact instrument/version/language/scoring/administration/licence authority; the 63-item EFA result is not an authorized short form.
+- #541 `ELI-VALID-CBARQ-01`: prospective, construct-specific external-criterion validation only; current state remains proposed/not performed.
+- #542 `BEHAV-CONTEXT-01`: preserve declared contextual events as provenance without claiming that TAG/MAT identified the cause or stimulus.
+- #543 `SCI-CBARQ-2025`: scientific-memory reconciliation only; no runtime or licensing authority.
+
+The historical 2026-09-06/07 Flint/Serpell reasoning remains preserved. The 2025 French paper changes the current evidence state, not the historical attribution record.
