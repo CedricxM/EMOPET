@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "emopet-recovery-authority-v1",
+  "issue": 90,
+  "status": "HOLD_PENDING_SEMANTIC_DECISION",
+  "currentImplementation": {
+    "episodeStart": "first_sample_above_thresholdHigh",
+    "returnConfirmationSeconds": 300,
+    "bounceResetThreshold": "thresholdLow",
+    "reportedReturnTimestamp": "first_crossing_below_thresholdLow_later_confirmed",
+    "reportedRecoveryDurationEndpoint": "first_crossing_not_confirmation",
+    "emaAlpha": 0.1,
+    "trendHorizonDays": 28,
+    "trendSplitDays": 14,
+    "minimumTrendSamples": 4,
+    "trendThresholdPct": 20,
+    "loadDecayMultiplier": 1.10,
+    "guardianPublicationAuthorized": false
+  },
+  "documentedAlternative": {
+    "episodeStart": "sustained_above_thresholdHigh_for_60_seconds",
+    "bounceResetThreshold": "thresholdHigh",
+    "reportedRecoveryDurationEndpoint": "documented_as_episode_end_ambiguous"
+  },
+  "parameterProvenance": {
+    "startSustainSeconds": "EMOPET_MODEL_PARAMETER_UNVALIDATED",
+    "returnConfirmationSeconds": "EMOPET_MODEL_PARAMETER_UNVALIDATED",
+    "emaAlpha": "EMOPET_MODEL_PARAMETER_UNVALIDATED",
+    "minimumTrendSamples": "EMOPET_MODEL_PARAMETER_UNVALIDATED",
+    "trendThresholdPct": "EMOPET_MODEL_PARAMETER_UNVALIDATED",
+    "loadDecayMultiplier": "EMOPET_MODEL_PARAMETER_UNVALIDATED"
+  },
+  "publication": {
+    "contractAuthorityField": "sensor.recovery_contract_authorized",
+    "persistenceField": "sensor.recovery_trend_sustained_7d_met",
+    "requiredPersistenceDays": 7,
+    "defaultAuthorized": false
+  },
+  "openDecisions": [
+    "episode start sustain semantics",
+    "bounce threshold semantics",
+    "first crossing versus confirmation timestamp",
+    "recovery duration endpoint",
+    "threshold derivation",
+    "minimum trend sample rule",
+    "parameter validation",
+    "canonical payload contract"
+  ]
+}
