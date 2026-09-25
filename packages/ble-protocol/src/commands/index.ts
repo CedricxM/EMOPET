@@ -1,7 +1,18 @@
 /**
- * BLE command definitions for app → firmware communication.
- * Written to the Config characteristic (BLE_CHAR_CONFIG).
+ * BLE command payload definitions.
+ *
+ * SECURITY BOUNDARY (#66):
+ * These helpers build legacy/raw command BYTES only. They do not authenticate
+ * the caller, bind a command to a canonical device principal, provide freshness,
+ * anti-replay, authorization, signature verification, or an OTA/device-trust
+ * receipt. Raw builders MUST NOT be treated as Product command authority.
+ *
+ * A future trusted command path must wrap/replace these payloads under the
+ * controlled Device Trust contract before any protected command reaches
+ * firmware.
  */
+ 
+export const RAW_BLE_COMMAND_AUTHORITY = 'UNAUTHENTICATED_PAYLOAD_ONLY' as const;
 
 // ── Command IDs ─────────────────────────────────────────────────
 
@@ -74,7 +85,11 @@ export function buildSetGeofence(latE6: number, lonE6: number, radiusM: number):
 }
 
 /**
- * Factory reset command. Requires the magic bytes 0xDE 0xAD as confirmation.
+ * Legacy factory-reset payload.
+ *
+ * 0xDE 0xAD is only a payload confirmation marker. It is NOT authentication,
+ * authorization, proof of possession, anti-replay, or recovery authority.
+ * Product use remains blocked by Device Trust #66.
  */
 export function buildFactoryReset(): Uint8Array {
   return new Uint8Array([CMD_FACTORY_RESET, 0xde, 0xad]);
