@@ -123,9 +123,9 @@ export const OWNER_CONTEXTS: OwnerContext[] = [
   { id: 'chaleurs', label: 'Période de chaleurs (femelle)', affects: ['activite', 'regulation'] },
 ];
 
-/** Référence scientifique permanente (footer). */
+/** Sources scientifiques/contextuelles permanentes (footer). */
 export const SCIENTIFIC_FOOTER =
-  'Indicateurs basés sur Russell (1980), McEwen (1998), Homma & Masaoka (2008), Brugarolas et al. (2015), Foster et al. (2021). Méthode propriétaire EMOPET — non médicale.';
+  'Sources de contexte scientifique : Russell (1980), McEwen (1998), Homma & Masaoka (2008), Brugarolas et al. (2015/2016), Foster et al. (2021). Leur présence ne signifie pas que chaque proxy EMOPET est validé par ces publications. Méthode propriétaire EMOPET — non médicale.';
 
 export const RGPD_NOTICE =
   'Vos données sont chiffrées et restent vôtres. Vous pouvez les exporter ou les supprimer à tout moment.';
