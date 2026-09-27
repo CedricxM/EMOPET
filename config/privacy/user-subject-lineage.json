@@ -78,6 +78,16 @@
       "source": "backend/db/schema/users.ts"
     },
     {
+      "table": "user_blocks",
+      "column": "blocked_user_id",
+      "source": "backend/db/schema/user-blocks.ts"
+    },
+    {
+      "table": "user_blocks",
+      "column": "blocker_user_id",
+      "source": "backend/db/schema/user-blocks.ts"
+    },
+    {
       "table": "user_config",
       "column": "user_id",
       "source": "backend/db/schema/eli-v5.ts"

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-erasure-conditional-semantics-v1",
-  "status": "FOUR_PRODUCT_PRIVACY_DECISIONS_PROMOTED_FIVE_AUTHORITY_DECISIONS_REMAIN",
+  "status": "FOUR_PRODUCT_PRIVACY_DECISIONS_PROMOTED_SEVEN_AUTHORITY_DECISIONS_REMAIN",
   "claimsExecutableErasure": false,
   "claimsCompleteErasure": false,
   "sourcePacket": "config/privacy/erasure-disposition-decision-packet.json",
@@ -13,9 +13,9 @@
     "community_rules_acceptances remains reserved to PRIVACY_LEGAL; research_data_consents and subscriptions remain outside these four product decisions."
   ],
   "summary": {
-    "conditionalRowsTotal": 16,
+    "conditionalRowsTotal": 18,
     "semanticsAlreadyDeterminedByExistingPolicy": 7,
-    "authorityDecisionsStillRequired": 5,
+    "authorityDecisionsStillRequired": 7,
     "matrixRowsPromoted": 4,
     "productPrivacyDecisionsApproved": 4
   },
@@ -250,6 +250,30 @@
       "options": [
         "DELETE",
         "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "requiredAuthority": "FOUNDER_PRODUCT_PRIVACY",
+      "promotionAuthorized": false
+    },
+    {
+      "relation": "users.id|DIRECT_FK|user_blocks|blocked_user_id",
+      "decisionClass": "PRODUCT_PRIVACY_LIFECYCLE_DECISION_REQUIRED",
+      "why": "A block is a safety control owned by the blocker (#594, decision #48 L5). Erasing the blocker removes its purpose; erasing the blocked person leaves a row about a departed subject, yet dropping it could let a re-registered account bypass the block. No retention category or legal basis exists yet (#478).",
+      "privacyFirstRecommendation": "Prefer deletion; retain only with an explicit bounded safety justification tied to re-registration risk, never as a profile of the blocked person.",
+      "options": [
+        "DELETE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "requiredAuthority": "FOUNDER_PRODUCT_PRIVACY",
+      "promotionAuthorized": false
+    },
+    {
+      "relation": "users.id|DIRECT_FK|user_blocks|blocker_user_id",
+      "decisionClass": "PRODUCT_PRIVACY_LIFECYCLE_DECISION_REQUIRED",
+      "why": "A block is a safety control owned by the blocker (#594, decision #48 L5). Erasing the blocker removes its purpose; erasing the blocked person leaves a row about a departed subject, yet dropping it could let a re-registered account bypass the block. No retention category or legal basis exists yet (#478).",
+      "privacyFirstRecommendation": "Delete the blocker's blocks with the blocker account; nothing about the blocked person is needed once the blocker is gone.",
+      "options": [
+        "DELETE",
         "RETAIN_WITH_JUSTIFICATION"
       ],
       "requiredAuthority": "FOUNDER_PRODUCT_PRIVACY",

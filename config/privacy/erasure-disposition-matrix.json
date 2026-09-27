@@ -121,6 +121,24 @@
     {
       "subjectRoot": "users.id",
       "relationType": "DIRECT_FK",
+      "table": "user_blocks",
+      "column": "blocked_user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "user_blocks",
+      "column": "blocker_user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
       "table": "user_config",
       "column": "user_id",
       "disposition": "TO_CONFIRM",
