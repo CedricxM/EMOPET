@@ -12,9 +12,9 @@ test('ELI dynamics parameter map keeps anticipation/recovery constants unvalidat
     assert.equal(p.status, 'EMOPET_HEURISTIC_UNVALIDATED');
   }
   assert.equal(cfg.recovery.bleizPersistence.status, 'FAIL_CLOSED_UNTIL_RUNTIME_FIELD_EXISTS');
-  assert.equal(cfg.anticipation.guardianPublicationAuthorized, false);
+  assert.equal(cfg.anticipation.ownerPublicationAuthorized, false);
   assert.equal(cfg.anticipation.publicationGate.defaultAuthorized, false);
-  assert.equal(cfg.recovery.guardianPublicationAuthorized, false);
+  assert.equal(cfg.recovery.ownerPublicationAuthorized, false);
   assert.equal(cfg.recovery.publicationGate.defaultAuthorized, false);
   assert.equal(cfg.anticipation.semanticStatus, 'HOLD_PENDING_SEMANTIC_DECISION');
   assert.match(cfg.anticipation.documentedAlternative.recurrenceMethod, /PLUS_OR_MINUS_30_MINUTES/);
