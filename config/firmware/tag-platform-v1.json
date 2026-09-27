@@ -34,7 +34,9 @@
     "featureSummaryCharacteristicRegistered": true,
     "featureSummaryNotifyUsesCanonicalFirmwareSerializer": true,
     "physicalDeviceAuthentication": false,
-    "deviceTrustIssue": 66
+    "deviceTrustIssue": 66,
+    "configCharacteristicRegistered": true,
+    "clockAnchorProbeImplementedInSource": true
   },
   "transport": {
     "bootSessionSource": "sys_rand32_get",
@@ -43,7 +45,23 @@
     "windowEndMsSource": "CALLER_OWNED_MONOTONIC_MEASUREMENT_WINDOW_END",
     "utcWallClockOnTag": false,
     "backendClockAnchorStillRequired": true,
-    "notificationTimeMayReplaceWindowEndMs": false
+    "notificationTimeMayReplaceWindowEndMs": false,
+    "clockAnchorProbe": {
+      "characteristic": "CONFIG",
+      "commandId": "0x14",
+      "requestNonce": "uint32_le",
+      "responseVersion": 1,
+      "responseIncludes": [
+        "requestNonce",
+        "bootSessionId",
+        "deviceMs"
+      ],
+      "deviceMsSource": "k_uptime_get_32",
+      "responseCrc": "xor8",
+      "authenticationAuthority": "NONE / TRANSPORT_ONLY / DEVICE_TRUST_66_OPEN"
+    },
+    "clockAnchorMobileCaptureImplemented": false,
+    "productionBootAnchorV1Implemented": false
   },
   "evidence": {
     "sourceContractGuard": "scripts/control/tag-ncs-platform.test.mjs",
