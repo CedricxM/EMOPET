@@ -39,7 +39,7 @@ test('TAG platform has one canonical NCS v3.4.0 LTS authority', async () => {
   assert.match(readme, /single canonical target-firmware runtime/i);
   assert.match(readme, /v3\.4\.0 LTS/);
 
-  // A stale v3.4.0 container receipt must not masquerade as current toolchain evidence.
+  // An unverified container receipt must not masquerade as current toolchain evidence.
   assert.equal(platform.sdk.toolchainContainer, null);
   assert.equal(platform.sdk.toolchainContainerDigest, null);
   assert.equal(platform.sdk.toolchainReceiptStatus, 'NOT_YET_CAPTURED_FOR_3.4.0');
