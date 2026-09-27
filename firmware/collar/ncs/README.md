@@ -61,6 +61,15 @@ It would **not** prove:
 - flash/debug/boot behavior on the module;
 - production readiness.
 
+## G2 board-authority register
+
+Production board inputs and blocking unknowns are controlled in:
+
+`config/firmware/tag-ms88sf3-board-authority-v1.json`
+
+The register intentionally prevents an `ms88sf3` devicetree from being created
+while clock, BMI270 bus/interrupt, INMP441 PDM and SWD authority remain open.
+
 ## Production board gate
 
 Do not add an `ms88sf3` board definition from memory.
