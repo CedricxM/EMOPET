@@ -22,6 +22,7 @@ import {
 } from 'react-native-ble-plx';
 
 import {
+  BLE_CHAR_CLOCK_SAMPLE,
   BLE_CHAR_FEATURE_SUMMARY,
   BLE_CHAR_SENSOR_FRAME,
   BLE_SERVICE_UUID,
@@ -30,10 +31,17 @@ import {
   isMatFrame,
   isTagFrame,
   parseActivityVariabilityFeatureFrame,
+  parseDeviceClockSampleFrame,
   parseSensorFrame,
   type ActivityVariabilityFeatureTransportFrame,
   type SensorFrame,
 } from '@emopet/ble-protocol';
+
+import {
+  BootAnchorCaptureError,
+  buildBootAnchorV1,
+  type CapturedBootAnchorV1,
+} from './ble-clock-anchor';
 
 export type FrameCallback = (frame: SensorFrame) => void;
 export type FeatureFrameCallback = (
@@ -49,7 +57,12 @@ export type BleRuntimeErrorCode =
   | 'NOTIFICATION_FAILED'
   | 'EMPTY_NOTIFICATION'
   | 'INVALID_SENSOR_FRAME'
-  | 'INVALID_FEATURE_FRAME';
+  | 'INVALID_FEATURE_FRAME'
+  | 'CLOCK_SAMPLE_READ_FAILED'
+  | 'EMPTY_CLOCK_SAMPLE'
+  | 'INVALID_CLOCK_SAMPLE'
+  | 'CLOCK_SAMPLE_RTT_TOO_HIGH'
+  | 'CLOCK_SAMPLE_BOOT_MISMATCH';
 
 export class BleRuntimeError extends Error {
   constructor(
@@ -65,6 +78,11 @@ export class BleRuntimeError extends Error {
 export interface BleSubscriptionHandlers {
   onSensorFrame?: FrameCallback;
   onFeatureFrame?: FeatureFrameCallback;
+  clockAnchor?: {
+    canonicalDeviceId: string;
+    expectedBootSessionId?: number;
+    onAnchor: (anchor: CapturedBootAnchorV1) => void;
+  };
   onError?: (error: BleRuntimeError) => void;
 }
 
@@ -238,6 +256,67 @@ function monitorFeatureFrames(
   );
 }
 
+
+export async function captureDeviceBootClockAnchor(
+  device: Device,
+  canonicalDeviceId: string,
+  expectedBootSessionId?: number,
+): Promise<CapturedBootAnchorV1> {
+  const beforeUtcMs = Date.now();
+  let characteristic;
+
+  try {
+    characteristic = await device.readCharacteristicForService(
+      BLE_SERVICE_UUID,
+      BLE_CHAR_CLOCK_SAMPLE,
+    );
+  } catch (error) {
+    throw new BleRuntimeError(
+      'CLOCK_SAMPLE_READ_FAILED',
+      'Unable to read the TAG clock-sample characteristic.',
+      error,
+    );
+  }
+
+  const afterUtcMs = Date.now();
+
+  if (!characteristic.value) {
+    throw new BleRuntimeError(
+      'EMPTY_CLOCK_SAMPLE',
+      'TAG clock-sample characteristic returned no value.',
+    );
+  }
+
+  let sample;
+  try {
+    sample = parseDeviceClockSampleFrame(
+      base64ToUint8Array(characteristic.value),
+    );
+  } catch (error) {
+    throw new BleRuntimeError(
+      'INVALID_CLOCK_SAMPLE',
+      'TAG clock sample failed canonical parsing.',
+      error,
+    );
+  }
+
+  try {
+    return buildBootAnchorV1({
+      canonicalDeviceId,
+      bleDeviceId: device.id,
+      beforeUtcMs,
+      afterUtcMs,
+      sample,
+      expectedBootSessionId,
+    });
+  } catch (error) {
+    if (error instanceof BootAnchorCaptureError) {
+      throw new BleRuntimeError(error.code, error.message, error);
+    }
+    throw error;
+  }
+}
+
 /**
  * Connect to one EMOPET device, discover GATT services and subscribe only to
  * the notification surfaces requested by the caller.
@@ -254,7 +333,7 @@ export async function connectAndSubscribe(
       ? { onSensorFrame: handlersOrFrameCallback }
       : handlersOrFrameCallback;
 
-  if (!handlers.onSensorFrame && !handlers.onFeatureFrame) {
+  if (!handlers.onSensorFrame && !handlers.onFeatureFrame && !handlers.clockAnchor) {
     throw new BleRuntimeError(
       'SUBSCRIBE_FAILED',
       'At least one BLE notification handler is required.',
@@ -273,6 +352,24 @@ export async function connectAndSubscribe(
       `Unable to connect to or discover EMOPET device ${deviceId}.`,
       error,
     );
+  }
+
+  if (handlers.clockAnchor) {
+    try {
+      const anchor = await captureDeviceBootClockAnchor(
+        device,
+        handlers.clockAnchor.canonicalDeviceId,
+        handlers.clockAnchor.expectedBootSessionId,
+      );
+      handlers.clockAnchor.onAnchor(anchor);
+    } catch (error) {
+      try {
+        await ble.cancelDeviceConnection(device.id);
+      } catch {
+        // Preserve clock-anchor failure as the primary error.
+      }
+      throw error;
+    }
   }
 
   const subscriptions: Subscription[] = [];
@@ -338,6 +435,7 @@ export function base64ToUint8Array(base64: string): Uint8Array {
 
 export {
   parseActivityVariabilityFeatureFrame,
+  parseDeviceClockSampleFrame,
   parseSensorFrame,
   isMatFrame,
   isTagFrame,
