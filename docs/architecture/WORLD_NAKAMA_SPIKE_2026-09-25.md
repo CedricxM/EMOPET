@@ -238,6 +238,19 @@ not see this. Fix: omit both arguments so the server default page (100) applies.
 transport regression assertion now checks that no `state` query parameter is sent and
 that `listFriends` (argument order correct in the SDK) still sends `limit=100`.
 
+**Code review follow-up (same day).** A high-effort review of the full diff found four
+defects, all fixed with regression tests and re-validated live:
+(1) any command error, including definite rejections and target resolution, degraded
+and closed the actor's own session — now only timeouts/transport failures degrade, and
+SDK 4xx responses map to `invalid_request`; (2) renewal failed entirely when a
+followed participant was offline — that follow is now dropped from the restore set;
+(3) self-targeting was not rejected — now 400 before any transport call; (4) the Nakama
+runtime allowlist was not trimmed/lowercased like Hono's. Re-decoding the verified JWT
+for `exp` in the route was kept: the canonical `AuthPayload` does not carry `exp`, and
+the canonical auth middleware is out of scope. After fixes: `pnpm --filter @emopet/api
+test` 395 tests, 360 passed, 35 skipped, 0 failed; spike suites 22 passed; live harness
+(with outage) passed after `up -d --force-recreate --wait nakama` to reload the runtime.
+
 **Environment notes.** `pnpm install --frozen-lockfile` aborted with
 `ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY` because the checkout's `node_modules` was
 created by another OS user/store; the existing modules from the same lockfile were

@@ -194,6 +194,9 @@ test('runtime bootstrap rejects direct sessions, unmapped users, and malformed i
   const nk = { authenticateCustom: () => { writes++; return { userId: B, username: 'synthetic' }; },
     authenticateTokenGenerate: () => ({ token: 'server-generated' }) };
   const ctx = { env: { WORLD_SPIKE_TEST_USER_IDS: A } };
+  const spaced = { env: { WORLD_SPIKE_TEST_USER_IDS: ` ${B}, ${A.toUpperCase()} ` } };
+  assert.equal(JSON.parse(bootstrap(spaced, {}, nk, JSON.stringify({ customId: customIdentity(A) }))).userId, B);
+  writes = 0;
   assert.throws(() => bootstrap({ ...ctx, userId: B }, {}, nk, JSON.stringify({ customId: customIdentity(A) })));
   assert.throws(() => bootstrap(ctx, {}, nk, JSON.stringify({ customId: customIdentity(B) })));
   assert.throws(() => bootstrap(ctx, {}, nk, JSON.stringify({ customId: customIdentity(A), ownerId: B })));
@@ -210,4 +213,37 @@ test('authority firewall: spike modules have no durable repositories or protecte
     const imports = source.match(/(?:import|export)[\s\S]*?from\s+['"][^'"]+['"]/g) ?? [];
     for (const statement of imports) assert.doesNotMatch(statement, /db\/|eli-engine|consent|moderation|billing|dog-ownership/);
   }
+});
+test('rejected commands keep the session; self-target and offline target fail without degrading', async t => {
+  const { adapter, connections, calls, exp } = setup(t);
+  const a = await adapter.bootstrap(A, exp);
+  await assert.rejects(adapter.execute(A, a.handle, { op: 'friends.request', targetUserId: A }), /invalid_request/);
+  await assert.rejects(adapter.execute(A, a.handle, { op: 'presence.follow', targetUserId: B }), /unavailable/);
+  assert.equal(calls.length, 0, 'target errors must not reach the transport');
+  assert.equal(adapter.events(A, a.handle).state, 'connected');
+  assert.equal(connections[0].closed, false);
+  await adapter.execute(A, a.handle, { op: 'friends.list' });
+  assert.equal(adapter.events(A, a.handle).state, 'connected');
+});
+test('transport invalid_request does not degrade, and renewal skips a follow whose target is offline', async t => {
+  const { WorldError } = await import('../dist/api/services/world-spike/contracts.js');
+  let reject = false;
+  const { adapter, connections, calls, exp } = setup(t, { execute: () => {
+    if (reject) throw new WorldError('invalid_request');
+    return { ok: true };
+  } });
+  let a = await adapter.bootstrap(A, exp);
+  const b = await adapter.bootstrap(B, exp);
+  await adapter.execute(A, a.handle, { op: 'presence.follow', targetUserId: B });
+  await adapter.execute(A, a.handle, { op: 'chat.join', groupId: GROUP });
+  reject = true;
+  await assert.rejects(adapter.execute(A, a.handle, { op: 'chat.send', groupId: GROUP, text: 'x' }), /invalid_request/);
+  assert.equal(adapter.events(A, a.handle).state, 'connected');
+  reject = false;
+  adapter.disconnect(B, b.handle);
+  connections[0].disconnected();
+  a = await adapter.bootstrap(A, exp, a.handle);
+  assert.equal(a.state, 'connected');
+  assert.equal(calls.filter(c => c.command.op === 'presence.follow').length, 1, 'offline follow not replayed');
+  assert.equal(calls.filter(c => c.command.op === 'chat.join').length, 2, 'chat subscription restored');
 });

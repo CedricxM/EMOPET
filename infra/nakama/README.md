@@ -93,10 +93,14 @@ with `groupId`; `presence.follow` with `targetUserId`; `presence.update` with
 `targetUserId` identifies another allowlisted synthetic participant, never the actor.
 Both participants must bootstrap before friend/presence operations. Accept requires
 an incoming request; an unknown chat channel cannot send. Extra fields are rejected.
+A definite rejection (self-target, target not bootstrapped, Nakama 4xx, socket error
+reply) returns 400/503 **without** closing the session. Only a timeout or transport
+failure — where the write may have happened — degrades and closes it.
 
 On a disconnect, call bootstrap with a still-valid prior handle and a freshly verified
 EMOPET access JWT. The handle is replaced, presence subscriptions/status and joined
-chat channels restored. Do not retry uncertain writes: reconcile lists or report
+chat channels restored. A follow whose target is currently offline is dropped rather
+than failing renewal; follow again once that participant bootstraps. Do not retry uncertain writes: reconcile lists or report
 uncertain delivery. After handle expiry, bootstrap with `{}` and explicitly subscribe
 again. If EMOPET access expires, use the existing canonical auth refresh route first.
 There is no Nakama refresh token or offline write queue.
