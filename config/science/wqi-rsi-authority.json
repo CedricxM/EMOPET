@@ -11,7 +11,8 @@
     },
     "provenance": "UI_PROTOTYPE",
     "scientificValidation": "NOT_PERFORMED",
-    "productFreeze": "PROHIBITED"
+    "productFreeze": "PROHIBITED",
+    "productEntitlementAuthorized": false
   },
   "rsi": {
     "runtimeAuthority": "NONE",
@@ -24,7 +25,8 @@
     "currentMockImplementation": "SEEDED_PRESENTATION_SCORE / NOT ACTUAL COSINE SIMILARITY",
     "provenance": "UI_PROTOTYPE",
     "scientificValidation": "NOT_PERFORMED",
-    "productFreeze": "PROHIBITED"
+    "productFreeze": "PROHIBITED",
+    "productEntitlementAuthorized": false
   },
   "phantomReferences": {
     "ELI v6 §7": "NOT_RECOVERED_AS_CONTROLLED_AUTHORITY",
@@ -36,6 +38,8 @@
     "missing-data and abstention semantics",
     "versioned backend computation",
     "end-to-end conformance tests",
-    "validation/calibration plan"
-  ]
+    "validation/calibration plan",
+    "explicit Product re-authorization before paid-tier entitlement"
+  ],
+  "productionRule": "No paid-tier entitlement, production computation, or production fallback until #91 selects controlled semantics and #118/#124 provide a canonical runtime/API path."
 }
