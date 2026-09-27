@@ -45,13 +45,15 @@
     "approtectRequiredDecision": true,
     "receiptRequired": true,
     "temporaryFactoryDebugMustDifferFromProduction": true,
-    "rmaMustNotPreserveTrustByIdentifierOnly": true
+    "rmaMustNotPreserveTrustByIdentifierOnly": true,
+    "selectedRequirement": "APPROTECT_REQUIRED_BEFORE_CREDENTIAL_ACTIVE"
   },
   "selection": {
-    "architecture": null,
-    "algorithmFamily": null,
+    "architecture": "B_DEVICE_SPECIFIC_ASYMMETRIC_POP",
+    "algorithmFamily": "ECDSA_SHA256",
+    "curve": "SECP256R1_256",
     "challengeFormat": null,
-    "backendCredentialRepresentation": null
+    "backendCredentialRepresentation": "PUBLIC_KEY_PER_DEVICE_PRINCIPAL_AND_CREDENTIAL_VERSION"
   },
   "runtime": {
     "deviceDataTrust": "NOT_IMPLEMENTED",
