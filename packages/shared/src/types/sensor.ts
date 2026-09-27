@@ -58,6 +58,8 @@ export const ACTIVITY_VARIABILITY_FEATURE_CONTRACT_VERSION =
 
 export type ActivityVariabilityObservationStatus = 'OBSERVED' | 'NOT_OBSERVED';
 
+export type ActivityVariabilityQualityState = 'VALID' | 'DEGRADED' | 'SUPPRESSED';
+
 export type ActivityVariabilityNullReason =
   | 'INSUFFICIENT_COVERAGE'
   | 'MEAN_BELOW_DIVISION_GUARD';
@@ -104,6 +106,11 @@ export interface ActivityVariabilityFeatureObservation {
   featureContractVersion: typeof ACTIVITY_VARIABILITY_FEATURE_CONTRACT_VERSION;
   windowSeconds: 1800;
   validSeconds: number;
+  /**
+   * Physical feature-quality state. Required for transport-derived writes so
+   * the backend cannot silently discard a quality state carried on the wire.
+   */
+  qualityState?: ActivityVariabilityQualityState;
   transportProvenance?: ActivityVariabilityTransportProvenance;
   eventTimeProvenance?: ActivityVariabilityEventTimeProvenance;
 }
