@@ -83,8 +83,8 @@ Reported characteristics include:
 
 - dog age median: **5 years [2–8]**;
 - 67.48% purebred, 32.52% mixed breed;
-- guardian sex: **82.11% female**, 16.67% male, 1.22% prefer not to say;
-- **25.20%** of guardians reported a dog-related job;
+- respondent sex: **82.11% female**, 16.67% male, 1.22% prefer not to say;
+- **25.20%** of respondents reported a dog-related job;
 - recruitment was voluntary and network/social-media based.
 
 **Implication:** do not use this sample as a definitive French normative reference for ELI thresholds.
@@ -106,7 +106,7 @@ The four items associated with **Dog rivalry** had insufficient responses for th
 Examples:
 
 - a single-dog household cannot provide meaningful household dog-rivalry observations;
-- a guardian who has never exposed a dog to a situation is not reporting “no behaviour”;
+- a respondent who has never exposed a dog to a situation is not reporting “no behaviour”;
 - absence of a questionnaire response is not evidence of behavioural absence.
 
 Any future questionnaire model, API, database schema, ELI feature transform or analytics pipeline must preserve these semantics explicitly.
@@ -446,7 +446,7 @@ Unless and until separately validated/authorized:
 
 ### Allowed direction
 
-- “guardian-reported behavioural profile”;
+- “owner-reported behavioural profile”;
 - “longitudinal activity/rest pattern”;
 - “contextual observation”;
 - “pattern associated with…”;
