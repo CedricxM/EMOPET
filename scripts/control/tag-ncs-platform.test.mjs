@@ -1,50 +1,30 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { access, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
+const read = (rel) => readFile(path.join(root, rel), 'utf8');
 
-const platform = JSON.parse(
-  await readFile(path.join(root, 'config/firmware/tag-platform-v1.json'), 'utf8'),
-);
-const uuidAuthority = JSON.parse(
-  await readFile(path.join(root, 'config/ble/uuid-authority-v1.json'), 'utf8'),
-);
-const cmake = await readFile(
-  path.join(root, 'firmware/collar/ncs/CMakeLists.txt'),
-  'utf8',
-);
-const prj = await readFile(
-  path.join(root, 'firmware/collar/ncs/prj.conf'),
-  'utf8',
-);
-const ids = await readFile(
-  path.join(root, 'firmware/collar/ncs/src/emopet_ble_ids.h'),
-  'utf8',
-);
-const gatt = await readFile(
-  path.join(root, 'firmware/collar/ncs/src/emopet_gatt.c'),
-  'utf8',
-);
-const main = await readFile(
-  path.join(root, 'firmware/collar/ncs/src/main.c'),
-  'utf8',
-);
+const platform = JSON.parse(await read('config/firmware/tag-platform-v1.json'));
+const uuidAuthority = JSON.parse(await read('config/ble/uuid-authority-v1.json'));
+const manifest = await read('firmware/collar/ncs/west.yml');
+const readme = await read('firmware/collar/ncs/README.md');
+const cmake = await read('firmware/collar/ncs/CMakeLists.txt');
+const prj = await read('firmware/collar/ncs/prj.conf');
+const ids = await read('firmware/collar/ncs/src/emopet_ble_ids.h');
+const gatt = await read('firmware/collar/ncs/src/emopet_gatt.c');
+const main = await read('firmware/collar/ncs/src/main.c');
 
-test('TAG platform pins NCS 3.4 LTS while keeping DK and MS88SF3 authority separate', () => {
+test('TAG platform has one canonical NCS v3.4.1 LTS authority', async () => {
   assert.equal(platform.sdk.family, 'nRF Connect SDK');
-  assert.equal(platform.sdk.version, '3.4.0');
-  assert.equal(platform.sdk.releaseKind, 'LTS');
-  assert.equal(
-    platform.sdk.toolchainContainer,
-    'ghcr.io/nrfconnect/sdk-nrf-toolchain:v3.4.0',
-  );
-  assert.equal(
-    platform.sdk.toolchainContainerDigest,
-    'sha256:f1dca44678dae83e37404e33f369786f5b2ffe2ed497eec1815f66c3a868bace',
-  );
+  assert.equal(platform.sdk.series, '3.4.x LTS');
+  assert.equal(platform.sdk.version, '3.4.1');
+  assert.equal(platform.sdk.revision, 'v3.4.1');
+  assert.equal(platform.sdk.sourceManifest, 'firmware/collar/ncs/west.yml');
+  assert.equal(platform.application.path, 'firmware/collar/ncs');
+  assert.equal(platform.application.westManifest, 'firmware/collar/ncs/west.yml');
   assert.equal(
     platform.application.temporaryCompileHarnessBoard,
     'nrf52840dk/nrf52840',
@@ -54,12 +34,26 @@ test('TAG platform pins NCS 3.4 LTS while keeping DK and MS88SF3 authority separ
     false,
   );
   assert.equal(platform.application.productionBoardDefinition, null);
-  assert.equal(platform.evidence.ncsTargetBuild, 'NOT_YET_IN_CI');
-  assert.equal(platform.evidence.targetFlash, 'NOT_RUN');
-  assert.equal(platform.evidence.realBleCapture, 'NOT_RUN');
+
+  assert.match(manifest, /revision:\s*v3\.4\.1/);
+  assert.match(readme, /single canonical target-firmware runtime/i);
+  assert.match(readme, /v3\.4\.1 LTS/);
+
+  // A stale v3.4.0 container receipt must not masquerade as current toolchain evidence.
+  assert.equal(platform.sdk.toolchainContainer, null);
+  assert.equal(platform.sdk.toolchainContainerDigest, null);
+  assert.equal(platform.sdk.toolchainReceiptStatus, 'NOT_YET_CAPTURED_FOR_3.4.1');
+
+  for (const retired of [
+    'firmware/collar/zephyr',
+    'config/firmware/tag-platform-authority-v1.json',
+    'scripts/control/tag-fw-platform-g1.test.mjs',
+  ]) {
+    await assert.rejects(access(path.join(root, retired)));
+  }
 });
 
-test('Zephyr application composes the existing canonical sensor and transport implementations', () => {
+test('canonical NCS application composes the existing sensor and transport implementations', () => {
   assert.match(cmake, /find_package\(Zephyr REQUIRED/);
   assert.match(cmake, /activity_feature_summary\.c/);
   assert.match(cmake, /activity_variability\.c/);
@@ -75,11 +69,14 @@ test('Zephyr application composes the existing canonical sensor and transport im
 });
 
 test('GATT scaffold binds controlled proprietary UUIDs and canonical feature serializer', () => {
-  const service = uuidAuthority.active.service;
-  const feature = uuidAuthority.active.featureSummary;
-
-  assert.equal(service, 'e4e2e9a3-39c8-4140-aba9-c4e37713f59a');
-  assert.equal(feature, '01141d55-a776-4091-b068-83f0804d8781');
+  assert.equal(
+    uuidAuthority.active.service,
+    'e4e2e9a3-39c8-4140-aba9-c4e37713f59a',
+  );
+  assert.equal(
+    uuidAuthority.active.featureSummary,
+    '01141d55-a776-4091-b068-83f0804d8781',
+  );
 
   for (const token of [
     'BT_UUID_128_ENCODE(0xe4e2e9a3, 0x39c8, 0x4140, 0xaba9, 0xc4e37713f59a)',
@@ -96,7 +93,7 @@ test('GATT scaffold binds controlled proprietary UUIDs and canonical feature ser
   assert.match(gatt, /tag_feature_summary_encode_activity_variability/);
 });
 
-test('boot/time transport provenance stays explicitly non-security and non-UTC', () => {
+test('transport provenance remains non-security and non-UTC', () => {
   assert.match(gatt, /boot_session_id = sys_rand32_get\(\)/);
   assert.match(gatt, /window_end_ms = k_uptime_get_32\(\)/);
   assert.match(gatt, /feature_sequence\+\+/);
@@ -123,5 +120,8 @@ test('entrypoint advertises but cannot fabricate a physical observation', () => 
     false,
   );
 
-  assert.equal(platform.currentDecision, 'DO_NOT_CLAIM_REAL_TAG_BLE_DELIVERY');
+  assert.equal(
+    platform.currentDecision,
+    'DO_NOT_CLAIM_REAL_TAG_BLE_DELIVERY_OR_MS88SF3_TARGET_BUILD',
+  );
 });
