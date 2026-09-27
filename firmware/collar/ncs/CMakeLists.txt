@@ -21,3 +21,10 @@ target_include_directories(app PRIVATE
   ${EMOPET_COLLAR_MAIN}/transport
   ${EMOPET_COLLAR_MAIN}/sensors
 )
+
+
+if(CONFIG_EMOPET_DEVICE_KEY_PROVISIONING)
+  target_sources(app PRIVATE
+    src/device_identity_key_provisioner_psa.c
+  )
+endif()
