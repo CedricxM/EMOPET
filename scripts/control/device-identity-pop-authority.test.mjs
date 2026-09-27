@@ -85,8 +85,16 @@ test('main Device Trust authority delegates identity selection to #648 while kee
 
 test('backend Device Data Trust hard stop remains executable until #648 closes', () => {
   assert.match(ingressSource, /DEVICE_DATA_TRUST_RUNTIME_NOT_IMPLEMENTED/);
-  assert.match(ingressSource, /trusted:\s*false/);
-  assert.doesNotMatch(ingressSource, /trusted:\s*true/);
+  assert.match(
+    ingressSource,
+    /currentDeviceDataTrustVerifier[\s\S]*async verify\(\)[\s\S]*return \{[\s\S]*ok:\s*false,[\s\S]*error:\s*DEVICE_DATA_TRUST_RUNTIME_NOT_IMPLEMENTED/,
+  );
+
+  const runtimeBlock = ingressSource.match(
+    /export const currentDeviceDataTrustVerifier[\s\S]*?\n\};/,
+  )?.[0] ?? '';
+  assert.ok(runtimeBlock.length > 0);
+  assert.doesNotMatch(runtimeBlock, /ok:\s*true/);
 });
 
 test('Device Trust master points manufacturing identity to #648', () => {
