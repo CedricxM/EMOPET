@@ -202,6 +202,7 @@ export const ActivityVariabilityFeatureObservationCreateSchema = z.object({
   featureContractVersion: z.literal('tag-activity-variability-cv30m-v1'),
   windowSeconds: z.literal(1800),
   validSeconds: z.number().int().min(0).max(1800),
+  qualityState: z.enum(['VALID', 'DEGRADED', 'SUPPRESSED']).optional(),
   transportProvenance: z.object({
     transportVersion: z.literal(1),
     bootSessionId: z.number().int().min(0).max(0xffffffff),
@@ -231,6 +232,14 @@ export const ActivityVariabilityFeatureObservationCreateSchema = z.object({
     });
   }
 
+  if (value.transportProvenance && !value.qualityState) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['qualityState'],
+      message: 'transportProvenance requires qualityState',
+    });
+  }
+
   if (value.observationStatus === 'OBSERVED') {
     if (value.value === null) {
       ctx.addIssue({
@@ -251,6 +260,13 @@ export const ActivityVariabilityFeatureObservationCreateSchema = z.object({
         code: z.ZodIssueCode.custom,
         path: ['validSeconds'],
         message: 'OBSERVED requires at least 900 valid seconds',
+      });
+    }
+    if (value.qualityState === 'SUPPRESSED') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['qualityState'],
+        message: 'OBSERVED cannot carry SUPPRESSED quality',
       });
     }
     return;
