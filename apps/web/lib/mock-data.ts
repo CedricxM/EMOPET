@@ -1,3 +1,13 @@
+/**
+ * Fixtures de développement — AUCUNE de ces valeurs n'est une mesure.
+ *
+ * Ce fichier n'en disait rien jusqu'ici, alors qu'il alimente des surfaces
+ * utilisateur. Les valeurs sont écrites à la main ; elles ne proviennent ni d'un
+ * capteur MAT/TAG, ni d'une inférence backend, ni même d'une simulation
+ * modélisée. Toute surface qui les publie doit porter la provenance
+ * `ELI_WEB_MOCK_PROVENANCE` et le marqueur `DÉMO ·` — voir ELI-ARCH-G3 (#118).
+ */
+
 export const MOCK_DOG = {
   name: 'Gus',
   breed: 'Border Collie',
@@ -19,6 +29,16 @@ export const MOCK_REPOS = {
   interruptions: 3,
   durationMinutes: 187,
   confidence: 62,
+
+  /**
+   * Attributs exigés par Care §4 et absents jusqu'ici : la référence à laquelle
+   * l'observation se compare, la source qui l'a produite, et ce qui explique la
+   * confiance partielle. Sans eux la carte donnait trois nombres sans le
+   * raisonnement qui les rend lisibles.
+   */
+  reference: { nights: 14, medianInterruptions: 2, medianDurationMinutes: 203 },
+  source: { device: 'MAT', windowStart: '23 h 10', windowEnd: '06 h 25' },
+  unusableMinutes: 41,
 };
 
 export const MOCK_ANTICIPATION = {

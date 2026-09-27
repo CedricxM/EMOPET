@@ -20,6 +20,25 @@ export function translate<NS extends keyof Dict>(locale: Locale, ns: NS, key: ke
   return table[key] ?? fallback[key] ?? key;
 }
 
+/**
+ * Remplit les placeholders `{clé}` d'une chaîne du dictionnaire.
+ *
+ * Le dictionnaire reste plat : pas de moteur de gabarits, pas de dépendance.
+ * Il existe parce que les énoncés d'observation portent des nombres (référence,
+ * fenêtre, minutes inexploitables) et que les découper en fragments — la
+ * convention employée jusqu'ici pour `recoveryIntro/Middle/Outro` — devient
+ * illisible dès qu'une phrase en contient trois.
+ *
+ * Une clé absente est laissée VISIBLE sous sa forme `{clé}` plutôt que rendue
+ * en chaîne vide : un trou dans une phrase se remarque, une valeur manquante
+ * silencieuse ne se remarque pas.
+ */
+export function fillTemplate(template: string, values: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (match, key: string) =>
+    key in values ? String(values[key]) : match,
+  );
+}
+
 function intlLocale(locale: Locale): string {
   return locale === 'fr' ? 'fr-FR' : 'en-US';
 }

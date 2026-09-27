@@ -8,6 +8,7 @@ export {
   formatNumberLocale,
   formatDistanceLocale,
   formatDateLocale,
+  fillTemplate,
 } from './translate';
 export type { Locale } from './translate';
 export type { Dict } from './dictionaries';
