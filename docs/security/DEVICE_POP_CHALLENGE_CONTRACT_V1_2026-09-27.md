@@ -155,7 +155,32 @@ Still blocked:
 
 No route should return trusted-device success merely because this contract exists.
 
-## 10. Required next evidence
+## 10. Source issuer primitive — current boundary
+
+A backend source primitive now exists at:
+
+`backend/api/security/device-pop-challenge-issuer.ts`
+
+It can construct a contract-valid telemetry challenge **only** when the caller
+injects:
+- an ACTIVE canonical-device credential resolver;
+- an atomic challenge `createIfAbsent` store;
+- an explicit future `expiresAt` selected by another policy authority.
+
+The primitive has:
+- no default TTL;
+- no default credential repository;
+- no default challenge/replay store;
+- no HTTP route;
+- no verifier;
+- no Device Data Trust success path.
+
+Durable credential/challenge persistence is intentionally deferred while the
+active migration sequence ends at 0019 and the parallel World draft owns the
+candidate 0020 prefix. Device Trust must not create a competing active 0020
+migration merely to advance this slice.
+
+## 11. Required next evidence
 
 Before runtime activation:
 1. backend challenge-state schema and issuer;
