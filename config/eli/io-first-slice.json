@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "emopet-eli-io-first-slice-v1",
+  "status": "TRANSPORT_GAP_EXPLICIT / NO END_TO_END_FEATURE_INGESTION",
+  "issue": 122,
+  "firstFeature": "activity_variability",
+  "featureContractVersion": "tag-activity-variability-cv30m-v1",
+  "producer": {
+    "owner": "TAG_FIRMWARE",
+    "implementation": "firmware/collar/main/sensors/activity_variability.{h,c}",
+    "measurement": "ODBA_CV_30_MIN",
+    "minimumValidSeconds": 900,
+    "scienceInterpretation": "SEPARATE_GATE_87"
+  },
+  "currentTransport": {
+    "protocol": "BLE_V1",
+    "tagPayloadContainsActivityVariability": false,
+    "featureEnvelopeIngestionImplemented": false,
+    "endToEndPath": false
+  },
+  "candidateOwnership": {
+    "featureComputation": "FIRMWARE",
+    "mobileRole": "TRANSPORT_ONLY",
+    "backendRole": "VALIDATE_PROVENANCE_ORCHESTRATE",
+    "duplicateIndependentRecompute": "PROHIBITED_UNLESS_SEPARATELY_AUTHORIZED"
+  },
+  "activationRules": [
+    "versioned feature transport selected",
+    "device/dog/time provenance bound",
+    "replay/duplicate semantics defined",
+    "feature contract version carried",
+    "backend ingestion fails closed on mismatch",
+    "deterministic conformance vector spans producer-to-ingestion"
+  ],
+  "currentDecision": "DO_NOT_ACTIVATE"
+}
