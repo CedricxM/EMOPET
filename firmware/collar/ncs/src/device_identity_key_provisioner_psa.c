@@ -3,6 +3,7 @@
  */
 
 #include "device_identity_key_provisioner_psa.h"
+#include "device_identity_key_slots.h"
 
 static void secure_zero(void *buffer, size_t length)
 {
@@ -36,6 +37,10 @@ device_identity_key_provision_p256_v1(
     }
 
     secure_zero(receipt, sizeof(*receipt));
+
+    if (!device_identity_key_id_is_reserved_slot(key_id)) {
+        return DEVICE_IDENTITY_KEY_PROVISION_KEY_ID_NOT_RESERVED;
+    }
 
     psa_key_attributes_t existing = PSA_KEY_ATTRIBUTES_INIT;
     const psa_status_t lookup_status =

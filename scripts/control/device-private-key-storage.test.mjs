@@ -112,7 +112,7 @@ test('duplicate and partial provisioning fail closed with rollback limited to ne
   assert.doesNotMatch(header, /destroy.*key/i);
 });
 
-test('credential binding is explicit but durable key-id namespace and lifecycle remain open', () => {
+test('credential binding uses the reserved A/B namespace while destructive lifecycle remains open', () => {
   assert.match(header, /uint32_t credential_version/);
   assert.match(source, /credential_version == 0u/);
   assert.match(source, /receipt->key_id = key_id/);
@@ -120,10 +120,22 @@ test('credential binding is explicit but durable key-id namespace and lifecycle 
 
   assert.equal(
     authority.selectedStorage.applicationKeyIdNamespace,
-    'OPEN / EXPLICIT_INPUT_ONLY / HARD_CODE_FORBIDDEN_UNTIL_RESERVED',
+    'EMOPET_DEVICE_TRUST_BLOCK_0x00010000_0x0001000F / IDENTITY_SLOTS_A_B',
   );
-  assert.equal(authority.evidence.applicationKeyIdNamespaceSelected, false);
-  assert.equal(authority.lifecycle.rotation, 'OPEN');
+  assert.equal(
+    authority.selectedStorage.keyIdRegistry,
+    'config/security/psa-key-id-registry-v1.json',
+  );
+  assert.deepEqual(
+    authority.selectedStorage.identitySlots,
+    { A: '0x00010000', B: '0x00010001' },
+  );
+  assert.equal(authority.evidence.applicationKeyIdNamespaceSelected, true);
+
+  assert.match(
+    authority.lifecycle.rotation,
+    /^DUAL_SLOT_A_B_SELECTED \/ ACTIVE_PLUS_PENDING_MAX_ONE_EACH \/ DESTRUCTIVE_RUNTIME_OPEN$/,
+  );
   assert.equal(authority.lifecycle.revocation, 'OPEN');
   assert.equal(authority.lifecycle.rma, 'OPEN');
 });

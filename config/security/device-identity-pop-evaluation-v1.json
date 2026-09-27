@@ -60,7 +60,7 @@
     "challengeFormat": "DEVICE_POP_CHALLENGE_V1 / FIXED_BINARY_SHA256 / ECDSA_P256_P1363_64",
     "credentialProvisioningFlow": "ON_DEVICE_KEY_GENERATION / PUBLIC_KEY_ENROLLMENT / FRESH_CHALLENGE_PROOF / APPROTECT_BEFORE_ACTIVE",
     "backendEnrollmentSchema": "PUBLIC_KEY_PER_CANONICAL_DEVICE_PRINCIPAL_AND_CREDENTIAL_VERSION",
-    "rotationRevocationPolicy": null,
+    "rotationRevocationPolicy": "DUAL_SLOT_A_B / NEW_CREDENTIAL_PROOF_BEFORE_ACTIVATION / SERVER_REVOCATION_BEFORE_SLOT_REUSE / DESTRUCTIVE_RUNTIME_OPEN",
     "debugSwdProductionPolicy": "APPROTECT_REQUIRED_BEFORE_CREDENTIAL_ACTIVE"
   },
   "nonAuthorities": [
@@ -115,7 +115,9 @@
     "devicePreimageCodec": "DELIVERED_C_BACKEND_BYTE_PARITY / SIGNER_AND_KEY_STORAGE_OPEN",
     "deviceSigner": "DELIVERED_OPAQUE_PSA_P256_SOURCE_PRIMITIVE / NO_RUNTIME_CALL_SITE",
     "devicePrivateKeyProvisioning": "SOURCE_CANDIDATE_BEHIND_DEFAULT_OFF_KCONFIG / HUK_SECURE_STORAGE_TARGET_PROOF_OPEN",
-    "privateKeyStorage": "SECURE_STORAGE_WITH_HUK_KDR_AEAD_SELECTED / NSIB_AND_TARGET_EVIDENCE_OPEN"
+    "privateKeyStorage": "SECURE_STORAGE_WITH_HUK_KDR_AEAD_SELECTED / NSIB_AND_TARGET_EVIDENCE_OPEN",
+    "identityKeySlotNamespace": "DUAL_SLOT_A_B_SELECTED / PSA_USER_RANGE / DESTRUCTIVE_ROTATION_RUNTIME_OPEN",
+    "publicEnrollmentReceipt": "VERSIONED_SHARED_CONTRACT_CANDIDATE / PENDING_PROOF_ONLY / DURABLE_ENROLLMENT_OPEN"
   },
   "selectedArchitectureDependencies": {
     "privateKeyAtRest": "TRUSTED_STORAGE_WITH_HUK_DERIVED_AEAD_KEY",
@@ -127,5 +129,6 @@
     "networkPersistence": "STILL_BLOCKED"
   },
   "challengeContractAuthority": "config/security/device-pop-challenge-v1.json",
-  "childKeyStorageIssue": 657
+  "childKeyStorageIssue": 657,
+  "childKeySlotIssue": 659
 }
