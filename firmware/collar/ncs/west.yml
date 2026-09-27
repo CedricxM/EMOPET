@@ -8,7 +8,7 @@ manifest:
   projects:
     - name: nrf
       remote: ncs
-      revision: v3.4.1
+      revision: v3.4.0
       import: true
 
   self:
