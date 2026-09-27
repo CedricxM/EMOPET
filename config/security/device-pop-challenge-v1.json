@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-device-pop-challenge-contract-v1",
-  "status": "DATA_CONTRACT_SELECTED / RUNTIME_NOT_IMPLEMENTED / TELEMETRY_PERSISTENCE_BLOCKED",
+  "status": "DATA_CONTRACT_SELECTED / ISSUER+VERIFIER_SOURCE_PRIMITIVES_IMPLEMENTED / DURABLE_RUNTIME_NOT_IMPLEMENTED / TELEMETRY_PERSISTENCE_BLOCKED",
   "issue": 648,
   "parentIssue": 66,
   "architecture": {
@@ -84,7 +84,7 @@
   "runtime": {
     "challengeIssuer": "SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_AUTHORITIES_REQUIRED / NO_HTTP_ROUTE",
     "deviceSigner": "NOT_IMPLEMENTED",
-    "backendVerifier": "NOT_IMPLEMENTED",
+    "backendVerifier": "SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_AUTHORITIES_REQUIRED / NO_HTTP_ROUTE",
     "replayStore": "NOT_IMPLEMENTED",
     "deviceDataTrust": "NOT_IMPLEMENTED",
     "networkTelemetryPersistence": "BLOCKED",
@@ -94,7 +94,13 @@
     "issuerUnitTest": "backend/test/device-pop-challenge-issuer.test.mjs",
     "issuerHasDefaultTtl": false,
     "issuerHasDefaultStore": false,
-    "issuerHasPublicRoute": false
+    "issuerHasPublicRoute": false,
+    "verifierSource": "backend/api/security/device-pop-verifier.ts",
+    "verifierUnitTest": "backend/test/device-pop-verifier.test.mjs",
+    "verifierHasDefaultStore": false,
+    "verifierHasPublicRoute": false,
+    "verifierAuthorizesDeviceDataTrust": false,
+    "verifierAuthorizesTelemetryPersistence": false
   },
   "releaseRule": "NO_DEVICE_TRUST_SUCCESS_OR_DURABLE_NETWORK_TELEMETRY_WRITE_UNTIL_RUNTIME_AND_TARGET_HARDWARE_NEGATIVE_EVIDENCE_PASS"
 }
