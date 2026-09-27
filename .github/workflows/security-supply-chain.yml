@@ -143,6 +143,8 @@ jobs:
           set -e
       - name: Enforce ELI canonical device-registry boundary (#122)
         run: node --test scripts/control/eli-io-device-registry.test.mjs
+      - name: Enforce ELI mobile network-client fail-closed boundary (#122)
+        run: node --test apps/mobile/test/activity-feature-network-contract.test.mjs
       - name: Enforce ELI feature transport-to-envelope conformance (#122)
         run: |
           pnpm --filter @emopet/ble-protocol build
