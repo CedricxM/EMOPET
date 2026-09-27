@@ -16,8 +16,6 @@
 
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/gatt.h>
-#include <zephyr/kernel.h>
-#include <zephyr/random/random.h>
 #include <zephyr/sys/util.h>
 
 static struct bt_uuid_128 emopet_service_uuid =
@@ -28,8 +26,6 @@ static struct bt_uuid_128 emopet_feature_summary_uuid =
     BT_UUID_INIT_128(BT_UUID_EMOPET_FEATURE_SUMMARY_VAL);
 
 static bool feature_notify_enabled;
-static uint32_t boot_session_id;
-static uint16_t feature_sequence;
 
 static void feature_ccc_changed(
     const struct bt_gatt_attr *attr,
@@ -98,15 +94,7 @@ int emopet_gatt_init(void)
         return err;
     }
 
-    /*
-     * Replay/session discriminator only.
-     * This is intentionally non-cryptographic and must never be used as
-     * Device Trust, key material, nonce authority or proof of possession.
-     */
-    boot_session_id = sys_rand32_get();
-    feature_sequence = 0;
     feature_notify_enabled = false;
-
     return 0;
 }
 
@@ -122,27 +110,21 @@ int emopet_gatt_start_advertising(void)
 }
 
 int emopet_gatt_publish_activity_variability(
-    activity_variability_snapshot_t snapshot,
-    tag_feature_quality_t quality
+    const tag_activity_feature_summary_input_t *input
 )
 {
     uint8_t frame[TAG_FEATURE_SUMMARY_FRAME_SIZE];
 
+    if (input == NULL) {
+        return -EINVAL;
+    }
     if (!feature_notify_enabled) {
         return -EAGAIN;
     }
 
-    const tag_activity_feature_summary_input_t input = {
-        .sequence = feature_sequence,
-        .boot_session_id = boot_session_id,
-        .window_end_ms = k_uptime_get_32(),
-        .observation = snapshot,
-        .quality = quality,
-    };
-
     const tag_feature_summary_result_t encoded =
         tag_feature_summary_encode_activity_variability(
-            &input,
+            input,
             frame,
             sizeof(frame)
         );
@@ -151,17 +133,11 @@ int emopet_gatt_publish_activity_variability(
         return -EINVAL;
     }
 
-    const int err = bt_gatt_notify_uuid(
+    return bt_gatt_notify_uuid(
         NULL,
         &emopet_feature_summary_uuid.uuid,
         &emopet_svc.attrs[0],
         frame,
         sizeof(frame)
     );
-
-    if (err == 0) {
-        feature_sequence++;
-    }
-
-    return err;
 }
