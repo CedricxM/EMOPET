@@ -29,16 +29,16 @@ test('conditional semantics preserve fail-closed erasure with four approved matr
   );
   assert.equal(
     semantics.status,
-    'FOUR_PRODUCT_PRIVACY_DECISIONS_PROMOTED_SIX_AUTHORITY_DECISIONS_REMAIN',
+    'FIVE_PRODUCT_PRIVACY_DECISIONS_PROMOTED_FIVE_AUTHORITY_DECISIONS_REMAIN',
   );
   assert.equal(semantics.claimsExecutableErasure, false);
   assert.equal(semantics.claimsCompleteErasure, false);
   assert.deepEqual(semantics.summary, {
     conditionalRowsTotal: 17,
     semanticsAlreadyDeterminedByExistingPolicy: 7,
-    authorityDecisionsStillRequired: 6,
-    matrixRowsPromoted: 4,
-    productPrivacyDecisionsApproved: 4,
+    authorityDecisionsStillRequired: 5,
+    matrixRowsPromoted: 5,
+    productPrivacyDecisionsApproved: 5,
   });
 
   for (const row of [...semantics.policyDetermined, ...semantics.authorityDecisionsRemaining]) {
@@ -256,7 +256,7 @@ test('device metadata has detachable schema and future unbind-clock support whil
   assert.match(clockMigration, /BEFORE UPDATE OF "dog_id" ON "devices"/);
   assert.match(row.implementationConsequence, /legacy detached rows without unbound_at as unresolved/i);
 });
-test('six conditional rows remain explicit human authority decisions', () => {
+test('five conditional rows remain explicit human authority decisions', () => {
   const remaining = Object.fromEntries(
     semantics.authorityDecisionsRemaining.map((row) => [row.relation, row]),
   );
@@ -267,7 +267,6 @@ test('six conditional rows remain explicit human authority decisions', () => {
       'dogs.id|DIRECT_FK|professional_share_grants|dog_id',
       'dogs.id|UNCONSTRAINED_IDENTIFIER|professional_share_access_audits|dog_id',
       'professional_share_grants.id|UNCONSTRAINED_IDENTIFIER|professional_share_access_audits|grant_id',
-      'users.id|DIRECT_FK|community_reports|subject_user_id',
       'users.id|DIRECT_FK|community_rules_acceptances|user_id',
       'users.id|DIRECT_FK|professional_share_grants|owner_user_id',
     ],
@@ -276,7 +275,6 @@ test('six conditional rows remain explicit human authority decisions', () => {
   for (const relation of [
     'users.id|DIRECT_FK|professional_share_grants|owner_user_id',
     'dogs.id|DIRECT_FK|professional_share_grants|dog_id',
-    'users.id|DIRECT_FK|community_reports|subject_user_id',
   ]) {
     assert.equal(remaining[relation].decisionClass, 'PRODUCT_PRIVACY_LIFECYCLE_DECISION_REQUIRED');
     assert.equal(remaining[relation].requiredAuthority, 'FOUNDER_PRODUCT_PRIVACY');
@@ -337,6 +335,12 @@ test('moderation reporter and rules-acceptance decisions stay unresolved rather 
   );
   assert.equal(report.decision, 'ANONYMIZE_OR_DETACH_REPORTER_KEEP_REPORT');
   assert.equal(report.executionStatus, 'IMPLEMENTED');
+  const subject = semantics.productPrivacyDecisionsApproved.find(
+    (row) => row.relation === 'users.id|DIRECT_FK|community_reports|subject_user_id',
+  );
+  assert.equal(subject.decision, 'ANONYMIZE_OR_DETACH_SUBJECT_KEEP_REPORT');
+  assert.equal(subject.approvalRef, '#594 (issuecomment-5857198114)');
+  assert.ok(subject.semantics.includes('IDENTIFIED_ATTRIBUTION_REQUIRES_ACTIVE_DOCUMENTED_INVESTIGATION_OR_LEGAL_HOLD'));
 
   const rules = semantics.authorityDecisionsRemaining.find(
     (row) => row.relation === 'users.id|DIRECT_FK|community_rules_acceptances|user_id',

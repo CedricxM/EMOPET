@@ -44,9 +44,9 @@ test('schema and migration keep one moderation queue with an explicit target sha
     assert.match(source, /chk_community_reports_not_self/);
     assert.match(source, /idx_community_reports_subject_created/);
   }
-  // Reported-person erasure is TO_CONFIRM: no delete action is inferred.
-  assert.doesNotMatch(migration, /ON DELETE/i);
-  assert.match(schema, /subjectUserId: uuid\('subject_user_id'\)\.references\(\(\) => users\.id\),/);
+  // Founder decision #594: the reported person is detached on erasure, like the reporter (D4).
+  assert.match(migration, /REFERENCES users\(id\) ON DELETE SET NULL/);
+  assert.match(schema, /subjectUserId: uuid\('subject_user_id'\)\.references\(\(\) => users\.id, \{ onDelete: 'set null' \}\),/);
   // Message content is never stored: no content/text column is added.
   assert.doesNotMatch(migration, /ADD COLUMN IF NOT EXISTS (content|text|message_text)\b/i);
 });
