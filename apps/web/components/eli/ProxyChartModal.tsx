@@ -97,9 +97,14 @@ export function ProxyChartModal({
                   <span><strong style={{ color: 'var(--fg-strong)' }}>Capteurs</strong> : MAT · TAG</span>
                 </div>
 
-                <p style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-muted)' }}>
-                  Référence : {proxy.reference}
-                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '10px 12px', background: 'var(--bg-sunk)', borderRadius: 'var(--radius-sm)' }}>
+                  <p style={{ margin: 0, fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-muted)' }}>
+                    Source de contexte (ne valide pas ce proxy) : {proxy.reference}
+                  </p>
+                  <p style={{ margin: 0, fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--fg-2)' }}>
+                    {proxy.evidenceNote}
+                  </p>
+                </div>
               </div>
             </Modal.Body>
           </Modal.Dialog>
