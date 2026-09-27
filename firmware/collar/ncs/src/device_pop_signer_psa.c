@@ -4,7 +4,6 @@
 
 #include "device_pop_signer_psa.h"
 
-#include <string.h>
 
 static void secure_zero(void *buffer, size_t length)
 {
