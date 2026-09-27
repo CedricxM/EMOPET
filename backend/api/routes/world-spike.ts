@@ -5,7 +5,8 @@ import { decodeJwt } from 'jose';
 import { authMiddleware } from '../middleware/auth.js';
 import { WorldRealtimeAdapter } from '../services/world-spike/adapter.js';
 import { NakamaTransport } from '../services/world-spike/nakama.js';
-import { WorldError, type WorldCommand } from '../services/world-spike/contracts.js';
+import { WorldError, type WorldBlockPolicy, type WorldCommand } from '../services/world-spike/contracts.js';
+import { drizzleUserBlockRepository } from '../services/user-blocks.js';
 import { isCanonicalUserId } from '../services/auth-security.js';
 
 const fields: Record<WorldCommand['op'], string[]> = {
@@ -42,7 +43,8 @@ export function createWorldSpikeRoutes(adapter: WorldRealtimeAdapter) {
   app.use('*', async (c, next) => { c.header('Cache-Control', 'no-store'); await next(); });
   app.onError((error, c) => {
     const code = error instanceof WorldError ? error.code : 'unavailable';
-    const status = code === 'invalid_request' ? 400 : code === 'invalid_session' ? 401 : code === 'forbidden' ? 403 : code === 'busy' ? 409 : 503;
+    const status = code === 'invalid_request' ? 400 : code === 'invalid_session' ? 401 : code === 'forbidden' ? 403
+      : code === 'unreachable' ? 404 : code === 'busy' ? 409 : 503;
     return c.json({ error: code, state: status === 503 ? 'degraded' : 'rejected' }, status);
   });
   app.post('/bootstrap', async c => {
@@ -56,17 +58,18 @@ export function createWorldSpikeRoutes(adapter: WorldRealtimeAdapter) {
   });
   app.post('/sessions/:handle/commands', async c => c.json({ result: await adapter.execute(c.get('userId'),
     c.req.param('handle'), parseWorldCommand(await c.req.json().catch(() => null))) }));
-  app.get('/sessions/:handle/events', c => c.json(adapter.events(c.get('userId'), c.req.param('handle'))));
+  app.get('/sessions/:handle/events', async c => c.json(await adapter.events(c.get('userId'), c.req.param('handle'))));
   app.delete('/sessions/:handle', c => { adapter.disconnect(c.get('userId'), c.req.param('handle')); return c.body(null, 204); });
   return app;
 }
-export function configuredWorldSpike(env: NodeJS.ProcessEnv = process.env) {
+export function configuredWorldSpike(env: NodeJS.ProcessEnv = process.env,
+  blocks: WorldBlockPolicy = drizzleUserBlockRepository()) {
   if (env['WORLD_NAKAMA_SPIKE_ENABLED'] !== 'true') return null;
   if (!['development', 'test'].includes(env['NODE_ENV'] ?? '')) throw new Error('World spike is local development/test only');
   const users = (env['WORLD_SPIKE_TEST_USER_IDS'] ?? '').split(',').map(value => value.trim().toLowerCase());
   if (!users.length || users.length > 10 || users.some(id => !isCanonicalUserId(id))) throw new Error('Configure 1-10 synthetic test user UUIDs');
   if (typeof globalThis.WebSocket !== 'function') throw new Error('World spike requires Node >=22 with WebSocket');
   const adapter = new WorldRealtimeAdapter(new NakamaTransport(env['NAKAMA_URL'] ?? 'http://127.0.0.1:7350',
-    env['NAKAMA_HTTP_KEY'] ?? ''), new Set(users));
+    env['NAKAMA_HTTP_KEY'] ?? ''), new Set(users), blocks);
   return createWorldSpikeRoutes(adapter);
 }
