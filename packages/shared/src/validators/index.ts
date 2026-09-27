@@ -185,6 +185,82 @@ export const SensorSummaryCreateSchema = z.object({
   humidityPct: z.number().finite().min(0).max(100).optional(),
 }).strict();
 
+
+export const ActivityVariabilityFeatureObservationCreateSchema = z.object({
+  dogId: z.string().uuid(),
+  ingestionId: z.string().uuid(),
+  deviceId: z.string().uuid(),
+  observedAt: z.coerce.date(),
+  source: z.literal('TAG'),
+  featureKey: z.literal('activity_variability'),
+  value: z.number().finite().min(0).nullable(),
+  observationStatus: z.enum(['OBSERVED', 'NOT_OBSERVED']),
+  nullReason: z.enum([
+    'INSUFFICIENT_COVERAGE',
+    'MEAN_BELOW_DIVISION_GUARD',
+  ]).nullable(),
+  featureContractVersion: z.literal('tag-activity-variability-cv30m-v1'),
+  windowSeconds: z.literal(1800),
+  validSeconds: z.number().int().min(0).max(1800),
+}).strict().superRefine((value, ctx) => {
+  if (value.observationStatus === 'OBSERVED') {
+    if (value.value === null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['value'],
+        message: 'OBSERVED requires a finite non-null value',
+      });
+    }
+    if (value.nullReason !== null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['nullReason'],
+        message: 'OBSERVED must not carry a null reason',
+      });
+    }
+    if (value.validSeconds < 900) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['validSeconds'],
+        message: 'OBSERVED requires at least 900 valid seconds',
+      });
+    }
+    return;
+  }
+
+  if (value.value !== null) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['value'],
+      message: 'NOT_OBSERVED must carry null value',
+    });
+  }
+
+  if (value.nullReason === 'INSUFFICIENT_COVERAGE' && value.validSeconds >= 900) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['validSeconds'],
+      message: 'INSUFFICIENT_COVERAGE requires fewer than 900 valid seconds',
+    });
+  }
+
+  if (value.nullReason === 'MEAN_BELOW_DIVISION_GUARD' && value.validSeconds < 900) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['validSeconds'],
+      message: 'MEAN_BELOW_DIVISION_GUARD requires at least 900 valid seconds',
+    });
+  }
+
+  if (value.nullReason === null) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['nullReason'],
+      message: 'NOT_OBSERVED requires an explicit null reason',
+    });
+  }
+});
+
 // ── Community Validators ────────────────────────────────────────
 
 export const PostCreateSchema = z.object({
