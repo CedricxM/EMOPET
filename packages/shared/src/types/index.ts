@@ -12,3 +12,5 @@ export * from './inference.js';
 export * from './professional-share.js';
 export * from './eli-api.js';
 export * from './activity-feature-forwarding.js';
+
+export * from './device-registry.js';
