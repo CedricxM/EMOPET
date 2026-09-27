@@ -39,7 +39,8 @@
     "tagNcsPlatformAuthority": "config/firmware/tag-ncs-platform-v1.json",
     "peripheralGattSourceCandidateImplemented": true,
     "peripheralGattTargetBuildVerified": false,
-    "peripheralGattHardwareFlashed": false
+    "peripheralGattHardwareFlashed": false,
+    "peripheralGattDecision": "DO_NOT_CLAIM_REAL_TAG_BLE_DELIVERY"
   },
   "candidateOwnership": {
     "featureComputation": "FIRMWARE",
@@ -55,7 +56,7 @@
     "backend ingestion fails closed on mismatch",
     "deterministic conformance vector spans producer-to-ingestion"
   ],
-  "currentDecision": "DO_NOT_CLAIM_REAL_TAG_BLE_DELIVERY",
+  "currentDecision": "DO_NOT_CLAIM_END_TO_END_DELIVERY",
   "backendPersistenceBoundary": {
     "status": "IMPLEMENTED_WITH_BOUNDED_PHYSICAL_OWNER_READ",
     "accepts": "VERSIONED_ACTIVITY_VARIABILITY_FEATURE_ENVELOPE",
