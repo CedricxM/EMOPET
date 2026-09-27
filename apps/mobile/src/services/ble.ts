@@ -312,6 +312,9 @@ export async function captureDeviceBootClockAnchor(
   let subscription: Subscription | null = null;
   let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
   let settled = false;
+  let armed = false;
+  let wallBeforeUtcMs = 0;
+  let monotonicBeforeMs = 0;
 
   const cleanup = () => {
     if (timeoutHandle) clearTimeout(timeoutHandle);
@@ -365,7 +368,7 @@ export async function captureDeviceBootClockAnchor(
 
         // A Config notification from another outstanding/stale request is not
         // evidence for this capture. Ignore it and keep waiting for our nonce.
-        if (response.requestNonce !== requestNonce) return;
+        if (response.requestNonce !== requestNonce || !armed) return;
 
         let monotonicAfterMs: number;
         try {
@@ -403,14 +406,15 @@ export async function captureDeviceBootClockAnchor(
       },
     );
 
-    const wallBeforeUtcMs = Date.now();
-    let monotonicBeforeMs: number;
+    wallBeforeUtcMs = Date.now();
     try {
       monotonicBeforeMs = monotonicNowMs();
     } catch (clockError) {
       fail(clockError);
       return;
     }
+
+    armed = true;
 
     timeoutHandle = setTimeout(() => {
       fail(new BleRuntimeError(
