@@ -158,6 +158,7 @@ test('activity feature persistence is owner/device bound, idempotent and fail-cl
     ingestionId: undefined,
     observedAt: resolvedTime.observedAt,
     value: 0.51,
+    qualityState: 'VALID',
     transportProvenance: {
       transportVersion: 1,
       bootSessionId: 0x10203040,
@@ -255,6 +256,7 @@ test('activity feature persistence is owner/device bound, idempotent and fail-cl
     await persistActivityVariabilityFeatureObservation(
       OWNER_A,
       observed({
+        qualityState: 'VALID',
         transportProvenance: {
           transportVersion: 1,
           bootSessionId: 0x10203042,
@@ -267,6 +269,32 @@ test('activity feature persistence is owner/device bound, idempotent and fail-cl
     legacyIdentityVsTransportConflict,
     { ok: false, error: 'INGESTION_CONFLICT' },
   );
+
+  const missingTransportQuality = await persistActivityVariabilityFeatureObservation(
+    OWNER_A,
+    observed({
+      ingestionId: undefined,
+      transportProvenance: {
+        transportVersion: 1,
+        bootSessionId: 0x10203043,
+        sequence: 2,
+        windowEndMs: 2345,
+      },
+    }),
+  );
+  assert.equal(missingTransportQuality.ok, false);
+  assert.equal(missingTransportQuality.error, 'INVALID_FEATURE_ENVELOPE');
+  assert.match(missingTransportQuality.issues.join(' '), /transportProvenance requires qualityState/);
+
+  const suppressedObserved = await persistActivityVariabilityFeatureObservation(
+    OWNER_A,
+    observed({
+      ingestionId: 'e5555555-5555-4555-8555-555555555555',
+      qualityState: 'SUPPRESSED',
+    }),
+  );
+  assert.equal(suppressedObserved.ok, false);
+  assert.equal(suppressedObserved.error, 'INVALID_FEATURE_ENVELOPE');
 
   const rows = await sql`
     SELECT dog_id, device_id, feature_key, feature_contract_version,
