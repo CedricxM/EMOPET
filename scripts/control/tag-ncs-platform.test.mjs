@@ -77,10 +77,15 @@ test('GATT scaffold binds controlled proprietary UUIDs and canonical feature ser
     uuidAuthority.active.featureSummary,
     '01141d55-a776-4091-b068-83f0804d8781',
   );
+  assert.equal(
+    uuidAuthority.active.clockSample,
+    '7c2c7cc8-91a8-58c1-a38a-2f9b9929f5d5',
+  );
 
   for (const token of [
     'BT_UUID_128_ENCODE(0xe4e2e9a3, 0x39c8, 0x4140, 0xaba9, 0xc4e37713f59a)',
     'BT_UUID_128_ENCODE(0x01141d55, 0xa776, 0x4091, 0xb068, 0x83f0804d8781)',
+    'BT_UUID_128_ENCODE(0x7c2c7cc8, 0x91a8, 0x58c1, 0xa38a, 0x2f9b9929f5d5)',
   ]) {
     assert.ok(ids.includes(token), token);
   }
@@ -91,6 +96,8 @@ test('GATT scaffold binds controlled proprietary UUIDs and canonical feature ser
   assert.match(gatt, /BT_GATT_CCC/);
   assert.match(gatt, /bt_gatt_notify_uuid/);
   assert.match(gatt, /tag_feature_summary_encode_activity_variability/);
+  assert.match(gatt, /tag_device_clock_sample_encode/);
+  assert.match(gatt, /BT_GATT_CHRC_READ/);
 });
 
 test('transport provenance remains non-security and preserves measurement-window time', () => {
@@ -100,7 +107,12 @@ test('transport provenance remains non-security and preserves measurement-window
     /emopet_gatt_publish_activity_variability\([\s\S]*uint32_t window_end_ms/,
   );
   assert.match(gatt, /\.window_end_ms = window_end_ms/);
-  assert.doesNotMatch(gatt, /k_uptime_get_32\(\)/);
+  assert.match(gatt, /read_clock_sample[\s\S]*k_uptime_get_32\(\)/);
+
+  const publishStart = gatt.indexOf('int emopet_gatt_publish_activity_variability');
+  assert.ok(publishStart >= 0);
+  const publishSource = gatt.slice(publishStart);
+  assert.doesNotMatch(publishSource, /k_uptime_get_32\(\)/);
   assert.match(gatt, /feature_sequence\+\+/);
   assert.match(gatt, /non-cryptographic/);
 
