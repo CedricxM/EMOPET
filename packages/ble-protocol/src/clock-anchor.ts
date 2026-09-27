@@ -71,3 +71,67 @@ export function serializeClockAnchorResponse(input: {
   );
   return bytes;
 }
+
+
+export interface BootClockAnchorRoundTripMeasurement {
+  strategy: 'BOOT_ANCHOR_V1';
+  requestNonce: number;
+  bootSessionId: number;
+  anchorDeviceMs: number;
+  anchorUtc: Date;
+  uncertaintyMs: number;
+  rttMs: number;
+}
+
+/**
+ * Derive one bounded UTC clock anchor from a nonce-matched request/response.
+ *
+ * The device timestamp is captured after the request reaches the peripheral and
+ * before the response reaches the central, so its UTC correspondence lies
+ * inside the observed round-trip interval.
+ *
+ * No canonical device identity is attached here. BLE transport identity and
+ * registry/device trust remain separate authorities.
+ */
+export function deriveBootClockAnchorFromRoundTrip(input: {
+  sendWallUtcMs: number;
+  sendMonotonicMs: number;
+  receiveMonotonicMs: number;
+  response: ClockAnchorResponseFrame;
+  timerQuantizationMs?: number;
+}): BootClockAnchorRoundTripMeasurement {
+  const {
+    sendWallUtcMs,
+    sendMonotonicMs,
+    receiveMonotonicMs,
+    response,
+    timerQuantizationMs = 1,
+  } = input;
+
+  if (
+    !Number.isFinite(sendWallUtcMs)
+    || !Number.isFinite(sendMonotonicMs)
+    || !Number.isFinite(receiveMonotonicMs)
+    || receiveMonotonicMs < sendMonotonicMs
+    || !Number.isSafeInteger(timerQuantizationMs)
+    || timerQuantizationMs < 0
+  ) {
+    throw new Error('CLOCK_ANCHOR_TIMING_INPUT_INVALID');
+  }
+
+  const rttMs = receiveMonotonicMs - sendMonotonicMs;
+  const anchorUtc = new Date(sendWallUtcMs + (rttMs / 2));
+  if (!Number.isFinite(anchorUtc.getTime())) {
+    throw new Error('CLOCK_ANCHOR_UTC_INVALID');
+  }
+
+  return {
+    strategy: 'BOOT_ANCHOR_V1',
+    requestNonce: response.requestNonce,
+    bootSessionId: response.bootSessionId,
+    anchorDeviceMs: response.deviceMs,
+    anchorUtc,
+    uncertaintyMs: Math.ceil(rttMs / 2) + timerQuantizationMs,
+    rttMs,
+  };
+}
