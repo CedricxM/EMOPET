@@ -135,14 +135,105 @@ test('activity feature persistence is owner/device bound, idempotent and fail-cl
   assert.equal(notObserved.status, 'CREATED');
   assert.equal(notObserved.observation.value, null);
 
+  const transported = observed({
+    ingestionId: undefined,
+    observedAt: new Date('2026-09-27T10:00:00.000Z'),
+    value: 0.51,
+    transportProvenance: {
+      transportVersion: 1,
+      bootSessionId: 0x10203040,
+      sequence: 65535,
+    },
+  });
+
+  const transportCreated = await persistActivityVariabilityFeatureObservation(
+    OWNER_A,
+    transported,
+  );
+  assert.equal(transportCreated.ok, true, JSON.stringify(transportCreated));
+  assert.equal(transportCreated.status, 'CREATED');
+  assert.match(
+    transportCreated.observation.ingestionId,
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+  );
+  assert.equal(transportCreated.observation.transportVersion, 1);
+  assert.equal(transportCreated.observation.transportBootSessionId, 0x10203040);
+  assert.equal(transportCreated.observation.transportSequence, 65535);
+
+  const transportReplay = await persistActivityVariabilityFeatureObservation(
+    OWNER_A,
+    transported,
+  );
+  assert.equal(transportReplay.ok, true);
+  assert.equal(transportReplay.status, 'IDEMPOTENT_REPLAY');
+  assert.equal(transportReplay.observation.id, transportCreated.observation.id);
+  assert.equal(
+    transportReplay.observation.ingestionId,
+    transportCreated.observation.ingestionId,
+  );
+
+  const transportPayloadConflict = await persistActivityVariabilityFeatureObservation(
+    OWNER_A,
+    { ...transported, value: 0.52 },
+  );
+  assert.deepEqual(
+    transportPayloadConflict,
+    { ok: false, error: 'INGESTION_CONFLICT' },
+  );
+
+  const explicitIdAgainstExistingTransport =
+    await persistActivityVariabilityFeatureObservation(
+      OWNER_A,
+      {
+        ...transported,
+        ingestionId: 'e4444444-4444-4444-8444-444444444444',
+      },
+    );
+  assert.deepEqual(
+    explicitIdAgainstExistingTransport,
+    { ok: false, error: 'INGESTION_CONFLICT' },
+  );
+
+  const newBootSameSequence = await persistActivityVariabilityFeatureObservation(
+    OWNER_A,
+    {
+      ...transported,
+      observedAt: new Date('2026-09-27T10:30:00.000Z'),
+      transportProvenance: {
+        transportVersion: 1,
+        bootSessionId: 0x10203041,
+        sequence: 65535,
+      },
+    },
+  );
+  assert.equal(newBootSameSequence.ok, true);
+  assert.equal(newBootSameSequence.status, 'CREATED');
+
+  const legacyIdentityVsTransportConflict =
+    await persistActivityVariabilityFeatureObservation(
+      OWNER_A,
+      observed({
+        transportProvenance: {
+          transportVersion: 1,
+          bootSessionId: 0x10203042,
+          sequence: 1,
+        },
+      }),
+    );
+  assert.deepEqual(
+    legacyIdentityVsTransportConflict,
+    { ok: false, error: 'INGESTION_CONFLICT' },
+  );
+
   const rows = await sql`
     SELECT dog_id, device_id, feature_key, feature_contract_version,
-           window_seconds, valid_seconds, firmware_version_at_ingest
+           window_seconds, valid_seconds, firmware_version_at_ingest,
+           transport_version, transport_boot_session_id, transport_sequence
     FROM sensor_feature_observations
     WHERE dog_id = ${DOG_A}
     ORDER BY observed_at, ingestion_id
   `;
-  assert.equal(rows.length, 2);
+  assert.equal(rows.length, 4);
   for (const row of rows) {
     assert.equal(row.dog_id, DOG_A);
     assert.equal(row.device_id, TAG_A);
