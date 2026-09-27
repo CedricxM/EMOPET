@@ -39,6 +39,11 @@ test('mobile BLE service is a real central transport rather than a placeholder',
     'BLE_CHAR_FEATURE_SUMMARY',
     'parseSensorFrame',
     'parseActivityVariabilityFeatureFrame',
+    'captureBleBootClockAnchor',
+    'writeCharacteristicWithResponseForService',
+    'BLE_CHAR_CONFIG',
+    'parseClockAnchorResponse',
+    'deriveBootClockAnchorFromRoundTrip',
     'cancelDeviceConnection',
   ]) {
     assert.ok(ble.includes(required), required);
@@ -59,4 +64,21 @@ test('feature-summary UUID is reserved but end-to-end delivery remains fail-hone
   assert.equal(authority.currentTransport.mobileToBackendForwardingImplemented, false);
   assert.equal(authority.currentTransport.endToEndPath, false);
   assert.equal(authority.currentDecision, 'DO_NOT_CLAIM_END_TO_END_DELIVERY');
+});
+
+
+test('clock-anchor capture uses measured RTT without promoting BLE id into device trust', () => {
+  assert.match(ble, /captureBleBootClockAnchor/);
+  assert.match(ble, /globalThis\.performance/);
+  assert.match(ble, /writeCharacteristicWithResponseForService/);
+  assert.match(ble, /monitorCharacteristicForService/);
+  assert.match(ble, /requestNonce/);
+  assert.match(ble, /deriveBootClockAnchorFromRoundTrip/);
+  assert.match(ble, /Connected BLE device is not available in the local device cache/);
+  assert.doesNotMatch(ble, /canonicalDeviceId\s*:/);
+
+  assert.equal(authority.currentTransport.clockAnchorMobileCaptureImplemented, true);
+  assert.equal(authority.currentTransport.productionClockAnchorImplemented, false);
+  assert.equal(authority.currentTransport.mobileToBackendForwardingImplemented, false);
+  assert.equal(authority.currentTransport.endToEndPath, false);
 });
