@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 
 import { db } from '../../db/index.js';
-import { eliStates, sensorSummaries } from '../../db/schema/index.js';
+import { eliStates, sensorFeatureObservations, sensorSummaries } from '../../db/schema/index.js';
 import {
   canonicalRetentionUtc,
   shiftRetentionUtcMonths,
@@ -12,6 +12,8 @@ const DETAILED_RETENTION_MONTHS = 36;
 export interface DetailedSensorEliRetentionCounts {
   sensorDetailedTotal: number;
   sensorBeyondWindow: number;
+  featureDetailedTotal: number;
+  featureBeyondWindow: number;
   eliDetailedTotal: number;
   eliBeyondWindow: number;
 }
@@ -79,9 +81,12 @@ function validCounts(counts: DetailedSensorEliRetentionCounts): boolean {
   return (
     validCount(counts.sensorDetailedTotal)
     && validCount(counts.sensorBeyondWindow)
+    && validCount(counts.featureDetailedTotal)
+    && validCount(counts.featureBeyondWindow)
     && validCount(counts.eliDetailedTotal)
     && validCount(counts.eliBeyondWindow)
     && counts.sensorBeyondWindow <= counts.sensorDetailedTotal
+    && counts.featureBeyondWindow <= counts.featureDetailedTotal
     && counts.eliBeyondWindow <= counts.eliDetailedTotal
   );
 }
@@ -105,6 +110,19 @@ const postgresRepository: DetailedSensorEliRetentionRepository = {
           <= (${evaluationAt.toISOString()}::timestamptz AT TIME ZONE 'UTC')
         `);
 
+      const [featureTotalRow] = await tx
+        .select({ count: sql<number>`count(*)::int` })
+        .from(sensorFeatureObservations);
+
+      const [featureBeyondRow] = await tx
+        .select({ count: sql<number>`count(*)::int` })
+        .from(sensorFeatureObservations)
+        .where(sql`
+          (${sensorFeatureObservations.observedAt} AT TIME ZONE 'UTC')
+            + make_interval(months => ${DETAILED_RETENTION_MONTHS})
+          <= (${evaluationAt.toISOString()}::timestamptz AT TIME ZONE 'UTC')
+        `);
+
       const [eliTotalRow] = await tx
         .select({ count: sql<number>`count(*)::int` })
         .from(eliStates);
@@ -121,6 +139,8 @@ const postgresRepository: DetailedSensorEliRetentionRepository = {
       return {
         sensorDetailedTotal: Number(sensorTotalRow?.count ?? 0),
         sensorBeyondWindow: Number(sensorBeyondRow?.count ?? 0),
+        featureDetailedTotal: Number(featureTotalRow?.count ?? 0),
+        featureBeyondWindow: Number(featureBeyondRow?.count ?? 0),
         eliDetailedTotal: Number(eliTotalRow?.count ?? 0),
         eliBeyondWindow: Number(eliBeyondRow?.count ?? 0),
       };
@@ -131,7 +151,7 @@ const postgresRepository: DetailedSensorEliRetentionRepository = {
 /**
  * Read-only readiness for founder decision R3.
  *
- * This probe reports whether detailed preprocessed sensor summaries or detailed
+ * This probe reports whether detailed preprocessed sensor summaries/features or detailed
  * ELI states have crossed the common 36-month window. It does not prove that
  * lower-granularity aggregation has happened and never authorises or executes
  * deletion, anonymisation, aggregation or mutation.
@@ -152,7 +172,9 @@ export async function inspectDetailedSensorEliRetention(
     if (!validCounts(counts)) return failure('invalid_repository_result');
 
     const beyondWindow =
-      counts.sensorBeyondWindow > 0 || counts.eliBeyondWindow > 0;
+      counts.sensorBeyondWindow > 0
+      || counts.featureBeyondWindow > 0
+      || counts.eliBeyondWindow > 0;
 
     return {
       ok: true,
