@@ -259,7 +259,7 @@ Les trois contraintes les plus dures — fidélité mot pour mot, neutralité, z
 
 ## 2. Architecture
 
-### 2.1 Principe des quatre canaux
+### 2.1 Principe de la séparation des canaux
 
 La contrainte 1 (fidélité) et la contrainte 2 (neutralité) se ramènent à une seule discipline d'ingénierie : **le texte licencié et le texte génératif ne partagent jamais ni un tuyau, ni un composant de rendu, ni une fenêtre de contexte.**
 
@@ -973,20 +973,24 @@ Le champ `fatigueResponseMode` de la politique (§3.2.3) rend les trois postures
 
 `[ÉTABLI]` La machinerie existe déjà dans `bleiz-content-scheduler.ts` : `publishDecision()` renvoie une `ConfidenceGate`, `DAILY_CHANNEL_BUDGET` plafonne les canaux, `cooldownHours` et `maxPerDay` par gabarit, `evaluateTrigger()` évalue des conditions sur des champs déclarés.
 
-`[PROPOSÉ]` Une invitation d'administration est un cas particulier avec **quatre verrous supplémentaires**, évalués dans cet ordre et tous bloquants :
+`[PROPOSÉ]` Une invitation d'administration est un cas particulier avec **sept verrous**, évalués dans cet ordre et tous bloquants :
 
 ```ts
-// [PROPOSÉ] Illustratif.
+// [PROPOSÉ] Illustratif. Toute porte à false interdit l'invitation ; aucune
+// n'est pondérée et aucune ne se compense.
 interface InvitationGate {
   consentGranted: boolean;        // scope 'instrument_administration' actif
   licenseActive: boolean;         // instrumentVersions.licenseStatus === 'granted'
   noActiveAlert: boolean;         // aucune alerte produit ouverte, quel qu'en soit le type
-  sensorEmbargoClear: boolean;    // §5.2
-  quietContext: boolean;          // §5.3
-  budgetAvailable: boolean;       // DAILY_CHANNEL_BUDGET non consommé
+  sensorEmbargoClear: boolean;    // §5.2 — embargo de PILOTAGE depuis D.2.4
+  quietContext: boolean;          // §5.3 — horaire déclaré ou rythme applicatif seuls
+  budgetAvailable: boolean;       // DAILY_CHANNEL_BUDGET non consommé (C7)
   cooldownElapsed: boolean;       // refus précédent respecté
+  reminderQuotaLeft: boolean;     // D.1.5 — plafond de deux relances non atteint
 }
 ```
+
+`[DÉCIDÉ 22/09]` Deux portes changent de sens avec les décisions du 22 septembre. `sensorEmbargoClear` ne vérifie plus seulement qu'aucune observation capteur n'a été *affichée* récemment : elle atteste qu'aucune donnée capteur n'est entrée dans la décision d'inviter, de dimensionner ou de couper (`D.2.4`, garde-fou G9). Et `reminderQuotaLeft` est ajoutée, parce que `D.1.5` fait du plafond de relances une condition d'émission et non un simple comportement de notification.
 
 ### 5.2 L'embargo capteur — durci par `D.2.4`
 
@@ -1015,7 +1019,7 @@ Le durcissement a en outre un bénéfice de vérifiabilité : une règle qui dit
 
 ### 5.4 Introduire, puis s'effacer
 
-La séquence conversationnelle `[PROPOSÉ]` comporte trois phases dont **une seule** autorise le modèle de langage.
+La séquence conversationnelle `[PROPOSÉ]` comporte quatre segments, dont **deux seulement** autorisent le modèle de langage — le cadrage et la clôture. La séquence d'items et les contrôles de séance s'en passent entièrement.
 
 ```mermaid
 sequenceDiagram
@@ -1184,7 +1188,7 @@ La première moitié pose une difficulté née de `D.2.1` : si la taille des sé
 
 **L'effet « waouh ».** C'est la promesse la plus singulière du produit. « Vous décrivez un chien qui dort paisiblement ; le tapis observe un repos plus fragmenté que vos références. Les deux peuvent être vrais — vous n'êtes pas là quand il dort le plus. » Aucun questionnaire seul, aucun capteur seul ne peut dire cela.
 
-**Le risque.** Le plus élevé des sept. Un « vous vous trompez sur votre chien » est destructeur de confiance et scientifiquement indéfendable : le rapport du propriétaire n'est pas un bruit à corriger. Et la tentation d'en faire une *conclusion* est forte.
+**Le risque.** Le plus élevé de cette section. Un « vous vous trompez sur votre chien » est destructeur de confiance et scientifiquement indéfendable : le rapport du propriétaire n'est pas un bruit à corriger. Et la tentation d'en faire une *conclusion* est forte.
 
 **Ce qui la rend compatible.** Quatre conditions strictes. (a) **Asymétrie temporelle** : ELI peut commenter le C-BARQ, jamais l'inverse — c'est la règle d'embargo §5.2. (b) **Aucune résolution** : le système n'arbitre pas, il juxtapose. `[ÉTABLI]` le document d'impact l'exige déjà : *« disagreement does not get silently resolved by forcing one source to become truth »*. (c) **Portes de confiance** : la divergence ne s'affiche que si l'évidence capteur est `CONF_PUBLISH` `[ÉTABLI, ≥ 0,70]` — une divergence entre un rapport et un signal dégradé n'est pas une divergence, c'est du bruit. (d) **Aucun prior automatique** : `eligibleForEliPrior` reste `false` `[ÉTABLI]`, le couplage reste `candidate` dans `eli_behavioral_priors`. **Statut réel : `[HYPOTHÈSE]` forte** — `packages/eli-engine` n'est câblé à rien `[ÉTABLI, gate #118]`, donc cette idée n'est pas implémentable aujourd'hui.
 
@@ -1218,7 +1222,7 @@ La première moitié pose une difficulté née de `D.2.1` : si la taille des sé
 
 **Le risque.** Double et sérieux. *Licence* : l'accès aux données de référence est un droit distinct de celui d'administrer l'instrument, et rien n'indique aujourd'hui qu'il serait accordé. *Doctrine* : Care §6 `[ÉTABLI]` dit que le produit compare le chien **à ses propres références** et ne classe pas contre un percentile de race ou un « chien normal » universel. Une comparaison normative est donc en tension directe avec l'autorité produit actuelle.
 
-**Ce qui la rend compatible.** Honnêtement : **rien, pour l'instant**. C'est la seule des sept idées qui nécessite à la fois une clause de licence non acquise et une révision de la doctrine Care. Elle est listée parce qu'elle est tentante et qu'il vaut mieux l'avoir explicitement cadrée que la voir réapparaître sans cadre. `[PROPOSÉ]` Si elle est un jour reprise : derrière un drapeau désactivé par défaut, en positionnement qualitatif sans nombre, et après décision Care explicite.
+**Ce qui la rend compatible.** Honnêtement : **rien, pour l'instant**. C'est la seule idée de ce document qui nécessite à la fois une clause de licence non acquise et une révision de la doctrine Care. Elle est listée parce qu'elle est tentante et qu'il vaut mieux l'avoir explicitement cadrée que la voir réapparaître sans cadre. `[PROPOSÉ]` Si elle est un jour reprise : derrière un drapeau désactivé par défaut, en positionnement qualitatif sans nombre, et après décision Care explicite.
 
 ### 6.8 Récapitulatif
 
