@@ -72,6 +72,7 @@ test('active runtime/config/firmware surfaces cannot reintroduce historical EAxx
     path.join(root, 'apps/mobile/app.json'),
     path.join(root, 'config/eli'),
     path.join(root, 'firmware/collar/main'),
+    path.join(root, 'firmware/collar/ncs'),
   ];
 
   const files = (await Promise.all(targets.map(collectFiles))).flat();
