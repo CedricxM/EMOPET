@@ -60,7 +60,7 @@
       "responseCrc": "xor8",
       "authenticationAuthority": "NONE / TRANSPORT_ONLY / DEVICE_TRUST_66_OPEN"
     },
-    "clockAnchorMobileCaptureImplemented": false,
+    "clockAnchorMobileCaptureImplemented": true,
     "productionBootAnchorV1Implemented": false
   },
   "evidence": {
