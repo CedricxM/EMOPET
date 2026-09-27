@@ -40,7 +40,10 @@
     "peripheralGattSourceCandidateImplemented": true,
     "peripheralGattTargetBuildVerified": false,
     "peripheralGattHardwareFlashed": false,
-    "peripheralGattDecision": "DO_NOT_CLAIM_REAL_TAG_BLE_DELIVERY"
+    "peripheralGattDecision": "DO_NOT_CLAIM_REAL_TAG_BLE_DELIVERY",
+    "clockAnchorWireContractImplemented": true,
+    "clockAnchorPeripheralResponseImplemented": true,
+    "clockAnchorMobileCaptureImplemented": false
   },
   "candidateOwnership": {
     "featureComputation": "FIRMWARE",
