@@ -8,16 +8,30 @@
  */
 
 import { fetchCurrentWeather } from '../weather';
-import { DOG } from '../journal';
 import { narrateBreedStory } from '../narration';
 import type { Breed } from '../breeds';
+import { ALL_DOCS, type KnowledgeDoc } from './corpus';
 import { retrieve, tokenize } from './retrieve';
 
 export { ALL_DOCS } from './corpus';
 
 export interface BreizAnswer {
   text: string;
+  /**
+   * Références réellement consultées pour composer la réponse. Vide pour un
+   * gabarit (renvoi vétérinaire, absence de fiche) : une règle produit n'est
+   * pas une source, et l'afficher sous « Source » gonflerait la provenance.
+   */
   sources: string[];
+}
+
+/**
+ * Contexte confirmé par le propriétaire. Sans lui, Breiz ne présume rien du
+ * chien : raconter la race du chien de démonstration à n'importe quel
+ * utilisateur reviendrait à inventer un souvenir (#226, audit de transparence).
+ */
+export interface BreizAskContext {
+  confirmedDog?: { name: string; breed: string };
 }
 
 const VET_REQUEST_TERMS = new Set([
@@ -42,18 +56,19 @@ function leadFor(tags: string[]): string {
 }
 
 /** Réponse de Breiz à une question libre. */
-export async function askBreiz(query: string): Promise<BreizAnswer> {
+export async function askBreiz(query: string, context: BreizAskContext = {}): Promise<BreizAnswer> {
   const tokens = new Set(tokenize(query));
 
   // 1) Demande vétérinaire → renvoi vétérinaire (invariant non médical).
+  // Ce chemin n'a accès à aucune donnée ELI : il ne propose donc pas de les lire.
   const isVetRequest = [...tokens].some((t) => VET_REQUEST_TERMS.has(t));
   if (isVetRequest) {
     return {
       text:
         "Je ne suis pas un outil médical et je ne peux pas évaluer une situation qui demande un avis vétérinaire. " +
         "Pour tout signe inhabituel ou persistant, le bon réflexe est de prendre rendez-vous avec votre vétérinaire, qui pourra examiner le contexte. " +
-        "Je peux en revanche vous aider sur le comportement, les balades, les races ou la lecture de vos indicateurs ELI.",
-      sources: ['EMOPET — cadre non médical', 'Renvoi vétérinaire systématique'],
+        "Je peux en revanche vous renseigner sur le comportement, les balades, les races ou le fonctionnement d’ELI.",
+      sources: [],
     };
   }
 
@@ -73,16 +88,18 @@ export async function askBreiz(query: string): Promise<BreizAnswer> {
     }
   }
 
-  // 2b) Intention « race » → narration depuis le référentiel (Partie C, sur demande).
+  // 2b) Intention « race » → narration depuis le référentiel (Partie C, sur demande),
+  // seulement pour un chien confirmé par le propriétaire.
+  const dog = context.confirmedDog;
   const isBreed = /\b(race|races|origine|provient|vient|pedigree|berger|labrador|collie|chien de)\b/i.test(query);
-  if (isBreed) {
+  if (isBreed && dog) {
     try {
-      const res = await fetch(`/api/breeds?q=${encodeURIComponent(DOG.breed)}`);
+      const res = await fetch(`/api/breeds?q=${encodeURIComponent(dog.breed)}`);
       if (res.ok) {
         const data = (await res.json()) as { breeds: Breed[] };
         const breed = data.breeds.find((b) => b.verificationStatus === 'VERIFIED') ?? data.breeds[0];
         if (breed) {
-          const n = narrateBreedStory(DOG.name, breed);
+          const n = narrateBreedStory(dog.name, breed);
           return { text: n.hook ? `${n.text} ${n.hook.text}` : n.text, sources: ['Référentiel des races FCI (EMOPET)'] };
         }
       }
@@ -91,15 +108,34 @@ export async function askBreiz(query: string): Promise<BreizAnswer> {
     }
   }
 
-  // 3) Récupération générale.
-  const hits = retrieve(query, 3);
+  // 3) Récupération générale. Toutes les fiches de race partagent « race » et
+  // « origine » : sans ce filtre, « l'origine de sa race » servait la première
+  // race du référentiel comme si c'était celle du chien. Une fiche de race ne
+  // répond donc qu'à une question qui nomme cette race.
+  const namesBreed = (doc: KnowledgeDoc) =>
+    doc.tags.some((tag) => tag !== 'race' && tokenize(tag).some((t) => tokens.has(t)));
+  const hits = retrieve(query, ALL_DOCS.length)
+    .filter((hit) => !hit.doc.tags.includes('race') || namesBreed(hit.doc))
+    .slice(0, 3);
+  // « sa race », « la race de mon chien » : la réponse dépend d'un chien que
+  // Breiz ne connaît pas. Demander plutôt que servir une fiche voisine.
+  const asksOwnDogBreed = /\b(sa|ta|votre)\s+race\b|\brace\s+de\s+(mon|ma|notre)\b/i.test(query);
+  const namedBreedHit = hits.some((hit) => hit.doc.tags.includes('race'));
+  if (asksOwnDogBreed && !dog && !namedBreedHit) {
+    return {
+      text:
+        "Je ne connais pas la race de votre chien et je préfère ne rien supposer. " +
+        "Laquelle est-ce ? Je vous dirai ce que le référentiel des races en dit.",
+      sources: [],
+    };
+  }
   if (hits.length === 0) {
     return {
       text:
         "Je n’ai pas encore de fiche sur ce sujet précis. Je peux vous renseigner sur le comportement canin " +
         "(signaux d’apaisement, renforcement positif), le bien-être (exercice, repos, chaleur), les races, " +
         "la Bretagne (plages, météo) ou le fonctionnement d’ELI. Reformulez si vous voulez.",
-      sources: ['Corpus de connaissances Breiz'],
+      sources: [],
     };
   }
 

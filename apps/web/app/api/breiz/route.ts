@@ -125,7 +125,9 @@ export async function POST(req: Request) {
       isDefaultRegion: region.isDefault,
       touchesEliData: context.touchesEliData,
       text,
-      sources: [`${region.profile.assistantName} · ancrage ${region.profile.regionId}`],
+      // Le modèle ne cite aucune référence récupérée : afficher le nom de
+      // l'assistant sous « Source » ferait de Breiz sa propre provenance.
+      sources: [],
       transparency: {
         ...transparencyMetadata(context, 'model'),
         modelProvider: 'Anthropic',
