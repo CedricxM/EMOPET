@@ -181,6 +181,54 @@ Status:
 
 No automatic type rewrite or FK insertion is authorized in this DB baseline slice.
 
+### 7.5 Path-A constraint/index drift — gated (2026-09-27)
+
+Table-inventory parity cannot see constraints or indexes. Comparing `pg_get_constraintdef` and `pg_indexes.indexdef` between path A (baseline-draft + active migrations, `psql`) and the generated baseline (`drizzle-kit migrate` + `0015`) on disposable PostgreSQL 16.15 found 202 differing lines on `main`.
+
+Resolved by active migration `0021_path_a_constraint_index_parity.sql`:
+
+- five shadow `NO ACTION` FKs. The baseline drafts declare these references inline, so PostgreSQL named them `<table>_<column>_fkey`; `0006` (approved D1–D4 DETACH, #446) and `0009` (approved refresh-session detach) only dropped the Drizzle name before re-adding `SET NULL`. Affected: `behavioral_assessments.respondent_user_id` (D1), `communities.created_by` (D2), `community_events.created_by` (D3), `community_reports.reporter_user_id` (D4), `auth_refresh_sessions.user_id`. On path A, deleting a reporter account raised `foreign_key_violation` before `0021` and detached after it;
+- `idx_community_reports_content`: `0000d` carried an extra `id DESC` key; aligned to the Drizzle declaration `(content_type, content_id, created_at DESC)`. No query orders by `id` on that access path.
+- `device_identity_credentials.device_id` (Device Trust `0020`, #662, merged after the gate was drafted): the inline reference gave path A `device_identity_credentials_device_id_fkey`; renamed to the Drizzle name `device_identity_credentials_device_id_devices_id_fk`. Same `NO ACTION` definition. It was the first new drift the gate caught, and was fixed rather than ledgered.
+
+Resolved by active migration `0022_path_a_membership_and_summary_provenance.sql` (former class S3). Two schema-only commits never got a path-A migration:
+
+- `230181c` (canonical membership): `uq_community_members_community_user`. Path A accepted duplicate memberships;
+- `2940465` (durable summary provenance): `sensor_summaries.ingestion_id`, `device_id` (+ FK), `firmware_version_at_ingest`, `uq_sensor_summaries_ingestion_id`, `idx_sensor_summaries_device_timestamp`. Path A lacked the columns themselves, so `POST /api/sensors/summaries` (`ON CONFLICT (ingestion_id) DO NOTHING`) could not run on it.
+
+`0022` fails closed instead of rewriting data: duplicate memberships abort the unique index, and existing summary rows abort the `NOT NULL` provenance columns (no ingestion id or device can be recovered for them). Both aborts were verified to roll back the whole migration.
+
+Resolved in source schema:
+
+- `eli_behavioral_priors.mapping_authority_id`: the Drizzle FK now uses the name that active migration `0015` guards on (`fk_eli_behavioral_prior_mapping_authority`). The CI composition (generated baseline + `0015`) previously held two identical FKs.
+- `device_identity_credentials.psa_key_id` (column type): `0020` (#662) declares `bigint`, the Drizzle schema declared `integer`. The source schema now uses `bigint` (`mode: 'number'`). `psa_key_id_t` is `uint32_t`, which `integer` cannot hold in full, and the same table already maps its other `uint32` field, `credential_version`, to `bigint` on both paths. The CHECK still admits only 65536 and 65537, and the TypeScript type stays `number`.
+
+Gated, not resolved. Recorded entry by entry in `backend/test/schema-constraint-index-parity.known-drift.txt` (190 lines):
+
+| Class | Count | Difference | Status |
+|---|---|---|---|
+| S1 | 10 | FK declared in Drizzle, absent from path A (`eli-v5` tables, `copresence_events`) | OPEN — ELI FK insertion not authorized (§7.4) |
+| S2 | 8 | CHECK in historical SQL, absent from Drizzle (5 ELI enum checks from `0003`, 3 morphology checks) | OPEN; morphology `NOT_CURRENT_SCHEMA_AUTHORITY` (§7.3) |
+| S3 | 0 | unique/index in Drizzle, absent from path A | RESOLVED by `0022` |
+| S4 | 2 | `breed_canonical` indexes from `0001`, absent from Drizzle | OPEN |
+| S5 | 2 pairs | same index name, `DESC` key only in path A (`anticipation_events`, `recovery_events`) | OPEN |
+| S6 | 2 | uniqueness as a constraint in path A, as a unique index in Drizzle | OPEN — same enforcement, different form |
+| N | 82 pairs | identical definition, different name (`_fkey`/`_key`/`_pkey`/`<col>_check` vs Drizzle names) | OPEN — a future `DROP CONSTRAINT IF EXISTS <drizzle name>` misses path A |
+
+The CI step `P0-DB constraint/index parity (path A vs generated)` fails when the observed drift differs from the ledger in either direction: new drift, or a resolved entry left in the ledger. The fingerprint SQL separately rejects any duplicate FK on the same columns; that class is never ledgered.
+
+Column-level drift is not gated. S3 showed that a missing index can hide missing columns. After `0022`, an `information_schema.columns` comparison (type, length, nullability, default) still differs on 10 tables: the `eli-v5`/ELI tables (§7.4), `breed_sensor_profiles` morphology (§7.3), and the `imu_*` tables. It is recorded here as `OPEN / UNGATED`.
+
+Status:
+
+`SHADOW_FK_AND_REPORT_INDEX_DRIFT = RESOLVED_BY_0021 (DISPOSABLE QA)`
+
+`S3_MEMBERSHIP_AND_SUMMARY_PROVENANCE_DRIFT = RESOLVED_BY_0022 (DISPOSABLE QA)`
+
+`DEVICE_IDENTITY_PSA_KEY_ID_TYPE_DRIFT = RESOLVED_IN_SOURCE_SCHEMA`
+
+`REMAINING_CONSTRAINT_INDEX_DRIFT = GATED / OPEN — each class needs its own decision`
+
 Full record:
 
 `docs/control/P0_DB_SCHEMA_DRIFT_RECONCILIATION.md`
@@ -206,8 +254,9 @@ The GitHub Actions DB workflow now tests:
 3. Drizzle migration-ledger check;
 4. application through `drizzle-kit migrate` to another disposable PostgreSQL database;
 5. generated table-inventory parity;
-6. second-generation stability (no unexplained follow-on migration);
-7. backend build/typecheck/tests.
+6. constraint/index parity against the classified drift ledger (§7.5);
+7. second-generation stability (no unexplained follow-on migration);
+8. backend build/typecheck/tests.
 
 Generated output remains QA material until a run passes and the exact SQL/metadata is reviewed and intentionally promoted.
 
@@ -237,7 +286,7 @@ Seed loading remains a separate controlled gate.
 
 `PARTIAL / IN RECONCILIATION`
 
-Firmware-column and composite-key drift are resolved in source. Historical morphology compatibility is explicitly not promoted. ELI identifier relationship remains open.
+Firmware-column and composite-key drift are resolved in source. Historical morphology compatibility is explicitly not promoted. ELI identifier relationship remains open. Path-A shadow FKs and the `community_reports` index drift are resolved by `0021`, membership uniqueness and sensor-summary provenance by `0022`; remaining constraint/index drift is gated and classified (§7.5).
 
 ### DB-G4 — Controlled Drizzle ledger
 
