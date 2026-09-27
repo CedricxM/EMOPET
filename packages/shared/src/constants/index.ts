@@ -54,6 +54,8 @@ export const BLE_CHAR_CONFIG = '8d5fa4ff-d1fa-49c3-9ce4-2e8865e4d478';
  * imply that current TAG firmware already exposes a live GATT characteristic.
  */
 export const BLE_CHAR_FEATURE_SUMMARY = '01141d55-a776-4091-b068-83f0804d8781';
+/** Read-only TAG boot-session + monotonic clock sample for BOOT_ANCHOR_V1. */
+export const BLE_CHAR_CLOCK_SAMPLE = '7c2c7cc8-91a8-58c1-a38a-2f9b9929f5d5';
 
 // ── Fur Class Definitions ───────────────────────────────────────
 export const FUR_CLASSES = {
