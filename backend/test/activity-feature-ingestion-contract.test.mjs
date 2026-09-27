@@ -51,7 +51,8 @@ test('feature persistence primitive is not yet exposed through a backend route',
   assert.doesNotMatch(routes, /resolveBootRelativeEventTime/);
   assert.match(service, /No public route/);
   assert.match(service, /physical device/);
-  assert.match(service, /wall\/event time/);
+  assert.match(service, /does not create that anchor/);
+  assert.match(service, /infer it\s*\n? \* from receive time/);
 });
 
 test('migration is additive and owns the new table at promotion-order 0016', async () => {
