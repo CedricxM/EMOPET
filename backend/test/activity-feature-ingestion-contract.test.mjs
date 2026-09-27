@@ -5,20 +5,23 @@ import { readFile } from 'node:fs/promises';
 const schemaSource = new URL('../db/schema/sensors.ts', import.meta.url);
 const serviceSource = new URL('../api/services/activity-variability-feature-ingestion.ts', import.meta.url);
 const routesSource = new URL('../api/routes/sensors.ts', import.meta.url);
+const validatorSource = new URL('../../packages/shared/src/validators/index.ts', import.meta.url);
 const migrationSource = new URL('../db/migrations/0016_sensor_feature_observation_authority.sql', import.meta.url);
 
 test('activity feature persistence is narrow, versioned and non-affective', async () => {
-  const [schema, service, migration] = await Promise.all([
+  const [schema, service, migration, validator] = await Promise.all([
     readFile(schemaSource, 'utf8'),
     readFile(serviceSource, 'utf8'),
     readFile(migrationSource, 'utf8'),
+    readFile(validatorSource, 'utf8'),
   ]);
 
-  for (const source of [schema, service, migration]) {
+  for (const source of [schema, migration, validator]) {
     assert.match(source, /activity_variability/);
     assert.match(source, /tag-activity-variability-cv30m-v1/);
     assert.match(source, /1800/);
   }
+  assert.match(service, /ActivityVariabilityFeatureObservationCreateSchema/);
 
   assert.match(schema, /INSUFFICIENT_COVERAGE/);
   assert.match(schema, /MEAN_BELOW_DIVISION_GUARD/);
