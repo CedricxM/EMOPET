@@ -29,14 +29,14 @@ test('conditional semantics preserve fail-closed erasure with four approved matr
   );
   assert.equal(
     semantics.status,
-    'FOUR_PRODUCT_PRIVACY_DECISIONS_PROMOTED_FIVE_AUTHORITY_DECISIONS_REMAIN',
+    'FOUR_PRODUCT_PRIVACY_DECISIONS_PROMOTED_SIX_AUTHORITY_DECISIONS_REMAIN',
   );
   assert.equal(semantics.claimsExecutableErasure, false);
   assert.equal(semantics.claimsCompleteErasure, false);
   assert.deepEqual(semantics.summary, {
-    conditionalRowsTotal: 16,
+    conditionalRowsTotal: 17,
     semanticsAlreadyDeterminedByExistingPolicy: 7,
-    authorityDecisionsStillRequired: 5,
+    authorityDecisionsStillRequired: 6,
     matrixRowsPromoted: 4,
     productPrivacyDecisionsApproved: 4,
   });
@@ -61,7 +61,7 @@ test('conditional semantics preserve fail-closed erasure with four approved matr
   }
 });
 
-test('the 16 conditional packet rows are partitioned exactly into 7 determined semantics plus 9 human decisions', () => {
+test('the 17 conditional packet rows are partitioned exactly into 7 determined semantics plus 10 human decisions', () => {
   const packetConditional = packet.relations
     .filter((row) => row.decisionSupportStatus === 'POLICY_CONDITIONAL_EXECUTION_REQUIRED')
     .map(key)
@@ -73,9 +73,9 @@ test('the 16 conditional packet rows are partitioned exactly into 7 determined s
     ...semantics.productPrivacyDecisionsApproved.map((row) => row.relation),
   ].sort();
 
-  assert.equal(packetConditional.length, 16);
-  assert.equal(semanticsKeys.length, 16);
-  assert.equal(new Set(semanticsKeys).size, 16);
+  assert.equal(packetConditional.length, 17);
+  assert.equal(semanticsKeys.length, 17);
+  assert.equal(new Set(semanticsKeys).size, 17);
   assert.deepEqual(semanticsKeys, packetConditional);
 });
 
@@ -256,7 +256,7 @@ test('device metadata has detachable schema and future unbind-clock support whil
   assert.match(clockMigration, /BEFORE UPDATE OF "dog_id" ON "devices"/);
   assert.match(row.implementationConsequence, /legacy detached rows without unbound_at as unresolved/i);
 });
-test('five conditional rows remain explicit human authority decisions', () => {
+test('six conditional rows remain explicit human authority decisions', () => {
   const remaining = Object.fromEntries(
     semantics.authorityDecisionsRemaining.map((row) => [row.relation, row]),
   );
@@ -267,6 +267,7 @@ test('five conditional rows remain explicit human authority decisions', () => {
       'dogs.id|DIRECT_FK|professional_share_grants|dog_id',
       'dogs.id|UNCONSTRAINED_IDENTIFIER|professional_share_access_audits|dog_id',
       'professional_share_grants.id|UNCONSTRAINED_IDENTIFIER|professional_share_access_audits|grant_id',
+      'users.id|DIRECT_FK|community_reports|subject_user_id',
       'users.id|DIRECT_FK|community_rules_acceptances|user_id',
       'users.id|DIRECT_FK|professional_share_grants|owner_user_id',
     ],
@@ -275,6 +276,7 @@ test('five conditional rows remain explicit human authority decisions', () => {
   for (const relation of [
     'users.id|DIRECT_FK|professional_share_grants|owner_user_id',
     'dogs.id|DIRECT_FK|professional_share_grants|dog_id',
+    'users.id|DIRECT_FK|community_reports|subject_user_id',
   ]) {
     assert.equal(remaining[relation].decisionClass, 'PRODUCT_PRIVACY_LIFECYCLE_DECISION_REQUIRED');
     assert.equal(remaining[relation].requiredAuthority, 'FOUNDER_PRODUCT_PRIVACY');

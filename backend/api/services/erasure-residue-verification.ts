@@ -329,6 +329,7 @@ export async function verifyErasureResidue(
           probe('community_events.created_by', await countWhere(tx, communityEvents, eq(communityEvents.createdBy, snapshot.accountId))),
           probe('community_members.user_id', await countWhere(tx, communityMembers, eq(communityMembers.userId, snapshot.accountId))),
           probe('community_reports.reporter_user_id', await countWhere(tx, communityReports, eq(communityReports.reporterUserId, snapshot.accountId))),
+          probe('community_reports.subject_user_id', await countWhere(tx, communityReports, eq(communityReports.subjectUserId, snapshot.accountId))),
           probe('community_rules_acceptances.user_id', await countWhere(tx, communityRulesAcceptances, eq(communityRulesAcceptances.userId, snapshot.accountId))),
           probe('dogs.owner_id', await countWhere(tx, dogs, eq(dogs.ownerId, snapshot.accountId))),
           probe('posts.author_id', await countWhere(tx, posts, eq(posts.authorId, snapshot.accountId))),

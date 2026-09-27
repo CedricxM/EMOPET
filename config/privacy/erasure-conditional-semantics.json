@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-erasure-conditional-semantics-v1",
-  "status": "FOUR_PRODUCT_PRIVACY_DECISIONS_PROMOTED_FIVE_AUTHORITY_DECISIONS_REMAIN",
+  "status": "FOUR_PRODUCT_PRIVACY_DECISIONS_PROMOTED_SIX_AUTHORITY_DECISIONS_REMAIN",
   "claimsExecutableErasure": false,
   "claimsCompleteErasure": false,
   "sourcePacket": "config/privacy/erasure-disposition-decision-packet.json",
@@ -13,9 +13,9 @@
     "community_rules_acceptances remains reserved to PRIVACY_LEGAL; research_data_consents and subscriptions remain outside these four product decisions."
   ],
   "summary": {
-    "conditionalRowsTotal": 16,
+    "conditionalRowsTotal": 17,
     "semanticsAlreadyDeterminedByExistingPolicy": 7,
-    "authorityDecisionsStillRequired": 5,
+    "authorityDecisionsStillRequired": 6,
     "matrixRowsPromoted": 4,
     "productPrivacyDecisionsApproved": 4
   },
@@ -250,6 +250,19 @@
       "options": [
         "DELETE",
         "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "requiredAuthority": "FOUNDER_PRODUCT_PRIVACY",
+      "promotionAuthorized": false
+    },
+    {
+      "relation": "users.id|DIRECT_FK|community_reports|subject_user_id",
+      "decisionClass": "PRODUCT_PRIVACY_LIFECYCLE_DECISION_REQUIRED",
+      "why": "World reports (#594) name the reported person as moderation evidence. The approved reporter decision (#446) detaches the reporter on erasure; the reported person's erasure has not been decided: detaching loses re-offence context, keeping an identified row needs a bounded moderation or legal-hold justification.",
+      "privacyFirstRecommendation": "Mirror the approved reporter semantics: keep the report only within the moderation-evidence window, detach the reported person on erasure by default, and keep identified attribution only under an active documented investigation or legal hold.",
+      "options": [
+        "DETACH",
+        "DELETE",
         "RETAIN_WITH_JUSTIFICATION"
       ],
       "requiredAuthority": "FOUNDER_PRODUCT_PRIVACY",
