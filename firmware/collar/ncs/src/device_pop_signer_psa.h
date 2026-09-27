@@ -28,7 +28,16 @@ typedef enum {
     DEVICE_POP_SIGN_HASH_ERROR = 4,
     DEVICE_POP_SIGN_SIGNATURE_ERROR = 5,
     DEVICE_POP_SIGN_SIGNATURE_SIZE_ERROR = 6,
+    DEVICE_POP_SIGN_CRYPTO_INIT_ERROR = 7,
 } device_pop_sign_result_t;
+
+/**
+ * Initialize the PSA Crypto subsystem before signing.
+ *
+ * This does not generate/open/import any device credential. Key lifecycle and
+ * persistent storage remain a separate authority.
+ */
+device_pop_sign_result_t device_pop_signer_psa_init(void);
 
 /**
  * Sign DEVICE_POP_CHALLENGE_V1 using an already-provisioned opaque PSA key id.
