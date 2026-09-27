@@ -34,7 +34,19 @@ test('default telemetry Device Trust authority remains fail closed', () => {
   const cfg = JSON.parse(config);
   assert.equal(cfg.telemetryIngestion.canonicalDevicePrincipalBinding, 'REQUIRED');
   assert.equal(cfg.telemetryIngestion.ownerDogBinding, 'SERVER_RECHECK_REQUIRED');
-  assert.equal(cfg.telemetryIngestion.physicalDeviceAuthentication, 'REQUIRED');
+  assert.equal(
+    cfg.telemetryIngestion.physicalDeviceAuthentication,
+    'ASYMMETRIC_POP_REQUIRED / RUNTIME_NOT_IMPLEMENTED',
+  );
+  assert.equal(cfg.telemetryIngestion.deviceIdentityArchitectureGate, 648);
+  assert.equal(
+    cfg.devicePrincipal.identityArchitectureSelection,
+    'B_DEVICE_SPECIFIC_ASYMMETRIC_POP / ECDSA_SHA256_SECP256R1 / TARGET_PROOF_REQUIRED',
+  );
+  assert.equal(
+    cfg.claimBinding.proofOfPossessionArchitecture,
+    'ECDSA_SHA256_SECP256R1 / PUBLIC_KEY_VERIFICATION / RUNTIME_NOT_IMPLEMENTED',
+  );
   assert.equal(cfg.telemetryIngestion.transportReplayEvidenceIsAuthentication, false);
   assert.equal(cfg.telemetryIngestion.bleTransportIdentifierIsPrincipal, false);
   assert.equal(cfg.telemetryIngestion.runtime, 'NOT_IMPLEMENTED');
