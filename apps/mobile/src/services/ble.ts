@@ -22,14 +22,18 @@ import {
 } from 'react-native-ble-plx';
 
 import {
+  BLE_CHAR_CONFIG,
   BLE_CHAR_FEATURE_SUMMARY,
   BLE_CHAR_SENSOR_FRAME,
   BLE_SERVICE_UUID,
 } from '@emopet/shared';
 import {
+  buildRequestClockAnchor,
+  deriveBootClockAnchorFromRoundTrip,
   isMatFrame,
   isTagFrame,
   parseActivityVariabilityFeatureFrame,
+  parseClockAnchorResponse,
   parseSensorFrame,
   type ActivityVariabilityFeatureTransportFrame,
   type SensorFrame,
@@ -49,7 +53,10 @@ export type BleRuntimeErrorCode =
   | 'NOTIFICATION_FAILED'
   | 'EMPTY_NOTIFICATION'
   | 'INVALID_SENSOR_FRAME'
-  | 'INVALID_FEATURE_FRAME';
+  | 'INVALID_FEATURE_FRAME'
+  | 'CLOCK_ANCHOR_TIMEOUT'
+  | 'CLOCK_ANCHOR_RESPONSE_INVALID'
+  | 'MONOTONIC_CLOCK_UNAVAILABLE';
 
 export class BleRuntimeError extends Error {
   constructor(
@@ -323,6 +330,185 @@ export async function connectAndSubscribe(
     }
   };
 }
+
+
+
+export interface BleClockAnchorMeasurement {
+  strategy: 'BOOT_ANCHOR_V1';
+  requestNonce: number;
+  bootSessionId: number;
+  anchorDeviceMs: number;
+  anchorUtc: Date;
+  uncertaintyMs: number;
+  rttMs: number;
+}
+
+let clockAnchorNonceCounter = 0;
+
+function monotonicNowMs(): number {
+  const perf = globalThis.performance;
+  if (!perf || typeof perf.now !== 'function') {
+    throw new BleRuntimeError(
+      'MONOTONIC_CLOCK_UNAVAILABLE',
+      'A monotonic clock is required for BLE clock-anchor uncertainty.',
+    );
+  }
+  return perf.now();
+}
+
+function nextClockAnchorNonce(): number {
+  clockAnchorNonceCounter = (clockAnchorNonceCounter + 1) >>> 0;
+  return ((Date.now() >>> 0) ^ clockAnchorNonceCounter) >>> 0;
+}
+
+export function uint8ArrayToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
+/**
+ * Capture one transport-time measurement from the peripheral.
+ *
+ * This returns no canonical backend device id. The react-native-ble-plx
+ * identifier remains transport identity only.
+ */
+export async function captureBleBootClockAnchor(
+  deviceId: string,
+  options: {
+    timeoutMs?: number;
+    requestNonce?: number;
+  } = {},
+): Promise<BleClockAnchorMeasurement> {
+  const ble = await requireBleReady();
+  const timeoutMs = options.timeoutMs ?? 5_000;
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0) {
+    throw new BleRuntimeError(
+      'CLOCK_ANCHOR_RESPONSE_INVALID',
+      'Clock-anchor timeout must be a positive integer.',
+    );
+  }
+
+  const requestNonce = options.requestNonce ?? nextClockAnchorNonce();
+  const wasConnected = await ble.isDeviceConnected(deviceId);
+
+  let device: Device;
+  let openedHere = false;
+
+  if (wasConnected) {
+    const known = await ble.devices([deviceId]);
+    const existing = known.find((candidate) => candidate.id === deviceId);
+    if (!existing) {
+      throw new BleRuntimeError(
+        'CONNECT_FAILED',
+        'Connected BLE device is not available in the local device cache.',
+      );
+    }
+    device = existing;
+  } else {
+    try {
+      device = await ble.connectToDevice(deviceId);
+      openedHere = true;
+    } catch (error) {
+      throw new BleRuntimeError(
+        'CONNECT_FAILED',
+        `Unable to connect to EMOPET device ${deviceId} for clock anchoring.`,
+        error,
+      );
+    }
+  }
+
+  await device.discoverAllServicesAndCharacteristics();
+
+  let subscription: Subscription | null = null;
+  let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+
+  try {
+    const result = await new Promise<BleClockAnchorMeasurement>((resolve, reject) => {
+      const fail = (error: BleRuntimeError) => {
+        if (timeoutHandle) clearTimeout(timeoutHandle);
+        reject(error);
+      };
+
+      subscription = device.monitorCharacteristicForService(
+        BLE_SERVICE_UUID,
+        BLE_CHAR_CONFIG,
+        (error, characteristic) => {
+          if (error) {
+            fail(new BleRuntimeError(
+              'CLOCK_ANCHOR_RESPONSE_INVALID',
+              'Clock-anchor notification failed.',
+              error,
+            ));
+            return;
+          }
+          if (!characteristic?.value) return;
+
+          const raw = base64ToUint8Array(characteristic.value);
+          if (raw.length !== 16 || raw[0] !== 0xec) return;
+
+          try {
+            const response = parseClockAnchorResponse(raw);
+            if (response.requestNonce !== requestNonce) return;
+
+            const receiveMonotonicMs = monotonicNowMs();
+            const measurement = deriveBootClockAnchorFromRoundTrip({
+              sendWallUtcMs,
+              sendMonotonicMs,
+              receiveMonotonicMs,
+              response,
+              timerQuantizationMs: 1,
+            });
+            if (timeoutHandle) clearTimeout(timeoutHandle);
+            resolve(measurement);
+          } catch (parseError) {
+            fail(new BleRuntimeError(
+              'CLOCK_ANCHOR_RESPONSE_INVALID',
+              'Clock-anchor response failed canonical parsing.',
+              parseError,
+            ));
+          }
+        },
+      );
+
+      const sendWallUtcMs = Date.now();
+      const sendMonotonicMs = monotonicNowMs();
+
+      timeoutHandle = setTimeout(() => {
+        reject(new BleRuntimeError(
+          'CLOCK_ANCHOR_TIMEOUT',
+          'Clock-anchor response timed out.',
+        ));
+      }, timeoutMs);
+
+      void device.writeCharacteristicWithResponseForService(
+        BLE_SERVICE_UUID,
+        BLE_CHAR_CONFIG,
+        uint8ArrayToBase64(buildRequestClockAnchor(requestNonce)),
+      ).catch((error) => {
+        fail(new BleRuntimeError(
+          'CLOCK_ANCHOR_RESPONSE_INVALID',
+          'Clock-anchor request write failed.',
+          error,
+        ));
+      });
+    });
+
+    return result;
+  } finally {
+    if (timeoutHandle) clearTimeout(timeoutHandle);
+    subscription?.remove();
+
+    if (openedHere) {
+      try {
+        await ble.cancelDeviceConnection(device.id);
+      } catch {
+        // The anchor result/error remains authoritative; disconnect is cleanup.
+      }
+    }
+  }
+}
+
 
 /**
  * Decode a react-native-ble-plx base64 characteristic value.
