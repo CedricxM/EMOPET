@@ -1,0 +1,4 @@
+session_id,observation_class,scenario,subject_id,mat_hw_rev,mat_variant,mat_fw_rev,tag_hw_rev,tag_fw_rev,reference_method,start_time,end_time,mode,reference_state,eligible_windows,total_windows,ambiguous_windows,missing_windows,false_qualifications,false_rejections,true_events,detected_events,missed_events,duplicate_events,timing_error_ms,quality_state,publication_state,raw_mat_ref,raw_tag_ref,reference_data_ref,analysis_ref,deviation_ref,operator,notes
+,,,,,,,,,,,,TAG_ONLY,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,MAT_ONLY,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,MAT_PLUS_TAG,,,,,,,,,,,,,,,,,,,,,,,
