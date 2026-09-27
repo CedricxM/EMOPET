@@ -481,3 +481,23 @@ export const ActivityFeatureForwardingCandidateV1Schema = z.object({
     });
   }
 });
+
+
+export const OwnerDogCanonicalDeviceSchema = z.object({
+  id: z.string().uuid(),
+  dogId: z.string().uuid(),
+  type: z.enum(['MAT', 'TAG']),
+  firmwareVersion: z.string().nullable(),
+  supportsV6Features: z.boolean(),
+  bindingStatus: z.literal('BOUND'),
+  physicalDeviceAuthentication: z.literal('NOT_ESTABLISHED'),
+}).strict();
+
+export const OwnerDogCanonicalDeviceRegistryResponseSchema = z.object({
+  schemaVersion: z.literal('owner-dog-device-registry-v1'),
+  dogId: z.string().uuid(),
+  devices: z.array(OwnerDogCanonicalDeviceSchema),
+  identityAuthority: z.literal('BACKEND_REGISTRY_ONLY'),
+  bleTransportIdentifierIsCanonicalIdentity: z.literal(false),
+  physicalDeviceAuthenticationEstablished: z.literal(false),
+}).strict();
