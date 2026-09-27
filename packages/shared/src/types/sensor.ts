@@ -62,6 +62,12 @@ export type ActivityVariabilityNullReason =
   | 'INSUFFICIENT_COVERAGE'
   | 'MEAN_BELOW_DIVISION_GUARD';
 
+export interface ActivityVariabilityTransportProvenance {
+  transportVersion: 1;
+  bootSessionId: number;
+  sequence: number;
+}
+
 /**
  * Versioned backend envelope for the deterministic TAG activity-variability feature.
  *
@@ -70,7 +76,12 @@ export type ActivityVariabilityNullReason =
  */
 export interface ActivityVariabilityFeatureObservation {
   dogId: string;
-  ingestionId: string;
+  /**
+   * Application-level idempotency key. Optional only when transportProvenance
+   * supplies the canonical device-local replay identity; the backend allocates
+   * an ingestion UUID on first persistence in that mode.
+   */
+  ingestionId?: string;
   deviceId: string;
   observedAt: Date;
   source: 'TAG';
@@ -81,6 +92,7 @@ export interface ActivityVariabilityFeatureObservation {
   featureContractVersion: typeof ACTIVITY_VARIABILITY_FEATURE_CONTRACT_VERSION;
   windowSeconds: 1800;
   validSeconds: number;
+  transportProvenance?: ActivityVariabilityTransportProvenance;
 }
 
 /** Device info. */
