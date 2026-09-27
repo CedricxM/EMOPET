@@ -26,11 +26,11 @@ Use nRF Connect SDK **v3.4.1 LTS**.
 
 Controlled platform metadata lives in:
 
-\`config/firmware/tag-platform-v1.json\`
+`config/firmware/tag-platform-v1.json`
 
 The canonical source pin is also encoded in:
 
-\`firmware/collar/ncs/west.yml\`
+`firmware/collar/ncs/west.yml`
 
 No stale v3.4.0 container digest is treated as current v3.4.1 authority. A 3.4.1 toolchain/build receipt must be captured separately before claiming a target build.
 
@@ -120,13 +120,13 @@ separate.
 
 Until those exist:
 
-\`real TAG -> BLE\` = **NOT PROVEN**.
+`real TAG -> BLE` = **NOT PROVEN**.
 
 ## Authority consolidation — 2026-09-27
 
-The concurrent G1 bootstrap under the former \`firmware/collar/zephyr\` path has
-been consolidated into this \`firmware/collar/ncs\` root.
+The concurrent G1 bootstrap under the former `firmware/collar/zephyr` path has
+been consolidated into this `firmware/collar/ncs` root.
 
 There must be one platform tree, one SDK pin, and one guard. Any future platform
-change must update this README, \`tag-platform-v1.json\`, \`west.yml\`, and the
-single \`tag-ncs-platform.test.mjs\` guard together.
+change must update this README, `tag-platform-v1.json`, `west.yml`, and the
+single `tag-ncs-platform.test.mjs` guard together.
