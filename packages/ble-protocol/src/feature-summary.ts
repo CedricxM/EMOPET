@@ -20,6 +20,7 @@ import {
   ACTIVITY_VARIABILITY_FEATURE_CONTRACT_VERSION,
   type ActivityVariabilityNullReason,
   type ActivityVariabilityObservationStatus,
+  type ActivityVariabilityQualityState,
 } from '@emopet/shared';
 
 import { SOURCE_TAG, type BleWireFrame } from './frames/index.js';
@@ -34,7 +35,7 @@ export const FEATURE_QUALITY_VALID = 0x00 as const;
 export const FEATURE_QUALITY_DEGRADED = 0x01 as const;
 export const FEATURE_QUALITY_SUPPRESSED = 0x02 as const;
 
-export type FeatureQualityState = 'VALID' | 'DEGRADED' | 'SUPPRESSED';
+export type FeatureQualityState = ActivityVariabilityQualityState;
 
 const OBSERVED = 0x00;
 const NOT_OBSERVED = 0x01;
