@@ -9,6 +9,7 @@ target_sources(app PRIVATE
   src/main.c
   src/emopet_gatt.c
   ${EMOPET_COLLAR_MAIN}/transport/activity_feature_summary.c
+  ${EMOPET_COLLAR_MAIN}/transport/clock_anchor_transport.c
   ${EMOPET_COLLAR_MAIN}/sensors/activity_variability.c
 )
 
