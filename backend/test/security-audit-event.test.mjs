@@ -122,7 +122,7 @@ test('audit event rejects malformed actors and role substitution', () => {
 
   assert.equal(parseSecurityAuditEvent({
     ...validEvent(),
-    actor: { kind: 'privileged_human', subject: ADMIN_ID, role: 'guardian' },
+    actor: { kind: 'privileged_human', subject: ADMIN_ID, role: 'owner' },
   }), null);
 
   assert.equal(parseSecurityAuditEvent({
@@ -138,7 +138,7 @@ test('audit event supports bounded owner, machine and anonymous actors without f
     outcome: 'denied',
     reason: 'action_not_allowed',
   });
-  assert.equal(guardian?.actor.kind, 'guardian');
+  assert.equal(owner?.actor.kind, 'owner');
 
   const machine = parseSecurityAuditEvent({
     ...validEvent(),
