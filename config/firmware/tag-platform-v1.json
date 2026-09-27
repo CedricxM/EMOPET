@@ -1,22 +1,30 @@
 {
   "schemaVersion": "emopet-tag-firmware-platform-v1",
-  "status": "NCS_ZEPHYR_SCAFFOLD_CANDIDATE / DK_COMPILE_HARNESS_ONLY / MS88SF3_BOARD_AUTHORITY_OPEN",
+  "status": "NCS_ZEPHYR_CANONICAL_SCAFFOLD / GATT_SOURCE_PRESENT / DK_COMPILE_HARNESS_ONLY / MS88SF3_BOARD_AUTHORITY_OPEN",
   "issue": 625,
   "soc": "nRF52840",
   "module": "Minew MS88SF3",
   "sdk": {
     "family": "nRF Connect SDK",
-    "version": "3.4.0",
+    "series": "3.4.x LTS",
+    "version": "3.4.1",
+    "revision": "v3.4.1",
     "releaseKind": "LTS",
-    "toolchainContainer": "ghcr.io/nrfconnect/sdk-nrf-toolchain:v3.4.0",
-    "toolchainContainerDigest": "sha256:f1dca44678dae83e37404e33f369786f5b2ffe2ed497eec1815f66c3a868bace"
+    "sourceManifest": "firmware/collar/ncs/west.yml",
+    "updatePolicy": "EXPLICIT_AUTHORITY_CHANGE_WITHIN_3.4_X_LTS",
+    "toolchainAcquisition": "OFFICIAL_NORDIC_NRFUTIL_SDK_MANAGER_OR_EQUIVALENT_VERIFIED_NCS_3_4_1_TOOLCHAIN",
+    "toolchainContainer": null,
+    "toolchainContainerDigest": null,
+    "toolchainReceiptStatus": "NOT_YET_CAPTURED_FOR_3.4.1"
   },
   "application": {
     "path": "firmware/collar/ncs",
     "temporaryCompileHarnessBoard": "nrf52840dk/nrf52840",
     "temporaryCompileHarnessIsProductionBoardAuthority": false,
     "productionBoardDefinition": null,
-    "productionBoardStatus": "OPEN"
+    "productionBoardStatus": "OPEN",
+    "westManifest": "firmware/collar/ncs/west.yml",
+    "cleanBuildCommand": "west build -p always -b nrf52840dk/nrf52840 emopet/firmware/collar/ncs"
   },
   "ble": {
     "uuidAuthority": "config/ble/uuid-authority-v1.json",
@@ -41,5 +49,5 @@
     "targetFlash": "NOT_RUN",
     "realBleCapture": "NOT_RUN"
   },
-  "currentDecision": "DO_NOT_CLAIM_REAL_TAG_BLE_DELIVERY"
+  "currentDecision": "DO_NOT_CLAIM_REAL_TAG_BLE_DELIVERY_OR_MS88SF3_TARGET_BUILD"
 }
