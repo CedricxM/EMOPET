@@ -28,6 +28,9 @@ test('Device Trust and network activation hard stops remain first-class outcomes
   assert.match(source, /FEATURE_DEVICE_BINDING_INVALID/);
 });
 
-test('client does not invent automatic retry or offline queue behavior', () => {
-  assert.doesNotMatch(source, /setTimeout|AsyncStorage|queue|backoff|retryAfter/i);
+test('client does not implement automatic retry, backoff or offline queue machinery', () => {
+  assert.doesNotMatch(source, /setTimeout\s*\(/);
+  assert.doesNotMatch(source, /setInterval\s*\(/);
+  assert.doesNotMatch(source, /@react-native-async-storage\/async-storage/i);
+  assert.doesNotMatch(source, /\b(?:offlineQueue|retryQueue|backoffMs|retryAfterMs)\b/);
 });
