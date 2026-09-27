@@ -24,8 +24,8 @@ test('TAG G1 pins a reproducible NCS LTS workspace and DK compile harness', asyn
   assert.equal(authority.productionTarget.module, 'Minew MS88SF3');
   assert.equal(authority.productionTarget.boardDefinitionImplemented, false);
   assert.equal(authority.bluetooth.stackInitializationImplemented, true);
-  assert.equal(authority.bluetooth.gattServiceImplemented, false);
-  assert.equal(authority.bluetooth.notificationImplemented, false);
+  assert.equal(authority.bluetooth.gattServiceImplemented, true);
+  assert.equal(authority.bluetooth.notificationImplemented, true);
   assert.equal(
     authority.currentDecision,
     'DO_NOT_CLAIM_MS88SF3_TARGET_BUILD_OR_LIVE_GATT',
@@ -39,9 +39,10 @@ test('TAG G1 pins a reproducible NCS LTS workspace and DK compile harness', asyn
   assert.match(prj, /CONFIG_BT_PERIPHERAL=y/);
   assert.match(main, /bt_enable\(NULL\)/);
 
-  // G1 must not smuggle in later gates.
+  // The original G1 bootstrap remains the platform root even after the later
+  // GATT extension was reconciled into the same canonical application.
+  assert.doesNotMatch(manifest, /revision:\s*v3\.4\.0/);
   for (const source of [main, cmake, prj]) {
-    assert.doesNotMatch(source, /bt_gatt_service_define|BT_GATT_SERVICE_DEFINE|bt_gatt_notify/);
     assert.doesNotMatch(source, /0000EA0[1-5]/i);
   }
 
