@@ -15,7 +15,10 @@ test('device trust authority remains fail-closed and MAC is not security identit
 
   assert.equal(cfg.telemetryIngestion.canonicalDevicePrincipalBinding, 'REQUIRED');
   assert.equal(cfg.telemetryIngestion.ownerDogBinding, 'SERVER_RECHECK_REQUIRED');
-  assert.equal(cfg.telemetryIngestion.physicalDeviceAuthentication, 'REQUIRED');
+  assert.equal(
+    cfg.telemetryIngestion.physicalDeviceAuthentication,
+    'ASYMMETRIC_POP_REQUIRED / RUNTIME_NOT_IMPLEMENTED',
+  );
   assert.equal(cfg.telemetryIngestion.transportReplayEvidenceIsAuthentication, false);
   assert.equal(cfg.telemetryIngestion.bleTransportIdentifierIsPrincipal, false);
   assert.equal(cfg.telemetryIngestion.runtime, 'NOT_IMPLEMENTED');
