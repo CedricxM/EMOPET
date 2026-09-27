@@ -57,6 +57,7 @@ export const ACTIVITY_VARIABILITY_FEATURE_CONTRACT_VERSION =
   'tag-activity-variability-cv30m-v1' as const;
 
 export type ActivityVariabilityObservationStatus = 'OBSERVED' | 'NOT_OBSERVED';
+export type ActivityVariabilityQualityState = 'VALID' | 'DEGRADED' | 'SUPPRESSED';
 
 export type ActivityVariabilityNullReason =
   | 'INSUFFICIENT_COVERAGE'
@@ -104,6 +105,7 @@ export interface ActivityVariabilityFeatureObservation {
   featureContractVersion: typeof ACTIVITY_VARIABILITY_FEATURE_CONTRACT_VERSION;
   windowSeconds: 1800;
   validSeconds: number;
+  qualityState?: ActivityVariabilityQualityState;
   transportProvenance?: ActivityVariabilityTransportProvenance;
   eventTimeProvenance?: ActivityVariabilityEventTimeProvenance;
 }
