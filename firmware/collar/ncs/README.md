@@ -50,6 +50,8 @@ west build -b nrf52840dk/nrf52840 firmware/collar/ncs \
 
 A successful DK build would prove source/API/toolchain coherence only.
 
+It **must not be cited as the EMOPET production board**.
+
 It would **not** prove:
 - MS88SF3 clock configuration;
 - MS88SF3 GPIO/pin routing;
