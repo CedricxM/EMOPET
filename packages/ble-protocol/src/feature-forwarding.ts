@@ -98,6 +98,17 @@ export function buildActivityFeatureForwardingCandidate(input: {
     };
   }
 
+  if (
+    !(anchor.anchorUtc instanceof Date)
+    || !Number.isFinite(anchor.anchorUtc.getTime())
+  ) {
+    return {
+      ok: false,
+      error: 'INVALID_FORWARDING_CANDIDATE',
+      reason: 'Clock anchor UTC must be a valid Date.',
+    };
+  }
+
   const anchorAgeMs = currentMonotonicMs - anchor.capturedMonotonicMs;
   if (anchorAgeMs > maxAnchorAgeMs) {
     return {
