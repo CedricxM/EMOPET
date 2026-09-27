@@ -458,3 +458,26 @@ export const VetReportQuerySchema = z.object({
 });
 
 export * from './professional-share.js';
+
+
+export const ActivityFeatureForwardingCandidateV1Schema = z.object({
+  schemaVersion: z.literal('activity-feature-forwarding-v1'),
+  dogId: z.string().uuid(),
+  deviceId: z.string().uuid(),
+  frame: ActivityVariabilityFeatureTransportFrameSchema,
+  clockAnchor: z.object({
+    strategy: z.literal('BOOT_ANCHOR_V1'),
+    bootSessionId: z.number().int().min(0).max(0xffffffff),
+    anchorDeviceMs: z.number().int().min(0).max(0xffffffff),
+    anchorUtc: z.string().datetime(),
+    uncertaintyMs: z.number().int().min(0).max(0x7fffffff),
+  }).strict(),
+}).strict().superRefine((value, ctx) => {
+  if (value.frame.bootSessionId !== value.clockAnchor.bootSessionId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['clockAnchor', 'bootSessionId'],
+      message: 'feature frame and clock anchor must share the same boot session',
+    });
+  }
+});
