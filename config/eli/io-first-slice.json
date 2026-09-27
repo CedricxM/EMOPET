@@ -61,7 +61,13 @@
     "networkIngressRegistryBindingRechecked": true,
     "networkIngressDeviceTrustGateImplemented": true,
     "networkIngressDeviceTrustRuntimeImplemented": false,
-    "networkIngressPersistenceReachable": false
+    "networkIngressPersistenceReachable": false,
+    "mobileCanonicalDeviceRegistryReadImplemented": true,
+    "mobileCanonicalDeviceRegistryEndpoint": "/api/dogs/:dogId/devices",
+    "mobileCanonicalTagResolverImplemented": true,
+    "mobileCanonicalTagResolverFailsOnAmbiguity": true,
+    "mobileBleTransportIdUsedAsCanonicalDeviceId": false,
+    "mobileBleToCanonicalDevicePhysicalBindingEstablished": false
   },
   "candidateOwnership": {
     "featureComputation": "FIRMWARE",
