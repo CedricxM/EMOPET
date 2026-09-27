@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "emopet-tag-feasibility-v1",
+  "status": "PHYSICAL_GATE_OPEN",
+  "issue": 480,
+  "routingFreeze": "HOLD",
+  "domains": {
+    "packing3d": "OPEN",
+    "batteryCapacity": "PARTIAL",
+    "peakCurrent": "BENCH_REQUIRED",
+    "pdn": "BENCH_REQUIRED",
+    "lteRf": "BOARD_SIDE_CANDIDATE_PHYSICAL_OPEN",
+    "gnss": "BOARD_SIDE_CANDIDATE_PHYSICAL_OPEN",
+    "controlledImpedance": "STACKUP_REQUIRED",
+    "bleCoexistence": "OPEN",
+    "uicc": "CANDIDATE",
+    "thermal": "OPEN",
+    "acoustic": "OPEN",
+    "ipSealing": "OPEN",
+    "chargingContacts": "PARTIAL",
+    "wearability": "OPEN",
+    "batteryRemovability": "LEGAL_MECH_OPEN",
+    "productionBom": "OPEN",
+    "nativeEcad": "PARTIAL"
+  },
+  "parents": [492,503,504,508,510,580],
+  "releaseRule": "NO ROUTING FREEZE OR FABRICATION-READY CLAIM UNTIL ROUTING-CRITICAL INPUTS AND REQUIRED PHYSICAL EVIDENCE EXIST"
+}
