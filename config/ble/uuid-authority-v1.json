@@ -17,7 +17,8 @@
     "sensorFrame": "66ae0c98-a8ce-4319-b47d-f09fa88d4d83",
     "ota": "17780ee9-7def-4b89-aea5-e7a27deaf95c",
     "config": "8d5fa4ff-d1fa-49c3-9ce4-2e8865e4d478",
-    "featureSummary": "01141d55-a776-4091-b068-83f0804d8781"
+    "featureSummary": "01141d55-a776-4091-b068-83f0804d8781",
+    "clockSample": "7c2c7cc8-91a8-58c1-a38a-2f9b9929f5d5"
   },
   "rules": {
     "allAttributesUseFull128BitProprietaryUuid": true,
