@@ -121,6 +121,10 @@ export const sensorFeatureObservations = pgTable('sensor_feature_observations', 
     sql`${table.qualityState} IS NULL OR ${table.qualityState} IN ('VALID', 'DEGRADED', 'SUPPRESSED')`,
   ),
   check(
+    'chk_sensor_feature_observations_observed_quality',
+    sql`${table.observationStatus} <> 'OBSERVED' OR ${table.qualityState} IS NULL OR ${table.qualityState} <> 'SUPPRESSED'`,
+  ),
+  check(
     'chk_sensor_feature_observations_status',
     sql`${table.observationStatus} IN ('OBSERVED', 'NOT_OBSERVED')`,
   ),
@@ -132,7 +136,6 @@ export const sensorFeatureObservations = pgTable('sensor_feature_observations', 
       AND ${table.value} >= 0
       AND ${table.nullReason} IS NULL
       AND ${table.validSeconds} >= 900
-      AND (${table.qualityState} IS NULL OR ${table.qualityState} <> 'SUPPRESSED')
     ) OR (
       ${table.observationStatus} = 'NOT_OBSERVED'
       AND ${table.value} IS NULL
