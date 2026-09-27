@@ -1,0 +1,15 @@
+manifest:
+  version: "1.2"
+
+  remotes:
+    - name: ncs
+      url-base: https://github.com/nrfconnect
+
+  projects:
+    - name: nrf
+      remote: ncs
+      revision: v3.4.1
+      import: true
+
+  self:
+    path: emopet
