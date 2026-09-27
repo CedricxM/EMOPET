@@ -104,6 +104,8 @@ jobs:
         run: pnpm control:eli-contract:test
       - name: Enforce ELI runtime conformance non-activation (#479)
         run: pnpm control:eli-runtime-conformance:test
+      - name: Enforce Device Trust fail-closed command/claim/OTA boundary (#66)
+        run: node --test scripts/control/device-trust-boundary.test.mjs
       - name: Enforce Device Trust identity/PoP architecture gate (#648)
         run: node --test scripts/control/device-identity-pop-authority.test.mjs
       - name: Enforce Device Trust PoP challenge contract (#648)
