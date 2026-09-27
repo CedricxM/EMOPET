@@ -435,7 +435,7 @@ jobs:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
           EMOPET_DB_INTEGRATION_TEST: '1'
           NODE_ENV: test
-        run: node --test test/user-blocks.integration.test.mjs test/world-reports.integration.test.mjs
+        run: node --test test/user-blocks.integration.test.mjs test/world-reports.integration.test.mjs test/community-blocks.integration.test.mjs
 
       - name: Verify generated snapshot is stable
         working-directory: backend

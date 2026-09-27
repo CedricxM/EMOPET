@@ -23,6 +23,7 @@ test('Community core is durable, membership scoped and rules gated', { skip: !in
       communityReports,
       communityRulesAcceptances,
       posts,
+      userBlocks,
       users,
     },
   ] = await Promise.all([
@@ -251,9 +252,14 @@ test('Community core is durable, membership scoped and rules gated', { skip: !in
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ targetUserId: outsiderId, reason: 'integration test' }),
     });
-    assert.equal(blockResponse.status, 503);
-    assert.equal((await blockResponse.json()).code, COMMUNITY_PERSISTENCE_CODE);
+    // /api/community/blocks is now an alias of the canonical block (#594); reason is not stored.
+    assert.equal(blockResponse.status, 201);
+    const blockBody = await blockResponse.json();
+    assert.equal(blockBody.block.blockedUserId, outsiderId);
+    assert.equal(blockBody.reasonStored, false);
+    assert.equal(COMMUNITY_PERSISTENCE_CODE, 'COMMUNITY_PERSISTENCE_NOT_READY');
   } finally {
+    await db.delete(userBlocks).where(eq(userBlocks.blockerUserId, memberId));
     if (reportId) await db.delete(communityReports).where(eq(communityReports.id, reportId));
     if (commentId) await db.delete(comments).where(eq(comments.id, commentId));
     if (eventId) await db.delete(communityEvents).where(eq(communityEvents.id, eventId));
