@@ -16,8 +16,8 @@
   ],
   "summary": {
     "relationalTotal": 44,
-    "policyAlignedDeleteCandidates": 23,
-    "policyConditionalExecutionRequired": 18,
+    "policyAlignedDeleteCandidates": 25,
+    "policyConditionalExecutionRequired": 16,
     "legalAuthorityBlocked": 3,
     "matrixRowsPromoted": 4
   },
@@ -264,15 +264,13 @@
       "disposition": "TO_CONFIRM",
       "executionStatus": "NOT_IMPLEMENTED",
       "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
-      "candidateDisposition": null,
-      "policyRefs": [],
-      "why": "A block is a safety control owned by the blocker (#594, decision #48 L5). Erasing the blocker removes its purpose; erasing the blocked person leaves a row about a departed subject, yet dropping it could let a re-registered account bypass the block. No retention category or legal basis exists yet (#478).",
-      "requiredDecision": "Define whether a block survives erasure of the blocked person for re-registration safety (bounded justification) or is deleted, and record the #478 retention category.",
-      "allowedOutcomes": [
-        "DELETE",
-        "RETAIN_WITH_JUSTIFICATION"
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "account_auth"
       ],
+      "decisionRef": "#594 (issuecomment-5856975549)",
+      "rationale": "Founder decision #594 (issuecomment-5856975549): blocks are account-scoped safety settings deleted on erasure of either the blocker or the blocked account, through the ordered erasure executor rather than a database cascade; re-registration abuse is handled by moderation, never by retaining an erased person's identifier. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
       "promotionAuthorized": false
     },
     {
@@ -283,15 +281,13 @@
       "disposition": "TO_CONFIRM",
       "executionStatus": "NOT_IMPLEMENTED",
       "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
-      "candidateDisposition": null,
-      "policyRefs": [],
-      "why": "A block is a safety control owned by the blocker (#594, decision #48 L5). Erasing the blocker removes its purpose; erasing the blocked person leaves a row about a departed subject, yet dropping it could let a re-registered account bypass the block. No retention category or legal basis exists yet (#478).",
-      "requiredDecision": "Define whether blocks are deleted with the blocker account (privacy-first candidate) and record the #478 retention category.",
-      "allowedOutcomes": [
-        "DELETE",
-        "RETAIN_WITH_JUSTIFICATION"
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "account_auth"
       ],
+      "decisionRef": "#594 (issuecomment-5856975549)",
+      "rationale": "Founder decision #594 (issuecomment-5856975549): blocks are account-scoped safety settings deleted on erasure of either the blocker or the blocked account, through the ordered erasure executor rather than a database cascade; re-registration abuse is handled by moderation, never by retaining an erased person's identifier. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
       "promotionAuthorized": false
     },
     {

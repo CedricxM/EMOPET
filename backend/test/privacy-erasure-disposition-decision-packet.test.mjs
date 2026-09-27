@@ -78,8 +78,8 @@ test('packet covers every canonical matrix relation exactly once and mirrors pro
 test('decision grouping counts remain explicit and exhaustive', () => {
   assert.deepEqual(packet.summary, {
     relationalTotal: 44,
-    policyAlignedDeleteCandidates: 23,
-    policyConditionalExecutionRequired: 18,
+    policyAlignedDeleteCandidates: 25,
+    policyConditionalExecutionRequired: 16,
     legalAuthorityBlocked: 3,
     matrixRowsPromoted: 4,
   });
@@ -96,8 +96,8 @@ test('decision grouping counts remain explicit and exhaustive', () => {
   );
 
   assert.deepEqual(counts, {
-    POLICY_ALIGNED_DELETE_CANDIDATE: 23,
-    POLICY_CONDITIONAL_EXECUTION_REQUIRED: 18,
+    POLICY_ALIGNED_DELETE_CANDIDATE: 25,
+    POLICY_CONDITIONAL_EXECUTION_REQUIRED: 16,
     LEGAL_AUTHORITY_BLOCKED: 3,
   });
 });
@@ -123,10 +123,20 @@ test('policy-aligned candidates are DELETE-only suggestions backed by current pr
     'dogs.id|DIRECT_FK|health_entries|dog_id',
     'dogs.id|DIRECT_FK|copresence_events|dog_a_id',
     'dogs.id|DIRECT_FK|copresence_events|dog_b_id',
+    'users.id|DIRECT_FK|user_blocks|blocker_user_id',
+    'users.id|DIRECT_FK|user_blocks|blocked_user_id',
   ]);
 
   const keys = new Set(aligned.map(relationKey));
   for (const key of required) assert.ok(keys.has(key), key);
+
+  // Founder decision #594: blocks are deleted on erasure of either account, never cascaded.
+  for (const row of aligned.filter((r) => r.table === 'user_blocks')) {
+    assert.deepEqual(row.policyRefs, ['account_auth']);
+    assert.equal(row.decisionRef, '#594 (issuecomment-5856975549)');
+    assert.equal(row.disposition, 'TO_CONFIRM');
+    assert.equal(row.executionStatus, 'NOT_IMPLEMENTED');
+  }
 });
 
 test('conditional rows distinguish approved D1-D4 detach from still-unresolved execution semantics', () => {
@@ -181,8 +191,6 @@ test('conditional rows distinguish approved D1-D4 detach from still-unresolved e
   for (const key of [
     'users.id|DIRECT_FK|professional_share_grants|owner_user_id',
     'dogs.id|DIRECT_FK|professional_share_grants|dog_id',
-    'users.id|DIRECT_FK|user_blocks|blocker_user_id',
-    'users.id|DIRECT_FK|user_blocks|blocked_user_id',
     'dogs.id|UNCONSTRAINED_IDENTIFIER|professional_share_access_audits|dog_id',
     'professional_share_grants.id|UNCONSTRAINED_IDENTIFIER|professional_share_access_audits|grant_id',
   ]) {
