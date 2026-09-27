@@ -33,6 +33,7 @@ import {
   sensorFeatureObservations,
   sensorSummaries,
   subscriptions,
+  userBlocks,
   userConfig,
   users,
   walkQuality,
@@ -189,6 +190,10 @@ export async function discoverSubjectData(
         communityEventsCreated: counted(await countWhere(tx, communityEvents, eq(communityEvents.createdBy, userId))),
         communityRulesAcceptances: counted(await countWhere(tx, communityRulesAcceptances, eq(communityRulesAcceptances.userId, userId))),
         communityReportsFiled: counted(await countWhere(tx, communityReports, eq(communityReports.reporterUserId, userId))),
+        userBlocksCreated: counted(await countWhere(tx, userBlocks, eq(userBlocks.blockerUserId, userId))),
+        userBlocksReceived: counted(await countWhere(tx, userBlocks, eq(userBlocks.blockedUserId, userId)), {
+          note: 'Count only. Blocks are silent to the blocked person; disclosing received blocks to the subject is an open privacy decision.',
+        }),
       };
 
       let dogCounts = {

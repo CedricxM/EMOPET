@@ -33,6 +33,7 @@ import {
   sensorFeatureObservations,
   sensorSummaries,
   subscriptions,
+  userBlocks,
   userConfig,
   users,
   walkQuality,
@@ -338,6 +339,8 @@ export async function verifyErasureResidue(
           )),
           probe('research_data_consents.user_id', await countWhere(tx, researchDataConsents, eq(researchDataConsents.userId, snapshot.accountId))),
           probe('subscriptions.user_id', await countWhere(tx, subscriptions, eq(subscriptions.userId, snapshot.accountId))),
+          probe('user_blocks.blocked_user_id', await countWhere(tx, userBlocks, eq(userBlocks.blockedUserId, snapshot.accountId))),
+          probe('user_blocks.blocker_user_id', await countWhere(tx, userBlocks, eq(userBlocks.blockerUserId, snapshot.accountId))),
           probe('user_config.user_id', await countWhere(tx, userConfig, eq(userConfig.userId, snapshot.accountId))),
         );
       }
