@@ -1,5 +1,7 @@
 # TAG firmware platform G1 bootstrap
 
+> **Current-main reconciliation:** this document records the original G1 bootstrap boundary from #627. The canonical application was subsequently extended with the #628 GATT source and reconciled into the same `firmware/collar/zephyr` tree. Current state is governed by `config/firmware/tag-platform-authority-v1.json`; the historical “GATT absent” statements below describe G1 at delivery time, not the post-reconciliation repository state.
+
 **Issue:** #625  
 **Date:** 2026-09-27  
 **Status:** `G1 CANDIDATE / NCS-ZEPHYR BOOTSTRAP / DK COMPILE HARNESS ONLY`
