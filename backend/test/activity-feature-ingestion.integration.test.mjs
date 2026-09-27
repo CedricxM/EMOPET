@@ -158,6 +158,7 @@ test('activity feature persistence is owner/device bound, idempotent and fail-cl
     ingestionId: undefined,
     observedAt: resolvedTime.observedAt,
     value: 0.51,
+    qualityState: 'VALID',
     transportProvenance: {
       transportVersion: 1,
       bootSessionId: 0x10203040,
@@ -188,6 +189,7 @@ test('activity feature persistence is owner/device bound, idempotent and fail-cl
     transportCreated.observation.ingestionId,
     /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
   );
+  assert.equal(transportCreated.observation.qualityState, 'VALID');
   assert.equal(transportCreated.observation.transportVersion, 1);
   assert.equal(transportCreated.observation.transportBootSessionId, 0x10203040);
   assert.equal(transportCreated.observation.transportSequence, 65535);
@@ -255,6 +257,7 @@ test('activity feature persistence is owner/device bound, idempotent and fail-cl
     await persistActivityVariabilityFeatureObservation(
       OWNER_A,
       observed({
+        qualityState: 'VALID',
         transportProvenance: {
           transportVersion: 1,
           bootSessionId: 0x10203042,
@@ -268,12 +271,38 @@ test('activity feature persistence is owner/device bound, idempotent and fail-cl
     { ok: false, error: 'INGESTION_CONFLICT' },
   );
 
+  const suppressedObserved = await persistActivityVariabilityFeatureObservation(
+    OWNER_A,
+    observed({
+      ingestionId: 'e5555555-5555-4555-8555-555555555555',
+      qualityState: 'SUPPRESSED',
+    }),
+  );
+  assert.equal(suppressedObserved.ok, false);
+  assert.equal(suppressedObserved.error, 'INVALID_FEATURE_ENVELOPE');
+
+  const missingTransportQuality = await persistActivityVariabilityFeatureObservation(
+    OWNER_A,
+    observed({
+      ingestionId: undefined,
+      transportProvenance: {
+        transportVersion: 1,
+        bootSessionId: 0x10203043,
+        sequence: 2,
+        windowEndMs: 2345,
+      },
+    }),
+  );
+  assert.equal(missingTransportQuality.ok, false);
+  assert.equal(missingTransportQuality.error, 'INVALID_FEATURE_ENVELOPE');
+
   const rows = await sql`
     SELECT dog_id, device_id, feature_key, feature_contract_version,
            window_seconds, valid_seconds, firmware_version_at_ingest,
            transport_version, transport_boot_session_id, transport_sequence,
            transport_window_end_ms, event_time_resolution,
-           clock_anchor_device_ms, clock_anchor_utc, event_time_uncertainty_ms
+           clock_anchor_device_ms, clock_anchor_utc, event_time_uncertainty_ms,
+           quality_state
     FROM sensor_feature_observations
     WHERE dog_id = ${DOG_A}
     ORDER BY observed_at, ingestion_id
