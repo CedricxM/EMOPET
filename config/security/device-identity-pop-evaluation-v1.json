@@ -108,7 +108,9 @@
     "rotationRevocationRebindRma": "PARTIAL_COMMON_FLOW_ONLY",
     "debugSwdProductionPolicy": "DECISION_REQUIRED / RECEIPT_SHAPE_DEFINED",
     "negativeAuthenticationTests": "OPEN",
-    "representativeTargetHardwareProof": "OPEN"
+    "representativeTargetHardwareProof": "OPEN",
+    "challengeIssuer": "SOURCE_PRIMITIVE_DELIVERED / DURABLE_STORE_AND_ROUTE_OPEN",
+    "challengePersistence": "BLOCKED_PENDING_NON_CONFLICTING_ACTIVE_MIGRATION_SLOT"
   },
   "selectedArchitectureDependencies": {
     "privateKeyAtRest": "TRUSTED_STORAGE_WITH_HUK_DERIVED_AEAD_KEY",

@@ -48,8 +48,12 @@ with the human authority:
 
 It defines a telemetry-only, domain-separated fixed-binary signing preimage,
 32-byte server nonce, P-256/SHA-256 signature encoded as 64-byte IEEE P1363
-`r || s`, and server-owned expiry/single-use replay semantics. It does **not**
-implement challenge issuance, signing, verification or telemetry trust.
+`r || s`, and server-owned expiry/single-use replay semantics.
+
+A source-level issuer primitive now exists, but it requires injected credential
+and atomic challenge-store authorities, has no default TTL/store and is not
+mounted on any HTTP route. Durable challenge persistence, signing, verification
+and Device Data Trust success remain unimplemented.
 
 Each production device needs a canonical principal independent of its BLE address.
 
