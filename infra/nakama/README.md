@@ -84,7 +84,15 @@ Routes under `/api/world-spike` all require `Authorization: Bearer <EMOPET acces
 | POST `/bootstrap` | `{}` → `{handle, expiresAt, state}`; renewal accepts `{previousHandle}` |
 | POST `/sessions/:handle/commands` | Strict command below → `{result}` |
 | GET `/sessions/:handle/events` | Drains up to 100 events; `{state, events, resyncRequired}` |
+| POST `/sessions/:handle/reports` | Report below → `201 {report}` in the canonical moderation queue |
 | DELETE `/sessions/:handle` | Close this actor's socket; 204 |
+
+Reports (#594): `{kind: "world_user", targetUserId, reason, details?}` or
+`{kind: "world_message", senderId, messageId, reason, details?}` where `senderId`/`messageId`
+come from a received chat event. `reason` is one of `spam|harassment|illegal|unsafe|other`;
+`details` ≤ 500 characters. The server resolves the Nakama sender to the canonical person;
+an unknown sender or self-report is 400. Reporting works across blocks. Only the message
+id is stored, never its content. Mounting needs the canonical database (`community_reports`).
 
 Commands: `friends.list`; `friends.request`/`friends.accept` with `targetUserId`;
 `groups.create` with `name`; `groups.list`; `groups.join`/`groups.leave`/`chat.join`

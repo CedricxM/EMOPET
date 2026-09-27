@@ -208,6 +208,22 @@ export class WorldRealtimeAdapter {
     }
     return { state: entry.degraded ? 'degraded' : 'connected', events, resyncRequired: overflow };
   }
+  /**
+   * Resolves who is being reported, from the verified actor's live session only.
+   * `world_user` names an allowlisted participant; `world_message` names the Nakama sender of
+   * a received message, translated to its canonical id. Reports ignore blocks on purpose:
+   * people must be able to report someone they blocked (or who blocked them).
+   */
+  reportSubject(userId: string, handle: string, report: { kind: 'world_user'; targetUserId: string }
+    | { kind: 'world_message'; senderId: string }): { reporter: string; subject: string } {
+    const entry = this.entry(userId, handle);
+    const subject = report.kind === 'world_user'
+      ? this.actor(report.targetUserId)
+      : this.transportActors.get(report.senderId);
+    // An unknown sender cannot be attributed to a canonical person: refuse rather than guess.
+    if (!subject || subject === entry.actor) throw new WorldError('invalid_request');
+    return { reporter: entry.actor, subject };
+  }
   disconnect(userId: string, handle: string) { this.entry(userId, handle); this.drop(handle); }
   close() { for (const handle of this.sessions.keys()) this.drop(handle); }
 }

@@ -47,7 +47,7 @@ Production/unspecified environment activation is rejected; the feature flag defa
 | EMOPET identity and access/refresh sessions | Existing Hono/JWT and canonical auth storage | Reused, never replaced by Nakama |
 | Consent/privacy, visibility/sharing | Canonical EMOPET policy | No reads/writes or inferred consent; real-user activation blocked |
 | User-to-user blocks | Canonical EMOPET `user_blocks` (#594, PR #636) | Read-only through the `WorldBlockPolicy` port; enforced by the adapter (see below); never stored in Nakama |
-| Moderation, reports, audit truth | Canonical EMOPET backend | No authoritative Nakama decisions; World report types still open (#594) |
+| Moderation, reports, audit truth | Canonical EMOPET backend (`community_reports`, #594) | World reports written through the `WorldReportSink` port; Nakama holds no report |
 | Dog ownership, ELI/science, billing/subscription | Canonical EMOPET domains | No repository imports, payload fields or write paths |
 | Keepsakes/personal-space and other durable product state | Canonical EMOPET, separately gated | No implementation |
 | Custom-ID ↔ Nakama UUID | Disposable Nakama account metadata | Derived from verified actor; resettable projection |
@@ -73,6 +73,18 @@ in either direction makes the two participants **mutually and silently invisible
 
 Group membership and chat joins are not blocked: blocks act on visibility, not on shared
 groups. The Nakama friend edge is left in place (disposable projection, L3) but is never shown.
+
+### World reports (#594)
+
+`POST /sessions/:handle/reports` files `world_user` or `world_message` reports into the
+canonical moderation queue (`community_reports`, migration 0022 in PR #636), so they share
+the moderation-evidence retention clock and the approved reporter DETACH (#446). The adapter
+resolves the reported person from the verified session: an allowlisted participant, or the
+**Nakama sender id of a received message translated to its canonical id** (unknown senders
+and self-reports are refused). Only the message id is stored, never its content (L6).
+Reporting deliberately works across blocks. Without a wired sink the route returns 503
+rather than pretending to file. The erasure disposition of the reported person's id
+(`community_reports.subject_user_id`) is still a founder decision (TO_CONFIRM, NO ACTION).
 
 No EMOPET database credentials are mounted into Nakama. Its separate PostgreSQL
 volume persists transport metadata, not durable product authority. Chat text must be

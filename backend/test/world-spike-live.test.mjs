@@ -25,7 +25,11 @@ test('live two-user Hono → Nakama social slice, renewal, and service outage', 
   const adapter = new WorldRealtimeAdapter(new NakamaTransport(process.env.NAKAMA_URL ?? 'http://127.0.0.1:7350',
     process.env.NAKAMA_HTTP_KEY ?? ''), new Set(ids), blocks);
   t.after(() => adapter.close());
-  const app = createWorldSpikeRoutes(adapter);
+  // The canonical report sink is covered by world-reports.integration; here a capturing sink
+  // checks that a real Nakama sender id is resolved to the canonical subject.
+  const filedReports = [];
+  const reportSink = { async create(input) { filedReports.push(input); return { id: 'live', kind: input.kind, status: 'open', createdAt: new Date() }; } };
+  const app = createWorldSpikeRoutes(adapter, reportSink);
   const tokens = new Map(await Promise.all(ids.map(async id => [id, await signAccessToken(id)])));
   async function request(id, path, body, method = 'POST', expected = 200) {
     const response = await app.request(path, { method,
@@ -90,6 +94,22 @@ test('live two-user Hono → Nakama social slice, renewal, and service outage', 
   await request(a, `/sessions/${oldHandle}/events`, undefined, 'GET', 401);
   await cmd(b, sb, { op: 'chat.send', groupId: group.groupId, text: 'after-reconnect' });
   await waitFor(a, sa, event => event.type === 'chat' && event.value.content.text === 'after-reconnect');
+
+  // #594 World report: A reports a real message from B using only what the event exposes.
+  await cmd(b, sb, { op: 'chat.send', groupId: group.groupId, text: 'reportable' });
+  let reportable;
+  const reportDeadline = Date.now() + 10000;
+  while (!reportable && Date.now() < reportDeadline) {
+    const batch = await request(a, `/sessions/${sa.handle}/events`, undefined, 'GET');
+    reportable = batch.events.find(event => event.type === 'chat' && event.value.content.text === 'reportable');
+    if (!reportable) await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  assert.ok(reportable, 'reportable message received');
+  assert.notEqual(reportable.value.senderId, b, 'events expose the Nakama sender id, not the canonical id');
+  await request(a, `/sessions/${sa.handle}/reports`, { kind: 'world_message', senderId: reportable.value.senderId,
+    messageId: reportable.value.messageId, reason: 'spam' }, 'POST', 201);
+  assert.deepEqual(filedReports.at(-1), { reporterUserId: a, subjectUserId: b, kind: 'world_message',
+    messageId: reportable.value.messageId.toLowerCase(), reason: 'spam' });
   await cmd(b, sb, { op: 'groups.leave', groupId: group.groupId });
   await request(b, `/sessions/${sb.handle}`, undefined, 'DELETE', 204);
 

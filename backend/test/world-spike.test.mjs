@@ -341,3 +341,45 @@ test('World wires the canonical block repository by default and maps unreachable
   assert.equal(BLOCK_ENFORCEMENT.world, 'ENFORCED_WHEN_WORLD_ENABLED');
   assert.equal(BLOCK_ENFORCEMENT.community, 'NOT_ENFORCED');
 });
+
+test('World reports resolve the subject server-side and ignore client identity claims', async t => {
+  const { adapter, exp, block } = setup(t);
+  const filed = [];
+  const sink = { async create(input) { filed.push(input); return { id: 'r1', kind: input.kind, status: 'open', createdAt: new Date(0) }; } };
+  const app = createWorldSpikeRoutes(adapter, sink);
+  const a = await adapter.bootstrap(A, exp);
+  await adapter.bootstrap(B, exp);
+  const post = async (body, actor = A, handle = a.handle) => app.request(`/sessions/${handle}/reports`, { method: 'POST',
+    headers: { Authorization: `Bearer ${await signAccessToken(actor)}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  block(A, B);
+  // Reporting stays possible across a block, for a user and for a received message.
+  assert.equal((await post({ kind: 'world_user', targetUserId: B, reason: 'harassment' })).status, 201);
+  const MESSAGE = '44444444-4444-4444-8444-444444444444';
+  assert.equal((await post({ kind: 'world_message', senderId: B, messageId: MESSAGE, reason: 'spam', details: 'x' })).status, 201);
+  assert.deepEqual(filed, [
+    { reporterUserId: A, subjectUserId: B, kind: 'world_user', reason: 'harassment' },
+    { reporterUserId: A, subjectUserId: B, kind: 'world_message', messageId: MESSAGE, reason: 'spam', details: 'x' },
+  ]);
+  for (const bad of [
+    { kind: 'world_user', targetUserId: A, reason: 'spam' },
+    { kind: 'world_user', targetUserId: B, reason: 'spam', reporterUserId: B },
+    { kind: 'world_user', targetUserId: B, reason: 'not-a-reason' },
+    { kind: 'world_message', senderId: 'unknown-transport-id', messageId: MESSAGE, reason: 'spam' },
+    { kind: 'world_message', senderId: B, messageId: 'nope', reason: 'spam' },
+    { kind: 'post', contentId: MESSAGE, reason: 'spam' },
+  ]) assert.equal((await post(bad)).status, 400, JSON.stringify(bad));
+  assert.equal(filed.length, 2);
+  // Another actor cannot file through A's session.
+  assert.equal((await post({ kind: 'world_user', targetUserId: A, reason: 'spam' }, B, a.handle)).status, 401);
+  // No canonical queue wired: refuse instead of pretending the report was filed.
+  const unwired = await createWorldSpikeRoutes(adapter).request(`/sessions/${a.handle}/reports`, { method: 'POST',
+    headers: { Authorization: `Bearer ${await signAccessToken(A)}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ kind: 'world_user', targetUserId: B, reason: 'spam' }) });
+  assert.equal(unwired.status, 503);
+});
+
+test('World wires the canonical moderation queue for reports by default', () => {
+  const route = readFileSync(new URL('../api/routes/world-spike.ts', import.meta.url), 'utf8');
+  assert.match(route, /reports: WorldReportSink = drizzleWorldReportSink\(\)/);
+  assert.match(route, /return createWorldSpikeRoutes\(adapter, reports\)/);
+});
