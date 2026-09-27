@@ -110,6 +110,11 @@ jobs:
         run: |
           pnpm science:rr-audit
           pnpm science:rr-audit:test
+      - name: Validate mobile native BLE plugin resolution (#122)
+        env:
+          CI: '1'
+          EXPO_NO_TELEMETRY: '1'
+        run: pnpm --filter @emopet/mobile exec expo config --type prebuild > /tmp/emopet-mobile-prebuild-config.txt
       - name: Typecheck workspace
         id: typecheck
         shell: bash

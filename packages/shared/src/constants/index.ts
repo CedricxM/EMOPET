@@ -42,6 +42,13 @@ export const BLE_CHAR_SENSOR_FRAME = '0000ea02-0000-1000-8000-00805f9b34fb';
 export const BLE_CHAR_OTA = '0000ea03-0000-1000-8000-00805f9b34fb';
 /** Config characteristic UUID. */
 export const BLE_CHAR_CONFIG = '0000ea04-0000-1000-8000-00805f9b34fb';
+/**
+ * Versioned deterministic feature-summary notification characteristic.
+ *
+ * Reserved by #122 for feature-summary transport. The UUID assignment does not
+ * imply that current TAG firmware already exposes a live GATT characteristic.
+ */
+export const BLE_CHAR_FEATURE_SUMMARY = '0000ea05-0000-1000-8000-00805f9b34fb';
 
 // ── Fur Class Definitions ───────────────────────────────────────
 export const FUR_CLASSES = {
