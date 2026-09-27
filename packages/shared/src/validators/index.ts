@@ -507,6 +507,34 @@ export const OwnerDogCanonicalDeviceRegistryResponseSchema = z.object({
 
 const Base64UrlNoPaddingSchema = z.string().regex(/^[A-Za-z0-9_-]+$/);
 
+export const DeviceIdentityKeySlotV1Schema = z.enum(['A', 'B']);
+
+export const DeviceIdentityEnrollmentReceiptV1Schema = z.object({
+  schemaVersion: z.literal('device-identity-enrollment-receipt-v1'),
+  protocolVersion: z.literal(1),
+  credentialVersion: z.number().int().positive().max(0xffffffff),
+  keySlot: DeviceIdentityKeySlotV1Schema,
+  psaKeyId: z.number().int().min(0x00010000).max(0x00010001),
+  algorithm: z.literal('ECDSA_P256_SHA256'),
+  publicKeyFormat: z.literal('SEC1_UNCOMPRESSED_P256_65'),
+  publicKey: Base64UrlNoPaddingSchema.length(87),
+  firmwareVersion: z.string().trim().min(1).max(128),
+  hardwareRevision: z.string().trim().min(1).max(128),
+  bootstrapRevision: z.string().trim().min(1).max(128),
+  state: z.literal('PENDING_PROOF'),
+  privateKeyExported: z.literal(false),
+  devicePrincipalBinding: z.literal('BACKEND_MANUFACTURING_AUTHORITY_REQUIRED'),
+}).strict().superRefine((value, ctx) => {
+  const expectedKeyId = value.keySlot === 'A' ? 0x00010000 : 0x00010001;
+  if (value.psaKeyId !== expectedKeyId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['psaKeyId'],
+      message: 'psaKeyId must match the reserved identity slot',
+    });
+  }
+});
+
 export const DevicePopPurposeV1Schema = z.literal('DEVICE_DATA_TELEMETRY_INGRESS');
 
 export const DevicePopChallengeV1Schema = z.object({
