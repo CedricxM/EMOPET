@@ -45,6 +45,7 @@ export const sensorFeatureObservations = pgTable('sensor_feature_observations', 
   featureContractVersion: varchar('feature_contract_version', { length: 80 }).notNull(),
   windowSeconds: integer('window_seconds').notNull(),
   validSeconds: integer('valid_seconds').notNull(),
+  qualityState: varchar('quality_state', { length: 16 }),
   firmwareVersionAtIngest: varchar('firmware_version_at_ingest', { length: 20 }),
   transportVersion: integer('transport_version'),
   transportBootSessionId: bigint('transport_boot_session_id', { mode: 'number' }),
@@ -116,6 +117,10 @@ export const sensorFeatureObservations = pgTable('sensor_feature_observations', 
     sql`${table.validSeconds} >= 0 AND ${table.validSeconds} <= 1800`,
   ),
   check(
+    'chk_sensor_feature_observations_quality',
+    sql`${table.qualityState} IS NULL OR ${table.qualityState} IN ('VALID', 'DEGRADED', 'SUPPRESSED')`,
+  ),
+  check(
     'chk_sensor_feature_observations_status',
     sql`${table.observationStatus} IN ('OBSERVED', 'NOT_OBSERVED')`,
   ),
@@ -127,6 +132,7 @@ export const sensorFeatureObservations = pgTable('sensor_feature_observations', 
       AND ${table.value} >= 0
       AND ${table.nullReason} IS NULL
       AND ${table.validSeconds} >= 900
+      AND (${table.qualityState} IS NULL OR ${table.qualityState} <> 'SUPPRESSED')
     ) OR (
       ${table.observationStatus} = 'NOT_OBSERVED'
       AND ${table.value} IS NULL
