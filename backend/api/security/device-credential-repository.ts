@@ -1,9 +1,6 @@
 import { and, eq } from 'drizzle-orm';
 
-import {
-  DeviceIdentityEnrollmentReceiptV1Schema,
-  type DeviceIdentityEnrollmentReceiptV1,
-} from '@emopet/shared';
+import { DeviceIdentityEnrollmentReceiptV1Schema } from '@emopet/shared';
 
 import { db } from '../../db/index.js';
 import {
