@@ -140,6 +140,35 @@ remains an unvalidated EMOPET hypothesis under #87.
 
 Closing the transport gap does not authorize Owner-facing publication.
 
+## Internal read boundary — 2026-09-27
+
+The backend may now query the persisted feature through an Owner-scoped internal service.
+
+The read contract preserves:
+- `OBSERVED` versus `NOT_OBSERVED`;
+- explicit null reason;
+- feature-contract version;
+- observation time and 30-minute window;
+- valid-coverage seconds;
+- device identifier and firmware snapshot.
+
+The projection is explicitly labelled:
+
+`PHYSICAL_MOVEMENT_VARIABILITY_ONLY`
+
+and hard-codes:
+
+`affectiveInterpretationAuthorized = false`
+
+`eliInvocationAuthorized = false`
+
+The read service is not imported by a route. It therefore does not create a public
+product observation, does not inhabit the ELI `AVAILABLE` state and does not alter
+the existing 501 ELI endpoints.
+
+Its device reference proves current database binding only. Cryptographic/manufacturing
+device trust remains outside this slice under #66.
+
 ## Current status
 
 `ELI_IO_ACTIVITY_VARIABILITY_PRODUCER = TAG_FIRMWARE`
@@ -147,6 +176,10 @@ Closing the transport gap does not authorize Owner-facing publication.
 `ELI_IO_ACTIVITY_VARIABILITY_BLE_TRANSPORT = NOT_IMPLEMENTED`
 
 `ELI_IO_BACKEND_FEATURE_PERSISTENCE = IMPLEMENTED_INTERNAL_ONLY`
+
+`ELI_IO_BACKEND_FEATURE_READ = IMPLEMENTED_INTERNAL_ONLY / OWNER_SCOPED / PHYSICAL_ONLY`
+
+`ELI_IO_PUBLIC_FEATURE_READ_ROUTE = NONE`
 
 `ELI_IO_NETWORK_FEATURE_INGESTION = NOT_ACTIVATED`
 
