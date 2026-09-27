@@ -22,9 +22,10 @@
     "temporaryCompileHarnessBoard": "nrf52840dk/nrf52840",
     "temporaryCompileHarnessIsProductionBoardAuthority": false,
     "productionBoardDefinition": null,
-    "productionBoardStatus": "OPEN",
+    "productionBoardStatus": "BLOCKED_ON_G2_AUTHORITY",
     "westManifest": "firmware/collar/ncs/west.yml",
-    "cleanBuildCommand": "west build -p always -b nrf52840dk/nrf52840 emopet/firmware/collar/ncs"
+    "cleanBuildCommand": "west build -p always -b nrf52840dk/nrf52840 emopet/firmware/collar/ncs",
+    "boardAuthority": "config/firmware/tag-ms88sf3-board-authority-v1.json"
   },
   "ble": {
     "uuidAuthority": "config/ble/uuid-authority-v1.json",
@@ -47,7 +48,8 @@
     "sourceContractGuard": "scripts/control/tag-ncs-platform.test.mjs",
     "ncsTargetBuild": "NOT_YET_IN_CI",
     "targetFlash": "NOT_RUN",
-    "realBleCapture": "NOT_RUN"
+    "realBleCapture": "NOT_RUN",
+    "g2BoardAuthorityGuard": "scripts/control/tag-ms88sf3-board-authority.test.mjs"
   },
   "currentDecision": "DO_NOT_CLAIM_REAL_TAG_BLE_DELIVERY_OR_MS88SF3_TARGET_BUILD"
 }
