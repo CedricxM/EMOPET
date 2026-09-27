@@ -1,13 +1,12 @@
-import type { ClockAnchorResponseFrame } from '@emopet/ble-protocol';
-
-export const BOOT_ANCHOR_V1_MAX_RTT_MS = 1500 as const;
-export const BOOT_ANCHOR_V1_MAX_WALL_MONOTONIC_SKEW_MS = 100 as const;
+import {
+  BootAnchorTimingError,
+  computeBootAnchorTiming,
+  type BootAnchorTimingErrorCode,
+  type ClockAnchorResponseFrame,
+} from '@emopet/ble-protocol';
 
 export type BootAnchorCaptureErrorCode =
-  | 'INVALID_CAPTURE_TIME'
-  | 'INVALID_WALL_CLOCK_UNCERTAINTY'
-  | 'CLOCK_SAMPLE_RTT_TOO_HIGH'
-  | 'WALL_CLOCK_DISCONTINUITY'
+  | BootAnchorTimingErrorCode
   | 'CLOCK_ANCHOR_NONCE_MISMATCH'
   | 'CLOCK_SAMPLE_BOOT_MISMATCH';
 
@@ -35,12 +34,10 @@ export interface CapturedBootAnchorV1 {
 }
 
 /**
- * Convert one correlated BLE clock-anchor handshake into BOOT_ANCHOR_V1.
+ * Bind one correlated BLE clock-anchor response to the canonical device.
  *
- * Duration is measured by a monotonic clock. Wall time is used only to place
- * the bounded interval on UTC. The caller must provide an explicit uncertainty
- * budget for the local wall clock; transport RTT alone is not total UTC
- * uncertainty.
+ * Timing math lives in @emopet/ble-protocol so it has executable unit tests.
+ * This mobile wrapper owns request correlation + feature boot-session matching.
  */
 export function buildBootAnchorV1(input: {
   canonicalDeviceId: string;
@@ -53,48 +50,14 @@ export function buildBootAnchorV1(input: {
   requestNonce: number;
   response: ClockAnchorResponseFrame;
   expectedBootSessionId?: number;
-  maxRttMs?: number;
-  maxWallMonotonicSkewMs?: number;
 }): CapturedBootAnchorV1 {
   const {
     canonicalDeviceId,
     bleDeviceId,
-    wallBeforeUtcMs,
-    wallAfterUtcMs,
-    monotonicBeforeMs,
-    monotonicAfterMs,
-    localWallClockUncertaintyMs,
     requestNonce,
     response,
     expectedBootSessionId,
-    maxRttMs = BOOT_ANCHOR_V1_MAX_RTT_MS,
-    maxWallMonotonicSkewMs = BOOT_ANCHOR_V1_MAX_WALL_MONOTONIC_SKEW_MS,
   } = input;
-
-  if (
-    !Number.isSafeInteger(wallBeforeUtcMs)
-    || !Number.isSafeInteger(wallAfterUtcMs)
-    || wallAfterUtcMs < wallBeforeUtcMs
-    || !Number.isFinite(monotonicBeforeMs)
-    || !Number.isFinite(monotonicAfterMs)
-    || monotonicBeforeMs < 0
-    || monotonicAfterMs < monotonicBeforeMs
-  ) {
-    throw new BootAnchorCaptureError(
-      'INVALID_CAPTURE_TIME',
-      'Clock-anchor capture timestamps are invalid.',
-    );
-  }
-
-  if (
-    !Number.isSafeInteger(localWallClockUncertaintyMs)
-    || localWallClockUncertaintyMs < 0
-  ) {
-    throw new BootAnchorCaptureError(
-      'INVALID_WALL_CLOCK_UNCERTAINTY',
-      'Local wall-clock uncertainty must be an explicit non-negative integer.',
-    );
-  }
 
   if (response.requestNonce !== requestNonce) {
     throw new BootAnchorCaptureError(
@@ -113,33 +76,21 @@ export function buildBootAnchorV1(input: {
     );
   }
 
-  const roundTripMs = monotonicAfterMs - monotonicBeforeMs;
-  if (roundTripMs > maxRttMs) {
-    throw new BootAnchorCaptureError(
-      'CLOCK_SAMPLE_RTT_TOO_HIGH',
-      `Clock-anchor RTT ${roundTripMs.toFixed(3)}ms exceeds ${maxRttMs}ms.`,
-    );
+  let timing;
+  try {
+    timing = computeBootAnchorTiming({
+      wallBeforeUtcMs: input.wallBeforeUtcMs,
+      wallAfterUtcMs: input.wallAfterUtcMs,
+      monotonicBeforeMs: input.monotonicBeforeMs,
+      monotonicAfterMs: input.monotonicAfterMs,
+      localWallClockUncertaintyMs: input.localWallClockUncertaintyMs,
+    });
+  } catch (error) {
+    if (error instanceof BootAnchorTimingError) {
+      throw new BootAnchorCaptureError(error.code, error.message);
+    }
+    throw error;
   }
-
-  const wallElapsedMs = wallAfterUtcMs - wallBeforeUtcMs;
-  const wallMonotonicSkewMs = Math.abs(wallElapsedMs - roundTripMs);
-  if (wallMonotonicSkewMs > maxWallMonotonicSkewMs) {
-    throw new BootAnchorCaptureError(
-      'WALL_CLOCK_DISCONTINUITY',
-      `Wall/monotonic elapsed time diverged by ${wallMonotonicSkewMs.toFixed(3)}ms.`,
-    );
-  }
-
-  const midpointUtcMs = wallBeforeUtcMs + Math.floor(roundTripMs / 2);
-
-  // RTT/2 bounds transport asymmetry. Local wall-clock uncertainty is supplied
-  // by the caller and must not be assumed zero. Add observed wall/monotonic
-  // divergence plus 2ms for Date.now quantization and midpoint rounding.
-  const uncertaintyMs =
-    localWallClockUncertaintyMs
-    + Math.ceil(roundTripMs / 2)
-    + Math.ceil(wallMonotonicSkewMs)
-    + 2;
 
   return {
     strategy: 'BOOT_ANCHOR_V1',
@@ -147,10 +98,10 @@ export function buildBootAnchorV1(input: {
     bleDeviceId,
     bootSessionId: response.bootSessionId,
     anchorDeviceMs: response.deviceMs,
-    anchorUtc: new Date(midpointUtcMs),
-    uncertaintyMs,
-    roundTripMs,
-    wallMonotonicSkewMs,
+    anchorUtc: new Date(timing.anchorUtcMs),
+    uncertaintyMs: timing.uncertaintyMs,
+    roundTripMs: timing.roundTripMs,
+    wallMonotonicSkewMs: timing.wallMonotonicSkewMs,
     requestNonce,
   };
 }
