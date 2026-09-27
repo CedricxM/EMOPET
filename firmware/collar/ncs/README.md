@@ -1,12 +1,12 @@
 # EMOPET TAG — nRF Connect SDK peripheral scaffold
 
 **Parent:** #625  
-**SDK baseline:** nRF Connect SDK 3.4.0 LTS  
+**SDK baseline:** nRF Connect SDK v3.4.1 LTS  
 **Status:** `SCAFFOLD CANDIDATE / DK COMPILE HARNESS ONLY / MS88SF3 BOARD AUTHORITY OPEN`
 
 ## Purpose
 
-This directory is the first explicit target-firmware runtime for the TAG
+This directory is the **single canonical target-firmware runtime** for the TAG
 nRF52840/MS88SF3 workstream.
 
 It provides:
@@ -22,17 +22,17 @@ It deliberately does not fabricate sensor observations.
 
 ## SDK pin
 
-Use nRF Connect SDK **v3.4.0 LTS**.
+Use nRF Connect SDK **v3.4.1 LTS**.
 
 Controlled platform metadata lives in:
 
-`config/firmware/tag-platform-v1.json`
+\`config/firmware/tag-platform-v1.json\`
 
-The recorded Nordic toolchain image is:
+The canonical source pin is also encoded in:
 
-`ghcr.io/nrfconnect/sdk-nrf-toolchain:v3.4.0`
+\`firmware/collar/ncs/west.yml\`
 
-with controlled digest recorded in the platform JSON.
+No stale v3.4.0 container digest is treated as current v3.4.1 authority. A 3.4.1 toolchain/build receipt must be captured separately before claiming a target build.
 
 ## Temporary compile harness
 
@@ -41,11 +41,14 @@ only allowed generic compile harness is:
 
 `nrf52840dk/nrf52840`
 
-Example from an NCS v3.4.0 workspace:
+Example from the controlled west workspace:
 
 ```sh
-west build -b nrf52840dk/nrf52840 firmware/collar/ncs \
-  -d build/emopet-tag-dk
+git clone <EMOPET repository URL> emopet
+west init -l emopet/firmware/collar/ncs
+west update
+west zephyr-export
+west build -p always -b nrf52840dk/nrf52840 emopet/firmware/collar/ncs
 ```
 
 A successful DK build would prove source/API/toolchain coherence only.
@@ -117,4 +120,13 @@ separate.
 
 Until those exist:
 
-`real TAG -> BLE` = **NOT PROVEN**.
+\`real TAG -> BLE\` = **NOT PROVEN**.
+
+## Authority consolidation — 2026-09-27
+
+The concurrent G1 bootstrap under the former \`firmware/collar/zephyr\` path has
+been consolidated into this \`firmware/collar/ncs\` root.
+
+There must be one platform tree, one SDK pin, and one guard. Any future platform
+change must update this README, \`tag-platform-v1.json\`, \`west.yml\`, and the
+single \`tag-ncs-platform.test.mjs\` guard together.
