@@ -26,12 +26,17 @@ The source-backed evaluation authority lives at:
 
 `config/security/device-identity-pop-evaluation-v1.json`
 
-and the decision pack at:
+with the selected ADR at:
 
-`docs/security/DEVICE_IDENTITY_POP_DECISION_2026-09-27.md`.
+`docs/security/DEVICE_IDENTITY_POP_ADR_2026-09-27.md`.
 
-No architecture or algorithm is selected yet. The nRF52840-specific comparison
-must close #648 before a Device Data Trust runtime can be activated.
+P0 selects **device-specific asymmetric proof of possession using
+ECDSA/SHA-256 on secp256r1 (P-256)**.
+
+The private key is generated on-device and the backend enrolls only the public
+key. Production trust still requires HUK-backed private-key storage, NSIB,
+APPROTECT/debug evidence, secure boot/signed firmware dependencies and
+representative MS88SF3 target proof. Device Data Trust remains fail-closed.
 
 Each production device needs a canonical principal independent of its BLE address.
 
@@ -44,7 +49,7 @@ Required properties:
 - manufacturing batch / hardware revision / firmware bootstrap provenance;
 - revocation status.
 
-Open implementation choices include MCU-backed key storage, secure element, or another controlled hardware identity. No choice is made here.
+Selected P0 implementation direction is on-device P-256 private key + backend public-key enrollment. External secure element remains an escalation path if the nRF52840 target cannot satisfy the agreed threat boundary.
 
 ## 3. First claim
 

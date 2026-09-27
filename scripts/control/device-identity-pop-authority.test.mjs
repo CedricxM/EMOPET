@@ -12,30 +12,35 @@ const [evaluationSource, trustSource, ingressSource, masterSource] = await Promi
 const evaluation = JSON.parse(evaluationSource);
 const trust = JSON.parse(trustSource);
 
-test('#648 remains evaluation-only with no implicit crypto selection', () => {
+test('#648 selects exactly one P0 asymmetric architecture while runtime remains blocked', () => {
   assert.equal(
     evaluation.status,
-    'EVALUATION_ONLY / NO_ARCHITECTURE_SELECTED / DEVICE_DATA_TRUST_RUNTIME_BLOCKED',
+    'P0_ARCHITECTURE_SELECTED / ASYMMETRIC_POP / TARGET_PROOF_REQUIRED / DEVICE_DATA_TRUST_RUNTIME_BLOCKED',
   );
   assert.equal(evaluation.issue, 648);
   assert.equal(evaluation.parentIssue, 66);
 
-  for (const field of [
-    'architecture',
-    'algorithmFamily',
-    'keySizeOrCurve',
-    'challengeFormat',
-    'credentialProvisioningFlow',
-    'backendEnrollmentSchema',
-    'rotationRevocationPolicy',
-    'debugSwdProductionPolicy',
-  ]) {
-    assert.equal(evaluation.selection[field], null, field);
-  }
+  assert.equal(evaluation.selection.architecture, 'B_DEVICE_SPECIFIC_ASYMMETRIC_POP');
+  assert.equal(evaluation.selection.algorithmFamily, 'ECDSA_SHA256');
+  assert.equal(evaluation.selection.keySizeOrCurve, 'SECP256R1_256');
+  assert.equal(
+    evaluation.selection.credentialProvisioningFlow,
+    'ON_DEVICE_KEY_GENERATION / PUBLIC_KEY_ENROLLMENT / FRESH_CHALLENGE_PROOF / APPROTECT_BEFORE_ACTIVE',
+  );
+  assert.equal(
+    evaluation.selection.backendEnrollmentSchema,
+    'PUBLIC_KEY_PER_CANONICAL_DEVICE_PRINCIPAL_AND_CREDENTIAL_VERSION',
+  );
+  assert.equal(
+    evaluation.selection.debugSwdProductionPolicy,
+    'APPROTECT_REQUIRED_BEFORE_CREDENTIAL_ACTIVE',
+  );
+  assert.equal(evaluation.selection.challengeFormat, null);
+  assert.equal(evaluation.selection.rotationRevocationPolicy, null);
 
-  for (const candidate of Object.values(evaluation.candidates)) {
-    assert.equal(candidate.state, 'EVALUATE');
-  }
+  assert.match(evaluation.candidates.A_HUK_KDR_DERIVED_SYMMETRIC_POP.state, /NOT_SELECTED/);
+  assert.match(evaluation.candidates.B_DEVICE_SPECIFIC_ASYMMETRIC_POP.state, /SELECTED_FOR_P0/);
+  assert.match(evaluation.candidates.C_EXTERNAL_SECURE_ELEMENT.state, /ESCALATION_ONLY/);
 });
 
 test('nRF52840 hardware constraints are explicit and do not inflate identifiers into authentication', () => {
@@ -71,12 +76,18 @@ test('main Device Trust authority delegates identity selection to #648 while kee
     trust.devicePrincipal.identityArchitectureAuthority,
     'config/security/device-identity-pop-evaluation-v1.json',
   );
-  assert.equal(trust.devicePrincipal.identityArchitectureSelection, 'OPEN');
+  assert.equal(
+    trust.devicePrincipal.identityArchitectureSelection,
+    'B_DEVICE_SPECIFIC_ASYMMETRIC_POP / ECDSA_SHA256_SECP256R1 / TARGET_PROOF_REQUIRED',
+  );
   assert.equal(
     trust.devicePrincipal.ficrDeviceIdAuthority,
     'IDENTIFIER_ONLY / NOT_AUTHENTICATOR',
   );
-  assert.equal(trust.claimBinding.proofOfPossessionArchitecture, 'OPEN_UNDER_648');
+  assert.equal(
+    trust.claimBinding.proofOfPossessionArchitecture,
+    'ECDSA_SHA256_SECP256R1 / PUBLIC_KEY_VERIFICATION / RUNTIME_NOT_IMPLEMENTED',
+  );
   assert.equal(trust.telemetryIngestion.deviceIdentityArchitectureGate, 648);
   assert.equal(trust.telemetryIngestion.runtime, 'NOT_IMPLEMENTED');
   assert.equal(evaluation.runtime.deviceDataTrust, 'NOT_IMPLEMENTED');
@@ -100,5 +111,7 @@ test('backend Device Data Trust hard stop remains executable until #648 closes',
 test('Device Trust master points manufacturing identity to #648', () => {
   assert.match(masterSource, /Current P0 architecture gate:\*\* #648/);
   assert.match(masterSource, /device-identity-pop-evaluation-v1\.json/);
-  assert.match(masterSource, /No architecture or algorithm is selected yet/);
+  assert.match(masterSource, /device-specific asymmetric proof of possession/i);
+  assert.match(masterSource, /ECDSA\/SHA-256/);
+  assert.match(masterSource, /secp256r1 \(P-256\)/);
 });

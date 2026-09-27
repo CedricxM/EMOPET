@@ -56,25 +56,25 @@ test('manufacturing flow cannot activate trust without challenge proof and final
   assert.match(provisioningSource, /No raw device root\/private key belongs in the receipt/);
 });
 
-test('threat/provisioning evidence is delivered while architecture and runtime remain blocked', () => {
+test('threat/provisioning evidence is delivered and selected architecture stays non-activating', () => {
   assert.equal(evaluation.evidenceState.threatModel.status, 'DELIVERED');
   assert.equal(
     evaluation.evidenceState.commonManufacturingProvisioning.status,
     'DELIVERED_AS_ARCHITECTURE_NEUTRAL_FLOW',
   );
 
-  assert.equal(evaluation.selection.architecture, null);
-  assert.equal(evaluation.selection.algorithmFamily, null);
+  assert.equal(evaluation.selection.architecture, 'B_DEVICE_SPECIFIC_ASYMMETRIC_POP');
+  assert.equal(evaluation.selection.algorithmFamily, 'ECDSA_SHA256');
+  assert.equal(evaluation.selection.keySizeOrCurve, 'SECP256R1_256');
   assert.equal(evaluation.selection.challengeFormat, null);
+
+  assert.equal(threat.selection.architecture, 'B_DEVICE_SPECIFIC_ASYMMETRIC_POP');
+  assert.equal(threat.selection.algorithmFamily, 'ECDSA_SHA256');
+  assert.equal(threat.selection.curve, 'SECP256R1_256');
 
   assert.equal(evaluation.runtime.deviceDataTrust, 'NOT_IMPLEMENTED');
   assert.equal(evaluation.runtime.networkTelemetryPersistence, 'BLOCKED');
-
   assert.equal(trust.telemetryIngestion.runtime, 'NOT_IMPLEMENTED');
-  assert.equal(
-    trust.devicePrincipal.identityArchitectureSelection,
-    'OPEN',
-  );
 });
 
 test('debug/RMA authority cannot preserve trust by public identifier alone', () => {

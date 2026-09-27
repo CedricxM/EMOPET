@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-device-identity-pop-evaluation-v1",
-  "status": "EVALUATION_ONLY / NO_ARCHITECTURE_SELECTED / DEVICE_DATA_TRUST_RUNTIME_BLOCKED",
+  "status": "P0_ARCHITECTURE_SELECTED / ASYMMETRIC_POP / TARGET_PROOF_REQUIRED / DEVICE_DATA_TRUST_RUNTIME_BLOCKED",
   "issue": 648,
   "parentIssue": 66,
   "target": {
@@ -19,7 +19,7 @@
   },
   "candidates": {
     "A_HUK_KDR_DERIVED_SYMMETRIC_POP": {
-      "state": "EVALUATE",
+      "state": "NOT_SELECTED_FOR_P0 / FALLBACK_ONLY",
       "root": "KDR_HUK",
       "applicationKey": "DERIVED_PURPOSE_SEPARATED_KEY",
       "proofFamily": "SYMMETRIC_CHALLENGE_RESPONSE",
@@ -27,37 +27,41 @@
       "manufacturingFlow": "OPEN",
       "keyRotationModel": "OPEN",
       "rmaModel": "OPEN",
-      "knownConstraint": "HUK_ROOT_MUST_NOT_BE_USED_DIRECTLY_AS_APPLICATION_KEY"
+      "knownConstraint": "HUK_ROOT_MUST_NOT_BE_USED_DIRECTLY_AS_APPLICATION_KEY",
+      "nonSelectionReason": "BACKEND_MUST_HOLD_OR_RECOVER_PER_DEVICE_SYMMETRIC_VERIFICATION_SECRET / LARGER_SERVER_SECRET_BLAST_RADIUS"
     },
     "B_DEVICE_SPECIFIC_ASYMMETRIC_POP": {
-      "state": "EVALUATE",
+      "state": "SELECTED_FOR_P0 / TARGET_PROOF_REQUIRED",
       "privateKeyStorage": "OPEN_THREAT_ANALYSIS_REQUIRED",
       "proofFamily": "ASYMMETRIC_CHALLENGE_SIGNATURE",
       "serverEnrollmentModel": "PUBLIC_KEY_OR_EQUIVALENT",
       "manufacturingFlow": "OPEN",
       "keyRotationModel": "OPEN",
       "rmaModel": "OPEN",
-      "knownConstraint": "NO_KMU_ON_NRF52840 / DO_NOT_ASSUME_KMU_BACKED_IDENTITY_KEY_LIBRARY"
+      "knownConstraint": "NO_KMU_ON_NRF52840 / DO_NOT_ASSUME_KMU_BACKED_IDENTITY_KEY_LIBRARY",
+      "selectedPrivateKeyProtection": "HUK_DERIVED_TRUSTED_STORAGE / NSIB_REQUIRED / APPROTECT_REQUIRED",
+      "selectedProof": "ECDSA_SHA256_SECP256R1"
     },
     "C_EXTERNAL_SECURE_ELEMENT": {
-      "state": "EVALUATE",
+      "state": "ESCALATION_ONLY / NOT_SELECTED_FOR_P0",
       "proofFamily": "HARDWARE_ISOLATED_CHALLENGE_RESPONSE",
       "bomImpact": true,
       "pcbImpact": true,
       "manufacturingFixtureImpact": true,
       "supplyChainImpact": true,
-      "knownConstraint": "NOT_CURRENTLY_PRESENT_IN_TAG_BOM"
+      "knownConstraint": "NOT_CURRENTLY_PRESENT_IN_TAG_BOM",
+      "nonSelectionReason": "CURRENT_P0_THREAT_MODEL_DOES_NOT_REQUIRE_EXTRA_BOM_AND_FIXTURE_COMPLEXITY"
     }
   },
   "selection": {
-    "architecture": null,
-    "algorithmFamily": null,
-    "keySizeOrCurve": null,
+    "architecture": "B_DEVICE_SPECIFIC_ASYMMETRIC_POP",
+    "algorithmFamily": "ECDSA_SHA256",
+    "keySizeOrCurve": "SECP256R1_256",
     "challengeFormat": null,
-    "credentialProvisioningFlow": null,
-    "backendEnrollmentSchema": null,
+    "credentialProvisioningFlow": "ON_DEVICE_KEY_GENERATION / PUBLIC_KEY_ENROLLMENT / FRESH_CHALLENGE_PROOF / APPROTECT_BEFORE_ACTIVE",
+    "backendEnrollmentSchema": "PUBLIC_KEY_PER_CANONICAL_DEVICE_PRINCIPAL_AND_CREDENTIAL_VERSION",
     "rotationRevocationPolicy": null,
-    "debugSwdProductionPolicy": null
+    "debugSwdProductionPolicy": "APPROTECT_REQUIRED_BEFORE_CREDENTIAL_ACTIVE"
   },
   "nonAuthorities": [
     "BLE_RUNTIME_DEVICE_ID",
@@ -97,13 +101,22 @@
       "status": "DELIVERED_AS_ARCHITECTURE_NEUTRAL_FLOW",
       "authority": "docs/security/DEVICE_IDENTITY_MANUFACTURING_PROVISIONING_2026-09-27.md"
     },
-    "architectureDecisionRecord": "OPEN",
-    "backendEnrollmentModel": "OPEN",
+    "architectureDecisionRecord": "DELIVERED / B_SELECTED_PENDING_TARGET_PROOF",
+    "backendEnrollmentModel": "SELECTED_PUBLIC_KEY_MODEL / SCHEMA_IMPLEMENTATION_OPEN",
     "challengeResponseContract": "OPEN",
     "replayFreshnessPolicy": "OPEN",
     "rotationRevocationRebindRma": "PARTIAL_COMMON_FLOW_ONLY",
     "debugSwdProductionPolicy": "DECISION_REQUIRED / RECEIPT_SHAPE_DEFINED",
     "negativeAuthenticationTests": "OPEN",
     "representativeTargetHardwareProof": "OPEN"
+  },
+  "selectedArchitectureDependencies": {
+    "privateKeyAtRest": "TRUSTED_STORAGE_WITH_HUK_DERIVED_AEAD_KEY",
+    "nrf52840HukPrerequisite": "NSIB + CONFIG_HW_UNIQUE_KEY / TARGET_BUILD_PROOF_REQUIRED",
+    "privateKeyInUseIsolation": "NO_TRUSTZONE_ON_NRF52840 / P0_ACCEPTS_WITH_APPROTECT_AND_SIGNED_FIRMWARE_DEPENDENCY",
+    "secureBoot": "REQUIRED_BEFORE_PRODUCTION_TRUST_ACTIVATION",
+    "signedOta": "REQUIRED_BEFORE_PRODUCTION_TRUST_ACTIVATION",
+    "representativeHardwareProof": "REQUIRED_BEFORE_648_CLOSE",
+    "networkPersistence": "STILL_BLOCKED"
   }
 }
