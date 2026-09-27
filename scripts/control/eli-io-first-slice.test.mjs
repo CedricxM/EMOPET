@@ -2,23 +2,39 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-test('activity_variability transport gap stays explicit', async () => {
+test('activity_variability has a canonical firmware writer while live delivery remains explicit', async () => {
   const feature = await readFile(new URL('../../packages/shared/src/types/feature-vector.ts', import.meta.url), 'utf8');
   const frames = await readFile(new URL('../../packages/ble-protocol/src/frames/types.ts', import.meta.url), 'utf8');
+  const writer = await readFile(new URL('../../firmware/collar/main/transport/activity_feature_summary.c', import.meta.url), 'utf8');
   const authority = JSON.parse(await readFile(new URL('../../config/eli/io-first-slice.json', import.meta.url), 'utf8'));
 
   assert.ok(feature.includes('activity_variability: number | null'));
+
+  // BLE V1 TAG SensorFrame remains unchanged. The feature uses a separate,
+  // versioned feature-summary frame rather than silently extending TAG V1.
   assert.equal(/activityVariability\s*:/.test(frames), false);
   assert.equal(/activity_variability\s*:/.test(frames), false);
   assert.equal(authority.currentTransport.tagPayloadContainsActivityVariability, false);
-  assert.equal(authority.currentTransport.backendFeaturePersistenceImplemented, true);
+
+  assert.equal(authority.currentTransport.firmwareWriterImplemented, true);
+  assert.equal(authority.currentTransport.featureSummaryTransportVersion, 1);
+  assert.equal(authority.currentTransport.featureSummaryFrameSizeBytes, 27);
+  assert.match(writer, /FEATURE_SUMMARY_HEADER 0xEBu/);
+  assert.match(writer, /TAG_FEATURE_SUMMARY_FRAME_SIZE/);
+
+  // The remaining gap must stay visible.
+  assert.equal(authority.currentTransport.mobileBleSubscriptionImplemented, false);
+  assert.equal(authority.currentTransport.productionClockAnchorImplemented, false);
   assert.equal(authority.currentTransport.networkFeatureIngestionActivated, false);
   assert.equal(authority.currentTransport.featureEnvelopeIngestionImplemented, false);
   assert.equal(authority.currentTransport.endToEndPath, false);
-  assert.equal(authority.backendPersistenceBoundary.publicRoute, false);
+
+  // #621 exposes the persisted physical observation only, not latent ELI.
+  assert.equal(authority.backendPersistenceBoundary.publicRoute, true);
+  assert.equal(authority.backendPersistenceBoundary.ownerProjection, true);
   assert.equal(authority.backendPersistenceBoundary.eliInvocation, false);
-  assert.equal(authority.backendPersistenceBoundary.ownerProjection, false);
-  assert.equal(authority.currentDecision, 'DO_NOT_ACTIVATE');
+  assert.equal(authority.backendPersistenceBoundary.ownerProjectionAuthority, 'PHYSICAL_MOVEMENT_VARIABILITY_ONLY');
+  assert.equal(authority.currentDecision, 'DO_NOT_CLAIM_LIVE_TAG_DELIVERY');
 });
 
 test('first slice assigns one computation owner without authorizing duplicate recompute', async () => {
