@@ -32,7 +32,7 @@
     },
     "B_DEVICE_SPECIFIC_ASYMMETRIC_POP": {
       "state": "SELECTED_FOR_P0 / TARGET_PROOF_REQUIRED",
-      "privateKeyStorage": "OPEN_THREAT_ANALYSIS_REQUIRED",
+      "privateKeyStorage": "HUK_DERIVED_SECURE_STORAGE_SELECTED / SOURCE_PROVISIONER_CANDIDATE / TARGET_PROOF_OPEN",
       "proofFamily": "ASYMMETRIC_CHALLENGE_SIGNATURE",
       "serverEnrollmentModel": "PUBLIC_KEY_OR_EQUIVALENT",
       "manufacturingFlow": "OPEN",
@@ -112,7 +112,10 @@
     "challengeIssuer": "SOURCE_PRIMITIVE_DELIVERED / DURABLE_STORE_AND_ROUTE_OPEN",
     "challengePersistence": "BLOCKED_PENDING_NON_CONFLICTING_ACTIVE_MIGRATION_SLOT",
     "backendVerifier": "SOURCE_PRIMITIVE_DELIVERED / DURABLE_STORE_ROUTE_DEVICE_DATA_TRUST_OPEN",
-    "devicePreimageCodec": "DELIVERED_C_BACKEND_BYTE_PARITY / SIGNER_AND_KEY_STORAGE_OPEN"
+    "devicePreimageCodec": "DELIVERED_C_BACKEND_BYTE_PARITY / SIGNER_AND_KEY_STORAGE_OPEN",
+    "deviceSigner": "DELIVERED_OPAQUE_PSA_P256_SOURCE_PRIMITIVE / NO_RUNTIME_CALL_SITE",
+    "devicePrivateKeyProvisioning": "SOURCE_CANDIDATE_BEHIND_DEFAULT_OFF_KCONFIG / HUK_SECURE_STORAGE_TARGET_PROOF_OPEN",
+    "privateKeyStorage": "SECURE_STORAGE_WITH_HUK_KDR_AEAD_SELECTED / NSIB_AND_TARGET_EVIDENCE_OPEN"
   },
   "selectedArchitectureDependencies": {
     "privateKeyAtRest": "TRUSTED_STORAGE_WITH_HUK_DERIVED_AEAD_KEY",
@@ -123,5 +126,6 @@
     "representativeHardwareProof": "REQUIRED_BEFORE_648_CLOSE",
     "networkPersistence": "STILL_BLOCKED"
   },
-  "challengeContractAuthority": "config/security/device-pop-challenge-v1.json"
+  "challengeContractAuthority": "config/security/device-pop-challenge-v1.json",
+  "childKeyStorageIssue": 657
 }
