@@ -89,8 +89,11 @@ test('replay and expiry remain server-owned and fail closed', () => {
     contract.runtime.challengeIssuer,
     'SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_AUTHORITIES_REQUIRED / NO_HTTP_ROUTE',
   );
+  assert.equal(
+    contract.runtime.deviceSigner,
+    'SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_OPAQUE_PSA_KEY_ID / NO_KEY_GENERATION_OR_STORAGE',
+  );
   for (const state of [
-    'deviceSigner',
     'replayStore',
     'credentialRepository',
     'deviceDataTrust',
@@ -199,7 +202,7 @@ test('verifier primitive reconstructs server challenge state and cannot activate
 });
 
 
-test('device-side preimage builder stays serialization-only while signer remains open', async () => {
+test('device-side preimage stays serialization-only while signer source remains storage-separated', async () => {
   const preimageSource = await readFile(
     new URL('../../firmware/collar/main/security/device_pop_preimage.c', import.meta.url),
     'utf8',
@@ -213,7 +216,13 @@ test('device-side preimage builder stays serialization-only while signer remains
     contract.runtime.devicePreimageBuilder,
     'SOURCE_IMPLEMENTED / C_BACKEND_BYTE_PARITY_GATED / NO_PRIVATE_KEY_ACCESS',
   );
-  assert.equal(contract.runtime.deviceSigner, 'NOT_IMPLEMENTED');
+  assert.equal(
+    contract.runtime.deviceSigner,
+    'SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_OPAQUE_PSA_KEY_ID / NO_KEY_GENERATION_OR_STORAGE',
+  );
+  assert.equal(contract.runtime.deviceSignerTargetBuildVerified, false);
+  assert.equal(contract.runtime.devicePrivateKeyProvisioning, 'NOT_IMPLEMENTED');
+  assert.match(contract.runtime.devicePrivateKeyStorage, /NOT_IMPLEMENTED/);
   assert.match(preimageHeader, /DEVICE_POP_PREIMAGE_V1_SIZE\s+106u/);
   assert.match(preimageSource, /EMOPET_DEVICE_POP_V1/);
   assert.match(preimageSource, /write_u32_be/);
