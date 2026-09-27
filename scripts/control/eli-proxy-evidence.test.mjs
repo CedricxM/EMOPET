@@ -9,7 +9,7 @@ const ids = [
   'S01','S02','S03','S04','S05',
 ];
 
-test('all 23 Guardian proxies have explicit machine-readable evidence status', async () => {
+test('all 23 Owner-facing proxies have explicit machine-readable evidence status', async () => {
   const url = new URL('../../config/science/eli-proxy-evidence.json', import.meta.url);
   const map = JSON.parse(await readFile(url, 'utf8'));
   assert.deepEqual(Object.keys(map.proxies).sort(), ids.sort());
@@ -20,7 +20,7 @@ test('all 23 Guardian proxies have explicit machine-readable evidence status', a
   }
 });
 
-test('Guardian proxy modal does not render a bare validation-looking reference label', async () => {
+test('Owner-facing proxy modal does not render a bare validation-looking reference label', async () => {
   const url = new URL('../../apps/web/components/eli/ProxyChartModal.tsx', import.meta.url);
   const source = await readFile(url, 'utf8');
   assert.equal(source.includes('Référence : {proxy.reference}'), false);
