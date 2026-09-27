@@ -1,7 +1,7 @@
 {
   "schemaVersion": "emopet-tag-fw-platform-authority-v1",
   "issue": 625,
-  "status": "G1_CANDIDATE / NCS_ZEPHYR_BOOTSTRAP / DK_COMPILE_HARNESS_ONLY",
+  "status": "G1_PLUS_GATT_SOURCE_CANDIDATE / NCS_V3_4_1_LTS / DK_COMPILE_HARNESS_ONLY / TARGET_EVIDENCE_OPEN",
   "platformFamily": "Nordic nRF Connect SDK / Zephyr",
   "ncs": {
     "series": "3.4.x LTS",
@@ -23,15 +23,35 @@
   },
   "bluetooth": {
     "stackInitializationImplemented": true,
-    "gattServiceImplemented": false,
-    "featureSummaryCharacteristicImplemented": false,
-    "notificationImplemented": false,
-    "deviceTrustImplemented": false
+    "gattServiceImplemented": true,
+    "sensorFrameCharacteristicImplemented": true,
+    "featureSummaryCharacteristicImplemented": true,
+    "notificationImplemented": true,
+    "uuidAuthority": "config/ble/uuid-authority-v1.json",
+    "featureSummaryNotifyUsesCanonicalFirmwareSerializer": true,
+    "deviceTrustImplemented": false,
+    "deviceTrustIssue": 66
+  },
+  "transport": {
+    "bootSessionSource": "sys_rand32_get",
+    "bootSessionIsSecurityIdentity": false,
+    "sequence": "uint16_per_boot_increment_after_successful_notify",
+    "windowEndMsSource": "k_uptime_get_32",
+    "utcWallClockOnTag": false,
+    "backendClockAnchorStillRequired": true
   },
   "build": {
     "westManifest": "firmware/collar/zephyr/west.yml",
     "application": "firmware/collar/zephyr",
-    "cleanBuildCommand": "west build -p always -b nrf52840dk/nrf52840 emopet/firmware/collar/zephyr"
+    "cleanBuildCommand": "west build -p always -b nrf52840dk/nrf52840 emopet/firmware/collar/zephyr",
+    "ncsTargetBuildStatus": "NOT_YET_EXECUTED",
+    "targetFlashStatus": "NOT_RUN",
+    "realBleCaptureStatus": "NOT_RUN"
+  },
+  "evidence": {
+    "bootstrapGuard": "scripts/control/tag-fw-platform-g1.test.mjs",
+    "gattGuard": "scripts/control/tag-ncs-platform.test.mjs",
+    "firmwareCodecParityGuard": "scripts/control/tag-feature-summary-firmware-conformance.test.mjs"
   },
   "currentDecision": "DO_NOT_CLAIM_MS88SF3_TARGET_BUILD_OR_LIVE_GATT"
 }
