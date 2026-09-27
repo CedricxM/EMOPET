@@ -106,11 +106,9 @@ jobs:
         run: pnpm control:eli-runtime-conformance:test
       - name: Enforce ELI activity-feature IO boundary (#122)
         run: node --test scripts/control/eli-io-first-slice.test.mjs
-      - name: Enforce TAG firmware G1 platform boundary (#625)
-        run: node --test scripts/control/tag-fw-platform-g1.test.mjs
       - name: Enforce proprietary BLE UUID authority (#625)
         run: node --test scripts/control/ble-uuid-authority.test.mjs
-      - name: Enforce TAG NCS platform scaffold authority (#625)
+      - name: Enforce canonical TAG NCS platform authority (#625)
         run: node --test scripts/control/tag-ncs-platform.test.mjs
       - name: Enforce rr_variability window reachability (#86)
         run: |
