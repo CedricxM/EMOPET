@@ -43,6 +43,7 @@ function fingerprint(row: {
   featureContractVersion: string;
   windowSeconds: number;
   validSeconds: number;
+  qualityState: string | null;
   firmwareVersionAtIngest: string | null;
   transportVersion: number | null;
   transportBootSessionId: number | null;
@@ -65,6 +66,7 @@ function fingerprint(row: {
     featureContractVersion: row.featureContractVersion,
     windowSeconds: row.windowSeconds,
     validSeconds: row.validSeconds,
+    qualityState: row.qualityState,
     firmwareVersionAtIngest: row.firmwareVersionAtIngest,
     transportVersion: row.transportVersion,
     transportBootSessionId: row.transportBootSessionId,
@@ -191,6 +193,7 @@ export async function persistActivityVariabilityFeatureObservation(
         featureContractVersion: input.featureContractVersion,
         windowSeconds: input.windowSeconds,
         validSeconds: input.validSeconds,
+        qualityState: input.qualityState ?? null,
         firmwareVersionAtIngest: device.firmwareVersion,
         transportVersion: transport?.transportVersion ?? null,
         transportBootSessionId: transport?.bootSessionId ?? null,

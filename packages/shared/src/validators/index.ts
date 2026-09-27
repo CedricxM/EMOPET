@@ -186,6 +186,86 @@ export const SensorSummaryCreateSchema = z.object({
 }).strict();
 
 
+export const ActivityVariabilityFeatureTransportFrameSchema = z.object({
+  transportVersion: z.literal(1),
+  source: z.literal('TAG'),
+  featureKey: z.literal('activity_variability'),
+  featureContractVersion: z.literal('tag-activity-variability-cv30m-v1'),
+  sequence: z.number().int().min(0).max(0xffff),
+  bootSessionId: z.number().int().min(0).max(0xffffffff),
+  windowEndMs: z.number().int().min(0).max(0xffffffff),
+  windowSeconds: z.literal(1800),
+  validSeconds: z.number().int().min(0).max(1800),
+  observationStatus: z.enum(['OBSERVED', 'NOT_OBSERVED']),
+  nullReason: z.enum([
+    'INSUFFICIENT_COVERAGE',
+    'MEAN_BELOW_DIVISION_GUARD',
+  ]).nullable(),
+  qualityState: z.enum(['VALID', 'DEGRADED', 'SUPPRESSED']),
+  value: z.number().finite().min(0).nullable(),
+}).strict().superRefine((value, ctx) => {
+  if (value.observationStatus === 'OBSERVED') {
+    if (value.value === null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['value'],
+        message: 'OBSERVED requires a finite non-null value',
+      });
+    }
+    if (value.nullReason !== null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['nullReason'],
+        message: 'OBSERVED must not carry a null reason',
+      });
+    }
+    if (value.validSeconds < 900) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['validSeconds'],
+        message: 'OBSERVED requires at least 900 valid seconds',
+      });
+    }
+    if (value.qualityState === 'SUPPRESSED') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['qualityState'],
+        message: 'OBSERVED must not be SUPPRESSED',
+      });
+    }
+    return;
+  }
+
+  if (value.value !== null) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['value'],
+      message: 'NOT_OBSERVED must carry null value',
+    });
+  }
+  if (value.nullReason === null) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['nullReason'],
+      message: 'NOT_OBSERVED requires an explicit null reason',
+    });
+  }
+  if (value.nullReason === 'INSUFFICIENT_COVERAGE' && value.validSeconds >= 900) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['validSeconds'],
+      message: 'INSUFFICIENT_COVERAGE requires fewer than 900 valid seconds',
+    });
+  }
+  if (value.nullReason === 'MEAN_BELOW_DIVISION_GUARD' && value.validSeconds < 900) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['validSeconds'],
+      message: 'MEAN_BELOW_DIVISION_GUARD requires at least 900 valid seconds',
+    });
+  }
+});
+
 export const ActivityVariabilityFeatureObservationCreateSchema = z.object({
   dogId: z.string().uuid(),
   ingestionId: z.string().uuid().optional(),
@@ -202,6 +282,7 @@ export const ActivityVariabilityFeatureObservationCreateSchema = z.object({
   featureContractVersion: z.literal('tag-activity-variability-cv30m-v1'),
   windowSeconds: z.literal(1800),
   validSeconds: z.number().int().min(0).max(1800),
+  qualityState: z.enum(['VALID', 'DEGRADED', 'SUPPRESSED']).optional(),
   transportProvenance: z.object({
     transportVersion: z.literal(1),
     bootSessionId: z.number().int().min(0).max(0xffffffff),
@@ -244,6 +325,13 @@ export const ActivityVariabilityFeatureObservationCreateSchema = z.object({
         code: z.ZodIssueCode.custom,
         path: ['nullReason'],
         message: 'OBSERVED must not carry a null reason',
+      });
+    }
+    if (value.qualityState === 'SUPPRESSED') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['qualityState'],
+        message: 'OBSERVED must not be SUPPRESSED',
       });
     }
     if (value.validSeconds < 900) {

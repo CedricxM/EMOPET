@@ -32,6 +32,7 @@ export interface ActivityFeatureReadObservation {
   firmwareVersionAtIngest: string | null;
   windowSeconds: 1800;
   validSeconds: number;
+  qualityState: 'VALID' | 'DEGRADED' | 'SUPPRESSED' | null;
   interpretationAuthority: 'PHYSICAL_MOVEMENT_VARIABILITY_ONLY';
   affectiveInterpretationAuthorized: false;
   eliInvocationAuthorized: false;
@@ -91,6 +92,7 @@ function project(
     firmwareVersionAtIngest: row.firmwareVersionAtIngest,
     windowSeconds: 1800,
     validSeconds: row.validSeconds,
+    qualityState: row.qualityState as ActivityFeatureReadObservation['qualityState'],
     interpretationAuthority: 'PHYSICAL_MOVEMENT_VARIABILITY_ONLY',
     affectiveInterpretationAuthorized: false,
     eliInvocationAuthorized: false,
