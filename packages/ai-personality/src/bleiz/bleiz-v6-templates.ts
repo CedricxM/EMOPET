@@ -6,12 +6,14 @@
  *   SEP_ANTICIPATION_DETECTED
  *     Triggered when anticipation_detected.detection_threshold_met flips
  *     to true for the first time or after 30 days since last delivery.
- *     Non-medical, never labels the dog. References McEwen + Homma &
- *     Masaoka via the computed trigger field, not in the visible text.
+ *     Non-medical, never labels the dog. Detector constants remain
+ *     unvalidated EMOPET parameters under #89 and publication is fail-closed
+ *     behind explicit contract authority.
  *
  *   ALLO_RECOVERY_SLOWING
- *     Triggered when any sub-baseline's recovery_time 4-week trend
- *     exceeds +20%. Uses vet_disclaimer suffix per allostatic-load rules.
+ *     Candidate trigger based on recovery trend. Under #90 publication is
+ *     fail-closed behind explicit contract authority plus >=7 days of
+ *     runtime-owned persistence evidence.
  */
 
 import type { BleizTemplate } from './bleiz-content-templates.js';
@@ -56,6 +58,7 @@ export const SEP_ANTICIPATION_DETECTED: BleizTemplate = createTemplate({
     'sensor.anticipation_activity_ratio',
     'sensor.anticipation_occurrences_count',
     'sensor.anticipation_detection_threshold_met',
+    'sensor.anticipation_contract_authorized',
   ],
   triggers: [
     {
@@ -63,7 +66,14 @@ export const SEP_ANTICIPATION_DETECTED: BleizTemplate = createTemplate({
       field: 'sensor.anticipation_detection_threshold_met',
       operator: 'eq',
       value: true,
-      description: 'Pre-event activity ratio >1.5 with >=7 occurrences in 30d',
+      description: 'Current detector threshold met; semantics remain controlled by #89',
+    },
+    {
+      type: 'computed',
+      field: 'sensor.anticipation_contract_authorized',
+      operator: 'eq',
+      value: true,
+      description: 'Anticipation contract explicitly authorized under #89',
     },
   ],
   targeting: {},
@@ -94,6 +104,9 @@ export const ALLO_RECOVERY_SLOWING: BleizTemplate = createTemplate({
     'sensor.recovery_minutes_current',
     'sensor.recovery_minutes_baseline',
     'sensor.recovery_trend_4w_pct',
+    'sensor.recovery_contract_authorized',
+    // Fail closed until a real persistence owner supplies this field (#90).
+    'sensor.recovery_trend_sustained_days',
   ],
   triggers: [
     {
@@ -101,7 +114,21 @@ export const ALLO_RECOVERY_SLOWING: BleizTemplate = createTemplate({
       field: 'sensor.recovery_trend_4w_pct',
       operator: 'gt',
       value: 20,
-      description: 'Any sub-baseline recovery_time 4-week trend > +20%',
+      description: 'EMOPET candidate threshold: recovery_time 4-week trend > +20%',
+    },
+    {
+      type: 'computed',
+      field: 'sensor.recovery_contract_authorized',
+      operator: 'eq',
+      value: true,
+      description: 'Recovery contract explicitly authorized under #90',
+    },
+    {
+      type: 'computed',
+      field: 'sensor.recovery_trend_sustained_days',
+      operator: 'gte',
+      value: 7,
+      description: 'Required persistence guard: condition sustained for at least 7 days',
     },
   ],
   targeting: {},
