@@ -8,6 +8,7 @@
 
 #include "emopet_gatt.h"
 #include "emopet_ble_ids.h"
+#include "device_clock_sample.h"
 
 #include <errno.h>
 #include <stdbool.h>
@@ -16,6 +17,7 @@
 
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/gatt.h>
+#include <zephyr/kernel.h>
 #include <zephyr/random/random.h>
 #include <zephyr/sys/util.h>
 
@@ -25,6 +27,8 @@ static struct bt_uuid_128 emopet_sensor_frame_uuid =
     BT_UUID_INIT_128(BT_UUID_EMOPET_SENSOR_FRAME_VAL);
 static struct bt_uuid_128 emopet_feature_summary_uuid =
     BT_UUID_INIT_128(BT_UUID_EMOPET_FEATURE_SUMMARY_VAL);
+static struct bt_uuid_128 emopet_clock_sample_uuid =
+    BT_UUID_INIT_128(BT_UUID_EMOPET_CLOCK_SAMPLE_VAL);
 
 static bool feature_notify_enabled;
 static uint32_t boot_session_id;
@@ -38,6 +42,37 @@ static void feature_ccc_changed(
     ARG_UNUSED(attr);
     feature_notify_enabled = (value == BT_GATT_CCC_NOTIFY);
 }
+
+static ssize_t read_clock_sample(
+    struct bt_conn *conn,
+    const struct bt_gatt_attr *attr,
+    void *buf,
+    uint16_t len,
+    uint16_t offset
+)
+{
+    uint8_t frame[TAG_DEVICE_CLOCK_SAMPLE_FRAME_SIZE];
+
+    if (tag_device_clock_sample_encode(
+            boot_session_id,
+            k_uptime_get_32(),
+            frame,
+            sizeof(frame)
+        ) != TAG_DEVICE_CLOCK_SAMPLE_OK) {
+        return BT_GATT_ERR(BT_ATT_ERR_UNLIKELY);
+    }
+
+    return bt_gatt_attr_read(
+        conn,
+        attr,
+        buf,
+        len,
+        offset,
+        frame,
+        sizeof(frame)
+    );
+}
+
 
 /*
  * SensorFrame remains registered for protocol continuity, but this scaffold
@@ -68,6 +103,15 @@ BT_GATT_SERVICE_DEFINE(
     BT_GATT_CCC(
         feature_ccc_changed,
         BT_GATT_PERM_READ | BT_GATT_PERM_WRITE
+    ),
+
+    BT_GATT_CHARACTERISTIC(
+        &emopet_clock_sample_uuid.uuid,
+        BT_GATT_CHRC_READ,
+        BT_GATT_PERM_READ,
+        read_clock_sample,
+        NULL,
+        NULL
     )
 );
 
