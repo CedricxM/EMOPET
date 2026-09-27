@@ -18,6 +18,9 @@ test('activity_variability transport gap stays explicit', async () => {
   assert.equal(authority.backendPersistenceBoundary.publicRoute, false);
   assert.equal(authority.backendPersistenceBoundary.eliInvocation, false);
   assert.equal(authority.backendPersistenceBoundary.ownerProjection, false);
+  assert.equal(authority.backendPersistenceBoundary.ownerScopedReadService, 'IMPLEMENTED_INTERNAL_ONLY');
+  assert.equal(authority.backendPersistenceBoundary.publicReadRoute, false);
+  assert.equal(authority.backendPersistenceBoundary.readInterpretation, 'PHYSICAL_MOVEMENT_VARIABILITY_ONLY');
   assert.equal(authority.currentDecision, 'DO_NOT_ACTIVATE');
 });
 
