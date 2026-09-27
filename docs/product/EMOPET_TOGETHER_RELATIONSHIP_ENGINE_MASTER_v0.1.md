@@ -10,16 +10,16 @@
 
 Together answers one bounded question:
 
-> **What might make sense for this Guardian and this dog to do together, in this context, now?**
+> **What might make sense for this Owner and this dog to do together, in this context, now?**
 
 It does **not** answer:
 
 - how strong their relationship is;
-- whether the Guardian is “good”;
+- whether the Owner is “good”;
 - whether the dog “loves” an activity;
 - whether the bond improved;
 - whether the dog is happy/sad;
-- whether the Guardian should spend more time with the dog.
+- whether the Owner should spend more time with the dog.
 
 The Relationship Engine is therefore a **context-and-preference engine**, not a relationship evaluator.
 
@@ -110,7 +110,7 @@ Examples:
 No edge such as:
 
 - `bond_strength = 0.91`;
-- `dog_loves_guardian`;
+- `dog_loves_owner`;
 - `owner_quality`;
 - `emotional_dependency`.
 
