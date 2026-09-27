@@ -37,6 +37,7 @@ export const FEATURE_QUALITY_DEGRADED = 0x01 as const;
 export const FEATURE_QUALITY_SUPPRESSED = 0x02 as const;
 
 export type FeatureQualityState = ActivityVariabilityQualityState;
+export type { ActivityVariabilityFeatureTransportFrame } from '@emopet/shared';
 
 const OBSERVED = 0x00;
 const NOT_OBSERVED = 0x01;
