@@ -1,10 +1,10 @@
-# RR / inter-breath-interval variability semantic decision candidate
+# RR / inter-breath-interval variability semantic decision
 
 **Issue:** #86  
 **Date:** 2026-09-25  
-**Status:** `DECISION CANDIDATE / REVIEW REQUIRED / NO ELI PUBLICATION AUTHORITY`
+**Status:** `DECIDED 2026-09-27 / SD + CV 300 s SELECTED / NO ELI PUBLICATION AUTHORITY / IMPLEMENTATION MIGRATION PENDING`
 
-## 1. Recommendation
+## 1. Selected semantic contract
 
 Do **not** choose between the current ambiguous `rr_variability` branches by declaring either existing implementation authoritative.
 
@@ -17,7 +17,7 @@ Instead:
 3. use a 300 s rolling Phase-0 window with a minimum of 30 valid IBIs;
 4. keep both features **out of ELI latent publication** until canine/EMOPET validation selects a justified mapping.
 
-This is a semantic/engineering recommendation, not proof that either metric predicts canine arousal.
+This semantic/engineering contract was selected on 2026-09-27. It is not proof that either metric predicts canine arousal, and it does not by itself migrate firmware, schema, transport, runtime, or product publication.
 
 ## 2. Why the current 60 s / 30-breath contract is internally poor for resting dogs
 
