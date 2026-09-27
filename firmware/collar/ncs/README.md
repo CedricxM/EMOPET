@@ -32,7 +32,7 @@ The canonical source pin is also encoded in:
 
 `firmware/collar/ncs/west.yml`
 
-No stale v3.4.0 container digest is treated as current v3.4.0 authority. A 3.4.0 toolchain/build receipt must be captured separately before claiming a target build.
+No unverified container digest is treated as NCS toolchain authority. A 3.4.0 toolchain/build receipt must be captured separately before claiming a target build.
 
 ## Temporary compile harness
 
