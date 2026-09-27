@@ -112,6 +112,8 @@ jobs:
         run: node --test scripts/control/tag-ncs-platform.test.mjs
       - name: Enforce MS88SF3 G2 board-authority gate (#625)
         run: node --test scripts/control/tag-ms88sf3-board-authority.test.mjs
+      - name: Enforce TAG G4 transport-session authority (#625)
+        run: node --test scripts/control/tag-transport-session-authority.test.mjs
       - name: Enforce rr_variability window reachability (#86)
         run: |
           pnpm science:rr-audit
