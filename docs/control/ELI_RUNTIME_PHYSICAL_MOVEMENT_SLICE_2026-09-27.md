@@ -3,7 +3,18 @@
 **Issue:** #479  
 **Parent:** #118  
 **Date:** 2026-09-27  
-**Status:** `BOUNDED VERTICAL SLICE CANDIDATE / PHYSICAL ONLY / NO LATENT ACTIVATION`
+**Status:** `DELIVERED ON MAIN / PHYSICAL ONLY / NO LATENT ACTIVATION`
+
+## Delivery receipt — 2026-09-27
+
+- PR #621 merged to `main` at `f818d1d05a7df51aa2aaef6d07222831a1301397`.
+- exact reviewed head: `ebd9fff99120988de08e0c784157824d11af8e98`;
+- Owner terminology guard: **SUCCESS**;
+- P0 disposable PostgreSQL baseline validation: **SUCCESS**;
+- Security supply-chain workflow: **SUCCESS**;
+- PostgreSQL integration explicitly proved `AVAILABLE`, `NONE_FOUND`, provenance-driven abstention and cross-Owner denial.
+
+This receipt proves software/data-contract conformance only. It does not prove animal/scientific validity, real TAG live delivery, physical-device trust or latent ELI authority.
 
 ## Decision
 
