@@ -23,6 +23,7 @@
 
 #include <zephyr/bluetooth/gatt.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/sys/util.h>
 
 LOG_MODULE_REGISTER(emopet_gatt, LOG_LEVEL_INF);
 
