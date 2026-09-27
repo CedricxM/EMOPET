@@ -9,6 +9,7 @@ const [
   validatorsSource,
   typesSource,
   ingressSource,
+  issuerSource,
 ] = await Promise.all([
   readFile(new URL('../../config/security/device-pop-challenge-v1.json', import.meta.url), 'utf8'),
   readFile(new URL('../../config/security/device-identity-pop-evaluation-v1.json', import.meta.url), 'utf8'),
@@ -16,6 +17,7 @@ const [
   readFile(new URL('../../packages/shared/src/validators/index.ts', import.meta.url), 'utf8'),
   readFile(new URL('../../packages/shared/src/types/device-pop.ts', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/api/security/device-data-trust.ts', import.meta.url), 'utf8'),
+  readFile(new URL('../../backend/api/security/device-pop-challenge-issuer.ts', import.meta.url), 'utf8'),
 ]);
 
 const contract = JSON.parse(contractSource);
@@ -81,15 +83,26 @@ test('replay and expiry remain server-owned and fail closed', () => {
   assert.equal(contract.backendVerification.revokedOrReplacedCredentialRejected, true);
   assert.equal(contract.backendVerification.invalidSignatureAuthorizesNothing, true);
 
+  assert.equal(
+    contract.runtime.challengeIssuer,
+    'SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_AUTHORITIES_REQUIRED / NO_HTTP_ROUTE',
+  );
   for (const state of [
-    'challengeIssuer',
     'deviceSigner',
     'backendVerifier',
     'replayStore',
+    'credentialRepository',
     'deviceDataTrust',
   ]) {
     assert.equal(contract.runtime[state], 'NOT_IMPLEMENTED', state);
   }
+  assert.equal(
+    contract.runtime.challengePersistence,
+    'NOT_IMPLEMENTED / MIGRATION_SLOT_BLOCKED_BY_PARALLEL_0020',
+  );
+  assert.equal(contract.runtime.issuerHasDefaultTtl, false);
+  assert.equal(contract.runtime.issuerHasDefaultStore, false);
+  assert.equal(contract.runtime.issuerHasPublicRoute, false);
   assert.equal(contract.runtime.networkTelemetryPersistence, 'BLOCKED');
 });
 
@@ -120,4 +133,28 @@ test('#648 and main Device Trust authority point at PoP v1 while runtime stays b
     ingressSource.match(/currentDeviceDataTrustVerifier[\s\S]*?\n\};/)?.[0] ?? '',
     /ok:\s*true/,
   );
+});
+
+
+test('issuer primitive requires injected credential + atomic store authority and is not routed', async () => {
+  assert.match(issuerSource, /issueDevicePopChallengeV1/);
+  assert.match(issuerSource, /credentials:\s*DevicePopCredentialResolver/);
+  assert.match(issuerSource, /store:\s*DevicePopChallengeStore/);
+  assert.match(issuerSource, /createIfAbsent/);
+  assert.match(issuerSource, /ACTIVE_CREDENTIAL_NOT_FOUND/);
+  assert.match(issuerSource, /CHALLENGE_ID_CONFLICT/);
+  assert.match(issuerSource, /CHALLENGE_STORE_FAILURE/);
+  assert.match(issuerSource, /expiresAt:\s*Date/);
+  assert.doesNotMatch(issuerSource, /ttlMs\s*[:=]\s*\d+/);
+  assert.doesNotMatch(issuerSource, /persistActivityVariabilityFeatureObservation/);
+
+  const { readdir } = await import('node:fs/promises');
+  const routeDir = new URL('../../backend/api/routes/', import.meta.url);
+  const routeFiles = (await readdir(routeDir)).filter((name) => name.endsWith('.ts'));
+  const routeSources = await Promise.all(
+    routeFiles.map((name) => readFile(new URL(name, routeDir), 'utf8')),
+  );
+  for (const routeSource of routeSources) {
+    assert.doesNotMatch(routeSource, /device-pop-challenge-issuer|issueDevicePopChallengeV1/);
+  }
 });
