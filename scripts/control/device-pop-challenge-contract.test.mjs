@@ -218,8 +218,11 @@ test('device-side preimage builder stays serialization-only while signer remains
   assert.match(preimageSource, /EMOPET_DEVICE_POP_V1/);
   assert.match(preimageSource, /write_u32_be/);
   assert.match(preimageSource, /write_u64_be/);
+  const executablePreimageSource = (preimageSource + preimageHeader)
+    .replace(/\\/\\*[\\s\\S]*?\\*\\//g, '')
+    .replace(/\\/\\/.*$/gm, '');
   assert.doesNotMatch(
-    preimageSource + preimageHeader,
-    /psa_(?:sign|generate|import|open)_key|private.?key|ECDSA/i,
+    executablePreimageSource,
+    /psa_|mbedtls_|PSA_KEY_|psa_key_id_t|private.?key|ECDSA/i,
   );
 });
