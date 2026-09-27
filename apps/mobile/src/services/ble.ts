@@ -56,6 +56,7 @@ export type BleRuntimeErrorCode =
   | 'INVALID_FEATURE_FRAME'
   | 'CLOCK_ANCHOR_TIMEOUT'
   | 'CLOCK_ANCHOR_RESPONSE_INVALID'
+  | 'CLOCK_ANCHOR_BOOT_SESSION_MISMATCH'
   | 'MONOTONIC_CLOCK_UNAVAILABLE';
 
 export class BleRuntimeError extends Error {
@@ -378,6 +379,7 @@ export async function captureBleBootClockAnchor(
   options: {
     timeoutMs?: number;
     requestNonce?: number;
+    expectedBootSessionId?: number;
   } = {},
 ): Promise<BleClockAnchorMeasurement> {
   const ble = await requireBleReady();
@@ -453,6 +455,17 @@ export async function captureBleBootClockAnchor(
           try {
             const response = parseClockAnchorResponse(raw);
             if (response.requestNonce !== requestNonce) return;
+
+            if (
+              options.expectedBootSessionId !== undefined
+              && response.bootSessionId !== options.expectedBootSessionId
+            ) {
+              fail(new BleRuntimeError(
+                'CLOCK_ANCHOR_BOOT_SESSION_MISMATCH',
+                'Clock-anchor response belongs to a different device boot session.',
+              ));
+              return;
+            }
 
             const receiveMonotonicMs = monotonicNowMs();
             const measurement = deriveBootClockAnchorFromRoundTrip({
