@@ -326,6 +326,13 @@ jobs:
           EMOPET_DB_INTEGRATION_TEST: '1'
         run: node --test test/sensor-summary-ingestion.integration.test.mjs test/sensor-ingestion-authority-concurrency.integration.test.mjs
 
+      - name: ELI-IO canonical device registry read
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          NODE_ENV: test
+        run: node --test test/canonical-device-registry.integration.test.mjs
+
       - name: ELI-IO activity feature persistence boundary
         working-directory: backend
         env:
