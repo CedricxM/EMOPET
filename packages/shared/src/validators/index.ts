@@ -202,6 +202,7 @@ export const ActivityVariabilityFeatureObservationCreateSchema = z.object({
   featureContractVersion: z.literal('tag-activity-variability-cv30m-v1'),
   windowSeconds: z.literal(1800),
   validSeconds: z.number().int().min(0).max(1800),
+  qualityState: z.enum(['VALID', 'DEGRADED', 'SUPPRESSED']).optional(),
   transportProvenance: z.object({
     transportVersion: z.literal(1),
     bootSessionId: z.number().int().min(0).max(0xffffffff),
@@ -244,6 +245,13 @@ export const ActivityVariabilityFeatureObservationCreateSchema = z.object({
         code: z.ZodIssueCode.custom,
         path: ['nullReason'],
         message: 'OBSERVED must not carry a null reason',
+      });
+    }
+    if (value.qualityState === 'SUPPRESSED') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['qualityState'],
+        message: 'OBSERVED must not be SUPPRESSED',
       });
     }
     if (value.validSeconds < 900) {
