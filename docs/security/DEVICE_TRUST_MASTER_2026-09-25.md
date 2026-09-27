@@ -123,7 +123,28 @@ A trusted path must define:
 - server revocation versus queued offline data;
 - fail-safe behavior when trust state is stale.
 
-## 8. OTA / firmware
+## 8. Telemetry ingestion trust
+
+A canonical backend `devices.id` row proves registry binding, not that the BLE
+peer that supplied a frame is physically that device.
+
+Before network telemetry can become durable Product data, the server must require:
+
+- authenticated Owner/dog authority;
+- canonical TAG registry binding;
+- physical-device authentication / proof tied to the canonical principal;
+- revocation-aware trust state;
+- transport replay provenance as supporting evidence only.
+
+Boot session, sequence, CRC and a canonical database UUID do **not** become
+authentication when combined.
+
+The current network-ingress candidate under #122 therefore fails closed through
+`DEVICE_DATA_TRUST_RUNTIME_NOT_IMPLEMENTED` before persistence. A second,
+separate activation gate remains required even after a Device Trust verifier is
+implemented.
+
+## 9. OTA / firmware
 
 Required before release:
 
@@ -145,7 +166,7 @@ Current repository status remains:
 - anti-rollback: OPEN;
 - OTA distribution: OPEN.
 
-## 9. Database consequence
+## 10. Database consequence
 
 The current `devices.mac_address` field is an operational identifier only.
 
@@ -155,7 +176,7 @@ A future persistence slice will need, at minimum, explicit device-principal/cred
 
 No private keys, claim secrets, recovery codes or raw production credentials belong in Git.
 
-## 10. Threat QA
+## 11. Threat QA
 
 Before gate closure, exercise at least:
 
@@ -174,7 +195,7 @@ Before gate closure, exercise at least:
 - device clock rollback;
 - duplicate/resynced telemetry after reconnect.
 
-## 11. Current machine-readable authority
+## 12. Current machine-readable authority
 
 `config/security/device-trust-authority.json`
 
@@ -184,7 +205,7 @@ The command-boundary types live at:
 
 They intentionally do not implement signing or verification.
 
-## 12. Closure rule
+## 13. Closure rule
 
 #66 cannot close on documentation alone.
 
