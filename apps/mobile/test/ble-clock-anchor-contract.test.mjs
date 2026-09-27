@@ -7,15 +7,13 @@ const source = await readFile(
   'utf8',
 );
 
-test('BOOT_ANCHOR math separates monotonic RTT from wall-clock UTC', () => {
-  assert.match(source, /monotonicAfterMs - monotonicBeforeMs/);
-  assert.match(source, /wallAfterUtcMs - wallBeforeUtcMs/);
-  assert.match(source, /Math\.abs\(wallElapsedMs - roundTripMs\)/);
-  assert.match(source, /WALL_CLOCK_DISCONTINUITY/);
-  assert.match(source, /localWallClockUncertaintyMs/);
+test('mobile BOOT_ANCHOR wrapper delegates timing math and owns correlation/session binding', () => {
+  assert.match(source, /computeBootAnchorTiming/);
   assert.match(source, /CLOCK_ANCHOR_NONCE_MISMATCH/);
   assert.match(source, /CLOCK_SAMPLE_BOOT_MISMATCH/);
-  assert.match(source, /wallBeforeUtcMs \+ Math\.floor\(roundTripMs \/ 2\)/);
+  assert.match(source, /response\.requestNonce !== requestNonce/);
+  assert.match(source, /response\.bootSessionId !== expectedBootSessionId/);
+  assert.match(source, /localWallClockUncertaintyMs/);
+  assert.match(source, /new Date\(timing\.anchorUtcMs\)/);
   assert.doesNotMatch(source, /roundTripMs = wallAfterUtcMs - wallBeforeUtcMs/);
-  assert.doesNotMatch(source, /anchorUtc:\s*new Date\(wallAfterUtcMs\)/);
 });
