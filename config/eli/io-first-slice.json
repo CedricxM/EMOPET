@@ -35,7 +35,12 @@
     "mobileFeatureParser": "parseActivityVariabilityFeatureFrame",
     "peripheralGattCharacteristicImplemented": false,
     "mobileToBackendForwardingImplemented": false,
-    "bleUuidAuthority": "config/ble/uuid-authority-v1.json"
+    "bleUuidAuthority": "config/ble/uuid-authority-v1.json",
+    "tagNcsPlatformAuthority": "config/firmware/tag-platform-v1.json",
+    "peripheralGattSourceCandidateImplemented": true,
+    "peripheralGattTargetBuildVerified": false,
+    "peripheralGattHardwareFlashed": false,
+    "peripheralGattDecision": "DO_NOT_CLAIM_REAL_TAG_BLE_DELIVERY"
   },
   "candidateOwnership": {
     "featureComputation": "FIRMWARE",
