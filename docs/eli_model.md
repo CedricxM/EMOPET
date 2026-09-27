@@ -81,13 +81,20 @@ variance is set to `1e6` so the update has effectively zero gain.
 
 ## New observation: activity_variability
 
-Coefficient of variation of per-second ODBA within a 30-min window (Robert et al.,
-2009).
+Coefficient of variation of per-second ODBA within a 30-min window.
+
+The **measurement** is a deterministic movement feature. ODBA literature supports
+the use of body acceleration as an activity / energetic proxy in several animal
+contexts, but it does **not** establish that a 30-minute ODBA coefficient of
+variation increases monotonically with canine affective arousal.
+
+The current ELI mapping is therefore an **EMOPET hypothesis**:
 
 `h_activity_variability(a, baseline) = baseline.activityVariabilityMean + a · k2`
 
-Linear and monotonic increasing. Again falls back to an effectively infinite R
-when baseline is missing.
+The positive direction, functional form and coefficient must be prospectively
+tested before they receive material scientific or Guardian-facing claim weight.
+Missing baseline still falls back to an effectively infinite R.
 
 > **THE DEFINITION IS COHERENT; THE FUNCTIONAL FORM IS NOT — recorded 2026-09-22.**
 >
@@ -264,6 +271,7 @@ v6 does **not** change:
 ## References
 
 - Homma I., Masaoka Y. (2008). *Breathing rhythms and emotions*. Exp Physiol.
-- Robert K. et al. (2009). *ODBA as a proxy for energy expenditure*.
+- Robert B., White B.J., Renter D.G., Larson R.L. (2009). *Evaluation of three-dimensional accelerometers to monitor and classify behavior patterns in cattle*. Computers and Electronics in Agriculture 67:80–84. DOI 10.1016/j.compag.2009.03.002. Measurement/context source only; it does not validate the EMOPET activity_variability→arousal mapping.
+- Halsey L.G. et al. (2009). *The relationship between oxygen consumption and body acceleration in a range of species*. Comparative Biochemistry and Physiology Part A. DOI 10.1016/j.cbpa.2008.09.021. ODBA/energetics context only; it does not validate the EMOPET 30-min CV→arousal mapping.
 - McEwen B.S. (1998). *Stress, adaptation, and disease. Allostasis and allostatic load*.
 - Siguín et al. (2025). *20-Factors Framework for canine behavioural inference*, factor F10.
