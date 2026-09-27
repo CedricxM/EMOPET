@@ -1,6 +1,6 @@
 # EMOPET — Scientific Framework Register
 
-**Control date:** 2026-09-07  
+**Control date:** 2026-09-25  
 **Status:** CONTROLLED SCIENTIFIC-MEMORY INDEX
 
 ## Purpose
@@ -86,3 +86,31 @@ For any future exchange with Professor James Serpell, record the exact attributi
 - `validated/endorsed` only with explicit evidence supporting those words
 
 The repository must make it impossible for a later deck, AI assistant or team member to transform a methodological discussion into a partnership or validation claim by accident.
+
+
+## 2026-09-25 C-BARQ France / Penn reconciliation
+
+Canonical current authority for this section:
+`docs/science/EMOPET_CBARQ_UPENN_SCIENTIFIC_AUTHORITY_2026-09-23.md`.
+
+This update preserves the older Flint 2017 and July 2026 Serpell records while adding the later 2025 French peer-reviewed factorial evidence as a distinct evidence layer.
+
+| Framework / topic | Current controlled state | Authority | Consequence |
+|---|---|---|---|
+| French C-BARQ factorial evidence | `PUBLISHED / PEER-REVIEWED` | Besegher et al., Applied Animal Behaviour Science 292 (2025), 106816, DOI 10.1016/j.applanim.2025.106816 | French psychometric evidence now exists and must not be described as absent. It does not create an EMOPET licence or validate ELI. |
+| EMOPET C-BARQ commercial licence | `NOT_ESTABLISHED` | No written Penn/UPenn licensing grant in controlled evidence | Production embedding, item reproduction, scoring, repeated administration and derivative displays remain fail-closed pending written authority. |
+| 63-item EFA retained set | `NOT_VALIDATED_FOR_EMOPET / NOT_AUTHORIZED_SHORT_FORM` | Besegher et al. 2025 EFA result only | Do not productize the 63 retained items as a short C-BARQ. |
+| ELI validation against C-BARQ | `PROPOSED / NOT_PERFORMED` | EMOPET research direction only | C-BARQ may be considered an external criterion candidate, not ground truth and not existing ELI validation. |
+| Penn institutional collaboration | `DISCUSSION / NOT_AGREED` | No controlled institutional agreement | Do not claim partnership, endorsement, validation, Penn access or Serpell endorsement. |
+
+### Evidence-layer firewall
+
+These five layers must remain separately attributable:
+
+1. **Flint 2017** — earlier behavioural/genetic/owner-report evidence used in EMOPET scientific reasoning.
+2. **Serpell July 2026 feedback** — external expert feedback/recommendation, including wording/item-elimination/licensing points.
+3. **EMOPET complete-instrument direction** — internal conservative project decision made after that feedback.
+4. **Besegher et al. 2025 French factorial study** — peer-reviewed French psychometric evidence.
+5. **Penn licence / collaboration / ELI-validation status** — still separate, unresolved authority questions unless later written evidence supersedes this record.
+
+A later document or presentation must not collapse one layer into another.
