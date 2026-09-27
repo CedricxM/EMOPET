@@ -8,7 +8,12 @@
     "manufacturingCredential": "OPEN",
     "productionKeyInjection": "OPEN",
     "credentialRotation": "OPEN",
-    "revocation": "OPEN"
+    "revocation": "OPEN",
+    "identityArchitectureGate": 648,
+    "identityArchitectureAuthority": "config/security/device-identity-pop-evaluation-v1.json",
+    "identityArchitectureSelection": "OPEN",
+    "ficrDeviceIdAuthority": "IDENTIFIER_ONLY / NOT_AUTHENTICATOR",
+    "bleRuntimeIdAuthority": "NOT_AUTHORITY"
   },
   "claimBinding": {
     "firstClaim": "OPEN",
@@ -16,7 +21,8 @@
     "ownerDogBinding": "SERVER_AUTHORITY_REQUIRED",
     "rebindTransfer": "OPEN",
     "factoryReset": "MUST_NOT_BYPASS_SERVER_OR_DEVICE_AUTHORITY",
-    "lostStolenRecovery": "OPEN"
+    "lostStolenRecovery": "OPEN",
+    "proofOfPossessionArchitecture": "OPEN_UNDER_648"
   },
   "commands": {
     "rawBleBuilders": "UNAUTHENTICATED_PAYLOAD_ONLY",
@@ -55,6 +61,7 @@
     "transportReplayEvidenceIsAuthentication": false,
     "bleTransportIdentifierIsPrincipal": false,
     "runtime": "NOT_IMPLEMENTED",
-    "releaseRule": "NO_DURABLE_DEVICE_TELEMETRY_WRITE_FROM_NETWORK_UNTIL_DEVICE_DATA_TRUST_RUNTIME_EXISTS"
+    "releaseRule": "NO_DURABLE_DEVICE_TELEMETRY_WRITE_FROM_NETWORK_UNTIL_DEVICE_DATA_TRUST_RUNTIME_EXISTS",
+    "deviceIdentityArchitectureGate": 648
   }
 }
