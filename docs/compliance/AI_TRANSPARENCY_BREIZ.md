@@ -1,6 +1,6 @@
 # Breiz AI Transparency Policy
 
-Status: `P0 IMPLEMENTED ON CORE CHAT SURFACE / FULL PRODUCT AUDIT OPEN`
+Status: `P0 IMPLEMENTED ON WEB AND MOBILE CHAT SURFACES / SURFACE AUDIT DONE 2026-09-27 / FOUNDER DECISIONS OPEN`
 
 ## User disclosure
 
@@ -38,3 +38,9 @@ Server responses include transparency metadata describing whether the answer use
 ## Audit still required
 
 Before production, audit every Breiz surface (web, mobile, notifications, reports and future Unity/Nakama clients) for consistent disclosure and evidence labels.
+
+## Audit record
+
+- 2026-09-27 — web and mobile surfaces audited: `docs/compliance/BREIZ_TRANSPARENCY_AUDIT_2026-09-27.md`.
+  Violations of this policy are fixed and guarded by tests; seven product, rights and marketing decisions
+  (D1–D7) remain open. Notifications and future Unity/Nakama clients still need auditing once they render Breiz.
