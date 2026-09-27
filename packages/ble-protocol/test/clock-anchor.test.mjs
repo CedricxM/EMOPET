@@ -2,7 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  BootAnchorTimingError,
   buildRequestClockAnchor,
+  computeBootAnchorTiming,
   parseClockAnchorResponse,
   serializeClockAnchorResponse,
 } from '../dist/index.js';
@@ -36,5 +38,53 @@ test('clock-anchor response round-trips request/session/device time', () => {
   assert.throws(
     () => parseClockAnchorResponse(corrupted),
     /CRC_MISMATCH/,
+  );
+});
+
+
+test('BOOT_ANCHOR timing uses monotonic RTT plus explicit wall-clock uncertainty', () => {
+  const timing = computeBootAnchorTiming({
+    wallBeforeUtcMs: 1_000_000,
+    wallAfterUtcMs: 1_000_120,
+    monotonicBeforeMs: 50,
+    monotonicAfterMs: 170,
+    localWallClockUncertaintyMs: 25,
+  });
+
+  assert.deepEqual(timing, {
+    anchorUtcMs: 1_000_060,
+    uncertaintyMs: 87,
+    roundTripMs: 120,
+    wallMonotonicSkewMs: 0,
+  });
+});
+
+test('BOOT_ANCHOR timing rejects wall-clock discontinuity', () => {
+  assert.throws(
+    () => computeBootAnchorTiming({
+      wallBeforeUtcMs: 1_000_000,
+      wallAfterUtcMs: 1_001_000,
+      monotonicBeforeMs: 50,
+      monotonicAfterMs: 150,
+      localWallClockUncertaintyMs: 25,
+    }),
+    (error) =>
+      error instanceof BootAnchorTimingError
+      && error.code === 'WALL_CLOCK_DISCONTINUITY',
+  );
+});
+
+test('BOOT_ANCHOR timing refuses implicit zero/invalid wall-clock authority', () => {
+  assert.throws(
+    () => computeBootAnchorTiming({
+      wallBeforeUtcMs: 1_000_000,
+      wallAfterUtcMs: 1_000_100,
+      monotonicBeforeMs: 50,
+      monotonicAfterMs: 150,
+      localWallClockUncertaintyMs: -1,
+    }),
+    (error) =>
+      error instanceof BootAnchorTimingError
+      && error.code === 'INVALID_WALL_CLOCK_UNCERTAINTY',
   );
 });

@@ -71,3 +71,110 @@ export function serializeClockAnchorResponse(input: {
   );
   return bytes;
 }
+
+
+export const BOOT_ANCHOR_V1_MAX_RTT_MS = 1500 as const;
+export const BOOT_ANCHOR_V1_MAX_WALL_MONOTONIC_SKEW_MS = 100 as const;
+
+export type BootAnchorTimingErrorCode =
+  | 'INVALID_CAPTURE_TIME'
+  | 'INVALID_WALL_CLOCK_UNCERTAINTY'
+  | 'CLOCK_SAMPLE_RTT_TOO_HIGH'
+  | 'WALL_CLOCK_DISCONTINUITY';
+
+export class BootAnchorTimingError extends Error {
+  constructor(
+    message: string,
+    public readonly code: BootAnchorTimingErrorCode,
+  ) {
+    super(message);
+    this.name = 'BootAnchorTimingError';
+  }
+}
+
+export interface BootAnchorTiming {
+  anchorUtcMs: number;
+  uncertaintyMs: number;
+  roundTripMs: number;
+  wallMonotonicSkewMs: number;
+}
+
+/**
+ * Bound one device timestamp to mobile UTC without using wall clock for RTT.
+ *
+ * The monotonic clock owns elapsed time. Date/wall time only places the interval
+ * on UTC. A caller-supplied local wall-clock uncertainty budget is mandatory;
+ * transport latency alone is never represented as total UTC uncertainty.
+ */
+export function computeBootAnchorTiming(input: {
+  wallBeforeUtcMs: number;
+  wallAfterUtcMs: number;
+  monotonicBeforeMs: number;
+  monotonicAfterMs: number;
+  localWallClockUncertaintyMs: number;
+  maxRttMs?: number;
+  maxWallMonotonicSkewMs?: number;
+}): BootAnchorTiming {
+  const {
+    wallBeforeUtcMs,
+    wallAfterUtcMs,
+    monotonicBeforeMs,
+    monotonicAfterMs,
+    localWallClockUncertaintyMs,
+    maxRttMs = BOOT_ANCHOR_V1_MAX_RTT_MS,
+    maxWallMonotonicSkewMs = BOOT_ANCHOR_V1_MAX_WALL_MONOTONIC_SKEW_MS,
+  } = input;
+
+  if (
+    !Number.isSafeInteger(wallBeforeUtcMs)
+    || !Number.isSafeInteger(wallAfterUtcMs)
+    || wallAfterUtcMs < wallBeforeUtcMs
+    || !Number.isFinite(monotonicBeforeMs)
+    || !Number.isFinite(monotonicAfterMs)
+    || monotonicBeforeMs < 0
+    || monotonicAfterMs < monotonicBeforeMs
+  ) {
+    throw new BootAnchorTimingError(
+      'Clock-anchor capture timestamps are invalid.',
+      'INVALID_CAPTURE_TIME',
+    );
+  }
+
+  if (
+    !Number.isSafeInteger(localWallClockUncertaintyMs)
+    || localWallClockUncertaintyMs < 0
+  ) {
+    throw new BootAnchorTimingError(
+      'Local wall-clock uncertainty must be an explicit non-negative integer.',
+      'INVALID_WALL_CLOCK_UNCERTAINTY',
+    );
+  }
+
+  const roundTripMs = monotonicAfterMs - monotonicBeforeMs;
+  if (roundTripMs > maxRttMs) {
+    throw new BootAnchorTimingError(
+      `Clock-anchor RTT ${roundTripMs.toFixed(3)}ms exceeds ${maxRttMs}ms.`,
+      'CLOCK_SAMPLE_RTT_TOO_HIGH',
+    );
+  }
+
+  const wallElapsedMs = wallAfterUtcMs - wallBeforeUtcMs;
+  const wallMonotonicSkewMs = Math.abs(wallElapsedMs - roundTripMs);
+  if (wallMonotonicSkewMs > maxWallMonotonicSkewMs) {
+    throw new BootAnchorTimingError(
+      `Wall/monotonic elapsed time diverged by ${wallMonotonicSkewMs.toFixed(3)}ms.`,
+      'WALL_CLOCK_DISCONTINUITY',
+    );
+  }
+
+  return {
+    anchorUtcMs: wallBeforeUtcMs + Math.floor(roundTripMs / 2),
+    uncertaintyMs:
+      localWallClockUncertaintyMs
+      + Math.ceil(roundTripMs / 2)
+      + Math.ceil(wallMonotonicSkewMs)
+      + 2,
+    roundTripMs,
+    wallMonotonicSkewMs,
+  };
+}
