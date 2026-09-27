@@ -61,15 +61,6 @@ It would **not** prove:
 - flash/debug/boot behavior on the module;
 - production readiness.
 
-## G2 board-authority register
-
-Production board inputs and blocking unknowns are controlled in:
-
-`config/firmware/tag-ms88sf3-board-authority-v1.json`
-
-The register intentionally prevents an `ms88sf3` devicetree from being created
-while clock, BMI270 bus/interrupt, INMP441 PDM and SWD authority remain open.
-
 ## Production board gate
 
 Do not add an `ms88sf3` board definition from memory.
@@ -105,7 +96,8 @@ At Bluetooth initialization:
 - feature sequence starts at 0.
 
 For a published physical feature:
-- `window_end_ms = k_uptime_get_32()`;
+- the feature producer supplies the monotonic **measurement-window end** as `window_end_ms`;
+- the BLE/GATT layer must not replace that timestamp with notification/send time;
 - sequence increments only after a successful queued notification.
 
 The random boot session is **not cryptographic identity**. It is replay/session
