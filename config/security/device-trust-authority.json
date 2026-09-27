@@ -47,5 +47,14 @@
     "clockResetWrapPolicy": "OPEN",
     "conflictPolicy": "OPEN"
   },
-  "releaseRule": "NO CLAIM/BIND/COMMAND/OTA PRODUCTION AUTHORITY UNTIL TARGET-HARDWARE EVIDENCE EXISTS"
+  "releaseRule": "NO CLAIM/BIND/COMMAND/OTA PRODUCTION AUTHORITY UNTIL TARGET-HARDWARE EVIDENCE EXISTS",
+  "telemetryIngestion": {
+    "canonicalDevicePrincipalBinding": "REQUIRED",
+    "ownerDogBinding": "SERVER_RECHECK_REQUIRED",
+    "physicalDeviceAuthentication": "REQUIRED",
+    "transportReplayEvidenceIsAuthentication": false,
+    "bleTransportIdentifierIsPrincipal": false,
+    "runtime": "NOT_IMPLEMENTED",
+    "releaseRule": "NO_DURABLE_DEVICE_TELEMETRY_WRITE_FROM_NETWORK_UNTIL_DEVICE_DATA_TRUST_RUNTIME_EXISTS"
+  }
 }
