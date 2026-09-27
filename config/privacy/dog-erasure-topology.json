@@ -115,6 +115,13 @@
       "erasureDisposition": "TO_CONFIRM"
     },
     {
+      "table": "sensor_feature_observations",
+      "column": "dog_id",
+      "source": "backend/db/schema/sensors.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
       "table": "sensor_summaries",
       "column": "dog_id",
       "source": "backend/db/schema/sensors.ts",
