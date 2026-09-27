@@ -43,14 +43,18 @@
     "windowEndMsSource": "CALLER_OWNED_MONOTONIC_MEASUREMENT_WINDOW_END",
     "utcWallClockOnTag": false,
     "backendClockAnchorStillRequired": true,
-    "notificationTimeMayReplaceWindowEndMs": false
+    "notificationTimeMayReplaceWindowEndMs": false,
+    "sessionAuthority": "config/firmware/tag-transport-session-authority-v1.json",
+    "productionSessionUniquenessVerified": false,
+    "offlineBufferingPolicy": "OPEN"
   },
   "evidence": {
     "sourceContractGuard": "scripts/control/tag-ncs-platform.test.mjs",
     "ncsTargetBuild": "NOT_YET_IN_CI",
     "targetFlash": "NOT_RUN",
     "realBleCapture": "NOT_RUN",
-    "g2BoardAuthorityGuard": "scripts/control/tag-ms88sf3-board-authority.test.mjs"
+    "g2BoardAuthorityGuard": "scripts/control/tag-ms88sf3-board-authority.test.mjs",
+    "g4TransportSessionGuard": "scripts/control/tag-transport-session-authority.test.mjs"
   },
   "currentDecision": "DO_NOT_CLAIM_REAL_TAG_BLE_DELIVERY_OR_MS88SF3_TARGET_BUILD"
 }
