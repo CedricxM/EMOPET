@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "emopet-tag-external-partner-rfq-v1",
+  "status": "RFQ_REQUIRED_NO_PROVIDER_SELECTED",
+  "issue": 580,
+  "mokoBoundary": {
+    "pcbaFabricationAssembly": true,
+    "fixtureManufactureAssemblyFromControlledPackage": true,
+    "repeatableFunctionalTestExecution": true,
+    "tagDesignClosureOwner": false,
+    "rfMechanicalPowerEngineeringOwner": false
+  },
+  "tracks": {
+    "A": "one-off fixture / functional bring-up engineering",
+    "A+": "broader EVT/NPI engineering support",
+    "B": "RF/GNSS/EMC/environmental laboratory"
+  },
+  "shortlist": [
+    {"provider":"BELI Technologies","track":"A","qualification":"RFQ_REQUIRED"},
+    {"provider":"STHL","track":"A","qualification":"RFQ_REQUIRED"},
+    {"provider":"OPD Design","track":"A+","qualification":"RFQ_REQUIRED"},
+    {"provider":"NTEK","track":"B","qualification":"EXACT_SCOPE_REQUIRED"},
+    {"provider":"Waltek Testing Group","track":"B","qualification":"EXACT_SCOPE_REQUIRED"}
+  ],
+  "selection": null,
+  "purchaseAuthority": false,
+  "fabricationRelease": false
+}
