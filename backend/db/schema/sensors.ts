@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { pgTable, uuid, varchar, timestamp, real, integer, jsonb, index, uniqueIndex, check } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, timestamp, real, integer, bigint, jsonb, index, uniqueIndex, check } from 'drizzle-orm/pg-core';
 import { devices, dogs } from './dogs.js';
 
 export const sensorSummaries = pgTable('sensor_summaries', {
@@ -46,9 +46,18 @@ export const sensorFeatureObservations = pgTable('sensor_feature_observations', 
   windowSeconds: integer('window_seconds').notNull(),
   validSeconds: integer('valid_seconds').notNull(),
   firmwareVersionAtIngest: varchar('firmware_version_at_ingest', { length: 20 }),
+  transportVersion: integer('transport_version'),
+  transportBootSessionId: bigint('transport_boot_session_id', { mode: 'number' }),
+  transportSequence: integer('transport_sequence'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => [
   uniqueIndex('uq_sensor_feature_observations_ingestion_id').on(table.ingestionId),
+  uniqueIndex('uq_sensor_feature_observations_transport_replay').on(
+    table.deviceId,
+    table.featureKey,
+    table.transportBootSessionId,
+    table.transportSequence,
+  ),
   index('idx_sensor_feature_observations_dog_feature_time').on(
     table.dogId,
     table.featureKey,
@@ -65,6 +74,18 @@ export const sensorFeatureObservations = pgTable('sensor_feature_observations', 
     sql`${table.featureContractVersion} = 'tag-activity-variability-cv30m-v1'`,
   ),
   check('chk_sensor_feature_observations_window', sql`${table.windowSeconds} = 1800`),
+  check(
+    'chk_sensor_feature_observations_transport_provenance',
+    sql`(
+      ${table.transportVersion} IS NULL
+      AND ${table.transportBootSessionId} IS NULL
+      AND ${table.transportSequence} IS NULL
+    ) OR (
+      ${table.transportVersion} = 1
+      AND ${table.transportBootSessionId} BETWEEN 0 AND 4294967295
+      AND ${table.transportSequence} BETWEEN 0 AND 65535
+    )`,
+  ),
   check(
     'chk_sensor_feature_observations_valid_seconds',
     sql`${table.validSeconds} >= 0 AND ${table.validSeconds} <= 1800`,
