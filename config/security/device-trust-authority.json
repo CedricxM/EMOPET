@@ -5,13 +5,13 @@
   "devicePrincipal": {
     "canonicalIdentity": "HARDWARE_BOUND_IDENTITY_REQUIRED",
     "macAddressAuthority": "NOT_AUTHORITY",
-    "manufacturingCredential": "OPEN",
-    "productionKeyInjection": "OPEN",
+    "manufacturingCredential": "DEVICE_GENERATED_PRIVATE_KEY / BACKEND_PUBLIC_KEY_ENROLLMENT",
+    "productionKeyInjection": "NOT_REQUIRED_FOR_PRIVATE_KEY / HUK_ROOT_PROVISIONING_AND_TRUSTED_STORAGE_SETUP_REQUIRED",
     "credentialRotation": "OPEN",
     "revocation": "OPEN",
     "identityArchitectureGate": 648,
     "identityArchitectureAuthority": "config/security/device-identity-pop-evaluation-v1.json",
-    "identityArchitectureSelection": "OPEN",
+    "identityArchitectureSelection": "B_DEVICE_SPECIFIC_ASYMMETRIC_POP / ECDSA_SHA256_SECP256R1 / TARGET_PROOF_REQUIRED",
     "ficrDeviceIdAuthority": "IDENTIFIER_ONLY / NOT_AUTHENTICATOR",
     "bleRuntimeIdAuthority": "NOT_AUTHORITY"
   },
@@ -22,7 +22,7 @@
     "rebindTransfer": "OPEN",
     "factoryReset": "MUST_NOT_BYPASS_SERVER_OR_DEVICE_AUTHORITY",
     "lostStolenRecovery": "OPEN",
-    "proofOfPossessionArchitecture": "OPEN_UNDER_648"
+    "proofOfPossessionArchitecture": "ECDSA_SHA256_SECP256R1 / PUBLIC_KEY_VERIFICATION / RUNTIME_NOT_IMPLEMENTED"
   },
   "commands": {
     "rawBleBuilders": "UNAUTHENTICATED_PAYLOAD_ONLY",
@@ -57,7 +57,7 @@
   "telemetryIngestion": {
     "canonicalDevicePrincipalBinding": "REQUIRED",
     "ownerDogBinding": "SERVER_RECHECK_REQUIRED",
-    "physicalDeviceAuthentication": "REQUIRED",
+    "physicalDeviceAuthentication": "ASYMMETRIC_POP_REQUIRED / RUNTIME_NOT_IMPLEMENTED",
     "transportReplayEvidenceIsAuthentication": false,
     "bleTransportIdentifierIsPrincipal": false,
     "runtime": "NOT_IMPLEMENTED",
