@@ -7,56 +7,41 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 
 const platform = JSON.parse(
-  await readFile(path.join(root, 'config/firmware/tag-platform-v1.json'), 'utf8'),
+  await readFile(path.join(root, 'config/firmware/tag-platform-authority-v1.json'), 'utf8'),
 );
 const uuidAuthority = JSON.parse(
   await readFile(path.join(root, 'config/ble/uuid-authority-v1.json'), 'utf8'),
 );
 const cmake = await readFile(
-  path.join(root, 'firmware/collar/ncs/CMakeLists.txt'),
+  path.join(root, 'firmware/collar/zephyr/CMakeLists.txt'),
   'utf8',
 );
 const prj = await readFile(
-  path.join(root, 'firmware/collar/ncs/prj.conf'),
+  path.join(root, 'firmware/collar/zephyr/prj.conf'),
   'utf8',
 );
 const ids = await readFile(
-  path.join(root, 'firmware/collar/ncs/src/emopet_ble_ids.h'),
+  path.join(root, 'firmware/collar/zephyr/src/emopet_ble_ids.h'),
   'utf8',
 );
 const gatt = await readFile(
-  path.join(root, 'firmware/collar/ncs/src/emopet_gatt.c'),
+  path.join(root, 'firmware/collar/zephyr/src/emopet_gatt.c'),
   'utf8',
 );
 const main = await readFile(
-  path.join(root, 'firmware/collar/ncs/src/main.c'),
+  path.join(root, 'firmware/collar/zephyr/src/main.c'),
   'utf8',
 );
 
 test('TAG platform pins NCS 3.4 LTS while keeping DK and MS88SF3 authority separate', () => {
-  assert.equal(platform.sdk.family, 'nRF Connect SDK');
-  assert.equal(platform.sdk.version, '3.4.0');
-  assert.equal(platform.sdk.releaseKind, 'LTS');
-  assert.equal(
-    platform.sdk.toolchainContainer,
-    'ghcr.io/nrfconnect/sdk-nrf-toolchain:v3.4.0',
-  );
-  assert.equal(
-    platform.sdk.toolchainContainerDigest,
-    'sha256:f1dca44678dae83e37404e33f369786f5b2ffe2ed497eec1815f66c3a868bace',
-  );
-  assert.equal(
-    platform.application.temporaryCompileHarnessBoard,
-    'nrf52840dk/nrf52840',
-  );
-  assert.equal(
-    platform.application.temporaryCompileHarnessIsProductionBoardAuthority,
-    false,
-  );
-  assert.equal(platform.application.productionBoardDefinition, null);
-  assert.equal(platform.evidence.ncsTargetBuild, 'NOT_YET_IN_CI');
-  assert.equal(platform.evidence.targetFlash, 'NOT_RUN');
-  assert.equal(platform.evidence.realBleCapture, 'NOT_RUN');
+  assert.equal(platform.platformFamily, 'Nordic nRF Connect SDK / Zephyr');
+  assert.equal(platform.ncs.revision, 'v3.4.1');
+  assert.equal(platform.compileHarness.board, 'nrf52840dk/nrf52840');
+  assert.equal(platform.compileHarness.productionBoardAuthority, false);
+  assert.equal(platform.productionTarget.boardDefinitionImplemented, false);
+  assert.equal(platform.build.ncsTargetBuildStatus, 'NOT_YET_EXECUTED');
+  assert.equal(platform.build.targetFlashStatus, 'NOT_RUN');
+  assert.equal(platform.build.realBleCaptureStatus, 'NOT_RUN');
 });
 
 test('Zephyr application composes the existing canonical sensor and transport implementations', () => {
@@ -103,7 +88,7 @@ test('boot/time transport provenance stays explicitly non-security and non-UTC',
   assert.match(gatt, /non-cryptographic/);
   assert.equal(platform.transport.bootSessionIsSecurityIdentity, false);
   assert.equal(platform.transport.utcWallClockOnTag, false);
-  assert.equal(platform.ble.physicalDeviceAuthentication, false);
+  assert.equal(platform.bluetooth.deviceTrustImplemented, false);
 });
 
 test('entrypoint advertises but cannot fabricate a physical observation', () => {
@@ -123,5 +108,5 @@ test('entrypoint advertises but cannot fabricate a physical observation', () => 
     false,
   );
 
-  assert.equal(platform.currentDecision, 'DO_NOT_CLAIM_REAL_TAG_BLE_DELIVERY');
+  assert.equal(platform.currentDecision, 'DO_NOT_CLAIM_MS88SF3_TARGET_BUILD_OR_LIVE_GATT');
 });
