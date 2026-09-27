@@ -6,6 +6,13 @@
 
 #include <string.h>
 
+device_pop_sign_result_t device_pop_signer_psa_init(void)
+{
+    return psa_crypto_init() == PSA_SUCCESS
+        ? DEVICE_POP_SIGN_OK
+        : DEVICE_POP_SIGN_CRYPTO_INIT_ERROR;
+}
+
 static int key_policy_matches(psa_key_id_t key_id)
 {
     psa_key_attributes_t attrs = PSA_KEY_ATTRIBUTES_INIT;
