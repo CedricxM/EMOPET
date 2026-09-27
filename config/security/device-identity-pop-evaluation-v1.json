@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "emopet-device-identity-pop-evaluation-v1",
+  "status": "EVALUATION_ONLY / NO_ARCHITECTURE_SELECTED / DEVICE_DATA_TRUST_RUNTIME_BLOCKED",
+  "issue": 648,
+  "parentIssue": 66,
+  "target": {
+    "module": "MS88SF3",
+    "soc": "nRF52840",
+    "sdkFamily": "nRF Connect SDK / Zephyr",
+    "sdkSeries": "3.4.x LTS"
+  },
+  "verifiedHardwareFacts": {
+    "cryptoPeripheral": "Arm CryptoCell CC310",
+    "kmuPresent": false,
+    "supportedHukType": "KDR_ONLY",
+    "hukRole": "KEY_DERIVATION_ROOT_ONLY",
+    "ficrDeviceIdRole": "PUBLIC_IDENTIFIER_ONLY / NOT_AUTHENTICATOR",
+    "bleAddressRole": "TRANSPORT_IDENTIFIER_ONLY / NOT_AUTHENTICATOR"
+  },
+  "candidates": {
+    "A_HUK_KDR_DERIVED_SYMMETRIC_POP": {
+      "state": "EVALUATE",
+      "root": "KDR_HUK",
+      "applicationKey": "DERIVED_PURPOSE_SEPARATED_KEY",
+      "proofFamily": "SYMMETRIC_CHALLENGE_RESPONSE",
+      "serverEnrollmentModel": "OPEN",
+      "manufacturingFlow": "OPEN",
+      "keyRotationModel": "OPEN",
+      "rmaModel": "OPEN",
+      "knownConstraint": "HUK_ROOT_MUST_NOT_BE_USED_DIRECTLY_AS_APPLICATION_KEY"
+    },
+    "B_DEVICE_SPECIFIC_ASYMMETRIC_POP": {
+      "state": "EVALUATE",
+      "privateKeyStorage": "OPEN_THREAT_ANALYSIS_REQUIRED",
+      "proofFamily": "ASYMMETRIC_CHALLENGE_SIGNATURE",
+      "serverEnrollmentModel": "PUBLIC_KEY_OR_EQUIVALENT",
+      "manufacturingFlow": "OPEN",
+      "keyRotationModel": "OPEN",
+      "rmaModel": "OPEN",
+      "knownConstraint": "NO_KMU_ON_NRF52840 / DO_NOT_ASSUME_KMU_BACKED_IDENTITY_KEY_LIBRARY"
+    },
+    "C_EXTERNAL_SECURE_ELEMENT": {
+      "state": "EVALUATE",
+      "proofFamily": "HARDWARE_ISOLATED_CHALLENGE_RESPONSE",
+      "bomImpact": true,
+      "pcbImpact": true,
+      "manufacturingFixtureImpact": true,
+      "supplyChainImpact": true,
+      "knownConstraint": "NOT_CURRENTLY_PRESENT_IN_TAG_BOM"
+    }
+  },
+  "selection": {
+    "architecture": null,
+    "algorithmFamily": null,
+    "keySizeOrCurve": null,
+    "challengeFormat": null,
+    "credentialProvisioningFlow": null,
+    "backendEnrollmentSchema": null,
+    "rotationRevocationPolicy": null,
+    "debugSwdProductionPolicy": null
+  },
+  "nonAuthorities": [
+    "BLE_RUNTIME_DEVICE_ID",
+    "BLE_MAC_ADDRESS",
+    "FICR_DEVICEID",
+    "BACKEND_DEVICES_ID_BY_ITSELF",
+    "BOOT_SESSION_ID",
+    "TRANSPORT_SEQUENCE",
+    "CRC_VALID_FRAME"
+  ],
+  "requiredEvidenceBeforeSelectionClosure": [
+    "DEVICE_IDENTITY_THREAT_MODEL",
+    "ARCHITECTURE_DECISION_RECORD",
+    "MANUFACTURING_PROVISIONING_SEQUENCE",
+    "BACKEND_ENROLLMENT_MODEL",
+    "VERSIONED_CHALLENGE_RESPONSE_CONTRACT",
+    "REPLAY_AND_FRESHNESS_POLICY",
+    "ROTATION_REVOCATION_REBIND_RMA_LIFECYCLE",
+    "DEBUG_SWD_PRODUCTION_POLICY_DEPENDENCY",
+    "NEGATIVE_AUTHENTICATION_TESTS",
+    "REPRESENTATIVE_TARGET_HARDWARE_PROOF"
+  ],
+  "runtime": {
+    "deviceDataTrust": "NOT_IMPLEMENTED",
+    "networkTelemetryPersistence": "BLOCKED",
+    "claimBind": "NOT_IMPLEMENTED",
+    "trustedCommands": "NOT_IMPLEMENTED"
+  },
+  "releaseRule": "NO_DEVICE_DATA_TRUST_RUNTIME_OR_NETWORK_TELEMETRY_PERSISTENCE_UNTIL_ARCHITECTURE_SELECTION_AND_TARGET_HARDWARE_POP_EVIDENCE"
+}
