@@ -135,6 +135,13 @@
       "projectionAuthority": "TO_CONFIRM_ELI_V5_DISCLOSURE"
     },
     {
+      "table": "sensor_feature_observations",
+      "column": "dog_id",
+      "routeSymbol": "sensorFeatureObservations",
+      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT",
+      "projectionAuthority": "TO_CONFIRM_PREPROCESSED_FEATURE_DISCLOSURE"
+    },
+    {
       "table": "sensor_summaries",
       "column": "dog_id",
       "routeSymbol": "sensorSummaries",
