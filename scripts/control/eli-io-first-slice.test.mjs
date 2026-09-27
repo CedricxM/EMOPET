@@ -30,7 +30,7 @@ test('activity_variability has a canonical firmware writer while live delivery r
   assert.equal(authority.currentTransport.mobileToBackendForwardingImplemented, false);
   assert.equal(authority.currentTransport.clockAnchorWireContractImplemented, true);
   assert.equal(authority.currentTransport.clockAnchorPeripheralResponseImplemented, true);
-  assert.equal(authority.currentTransport.clockAnchorMobileCaptureImplemented, false);
+  assert.equal(authority.currentTransport.clockAnchorMobileCaptureImplemented, true);
   assert.equal(authority.currentTransport.productionClockAnchorImplemented, false);
   assert.equal(authority.currentTransport.networkFeatureIngestionActivated, false);
   assert.equal(authority.currentTransport.featureEnvelopeIngestionImplemented, false);
