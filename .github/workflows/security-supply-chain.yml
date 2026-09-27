@@ -106,6 +106,8 @@ jobs:
         run: pnpm control:eli-runtime-conformance:test
       - name: Enforce Device Trust identity/PoP architecture gate (#648)
         run: node --test scripts/control/device-identity-pop-authority.test.mjs
+      - name: Enforce Device Trust threat/provisioning boundary (#648)
+        run: node --test scripts/control/device-identity-threat-model.test.mjs
       - name: Enforce ELI activity-feature IO boundary (#122)
         run: node --test scripts/control/eli-io-first-slice.test.mjs
       - name: Enforce proprietary BLE UUID authority (#625)
