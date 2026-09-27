@@ -99,14 +99,14 @@ export async function requestBlePermissions(): Promise<boolean> {
   if (Platform.OS !== 'android') return true;
 
   if (androidApiLevel() >= 31) {
-    const scan = PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN;
-    const connect = PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT;
+    const scan = PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN!;
+    const connect = PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT!;
     const result = await PermissionsAndroid.requestMultiple([scan, connect]);
     return result[scan] === PermissionsAndroid.RESULTS.GRANTED
       && result[connect] === PermissionsAndroid.RESULTS.GRANTED;
   }
 
-  const fineLocation = PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION;
+  const fineLocation = PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION!;
   return await PermissionsAndroid.request(fineLocation)
     === PermissionsAndroid.RESULTS.GRANTED;
 }
