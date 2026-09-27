@@ -36,7 +36,8 @@ test('WORLD-SOCIAL-01 world reports share the moderation queue under PostgreSQL 
 
   await t.test('direct writers cannot break the target shape or self-report', async () => {
     const shape = (error) => error.code === '23514' && error.constraint_name === 'chk_community_reports_target_shape';
-    await assert.rejects(sql`INSERT INTO community_reports (reporter_user_id, content_type, reason) VALUES (${reporter}, 'world_user', 'spam')`, shape);
+    await assert.rejects(sql`INSERT INTO community_reports (reporter_user_id, content_type, content_id, subject_user_id, reason) VALUES (${reporter}, 'world_user', ${randomUUID()}, ${subject}, 'spam')`, shape);
+    await assert.rejects(sql`INSERT INTO community_reports (reporter_user_id, content_type, subject_user_id, reason) VALUES (${reporter}, 'world_message', ${subject}, 'spam')`, shape);
     await assert.rejects(sql`INSERT INTO community_reports (reporter_user_id, content_type, content_id, community_id, subject_user_id, reason)
       VALUES (${reporter}, 'post', ${randomUUID()}, ${randomUUID()}, ${subject}, 'spam')`, shape);
     await assert.rejects(sql`INSERT INTO community_reports (reporter_user_id, content_type, reason) VALUES (${reporter}, 'post', 'spam')`, shape);
@@ -44,7 +45,11 @@ test('WORLD-SOCIAL-01 world reports share the moderation queue under PostgreSQL 
       (error) => error.code === '23514' && error.constraint_name === 'chk_community_reports_not_self');
   });
 
-  await t.test('reported-person erasure stays TO_CONFIRM: NO ACTION blocks deleting that account', async () => {
-    await assert.rejects(sql`DELETE FROM users WHERE id = ${subject}`, (error) => error.code === '23503');
+  await t.test('reported-person erasure detaches the subject and keeps the report (decision #594)', async () => {
+    const before = await sql`SELECT count(*)::int AS n FROM community_reports WHERE subject_user_id = ${subject}`;
+    assert.equal(before[0].n, 2);
+    await sql`DELETE FROM users WHERE id = ${subject}`;
+    const after = await sql`SELECT content_type, subject_user_id FROM community_reports WHERE reporter_user_id = ${reporter} ORDER BY content_type`;
+    assert.deepEqual(after.map((r) => [r.content_type, r.subject_user_id]), [['world_message', null], ['world_user', null]]);
   });
 });

@@ -65,8 +65,8 @@ export const communityReports = pgTable('community_reports', {
   // world_message keeps only the message id, never its content (decision #48 L6).
   contentId: uuid('content_id'),
   communityId: uuid('community_id'),
-  // Reported person. Erasure disposition TO_CONFIRM, hence no onDelete behaviour.
-  subjectUserId: uuid('subject_user_id').references(() => users.id),
+  // Reported person. Detached on account erasure (founder decision #594, like reporter D4 #446).
+  subjectUserId: uuid('subject_user_id').references(() => users.id, { onDelete: 'set null' }),
   reason: varchar('reason', { length: 20 }).notNull(),
   details: varchar('details', { length: 500 }),
   status: varchar('status', { length: 20 }).notNull().default('open'),
@@ -86,8 +86,8 @@ export const communityReports = pgTable('community_reports', {
   index('idx_community_reports_final_action_at').on(table.finalActionAt),
   index('idx_community_reports_subject_created').on(table.subjectUserId, table.createdAt.desc().nullsFirst()),
   check('chk_community_reports_target_shape', sql`(${table.contentType} IN ('post', 'comment') AND ${table.contentId} IS NOT NULL AND ${table.communityId} IS NOT NULL AND ${table.subjectUserId} IS NULL)
-    OR (${table.contentType} = 'world_user' AND ${table.subjectUserId} IS NOT NULL AND ${table.contentId} IS NULL AND ${table.communityId} IS NULL)
-    OR (${table.contentType} = 'world_message' AND ${table.subjectUserId} IS NOT NULL AND ${table.contentId} IS NOT NULL AND ${table.communityId} IS NULL)`),
+    OR (${table.contentType} = 'world_user' AND ${table.contentId} IS NULL AND ${table.communityId} IS NULL)
+    OR (${table.contentType} = 'world_message' AND ${table.contentId} IS NOT NULL AND ${table.communityId} IS NULL)`),
   check('chk_community_reports_not_self', sql`${table.reporterUserId} IS NULL OR ${table.subjectUserId} IS NULL OR ${table.reporterUserId} <> ${table.subjectUserId}`),
 ]);
 

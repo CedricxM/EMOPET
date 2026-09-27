@@ -21,20 +21,23 @@ const approvedDetaches = new Set([
   'users.id|DIRECT_FK|communities|created_by',
   'users.id|DIRECT_FK|community_events|created_by',
   'users.id|DIRECT_FK|community_reports|reporter_user_id',
+  'users.id|DIRECT_FK|community_reports|subject_user_id',
 ]);
+// D1-D4 were approved in #446; D5 (reported person in World reports) on #594.
+const approvalRefs = { 'users.id|DIRECT_FK|community_reports|subject_user_id': '#594 (issuecomment-5857198114)' };
 
-test('decision packet records four approved detach rows while complete erasure remains fail closed', () => {
+test('decision packet records five approved detach rows while complete erasure remains fail closed', () => {
   assert.equal(
     packet.schemaVersion,
     'emopet-erasure-disposition-decision-packet-v1',
   );
   assert.equal(
     packet.status,
-    'FOUR_PRODUCT_PRIVACY_DISPOSITIONS_PROMOTED_REMAINDER_DECISION_SUPPORT',
+    'FIVE_PRODUCT_PRIVACY_DISPOSITIONS_PROMOTED_REMAINDER_DECISION_SUPPORT',
   );
   assert.equal(packet.claimsExecutableErasure, false);
   assert.equal(packet.claimsCompleteErasure, false);
-  assert.equal(packet.summary.matrixRowsPromoted, 4);
+  assert.equal(packet.summary.matrixRowsPromoted, 5);
 
   for (const row of packet.relations) {
     if (approvedDetaches.has(relationKey(row))) {
@@ -42,7 +45,7 @@ test('decision packet records four approved detach rows while complete erasure r
       assert.equal(row.disposition, 'DETACH');
       assert.equal(row.candidateDisposition, 'DETACH');
       assert.equal(row.executionStatus, 'IMPLEMENTED');
-      assert.equal(row.approvalRef, '#446');
+      assert.equal(row.approvalRef, approvalRefs[relationKey(row)] ?? '#446');
     } else {
       assert.equal(row.promotionAuthorized, false);
     }
@@ -81,7 +84,7 @@ test('decision grouping counts remain explicit and exhaustive', () => {
     policyAlignedDeleteCandidates: 25,
     policyConditionalExecutionRequired: 17,
     legalAuthorityBlocked: 3,
-    matrixRowsPromoted: 4,
+    matrixRowsPromoted: 5,
   });
 
   const counts = Object.fromEntries(

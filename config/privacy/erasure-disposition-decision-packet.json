@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-erasure-disposition-decision-packet-v1",
-  "status": "FOUR_PRODUCT_PRIVACY_DISPOSITIONS_PROMOTED_REMAINDER_DECISION_SUPPORT",
+  "status": "FIVE_PRODUCT_PRIVACY_DISPOSITIONS_PROMOTED_REMAINDER_DECISION_SUPPORT",
   "claimsExecutableErasure": false,
   "claimsCompleteErasure": false,
   "sourceMatrix": "config/privacy/erasure-disposition-matrix.json",
@@ -9,7 +9,7 @@
   "boundaries": [
     "This packet mirrors the canonical erasure-disposition matrix and provides decision support; it does not authorize destructive account erasure.",
     "A candidate DELETE direction is product-policy alignment only, not privacy/legal approval and not runtime deletion authority.",
-    "Four founder-approved D1-D4 account relations are promoted to DETACH because their identity links are implemented with PostgreSQL SET NULL.",
+    "Five founder-approved account relations (D1-D4 in #446, D5 reported person in #594) are promoted to DETACH because their identity links are implemented with PostgreSQL SET NULL.",
     "Conditional rows not explicitly approved still require their documented row-level or phased execution semantics before promotion.",
     "Legal-authority-blocked rows cannot be promoted by product or engineering alone.",
     "Database mechanics never substitute for privacy disposition authority on unresolved rows."
@@ -19,7 +19,7 @@
     "policyAlignedDeleteCandidates": 25,
     "policyConditionalExecutionRequired": 17,
     "legalAuthorityBlocked": 3,
-    "matrixRowsPromoted": 4
+    "matrixRowsPromoted": 5
   },
   "relations": [
     {
@@ -337,11 +337,11 @@
       "relationType": "DIRECT_FK",
       "table": "community_reports",
       "column": "subject_user_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
+      "disposition": "DETACH",
+      "executionStatus": "IMPLEMENTED",
+      "testEvidence": "backend/test/privacy-approved-erasure-decisions.test.mjs",
       "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
-      "candidateDisposition": null,
+      "candidateDisposition": "DETACH",
       "policyRefs": [
         "moderation_evidence"
       ],
@@ -352,7 +352,9 @@
         "DELETE",
         "RETAIN_WITH_JUSTIFICATION"
       ],
-      "promotionAuthorized": false
+      "promotionAuthorized": true,
+      "approvedDecision": "DETACH_IDENTITY_LINK_KEEP_SHARED_PRODUCT_OBJECT",
+      "approvalRef": "#594 (issuecomment-5857198114)"
     },
     {
       "subjectRoot": "users.id",

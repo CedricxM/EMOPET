@@ -7,8 +7,10 @@ import { isCanonicalUserId } from './auth-security.js';
  *
  * Reports are canonical EMOPET moderation evidence: they reuse `community_reports`, so the
  * moderation-evidence retention clock and the approved reporter DETACH (#446) apply. The
- * reported person is `subject_user_id`. World message content is never persisted (decision
- * #48 L6); a message report keeps only the message id and the resolved sender.
+ * reported person is `subject_user_id`, detached on that account's erasure (founder decision
+ * #594, like reporter D4). World message content is never persisted (decision #48 L6); a
+ * message report keeps only the message id and the resolved sender. The sink always writes a
+ * subject; only a later erasure can leave it NULL.
  */
 export const WORLD_REPORT_REASONS = ['spam', 'harassment', 'illegal', 'unsafe', 'other'] as const;
 export type WorldReportReason = (typeof WORLD_REPORT_REASONS)[number];
