@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "emopet-tag-ncs-platform-v1",
+  "status": "SOURCE_CANDIDATE / NCS_3_4_0_LTS_PINNED / DK_COMPILE_HARNESS_ONLY / MS88SF3_BOARD_OPEN",
+  "issue": 625,
+  "parentIssue": 122,
+  "sdk": {
+    "family": "nRF Connect SDK",
+    "version": "3.4.0",
+    "releaseClass": "LTS",
+    "manifestRevision": "v3.4.0"
+  },
+  "compileHarness": {
+    "board": "nrf52840dk/nrf52840",
+    "purpose": "COMPILE_HARNESS_ONLY",
+    "productionBoardAuthority": false,
+    "buildVerifiedInRepositoryCI": false
+  },
+  "productionTarget": {
+    "module": "MS88SF3",
+    "soc": "nRF52840",
+    "boardDefinition": "OPEN",
+    "hfClockAuthority": "OPEN",
+    "lfClockAuthority": "OPEN",
+    "flashRamLayoutAuthority": "OPEN",
+    "gpioPinAuthority": "OPEN",
+    "swdAuthority": "OPEN",
+    "uartToNrf9151Authority": "OPEN",
+    "sensorBusAuthority": "OPEN"
+  },
+  "gatt": {
+    "uuidAuthority": "config/ble/uuid-authority-v1.json",
+    "serviceSourceImplemented": true,
+    "sensorFrameCharacteristicSourceImplemented": true,
+    "featureSummaryCharacteristicSourceImplemented": true,
+    "featureSummaryNotifySourceImplemented": true,
+    "featureSummarySerializer": "tag_feature_summary_encode_activity_variability",
+    "targetBuildVerified": false,
+    "targetFlashed": false,
+    "notificationCapturedOverAir": false
+  },
+  "runtimeAuthority": {
+    "bootSessionId": "CALLER_OWNED / OPEN_PRODUCTION_POLICY",
+    "sequence": "CALLER_OWNED / OPEN_PRODUCTION_POLICY",
+    "windowEndMs": "CALLER_OWNED_MONOTONIC / OPEN_PRODUCTION_POLICY",
+    "wallClockUtc": "NOT_OWNED_BY_TAG",
+    "deviceTrust": "OPEN_UNDER_66"
+  },
+  "explicitNonClaims": [
+    "MS88SF3 board validated",
+    "target build verified",
+    "firmware flashed",
+    "feature notification observed over BLE",
+    "physical-device identity authenticated",
+    "secure boot implemented",
+    "signed OTA implemented",
+    "latent ELI activated"
+  ],
+  "currentDecision": "DO_NOT_CLAIM_REAL_TAG_BLE_DELIVERY"
+}
