@@ -141,6 +141,8 @@ jobs:
           code=$?
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           set -e
+      - name: Enforce ELI canonical device-registry boundary (#122)
+        run: node --test scripts/control/eli-io-device-registry.test.mjs
       - name: Enforce ELI feature transport-to-envelope conformance (#122)
         run: |
           pnpm --filter @emopet/ble-protocol build
