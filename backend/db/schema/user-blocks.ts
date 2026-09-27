@@ -8,7 +8,8 @@ import { users } from './users.js';
  *
  * One-sided and silent to the blocked person. Realtime transports (Nakama) and
  * surfaces enforce it from here; they never own it. No free-text reason is kept.
- * Account-erasure disposition is TO_CONFIRM, hence no onDelete behaviour.
+ * Erasure: deleted with either account by the ordered erasure executor (founder
+ * decision #594), never by a database cascade, hence no onDelete behaviour.
  */
 export const userBlocks = pgTable('user_blocks', {
   id: uuid('id').primaryKey().defaultRandom(),

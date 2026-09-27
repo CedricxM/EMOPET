@@ -1,7 +1,8 @@
 -- WORLD-SOCIAL-01 / #594 - canonical user-to-user block (decision #48 L5, 2026-09-27).
--- One-sided and silent. Both user references keep PostgreSQL NO ACTION: the
--- account-erasure disposition for blocks is TO_CONFIRM, so no deletion or
--- detachment behaviour is inferred here. No free-text reason is stored.
+-- One-sided and silent. No free-text reason is stored. Founder decision #594
+-- (issuecomment-5856975549): rows are deleted on erasure of either account by the
+-- ordered erasure executor, so both user references keep PostgreSQL NO ACTION
+-- (no database cascade).
 
 BEGIN;
 
