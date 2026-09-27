@@ -16,13 +16,13 @@ This README describes the code observed on `main`. It does not establish product
 | Web | Next.js 15, React 19, HeroUI 3, Tailwind 4 | `OBSERVED` |
 | Mobile | Expo 52, React 18, React Native 0.76 | `OBSERVED` |
 | API | Hono 4 on Node.js, Zod validation | `OBSERVED`, several routes remain placeholders |
-| Database | Drizzle ORM schemas for PostgreSQL | `OBSERVED`, clean migration application is `BLOCKED` |
+| Database | Drizzle ORM schemas + SQL path-A migrations for PostgreSQL | `DISPOSABLE-QA VALIDATED`; production migration/release authority remains `OPEN` |
 | Shared packages | ELI engine, BLE protocol, AI personality, shared types | `OBSERVED` |
 | Firmware | Partial MAT/TAG C sources | `OBSERVED_PARTIAL` |
 | Authentication | JWT middleware and ownership helper; register/login/refresh are stubs | `OPEN / GATED` |
-| CI and branch protection | No GitHub Actions, CODEOWNERS, or protected `main` observed | `OPEN` |
+| CI and branch protection | Security, P0 DB, Owner and path-scoped Windows workflows; active `main` ruleset; all 33 `scripts/control` tests have a CI path | `ACTIVE`; required status checks, branch auto-delete and CODEOWNERS remain `OPEN` |
 | Unity | No Unity project in this repository | `ABSENT_IN_REPOSITORY / GATED` |
-| Nakama | No Nakama integration in this repository | `ABSENT_IN_REPOSITORY / GATED` |
+| Nakama | Not canonical on `main`; experimental World/Nakama work remains outside current main authority | `GATED / NOT PRODUCTION AUTHORITY` |
 
 ## Monorepo layout
 
@@ -107,9 +107,22 @@ Treat the JSON, in-memory, and browser stores as prototype paths, not production
 
 ## Database warning
 
-Do not treat `pnpm --filter @emopet/api db:migrate` as clean-database proof yet.
+Disposable PostgreSQL QA now exercises both repository database paths: path A (checked-in SQL baseline/migrations) and the Drizzle-generated baseline. The P0 DB workflow gates table inventory plus constraint/index parity against an explicit classified-drift ledger, and current path-A migrations repair the previously identified shadow-FK and missing membership/sensor-summary provenance defects.
 
-The committed migrations alter base tables such as `breed_sensor_profiles` and `devices` without a checked-in migration that creates every required base table, and Drizzle migration metadata is absent. Repair and validation of the migration baseline require a separate approved change with clean-database and upgrade-path evidence.
+That evidence is **disposable QA, not production migration authority**. Known classified drift still exists, column-level drift is not yet globally gated, and release/upgrade promotion still requires its own reviewed evidence. Do not treat a green P0 DB run as permission to run production migrations.
+
+## Repository governance warning
+
+Repository-native controls are materially stronger than the original baseline, but they are not fully closed:
+
+- the active `main-protection` ruleset requires pull-request promotion and conversation resolution and blocks branch deletion/non-fast-forward updates;
+- all 33 current `scripts/control/*.test.mjs` authority tests now have a CI execution path;
+- `.github/workflows/windows-portability.yml` adds a targeted `windows-latest` gate for checkout attributes, byte-sensitive evidence, Windows-sensitive guards and web tests;
+- the seven selected repository-owned status checks are **not yet required by the ruleset**; #257 remains open;
+- GitHub still reports `delete_branch_on_merge=false`; controlled branch-lifecycle cleanup remains open under #679;
+- the repository is public while licence/contribution ownership and CODEOWNERS policy remain an explicit decision under #680.
+
+Do not treat a green workflow as equivalent to repository-enforced required-check policy until #257 is closed.
 
 ## Docker warning
 
