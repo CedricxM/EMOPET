@@ -14,3 +14,5 @@ export * from './eli-api.js';
 export * from './activity-feature-forwarding.js';
 
 export * from './device-registry.js';
+
+export * from './device-pop.js';

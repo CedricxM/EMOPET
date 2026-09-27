@@ -35,7 +35,14 @@ test('#648 selects exactly one P0 asymmetric architecture while runtime remains 
     evaluation.selection.debugSwdProductionPolicy,
     'APPROTECT_REQUIRED_BEFORE_CREDENTIAL_ACTIVE',
   );
-  assert.equal(evaluation.selection.challengeFormat, null);
+  assert.equal(
+    evaluation.selection.challengeFormat,
+    'DEVICE_POP_CHALLENGE_V1 / FIXED_BINARY_SHA256 / ECDSA_P256_P1363_64',
+  );
+  assert.equal(
+    evaluation.challengeContractAuthority,
+    'config/security/device-pop-challenge-v1.json',
+  );
   assert.equal(evaluation.selection.rotationRevocationPolicy, null);
 
   assert.match(evaluation.candidates.A_HUK_KDR_DERIVED_SYMMETRIC_POP.state, /NOT_SELECTED/);

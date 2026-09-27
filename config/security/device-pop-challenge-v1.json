@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "emopet-device-pop-challenge-contract-v1",
+  "status": "DATA_CONTRACT_SELECTED / RUNTIME_NOT_IMPLEMENTED / TELEMETRY_PERSISTENCE_BLOCKED",
+  "issue": 648,
+  "parentIssue": 66,
+  "architecture": {
+    "proof": "ECDSA_SHA256_SECP256R1",
+    "publicKeyEnrollment": "SEC1_UNCOMPRESSED_P256_65_BYTES",
+    "privateKeyExport": "PROHIBITED"
+  },
+  "challenge": {
+    "schemaVersion": "device-pop-challenge-v1",
+    "protocolVersion": 1,
+    "purpose": {
+      "initialAllowed": "DEVICE_DATA_TELEMETRY_INGRESS",
+      "code": 1,
+      "reuseForClaimBindOrCommands": false
+    },
+    "challengeId": {
+      "bytes": 16,
+      "representation": "UUID / RFC4122_NETWORK_ORDER_BYTES_IN_SIGNING_PREIMAGE",
+      "authority": "BACKEND_CSPRNG"
+    },
+    "nonce": {
+      "bytes": 32,
+      "representation": "BASE64URL_NO_PADDING_ON_JSON_BOUNDARY / RAW_BYTES_IN_SIGNING_PREIMAGE",
+      "authority": "BACKEND_CSPRNG"
+    },
+    "credentialVersion": "UINT32_POSITIVE",
+    "issuedAt": "BACKEND_UTC",
+    "expiresAt": "BACKEND_UTC_STRICTLY_AFTER_ISSUED_AT",
+    "ttlValue": "OPEN_POLICY / NO_DEFAULT_IN_CONTRACT"
+  },
+  "signingPreimage": {
+    "name": "EMOPET_DEVICE_POP_FIXED_BINARY_V1",
+    "domainSeparatorAscii": "EMOPET_DEVICE_POP_V1",
+    "hash": "SHA256",
+    "integerEndian": "BIG_ENDIAN",
+    "uuidEncoding": "16_RAW_BYTES_RFC4122_NETWORK_ORDER",
+    "fieldsInOrder": [
+      "DOMAIN_SEPARATOR_ASCII",
+      "PROTOCOL_VERSION_U8",
+      "PURPOSE_CODE_U8",
+      "DEVICE_PRINCIPAL_UUID_16",
+      "CREDENTIAL_VERSION_U32",
+      "CHALLENGE_ID_UUID_16",
+      "NONCE_32",
+      "ISSUED_AT_UNIX_MS_U64",
+      "EXPIRES_AT_UNIX_MS_U64"
+    ],
+    "jsonSerializationIsSigningAuthority": false
+  },
+  "response": {
+    "schemaVersion": "device-pop-response-v1",
+    "signatureEncoding": "IEEE_P1363_RAW_R_32_PLUS_S_32",
+    "signatureBytes": 64,
+    "jsonRepresentation": "BASE64URL_NO_PADDING",
+    "derEncodingAccepted": false,
+    "publicKeyIncludedInResponse": false
+  },
+  "backendVerification": {
+    "publicKeySource": "ACTIVE_ENROLLED_CREDENTIAL_FOR_CANONICAL_DEVICE_PRINCIPAL_AND_VERSION",
+    "challengeStateSource": "SERVER_SIDE_BY_CHALLENGE_ID",
+    "deviceClockTrustedForExpiry": false,
+    "serverTimeOwnsExpiry": true,
+    "responseFieldsMustMatchStoredChallenge": true,
+    "successfulVerificationConsumesChallengeAtomically": true,
+    "consumedChallengeReplayRejected": true,
+    "expiredChallengeRejected": true,
+    "revokedOrReplacedCredentialRejected": true,
+    "invalidSignatureAuthorizesNothing": true,
+    "failedAttemptConsumptionPolicy": "OPEN_IMPLEMENTATION_POLICY"
+  },
+  "nonAuthorities": [
+    "BLE_RUNTIME_DEVICE_ID",
+    "BLE_MAC_ADDRESS",
+    "FICR_DEVICEID",
+    "BACKEND_DEVICES_ID_BY_ITSELF",
+    "BOOT_SESSION_ID",
+    "TRANSPORT_SEQUENCE",
+    "CRC_VALID_FRAME",
+    "MOBILE_CLIENT_ASSERTION"
+  ],
+  "runtime": {
+    "challengeIssuer": "NOT_IMPLEMENTED",
+    "deviceSigner": "NOT_IMPLEMENTED",
+    "backendVerifier": "NOT_IMPLEMENTED",
+    "replayStore": "NOT_IMPLEMENTED",
+    "deviceDataTrust": "NOT_IMPLEMENTED",
+    "networkTelemetryPersistence": "BLOCKED"
+  },
+  "releaseRule": "NO_DEVICE_TRUST_SUCCESS_OR_DURABLE_NETWORK_TELEMETRY_WRITE_UNTIL_RUNTIME_AND_TARGET_HARDWARE_NEGATIVE_EVIDENCE_PASS"
+}

@@ -66,7 +66,14 @@ test('threat/provisioning evidence is delivered and selected architecture stays 
   assert.equal(evaluation.selection.architecture, 'B_DEVICE_SPECIFIC_ASYMMETRIC_POP');
   assert.equal(evaluation.selection.algorithmFamily, 'ECDSA_SHA256');
   assert.equal(evaluation.selection.keySizeOrCurve, 'SECP256R1_256');
-  assert.equal(evaluation.selection.challengeFormat, null);
+  assert.equal(
+    evaluation.selection.challengeFormat,
+    'DEVICE_POP_CHALLENGE_V1 / FIXED_BINARY_SHA256 / ECDSA_P256_P1363_64',
+  );
+  assert.equal(
+    evaluation.evidenceState.challengeResponseContract,
+    'DELIVERED_AS_VERSIONED_DATA_CONTRACT / RUNTIME_OPEN',
+  );
 
   assert.equal(threat.selection.architecture, 'B_DEVICE_SPECIFIC_ASYMMETRIC_POP');
   assert.equal(threat.selection.algorithmFamily, 'ECDSA_SHA256');

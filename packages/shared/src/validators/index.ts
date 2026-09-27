@@ -501,3 +501,44 @@ export const OwnerDogCanonicalDeviceRegistryResponseSchema = z.object({
   bleTransportIdentifierIsCanonicalIdentity: z.literal(false),
   physicalDeviceAuthenticationEstablished: z.literal(false),
 }).strict();
+
+
+// ── Device Trust PoP contract ───────────────────────────────────
+
+const Base64UrlNoPaddingSchema = z.string().regex(/^[A-Za-z0-9_-]+$/);
+
+export const DevicePopPurposeV1Schema = z.literal('DEVICE_DATA_TELEMETRY_INGRESS');
+
+export const DevicePopChallengeV1Schema = z.object({
+  schemaVersion: z.literal('device-pop-challenge-v1'),
+  protocolVersion: z.literal(1),
+  deviceId: z.string().uuid(),
+  credentialVersion: z.number().int().positive().max(0xffffffff),
+  purpose: DevicePopPurposeV1Schema,
+  challengeId: z.string().uuid(),
+  nonce: Base64UrlNoPaddingSchema.length(43),
+  issuedAt: z.string().datetime(),
+  expiresAt: z.string().datetime(),
+  signingContract: z.literal('EMOPET_DEVICE_POP_FIXED_BINARY_V1'),
+}).strict().superRefine((value, ctx) => {
+  const issued = Date.parse(value.issuedAt);
+  const expires = Date.parse(value.expiresAt);
+  if (!Number.isFinite(issued) || !Number.isFinite(expires) || expires <= issued) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['expiresAt'],
+      message: 'expiresAt must be strictly after issuedAt',
+    });
+  }
+});
+
+export const DevicePopResponseV1Schema = z.object({
+  schemaVersion: z.literal('device-pop-response-v1'),
+  protocolVersion: z.literal(1),
+  deviceId: z.string().uuid(),
+  credentialVersion: z.number().int().positive().max(0xffffffff),
+  purpose: DevicePopPurposeV1Schema,
+  challengeId: z.string().uuid(),
+  signatureFormat: z.literal('ECDSA_P256_SHA256_P1363_64'),
+  signature: Base64UrlNoPaddingSchema.length(86),
+}).strict();

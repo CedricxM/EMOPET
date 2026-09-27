@@ -22,7 +22,9 @@
     "rebindTransfer": "OPEN",
     "factoryReset": "MUST_NOT_BYPASS_SERVER_OR_DEVICE_AUTHORITY",
     "lostStolenRecovery": "OPEN",
-    "proofOfPossessionArchitecture": "ECDSA_SHA256_SECP256R1 / PUBLIC_KEY_VERIFICATION / RUNTIME_NOT_IMPLEMENTED"
+    "proofOfPossessionArchitecture": "ECDSA_SHA256_SECP256R1 / PUBLIC_KEY_VERIFICATION / RUNTIME_NOT_IMPLEMENTED",
+    "proofOfPossessionContract": "config/security/device-pop-challenge-v1.json",
+    "challengeContract": "DEVICE_POP_CHALLENGE_V1 / RUNTIME_NOT_IMPLEMENTED"
   },
   "commands": {
     "rawBleBuilders": "UNAUTHENTICATED_PAYLOAD_ONLY",
@@ -62,6 +64,7 @@
     "bleTransportIdentifierIsPrincipal": false,
     "runtime": "NOT_IMPLEMENTED",
     "releaseRule": "NO_DURABLE_DEVICE_TELEMETRY_WRITE_FROM_NETWORK_UNTIL_DEVICE_DATA_TRUST_RUNTIME_EXISTS",
-    "deviceIdentityArchitectureGate": 648
+    "deviceIdentityArchitectureGate": 648,
+    "proofOfPossessionContract": "DEVICE_POP_CHALLENGE_V1 / DEVICE_DATA_TELEMETRY_INGRESS / RUNTIME_NOT_IMPLEMENTED"
   }
 }

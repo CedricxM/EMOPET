@@ -38,6 +38,19 @@ key. Production trust still requires HUK-backed private-key storage, NSIB,
 APPROTECT/debug evidence, secure boot/signed firmware dependencies and
 representative MS88SF3 target proof. Device Data Trust remains fail-closed.
 
+The first versioned proof contract is now defined at:
+
+`config/security/device-pop-challenge-v1.json`
+
+with the human authority:
+
+`docs/security/DEVICE_POP_CHALLENGE_CONTRACT_V1_2026-09-27.md`.
+
+It defines a telemetry-only, domain-separated fixed-binary signing preimage,
+32-byte server nonce, P-256/SHA-256 signature encoded as 64-byte IEEE P1363
+`r || s`, and server-owned expiry/single-use replay semantics. It does **not**
+implement challenge issuance, signing, verification or telemetry trust.
+
 Each production device needs a canonical principal independent of its BLE address.
 
 Required properties:

@@ -57,7 +57,7 @@
     "architecture": "B_DEVICE_SPECIFIC_ASYMMETRIC_POP",
     "algorithmFamily": "ECDSA_SHA256",
     "keySizeOrCurve": "SECP256R1_256",
-    "challengeFormat": null,
+    "challengeFormat": "DEVICE_POP_CHALLENGE_V1 / FIXED_BINARY_SHA256 / ECDSA_P256_P1363_64",
     "credentialProvisioningFlow": "ON_DEVICE_KEY_GENERATION / PUBLIC_KEY_ENROLLMENT / FRESH_CHALLENGE_PROOF / APPROTECT_BEFORE_ACTIVE",
     "backendEnrollmentSchema": "PUBLIC_KEY_PER_CANONICAL_DEVICE_PRINCIPAL_AND_CREDENTIAL_VERSION",
     "rotationRevocationPolicy": null,
@@ -103,8 +103,8 @@
     },
     "architectureDecisionRecord": "DELIVERED / B_SELECTED_PENDING_TARGET_PROOF",
     "backendEnrollmentModel": "SELECTED_PUBLIC_KEY_MODEL / SCHEMA_IMPLEMENTATION_OPEN",
-    "challengeResponseContract": "OPEN",
-    "replayFreshnessPolicy": "OPEN",
+    "challengeResponseContract": "DELIVERED_AS_VERSIONED_DATA_CONTRACT / RUNTIME_OPEN",
+    "replayFreshnessPolicy": "INVARIANTS_DEFINED / TTL_VALUE_AND_REPLAY_STORE_IMPLEMENTATION_OPEN",
     "rotationRevocationRebindRma": "PARTIAL_COMMON_FLOW_ONLY",
     "debugSwdProductionPolicy": "DECISION_REQUIRED / RECEIPT_SHAPE_DEFINED",
     "negativeAuthenticationTests": "OPEN",
@@ -118,5 +118,6 @@
     "signedOta": "REQUIRED_BEFORE_PRODUCTION_TRUST_ACTIVATION",
     "representativeHardwareProof": "REQUIRED_BEFORE_648_CLOSE",
     "networkPersistence": "STILL_BLOCKED"
-  }
+  },
+  "challengeContractAuthority": "config/security/device-pop-challenge-v1.json"
 }
