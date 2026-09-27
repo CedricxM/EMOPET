@@ -43,6 +43,11 @@ function fingerprint(row: {
   transportVersion: number | null;
   transportBootSessionId: number | null;
   transportSequence: number | null;
+  transportWindowEndMs: number | null;
+  eventTimeResolution: string | null;
+  clockAnchorDeviceMs: number | null;
+  clockAnchorUtc: Date | null;
+  eventTimeUncertaintyMs: number | null;
 }): string {
   return JSON.stringify({
     dogId: row.dogId,
@@ -60,6 +65,11 @@ function fingerprint(row: {
     transportVersion: row.transportVersion,
     transportBootSessionId: row.transportBootSessionId,
     transportSequence: row.transportSequence,
+    transportWindowEndMs: row.transportWindowEndMs,
+    eventTimeResolution: row.eventTimeResolution,
+    clockAnchorDeviceMs: row.clockAnchorDeviceMs,
+    clockAnchorUtc: row.clockAnchorUtc?.toISOString() ?? null,
+    eventTimeUncertaintyMs: row.eventTimeUncertaintyMs,
   });
 }
 
@@ -99,6 +109,7 @@ export async function persistActivityVariabilityFeatureObservation(
 
   const input = parsed.data;
   const transport = input.transportProvenance ?? null;
+  const eventTime = input.eventTimeProvenance ?? null;
 
   try {
     return await db.transaction(async (tx) => {
@@ -151,6 +162,11 @@ export async function persistActivityVariabilityFeatureObservation(
         transportVersion: transport?.transportVersion ?? null,
         transportBootSessionId: transport?.bootSessionId ?? null,
         transportSequence: transport?.sequence ?? null,
+        transportWindowEndMs: transport?.windowEndMs ?? null,
+        eventTimeResolution: eventTime?.strategy ?? null,
+        clockAnchorDeviceMs: eventTime?.anchorDeviceMs ?? null,
+        clockAnchorUtc: eventTime?.anchorUtc ?? null,
+        eventTimeUncertaintyMs: eventTime?.uncertaintyMs ?? null,
       };
 
       const [created] = await tx
