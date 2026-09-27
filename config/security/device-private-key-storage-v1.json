@@ -30,7 +30,12 @@
     "nsibRequired": true,
     "approtectRequiredBeforeCredentialActive": true,
     "signedFirmwareRequiredBeforeCredentialActive": true,
-    "applicationKeyIdNamespace": "OPEN / EXPLICIT_INPUT_ONLY / HARD_CODE_FORBIDDEN_UNTIL_RESERVED"
+    "applicationKeyIdNamespace": "EMOPET_DEVICE_TRUST_BLOCK_0x00010000_0x0001000F / IDENTITY_SLOTS_A_B",
+    "keyIdRegistry": "config/security/psa-key-id-registry-v1.json",
+    "identitySlots": {
+      "A": "0x00010000",
+      "B": "0x00010001"
+    }
   },
   "source": {
     "kconfig": "firmware/collar/ncs/Kconfig",
@@ -44,7 +49,7 @@
     "duplicateProvisioning": "FAIL_CLOSED",
     "partialProvisionRollback": "DESTROY_NEWLY_CREATED_KEY_ONLY",
     "credentialVersionBinding": "CALLER_SUPPLIED / RECEIPT_ONLY / DURABLE_BINDING_OPEN",
-    "rotation": "OPEN",
+    "rotation": "DUAL_SLOT_A_B_SELECTED / ACTIVE_PLUS_PENDING_MAX_ONE_EACH / DESTRUCTIVE_RUNTIME_OPEN",
     "revocation": "OPEN",
     "rma": "OPEN"
   },
@@ -58,7 +63,7 @@
     "approtectVerified": false,
     "signedFirmwareVerified": false,
     "representativeMs88sf3SignVerifyProof": false,
-    "applicationKeyIdNamespaceSelected": false
+    "applicationKeyIdNamespaceSelected": true
   },
   "hardStops": {
     "deviceDataTrust": "BLOCKED",
