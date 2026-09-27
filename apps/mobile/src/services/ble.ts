@@ -425,6 +425,9 @@ export async function captureBleBootClockAnchor(
 
   try {
     const result = await new Promise<BleClockAnchorMeasurement>((resolve, reject) => {
+      const sendWallUtcMs = Date.now();
+      const sendMonotonicMs = monotonicNowMs();
+
       const fail = (error: BleRuntimeError) => {
         if (timeoutHandle) clearTimeout(timeoutHandle);
         reject(error);
@@ -470,9 +473,6 @@ export async function captureBleBootClockAnchor(
           }
         },
       );
-
-      const sendWallUtcMs = Date.now();
-      const sendMonotonicMs = monotonicNowMs();
 
       timeoutHandle = setTimeout(() => {
         reject(new BleRuntimeError(
