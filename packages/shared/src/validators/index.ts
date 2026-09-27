@@ -312,6 +312,14 @@ export const ActivityVariabilityFeatureObservationCreateSchema = z.object({
     });
   }
 
+  if (value.transportProvenance && !value.qualityState) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['qualityState'],
+      message: 'transportProvenance requires qualityState',
+    });
+  }
+
   if (value.observationStatus === 'OBSERVED') {
     if (value.value === null) {
       ctx.addIssue({

@@ -117,4 +117,5 @@ test('boot-anchor event-time resolution preserves uncertainty without activating
 
   assert.match(validator, /BOOT_ANCHOR_V1/);
   assert.match(validator, /eventTimeProvenance requires transportProvenance/);
+  assert.match(validator, /transportProvenance requires qualityState/);
 });

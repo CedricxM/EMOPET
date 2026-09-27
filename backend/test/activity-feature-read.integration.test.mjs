@@ -99,6 +99,7 @@ test('Owner-scoped feature reads preserve physical/null/time semantics and bound
       observationStatus: 'NOT_OBSERVED',
       nullReason: 'INSUFFICIENT_COVERAGE',
       validSeconds: 400,
+      qualityState: 'DEGRADED',
       transportProvenance: {
         transportVersion: 1,
         bootSessionId: 0x44556677,
@@ -121,6 +122,7 @@ test('Owner-scoped feature reads preserve physical/null/time semantics and bound
   assert.equal(latest.observation.observationStatus, 'NOT_OBSERVED');
   assert.equal(latest.observation.value, null);
   assert.equal(latest.observation.nullReason, 'INSUFFICIENT_COVERAGE');
+  assert.equal(latest.observation.qualityState, 'DEGRADED');
   assert.equal(latest.observation.eventTimeResolution, 'BOOT_ANCHOR_V1');
   assert.equal(latest.observation.eventTimeUncertaintyMs, 300);
   assert.equal(latest.observation.interpretationAuthority, 'PHYSICAL_MOVEMENT_VARIABILITY_ONLY');
@@ -141,7 +143,9 @@ test('Owner-scoped feature reads preserve physical/null/time semantics and bound
     history.observations.map((row) => row.observedAt),
     ['2026-09-27T09:00:00.000Z', '2026-09-27T08:00:00.000Z'],
   );
+  assert.equal(history.observations[0].qualityState, 'DEGRADED');
   assert.equal(history.observations[0].eventTimeUncertaintyMs, 300);
+  assert.equal(history.observations[1].qualityState, null);
   assert.equal(history.observations[1].eventTimeResolution, null);
   assert.equal(history.observations[1].eventTimeUncertaintyMs, null);
   assert.equal(history.observations[1].value, 0.21);
