@@ -167,6 +167,17 @@ test('activity feature persistence is owner/device bound, idempotent and fail-cl
     eventTimeProvenance: resolvedTime.eventTimeProvenance,
   });
 
+  const inconsistentEventTime = await persistActivityVariabilityFeatureObservation(
+    OWNER_A,
+    {
+      ...transported,
+      observedAt: new Date('2026-09-27T10:00:01.000Z'),
+    },
+  );
+  assert.equal(inconsistentEventTime.ok, false);
+  assert.equal(inconsistentEventTime.error, 'INVALID_FEATURE_ENVELOPE');
+  assert.match(inconsistentEventTime.issues[0], /does not reproduce/);
+
   const transportCreated = await persistActivityVariabilityFeatureObservation(
     OWNER_A,
     transported,
