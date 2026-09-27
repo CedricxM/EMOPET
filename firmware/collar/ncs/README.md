@@ -28,11 +28,8 @@ Controlled platform metadata lives in:
 
 `config/firmware/tag-platform-v1.json`
 
-The recorded Nordic toolchain image is:
-
-`ghcr.io/nrfconnect/sdk-nrf-toolchain:v3.4.0`
-
-with controlled digest recorded in the platform JSON.
+The repository pin is the local `west.yml` manifest at `v3.4.0`.
+No unverified container digest is treated as release authority.
 
 ## Temporary compile harness
 
@@ -41,9 +38,12 @@ only allowed generic compile harness is:
 
 `nrf52840dk/nrf52840`
 
-Example from an NCS v3.4.0 workspace:
+Initialize from the pinned local manifest, then build from an NCS v3.4.0 workspace:
 
 ```sh
+west init -l firmware/collar/ncs
+west update
+west zephyr-export
 west build -b nrf52840dk/nrf52840 firmware/collar/ncs \
   -d build/emopet-tag-dk
 ```
@@ -88,19 +88,21 @@ No second serializer is permitted.
 
 ## Transport provenance
 
-At Bluetooth initialization:
-- `boot_session_id = sys_rand32_get()`;
-- feature sequence starts at 0.
+The GATT layer does **not** generate transport provenance.
 
-For a published physical feature:
-- `window_end_ms = k_uptime_get_32()`;
-- sequence increments only after a successful queued notification.
+The caller must supply:
+- `boot_session_id`;
+- per-boot `sequence`;
+- the real monotonic `window_end_ms` for the measurement window.
 
-The random boot session is **not cryptographic identity**. It is replay/session
-separation only. Device Trust remains #66.
+This avoids a delayed notification or reconnect/backfill event replacing the
+actual measurement-window end with send time.
+
+Production policy for boot-session uniqueness, sequence reset/wrap and
+monotonic-time ownership remains open under #625 G4/G5.
 
 The TAG does not invent UTC. Backend/mobile clock-anchor authority remains
-separate.
+separate. Device Trust remains #66.
 
 ## What is still open
 
