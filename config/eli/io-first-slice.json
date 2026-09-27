@@ -67,7 +67,13 @@
     "mobileCanonicalTagResolverImplemented": true,
     "mobileCanonicalTagResolverFailsOnAmbiguity": true,
     "mobileBleTransportIdUsedAsCanonicalDeviceId": false,
-    "mobileBleToCanonicalDevicePhysicalBindingEstablished": false
+    "mobileBleToCanonicalDevicePhysicalBindingEstablished": false,
+    "mobileNetworkPostClientImplemented": true,
+    "mobileNetworkPostClientAuthority": "apps/mobile/src/services/activity-feature-network.ts",
+    "mobileNetworkPostAcceptsPregatedCandidateOnly": true,
+    "mobileNetworkSuccessContractImplemented": false,
+    "mobileAutomaticRetryImplemented": false,
+    "mobileOfflineQueueImplemented": false
   },
   "candidateOwnership": {
     "featureComputation": "FIRMWARE",
