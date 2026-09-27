@@ -86,5 +86,24 @@
     "claimBind": "NOT_IMPLEMENTED",
     "trustedCommands": "NOT_IMPLEMENTED"
   },
-  "releaseRule": "NO_DEVICE_DATA_TRUST_RUNTIME_OR_NETWORK_TELEMETRY_PERSISTENCE_UNTIL_ARCHITECTURE_SELECTION_AND_TARGET_HARDWARE_POP_EVIDENCE"
+  "releaseRule": "NO_DEVICE_DATA_TRUST_RUNTIME_OR_NETWORK_TELEMETRY_PERSISTENCE_UNTIL_ARCHITECTURE_SELECTION_AND_TARGET_HARDWARE_POP_EVIDENCE",
+  "evidenceState": {
+    "threatModel": {
+      "status": "DELIVERED",
+      "authority": "docs/security/DEVICE_IDENTITY_THREAT_MODEL_2026-09-27.md",
+      "machineReadable": "config/security/device-identity-threat-model-v1.json"
+    },
+    "commonManufacturingProvisioning": {
+      "status": "DELIVERED_AS_ARCHITECTURE_NEUTRAL_FLOW",
+      "authority": "docs/security/DEVICE_IDENTITY_MANUFACTURING_PROVISIONING_2026-09-27.md"
+    },
+    "architectureDecisionRecord": "OPEN",
+    "backendEnrollmentModel": "OPEN",
+    "challengeResponseContract": "OPEN",
+    "replayFreshnessPolicy": "OPEN",
+    "rotationRevocationRebindRma": "PARTIAL_COMMON_FLOW_ONLY",
+    "debugSwdProductionPolicy": "DECISION_REQUIRED / RECEIPT_SHAPE_DEFINED",
+    "negativeAuthenticationTests": "OPEN",
+    "representativeTargetHardwareProof": "OPEN"
+  }
 }
