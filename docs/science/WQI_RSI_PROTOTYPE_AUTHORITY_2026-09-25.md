@@ -8,7 +8,7 @@
 
 The web dashboard contains deterministic demo values for WQI and RSI. The previous UI comments/text referred to `ELI v6 §7` and `§8`, but no controlled specification defining those sections has been recovered.
 
-Therefore the current values remain presentation prototypes.
+Therefore the current values remain presentation prototypes and are not authorized paid-tier capabilities.
 
 ## WQI
 
@@ -39,6 +39,8 @@ Machine-readable authority:
 
 UI copy now labels WQI/RSI parameters as demo/prototype semantics and removes the phantom §7/§8 authority implication.
 
+The paid entitlement registry also excludes `walk_quality` and `routine_stability` while #91 remains unresolved. Their existence in demo UI does not create a commercial promise.
+
 ## Before activation
 
 A real Product path must define and version:
@@ -53,6 +55,7 @@ A real Product path must define and version:
 - threshold/persistence provenance;
 - context/veto handling;
 - backend authority;
-- validation/calibration.
+- validation/calibration;
+- explicit Product authorization before either feature re-enters a paid-tier entitlement registry.
 
-No production path may silently fall back to these mock values.
+No production path may silently fall back to these mock values, and no paid tier may advertise them before that authority exists.
