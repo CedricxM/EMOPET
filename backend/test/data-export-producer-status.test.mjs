@@ -12,7 +12,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname, join, relative, sep } from 'node:path';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const backendDir = join(here, '..');
@@ -39,6 +39,11 @@ function collectTsSources(dir) {
     else if (entry.name.endsWith('.ts')) out.push(full);
   }
   return out;
+}
+
+/** Backend-relative path with `/` separators, so assertions hold on Windows too. */
+function backendRelative(file) {
+  return relative(backendDir, file).split(sep).join('/');
 }
 
 /* ------------------------------------------------------------------ */
@@ -88,7 +93,7 @@ test('no backend module produces the inferred level', () => {
   for (const file of sources) {
     const source = readFileSync(file, 'utf8');
     if (new RegExp(`insert\\(\\s*${STRUCTURALLY_PRODUCERLESS_TABLE}\\s*\\)`).test(source)) {
-      writers.push(file.slice(backendDir.length + 1));
+      writers.push(backendRelative(file));
     }
   }
 
@@ -108,7 +113,7 @@ test('canonical ELI engine importers remain explicitly bounded by runtime author
 
   const importers = collectTsSources(join(backendDir, 'api'))
     .filter((file) => /(?:from|require\()\s*'@emopet\/eli-engine'/.test(readFileSync(file, 'utf8')))
-    .map((file) => file.slice(backendDir.length + 1))
+    .map(backendRelative)
     .sort();
 
   assert.deepEqual(
