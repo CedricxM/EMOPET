@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-eli-io-first-slice-v1",
-  "status": "TRANSPORT_GAP_EXPLICIT / NO END_TO_END_FEATURE_INGESTION",
+  "status": "BACKEND_FEATURE_PERSISTENCE_READY / TRANSPORT GAP EXPLICIT / NO END_TO_END ACTIVATION",
   "issue": 122,
   "firstFeature": "activity_variability",
   "featureContractVersion": "tag-activity-variability-cv30m-v1",
@@ -15,7 +15,11 @@
     "protocol": "BLE_V1",
     "tagPayloadContainsActivityVariability": false,
     "featureEnvelopeIngestionImplemented": false,
-    "endToEndPath": false
+    "endToEndPath": false,
+    "backendFeaturePersistenceImplemented": true,
+    "backendFeaturePersistenceTable": "sensor_feature_observations",
+    "backendPersistencePrimitive": "persistActivityVariabilityFeatureObservation",
+    "networkFeatureIngestionActivated": false
   },
   "candidateOwnership": {
     "featureComputation": "FIRMWARE",
@@ -31,5 +35,17 @@
     "backend ingestion fails closed on mismatch",
     "deterministic conformance vector spans producer-to-ingestion"
   ],
-  "currentDecision": "DO_NOT_ACTIVATE"
+  "currentDecision": "DO_NOT_ACTIVATE",
+  "backendPersistenceBoundary": {
+    "status": "IMPLEMENTED_INTERNAL_ONLY",
+    "accepts": "VERSIONED_ACTIVITY_VARIABILITY_FEATURE_ENVELOPE",
+    "ownerDogBindingRequired": true,
+    "tagDeviceBindingRequired": true,
+    "firmwareVersionSnapshottedAtIngest": true,
+    "idempotentReplayByIngestionId": true,
+    "conflictingReplayRejected": true,
+    "publicRoute": false,
+    "eliInvocation": false,
+    "ownerProjection": false
+  }
 }
