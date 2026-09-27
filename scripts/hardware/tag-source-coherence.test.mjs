@@ -4,8 +4,9 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
-const script = new URL('./tag-source-coherence.mjs', import.meta.url);
+const script = fileURLToPath(new URL('./tag-source-coherence.mjs', import.meta.url));
 
 function run({ sch, erc, pcb }) {
   const dir = mkdtempSync(join(tmpdir(), 'tag-source-coherence-'));
@@ -13,7 +14,7 @@ function run({ sch, erc, pcb }) {
   const ercPath = join(dir, 'ERC.rpt');
   writeFileSync(schPath, sch);
   writeFileSync(ercPath, erc);
-  const args = [script.pathname, '--schematic', schPath, '--erc', ercPath];
+  const args = [script, '--schematic', schPath, '--erc', ercPath];
   if (pcb != null) {
     const pcbPath = join(dir, 'x.kicad_pcb');
     writeFileSync(pcbPath, pcb);

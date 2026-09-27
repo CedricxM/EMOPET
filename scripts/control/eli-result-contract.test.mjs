@@ -23,8 +23,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
-const ROOT = new URL('../../', import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const SHARED_OWNER = 'packages/shared/src/types/inference.ts';
 const ENGINE_HOOKS = 'packages/eli-engine/src/hooks/index.ts';
 
