@@ -1,7 +1,7 @@
 # EMOPET TAG — nRF Connect SDK peripheral scaffold
 
 **Parent:** #625  
-**SDK baseline:** nRF Connect SDK v3.4.1 LTS  
+**SDK baseline:** nRF Connect SDK v3.4.0 LTS  
 **Status:** `SCAFFOLD CANDIDATE / DK COMPILE HARNESS ONLY / MS88SF3 BOARD AUTHORITY OPEN`
 
 ## Purpose
@@ -22,7 +22,7 @@ It deliberately does not fabricate sensor observations.
 
 ## SDK pin
 
-Use nRF Connect SDK **v3.4.1 LTS**.
+Use nRF Connect SDK **v3.4.0 LTS**.
 
 Controlled platform metadata lives in:
 
@@ -32,7 +32,7 @@ The canonical source pin is also encoded in:
 
 `firmware/collar/ncs/west.yml`
 
-No stale v3.4.0 container digest is treated as current v3.4.1 authority. A 3.4.1 toolchain/build receipt must be captured separately before claiming a target build.
+No stale v3.4.0 container digest is treated as current v3.4.0 authority. A 3.4.0 toolchain/build receipt must be captured separately before claiming a target build.
 
 ## Temporary compile harness
 
@@ -91,19 +91,21 @@ No second serializer is permitted.
 
 ## Transport provenance
 
-At Bluetooth initialization:
-- `boot_session_id = sys_rand32_get()`;
-- feature sequence starts at 0.
+The GATT layer does **not** generate transport provenance.
 
-For a published physical feature:
-- `window_end_ms = k_uptime_get_32()`;
-- sequence increments only after a successful queued notification.
+The caller must supply:
+- `boot_session_id`;
+- per-boot `sequence`;
+- the real monotonic `window_end_ms` of the measurement window.
 
-The random boot session is **not cryptographic identity**. It is replay/session
-separation only. Device Trust remains #66.
+This prevents a delayed notification, reconnect or future backfill from
+silently replacing measurement time with send time.
+
+Production policy for boot-session uniqueness/collision behavior, sequence
+reset/wrap and monotonic-window ownership remains open under #625 G4/G5.
 
 The TAG does not invent UTC. Backend/mobile clock-anchor authority remains
-separate.
+separate. Device Trust remains #66.
 
 ## What is still open
 
