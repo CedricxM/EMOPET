@@ -15,9 +15,9 @@
     "Database mechanics never substitute for privacy disposition authority on unresolved rows."
   ],
   "summary": {
-    "relationalTotal": 42,
+    "relationalTotal": 44,
     "policyAlignedDeleteCandidates": 23,
-    "policyConditionalExecutionRequired": 16,
+    "policyConditionalExecutionRequired": 18,
     "legalAuthorityBlocked": 3,
     "matrixRowsPromoted": 4
   },
@@ -254,6 +254,44 @@
       "policyRefs": [],
       "rationale": "Subscription runtime metadata must be separated from statutory accounting/claims evidence before a disposition can be approved.",
       "requiredAuthority": "FINANCE_LEGAL_ACCOUNTING",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "user_blocks",
+      "column": "blocked_user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [],
+      "why": "A block is a safety control owned by the blocker (#594, decision #48 L5). Erasing the blocker removes its purpose; erasing the blocked person leaves a row about a departed subject, yet dropping it could let a re-registered account bypass the block. No retention category or legal basis exists yet (#478).",
+      "requiredDecision": "Define whether a block survives erasure of the blocked person for re-registration safety (bounded justification) or is deleted, and record the #478 retention category.",
+      "allowedOutcomes": [
+        "DELETE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "user_blocks",
+      "column": "blocker_user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [],
+      "why": "A block is a safety control owned by the blocker (#594, decision #48 L5). Erasing the blocker removes its purpose; erasing the blocked person leaves a row about a departed subject, yet dropping it could let a re-registered account bypass the block. No retention category or legal basis exists yet (#478).",
+      "requiredDecision": "Define whether blocks are deleted with the blocker account (privacy-first candidate) and record the #478 retention category.",
+      "allowedOutcomes": [
+        "DELETE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
       "promotionAuthorized": false
     },
     {

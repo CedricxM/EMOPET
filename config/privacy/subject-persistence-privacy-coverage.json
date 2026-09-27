@@ -228,6 +228,13 @@
       ]
     },
     {
+      "table": "user_blocks",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "community"
+      ]
+    },
+    {
       "table": "user_config",
       "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
       "inventoryCategories": [
