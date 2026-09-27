@@ -29,7 +29,7 @@ const probes = [
   },
   {
     name: 'sensor and ELI detail', inspect: inspectDetailedSensorEliRetention, method: 'countExpiredAt',
-    counts: { sensorDetailedTotal: 0, sensorBeyondWindow: 0, eliDetailedTotal: 0, eliBeyondWindow: 0 },
+    counts: { sensorDetailedTotal: 0, sensorBeyondWindow: 0, featureDetailedTotal: 0, featureBeyondWindow: 0, eliDetailedTotal: 0, eliBeyondWindow: 0 },
   },
   {
     name: 'moderation', inspect: inspectModerationRetention, method: 'countExpiredAt',

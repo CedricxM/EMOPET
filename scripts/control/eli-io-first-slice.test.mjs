@@ -11,7 +11,13 @@ test('activity_variability transport gap stays explicit', async () => {
   assert.equal(/activityVariability\s*:/.test(frames), false);
   assert.equal(/activity_variability\s*:/.test(frames), false);
   assert.equal(authority.currentTransport.tagPayloadContainsActivityVariability, false);
+  assert.equal(authority.currentTransport.backendFeaturePersistenceImplemented, true);
+  assert.equal(authority.currentTransport.networkFeatureIngestionActivated, false);
+  assert.equal(authority.currentTransport.featureEnvelopeIngestionImplemented, false);
   assert.equal(authority.currentTransport.endToEndPath, false);
+  assert.equal(authority.backendPersistenceBoundary.publicRoute, false);
+  assert.equal(authority.backendPersistenceBoundary.eliInvocation, false);
+  assert.equal(authority.backendPersistenceBoundary.ownerProjection, false);
   assert.equal(authority.currentDecision, 'DO_NOT_ACTIVATE');
 });
 

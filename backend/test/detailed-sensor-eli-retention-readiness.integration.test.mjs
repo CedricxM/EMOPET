@@ -10,6 +10,10 @@ const SENSOR_FRESH = 'c0000000-0000-4000-8000-000000000640';
 const SENSOR_OLD = 'c0000000-0000-4000-8000-000000000641';
 const INGEST_FRESH = 'e0000000-0000-4000-8000-000000000640';
 const INGEST_OLD = 'e0000000-0000-4000-8000-000000000641';
+const FEATURE_FRESH = 'c1000000-0000-4000-8000-000000000640';
+const FEATURE_OLD = 'c1000000-0000-4000-8000-000000000641';
+const FEATURE_INGEST_FRESH = 'e1000000-0000-4000-8000-000000000640';
+const FEATURE_INGEST_OLD = 'e1000000-0000-4000-8000-000000000641';
 const ELI_FRESH = 'f0000000-0000-4000-8000-000000000640';
 const ELI_OLD = 'f0000000-0000-4000-8000-000000000641';
 
@@ -31,6 +35,7 @@ if (enabled) {
 
 async function cleanup() {
   if (!sql) return;
+  await sql`DELETE FROM sensor_feature_observations WHERE id IN (${FEATURE_FRESH}, ${FEATURE_OLD})`;
   await sql`DELETE FROM sensor_summaries WHERE id IN (${SENSOR_FRESH}, ${SENSOR_OLD})`;
   await sql`DELETE FROM eli_states WHERE id IN (${ELI_FRESH}, ${ELI_OLD})`;
   await sql`DELETE FROM devices WHERE id = ${DEVICE_ID}`;
@@ -89,6 +94,27 @@ test('detailed sensor + ELI readiness counts only rows beyond the common 36-mont
   `;
 
   await sql`
+    INSERT INTO sensor_feature_observations (
+      id, dog_id, ingestion_id, device_id, observed_at, source,
+      feature_key, value, observation_status, null_reason,
+      feature_contract_version, window_seconds, valid_seconds,
+      firmware_version_at_ingest
+    ) VALUES
+      (
+        ${FEATURE_FRESH}, ${DOG_ID}, ${FEATURE_INGEST_FRESH}, ${DEVICE_ID},
+        '2026-09-20T12:00:00.000Z', 'TAG',
+        'activity_variability', 0.31, 'OBSERVED', NULL,
+        'tag-activity-variability-cv30m-v1', 1800, 1700, '6.0.0'
+      ),
+      (
+        ${FEATURE_OLD}, ${DOG_ID}, ${FEATURE_INGEST_OLD}, ${DEVICE_ID},
+        '2023-09-20T12:00:00.000Z', 'TAG',
+        'activity_variability', 0.42, 'OBSERVED', NULL,
+        'tag-activity-variability-cv30m-v1', 1800, 1700, '6.0.0'
+      )
+  `;
+
+  await sql`
     INSERT INTO eli_states (
       id, dog_id, timestamp, arousal, valence, load,
       confidence, gate_status, sensor_reliability
@@ -116,16 +142,21 @@ test('detailed sensor + ELI readiness counts only rows beyond the common 36-mont
   assert.deepEqual(result.counts, {
     sensorDetailedTotal: 2,
     sensorBeyondWindow: 1,
+    featureDetailedTotal: 2,
+    featureBeyondWindow: 1,
     eliDetailedTotal: 2,
     eliBeyondWindow: 1,
   });
 
-  const [sensorRows, eliRows] = await Promise.all([
+  const [sensorRows, featureRows, eliRows] = await Promise.all([
     sql`SELECT count(*)::int AS count FROM sensor_summaries
         WHERE id IN (${SENSOR_FRESH}, ${SENSOR_OLD})`,
+    sql`SELECT count(*)::int AS count FROM sensor_feature_observations
+        WHERE id IN (${FEATURE_FRESH}, ${FEATURE_OLD})`,
     sql`SELECT count(*)::int AS count FROM eli_states
         WHERE id IN (${ELI_FRESH}, ${ELI_OLD})`,
   ]);
   assert.equal(Number(sensorRows[0].count), 2, 'readiness must not mutate sensor rows');
+  assert.equal(Number(featureRows[0].count), 2, 'readiness must not mutate feature rows');
   assert.equal(Number(eliRows[0].count), 2, 'readiness must not mutate ELI rows');
 });

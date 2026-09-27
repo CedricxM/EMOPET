@@ -127,11 +127,11 @@ test('dog erasure preflight reflects detachable device binding plus remaining bl
   assert.equal(result.status, 'BLOCKED');
   assert.equal(result.destructiveActionAuthorized, false);
 
-  assert.equal(result.relational.total, 24);
-  assert.equal(result.relational.unresolvedDisposition, 24);
-  assert.equal(result.relational.notImplemented, 24);
+  assert.equal(result.relational.total, 25);
+  assert.equal(result.relational.unresolvedDisposition, 25);
+  assert.equal(result.relational.notImplemented, 25);
   assert.deepEqual(result.relational.databaseMechanics, {
-    NO_ACTION: 20,
+    NO_ACTION: 21,
     RESTRICT: 0,
     CASCADE: 2,
     SET_NULL: 1,
@@ -139,7 +139,7 @@ test('dog erasure preflight reflects detachable device binding plus remaining bl
     NO_FK_LIFECYCLE_NOT_ENFORCED: 1,
   });
 
-  assert.equal(result.relational.rootDeleteBlockers.length, 18);
+  assert.equal(result.relational.rootDeleteBlockers.length, 19);
   assert.deepEqual(
     result.relational.automaticCascadeRelations
       .map((row) => `${row.table}.${row.column}`)

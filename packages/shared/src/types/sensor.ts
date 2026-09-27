@@ -52,6 +52,37 @@ export interface SensorSummary {
   humidityPct?: number;
 }
 
+
+export const ACTIVITY_VARIABILITY_FEATURE_CONTRACT_VERSION =
+  'tag-activity-variability-cv30m-v1' as const;
+
+export type ActivityVariabilityObservationStatus = 'OBSERVED' | 'NOT_OBSERVED';
+
+export type ActivityVariabilityNullReason =
+  | 'INSUFFICIENT_COVERAGE'
+  | 'MEAN_BELOW_DIVISION_GUARD';
+
+/**
+ * Versioned backend envelope for the deterministic TAG activity-variability feature.
+ *
+ * This is a physical/preprocessed movement observation only. It carries no
+ * arousal, emotion, welfare or other latent interpretation.
+ */
+export interface ActivityVariabilityFeatureObservation {
+  dogId: string;
+  ingestionId: string;
+  deviceId: string;
+  observedAt: Date;
+  source: 'TAG';
+  featureKey: 'activity_variability';
+  value: number | null;
+  observationStatus: ActivityVariabilityObservationStatus;
+  nullReason: ActivityVariabilityNullReason | null;
+  featureContractVersion: typeof ACTIVITY_VARIABILITY_FEATURE_CONTRACT_VERSION;
+  windowSeconds: 1800;
+  validSeconds: number;
+}
+
 /** Device info. */
 export interface Device {
   id: string;

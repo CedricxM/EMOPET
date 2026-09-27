@@ -65,6 +65,8 @@ test('readiness reports sensor and ELI detailed overages separately', async () =
         return {
           sensorDetailedTotal: 11,
           sensorBeyondWindow: 3,
+          featureDetailedTotal: 5,
+          featureBeyondWindow: 1,
           eliDetailedTotal: 8,
           eliBeyondWindow: 2,
         };
@@ -89,6 +91,8 @@ test('readiness reports sensor and ELI detailed overages separately', async () =
   assert.deepEqual(result.counts, {
     sensorDetailedTotal: 11,
     sensorBeyondWindow: 3,
+    featureDetailedTotal: 5,
+    featureBeyondWindow: 1,
     eliDetailedTotal: 8,
     eliBeyondWindow: 2,
   });
@@ -104,6 +108,8 @@ test('36-month cutoff preserves UTC calendar-month semantics at leap-day boundar
         return {
           sensorDetailedTotal: 0,
           sensorBeyondWindow: 0,
+          featureDetailedTotal: 0,
+          featureBeyondWindow: 0,
           eliDetailedTotal: 0,
           eliBeyondWindow: 0,
         };
@@ -145,6 +151,8 @@ test('readiness fails closed on invalid time, inconsistent counts and repository
         return {
           sensorDetailedTotal: 1,
           sensorBeyondWindow: 2,
+          featureDetailedTotal: 1,
+          featureBeyondWindow: 0,
           eliDetailedTotal: 1,
           eliBeyondWindow: 0,
         };
