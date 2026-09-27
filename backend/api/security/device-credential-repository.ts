@@ -59,23 +59,6 @@ function decodeCanonicalSec1PublicKey(value: string): Uint8Array | null {
   }
 }
 
-function receiptFingerprint(receipt: DeviceIdentityEnrollmentReceiptV1): string {
-  return JSON.stringify({
-    credentialVersion: receipt.credentialVersion,
-    keySlot: receipt.keySlot,
-    psaKeyId: receipt.psaKeyId,
-    algorithm: receipt.algorithm,
-    publicKeyFormat: receipt.publicKeyFormat,
-    publicKey: receipt.publicKey,
-    firmwareVersion: receipt.firmwareVersion,
-    hardwareRevision: receipt.hardwareRevision,
-    bootstrapRevision: receipt.bootstrapRevision,
-    state: receipt.state,
-    privateKeyExported: receipt.privateKeyExported,
-    devicePrincipalBinding: receipt.devicePrincipalBinding,
-  });
-}
-
 /**
  * Durable backend enrollment boundary for #661.
  *
@@ -260,8 +243,3 @@ export const durableDevicePopCredentialRepository = {
   },
 };
 
-export function enrollmentReceiptFingerprintForTest(
-  receipt: DeviceIdentityEnrollmentReceiptV1,
-): string {
-  return receiptFingerprint(receipt);
-}
