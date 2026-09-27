@@ -18,7 +18,7 @@ Hono API ──────────────────────┘
 MAT/TAG partial firmware ── BLE protocol package ── client/backend integration
 
 Unity: absent and gated
-Nakama: absent and gated
+Nakama: not canonical on main; experimental work remains gated
 ```
 
 The controlled target direction supplied for this reconciliation is a Hono/TypeScript backend with PostgreSQL as durable data authority and backend authorization as policy authority. Current code only partially realizes that direction.
@@ -68,14 +68,14 @@ Authentication and production authorization therefore remain `OPEN / GATED`.
 
 `backend/db` contains schemas for users, dogs, devices, sensor summaries, ELI state, community, AI, datasets, freemium content, and related records. `backend/db/index.ts` creates a Postgres.js client wrapped by Drizzle.
 
-The migration chain is not currently a repeatable clean-database baseline:
+The repository now has a repeatable **disposable PostgreSQL QA** path for comparing checked-in SQL path A with a Drizzle-generated baseline.
 
-- base tables present in schema code are missing from the checked-in migration sequence;
-- later migrations alter `breed_sensor_profiles` and `devices` without a committed creation migration;
-- Drizzle migration metadata is absent;
-- the legacy initialization script invokes Alembic, which is not part of the active stack.
+- P0 DB validates table inventory on both paths;
+- constraint/index fingerprints are compared against an explicit classified known-drift ledger;
+- path-A migrations now repair the identified shadow foreign keys and restore the missing community-membership and sensor-summary provenance/idempotence schema;
+- the parity gate fails on new drift and on ledger entries that have been resolved but not removed.
 
-Migration readiness is `BLOCKED` pending a separately reviewed baseline/upgrade plan.
+This is not full production-migration authority. Classified schema drift remains, including column-level differences that are not yet globally gated, and production/upgrade promotion still requires separately reviewed evidence.
 
 ### Next.js prototype plane
 
@@ -124,20 +124,24 @@ Firmware readiness is `OBSERVED_PARTIAL`, not validated hardware integration.
 
 ## 8. Unity and Nakama
 
-No Unity project structure, package manifest, scene, assembly definition, or Unity MCP configuration exists on any current remote branch. No Nakama package, module, container, or configuration exists on `main`.
+No canonical Unity project is present on `main`; Unity remains gated.
 
-Both workstreams remain `GATED / NOT PRODUCTION AUTHORITY`. Unity project creation or Nakama integration requires a separate explicit decision and activation-gate evidence.
+Nakama is also not canonical on `main`. Experimental World/Nakama work may exist on non-main branches, but branch presence is not runtime, product, deployment, or production authority.
+
+Both workstreams remain `GATED / NOT PRODUCTION AUTHORITY` until their own activation-gate evidence is promoted deliberately.
 
 ## 9. CI, deployment, and repository controls
 
-- no GitHub Actions workflows;
-- no CODEOWNERS;
-- no repository rulesets;
-- `main` is not protected according to GitHub branch metadata;
-- current HEAD has no check runs and has a failed Vercel commit status;
-- no committed Vercel deployment configuration was identified.
+- GitHub Actions runs repository-owned Security supply-chain, P0 DB (path-scoped), Owner-terminology and targeted Windows-portability workflows;
+- all 33 current `scripts/control/*.test.mjs` authority tests have a CI execution path, either directly or through a package-script alias invoked by CI;
+- the Windows gate verifies cross-platform checkout attributes, generated-source byte stability, VBO committed-snapshot evidence, Windows-sensitive path/guard behavior and the web test suite on `windows-latest`;
+- the active `main-protection` repository ruleset requires pull-request promotion and conversation resolution, blocks branch deletion and non-fast-forward updates, uses 0 required approvals for the current single-admin ownership model, and has no bypass actors;
+- **required status checks are not yet configured in the ruleset**, so the seven selected repository-owned checks remain a governance P0 rather than a mechanical merge prerequisite (#257);
+- P0 DB remains intentionally excluded from global required checks because it is path-scoped;
+- GitHub still reports `delete_branch_on_merge=false`; branch lifecycle cleanup remains open under #679;
+- the repository is public while licence/contribution ownership and CODEOWNERS policy remain open under #680.
 
-CI, deployment, branch protection, and required-check policy remain `OPEN`.
+CI is materially stronger than the original baseline, but required-check enforcement, branch lifecycle settings, IP/contribution ownership, CODEOWNERS/reviewer ownership, deployment environments and release ownership remain `OPEN`.
 
 ## 10. Confirmed constraints and open decisions
 
@@ -152,11 +156,11 @@ Confirmed working constraints for implementation:
 Open or gated decisions include:
 
 - production identity provider/protocol and lifecycle;
-- database baseline and migration compatibility;
+- remaining database drift and production migration/upgrade promotion;
 - disposition of the Next.js prototype API/data plane;
 - consent, retention, deletion, location, and telemetry rules;
 - exact ELI/ELS/Claim Guard definitions and Breiz bounds;
-- branch protection, CODEOWNERS, CI, environments, and deployment ownership;
+- required status-check enforcement, branch lifecycle, repository IP/licensing, CODEOWNERS/reviewer policy, environments, and deployment ownership;
 - Unity project/version/targets/first slice;
 - Nakama use cases and deployment target.
 
