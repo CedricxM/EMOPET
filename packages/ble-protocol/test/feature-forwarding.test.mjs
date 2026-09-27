@@ -94,3 +94,13 @@ test('forwarding gate rejects BLE-like transport ids masquerading as canonical U
   assert.equal(result.ok, false);
   assert.equal(result.error, 'INVALID_FORWARDING_CANDIDATE');
 });
+
+
+test('forwarding gate returns a controlled refusal for invalid UTC anchors', () => {
+  const result = buildActivityFeatureForwardingCandidate({
+    ...base,
+    anchor: { ...anchor, anchorUtc: new Date(Number.NaN) },
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.error, 'INVALID_FORWARDING_CANDIDATE');
+});
