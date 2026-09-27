@@ -78,7 +78,7 @@ test('the third-party register records its reconstruction and keeps every gate o
   assert.match(source, /PR #117\]\(https:\/\/github\.com\/CedricxM\/EMOPET\/pull\/117\)/);
   assert.match(source, /That PR never merged/);
   assert.match(source, /UNRESOLVABLE_POINTER/);
-  assert.match(source, /no Git object anywhere in this\n?repository's history/);
+  assert.match(source, /no Git object anywhere in this(?:\r?\n)?repository's history/);
   assert.match(source, /G-THIRD-PARTY-DATA-RIGHTS-01 = OPEN/);
   assert.match(source, /PRODUCT OR RELEASE AUTHORITY = NOT GRANTED/);
   assert.match(source, /Landed enforcement is not landed evidence/);
