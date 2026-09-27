@@ -27,9 +27,16 @@ function setup(t, options = {}) {
       return connection;
     },
   };
-  const adapter = new WorldRealtimeAdapter(transport, new Set([A, B]), () => now, async ms => { sleeps.push(ms); }, options.deadline ?? 100);
+  const blocked = new Set();
+  const policy = { lookups: 0, down: false, async isBlockedEitherWay(x, y) {
+    policy.lookups++;
+    if (policy.down) throw new Error('database down: secret-connection-string');
+    return blocked.has(`${x}|${y}`) || blocked.has(`${y}|${x}`);
+  } };
+  const adapter = new WorldRealtimeAdapter(transport, new Set([A, B]), policy, () => now, async ms => { sleeps.push(ms); }, options.deadline ?? 100);
   t.after(() => adapter.close());
-  return { adapter, connections, calls, sleeps, transport, expire: () => { now += 400000; }, exp: now + 600000 };
+  return { adapter, connections, calls, sleeps, transport, policy, expire: () => { now += 400000; }, exp: now + 600000,
+    block: (blocker, target) => blocked.add(`${blocker}|${target}`), unblock: (blocker, target) => blocked.delete(`${blocker}|${target}`) };
 }
 test('canonical mapping normalizes UUIDs and rejects arbitrary identities', () => {
   assert.equal(customIdentity(A), `emopet:world-spike:v1:${A}`);
@@ -49,7 +56,7 @@ test('unconfigured actor and cross-user handles fail closed', async t => {
   await assert.rejects(adapter.bootstrap(GROUP, exp), /forbidden/);
   await assert.rejects(adapter.bootstrap(A, NaN), /invalid_session/);
   const session = await adapter.bootstrap(A, exp);
-  assert.throws(() => adapter.events(B, session.handle), /invalid_session/);
+  await assert.rejects(adapter.events(B, session.handle), /invalid_session/);
   await assert.rejects(adapter.execute(B, session.handle, { op: 'friends.list' }), /invalid_session/);
   assert.throws(() => adapter.disconnect(B, session.handle), /invalid_session/);
 });
@@ -109,12 +116,12 @@ test('Friends, Groups, Presence and Chat go only through adapter transport', asy
 test('bounded event polling signals overflow and consumes events once', async t => {
   const { adapter, connections, exp } = setup(t);
   const session = await adapter.bootstrap(A, exp);
-  for (let i = 0; i < 105; i++) connections[0].event({ index: i });
-  const events = adapter.events(A, session.handle);
+  for (let i = 0; i < 105; i++) connections[0].event({ type: 'chat', value: { senderId: A, index: i } });
+  const events = await adapter.events(A, session.handle);
   assert.equal(events.events.length, 100);
-  assert.equal(events.events[0].index, 5);
+  assert.equal(events.events[0].value.index, 5);
   assert.equal(events.resyncRequired, true);
-  assert.equal(adapter.events(A, session.handle).events.length, 0);
+  assert.equal((await adapter.events(A, session.handle)).events.length, 0);
 });
 test('unavailable bootstrap returns controlled degraded response without upstream secrets', async t => {
   const { adapter } = setup(t, { connect: async () => { throw new Error('secret-upstream-detail'); } });
@@ -141,12 +148,12 @@ test('reconnect restores subscriptions but never replays chat or social writes',
   await adapter.execute(A, a.handle, { op: 'chat.join', groupId: GROUP });
   await adapter.execute(A, a.handle, { op: 'chat.send', groupId: GROUP, text: 'once' });
   connections[0].disconnected();
-  assert.equal(adapter.events(A, a.handle).state, 'degraded');
+  assert.equal((await adapter.events(A, a.handle)).state, 'degraded');
   const old = a.handle;
   a = await adapter.bootstrap(A, exp, old);
   assert.notEqual(a.handle, old);
   assert.equal(connections[0].closed, true);
-  assert.throws(() => adapter.events(A, old), /invalid_session/);
+  await assert.rejects(adapter.events(A, old), /invalid_session/);
   assert.equal(calls.filter(c => c.command.op === 'chat.send').length, 1);
   assert.equal(calls.filter(c => c.command.op === 'chat.join').length, 2);
   assert.equal(calls.filter(c => c.command.op === 'presence.follow').length, 2);
@@ -165,12 +172,12 @@ test('expiry, replacement and explicit disconnect close sessions', async t => {
   const first = await adapter.bootstrap(A, exp);
   const second = await adapter.bootstrap(A, exp);
   assert.equal(connections[0].closed, true);
-  assert.throws(() => adapter.events(A, first.handle), /invalid_session/);
+  await assert.rejects(adapter.events(A, first.handle), /invalid_session/);
   adapter.disconnect(A, second.handle);
   assert.equal(connections[1].closed, true);
   const third = await adapter.bootstrap(A, exp);
   expire();
-  assert.throws(() => adapter.events(A, third.handle), /invalid_session/);
+  await assert.rejects(adapter.events(A, third.handle), /invalid_session/);
   assert.equal(connections[2].closed, true);
 });
 test('mutation timeout degrades socket, discards late result, and rejects concurrent commands', async t => {
@@ -182,7 +189,7 @@ test('mutation timeout degrades socket, discards late result, and rejects concur
   await assert.rejects(pending, /timeout/);
   finish({ secret: 'must not escape' });
   assert.equal(connections[0].closed, true);
-  assert.equal(adapter.events(A, session.handle).state, 'degraded');
+  assert.equal((await adapter.events(A, session.handle)).state, 'degraded');
 });
 test('runtime bootstrap rejects direct sessions, unmapped users, and malformed identity before account creation', () => {
   const context = vm.createContext({});
@@ -218,12 +225,12 @@ test('rejected commands keep the session; self-target and offline target fail wi
   const { adapter, connections, calls, exp } = setup(t);
   const a = await adapter.bootstrap(A, exp);
   await assert.rejects(adapter.execute(A, a.handle, { op: 'friends.request', targetUserId: A }), /invalid_request/);
-  await assert.rejects(adapter.execute(A, a.handle, { op: 'presence.follow', targetUserId: B }), /unavailable/);
+  await assert.rejects(adapter.execute(A, a.handle, { op: 'presence.follow', targetUserId: B }), /unreachable/);
   assert.equal(calls.length, 0, 'target errors must not reach the transport');
-  assert.equal(adapter.events(A, a.handle).state, 'connected');
+  assert.equal((await adapter.events(A, a.handle)).state, 'connected');
   assert.equal(connections[0].closed, false);
   await adapter.execute(A, a.handle, { op: 'friends.list' });
-  assert.equal(adapter.events(A, a.handle).state, 'connected');
+  assert.equal((await adapter.events(A, a.handle)).state, 'connected');
 });
 test('transport invalid_request does not degrade, and renewal skips a follow whose target is offline', async t => {
   const { WorldError } = await import('../dist/api/services/world-spike/contracts.js');
@@ -238,7 +245,7 @@ test('transport invalid_request does not degrade, and renewal skips a follow who
   await adapter.execute(A, a.handle, { op: 'chat.join', groupId: GROUP });
   reject = true;
   await assert.rejects(adapter.execute(A, a.handle, { op: 'chat.send', groupId: GROUP, text: 'x' }), /invalid_request/);
-  assert.equal(adapter.events(A, a.handle).state, 'connected');
+  assert.equal((await adapter.events(A, a.handle)).state, 'connected');
   reject = false;
   adapter.disconnect(B, b.handle);
   connections[0].disconnected();
@@ -246,4 +253,91 @@ test('transport invalid_request does not degrade, and renewal skips a follow who
   assert.equal(a.state, 'connected');
   assert.equal(calls.filter(c => c.command.op === 'presence.follow').length, 1, 'offline follow not replayed');
   assert.equal(calls.filter(c => c.command.op === 'chat.join').length, 2, 'chat subscription restored');
+});
+
+test('blocks either way make targeted commands unreachable exactly like an offline participant', async t => {
+  const { adapter, calls, exp, block, unblock } = setup(t);
+  const a = await adapter.bootstrap(A, exp);
+  const b = await adapter.bootstrap(B, exp);
+  block(A, B);
+  for (const [actor, handle, target] of [[A, a.handle, B], [B, b.handle, A]]) {
+    for (const op of ['friends.request', 'friends.accept', 'presence.follow']) {
+      await assert.rejects(adapter.execute(actor, handle, { op, targetUserId: target }), /unreachable/, `${op} from ${actor}`);
+    }
+  }
+  assert.equal(calls.length, 0, 'a blocked command never reaches Nakama');
+  assert.equal((await adapter.events(A, a.handle)).state, 'connected');
+  assert.equal((await adapter.events(B, b.handle)).state, 'connected');
+  // Same answer as offline: the blocked person cannot tell a block from absence.
+  adapter.disconnect(A, a.handle);
+  unblock(A, B);
+  await assert.rejects(adapter.execute(B, b.handle, { op: 'friends.request', targetUserId: A }), /unreachable/);
+});
+
+test('friend lists, presence and chat hide blocked participants both ways, including buffered events', async t => {
+  const { adapter, connections, exp, block } = setup(t, { execute: command => command.op === 'friends.list'
+    ? { friends: [{ user: { id: B }, state: 0 }, { user: { id: 'unknown-transport-id' }, state: 0 }], cursor: 'c' } : { ok: true } });
+  const a = await adapter.bootstrap(A, exp);
+  const b = await adapter.bootstrap(B, exp);
+  const chat = (sender, text) => ({ type: 'chat', value: { channelId: 'g', senderId: sender, messageId: text, content: { text } } });
+  const presence = (...ids) => ({ type: 'presence', value: { joins: ids.map(user_id => ({ user_id, status: 'online' })), leaves: [] } });
+  // Buffered before the block exists: filtering at read time still applies.
+  connections[0].event(chat(B, 'from-b'));
+  connections[0].event(chat(A, 'own-echo'));
+  connections[0].event(presence(B));
+  connections[0].event(chat('unknown-transport-id', 'unknown'));
+  connections[0].event({ type: 'unexpected', value: {} });
+  connections[1].event(chat(A, 'from-a'));
+  connections[1].event(presence(A, B));
+  block(A, B);
+  const forA = await adapter.events(A, a.handle);
+  assert.deepEqual(forA.events.map(e => e.value.messageId ?? 'presence'), ['own-echo']);
+  const forB = await adapter.events(B, b.handle);
+  assert.equal(forB.events.length, 1);
+  assert.deepEqual(forB.events[0].value.joins.map(p => p.user_id), [B], 'the blocker is not visible to the blocked person');
+  const friends = (await adapter.execute(A, a.handle, { op: 'friends.list' }));
+  assert.deepEqual(friends.friends, [], 'blocked and unknown friends are hidden');
+  assert.equal(friends.cursor, 'c');
+});
+
+test('renewal drops a follow whose target is now blocked', async t => {
+  const { adapter, connections, calls, exp, block } = setup(t);
+  let a = await adapter.bootstrap(A, exp);
+  await adapter.bootstrap(B, exp);
+  await adapter.execute(A, a.handle, { op: 'presence.follow', targetUserId: B });
+  await adapter.execute(A, a.handle, { op: 'chat.join', groupId: GROUP });
+  block(B, A);
+  connections[0].disconnected();
+  a = await adapter.bootstrap(A, exp, a.handle);
+  assert.equal(a.state, 'connected');
+  assert.equal(calls.filter(c => c.command.op === 'presence.follow').length, 1, 'blocked follow is not restored');
+  assert.equal(calls.filter(c => c.command.op === 'chat.join').length, 2);
+});
+
+test('unknown block state fails closed without degrading the session or losing events', async t => {
+  const { adapter, connections, calls, policy, exp } = setup(t);
+  const a = await adapter.bootstrap(A, exp);
+  await adapter.bootstrap(B, exp);
+  connections[0].event({ type: 'chat', value: { senderId: B, messageId: 'kept' } });
+  policy.down = true;
+  await assert.rejects(adapter.execute(A, a.handle, { op: 'friends.request', targetUserId: B }), /unavailable/);
+  await assert.rejects(adapter.events(A, a.handle), /unavailable/);
+  assert.equal(calls.length, 0);
+  policy.down = false;
+  const batch = await adapter.events(A, a.handle);
+  assert.equal(batch.state, 'connected');
+  assert.deepEqual(batch.events.map(e => e.value.messageId), ['kept'], 'events stay buffered until blocks can be checked');
+  const blocked = await createWorldSpikeRoutes(adapter).request(`/sessions/${a.handle}/commands`, { method: 'POST',
+    headers: { Authorization: `Bearer ${await signAccessToken(A)}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ op: 'friends.request', targetUserId: A }) });
+  assert.equal(blocked.status, 400, 'self target stays a 400');
+});
+
+test('World wires the canonical block repository by default and maps unreachable to 404', async () => {
+  const route = readFileSync(new URL('../api/routes/world-spike.ts', import.meta.url), 'utf8');
+  assert.match(route, /blocks: WorldBlockPolicy = drizzleUserBlockRepository\(\)/);
+  assert.match(route, /code === 'unreachable' \? 404/);
+  const { BLOCK_ENFORCEMENT } = await import('../dist/api/services/user-blocks.js');
+  assert.equal(BLOCK_ENFORCEMENT.world, 'ENFORCED_WHEN_WORLD_ENABLED');
+  assert.equal(BLOCK_ENFORCEMENT.community, 'NOT_ENFORCED');
 });

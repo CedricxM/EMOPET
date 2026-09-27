@@ -19,8 +19,16 @@ export interface WorldTransport {
   connect(customId: string, signal: AbortSignal, event: (event: unknown) => void,
     disconnected: () => void): Promise<WorldConnection>;
 }
+/**
+ * Canonical user-to-user blocks, read-only from World (#594, decision #48 L5). The
+ * canonical implementation is the EMOPET `user_blocks` repository; World never writes blocks.
+ */
+export interface WorldBlockPolicy {
+  isBlockedEitherWay(userA: string, userB: string): Promise<boolean>;
+}
+/** `unreachable`: target offline or blocked either way; deliberately indistinguishable. */
 export class WorldError extends Error {
-  constructor(public code: 'unavailable' | 'timeout' | 'invalid_session' | 'forbidden' | 'busy' | 'invalid_request') {
+  constructor(public code: 'unavailable' | 'timeout' | 'invalid_session' | 'forbidden' | 'busy' | 'invalid_request' | 'unreachable') {
     super(code);
   }
 }

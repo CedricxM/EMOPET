@@ -93,8 +93,10 @@ with `groupId`; `presence.follow` with `targetUserId`; `presence.update` with
 `targetUserId` identifies another allowlisted synthetic participant, never the actor.
 Both participants must bootstrap before friend/presence operations. Accept requires
 an incoming request; an unknown chat channel cannot send. Extra fields are rejected.
-A definite rejection (self-target, target not bootstrapped, Nakama 4xx, socket error
-reply) returns 400/503 **without** closing the session. Only a timeout or transport
+A target that is offline **or blocked either way** (canonical `/api/blocks`, #594) returns
+`404 unreachable` — deliberately the same answer — and the blocked participant disappears
+from friend lists, presence and chat events. A definite rejection (self-target, Nakama 4xx,
+socket error reply) returns 400/404 **without** closing the session. Only a timeout or transport
 failure — where the write may have happened — degrades and closes it.
 
 On a disconnect, call bootstrap with a still-valid prior handle and a freshly verified
@@ -127,7 +129,11 @@ process-local sessions. Stop the isolated stack to complete rollback.
 ## Troubleshooting and remaining gates
 
 - `unavailable`/`timeout` is a controlled 503, never a fabricated success; expired or
-  cross-user handles are 401, unknown actors 403, concurrent operations 409.
+  cross-user handles are 401, unknown actors 403, unreachable (offline or blocked) 404,
+  concurrent operations 409.
+- Mounting the API needs the canonical EMOPET database for block checks (`DATABASE_URL`);
+  if blocks cannot be read, World fails closed with 503. The standalone live harness uses
+  an in-memory block policy and needs only Nakama.
 - Validate Docker availability and container health before debugging JWTs.
 - Git Bash on Windows: prefix `docker compose exec` with `MSYS_NO_PATHCONV=1`, otherwise
   `/nakama/nakama` is rewritten to a Windows path and the exec fails.

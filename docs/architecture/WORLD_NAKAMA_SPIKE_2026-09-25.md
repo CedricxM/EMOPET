@@ -46,7 +46,8 @@ Production/unspecified environment activation is rejected; the feature flag defa
 |---|---|---|
 | EMOPET identity and access/refresh sessions | Existing Hono/JWT and canonical auth storage | Reused, never replaced by Nakama |
 | Consent/privacy, visibility/sharing | Canonical EMOPET policy | No reads/writes or inferred consent; real-user activation blocked |
-| Moderation, reports, blocks, audit truth | Canonical EMOPET backend | No authoritative Nakama decisions; production propagation unresolved |
+| User-to-user blocks | Canonical EMOPET `user_blocks` (#594, PR #636) | Read-only through the `WorldBlockPolicy` port; enforced by the adapter (see below); never stored in Nakama |
+| Moderation, reports, audit truth | Canonical EMOPET backend | No authoritative Nakama decisions; World report types still open (#594) |
 | Dog ownership, ELI/science, billing/subscription | Canonical EMOPET domains | No repository imports, payload fields or write paths |
 | Keepsakes/personal-space and other durable product state | Canonical EMOPET, separately gated | No implementation |
 | Custom-ID ↔ Nakama UUID | Disposable Nakama account metadata | Derived from verified actor; resettable projection |
@@ -54,6 +55,24 @@ Production/unspecified environment activation is rejected; the feature flag defa
 | Presence and chat | Nakama realtime transport | Status limited to online/away; chat persistence disabled |
 | Tokens, sockets, subscriptions, handles | Hono process memory | Expire, disconnect, restart or replacement clears them |
 | Received events | Bounded Hono memory buffer | 100 events per session; drain-on-poll; overflow signals resynchronization |
+
+### Canonical blocks in World (#594, decision #48 L5)
+
+The adapter takes a `WorldBlockPolicy` (`isBlockedEitherWay`) port; `configuredWorldSpike`
+wires the canonical `drizzleUserBlockRepository`, so World cannot start without it. A block
+in either direction makes the two participants **mutually and silently invisible**:
+
+- `friends.request`, `friends.accept` and `presence.follow` towards the other person return
+  `404 unreachable`, the same answer as an offline participant, before any Nakama call;
+- `friends.list`, presence (`joins`/`leaves`) and chat events are filtered **when read**, so a
+  block also hides events already buffered before it existed; the actor's own events stay;
+- renewal drops a restored follow whose target is now blocked;
+- participants unknown to this process and unknown event shapes are dropped (fail closed);
+- if the block state cannot be read, commands and event reads return `503 unavailable`
+  without degrading the session, and buffered events stay queued (bounded) until checkable.
+
+Group membership and chat joins are not blocked: blocks act on visibility, not on shared
+groups. The Nakama friend edge is left in place (disposable projection, L3) but is never shown.
 
 No EMOPET database credentials are mounted into Nakama. Its separate PostgreSQL
 volume persists transport metadata, not durable product authority. Chat text must be
@@ -250,6 +269,16 @@ for `exp` in the route was kept: the canonical `AuthPayload` does not carry `exp
 the canonical auth middleware is out of scope. After fixes: `pnpm --filter @emopet/api
 test` 395 tests, 360 passed, 35 skipped, 0 failed; spike suites 22 passed; live harness
 (with outage) passed after `up -d --force-recreate --wait nakama` to reload the runtime.
+
+**Block enforcement (#594, same day).** The branch is stacked on PR #636 (canonical
+`user_blocks`). The live harness now blocks A→B on the real Nakama and checks that B's
+friend request returns `404 unreachable`, that B's group message is filtered from A's events
+while A's own marker message arrives, that B is hidden from A's friend list, and that
+unblocking restores visibility. The full live run (with outage/recovery) passed in ~12.6 s.
+`pnpm --filter @emopet/api test`: 430 tests, 388 passed, 40 skipped, 2 failed — both
+Windows-checkout artefacts unrelated to World (generated catalogue CRLF bytes, which pass
+after restoring HEAD bytes, and a pre-existing `\`-vs-`/` path comparison in the ELI
+importer test); spike + block unit suites: 33 passed.
 
 **Environment notes.** `pnpm install --frozen-lockfile` aborted with
 `ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY` because the checkout's `node_modules` was

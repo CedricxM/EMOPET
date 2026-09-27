@@ -18,8 +18,12 @@ test('live two-user Hono → Nakama social slice, renewal, and service outage', 
   const ids = (process.env.WORLD_SPIKE_TEST_USER_IDS ?? '').split(',').map(id => id.trim());
   assert.equal(ids.length, 2, 'Configure exactly two synthetic UUIDs for this harness');
   const [a, b] = ids;
+  // Canonical blocks are exercised by user-blocks.integration against PostgreSQL; here an
+  // in-memory policy drives the same WorldBlockPolicy port against the real Nakama transport.
+  const blocked = new Set();
+  const blocks = { async isBlockedEitherWay(x, y) { return blocked.has(`${x}|${y}`) || blocked.has(`${y}|${x}`); } };
   const adapter = new WorldRealtimeAdapter(new NakamaTransport(process.env.NAKAMA_URL ?? 'http://127.0.0.1:7350',
-    process.env.NAKAMA_HTTP_KEY ?? ''), new Set(ids));
+    process.env.NAKAMA_HTTP_KEY ?? ''), new Set(ids), blocks);
   t.after(() => adapter.close());
   const app = createWorldSpikeRoutes(adapter);
   const tokens = new Map(await Promise.all(ids.map(async id => [id, await signAccessToken(id)])));
@@ -59,6 +63,27 @@ test('live two-user Hono → Nakama social slice, renewal, and service outage', 
   }
   await waitFor(b, sb, event => event.type === 'chat' && event.value.content.text === 'synthetic-test-message');
   await waitFor(a, sa, event => event.type === 'presence');
+
+  // #594: A blocks B. Both become mutually and silently invisible on the real transport.
+  blocked.add(`${a}|${b}`);
+  const refused = await request(b, `/sessions/${sb.handle}/commands`, { op: 'friends.request', targetUserId: a }, 'POST', 404);
+  assert.deepEqual(refused, { error: 'unreachable', state: 'rejected' }, 'same answer as an offline participant');
+  await cmd(b, sb, { op: 'chat.send', groupId: group.groupId, text: 'from-blocked-sender' });
+  await cmd(a, sa, { op: 'chat.send', groupId: group.groupId, text: 'marker-after-block' });
+  const seen = [];
+  const blockDeadline = Date.now() + 10000;
+  while (Date.now() < blockDeadline && !seen.includes('marker-after-block')) {
+    const batch = await request(a, `/sessions/${sa.handle}/events`, undefined, 'GET');
+    seen.push(...batch.events.filter(event => event.type === 'chat').map(event => event.value.content.text));
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  assert.ok(seen.includes('marker-after-block'), 'own message delivered after the block');
+  assert.ok(!seen.includes('from-blocked-sender'), 'blocked sender filtered out');
+  const hidden = await cmd(a, sa, { op: 'friends.list' });
+  assert.ok(!hidden.friends.some(friend => friend.state === 0), 'blocked friend hidden from the blocker');
+  blocked.delete(`${a}|${b}`);
+  const restored = await cmd(a, sa, { op: 'friends.list' });
+  assert.ok(restored.friends.some(friend => friend.state === 0), 'unblocking restores visibility');
   tokens.set(a, await signAccessToken(a));
   const oldHandle = sa.handle;
   sa = await request(a, '/bootstrap', { previousHandle: oldHandle });
