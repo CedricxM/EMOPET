@@ -92,9 +92,11 @@ function fingerprint(row: {
  * If application and transport identities point at different rows, ingestion
  * fails closed as an explicit conflict.
  *
- * Transport provenance is replay evidence only. It does not authenticate a
- * physical device (#66), map device boot time to wall/event time, invoke ELI,
- * derive arousal, or authorize Owner-facing publication.
+ * Transport provenance is replay evidence only. Event-time provenance is
+ * accepted only when observedAt is exactly reproducible from an explicit
+ * BOOT_ANCHOR_V1 anchor. This service does not create that anchor, infer it
+ * from receive time, authenticate a physical device (#66), invoke ELI, derive
+ * arousal, or authorize Owner-facing publication.
  */
 export async function persistActivityVariabilityFeatureObservation(
   ownerId: string,
