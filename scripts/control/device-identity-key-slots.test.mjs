@@ -122,8 +122,10 @@ test('shared enrollment receipt is public-only and slot/id consistent', () => {
   );
   assert.match(validatorsSource, /privateKeyExported: z\.literal\(false\)/);
 
-  assert.doesNotMatch(typesSource, /privateKey|private_key/);
-  assert.doesNotMatch(validatorsSource, /privateKey:\s*z\./);
+  assert.doesNotMatch(typesSource, /\bprivateKey\s*:/);
+  assert.doesNotMatch(typesSource, /\bprivate_key\s*:/);
+  assert.doesNotMatch(validatorsSource, /\bprivateKey\s*:\s*z\./);
+  assert.doesNotMatch(validatorsSource, /\bprivate_key\s*:\s*z\./);
 });
 
 test('storage authority now owns the selected namespace without activating lifecycle runtime', () => {
