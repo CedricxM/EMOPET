@@ -162,6 +162,8 @@ jobs:
           node --test scripts/control/device-pop-preimage-conformance.test.mjs
       - name: Enforce Device Trust PSA signer source boundary (#648)
         run: node --test scripts/control/device-pop-psa-signer.test.mjs
+      - name: Enforce Device Trust private-key provisioning boundary (#657)
+        run: node --test scripts/control/device-private-key-storage.test.mjs
       - name: Enforce TAG firmware feature-writer parity (#122)
         run: |
           cc --version
