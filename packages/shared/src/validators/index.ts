@@ -188,7 +188,7 @@ export const SensorSummaryCreateSchema = z.object({
 
 export const ActivityVariabilityFeatureObservationCreateSchema = z.object({
   dogId: z.string().uuid(),
-  ingestionId: z.string().uuid(),
+  ingestionId: z.string().uuid().optional(),
   deviceId: z.string().uuid(),
   observedAt: z.coerce.date(),
   source: z.literal('TAG'),
@@ -202,7 +202,20 @@ export const ActivityVariabilityFeatureObservationCreateSchema = z.object({
   featureContractVersion: z.literal('tag-activity-variability-cv30m-v1'),
   windowSeconds: z.literal(1800),
   validSeconds: z.number().int().min(0).max(1800),
+  transportProvenance: z.object({
+    transportVersion: z.literal(1),
+    bootSessionId: z.number().int().min(0).max(0xffffffff),
+    sequence: z.number().int().min(0).max(0xffff),
+  }).strict().optional(),
 }).strict().superRefine((value, ctx) => {
+  if (!value.ingestionId && !value.transportProvenance) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['ingestionId'],
+      message: 'ingestionId or transportProvenance is required',
+    });
+  }
+
   if (value.observationStatus === 'OBSERVED') {
     if (value.value === null) {
       ctx.addIssue({
