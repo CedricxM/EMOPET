@@ -8,7 +8,8 @@ import { userBlocks, users } from '../../db/schema/index.js';
  * can read "blocked" as "hidden everywhere" before each surface enforces it.
  */
 export const BLOCK_ENFORCEMENT = {
-  community: 'NOT_ENFORCED',
+  // Community feed, events and comment creation hide people blocked either way.
+  community: 'ENFORCED',
   world: 'NOT_ENFORCED',
 } as const;
 

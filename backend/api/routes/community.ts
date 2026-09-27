@@ -1,4 +1,5 @@
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, sql, type SQL } from 'drizzle-orm';
+import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { Hono, type Context } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import {
@@ -18,7 +19,10 @@ import {
   communityReports,
   communityRulesAcceptances,
   posts,
+  userBlocks,
 } from '../../db/schema/index.js';
+import { isCanonicalUserId } from '../services/auth-security.js';
+import { BLOCK_ENFORCEMENT, drizzleUserBlockRepository } from '../services/user-blocks.js';
 import { requireDogOwnership } from '../middleware/authorization.js';
 import {
   COMMUNITY_LOCATION_DISCLOSURE,
@@ -98,6 +102,17 @@ async function withCommunityTransaction(
   }
 }
 
+/**
+ * Canonical blocks (#594, decision #48 L5) make two people mutually and silently invisible:
+ * content or events authored by someone blocked either way are filtered in SQL. A detached
+ * (NULL) author compares as unknown, so detached content stays visible.
+ */
+function notBlockedWith(viewerId: string, authorColumn: AnyPgColumn): SQL {
+  return sql`NOT EXISTS (SELECT 1 FROM ${userBlocks} WHERE (${userBlocks.blockerUserId} = ${viewerId} AND ${userBlocks.blockedUserId} = ${authorColumn}) OR (${userBlocks.blockerUserId} = ${authorColumn} AND ${userBlocks.blockedUserId} = ${viewerId}))`;
+}
+
+const blockRepository = drizzleUserBlockRepository();
+
 async function requireCommunityMembership(
   tx: CommunityTransaction,
   c: CommunityContext,
@@ -159,9 +174,9 @@ community.use('*', async (c, next) => {
 });
 
 // Community release authority is Hono + PostgreSQL. This slice exposes
-// membership-scoped communities, rules acceptance, durable posts/comments/events
-// and durable post-report intake. User blocking and copresence remain fail-closed
-// until their runtime effects are implemented.
+// membership-scoped communities, rules acceptance, durable posts/comments/events,
+// durable post-report intake and canonical user blocks (#594) enforced on the feed,
+// events and comment creation. Copresence remains fail-closed.
 
 community.get('/', async (c) => {
   const userId = c.get('userId');
@@ -223,7 +238,7 @@ community.get('/:id/feed', async (c) => {
       if (!(error instanceof InvalidCommunityFeedCursor)) throw error;
       return c.json({ error: 'Invalid feed cursor.', code: 'INVALID_FEED_CURSOR' }, 400);
     }
-    const conditions = [eq(posts.communityId, communityId)];
+    const conditions = [eq(posts.communityId, communityId), notBlockedWith(userId, posts.authorId)];
     if (before) {
       conditions.push(sql`(${posts.createdAt}, ${posts.id}) < (${before.createdAt}::timestamptz, ${before.id}::uuid)`);
     }
@@ -348,7 +363,21 @@ community.post('/reports', zValidator('json', UgcReportCreateSchema), async (c) 
 });
 
 community.post('/blocks', zValidator('json', UserBlockCreateSchema), async (c) => {
-  return communityPersistenceUnavailable(c, 'create_block');
+  // Alias of the canonical /api/blocks (#594). The shared contract's optional free-text
+  // reason is deliberately not stored (data minimisation) and the response says so.
+  const actor = c.get('userId').toLowerCase();
+  const target = c.req.valid('json').targetUserId.toLowerCase();
+  markPrivate(c);
+  if (!isCanonicalUserId(target) || target === actor) {
+    return c.json({ error: 'Invalid block target', code: 'INVALID_BLOCK_REQUEST' }, 400);
+  }
+  try {
+    const { result, block } = await blockRepository.create(actor, target);
+    if (result === 'target_not_found' || !block) return c.json({ error: 'User not found', code: 'BLOCK_TARGET_NOT_FOUND' }, 404);
+    return c.json({ block, enforcement: BLOCK_ENFORCEMENT, reasonStored: false }, result === 'created' ? 201 : 200);
+  } catch {
+    return databaseUnavailable(c, 'create_block');
+  }
 });
 
 community.post('/posts', zValidator('json', CommunityPostCreateSchema), async (c) => {
@@ -382,10 +411,11 @@ community.post('/comments', zValidator('json', CommentCreateSchema), async (c) =
   const body = c.req.valid('json');
 
   return withCommunityTransaction(c, 'create_comment', async (tx) => {
+    // A post by someone blocked either way answers exactly like a missing post.
     const [parentPost] = await tx
       .select({ id: posts.id, communityId: posts.communityId })
       .from(posts)
-      .where(eq(posts.id, body.postId))
+      .where(and(eq(posts.id, body.postId), notBlockedWith(userId, posts.authorId)))
       .limit(1);
 
     if (!parentPost) {
@@ -433,7 +463,7 @@ community.get('/:id/events', async (c) => {
     const rows = await tx
       .select(communityEventColumns)
       .from(communityEvents)
-      .where(eq(communityEvents.communityId, communityId))
+      .where(and(eq(communityEvents.communityId, communityId), notBlockedWith(userId, communityEvents.createdBy)))
       .orderBy(desc(communityEvents.startsAt));
 
     markPrivate(c);

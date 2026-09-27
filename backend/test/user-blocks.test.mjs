@@ -84,7 +84,7 @@ test('block is idempotent, one-sided, and discloses that no surface enforces it 
   assert.equal(first.status, 201);
   assert.equal(again.status, 200);
   assert.equal(repository.rows.length, 1);
-  assert.deepEqual(first.body.enforcement, { community: 'NOT_ENFORCED', world: 'NOT_ENFORCED' });
+  assert.deepEqual(first.body.enforcement, { community: 'ENFORCED', world: 'NOT_ENFORCED' });
   assert.deepEqual(first.body.enforcement, BLOCK_ENFORCEMENT);
 
   // One-sided: B's own list is empty, and nothing tells B about A's block.
@@ -140,9 +140,11 @@ test('schema and migration keep blocks canonical, minimal and erasure-neutral', 
   assert.match(migration, /user_blocks_blocked_user_id_users_id_fk/);
   const index = readFileSync(new URL('../api/index.ts', import.meta.url), 'utf8');
   assert.match(index, /app\.route\('\/api\/blocks', blocks\)/);
-  // The Community endpoint stays fail-closed until Community enforces blocks.
+  // Community enforces blocks on the feed, events and comment creation (#594).
   const community = readFileSync(new URL('../api/routes/community.ts', import.meta.url), 'utf8');
-  assert.match(community, /communityPersistenceUnavailable\(c, 'create_block'\)/);
+  assert.match(community, /eq\(posts\.communityId, communityId\), notBlockedWith\(userId, posts\.authorId\)/);
+  assert.match(community, /notBlockedWith\(userId, communityEvents\.createdBy\)/);
+  assert.match(community, /eq\(posts\.id, body\.postId\), notBlockedWith\(userId, posts\.authorId\)/);
 });
 
 test('every account-topology user relation has an erasure residue probe and a discovery count', () => {
