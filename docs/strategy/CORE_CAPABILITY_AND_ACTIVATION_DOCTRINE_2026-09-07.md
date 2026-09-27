@@ -71,7 +71,7 @@ Rules:
 - do not archive or remove them solely because the current product is not production-ready;
 - do not claim they are active production services without runtime evidence;
 - keep Unity as presentation/client-side immersive technology unless a later authority changes that choice;
-- Nakama, if used, must not become durable authority for Guardian identity, consent, ELI truth, balances/entitlements or other durable product truth that belongs in controlled backend data stores;
+- Nakama, if used, must not become durable authority for Owner identity, consent, ELI truth, balances/entitlements or other durable product truth that belongs in controlled backend data stores;
 - any final runtime selection remains separately gated.
 
 ## 7. Launch-scope matrix rule
