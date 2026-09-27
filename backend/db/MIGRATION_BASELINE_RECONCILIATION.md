@@ -217,7 +217,15 @@ Gated, not resolved. Recorded entry by entry in `backend/test/schema-constraint-
 
 The CI step `P0-DB constraint/index parity (path A vs generated)` fails when the observed drift differs from the ledger in either direction: new drift, or a resolved entry left in the ledger. The fingerprint SQL separately rejects any duplicate FK on the same columns; that class is never ledgered.
 
-Column-level drift is not gated. S3 showed that a missing index can hide missing columns. After `0022`, an `information_schema.columns` comparison (type, length, nullability, default) still differs on 10 tables: the `eli-v5`/ELI tables (§7.4), `breed_sensor_profiles` morphology (§7.3), and the `imu_*` tables. It is recorded here as `OPEN / UNGATED`.
+Column drift is gated separately. S3 showed that a missing index can hide missing columns, and #662 added a column-type drift that constraint/index parity cannot see. `backend/test/schema-column-parity.sql` prints one line per column (`format_type`, nullability, default, identity/generation); the CI step `P0-DB column parity (path A vs generated)` compares it with `backend/test/schema-column-parity.known-drift.txt` (92 lines, 10 tables) under the same two-direction rule:
+
+| Class | Count | Difference | Status |
+|---|---|---|---|
+| C1 | 8 pairs | ELI identifiers (`dog_id`, `user_config.user_id`): `text` in `0003`, `uuid` in Drizzle | OPEN (§7.4) |
+| C2 | 36 pairs | bare `FLOAT` in `0001` (`imu_*`) and `0003` (ELI tables) resolves to `double precision`; Drizzle declares `real()` | OPEN — precision of ELI/IMU values not decided |
+| C3 | 4 | `breed_sensor_profiles` height/weight morphology columns, path A only | `NOT_CURRENT_SCHEMA_AUTHORITY` (§7.3) |
+
+C2 was previously unrecorded. Promoting the generated baseline as-is (§8) would store these values as `real` (about 7 significant digits) instead of `double precision`; that choice is not made here.
 
 Status:
 
@@ -228,6 +236,8 @@ Status:
 `DEVICE_IDENTITY_PSA_KEY_ID_TYPE_DRIFT = RESOLVED_IN_SOURCE_SCHEMA`
 
 `REMAINING_CONSTRAINT_INDEX_DRIFT = GATED / OPEN — each class needs its own decision`
+
+`REMAINING_COLUMN_DRIFT = GATED / OPEN (C1 §7.4, C2 undecided, C3 §7.3)`
 
 Full record:
 
@@ -255,8 +265,9 @@ The GitHub Actions DB workflow now tests:
 4. application through `drizzle-kit migrate` to another disposable PostgreSQL database;
 5. generated table-inventory parity;
 6. constraint/index parity against the classified drift ledger (§7.5);
-7. second-generation stability (no unexplained follow-on migration);
-8. backend build/typecheck/tests.
+7. column parity against the classified drift ledger (§7.5);
+8. second-generation stability (no unexplained follow-on migration);
+9. backend build/typecheck/tests.
 
 Generated output remains QA material until a run passes and the exact SQL/metadata is reviewed and intentionally promoted.
 
@@ -286,7 +297,7 @@ Seed loading remains a separate controlled gate.
 
 `PARTIAL / IN RECONCILIATION`
 
-Firmware-column and composite-key drift are resolved in source. Historical morphology compatibility is explicitly not promoted. ELI identifier relationship remains open. Path-A shadow FKs and the `community_reports` index drift are resolved by `0021`, membership uniqueness and sensor-summary provenance by `0022`; remaining constraint/index drift is gated and classified (§7.5).
+Firmware-column and composite-key drift are resolved in source. Historical morphology compatibility is explicitly not promoted. ELI identifier relationship remains open. Path-A shadow FKs and the `community_reports` index drift are resolved by `0021`, membership uniqueness and sensor-summary provenance by `0022`; `psa_key_id` type drift is resolved in source; remaining constraint/index and column drift is gated and classified (§7.5).
 
 ### DB-G4 — Controlled Drizzle ledger
 

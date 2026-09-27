@@ -126,6 +126,8 @@ Capture primary/unique/foreign-key constraints and indexes using PostgreSQL cata
 
 `backend/test/schema-constraint-index-parity.sql` prints one line per constraint (`pg_get_constraintdef`) and index (`pg_indexes.indexdef`) and rejects duplicate FKs. Run it on both databases and compare the symmetric difference with `backend/test/schema-constraint-index-parity.known-drift.txt`, as the P0 workflow does.
 
+`backend/test/schema-column-parity.sql` does the same for columns (type, nullability, default); compare it with `backend/test/schema-column-parity.known-drift.txt`.
+
 ## 7. Required parity review
 
 Compare the resulting database against `backend/db/schema/*.ts`.

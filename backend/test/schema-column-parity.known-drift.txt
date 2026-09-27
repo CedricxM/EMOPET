@@ -1,0 +1,109 @@
+# Known column drift: path A (baseline-draft + active migrations) vs the
+# Drizzle-generated baseline. Read by the "P0-DB column parity" step of
+# .github/workflows/p0-db-baseline.yml, which fails when the observed drift differs
+# from these entries in EITHER direction:
+#   - a new line means new drift: fix the migration or the schema, do not append it
+#     here unless it is classified in MIGRATION_BASELINE_RECONCILIATION.md §7.5;
+#   - a missing line means drift was resolved: delete the entry.
+# Format: <A|B>|COLUMN|table|column|type [NOT NULL] [DEFAULT expr]
+# A = only in path A, B = only in the generated database. '#' lines are ignored and
+# entries are sorted by the gate, so grouping below is for review only.
+# Recorded 2026-09-27 on postgres:16.15; classification in the reconciliation doc.
+
+# C1 — ELI identifiers: text in 0003, uuid in Drizzle (§7.4, OPEN) (8 pairs)
+A|COLUMN|anticipation_events|dog_id|text NOT NULL
+B|COLUMN|anticipation_events|dog_id|uuid NOT NULL
+A|COLUMN|baseline_drift_monitor|dog_id|text NOT NULL
+B|COLUMN|baseline_drift_monitor|dog_id|uuid NOT NULL
+A|COLUMN|dog_sub_baselines|dog_id|text NOT NULL
+B|COLUMN|dog_sub_baselines|dog_id|uuid NOT NULL
+A|COLUMN|recovery_events|dog_id|text NOT NULL
+B|COLUMN|recovery_events|dog_id|uuid NOT NULL
+A|COLUMN|routine_stability|dog_id|text NOT NULL
+B|COLUMN|routine_stability|dog_id|uuid NOT NULL
+A|COLUMN|user_config|dog_id|text NOT NULL
+B|COLUMN|user_config|dog_id|uuid NOT NULL
+A|COLUMN|user_config|user_id|text NOT NULL
+B|COLUMN|user_config|user_id|uuid NOT NULL
+A|COLUMN|walk_quality|dog_id|text NOT NULL
+B|COLUMN|walk_quality|dog_id|uuid NOT NULL
+
+# C2 — bare FLOAT in 0001/0003 (PostgreSQL double precision), real() in Drizzle (OPEN) (36 pairs)
+A|COLUMN|anticipation_events|activity_ratio|double precision
+B|COLUMN|anticipation_events|activity_ratio|real
+A|COLUMN|anticipation_events|mean_baseline_odba|double precision
+B|COLUMN|anticipation_events|mean_baseline_odba|real
+A|COLUMN|anticipation_events|mean_pre_event_odba|double precision
+B|COLUMN|anticipation_events|mean_pre_event_odba|real
+A|COLUMN|baseline_drift_monitor|activity_drift_sigma|double precision DEFAULT 0
+B|COLUMN|baseline_drift_monitor|activity_drift_sigma|real DEFAULT 0
+A|COLUMN|baseline_drift_monitor|current_activity_mean|double precision
+B|COLUMN|baseline_drift_monitor|current_activity_mean|real
+A|COLUMN|baseline_drift_monitor|current_rr_mean|double precision
+B|COLUMN|baseline_drift_monitor|current_rr_mean|real
+A|COLUMN|baseline_drift_monitor|long_term_activity_mean|double precision
+B|COLUMN|baseline_drift_monitor|long_term_activity_mean|real
+A|COLUMN|baseline_drift_monitor|long_term_mat_minutes_mean|double precision
+B|COLUMN|baseline_drift_monitor|long_term_mat_minutes_mean|real
+A|COLUMN|baseline_drift_monitor|long_term_rr_mean|double precision
+B|COLUMN|baseline_drift_monitor|long_term_rr_mean|real
+A|COLUMN|baseline_drift_monitor|rr_drift_sigma|double precision DEFAULT 0
+B|COLUMN|baseline_drift_monitor|rr_drift_sigma|real DEFAULT 0
+A|COLUMN|dog_sub_baselines|activity_mean|double precision
+B|COLUMN|dog_sub_baselines|activity_mean|real
+A|COLUMN|dog_sub_baselines|activity_std|double precision
+B|COLUMN|dog_sub_baselines|activity_std|real
+A|COLUMN|dog_sub_baselines|activity_variability_mean|double precision
+B|COLUMN|dog_sub_baselines|activity_variability_mean|real
+A|COLUMN|dog_sub_baselines|activity_variability_std|double precision
+B|COLUMN|dog_sub_baselines|activity_variability_std|real
+A|COLUMN|dog_sub_baselines|confidence|double precision DEFAULT 0
+B|COLUMN|dog_sub_baselines|confidence|real DEFAULT 0
+A|COLUMN|dog_sub_baselines|mat_minutes_mean|double precision
+B|COLUMN|dog_sub_baselines|mat_minutes_mean|real
+A|COLUMN|dog_sub_baselines|recovery_time_mean|double precision
+B|COLUMN|dog_sub_baselines|recovery_time_mean|real
+A|COLUMN|dog_sub_baselines|recovery_time_std|double precision
+B|COLUMN|dog_sub_baselines|recovery_time_std|real
+A|COLUMN|dog_sub_baselines|recovery_trend_4w_pct|double precision
+B|COLUMN|dog_sub_baselines|recovery_trend_4w_pct|real
+A|COLUMN|dog_sub_baselines|rr_mean|double precision
+B|COLUMN|dog_sub_baselines|rr_mean|real
+A|COLUMN|dog_sub_baselines|rr_std|double precision
+B|COLUMN|dog_sub_baselines|rr_std|real
+A|COLUMN|dog_sub_baselines|rr_variability_mean|double precision
+B|COLUMN|dog_sub_baselines|rr_variability_mean|real
+A|COLUMN|dog_sub_baselines|rr_variability_std|double precision
+B|COLUMN|dog_sub_baselines|rr_variability_std|real
+A|COLUMN|dog_sub_baselines|vocal_rate_mean|double precision
+B|COLUMN|dog_sub_baselines|vocal_rate_mean|real
+A|COLUMN|imu_discrimination_thresholds|confidence|double precision NOT NULL
+B|COLUMN|imu_discrimination_thresholds|confidence|real NOT NULL
+A|COLUMN|imu_discrimination_thresholds|threshold_value|double precision NOT NULL
+B|COLUMN|imu_discrimination_thresholds|threshold_value|real NOT NULL
+A|COLUMN|imu_shake_filter|confidence|double precision NOT NULL
+B|COLUMN|imu_shake_filter|confidence|real NOT NULL
+A|COLUMN|recovery_events|peak_arousal|double precision
+B|COLUMN|recovery_events|peak_arousal|real
+A|COLUMN|recovery_events|recovery_minutes|double precision NOT NULL
+B|COLUMN|recovery_events|recovery_minutes|real NOT NULL
+A|COLUMN|routine_stability|rsi|double precision
+B|COLUMN|routine_stability|rsi|real
+A|COLUMN|walk_quality|distance_km|double precision
+B|COLUMN|walk_quality|distance_km|real
+A|COLUMN|walk_quality|duration_minutes|double precision
+B|COLUMN|walk_quality|duration_minutes|real
+A|COLUMN|walk_quality|exercise_score|double precision
+B|COLUMN|walk_quality|exercise_score|real
+A|COLUMN|walk_quality|exploration_score|double precision
+B|COLUMN|walk_quality|exploration_score|real
+A|COLUMN|walk_quality|social_score|double precision
+B|COLUMN|walk_quality|social_score|real
+A|COLUMN|walk_quality|wqi|double precision
+B|COLUMN|walk_quality|wqi|real
+
+# C3 — historical morphology columns absent from Drizzle (§7.3, NOT_CURRENT_SCHEMA_AUTHORITY) (4)
+A|COLUMN|breed_sensor_profiles|height_max_cm|real
+A|COLUMN|breed_sensor_profiles|height_min_cm|real
+A|COLUMN|breed_sensor_profiles|weight_max_kg|real
+A|COLUMN|breed_sensor_profiles|weight_min_kg|real
