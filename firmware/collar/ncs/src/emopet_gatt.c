@@ -16,7 +16,6 @@
 
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/gatt.h>
-#include <zephyr/kernel.h>
 #include <zephyr/random/random.h>
 #include <zephyr/sys/util.h>
 
@@ -123,7 +122,8 @@ int emopet_gatt_start_advertising(void)
 
 int emopet_gatt_publish_activity_variability(
     activity_variability_snapshot_t snapshot,
-    tag_feature_quality_t quality
+    tag_feature_quality_t quality,
+    uint32_t window_end_ms
 )
 {
     uint8_t frame[TAG_FEATURE_SUMMARY_FRAME_SIZE];
@@ -135,7 +135,7 @@ int emopet_gatt_publish_activity_variability(
     const tag_activity_feature_summary_input_t input = {
         .sequence = feature_sequence,
         .boot_session_id = boot_session_id,
-        .window_end_ms = k_uptime_get_32(),
+        .window_end_ms = window_end_ms,
         .observation = snapshot,
         .quality = quality,
     };
