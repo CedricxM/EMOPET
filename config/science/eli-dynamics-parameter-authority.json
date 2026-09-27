@@ -27,8 +27,8 @@
         "status": "EMOPET_HEURISTIC_UNVALIDATED"
       }
     },
-    "guardianClaim": "FACTUAL_PATTERN_ONLY / NO EMOTION LABEL",
-    "guardianPublicationAuthorized": false,
+    "ownerClaim": "FACTUAL_PATTERN_ONLY / NO EMOTION LABEL",
+    "ownerPublicationAuthorized": false,
     "publicationGate": {
       "contractAuthorityField": "sensor.anticipation_contract_authorized",
       "defaultAuthorized": false
@@ -43,7 +43,7 @@
       "UTC versus dog-local time",
       "event occurrence count versus above-threshold hit count",
       "publication criterion",
-      "Guardian-facing interpretation and validation plan"
+      "Owner-facing interpretation and validation plan"
     ]
   },
   "recovery": {
@@ -84,7 +84,7 @@
       "requiredDays": 7,
       "status": "FAIL_CLOSED_UNTIL_RUNTIME_FIELD_EXISTS"
     },
-    "guardianPublicationAuthorized": false,
+    "ownerPublicationAuthorized": false,
     "publicationGate": {
       "contractAuthorityField": "sensor.recovery_contract_authorized",
       "persistenceField": "sensor.recovery_trend_sustained_days",
