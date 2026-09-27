@@ -81,8 +81,12 @@ export class WorldRealtimeAdapter {
           });
           entry.expiresAt = Math.min(authExpiresAt, entry.connection.expiresAt);
           if (!Number.isFinite(entry.expiresAt) || entry.expiresAt <= this.clock()) throw new WorldError('invalid_session');
-          for (const command of restore.values()) {
-            await this.deadline(() => entry.connection!.execute(command, this.target(command)));
+          for (const [key, command] of restore) {
+            let target: string | undefined;
+            // A followed participant may be offline; drop that subscription instead of failing
+            // the whole renewal. The client re-follows once the participant bootstraps again.
+            try { target = this.target(actor, command); } catch { restore.delete(key); continue; }
+            await this.deadline(() => entry.connection!.execute(command, target));
           }
           if (entry.degraded || entry.expiresAt <= this.clock()) throw new WorldError('unavailable');
           this.sessions.set(handle, entry);
@@ -97,10 +101,11 @@ export class WorldRealtimeAdapter {
       throw new WorldError('unavailable');
     } finally { this.opening.delete(actor); }
   }
-  private target(command: WorldCommand): string | undefined {
+  private target(actor: string, command: WorldCommand): string | undefined {
     if (!('targetUserId' in command)) return undefined;
-    const actor = this.actor(command.targetUserId);
-    const entry = [...this.sessions.values()].find(e => e.actor === actor && e.expiresAt > this.clock() && !e.degraded);
+    const target = this.actor(command.targetUserId);
+    if (target === actor) throw new WorldError('invalid_request');
+    const entry = [...this.sessions.values()].find(e => e.actor === target && e.expiresAt > this.clock() && !e.degraded);
     if (!entry?.connection) throw new WorldError('unavailable');
     return entry.connection.userId;
   }
@@ -108,9 +113,10 @@ export class WorldRealtimeAdapter {
     const entry = this.entry(userId, handle);
     if (entry.busy) throw new WorldError('busy');
     if (entry.degraded || !entry.connection) throw new WorldError('unavailable');
+    // Target resolution happens before any transport call, so its errors leave the session intact.
+    const target = this.target(entry.actor, command);
     entry.busy = true;
     try {
-      const target = this.target(command);
       const result = await this.deadline(() => entry.connection!.execute(command, target));
       if (this.sessions.get(handle) !== entry || entry.degraded || entry.expiresAt <= this.clock()) throw new WorldError('invalid_session');
       if (command.op === 'presence.follow') entry.restore.set(`follow:${command.targetUserId}`, command);
@@ -119,7 +125,9 @@ export class WorldRealtimeAdapter {
       if (command.op === 'groups.leave') entry.restore.delete(`chat:${command.groupId}`);
       return result;
     } catch (error) {
-      // A timeout can mean the write happened. Close and never replay it.
+      // A rejected request did not execute; keep the session. A timeout or transport failure
+      // can mean the write happened: close and never replay it.
+      if (error instanceof WorldError && error.code === 'invalid_request') throw error;
       entry.degraded = true; entry.connection.close();
       throw error instanceof WorldError ? error : new WorldError('unavailable');
     } finally { entry.busy = false; }

@@ -100,3 +100,17 @@ test('socket disconnect rejects pending requests and malformed frames fail close
   assert.equal(disconnected, 1);
   assert.equal(instances[0].closed, true);
 });
+test('SDK 4xx rejection maps to invalid_request; 5xx stays an uncertain failure', async t => {
+  sockets(t);
+  const token = `${Buffer.from('{}').toString('base64url')}.${Buffer.from(JSON.stringify({ uid: A, usn: 'synthetic', exp: Math.floor(Date.now() / 1000) + 300 })).toString('base64url')}.test`;
+  let status = 400;
+  t.mock.method(globalThis, 'fetch', async url => String(url).includes('/rpc/')
+    ? new Response(JSON.stringify({ token, userId: A }), { status: 200 })
+    : new Response('{}', { status }));
+  const connection = await new NakamaTransport('http://127.0.0.1:7350', 'a'.repeat(64))
+    .connect(`emopet:world-spike:v1:${A}`, new AbortController().signal, () => {}, () => {});
+  t.after(() => connection.close());
+  await assert.rejects(connection.execute({ op: 'groups.join', groupId: G }), /invalid_request/);
+  status = 503;
+  await assert.rejects(connection.execute({ op: 'groups.join', groupId: G }), error => !/invalid_request/.test(String(error?.message ?? error)));
+});

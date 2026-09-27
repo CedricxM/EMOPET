@@ -10,7 +10,8 @@ function bootstrap(ctx, logger, nk, payload) {
     throw { code: 3, message: 'Invalid bootstrap' };
   }
   var canonicalId = body.customId.substring(identityPrefix.length);
-  var allowed = (ctx.env.WORLD_SPIKE_TEST_USER_IDS || '').split(',');
+  // Normalize exactly like the Hono configuration (trim + lowercase).
+  var allowed = (ctx.env.WORLD_SPIKE_TEST_USER_IDS || '').split(',').map(function (id) { return id.trim().toLowerCase(); });
   if (!uuidPattern.test(canonicalId) || allowed.indexOf(canonicalId) === -1) {
     throw { code: 7, message: 'Synthetic account required' };
   }
