@@ -100,7 +100,10 @@
     "verifierHasDefaultStore": false,
     "verifierHasPublicRoute": false,
     "verifierAuthorizesDeviceDataTrust": false,
-    "verifierAuthorizesTelemetryPersistence": false
+    "verifierAuthorizesTelemetryPersistence": false,
+    "devicePreimageBuilder": "SOURCE_IMPLEMENTED / C_BACKEND_BYTE_PARITY_GATED / NO_PRIVATE_KEY_ACCESS",
+    "devicePreimageSource": "firmware/collar/main/security/device_pop_preimage.{h,c}",
+    "devicePreimageConformanceTest": "scripts/control/device-pop-preimage-conformance.test.mjs"
   },
   "releaseRule": "NO_DEVICE_TRUST_SUCCESS_OR_DURABLE_NETWORK_TELEMETRY_WRITE_UNTIL_RUNTIME_AND_TARGET_HARDWARE_NEGATIVE_EVIDENCE_PASS"
 }
