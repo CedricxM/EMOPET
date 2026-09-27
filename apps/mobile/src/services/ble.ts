@@ -29,6 +29,8 @@ import {
 } from '@emopet/shared';
 import {
   buildRequestClockAnchor,
+  CLOCK_ANCHOR_RESPONSE_HEADER,
+  CLOCK_ANCHOR_RESPONSE_LENGTH,
   isMatFrame,
   isTagFrame,
   parseActivityVariabilityFeatureFrame,
@@ -86,12 +88,6 @@ export class BleRuntimeError extends Error {
 export interface BleSubscriptionHandlers {
   onSensorFrame?: FrameCallback;
   onFeatureFrame?: FeatureFrameCallback;
-  clockAnchor?: {
-    canonicalDeviceId: string;
-    localWallClockUncertaintyMs: number;
-    expectedBootSessionId?: number;
-    onAnchor: (anchor: CapturedBootAnchorV1) => void;
-  };
   onError?: (error: BleRuntimeError) => void;
 }
 
@@ -296,145 +292,195 @@ export function uint8ArrayToBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
-export async function captureDeviceBootClockAnchor(
-  device: Device,
-  input: {
-    canonicalDeviceId: string;
+export async function captureBleBootClockAnchor(
+  deviceId: string,
+  options: {
     localWallClockUncertaintyMs: number;
-    expectedBootSessionId?: number;
     timeoutMs?: number;
+    requestNonce?: number;
+    expectedBootSessionId?: number;
   },
 ): Promise<CapturedBootAnchorV1> {
-  const requestNonce = allocateClockAnchorNonce();
-  const timeoutMs = input.timeoutMs ?? 2000;
-  const request = buildRequestClockAnchor(requestNonce);
-
-  let subscription: Subscription | null = null;
-  let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
-  let settled = false;
-  let armed = false;
-  let wallBeforeUtcMs = 0;
-  let monotonicBeforeMs = 0;
-
-  const cleanup = () => {
-    if (timeoutHandle) clearTimeout(timeoutHandle);
-    timeoutHandle = null;
-    subscription?.remove();
-    subscription = null;
-  };
-
-  return new Promise<CapturedBootAnchorV1>((resolve, reject) => {
-    const fail = (error: unknown) => {
-      if (settled) return;
-      settled = true;
-      cleanup();
-      reject(error);
-    };
-
-    const succeed = (anchor: CapturedBootAnchorV1) => {
-      if (settled) return;
-      settled = true;
-      cleanup();
-      resolve(anchor);
-    };
-
-    subscription = device.monitorCharacteristicForService(
-      BLE_SERVICE_UUID,
-      BLE_CHAR_CONFIG,
-      (error, characteristic) => {
-        if (error) {
-          fail(new BleRuntimeError(
-            'CLOCK_ANCHOR_NOTIFICATION_FAILED',
-            'Clock-anchor Config notification failed.',
-            error,
-          ));
-          return;
-        }
-        if (!characteristic?.value) return;
-
-        let response: ClockAnchorResponseFrame;
-        try {
-          response = parseClockAnchorResponse(
-            base64ToUint8Array(characteristic.value),
-          );
-        } catch (parseError) {
-          fail(new BleRuntimeError(
-            'CLOCK_ANCHOR_RESPONSE_INVALID',
-            'Clock-anchor response failed canonical parsing.',
-            parseError,
-          ));
-          return;
-        }
-
-        // A Config notification from another outstanding/stale request is not
-        // evidence for this capture. Ignore it and keep waiting for our nonce.
-        if (response.requestNonce !== requestNonce || !armed) return;
-
-        let monotonicAfterMs: number;
-        try {
-          monotonicAfterMs = monotonicNowMs();
-        } catch (clockError) {
-          fail(clockError);
-          return;
-        }
-        const wallAfterUtcMs = Date.now();
-
-        try {
-          succeed(buildBootAnchorV1({
-            canonicalDeviceId: input.canonicalDeviceId,
-            bleDeviceId: device.id,
-            wallBeforeUtcMs,
-            wallAfterUtcMs,
-            monotonicBeforeMs,
-            monotonicAfterMs,
-            localWallClockUncertaintyMs: input.localWallClockUncertaintyMs,
-            requestNonce,
-            response,
-            expectedBootSessionId: input.expectedBootSessionId,
-          }));
-        } catch (anchorError) {
-          if (anchorError instanceof BootAnchorCaptureError) {
-            fail(new BleRuntimeError(
-              anchorError.code,
-              anchorError.message,
-              anchorError,
-            ));
-          } else {
-            fail(anchorError);
-          }
-        }
-      },
+  const ble = await requireBleReady();
+  const timeoutMs = options.timeoutMs ?? 2000;
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0) {
+    throw new BleRuntimeError(
+      'CLOCK_ANCHOR_RESPONSE_INVALID',
+      'Clock-anchor timeout must be a positive integer.',
     );
+  }
 
-    wallBeforeUtcMs = Date.now();
-    try {
-      monotonicBeforeMs = monotonicNowMs();
-    } catch (clockError) {
-      fail(clockError);
-      return;
+  const requestNonce = options.requestNonce ?? allocateClockAnchorNonce();
+  const request = buildRequestClockAnchor(requestNonce);
+  const wasConnected = await ble.isDeviceConnected(deviceId);
+
+  let device: Device;
+  let openedHere = false;
+
+  if (wasConnected) {
+    const known = await ble.devices([deviceId]);
+    const existing = known.find((candidate) => candidate.id === deviceId);
+    if (!existing) {
+      throw new BleRuntimeError(
+        'CONNECT_FAILED',
+        'Connected BLE device is not available in the local device cache.',
+      );
     }
-
-    armed = true;
-
-    timeoutHandle = setTimeout(() => {
-      fail(new BleRuntimeError(
-        'CLOCK_ANCHOR_TIMEOUT',
-        `Clock-anchor response did not arrive within ${timeoutMs}ms.`,
-      ));
-    }, timeoutMs);
-
-    void device.writeCharacteristicWithResponseForService(
-      BLE_SERVICE_UUID,
-      BLE_CHAR_CONFIG,
-      uint8ArrayToBase64(request),
-    ).catch((error: unknown) => {
-      fail(new BleRuntimeError(
-        'CLOCK_ANCHOR_WRITE_FAILED',
-        'Unable to write the bounded clock-anchor probe.',
+    device = existing;
+  } else {
+    try {
+      device = await ble.connectToDevice(deviceId);
+      openedHere = true;
+    } catch (error) {
+      throw new BleRuntimeError(
+        'CONNECT_FAILED',
+        `Unable to connect to EMOPET device ${deviceId} for clock anchoring.`,
         error,
-      ));
+      );
+    }
+  }
+
+  try {
+    await device.discoverAllServicesAndCharacteristics();
+
+    return await new Promise<CapturedBootAnchorV1>((resolve, reject) => {
+      let subscription: Subscription | null = null;
+      let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+      let settled = false;
+      let armed = false;
+      let wallBeforeUtcMs = 0;
+      let monotonicBeforeMs = 0;
+
+      const cleanup = () => {
+        if (timeoutHandle) clearTimeout(timeoutHandle);
+        timeoutHandle = null;
+        subscription?.remove();
+        subscription = null;
+      };
+
+      const fail = (error: unknown) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        reject(error);
+      };
+
+      const succeed = (anchor: CapturedBootAnchorV1) => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        resolve(anchor);
+      };
+
+      subscription = device.monitorCharacteristicForService(
+        BLE_SERVICE_UUID,
+        BLE_CHAR_CONFIG,
+        (error, characteristic) => {
+          if (error) {
+            fail(new BleRuntimeError(
+              'CLOCK_ANCHOR_NOTIFICATION_FAILED',
+              'Clock-anchor Config notification failed.',
+              error,
+            ));
+            return;
+          }
+          if (!characteristic?.value) return;
+
+          const raw = base64ToUint8Array(characteristic.value);
+          if (
+            raw.length !== CLOCK_ANCHOR_RESPONSE_LENGTH
+            || raw[0] !== CLOCK_ANCHOR_RESPONSE_HEADER
+          ) {
+            return;
+          }
+
+          let response: ClockAnchorResponseFrame;
+          try {
+            response = parseClockAnchorResponse(raw);
+          } catch (parseError) {
+            fail(new BleRuntimeError(
+              'CLOCK_ANCHOR_RESPONSE_INVALID',
+              'Clock-anchor response failed canonical parsing.',
+              parseError,
+            ));
+            return;
+          }
+
+          // Ignore stale/unrelated Config responses until our nonce arrives.
+          if (response.requestNonce !== requestNonce || !armed) return;
+
+          let monotonicAfterMs: number;
+          try {
+            monotonicAfterMs = monotonicNowMs();
+          } catch (clockError) {
+            fail(clockError);
+            return;
+          }
+          const wallAfterUtcMs = Date.now();
+
+          try {
+            succeed(buildBootAnchorV1({
+              wallBeforeUtcMs,
+              wallAfterUtcMs,
+              monotonicBeforeMs,
+              monotonicAfterMs,
+              localWallClockUncertaintyMs:
+                options.localWallClockUncertaintyMs,
+              requestNonce,
+              response,
+              expectedBootSessionId: options.expectedBootSessionId,
+            }));
+          } catch (anchorError) {
+            if (anchorError instanceof BootAnchorCaptureError) {
+              fail(new BleRuntimeError(
+                anchorError.code,
+                anchorError.message,
+                anchorError,
+              ));
+            } else {
+              fail(anchorError);
+            }
+          }
+        },
+      );
+
+      wallBeforeUtcMs = Date.now();
+      try {
+        monotonicBeforeMs = monotonicNowMs();
+      } catch (clockError) {
+        fail(clockError);
+        return;
+      }
+      armed = true;
+
+      timeoutHandle = setTimeout(() => {
+        fail(new BleRuntimeError(
+          'CLOCK_ANCHOR_TIMEOUT',
+          `Clock-anchor response did not arrive within ${timeoutMs}ms.`,
+        ));
+      }, timeoutMs);
+
+      void device.writeCharacteristicWithResponseForService(
+        BLE_SERVICE_UUID,
+        BLE_CHAR_CONFIG,
+        uint8ArrayToBase64(request),
+      ).catch((error: unknown) => {
+        fail(new BleRuntimeError(
+          'CLOCK_ANCHOR_WRITE_FAILED',
+          'Unable to write the bounded clock-anchor probe.',
+          error,
+        ));
+      });
     });
-  });
+  } finally {
+    if (openedHere) {
+      try {
+        await ble.cancelDeviceConnection(device.id);
+      } catch {
+        // Capture result/error remains primary; disconnect is bounded cleanup.
+      }
+    }
+  }
 }
 
 /**
@@ -453,7 +499,7 @@ export async function connectAndSubscribe(
       ? { onSensorFrame: handlersOrFrameCallback }
       : handlersOrFrameCallback;
 
-  if (!handlers.onSensorFrame && !handlers.onFeatureFrame && !handlers.clockAnchor) {
+  if (!handlers.onSensorFrame && !handlers.onFeatureFrame) {
     throw new BleRuntimeError(
       'SUBSCRIBE_FAILED',
       'At least one BLE notification handler is required.',
@@ -472,25 +518,6 @@ export async function connectAndSubscribe(
       `Unable to connect to or discover EMOPET device ${deviceId}.`,
       error,
     );
-  }
-
-  if (handlers.clockAnchor) {
-    try {
-      const anchor = await captureDeviceBootClockAnchor(device, {
-        canonicalDeviceId: handlers.clockAnchor.canonicalDeviceId,
-        localWallClockUncertaintyMs:
-          handlers.clockAnchor.localWallClockUncertaintyMs,
-        expectedBootSessionId: handlers.clockAnchor.expectedBootSessionId,
-      });
-      handlers.clockAnchor.onAnchor(anchor);
-    } catch (error) {
-      try {
-        await ble.cancelDeviceConnection(device.id);
-      } catch {
-        // Preserve the clock-anchor failure as the primary error.
-      }
-      throw error;
-    }
   }
 
   const subscriptions: Subscription[] = [];
