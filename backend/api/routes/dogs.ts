@@ -1,4 +1,4 @@
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, isNull, sql } from 'drizzle-orm';
 import { Hono, type MiddlewareHandler } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import {
@@ -11,6 +11,7 @@ import {
 
 import { db } from '../../db/index.js';
 import {
+  devices,
   dogs as dogsTable,
   professionalShareGrants,
   users,
@@ -214,6 +215,49 @@ dogs.get('/:id', async (c) => {
     return c.json({ dog: serializeDog(row) });
   } catch {
     return databaseUnavailable(c, 'get_dog');
+  }
+});
+
+dogs.get('/:id/devices', async (c) => {
+  c.header('Cache-Control', 'private, no-store');
+  const id = c.req.param('id');
+  const denied = await requireDogOwnership(c, id);
+  if (denied) return denied;
+
+  try {
+    const rows = await db
+      .select({
+        id: devices.id,
+        dogId: devices.dogId,
+        type: devices.type,
+        firmwareVersion: devices.firmwareVersion,
+        supportsV6Features: devices.supportsV6Features,
+      })
+      .from(devices)
+      .where(and(
+        eq(devices.dogId, id),
+        isNull(devices.unboundAt),
+      ))
+      .orderBy(devices.createdAt);
+
+    return c.json({
+      schemaVersion: 'owner-dog-device-registry-v1',
+      dogId: id,
+      devices: rows.map((row) => ({
+        id: row.id,
+        dogId: row.dogId!,
+        type: row.type,
+        firmwareVersion: row.firmwareVersion,
+        supportsV6Features: row.supportsV6Features ?? false,
+        bindingStatus: 'BOUND' as const,
+        physicalDeviceAuthentication: 'NOT_ESTABLISHED' as const,
+      })),
+      identityAuthority: 'BACKEND_REGISTRY_ONLY' as const,
+      bleTransportIdentifierIsCanonicalIdentity: false as const,
+      physicalDeviceAuthenticationEstablished: false as const,
+    });
+  } catch {
+    return databaseUnavailable(c, 'list_dog_devices');
   }
 });
 
