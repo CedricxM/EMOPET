@@ -205,6 +205,14 @@
       "mappingRationale": "Daily derived routine-state index and trend, not raw sensor persistence."
     },
     {
+      "table": "sensor_feature_observations",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "sensor_preprocessed"
+      ],
+      "mappingRationale": "Versioned deterministic TAG-derived movement-feature observations. This is preprocessed physical sensor data, not latent ELI or an affective interpretation."
+    },
+    {
       "table": "sensor_summaries",
       "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
       "inventoryCategories": [
