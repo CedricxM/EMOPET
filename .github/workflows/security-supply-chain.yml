@@ -128,6 +128,11 @@ jobs:
           code=$?
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           set -e
+      - name: Enforce ELI feature transport-to-envelope conformance (#122)
+        run: |
+          pnpm --filter @emopet/ble-protocol build
+          pnpm --filter @emopet/api build
+          node --test scripts/control/eli-io-feature-transport-conformance.test.mjs
       - name: Build web application
         id: webbuild
         shell: bash
