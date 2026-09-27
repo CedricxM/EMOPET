@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-eli-runtime-physical-movement-v1",
-  "status": "BOUNDED_VERTICAL_SLICE_CANDIDATE / PHYSICAL_ONLY / NO_LATENT_ACTIVATION",
+  "status": "DELIVERED_ON_MAIN / PHYSICAL_ONLY / NO_LATENT_ACTIVATION",
   "issue": 479,
   "technicalRuntimeOwner": "backend/api",
   "engineGateOwner": "packages/eli-engine",
@@ -17,7 +17,11 @@
   "runtime": {
     "version": "eli-runtime-physical-movement-v1",
     "endpoint": "/api/sensors/eli/:dogId/physical-movement",
-    "states": ["AVAILABLE", "NONE_FOUND", "UNAVAILABLE"],
+    "states": [
+      "AVAILABLE",
+      "NONE_FOUND",
+      "UNAVAILABLE"
+    ],
     "genericEliEndpointRemainsNotImplemented": true,
     "genericEliHistoryRemainsNotImplemented": true
   },
@@ -46,5 +50,16 @@
     "genericEliApiActivation": 124,
     "latentRuntime": 118
   },
-  "currentDecision": "CANDIDATE_PENDING_EXACT_HEAD_CI"
+  "currentDecision": "BOUNDED_PHYSICAL_SLICE_DELIVERED / LATENT_ELI_REMAINS_BLOCKED",
+  "delivery": {
+    "pr": 621,
+    "mergeCommit": "f818d1d05a7df51aa2aaef6d07222831a1301397",
+    "exactHead": "ebd9fff99120988de08e0c784157824d11af8e98",
+    "exactHeadCi": {
+      "ownerTerminology": "SUCCESS",
+      "p0DatabaseBaseline": "SUCCESS",
+      "securitySupplyChain": "SUCCESS"
+    },
+    "evidenceMeaning": "SOFTWARE_AND_DATA_CONTRACT_CONFORMANCE_ONLY"
+  }
 }
