@@ -43,7 +43,11 @@
     "peripheralGattDecision": "DO_NOT_CLAIM_REAL_TAG_BLE_DELIVERY",
     "clockAnchorWireContractImplemented": true,
     "clockAnchorPeripheralResponseImplemented": true,
-    "clockAnchorMobileCaptureImplemented": false
+    "clockAnchorMobileCaptureImplemented": true,
+    "clockAnchorMobileTimingAuthority": "packages/ble-protocol/src/clock-anchor.ts",
+    "clockAnchorLocalWallClockUncertaintyRequired": true,
+    "clockAnchorReceiveTimeShortcutAllowed": false,
+    "productionClockAnchorTargetEvidence": false
   },
   "candidateOwnership": {
     "featureComputation": "FIRMWARE",
