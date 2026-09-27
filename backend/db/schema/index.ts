@@ -9,3 +9,5 @@ export * from './eli-v5.js';
 export * from './behavioral-assessments.js';
 export * from './auth-sessions.js';
 export * from './professional-sharing.js';
+
+export * from './device-identity.js';
