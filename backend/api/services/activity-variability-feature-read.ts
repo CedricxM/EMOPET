@@ -102,6 +102,7 @@ async function ownerOwnsDog(
     .select({ id: dogs.id })
     .from(dogs)
     .where(and(eq(dogs.id, dogId), eq(dogs.ownerId, ownerId)))
+    .for('share')
     .limit(1);
   return Boolean(dog);
 }
@@ -122,7 +123,7 @@ export async function readLatestActivityVariabilityObservation(
 
   try {
     return await db.transaction(async (tx) => {
-      await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY`);
+      await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ`);
       await tx.execute(sql`SET LOCAL statement_timeout = '10s'`);
 
       if (!await ownerOwnsDog(tx, ownerId, dogId)) {
@@ -185,7 +186,7 @@ export async function readActivityVariabilityObservationHistory(
 
   try {
     return await db.transaction(async (tx) => {
-      await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY`);
+      await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ`);
       await tx.execute(sql`SET LOCAL statement_timeout = '10s'`);
 
       if (!await ownerOwnsDog(tx, ownerId, dogId)) {
