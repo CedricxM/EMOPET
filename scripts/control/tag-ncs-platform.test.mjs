@@ -130,7 +130,7 @@ test('transport provenance remains non-security and preserves measurement-window
     platform.transport.clockAnchorProbe.responseIncludes,
     ['requestNonce', 'bootSessionId', 'deviceMs'],
   );
-  assert.equal(platform.transport.clockAnchorMobileCaptureImplemented, false);
+  assert.equal(platform.transport.clockAnchorMobileCaptureImplemented, true);
   assert.equal(platform.transport.productionBootAnchorV1Implemented, false);
   assert.equal(platform.transport.utcWallClockOnTag, false);
   assert.equal(platform.ble.physicalDeviceAuthentication, false);
