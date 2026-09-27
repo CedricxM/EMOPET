@@ -22,12 +22,11 @@ int emopet_gatt_start_advertising(void);
  * Build the canonical 27-byte activity feature frame from the firmware
  * serializer and notify subscribed central(s).
  *
- * Boot-session/sequence/window-end are device-local transport provenance only,
- * never security identity or UTC authority.
+ * The caller owns boot_session_id, sequence and the real monotonic window end.
+ * The GATT layer must not replace measurement time with notification time.
  */
 int emopet_gatt_publish_activity_variability(
-    activity_variability_snapshot_t snapshot,
-    tag_feature_quality_t quality
+    const tag_activity_feature_summary_input_t *input
 );
 
 #ifdef __cplusplus
