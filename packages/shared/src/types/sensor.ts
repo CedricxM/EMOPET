@@ -66,6 +66,18 @@ export interface ActivityVariabilityTransportProvenance {
   transportVersion: 1;
   bootSessionId: number;
   sequence: number;
+  /** uint32 milliseconds since device boot at the feature-window end. */
+  windowEndMs: number;
+}
+
+export interface ActivityVariabilityEventTimeProvenance {
+  strategy: 'BOOT_ANCHOR_V1';
+  /** uint32 milliseconds since the same device boot at anchor capture. */
+  anchorDeviceMs: number;
+  /** UTC time correlated with anchorDeviceMs by an upstream clock authority. */
+  anchorUtc: Date;
+  /** Total uncertainty budget supplied by that authority, in milliseconds. */
+  uncertaintyMs: number;
 }
 
 /**
@@ -93,6 +105,7 @@ export interface ActivityVariabilityFeatureObservation {
   windowSeconds: 1800;
   validSeconds: number;
   transportProvenance?: ActivityVariabilityTransportProvenance;
+  eventTimeProvenance?: ActivityVariabilityEventTimeProvenance;
 }
 
 /** Device info. */

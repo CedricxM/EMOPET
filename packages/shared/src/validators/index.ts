@@ -206,6 +206,13 @@ export const ActivityVariabilityFeatureObservationCreateSchema = z.object({
     transportVersion: z.literal(1),
     bootSessionId: z.number().int().min(0).max(0xffffffff),
     sequence: z.number().int().min(0).max(0xffff),
+    windowEndMs: z.number().int().min(0).max(0xffffffff),
+  }).strict().optional(),
+  eventTimeProvenance: z.object({
+    strategy: z.literal('BOOT_ANCHOR_V1'),
+    anchorDeviceMs: z.number().int().min(0).max(0xffffffff),
+    anchorUtc: z.coerce.date(),
+    uncertaintyMs: z.number().int().min(0).max(0x7fffffff),
   }).strict().optional(),
 }).strict().superRefine((value, ctx) => {
   if (!value.ingestionId && !value.transportProvenance) {
@@ -213,6 +220,14 @@ export const ActivityVariabilityFeatureObservationCreateSchema = z.object({
       code: z.ZodIssueCode.custom,
       path: ['ingestionId'],
       message: 'ingestionId or transportProvenance is required',
+    });
+  }
+
+  if (value.eventTimeProvenance && !value.transportProvenance) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['eventTimeProvenance'],
+      message: 'eventTimeProvenance requires transportProvenance',
     });
   }
 

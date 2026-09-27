@@ -13,17 +13,20 @@ const INGESTION = 'e1111111-1111-4111-8111-111111111111';
 
 let sql = null;
 let persistActivityVariabilityFeatureObservation = null;
+let resolveBootRelativeEventTime = null;
 let closeDatabase = null;
 
 if (enabled) {
-  const [{ default: postgres }, service, dbModule] = await Promise.all([
+  const [{ default: postgres }, service, timeService, dbModule] = await Promise.all([
     import('postgres'),
     import('../dist/api/services/activity-variability-feature-ingestion.js'),
+    import('../dist/api/services/device-boot-event-time.js'),
     import('../dist/db/index.js'),
   ]);
   sql = postgres(process.env.DATABASE_URL, { max: 1 });
   persistActivityVariabilityFeatureObservation =
     service.persistActivityVariabilityFeatureObservation;
+  resolveBootRelativeEventTime = timeService.resolveBootRelativeEventTime;
   closeDatabase = dbModule.closeDatabase;
 }
 
@@ -135,16 +138,45 @@ test('activity feature persistence is owner/device bound, idempotent and fail-cl
   assert.equal(notObserved.status, 'CREATED');
   assert.equal(notObserved.observation.value, null);
 
+  const resolvedTime = resolveBootRelativeEventTime({
+    deviceId: TAG_A,
+    bootSessionId: 0x10203040,
+    windowEndMs: 3_600_000,
+    anchor: {
+      deviceId: TAG_A,
+      bootSessionId: 0x10203040,
+      anchorDeviceMs: 3_700_000,
+      anchorUtc: new Date('2026-09-27T10:01:40.000Z'),
+      uncertaintyMs: 250,
+    },
+    maxLookbackMs: 600_000,
+  });
+  assert.equal(resolvedTime.ok, true, JSON.stringify(resolvedTime));
+  assert.equal(resolvedTime.observedAt.toISOString(), '2026-09-27T10:00:00.000Z');
+
   const transported = observed({
     ingestionId: undefined,
-    observedAt: new Date('2026-09-27T10:00:00.000Z'),
+    observedAt: resolvedTime.observedAt,
     value: 0.51,
     transportProvenance: {
       transportVersion: 1,
       bootSessionId: 0x10203040,
       sequence: 65535,
+      windowEndMs: 3_600_000,
     },
+    eventTimeProvenance: resolvedTime.eventTimeProvenance,
   });
+
+  const inconsistentEventTime = await persistActivityVariabilityFeatureObservation(
+    OWNER_A,
+    {
+      ...transported,
+      observedAt: new Date('2026-09-27T10:00:01.000Z'),
+    },
+  );
+  assert.equal(inconsistentEventTime.ok, false);
+  assert.equal(inconsistentEventTime.error, 'INVALID_FEATURE_ENVELOPE');
+  assert.match(inconsistentEventTime.issues[0], /does not reproduce/);
 
   const transportCreated = await persistActivityVariabilityFeatureObservation(
     OWNER_A,
@@ -159,6 +191,14 @@ test('activity feature persistence is owner/device bound, idempotent and fail-cl
   assert.equal(transportCreated.observation.transportVersion, 1);
   assert.equal(transportCreated.observation.transportBootSessionId, 0x10203040);
   assert.equal(transportCreated.observation.transportSequence, 65535);
+  assert.equal(transportCreated.observation.transportWindowEndMs, 3_600_000);
+  assert.equal(transportCreated.observation.eventTimeResolution, 'BOOT_ANCHOR_V1');
+  assert.equal(transportCreated.observation.clockAnchorDeviceMs, 3_700_000);
+  assert.equal(
+    transportCreated.observation.clockAnchorUtc.toISOString(),
+    '2026-09-27T10:01:40.000Z',
+  );
+  assert.equal(transportCreated.observation.eventTimeUncertaintyMs, 250);
 
   const transportReplay = await persistActivityVariabilityFeatureObservation(
     OWNER_A,
@@ -203,7 +243,9 @@ test('activity feature persistence is owner/device bound, idempotent and fail-cl
         transportVersion: 1,
         bootSessionId: 0x10203041,
         sequence: 65535,
+        windowEndMs: 3_600_000,
       },
+      eventTimeProvenance: undefined,
     },
   );
   assert.equal(newBootSameSequence.ok, true);
@@ -217,6 +259,7 @@ test('activity feature persistence is owner/device bound, idempotent and fail-cl
           transportVersion: 1,
           bootSessionId: 0x10203042,
           sequence: 1,
+          windowEndMs: 1234,
         },
       }),
     );
@@ -228,7 +271,9 @@ test('activity feature persistence is owner/device bound, idempotent and fail-cl
   const rows = await sql`
     SELECT dog_id, device_id, feature_key, feature_contract_version,
            window_seconds, valid_seconds, firmware_version_at_ingest,
-           transport_version, transport_boot_session_id, transport_sequence
+           transport_version, transport_boot_session_id, transport_sequence,
+           transport_window_end_ms, event_time_resolution,
+           clock_anchor_device_ms, clock_anchor_utc, event_time_uncertainty_ms
     FROM sensor_feature_observations
     WHERE dog_id = ${DOG_A}
     ORDER BY observed_at, ingestion_id

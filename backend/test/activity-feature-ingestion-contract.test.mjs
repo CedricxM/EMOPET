@@ -8,6 +8,8 @@ const routesSource = new URL('../api/routes/sensors.ts', import.meta.url);
 const validatorSource = new URL('../../packages/shared/src/validators/index.ts', import.meta.url);
 const migrationSource = new URL('../db/migrations/0016_sensor_feature_observation_authority.sql', import.meta.url);
 const replayMigrationSource = new URL('../db/migrations/0017_sensor_feature_transport_replay.sql', import.meta.url);
+const timeMigrationSource = new URL('../db/migrations/0018_sensor_feature_event_time_provenance.sql', import.meta.url);
+const eventTimeResolverSource = new URL('../api/services/device-boot-event-time.ts', import.meta.url);
 
 test('activity feature persistence is narrow, versioned and non-affective', async () => {
   const [schema, service, migration, validator] = await Promise.all([
@@ -46,9 +48,11 @@ test('feature persistence primitive is not yet exposed through a backend route',
 
   assert.doesNotMatch(routes, /persistActivityVariabilityFeatureObservation/);
   assert.doesNotMatch(routes, /sensor_feature_observations/);
+  assert.doesNotMatch(routes, /resolveBootRelativeEventTime/);
   assert.match(service, /No public route/);
   assert.match(service, /physical device/);
-  assert.match(service, /wall\/event time/);
+  assert.match(service, /does not create that anchor/);
+  assert.match(service, /infer it\s*\n? \* from receive time/);
 });
 
 test('migration is additive and owns the new table at promotion-order 0016', async () => {
@@ -80,4 +84,37 @@ test('transport replay persistence remains additive and separate from event-time
   assert.match(validator, /ingestionId or transportProvenance is required/);
   assert.doesNotMatch(replayMigration, /DROP TABLE|DROP COLUMN|DELETE FROM|UPDATE /i);
   assert.doesNotMatch(replayMigration.toLowerCase(), /wall.*time.*mapping/);
+});
+
+test('boot-anchor event-time resolution preserves uncertainty without activating receive-time inference', async () => {
+  const [schema, service, migration, resolver, validator] = await Promise.all([
+    readFile(schemaSource, 'utf8'),
+    readFile(serviceSource, 'utf8'),
+    readFile(timeMigrationSource, 'utf8'),
+    readFile(eventTimeResolverSource, 'utf8'),
+    readFile(validatorSource, 'utf8'),
+  ]);
+
+  assert.match(schema, /transportWindowEndMs/);
+  assert.match(schema, /clockAnchorDeviceMs/);
+  assert.match(schema, /eventTimeUncertaintyMs/);
+  assert.match(service, /clockAnchorUtc/);
+  assert.match(service, /eventTimeUncertaintyMs/);
+
+  assert.match(migration, /transport_window_end_ms bigint/);
+  assert.match(migration, /event_time_resolution varchar\(32\)/);
+  assert.match(migration, /clock_anchor_device_ms bigint/);
+  assert.match(migration, /clock_anchor_utc timestamptz/);
+  assert.match(migration, /event_time_uncertainty_ms integer/);
+  assert.doesNotMatch(migration, /DROP TABLE|DROP COLUMN|DELETE FROM|UPDATE /i);
+
+  assert.match(resolver, /UINT32_HALF_RANGE/);
+  assert.match(resolver, /AMBIGUOUS_OR_TOO_OLD/);
+  assert.match(resolver, /maxLookbackMs/);
+  assert.match(resolver, /No receive-time shortcut is used/);
+  assert.doesNotMatch(resolver, /Date\.now\(/);
+  assert.doesNotMatch(resolver, /receivedAt/);
+
+  assert.match(validator, /BOOT_ANCHOR_V1/);
+  assert.match(validator, /eventTimeProvenance requires transportProvenance/);
 });

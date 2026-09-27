@@ -9,6 +9,10 @@ import {
   dogs,
   sensorFeatureObservations,
 } from '../../db/schema/index.js';
+import {
+  UINT32_HALF_RANGE,
+  resolveBootRelativeEventTime,
+} from './device-boot-event-time.js';
 
 export type ActivityFeatureIngestionFailure =
   | { ok: false; error: 'INVALID_FEATURE_ENVELOPE'; issues: string[] }
@@ -43,6 +47,11 @@ function fingerprint(row: {
   transportVersion: number | null;
   transportBootSessionId: number | null;
   transportSequence: number | null;
+  transportWindowEndMs: number | null;
+  eventTimeResolution: string | null;
+  clockAnchorDeviceMs: number | null;
+  clockAnchorUtc: Date | null;
+  eventTimeUncertaintyMs: number | null;
 }): string {
   return JSON.stringify({
     dogId: row.dogId,
@@ -60,6 +69,11 @@ function fingerprint(row: {
     transportVersion: row.transportVersion,
     transportBootSessionId: row.transportBootSessionId,
     transportSequence: row.transportSequence,
+    transportWindowEndMs: row.transportWindowEndMs,
+    eventTimeResolution: row.eventTimeResolution,
+    clockAnchorDeviceMs: row.clockAnchorDeviceMs,
+    clockAnchorUtc: row.clockAnchorUtc?.toISOString() ?? null,
+    eventTimeUncertaintyMs: row.eventTimeUncertaintyMs,
   });
 }
 
@@ -78,9 +92,11 @@ function fingerprint(row: {
  * If application and transport identities point at different rows, ingestion
  * fails closed as an explicit conflict.
  *
- * Transport provenance is replay evidence only. It does not authenticate a
- * physical device (#66), map device boot time to wall/event time, invoke ELI,
- * derive arousal, or authorize Owner-facing publication.
+ * Transport provenance is replay evidence only. Event-time provenance is
+ * accepted only when observedAt is exactly reproducible from an explicit
+ * BOOT_ANCHOR_V1 anchor. This service does not create that anchor, infer it
+ * from receive time, authenticate a physical device (#66), invoke ELI, derive
+ * arousal, or authorize Owner-facing publication.
  */
 export async function persistActivityVariabilityFeatureObservation(
   ownerId: string,
@@ -99,6 +115,34 @@ export async function persistActivityVariabilityFeatureObservation(
 
   const input = parsed.data;
   const transport = input.transportProvenance ?? null;
+  const eventTime = input.eventTimeProvenance ?? null;
+
+  if (transport && eventTime) {
+    const resolved = resolveBootRelativeEventTime({
+      deviceId: input.deviceId,
+      bootSessionId: transport.bootSessionId,
+      windowEndMs: transport.windowEndMs,
+      anchor: {
+        deviceId: input.deviceId,
+        bootSessionId: transport.bootSessionId,
+        anchorDeviceMs: eventTime.anchorDeviceMs,
+        anchorUtc: eventTime.anchorUtc,
+        uncertaintyMs: eventTime.uncertaintyMs,
+      },
+      maxLookbackMs: UINT32_HALF_RANGE - 1,
+    });
+
+    if (
+      !resolved.ok
+      || resolved.observedAt.getTime() !== input.observedAt.getTime()
+    ) {
+      return {
+        ok: false,
+        error: 'INVALID_FEATURE_ENVELOPE',
+        issues: ['observedAt does not reproduce from eventTimeProvenance'],
+      };
+    }
+  }
 
   try {
     return await db.transaction(async (tx) => {
@@ -151,6 +195,11 @@ export async function persistActivityVariabilityFeatureObservation(
         transportVersion: transport?.transportVersion ?? null,
         transportBootSessionId: transport?.bootSessionId ?? null,
         transportSequence: transport?.sequence ?? null,
+        transportWindowEndMs: transport?.windowEndMs ?? null,
+        eventTimeResolution: eventTime?.strategy ?? null,
+        clockAnchorDeviceMs: eventTime?.anchorDeviceMs ?? null,
+        clockAnchorUtc: eventTime?.anchorUtc ?? null,
+        eventTimeUncertaintyMs: eventTime?.uncertaintyMs ?? null,
       };
 
       const [created] = await tx
