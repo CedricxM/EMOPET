@@ -51,7 +51,7 @@ test('mobile BLE service is a real central transport rather than a placeholder',
 test('feature-summary UUID is reserved but end-to-end delivery remains fail-honest', () => {
   assert.match(
     constants,
-    /BLE_CHAR_FEATURE_SUMMARY\s*=\s*'0000ea05-0000-1000-8000-00805f9b34fb'/,
+    /BLE_CHAR_FEATURE_SUMMARY\\s*=\\s*'01141d55-a776-4091-b068-83f0804d8781'/,
   );
   assert.equal(authority.currentTransport.mobileBleNativePluginConfigured, true);
   assert.equal(authority.currentTransport.mobileBleSubscriptionImplemented, true);
