@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-eli-io-first-slice-v1",
-  "status": "FIRMWARE FEATURE WRITER CANDIDATE / BYTE PARITY GATED / LIVE BLE DELIVERY + DEVICE TRUST OPEN",
+  "status": "FIRMWARE WRITER + MOBILE BLE CENTRAL CANDIDATE / PERIPHERAL GATT + NETWORK FORWARDING OPEN",
   "issue": 122,
   "firstFeature": "activity_variability",
   "featureContractVersion": "tag-activity-variability-cv30m-v1",
@@ -26,8 +26,15 @@
     "firmwareWriterImplemented": true,
     "firmwareWriter": "firmware/collar/main/transport/activity_feature_summary.{h,c}",
     "firmwareHostCodecParityGuard": "scripts/control/tag-feature-summary-firmware-conformance.test.mjs",
-    "mobileBleSubscriptionImplemented": false,
-    "productionClockAnchorImplemented": false
+    "mobileBleSubscriptionImplemented": true,
+    "productionClockAnchorImplemented": false,
+    "featureSummaryCharacteristic": "0000ea05-0000-1000-8000-00805f9b34fb",
+    "featureSummaryCharacteristicAuthority": "BLE_CHAR_FEATURE_SUMMARY",
+    "mobileBleNativePluginConfigured": true,
+    "mobileBleRuntime": "apps/mobile/src/services/ble.ts",
+    "mobileFeatureParser": "parseActivityVariabilityFeatureFrame",
+    "peripheralGattCharacteristicImplemented": false,
+    "mobileToBackendForwardingImplemented": false
   },
   "candidateOwnership": {
     "featureComputation": "FIRMWARE",
@@ -43,7 +50,7 @@
     "backend ingestion fails closed on mismatch",
     "deterministic conformance vector spans producer-to-ingestion"
   ],
-  "currentDecision": "DO_NOT_CLAIM_LIVE_TAG_DELIVERY",
+  "currentDecision": "DO_NOT_CLAIM_END_TO_END_DELIVERY",
   "backendPersistenceBoundary": {
     "status": "IMPLEMENTED_WITH_BOUNDED_PHYSICAL_OWNER_READ",
     "accepts": "VERSIONED_ACTIVITY_VARIABILITY_FEATURE_ENVELOPE",
