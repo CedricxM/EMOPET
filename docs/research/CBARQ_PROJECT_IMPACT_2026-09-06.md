@@ -300,7 +300,7 @@ The current controlled states are therefore:
 
 ### Research consequence
 
-The scientifically defensible direction is to treat an appropriately licensed C-BARQ as a **guardian-reported external criterion candidate**, not as ground truth of internal canine state.
+The scientifically defensible direction is to treat an appropriately licensed C-BARQ as a **owner-reported external criterion candidate**, not as ground truth of internal canine state.
 
 Future validation should therefore prefer construct-specific, preregistered, longitudinal hypotheses with explicit missingness/applicability semantics, within-dog baselines, uncertainty/abstention and an external holdout rather than a single global ELI↔questionnaire correlation.
 
