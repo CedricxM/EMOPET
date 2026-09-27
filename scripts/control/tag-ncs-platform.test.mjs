@@ -107,7 +107,11 @@ test('platform maturity remains fail-honest until target build and hardware evid
   assert.equal(io.currentTransport.peripheralGattTargetBuildVerified, false);
   assert.equal(io.currentTransport.peripheralGattHardwareFlashed, false);
   assert.equal(io.currentTransport.endToEndPath, false);
-  assert.equal(io.currentDecision, 'DO_NOT_CLAIM_REAL_TAG_BLE_DELIVERY');
+  assert.equal(
+    io.currentTransport.peripheralGattDecision,
+    'DO_NOT_CLAIM_REAL_TAG_BLE_DELIVERY',
+  );
+  assert.equal(io.currentDecision, 'DO_NOT_CLAIM_END_TO_END_DELIVERY');
 });
 
 test('TAG peripheral source contains no latent ELI semantics or Device Trust shortcut', () => {
