@@ -10,6 +10,7 @@ const [
   typesSource,
   ingressSource,
   issuerSource,
+  verifierSource,
 ] = await Promise.all([
   readFile(new URL('../../config/security/device-pop-challenge-v1.json', import.meta.url), 'utf8'),
   readFile(new URL('../../config/security/device-identity-pop-evaluation-v1.json', import.meta.url), 'utf8'),
@@ -18,6 +19,7 @@ const [
   readFile(new URL('../../packages/shared/src/types/device-pop.ts', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/api/security/device-data-trust.ts', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/api/security/device-pop-challenge-issuer.ts', import.meta.url), 'utf8'),
+  readFile(new URL('../../backend/api/security/device-pop-verifier.ts', import.meta.url), 'utf8'),
 ]);
 
 const contract = JSON.parse(contractSource);
@@ -89,13 +91,20 @@ test('replay and expiry remain server-owned and fail closed', () => {
   );
   for (const state of [
     'deviceSigner',
-    'backendVerifier',
     'replayStore',
     'credentialRepository',
     'deviceDataTrust',
   ]) {
     assert.equal(contract.runtime[state], 'NOT_IMPLEMENTED', state);
   }
+  assert.equal(
+    contract.runtime.backendVerifier,
+    'SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_AUTHORITIES_REQUIRED / NO_HTTP_ROUTE',
+  );
+  assert.equal(contract.runtime.verifierHasDefaultStore, false);
+  assert.equal(contract.runtime.verifierHasPublicRoute, false);
+  assert.equal(contract.runtime.verifierAuthorizesDeviceDataTrust, false);
+  assert.equal(contract.runtime.verifierAuthorizesTelemetryPersistence, false);
   assert.equal(
     contract.runtime.challengePersistence,
     'NOT_IMPLEMENTED / MIGRATION_SLOT_BLOCKED_BY_PARALLEL_0020',
@@ -156,5 +165,35 @@ test('issuer primitive requires injected credential + atomic store authority and
   );
   for (const routeSource of routeSources) {
     assert.doesNotMatch(routeSource, /device-pop-challenge-issuer|issueDevicePopChallengeV1/);
+  }
+});
+
+
+test('verifier primitive reconstructs server challenge state and cannot activate trust', async () => {
+  assert.match(verifierSource, /verifyDevicePopResponseV1/);
+  assert.match(verifierSource, /buildDevicePopSigningPreimageV1/);
+  assert.match(verifierSource, /createPublicKey/);
+  assert.match(verifierSource, /dsaEncoding:\s*'ieee-p1363'/);
+  assert.match(verifierSource, /findByChallengeId/);
+  assert.match(verifierSource, /consumeIfUnconsumed/);
+  assert.match(verifierSource, /CHALLENGE_ALREADY_CONSUMED/);
+  assert.match(verifierSource, /CHALLENGE_EXPIRED/);
+  assert.match(verifierSource, /INVALID_SIGNATURE/);
+  assert.match(verifierSource, /CHALLENGE_CONSUME_CONFLICT/);
+  assert.match(verifierSource, /deviceDataTrustAuthorized:\s*false/);
+  assert.match(verifierSource, /telemetryPersistenceAuthorized:\s*false/);
+  assert.doesNotMatch(verifierSource, /persistActivityVariabilityFeatureObservation/);
+
+  const { readdir } = await import('node:fs/promises');
+  const routeDir = new URL('../../backend/api/routes/', import.meta.url);
+  const routeFiles = (await readdir(routeDir)).filter((name) => name.endsWith('.ts'));
+  const routeSources = await Promise.all(
+    routeFiles.map((name) => readFile(new URL(name, routeDir), 'utf8')),
+  );
+  for (const routeSource of routeSources) {
+    assert.doesNotMatch(
+      routeSource,
+      /device-pop-(?:challenge-issuer|verifier)|issueDevicePopChallengeV1|verifyDevicePopResponseV1/,
+    );
   }
 });

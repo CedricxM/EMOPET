@@ -110,7 +110,8 @@
     "negativeAuthenticationTests": "OPEN",
     "representativeTargetHardwareProof": "OPEN",
     "challengeIssuer": "SOURCE_PRIMITIVE_DELIVERED / DURABLE_STORE_AND_ROUTE_OPEN",
-    "challengePersistence": "BLOCKED_PENDING_NON_CONFLICTING_ACTIVE_MIGRATION_SLOT"
+    "challengePersistence": "BLOCKED_PENDING_NON_CONFLICTING_ACTIVE_MIGRATION_SLOT",
+    "backendVerifier": "SOURCE_PRIMITIVE_DELIVERED / DURABLE_STORE_ROUTE_DEVICE_DATA_TRUST_OPEN"
   },
   "selectedArchitectureDependencies": {
     "privateKeyAtRest": "TRUSTED_STORAGE_WITH_HUK_DERIVED_AEAD_KEY",
