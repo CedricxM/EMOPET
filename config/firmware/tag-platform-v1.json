@@ -60,8 +60,9 @@
       "responseCrc": "xor8",
       "authenticationAuthority": "NONE / TRANSPORT_ONLY / DEVICE_TRUST_66_OPEN"
     },
-    "clockAnchorMobileCaptureImplemented": false,
-    "productionBootAnchorV1Implemented": false
+    "clockAnchorMobileCaptureImplemented": true,
+    "productionBootAnchorV1Implemented": false,
+    "mobileClockUncertaintyAuthority": "EXPLICIT_CALLER_INPUT / PRODUCTION_SOURCE_OPEN"
   },
   "evidence": {
     "sourceContractGuard": "scripts/control/tag-ncs-platform.test.mjs",
