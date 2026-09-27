@@ -339,7 +339,7 @@ test('World wires the canonical block repository by default and maps unreachable
   assert.match(route, /code === 'unreachable' \? 404/);
   const { BLOCK_ENFORCEMENT } = await import('../dist/api/services/user-blocks.js');
   assert.equal(BLOCK_ENFORCEMENT.world, 'ENFORCED_WHEN_WORLD_ENABLED');
-  assert.equal(BLOCK_ENFORCEMENT.community, 'NOT_ENFORCED');
+  assert.equal(BLOCK_ENFORCEMENT.community, 'ENFORCED');
 });
 
 test('World reports resolve the subject server-side and ignore client identity claims', async t => {
