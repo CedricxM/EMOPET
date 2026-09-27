@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-device-pop-challenge-contract-v1",
-  "status": "DATA_CONTRACT_SELECTED / ISSUER+VERIFIER_SOURCE_PRIMITIVES_IMPLEMENTED / DURABLE_RUNTIME_NOT_IMPLEMENTED / TELEMETRY_PERSISTENCE_BLOCKED",
+  "status": "DATA_CONTRACT_SELECTED / ISSUER+VERIFIER+DEVICE_SIGNER_SOURCE_PRIMITIVES_IMPLEMENTED / KEY_STORAGE+DURABLE_RUNTIME_NOT_IMPLEMENTED / TELEMETRY_PERSISTENCE_BLOCKED",
   "issue": 648,
   "parentIssue": 66,
   "architecture": {
@@ -83,7 +83,7 @@
   ],
   "runtime": {
     "challengeIssuer": "SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_AUTHORITIES_REQUIRED / NO_HTTP_ROUTE",
-    "deviceSigner": "NOT_IMPLEMENTED",
+    "deviceSigner": "SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_OPAQUE_PSA_KEY_ID / NO_KEY_GENERATION_OR_STORAGE",
     "backendVerifier": "SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_AUTHORITIES_REQUIRED / NO_HTTP_ROUTE",
     "replayStore": "NOT_IMPLEMENTED",
     "deviceDataTrust": "NOT_IMPLEMENTED",
@@ -103,7 +103,13 @@
     "verifierAuthorizesTelemetryPersistence": false,
     "devicePreimageBuilder": "SOURCE_IMPLEMENTED / C_BACKEND_BYTE_PARITY_GATED / NO_PRIVATE_KEY_ACCESS",
     "devicePreimageSource": "firmware/collar/main/security/device_pop_preimage.{h,c}",
-    "devicePreimageConformanceTest": "scripts/control/device-pop-preimage-conformance.test.mjs"
+    "devicePreimageConformanceTest": "scripts/control/device-pop-preimage-conformance.test.mjs",
+    "deviceSignerSource": "firmware/collar/ncs/src/device_pop_signer_psa.{h,c}",
+    "deviceSignerAlgorithm": "PSA_ALG_ECDSA(PSA_ALG_SHA_256)",
+    "deviceSignerSignatureEncoding": "PSA_RAW_R32_PLUS_S32 / 64_BYTES",
+    "deviceSignerTargetBuildVerified": false,
+    "devicePrivateKeyProvisioning": "NOT_IMPLEMENTED",
+    "devicePrivateKeyStorage": "NOT_IMPLEMENTED / HUK_KDR_PROTECTION_EVIDENCE_OPEN"
   },
   "releaseRule": "NO_DEVICE_TRUST_SUCCESS_OR_DURABLE_NETWORK_TELEMETRY_WRITE_UNTIL_RUNTIME_AND_TARGET_HARDWARE_NEGATIVE_EVIDENCE_PASS"
 }

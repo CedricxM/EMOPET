@@ -8,6 +8,8 @@ set(EMOPET_COLLAR_MAIN ${CMAKE_CURRENT_SOURCE_DIR}/../main)
 target_sources(app PRIVATE
   src/main.c
   src/emopet_gatt.c
+  src/device_pop_signer_psa.c
+  ${EMOPET_COLLAR_MAIN}/security/device_pop_preimage.c
   ${EMOPET_COLLAR_MAIN}/transport/activity_feature_summary.c
   ${EMOPET_COLLAR_MAIN}/transport/clock_anchor_transport.c
   ${EMOPET_COLLAR_MAIN}/sensors/activity_variability.c
@@ -15,6 +17,7 @@ target_sources(app PRIVATE
 
 target_include_directories(app PRIVATE
   src
+  ${EMOPET_COLLAR_MAIN}/security
   ${EMOPET_COLLAR_MAIN}/transport
   ${EMOPET_COLLAR_MAIN}/sensors
 )
