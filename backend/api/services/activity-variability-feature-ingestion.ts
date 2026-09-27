@@ -9,6 +9,10 @@ import {
   dogs,
   sensorFeatureObservations,
 } from '../../db/schema/index.js';
+import {
+  UINT32_HALF_RANGE,
+  resolveBootRelativeEventTime,
+} from './device-boot-event-time.js';
 
 export type ActivityFeatureIngestionFailure =
   | { ok: false; error: 'INVALID_FEATURE_ENVELOPE'; issues: string[] }
@@ -110,6 +114,33 @@ export async function persistActivityVariabilityFeatureObservation(
   const input = parsed.data;
   const transport = input.transportProvenance ?? null;
   const eventTime = input.eventTimeProvenance ?? null;
+
+  if (transport && eventTime) {
+    const resolved = resolveBootRelativeEventTime({
+      deviceId: input.deviceId,
+      bootSessionId: transport.bootSessionId,
+      windowEndMs: transport.windowEndMs,
+      anchor: {
+        deviceId: input.deviceId,
+        bootSessionId: transport.bootSessionId,
+        anchorDeviceMs: eventTime.anchorDeviceMs,
+        anchorUtc: eventTime.anchorUtc,
+        uncertaintyMs: eventTime.uncertaintyMs,
+      },
+      maxLookbackMs: UINT32_HALF_RANGE - 1,
+    });
+
+    if (
+      !resolved.ok
+      || resolved.observedAt.getTime() !== input.observedAt.getTime()
+    ) {
+      return {
+        ok: false,
+        error: 'INVALID_FEATURE_ENVELOPE',
+        issues: ['observedAt does not reproduce from eventTimeProvenance'],
+      };
+    }
+  }
 
   try {
     return await db.transaction(async (tx) => {
