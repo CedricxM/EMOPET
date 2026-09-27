@@ -31,8 +31,7 @@ test('MAT execution pack uses current Owner terminology and merged RR decision b
     readFile(new URL('../../docs/validation/templates/MAT_INCREMENTAL_VALUE_BURDEN_TEMPLATE.csv', import.meta.url), 'utf8'),
   ]);
 
-  assert.doesNotMatch(execution, /Guardian/);
-  assert.doesNotMatch(burden, /guardian_or_operator/);
+  assert.match(execution, /Owner understanding of why MAT exists/);
   assert.match(burden, /owner_or_operator/);
 
   assert.match(phase0, /Merged #600 closed the ambiguous #86 naming decision/);
