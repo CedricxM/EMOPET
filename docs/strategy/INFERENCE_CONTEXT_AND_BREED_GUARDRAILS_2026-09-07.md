@@ -66,9 +66,9 @@ EMOPET must not replace that with:
 - a breed percentile marketed as wellbeing;
 - public ranking against other dogs.
 
-## 5. Owner/Guardian report is a separate evidence class
+## 5. Owner report is a separate evidence class
 
-Guardian input is contextual/declared information, not biological ground truth.
+Owner input is contextual/declared information, not biological ground truth.
 
 Product rules:
 
