@@ -85,3 +85,36 @@ test('forwarding candidate gate exists without selecting policy or network autho
   assert.match(source, /BOOT_SESSION_MISMATCH/);
   assert.doesNotMatch(source, /bleDeviceId/);
 });
+
+
+test('network ingress candidate is double-gated before durable persistence', async () => {
+  const authority = JSON.parse(
+    await readFile(new URL('../../config/eli/io-first-slice.json', import.meta.url), 'utf8'),
+  );
+  const routes = await readFile(
+    new URL('../../backend/api/routes/sensors.ts', import.meta.url),
+    'utf8',
+  );
+  const trust = await readFile(
+    new URL('../../backend/api/security/device-data-trust.ts', import.meta.url),
+    'utf8',
+  );
+
+  assert.equal(authority.currentTransport.networkIngressRouteCandidateImplemented, true);
+  assert.equal(
+    authority.currentTransport.networkIngressRoute,
+    '/api/sensors/features/activity-variability',
+  );
+  assert.equal(authority.currentTransport.networkIngressRegistryBindingRechecked, true);
+  assert.equal(authority.currentTransport.networkIngressDeviceTrustGateImplemented, true);
+  assert.equal(authority.currentTransport.networkIngressDeviceTrustRuntimeImplemented, false);
+  assert.equal(authority.currentTransport.networkIngressPersistenceReachable, false);
+  assert.equal(authority.currentTransport.networkFeatureIngestionActivated, false);
+  assert.equal(authority.currentTransport.endToEndPath, false);
+
+  assert.match(routes, /DEVICE_DATA_TRUST_RUNTIME_NOT_IMPLEMENTED/);
+  assert.match(routes, /FEATURE_NETWORK_INGESTION_NOT_ACTIVATED/);
+  assert.doesNotMatch(routes, /ingestActivityVariabilityTransportFrame/);
+  assert.doesNotMatch(routes, /persistActivityVariabilityFeatureObservation/);
+  assert.match(trust, /DEVICE_DATA_TRUST_RUNTIME_NOT_IMPLEMENTED/);
+});
