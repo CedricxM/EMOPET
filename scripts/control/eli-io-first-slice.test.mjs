@@ -22,8 +22,12 @@ test('activity_variability has a canonical firmware writer while live delivery r
   assert.match(writer, /FEATURE_SUMMARY_HEADER 0xEBu/);
   assert.match(writer, /TAG_FEATURE_SUMMARY_FRAME_SIZE/);
 
-  // The remaining gap must stay visible.
-  assert.equal(authority.currentTransport.mobileBleSubscriptionImplemented, false);
+  // The mobile central is now implemented, but the peripheral and network
+  // continuation must remain explicit gaps.
+  assert.equal(authority.currentTransport.mobileBleNativePluginConfigured, true);
+  assert.equal(authority.currentTransport.mobileBleSubscriptionImplemented, true);
+  assert.equal(authority.currentTransport.peripheralGattCharacteristicImplemented, false);
+  assert.equal(authority.currentTransport.mobileToBackendForwardingImplemented, false);
   assert.equal(authority.currentTransport.productionClockAnchorImplemented, false);
   assert.equal(authority.currentTransport.networkFeatureIngestionActivated, false);
   assert.equal(authority.currentTransport.featureEnvelopeIngestionImplemented, false);
@@ -34,7 +38,7 @@ test('activity_variability has a canonical firmware writer while live delivery r
   assert.equal(authority.backendPersistenceBoundary.ownerProjection, true);
   assert.equal(authority.backendPersistenceBoundary.eliInvocation, false);
   assert.equal(authority.backendPersistenceBoundary.ownerProjectionAuthority, 'PHYSICAL_MOVEMENT_VARIABILITY_ONLY');
-  assert.equal(authority.currentDecision, 'DO_NOT_CLAIM_LIVE_TAG_DELIVERY');
+  assert.equal(authority.currentDecision, 'DO_NOT_CLAIM_END_TO_END_DELIVERY');
 });
 
 test('first slice assigns one computation owner without authorizing duplicate recompute', async () => {
