@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "emopet-tag-transport-session-authority-v1",
+  "issue": 625,
+  "status": "G4_CANDIDATE / LIVE_NO_BUFFER_PATH_ONLY / PRODUCTION_COLLISION_POLICY_OPEN",
+  "scope": "activity_variability feature-summary transport provenance",
+  "bootSession": {
+    "widthBits": 32,
+    "currentSource": "sys_rand32_get",
+    "generatedAt": "emopet_gatt_init",
+    "generationFrequency": "ONCE_PER_APPLICATION_BOOT",
+    "persistsAcrossReset": false,
+    "cryptographicIdentity": false,
+    "deviceTrustAuthority": false,
+    "globalUniquenessGuaranteed": false,
+    "historicalCollisionProof": false,
+    "productionPolicy": "OPEN"
+  },
+  "sequence": {
+    "widthBits": 16,
+    "initialValue": 0,
+    "scope": "PER_BOOT_SESSION",
+    "commitRule": "INCREMENT_AFTER_SUCCESSFUL_LIVE_NOTIFY",
+    "failedNotifyConsumesSequence": false,
+    "wrapRule": "MODULO_65536",
+    "hostClassifier": "classifyFeatureSequence",
+    "bufferedQueuePolicy": "OPEN / CURRENT_RULE_MUST_BE_REVISITED_BEFORE_OFFLINE_BACKFILL"
+  },
+  "replayIdentity": {
+    "backendTuple": [
+      "deviceId",
+      "featureKey",
+      "bootSessionId",
+      "sequence"
+    ],
+    "purpose": "TRANSPORT_REPLAY_EVIDENCE_ONLY",
+    "physicalDeviceAuthentication": false,
+    "collisionConsequence": "A_REUSED_BOOT_SESSION_WITH_REUSED_SEQUENCE_CAN_COLLIDE_WITH_HISTORICAL_REPLAY_IDENTITY"
+  },
+  "timeBoundary": {
+    "windowEndMsOwner": "FEATURE_PRODUCER",
+    "notificationTimeMayReplaceWindowEndMs": false,
+    "utcOnTag": false,
+    "bootAnchorAuthority": "OPEN"
+  },
+  "futureBufferingRule": {
+    "currentOfflineQueueImplemented": false,
+    "requiredBeforeBuffering": "DEFINE_SEQUENCE_ALLOCATION_AT_MEASUREMENT_OR_ENQUEUE_TIME_AND_PERSIST_ORDERING_ACROSS_RECONNECT",
+    "sendTimeAllocationAllowedForBackfill": false
+  },
+  "currentImplementation": {
+    "file": "firmware/collar/ncs/src/emopet_gatt.c",
+    "bootSessionOwnedByGatt": true,
+    "sequenceOwnedByGatt": true,
+    "productionApproved": false
+  },
+  "currentDecision": "KEEP_CURRENT_LIVE_NO_BUFFER_BEHAVIOR_FAIL_HONEST / DO_NOT_CLAIM_PRODUCTION_SESSION_UNIQUENESS"
+}
