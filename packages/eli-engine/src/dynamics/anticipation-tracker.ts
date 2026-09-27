@@ -2,7 +2,7 @@
  * AnticipationTracker â€” detects pre-event activity elevation for recurring
  * events in the dog's routine (owner departure, walk, meal).
  *
- * Detection rule (from v6 spec):
+ * Detection rule (current implementation; scientific/product authority remains open under #89):
  *   - >=7 occurrences of the event type in trailing 30 days
  *   - mode hour-of-day covers >=50% of occurrences within Â±30 minutes
  *   - For each predicted upcoming occurrence, compute:
@@ -10,9 +10,11 @@
  *                 non-event days for the trailing 30d)
  *   - detection_threshold_met = ratio > 1.5 AND occurrences_count >= 7
  *
- * Reference: McEwen (1998) NEJM + Homma & Masaoka (2008) Exp Physiol â€”
- * anticipation contributes to allostatic load; anticipatory arousal is
- * visible independently of the event itself.
+ * Evidence boundary (#89): McEwen (1998, Ann NY Acad Sci) and Homma &
+ * Masaoka (2008, Exp Physiol) provide conceptual physiology context only.
+ * They do not establish EMOPET's 30 d / 7-event / 50% / 15 min / 1.5
+ * detector constants. Those values are EMOPET engineering hypotheses
+ * until prospectively validated.
  */
 
 import type { AnticipationDetected, AnticipationEventType } from '@emopet/shared';
@@ -138,6 +140,9 @@ export function computeAnticipationIndex(
     event_type: input.eventType,
     pre_event_window_minutes: 15,
     activity_ratio: ratio,
+    event_occurrence_count: occurrences.length,
+    above_threshold_hit_count: hits,
+    // Backward-compatible alias. New consumers must use the explicit fields.
     occurrences_count: hits,
     detection_threshold_met: ratio > RATIO_THRESHOLD && hits >= MIN_OCCURRENCES,
   };
