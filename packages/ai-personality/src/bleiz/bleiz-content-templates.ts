@@ -100,6 +100,8 @@ export interface SensorContext {
   present_mat_rest_min?: number;
   absence_effect_size?: number;
   absence_confidence?: number;
+  /** v6 recovery guard; absent until a persistence owner computes it, so Bleiz fails closed. */
+  recovery_trend_sustained_days?: number;
 }
 
 export interface DogContext {
