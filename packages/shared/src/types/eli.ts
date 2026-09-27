@@ -38,10 +38,19 @@ export interface SensorReliabilityMap {
   gps: ReliabilityState;
 }
 
-/** Human-readable ELI label for the UI. */
+/**
+ * Historical/internal display-helper vocabulary.
+ *
+ * NOT the public Care/API projection authority. Current Product doctrine does
+ * not authorize these legacy labels/load values merely because the internal
+ * engine can compute them. Future publication must use the #124 contract.
+ */
 export type ELILabel = 'calme' | 'activation' | 'tension_possible';
 
-/** What the UI should display based on gate status. */
+/**
+ * Historical/internal display helper. NOT a Product API response contract.
+ * Do not expose this shape directly from an authoritative backend endpoint.
+ */
 export interface ELIDisplay {
   gateStatus: GateStatus;
   /** Only defined when PUBLISH. */
@@ -58,7 +67,11 @@ export interface ELIDisplay {
   suggestion?: string;
 }
 
-/** Derive display state from ELI. Never shows fake data. */
+/**
+ * Legacy/internal helper retained for compatibility.
+ * Its output is not authorized as the future Care projection merely because
+ * the internal gate says PUBLISH. See #124 and eli-api.ts.
+ */
 export function eliToDisplay(eli: ELIState, dogName: string): ELIDisplay {
   if (eli.gateStatus === 'PUBLISH') {
     const label: ELILabel =
