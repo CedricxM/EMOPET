@@ -73,6 +73,8 @@ test('clock-anchor capture uses measured RTT without promoting BLE id into devic
   assert.match(ble, /writeCharacteristicWithResponseForService/);
   assert.match(ble, /monitorCharacteristicForService/);
   assert.match(ble, /requestNonce/);
+  assert.match(ble, /expectedBootSessionId/);
+  assert.match(ble, /CLOCK_ANCHOR_BOOT_SESSION_MISMATCH/);
   assert.match(ble, /deriveBootClockAnchorFromRoundTrip/);
   assert.match(ble, /Connected BLE device is not available in the local device cache/);
   assert.doesNotMatch(ble, /canonicalDeviceId\s*:/);
