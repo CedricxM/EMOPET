@@ -102,6 +102,8 @@ jobs:
         run: node --test scripts/control/mandatory-scientific-context.test.mjs
       - name: Enforce single InferenceResult authority (ELI-ARCH-G2, #118)
         run: pnpm control:eli-contract:test
+      - name: Enforce ELI runtime conformance non-activation (#479)
+        run: pnpm control:eli-runtime-conformance:test
       - name: Enforce rr_variability window reachability (#86)
         run: |
           pnpm science:rr-audit

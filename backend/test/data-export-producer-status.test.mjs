@@ -99,7 +99,7 @@ test('no backend module produces the inferred level', () => {
   );
 });
 
-test('the canonical ELI engine is still wired to no backend module', () => {
+test('the canonical ELI engine is imported only by the non-activating conformance harness', () => {
   // The dependency is declared, which is what makes the gap easy to miss.
   const manifest = JSON.parse(readFileSync(join(backendDir, 'package.json'), 'utf8'));
   assert.ok(
@@ -113,9 +113,18 @@ test('the canonical ELI engine is still wired to no backend module', () => {
 
   assert.deepEqual(
     importers,
-    [],
-    `the engine is now imported (${importers.join(', ')}); the inferred status must be revisited`,
+    ['api/services/eli-runtime/activity-variability-conformance.ts'],
+    `unexpected ELI engine importer set: ${importers.join(', ')}`,
   );
+
+  const conformanceSource = readFileSync(
+    join(backendDir, 'api', 'services', 'eli-runtime', 'activity-variability-conformance.ts'),
+    'utf8',
+  );
+  assert.match(conformanceSource, /CONFORMANCE_ONLY_SYNTHETIC/);
+  assert.match(conformanceSource, /userProjection:\s*null/);
+  assert.match(conformanceSource, /persistenceWrite:\s*null/);
+  assert.match(conformanceSource, /apiRoute:\s*null/);
 });
 
 test('the export route still declares the raw-stream status it already had', () => {
