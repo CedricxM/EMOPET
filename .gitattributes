@@ -1,0 +1,7 @@
+# Byte-exact dataset snapshot. data/vbo is bound to SHA-256 and Git blob
+# evidence (data/vbo/committed-snapshot-evidence.json, audited by
+# scripts/data/vbo-committed-snapshot-audit.mjs), and scripts/ingest_vbo.ts
+# derives the dataset checksum from the working copy. Git must never convert
+# line endings here: under core.autocrlf a Windows checkout would hold CRLF
+# bytes that match neither the evidence nor the upstream commit.
+data/vbo/** -text
