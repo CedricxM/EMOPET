@@ -60,6 +60,14 @@ test('signer composes the canonical preimage instead of duplicating wire seriali
   assert.doesNotMatch(signer, /write_u32_be|write_u64_be/);
 });
 
+test('signer zeroizes sensitive transient buffers without elidable memset', () => {
+  assert.match(signer, /static void secure_zero/);
+  assert.match(signer, /volatile uint8_t \*p/);
+  assert.match(signer, /secure_zero\(preimage/);
+  assert.match(signer, /secure_zero\(digest/);
+  assert.doesNotMatch(signer, /memset\s*\(/);
+});
+
 test('signer has no key generation, import, export, destruction or storage authority', () => {
   for (const forbidden of [
     /psa_generate_key/,
