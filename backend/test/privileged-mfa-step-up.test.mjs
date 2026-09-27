@@ -103,7 +103,7 @@ test('invalid base access token fails before directory or MFA verifier is consul
   assert.equal(verifierCalls, 0);
 });
 
-test('ordinary Guardian access token cannot be used as a privileged token', async () => {
+test('ordinary Owner access token cannot be used as a privileged token', async () => {
   const ordinary = await baseAccessToken();
   await assert.rejects(() => verifyPrivilegedAccessToken(ordinary, NOW));
 });
