@@ -21,6 +21,8 @@ const HISTORICAL_EXACT = new Set([
   'scripts/docs/verify-int08-authorities.mjs',
   'scripts/docs/verify-int08-authorities.test.mjs',
   'backend/test/professional-share-authority-static.test.mjs',
+  // External/reference vocabulary: here “guardian” describes a livestock-dog category, not the EMOPET person role.
+  'data/vbo/vbo.json',
 ]);
 
 const TEXT_EXTENSIONS = new Set([
