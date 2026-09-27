@@ -3,7 +3,7 @@
 **Issue:** #122  
 **Parent:** #118  
 **Date:** 2026-09-25  
-**Status:** `TRANSPORT GAP EXPLICIT / FIRST PRODUCER OWNER IDENTIFIED / NO RUNTIME ACTIVATION`
+**Status:** `BACKEND FEATURE PERSISTENCE READY / TRANSPORT GAP EXPLICIT / NO RUNTIME ACTIVATION`
 
 ## Finding
 
@@ -15,9 +15,15 @@ The repository currently has three different facts that were easy to blur togeth
 
 Therefore the current end-to-end statement is:
 
-`firmware computes candidate feature != BLE V1 transports feature != backend ingests feature`
+`firmware computes candidate feature != BLE V1 transports feature != backend network-ingests feature`
 
-Only the first statement is currently true for this feature.
+The backend now has an **internal canonical landing zone** for the feature:
+`sensor_feature_observations` plus
+`persistActivityVariabilityFeatureObservation(...)`.
+
+That landing zone can validate a versioned envelope, bind current Owner/dog/TAG identity,
+snapshot firmware version and enforce idempotent replay. It is deliberately not imported by
+a route, because no live transport currently produces this envelope.
 
 ## First-slice owner decision
 
@@ -140,6 +146,10 @@ Closing the transport gap does not authorize Owner-facing publication.
 
 `ELI_IO_ACTIVITY_VARIABILITY_BLE_TRANSPORT = NOT_IMPLEMENTED`
 
-`ELI_IO_FEATURE_INGESTION = NOT_IMPLEMENTED`
+`ELI_IO_BACKEND_FEATURE_PERSISTENCE = IMPLEMENTED_INTERNAL_ONLY`
+
+`ELI_IO_NETWORK_FEATURE_INGESTION = NOT_ACTIVATED`
+
+`ELI_IO_FEATURE_INGESTION_ROUTE = NONE`
 
 `ELI_IO_END_TO_END = OPEN`
