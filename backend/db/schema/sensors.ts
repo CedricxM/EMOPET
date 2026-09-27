@@ -49,6 +49,11 @@ export const sensorFeatureObservations = pgTable('sensor_feature_observations', 
   transportVersion: integer('transport_version'),
   transportBootSessionId: bigint('transport_boot_session_id', { mode: 'number' }),
   transportSequence: integer('transport_sequence'),
+  transportWindowEndMs: bigint('transport_window_end_ms', { mode: 'number' }),
+  eventTimeResolution: varchar('event_time_resolution', { length: 32 }),
+  clockAnchorDeviceMs: bigint('clock_anchor_device_ms', { mode: 'number' }),
+  clockAnchorUtc: timestamp('clock_anchor_utc', { withTimezone: true }),
+  eventTimeUncertaintyMs: integer('event_time_uncertainty_ms'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => [
   uniqueIndex('uq_sensor_feature_observations_ingestion_id').on(table.ingestionId),
@@ -84,6 +89,26 @@ export const sensorFeatureObservations = pgTable('sensor_feature_observations', 
       ${table.transportVersion} = 1
       AND ${table.transportBootSessionId} BETWEEN 0 AND 4294967295
       AND ${table.transportSequence} BETWEEN 0 AND 65535
+    )`,
+  ),
+  check(
+    'chk_sensor_feature_observations_transport_window_end',
+    sql`${table.transportWindowEndMs} IS NULL OR ${table.transportWindowEndMs} BETWEEN 0 AND 4294967295`,
+  ),
+  check(
+    'chk_sensor_feature_observations_event_time_provenance',
+    sql`(
+      ${table.eventTimeResolution} IS NULL
+      AND ${table.clockAnchorDeviceMs} IS NULL
+      AND ${table.clockAnchorUtc} IS NULL
+      AND ${table.eventTimeUncertaintyMs} IS NULL
+    ) OR (
+      ${table.eventTimeResolution} = 'BOOT_ANCHOR_V1'
+      AND ${table.transportBootSessionId} IS NOT NULL
+      AND ${table.transportWindowEndMs} IS NOT NULL
+      AND ${table.clockAnchorDeviceMs} BETWEEN 0 AND 4294967295
+      AND ${table.clockAnchorUtc} IS NOT NULL
+      AND ${table.eventTimeUncertaintyMs} >= 0
     )`,
   ),
   check(
