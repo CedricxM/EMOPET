@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "emopet-boot-anchor-v1",
+  "issue": 122,
+  "status": "WIRE + TAG RESPONSE + MOBILE RTT CAPTURE SOURCE / BACKEND BINDING + TARGET EVIDENCE OPEN",
+  "protocol": "BOOT_ANCHOR_V1",
+  "transport": {
+    "serviceAuthority": "config/ble/uuid-authority-v1.json",
+    "characteristicAuthority": "BLE_CHAR_CONFIG",
+    "newClockCharacteristicRequired": false,
+    "commandId": "0x14",
+    "requestNonce": "uint32_le",
+    "responseHeader": "0xEC",
+    "responseVersion": 1,
+    "responseType": "CLOCK_ANCHOR_RESPONSE",
+    "responseFields": [
+      "requestNonce:uint32_le",
+      "bootSessionId:uint32_le",
+      "deviceMs:uint32_le"
+    ],
+    "crc": "XOR_BYTES_0_TO_14",
+    "tagUtcField": false
+  },
+  "mobileCapture": {
+    "runtime": "apps/mobile/src/services/ble.ts::captureBleBootClockAnchor",
+    "mathAuthority": "@emopet/ble-protocol::deriveBootClockAnchorFromRoundTrip",
+    "algorithm": "MONOTONIC_RTT_MIDPOINT",
+    "uncertainty": "CEIL_HALF_RTT_PLUS_TIMER_QUANTIZATION",
+    "nonceMismatchIgnored": true,
+    "expectedBootSessionMismatchFailsClosed": true,
+    "canonicalDeviceIdAttached": false,
+    "featureReceiveTimeShortcutAllowed": false,
+    "hardCodedBleLatencyConstant": false
+  },
+  "identityBoundary": {
+    "bleDeviceIdIsCanonicalRegistryIdentity": false,
+    "physicalDeviceAuthentication": false,
+    "deviceTrustIssue": 66
+  },
+  "forwarding": {
+    "canonicalDeviceBinding": "OPEN",
+    "mobileToBackendAuthorized": false,
+    "anchorAgeCeiling": "OPEN",
+    "endToEndPath": false
+  },
+  "evidence": {
+    "wireParity": "scripts/control/tag-clock-anchor-conformance.test.mjs",
+    "mobileStaticGuard": "apps/mobile/test/ble-runtime-contract.test.mjs",
+    "targetBuild": "NOT_PROVEN",
+    "overAir": "NOT_PROVEN"
+  },
+  "supersessionRule": "NO_SECOND_CLOCK_SYNC_PROTOCOL_OR_UUID_WITHOUT_EXPLICIT_AUTHORITY_CHANGE",
+  "currentDecision": "DO_NOT_USE_FEATURE_RECEIVE_TIME_AS_OBSERVATION_TIME"
+}
