@@ -9,6 +9,7 @@ const validatorSource = new URL('../../packages/shared/src/validators/index.ts',
 const migrationSource = new URL('../db/migrations/0016_sensor_feature_observation_authority.sql', import.meta.url);
 const replayMigrationSource = new URL('../db/migrations/0017_sensor_feature_transport_replay.sql', import.meta.url);
 const timeMigrationSource = new URL('../db/migrations/0018_sensor_feature_event_time_provenance.sql', import.meta.url);
+const qualityMigrationSource = new URL('../db/migrations/0019_sensor_feature_quality_state.sql', import.meta.url);
 const eventTimeResolverSource = new URL('../api/services/device-boot-event-time.ts', import.meta.url);
 
 test('activity feature persistence is narrow, versioned and non-affective', async () => {
@@ -117,4 +118,23 @@ test('boot-anchor event-time resolution preserves uncertainty without activating
 
   assert.match(validator, /BOOT_ANCHOR_V1/);
   assert.match(validator, /eventTimeProvenance requires transportProvenance/);
+});
+
+test('physical feature quality is preserved as a controlled non-affective field', async () => {
+  const [schema, service, qualityMigration, validator] = await Promise.all([
+    readFile(schemaSource, 'utf8'),
+    readFile(serviceSource, 'utf8'),
+    readFile(qualityMigrationSource, 'utf8'),
+    readFile(validatorSource, 'utf8'),
+  ]);
+
+  assert.match(schema, /qualityState/);
+  assert.match(schema, /VALID.*DEGRADED.*SUPPRESSED/);
+  assert.match(service, /qualityState: input\.qualityState/);
+  assert.match(service, /qualityState: row\.qualityState/);
+  assert.match(validator, /transportProvenance requires qualityState/);
+  assert.match(validator, /OBSERVED cannot carry SUPPRESSED quality/);
+  assert.match(qualityMigration, /ADD COLUMN quality_state varchar\(16\)/);
+  assert.match(qualityMigration, /chk_sensor_feature_observations_observed_quality/);
+  assert.doesNotMatch(qualityMigration, /DROP TABLE|DROP COLUMN|DELETE FROM|UPDATE /i);
 });
