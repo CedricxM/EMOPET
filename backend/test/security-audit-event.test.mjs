@@ -8,7 +8,7 @@ const {
 } = await import('../dist/api/security/security-audit-event.js');
 
 const ADMIN_ID = '11111111-1111-4111-8111-111111111111';
-const GUARDIAN_ID = '22222222-2222-4222-8222-222222222222';
+const OWNER_ID = '22222222-2222-4222-8222-222222222222';
 
 function validEvent() {
   return {
@@ -22,7 +22,7 @@ function validEvent() {
     action: 'account.read_limited',
     target: {
       scope: 'account',
-      ref: GUARDIAN_ID,
+      ref: OWNER_ID,
     },
     outcome: 'allowed',
     reason: 'allowed',
@@ -42,7 +42,7 @@ test('audit event canonicalizes a valid bounded privileged access event', () => 
     action: 'account.read_limited',
     target: {
       scope: 'account',
-      ref: GUARDIAN_ID,
+      ref: OWNER_ID,
     },
     outcome: 'allowed',
     reason: 'allowed',
@@ -131,10 +131,10 @@ test('audit event rejects malformed actors and role substitution', () => {
   }), null);
 });
 
-test('audit event supports bounded guardian, machine and anonymous actors without free-form identity data', () => {
-  const guardian = parseSecurityAuditEvent({
+test('audit event supports bounded owner, machine and anonymous actors without free-form identity data', () => {
+  const owner = parseSecurityAuditEvent({
     ...validEvent(),
-    actor: { kind: 'guardian', subject: GUARDIAN_ID, role: null },
+    actor: { kind: 'owner', subject: OWNER_ID, role: null },
     outcome: 'denied',
     reason: 'action_not_allowed',
   });
