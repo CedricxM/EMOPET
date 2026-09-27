@@ -17,11 +17,11 @@ const ids = await read('firmware/collar/ncs/src/emopet_ble_ids.h');
 const gatt = await read('firmware/collar/ncs/src/emopet_gatt.c');
 const main = await read('firmware/collar/ncs/src/main.c');
 
-test('TAG platform has one canonical NCS v3.4.1 LTS authority', async () => {
+test('TAG platform has one canonical NCS v3.4.0 LTS authority', async () => {
   assert.equal(platform.sdk.family, 'nRF Connect SDK');
   assert.equal(platform.sdk.series, '3.4.x LTS');
-  assert.equal(platform.sdk.version, '3.4.1');
-  assert.equal(platform.sdk.revision, 'v3.4.1');
+  assert.equal(platform.sdk.version, '3.4.0');
+  assert.equal(platform.sdk.revision, 'v3.4.0');
   assert.equal(platform.sdk.sourceManifest, 'firmware/collar/ncs/west.yml');
   assert.equal(platform.application.path, 'firmware/collar/ncs');
   assert.equal(platform.application.westManifest, 'firmware/collar/ncs/west.yml');
@@ -35,14 +35,14 @@ test('TAG platform has one canonical NCS v3.4.1 LTS authority', async () => {
   );
   assert.equal(platform.application.productionBoardDefinition, null);
 
-  assert.match(manifest, /revision:\s*v3\.4\.1/);
+  assert.match(manifest, /revision:\s*v3\.4\.0/);
   assert.match(readme, /single canonical target-firmware runtime/i);
-  assert.match(readme, /v3\.4\.1 LTS/);
+  assert.match(readme, /v3\.4\.0 LTS/);
 
   // A stale v3.4.0 container receipt must not masquerade as current toolchain evidence.
   assert.equal(platform.sdk.toolchainContainer, null);
   assert.equal(platform.sdk.toolchainContainerDigest, null);
-  assert.equal(platform.sdk.toolchainReceiptStatus, 'NOT_YET_CAPTURED_FOR_3.4.1');
+  assert.equal(platform.sdk.toolchainReceiptStatus, 'NOT_YET_CAPTURED_FOR_3.4.0');
 
   for (const retired of [
     'firmware/collar/zephyr',
@@ -62,10 +62,10 @@ test('canonical NCS application composes the existing sensor and transport imple
     'CONFIG_BT=y',
     'CONFIG_BT_PERIPHERAL=y',
     'CONFIG_BT_MAX_CONN=1',
-    'CONFIG_ENTROPY_GENERATOR=y',
   ]) {
     assert.ok(prj.includes(option), option);
   }
+  assert.equal(prj.includes('CONFIG_ENTROPY_GENERATOR=y'), false);
 });
 
 test('GATT scaffold binds controlled proprietary UUIDs and canonical feature serializer', () => {
@@ -93,11 +93,33 @@ test('GATT scaffold binds controlled proprietary UUIDs and canonical feature ser
   assert.match(gatt, /tag_feature_summary_encode_activity_variability/);
 });
 
-test('transport provenance remains non-security and non-UTC', () => {
-  assert.match(gatt, /boot_session_id = sys_rand32_get\(\)/);
-  assert.match(gatt, /window_end_ms = k_uptime_get_32\(\)/);
-  assert.match(gatt, /feature_sequence\+\+/);
-  assert.match(gatt, /non-cryptographic/);
+test('transport provenance remains caller-owned and send time cannot replace measurement time', async () => {
+  const header = await read('firmware/collar/ncs/src/emopet_gatt.h');
+
+  assert.match(
+    header,
+    /caller owns boot_session_id, sequence and the real monotonic window end/i,
+  );
+  assert.match(
+    header,
+    /const tag_activity_feature_summary_input_t \*input/,
+  );
+  assert.match(gatt, /tag_feature_summary_encode_activity_variability\(\s*input,/);
+  assert.doesNotMatch(gatt, /sys_rand32_get|k_uptime_get_32|feature_sequence\+\+/);
+
+  assert.equal(
+    platform.transport.bootSessionSource,
+    'CALLER_OWNED / OPEN_PRODUCTION_POLICY',
+  );
+  assert.equal(
+    platform.transport.sequenceSource,
+    'CALLER_OWNED / OPEN_PRODUCTION_POLICY',
+  );
+  assert.equal(
+    platform.transport.windowEndMsSource,
+    'CALLER_OWNED_MONOTONIC_WINDOW_END',
+  );
+  assert.equal(platform.transport.sendTimeMayReplaceWindowEndMs, false);
   assert.equal(platform.transport.bootSessionIsSecurityIdentity, false);
   assert.equal(platform.transport.utcWallClockOnTag, false);
   assert.equal(platform.ble.physicalDeviceAuthentication, false);
