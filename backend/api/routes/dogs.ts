@@ -167,12 +167,12 @@ dogs.post('/', zValidator('json', DogCreateSchema), async (c) => {
 
   try {
     const created = await db.transaction(async (tx) => {
-      const [guardian] = await tx
+      const [owner] = await tx
         .select({ id: users.id })
         .from(users)
         .where(eq(users.id, userId))
         .limit(1);
-      if (!guardian) return null;
+      if (!owner) return null;
 
       const [row] = await tx
         .insert(dogsTable)
