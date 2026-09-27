@@ -6,6 +6,7 @@ import { PresenceEventCreateSchema, SensorSummaryCreateSchema } from '@emopet/sh
 import { db } from '../../db/index.js';
 import { devices, dogs, sensorSummaries } from '../../db/schema/index.js';
 import { getCurrentUserId, requireDogOwnership } from '../middleware/authorization.js';
+import { projectLatestPhysicalMovementObservation } from '../services/eli-runtime/physical-movement-observation.js';
 import { parseLookbackWindow } from '../utils/temporal-window.js';
 
 const sensors = new Hono();
@@ -331,6 +332,22 @@ sensors.get('/summaries/:dogId', async (c) => {
   } catch {
     return databaseUnavailable(c, 'list_sensor_summaries');
   }
+});
+
+sensors.get('/eli/:dogId/physical-movement', async (c) => {
+  c.header('Cache-Control', 'private, no-store');
+  const dogId = c.req.param('dogId');
+  const ownerId = getCurrentUserId(c);
+  if (!ownerId) return c.json({ error: 'unauthorized' }, 401);
+
+  const result = await projectLatestPhysicalMovementObservation(ownerId, dogId);
+  if (!result.ok) {
+    if (result.error === 'DOG_NOT_FOUND') return c.json({ error: 'not_found' }, 404);
+    if (result.error === 'INVALID_SUBJECT') return c.json({ error: 'invalid_subject' }, 400);
+    return databaseUnavailable(c, 'read_physical_movement_observation');
+  }
+
+  return c.json(result.response);
 });
 
 sensors.get('/eli/:dogId', async (c) => {
