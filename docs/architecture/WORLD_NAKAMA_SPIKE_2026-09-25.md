@@ -1,8 +1,9 @@
 # WORLD-NAKAMA-01 — SPIKE / NOT PRODUCTION AUTHORITY
 
 Issue #565 · parent #48 · branch `spike/world-nakama-565` · draft PR #566.
-This is an isolated, reversible social transport experiment. **HOLD for live-stack
-acceptance; no production activation, Unity activation, or merge authorization.**
+This is an isolated, reversible social transport experiment. Local live-stack acceptance
+passed on 2026-09-27 (see below). **No production activation, Unity activation, or merge
+authorization.**
 
 ## Observed base and decision
 
@@ -189,16 +190,63 @@ Pinned Nakama source review also corrected the node name to meet its 16-characte
 limit and verified runtime hook names and CLI environment handling. These static
 checks do not replace a real server start.
 
-**Not proven:** container image pull, Docker Compose validation/start/health, Nakama VM
-execution, real PostgreSQL migrations, real social delivery and interruption/recovery.
-Docker is absent from PATH and its standard installation location. The opt-in test is
-provided but was not run here. Existing database-dependent test skips remain skips.
+**Not proven on 2026-09-25:** Docker was unavailable; superseded by the live run below.
+Existing database-dependent test skips remain skips.
 
 **Mocked:** adapter unit tests inject connections/clock/backoff; transport tests replace
 fetch and native WebSocket while exercising real SDK REST/JSON socket translation;
 runtime tests execute the ES5 module in Node VM with fake Nakama functions. They establish
 contract/lifecycle behavior, not a live-stack pass. The live harness additionally uses
 synthetic canonical JWT issuance, not real account registration and refresh persistence.
+
+## Live validation evidence — 2026-09-27
+
+Windows 11, Docker Desktop 4.92.0 (Engine 29.8.0, WSL2, machine-wide install),
+Node `v24.21.0`, pnpm `10.33.0` via corepack. Images `postgres:16.8-alpine` and
+`registry.heroiclabs.com/heroiclabs/nakama:3.37.0`. In Git Bash, `docker compose exec`
+needs `MSYS_NO_PATHCONV=1` or the container path is rewritten to a Windows path.
+
+| Exact command (repo root, `C` = `docker compose --env-file infra/nakama/.env -f infra/nakama/compose.yml`) | Observed result |
+|---|---|
+| `$C config --quiet` | Exit 0 |
+| `$C up -d --wait` | Exit 0; postgres healthy, then nakama healthy (depends_on gate honoured) |
+| `$C ps` | Both services `Up (healthy)` |
+| `$C exec -T nakama /nakama/nakama healthcheck` | `healthcheck ok`, exit 0 |
+| `$C logs nakama` | `Applying database migrations` → `Successfully applied migration count=18`; no WARN/ERROR lines after startup |
+| `curl http://127.0.0.1:7350/healthcheck` | HTTP 200 |
+| `WORLD_SPIKE_INTEGRATION=true WORLD_SPIKE_OUTAGE_TEST=true node --env-file=infra/nakama/.env --test backend/test/world-spike-live.test.mjs` (first run) | **Fail**: `groups.list` → 503 `unavailable/degraded` (defect below) |
+| same, after fix | **Pass**, 1/1, ~9.3 s |
+| `pnpm --filter '@emopet/api^...' build` / `pnpm --filter @emopet/api build` / `typecheck` | Exit 0 / 0 / 0 |
+| `node --test backend/test/world-spike-transport.test.mjs` | 3 passed (includes new regression assertions) |
+| `pnpm --filter @emopet/api test` | 392 tests: 357 passed, 35 skipped, 0 failed |
+
+The passing live run proves, against the real Nakama and PostgreSQL: server-side bootstrap
+from canonically signed/verified EMOPET JWTs for two synthetic users; friend request and
+accept (when a request is pending; repeat runs may already be friends); group create, join, list and leave; presence follow and status update with a
+presence event delivered; group chat join (`persistence: false`) and message delivery;
+handle renewal with a fresh JWT that invalidates the old handle (401) and restores the
+chat subscription (message after reconnect delivered); direct `authenticate/custom`
+rejected (403); bootstrap RPC without runtime key rejected (401); bootstrap RPC from a
+user session rejected (403); `docker compose stop nakama` → renewal returns controlled
+503 `degraded`; `up -d --wait nakama` → fresh bootstrap `connected`.
+
+**Defect found and fixed.** `@heroiclabs/nakama-js` 2.8.0 `Client.listUserGroups(session,
+userId, state, limit)` forwards its arguments to the generated REST client as
+`(limit, state)`. The adapter's `limit=100` was sent as `state=100`, which Nakama rejects
+with 400 `Invalid state`; the adapter correctly failed closed as 503. Mocked tests could
+not see this. Fix: omit both arguments so the server default page (100) applies. A
+transport regression assertion now checks that no `state` query parameter is sent and
+that `listFriends` (argument order correct in the SDK) still sends `limit=100`.
+
+**Environment notes.** `pnpm install --frozen-lockfile` aborted with
+`ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY` because the checkout's `node_modules` was
+created by another OS user/store; the existing modules from the same lockfile were
+reused unchanged and builds passed. Running the live test inside the full
+`pnpm test` without `--env-file` fails by design (no runtime key/allowlist).
+
+**Still not proven:** multi-node Nakama, load, production TLS/secrets, real account
+registration/refresh persistence (harness uses synthetic canonical JWT issuance), and all
+product/privacy/moderation gates listed above.
 
 See [local runbook](../../infra/nakama/README.md) for reproducible commands and reset scope.
 

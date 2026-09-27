@@ -70,6 +70,11 @@ test('real transport emits official REST and socket contracts, never forwards ca
   assert.equal(requests[0].init.headers.Authorization, `Basic ${Buffer.from(`${'a'.repeat(64)}:`).toString('base64')}`);
   assert.ok(requests.some(x => x.url.includes('/v2/friend')));
   assert.ok(requests.some(x => x.url.includes(`/v2/group/${G}/join`)));
+  // Regression (live run): nakama-js 2.8.0 swaps state/limit, and Nakama rejects state=100.
+  const userGroups = new URL(requests.find(x => x.url.includes(`/v2/user/${A}/group`)).url);
+  assert.equal(userGroups.searchParams.has('state'), false);
+  const friendList = new URL(requests.findLast(x => x.url.includes('/v2/friend') && !x.init?.method?.match(/POST/)).url);
+  assert.equal(friendList.searchParams.get('limit'), '100');
   await connection.execute({ op: 'groups.leave', groupId: G });
   await assert.rejects(connection.execute({ op: 'chat.send', groupId: G, text: 'after-leave' }), /invalid_request/);
   connection.close();

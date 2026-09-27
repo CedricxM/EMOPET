@@ -125,6 +125,8 @@ process-local sessions. Stop the isolated stack to complete rollback.
 - `unavailable`/`timeout` is a controlled 503, never a fabricated success; expired or
   cross-user handles are 401, unknown actors 403, concurrent operations 409.
 - Validate Docker availability and container health before debugging JWTs.
+- Git Bash on Windows: prefix `docker compose exec` with `MSYS_NO_PATHCONV=1`, otherwise
+  `/nakama/nakama` is rewritten to a Windows path and the exec fails.
 - Runtime allowlists must match; changing `.env` requires recreating Nakama.
 - Keep signing keys/runtime keys out of logs, screenshots and PR descriptions.
 - Build before Node tests, which import `backend/dist` by repository convention.

@@ -57,7 +57,9 @@ export class NakamaTransport implements WorldTransport {
             const group = await client.createGroup(session, { name: `spike-${command.name}`, open: true, max_count: 10 });
             return { groupId: group.id, name: group.name };
           }
-          case 'groups.list': return client.listUserGroups(session, data.userId as string, undefined, 100);
+          // nakama-js 2.8.0 Client.listUserGroups forwards (state, limit) swapped, so a limit is
+          // sent as state and rejected. Omit both: the server applies its default page of 100.
+          case 'groups.list': return client.listUserGroups(session, data.userId as string);
           case 'groups.join': return { joined: await client.joinGroup(session, command.groupId) };
           case 'groups.leave': {
             const channel = channels.get(command.groupId);
