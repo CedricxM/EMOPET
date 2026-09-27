@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "emopet-boot-anchor-v1",
+  "issue": 635,
+  "status": "SOURCE_IMPLEMENTED / TARGET_EVIDENCE_OPEN / NETWORK_FORWARDING_NOT_AUTHORIZED",
+  "protocol": "BOOT_ANCHOR_V1",
+  "gatt": {
+    "serviceAuthority": "config/ble/uuid-authority-v1.json",
+    "characteristic": "7c2c7cc8-91a8-58c1-a38a-2f9b9929f5d5",
+    "property": "READ_ONLY",
+    "frameSizeBytes": 11,
+    "header": 236,
+    "version": 1,
+    "fields": [
+      "bootSessionId:uint32_le",
+      "deviceMs:uint32_le"
+    ],
+    "crc": "XOR_BYTES_0_TO_9",
+    "tagUtcField": false
+  },
+  "mobileCapture": {
+    "source": "apps/mobile/src/services/ble-clock-anchor.ts",
+    "algorithm": "MIDPOINT_OF_BEFORE_AFTER_GATT_READ",
+    "maxRoundTripMs": 1500,
+    "uncertainty": "CEIL_RTT_OVER_2_PLUS_2_MS",
+    "bootSessionMismatchFailsClosed": true,
+    "featureReceiveTimeMayBeUsedAsAnchor": false
+  },
+  "producer": {
+    "bootSessionSource": "SAME_AUTHORITY_AS_FEATURE_SUMMARY",
+    "deviceMsSource": "k_uptime_get_32_AT_CLOCK_READ",
+    "utcAuthority": "NONE_ON_TAG"
+  },
+  "evidence": {
+    "hostCodec": "packages/ble-protocol/src/device-clock-sample.ts",
+    "firmwareCodec": "firmware/collar/main/transport/device_clock_sample.{h,c}",
+    "crossLanguageParity": "scripts/control/tag-device-clock-sample-conformance.test.mjs",
+    "targetBuild": "NOT_YET_PROVEN",
+    "overAirRead": "NOT_YET_PROVEN"
+  },
+  "forwarding": {
+    "mobileToBackendAuthorized": false,
+    "anchorAgeCeiling": "OPEN",
+    "hardwareTimingAccuracy": "OPEN"
+  },
+  "currentDecision": "DO_NOT_USE_FEATURE_RECEIVE_TIME_AS_OBSERVATION_TIME"
+}
