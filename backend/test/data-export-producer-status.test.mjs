@@ -99,21 +99,24 @@ test('no backend module produces the inferred level', () => {
   );
 });
 
-test('the canonical ELI engine is imported only by the non-activating conformance harness', () => {
-  // The dependency is declared, which is what makes the gap easy to miss.
+test('canonical ELI engine importers remain explicitly bounded by runtime authority', () => {
   const manifest = JSON.parse(readFileSync(join(backendDir, 'package.json'), 'utf8'));
   assert.ok(
     '@emopet/eli-engine' in (manifest.dependencies ?? {}),
-    'the engine dependency declaration is what this status is about',
+    'the engine dependency declaration must remain explicit',
   );
 
   const importers = collectTsSources(join(backendDir, 'api'))
     .filter((file) => /(?:from|require\()\s*'@emopet\/eli-engine'/.test(readFileSync(file, 'utf8')))
-    .map((file) => file.slice(backendDir.length + 1));
+    .map((file) => file.slice(backendDir.length + 1))
+    .sort();
 
   assert.deepEqual(
     importers,
-    ['api/services/eli-runtime/activity-variability-conformance.ts'],
+    [
+      'api/services/eli-runtime/activity-variability-conformance.ts',
+      'api/services/eli-runtime/physical-movement-observation.ts',
+    ],
     `unexpected ELI engine importer set: ${importers.join(', ')}`,
   );
 
@@ -125,6 +128,15 @@ test('the canonical ELI engine is imported only by the non-activating conformanc
   assert.match(conformanceSource, /userProjection:\s*null/);
   assert.match(conformanceSource, /persistenceWrite:\s*null/);
   assert.match(conformanceSource, /apiRoute:\s*null/);
+
+  const physicalSource = readFileSync(
+    join(backendDir, 'api', 'services', 'eli-runtime', 'physical-movement-observation.ts'),
+    'utf8',
+  );
+  assert.match(physicalSource, /gatePhysicalMovementObservation/);
+  assert.match(physicalSource, /PHYSICAL_MOVEMENT_VARIABILITY_ONLY/);
+  assert.match(physicalSource, /latentStatePublished:\s*false/);
+  assert.doesNotMatch(physicalSource, /stepEKF|eliStates|arousal:|valence:|load:/);
 });
 
 test('the export route still declares the raw-stream status it already had', () => {
