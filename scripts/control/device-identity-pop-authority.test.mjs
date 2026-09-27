@@ -43,7 +43,19 @@ test('#648 selects exactly one P0 asymmetric architecture while runtime remains 
     evaluation.challengeContractAuthority,
     'config/security/device-pop-challenge-v1.json',
   );
-  assert.equal(evaluation.selection.rotationRevocationPolicy, null);
+  assert.equal(
+    evaluation.selection.rotationRevocationPolicy,
+    'DUAL_SLOT_A_B / NEW_CREDENTIAL_PROOF_BEFORE_ACTIVATION / SERVER_REVOCATION_BEFORE_SLOT_REUSE / DESTRUCTIVE_RUNTIME_OPEN',
+  );
+  assert.equal(evaluation.childKeySlotIssue, 659);
+  assert.match(
+    evaluation.evidenceState.identityKeySlotNamespace,
+    /DUAL_SLOT_A_B_SELECTED/,
+  );
+  assert.match(
+    evaluation.evidenceState.identityKeySlotNamespace,
+    /DESTRUCTIVE_ROTATION_RUNTIME_OPEN/,
+  );
 
   assert.match(evaluation.candidates.A_HUK_KDR_DERIVED_SYMMETRIC_POP.state, /NOT_SELECTED/);
   assert.match(evaluation.candidates.B_DEVICE_SPECIFIC_ASYMMETRIC_POP.state, /SELECTED_FOR_P0/);
