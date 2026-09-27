@@ -29,7 +29,8 @@
     ],
     "nsibRequired": true,
     "approtectRequiredBeforeCredentialActive": true,
-    "signedFirmwareRequiredBeforeCredentialActive": true
+    "signedFirmwareRequiredBeforeCredentialActive": true,
+    "applicationKeyIdNamespace": "OPEN / EXPLICIT_INPUT_ONLY / HARD_CODE_FORBIDDEN_UNTIL_RESERVED"
   },
   "source": {
     "kconfig": "firmware/collar/ncs/Kconfig",
@@ -56,7 +57,8 @@
     "publicKeyEnrollmentVerified": false,
     "approtectVerified": false,
     "signedFirmwareVerified": false,
-    "representativeMs88sf3SignVerifyProof": false
+    "representativeMs88sf3SignVerifyProof": false,
+    "applicationKeyIdNamespaceSelected": false
   },
   "hardStops": {
     "deviceDataTrust": "BLOCKED",
