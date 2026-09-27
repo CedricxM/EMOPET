@@ -1,3 +1,7 @@
+mainmenu "EMOPET TAG"
+
+source "Kconfig.zephyr"
+
 menu "EMOPET Device Trust"
 
 config EMOPET_DEVICE_KEY_PROVISIONING
