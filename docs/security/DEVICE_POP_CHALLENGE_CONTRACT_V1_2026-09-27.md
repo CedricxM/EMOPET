@@ -193,3 +193,42 @@ Before runtime activation:
 8. APPROTECT + firmware-integrity evidence;
 9. separate #122 network-ingestion activation decision.
 
+
+
+## 12. Backend verifier primitive — current boundary
+
+A backend source primitive now exists at:
+
+`backend/api/security/device-pop-verifier.ts`
+
+It verifies only the telemetry-purpose PoP v1 contract and requires injected:
+- server-side challenge lookup + atomic consume authority;
+- ACTIVE enrolled credential resolver for canonical device + credential version;
+- backend time authority.
+
+The verifier:
+- validates the strict response contract;
+- loads the challenge by server-side challenge id;
+- rejects consumed or expired challenges before trust success;
+- requires response device/version/purpose/challenge fields to match stored state;
+- reconstructs `EMOPET_DEVICE_POP_FIXED_BINARY_V1` from stored challenge state;
+- accepts only 65-byte SEC1 uncompressed P-256 public-key enrollment;
+- verifies ECDSA P-256 / SHA-256 with raw IEEE P1363 64-byte signature;
+- atomically consumes the challenge only after a valid signature;
+- rejects replay/race if the atomic consume loses;
+- returns a cryptographic-proof receipt whose `deviceDataTrustAuthorized` and
+  `telemetryPersistenceAuthorized` fields remain false.
+
+It has:
+- no HTTP route;
+- no default credential repository;
+- no default challenge/replay store;
+- no Device Data Trust success path;
+- no network telemetry write.
+
+Invalid signatures do not consume the challenge. The failed-attempt
+consumption/rate-limit policy therefore remains a separate open implementation
+authority.
+
+Durable credential/challenge persistence and target-device signing remain
+required before runtime activation.
