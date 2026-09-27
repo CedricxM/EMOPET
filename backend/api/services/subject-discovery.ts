@@ -72,7 +72,7 @@ export interface SubjectDiscoverySuccess {
     requestedDogId: string | null;
     selectedDogIds: string[];
   };
-  guardian: Record<string, DiscoverySurface>;
+  owner: Record<string, DiscoverySurface>;
   dog: Record<string, DiscoverySurface>;
   externalOrUnresolved: Record<string, DiscoverySurface>;
 }
@@ -162,7 +162,7 @@ export async function discoverSubjectData(
         ? [requestedDogId]
         : ownedDogIds;
 
-      const guardian = {
+      const owner = {
         account: counted(1, { ids: [userRow.id] }),
         ownedDogs: counted(ownedDogIds.length, { ids: ownedDogIds }),
         professionalShareGrantsOwned: counted(
@@ -299,7 +299,7 @@ export async function discoverSubjectData(
           requestedDogId: requestedDogId ?? null,
           selectedDogIds,
         },
-        guardian,
+        owner,
         dog: {
           profiles: counted(selectedDogIds.length, { ids: selectedDogIds }),
           professionalShareGrants: counted(dogCounts.professionalShareGrants),
