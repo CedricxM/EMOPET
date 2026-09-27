@@ -7,15 +7,15 @@
   "sdk": {
     "family": "nRF Connect SDK",
     "series": "3.4.x LTS",
-    "version": "3.4.1",
-    "revision": "v3.4.1",
+    "version": "3.4.0",
+    "revision": "v3.4.0",
     "releaseKind": "LTS",
     "sourceManifest": "firmware/collar/ncs/west.yml",
     "updatePolicy": "EXPLICIT_AUTHORITY_CHANGE_WITHIN_3.4_X_LTS",
-    "toolchainAcquisition": "OFFICIAL_NORDIC_NRFUTIL_SDK_MANAGER_OR_EQUIVALENT_VERIFIED_NCS_3_4_1_TOOLCHAIN",
+    "toolchainAcquisition": "OFFICIAL_NORDIC_NRFUTIL_SDK_MANAGER_OR_EQUIVALENT_VERIFIED_NCS_3_4_0_TOOLCHAIN",
     "toolchainContainer": null,
     "toolchainContainerDigest": null,
-    "toolchainReceiptStatus": "NOT_YET_CAPTURED_FOR_3.4.1"
+    "toolchainReceiptStatus": "NOT_YET_CAPTURED_FOR_3.4.0"
   },
   "application": {
     "path": "firmware/collar/ncs",
@@ -36,10 +36,11 @@
     "deviceTrustIssue": 66
   },
   "transport": {
-    "bootSessionSource": "sys_rand32_get",
+    "bootSessionSource": "CALLER_OWNED / OPEN_PRODUCTION_POLICY",
     "bootSessionIsSecurityIdentity": false,
-    "sequence": "uint16_per_boot_increment_after_successful_notify",
-    "windowEndMsSource": "k_uptime_get_32",
+    "sequenceSource": "CALLER_OWNED / OPEN_PRODUCTION_POLICY",
+    "windowEndMsSource": "CALLER_OWNED_MONOTONIC_WINDOW_END",
+    "sendTimeMayReplaceWindowEndMs": false,
     "utcWallClockOnTag": false,
     "backendClockAnchorStillRequired": true
   },
