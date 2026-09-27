@@ -122,8 +122,8 @@ test('snapshot capture and residue verification survive parent deletion without 
   await sql`
     INSERT INTO users (id, email, password_hash, name)
     VALUES
-      (${USER_A}, ${`erase-a-${USER_A}@example.test`}, 'test-only-a', 'Guardian A'),
-      (${USER_B}, ${`erase-b-${USER_B}@example.test`}, 'test-only-b', 'Guardian B')
+      (${USER_A}, ${`erase-a-${USER_A}@example.test`}, 'test-only-a', 'Owner A'),
+      (${USER_B}, ${`erase-b-${USER_B}@example.test`}, 'test-only-b', 'Owner B')
   `;
 
   await sql`
