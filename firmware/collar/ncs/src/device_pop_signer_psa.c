@@ -68,7 +68,7 @@ device_pop_sign_result_t device_pop_sign_challenge_v1(
         );
 
     if (preimage_result != DEVICE_POP_PREIMAGE_OK) {
-        memset(preimage, 0, sizeof(preimage));
+        secure_zero(preimage, sizeof(preimage));
         return DEVICE_POP_SIGN_PREIMAGE_ERROR;
     }
 
@@ -81,13 +81,13 @@ device_pop_sign_result_t device_pop_sign_challenge_v1(
         &digest_len
     );
 
-    memset(preimage, 0, sizeof(preimage));
+    secure_zero(preimage, sizeof(preimage));
 
     if (
         hash_status != PSA_SUCCESS
         || digest_len != DEVICE_POP_SHA256_SIZE
     ) {
-        memset(digest, 0, sizeof(digest));
+        secure_zero(digest, sizeof(digest));
         return DEVICE_POP_SIGN_HASH_ERROR;
     }
 
@@ -101,15 +101,15 @@ device_pop_sign_result_t device_pop_sign_challenge_v1(
         &signature_len
     );
 
-    memset(digest, 0, sizeof(digest));
+    secure_zero(digest, sizeof(digest));
 
     if (sign_status != PSA_SUCCESS) {
-        memset(signature, 0, DEVICE_POP_SIGNATURE_V1_SIZE);
+        secure_zero(signature, DEVICE_POP_SIGNATURE_V1_SIZE);
         return DEVICE_POP_SIGN_SIGNATURE_ERROR;
     }
 
     if (signature_len != DEVICE_POP_SIGNATURE_V1_SIZE) {
-        memset(signature, 0, DEVICE_POP_SIGNATURE_V1_SIZE);
+        secure_zero(signature, DEVICE_POP_SIGNATURE_V1_SIZE);
         return DEVICE_POP_SIGN_SIGNATURE_SIZE_ERROR;
     }
 
