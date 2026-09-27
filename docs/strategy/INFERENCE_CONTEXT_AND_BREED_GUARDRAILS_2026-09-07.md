@@ -73,10 +73,10 @@ Owner input is contextual/declared information, not biological ground truth.
 Product rules:
 
 - prefer factual/frequency/timing observations;
-- distinguish `Guardian reported` from `EMOPET observed`;
+- distinguish `Owner reported` from `EMOPET observed`;
 - retain disagreement between user report and sensor-derived patterns rather than forcibly reconciling them;
 - no single owner response creates an ELI state;
-- do not label the Guardian unreliable simply because streams disagree.
+- do not label the Owner unreliable simply because streams disagree.
 
 ## 6. C-BARQ boundary
 
