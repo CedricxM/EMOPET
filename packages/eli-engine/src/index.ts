@@ -5,3 +5,5 @@ export * from './hooks/index.js';
 export * from './ekf/index.js';
 export * from './vetoes/index.js';
 export * from './dynamics/index.js';
+
+export * from './runtime/physical-observation-gate.js';

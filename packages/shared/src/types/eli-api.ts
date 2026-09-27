@@ -106,3 +106,74 @@ export type EliApiResponse =
   | EliApiUnavailable
   | EliApiNoneFound
   | EliApiAvailable;
+
+
+/**
+ * First authorised live #479 observation contract.
+ *
+ * This is deliberately a PHYSICAL movement measurement only. It is not an ELI
+ * latent state and carries no arousal, valence, load, emotion, stress,
+ * wellbeing or behavioural interpretation.
+ */
+export interface EliPhysicalMovementObservation {
+  schemaVersion: 'eli-physical-movement-observation-v1';
+  observationKind: 'PHYSICAL_MOVEMENT_VARIABILITY';
+  dogId: string;
+  observedAt: string;
+  windowSeconds: 1800;
+  validSeconds: number;
+  value: number;
+  unit: 'ODBA_COEFFICIENT_OF_VARIATION';
+  qualityState: 'VALID' | 'DEGRADED';
+  interpretationAuthority: 'PHYSICAL_MOVEMENT_VARIABILITY_ONLY';
+  affectiveInterpretationAuthorized: false;
+  latentStatePublished: false;
+  runtimeVersion: 'eli-runtime-physical-movement-v1';
+  featureContractVersion: 'tag-activity-variability-cv30m-v1';
+  sourceDevice: {
+    deviceId: string;
+    source: 'TAG';
+    firmwareVersion: string;
+  };
+  eventTime: {
+    resolution: 'BOOT_ANCHOR_V1';
+    uncertaintyMs: number;
+  };
+  limits: string[];
+}
+
+export type EliPhysicalMovementUnavailableReason =
+  | 'NOT_OBSERVED'
+  | 'INVALID_VALUE'
+  | 'INSUFFICIENT_COVERAGE'
+  | 'QUALITY_MISSING'
+  | 'QUALITY_SUPPRESSED'
+  | 'EVENT_TIME_PROVENANCE_MISSING'
+  | 'FIRMWARE_PROVENANCE_MISSING'
+  | 'FEATURE_CONTRACT_MISMATCH';
+
+export type EliPhysicalMovementApiResponse =
+  | {
+      schemaVersion: 'eli-physical-movement-api-v1';
+      dogId: string;
+      status: 'AVAILABLE';
+      authoritative: true;
+      observation: EliPhysicalMovementObservation;
+    }
+  | {
+      schemaVersion: 'eli-physical-movement-api-v1';
+      dogId: string;
+      status: 'NONE_FOUND';
+      authoritative: true;
+      retryable: false;
+      reason: 'no_physical_movement_observation';
+      queriedThrough: string;
+    }
+  | {
+      schemaVersion: 'eli-physical-movement-api-v1';
+      dogId: string;
+      status: 'UNAVAILABLE';
+      authoritative: true;
+      retryable: false;
+      reason: EliPhysicalMovementUnavailableReason;
+    };

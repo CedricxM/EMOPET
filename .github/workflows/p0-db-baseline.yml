@@ -340,6 +340,14 @@ jobs:
           ACTIVITY_FEATURE_READ_DB_INTEGRATION: '1'
         run: node --test test/activity-feature-read.integration.test.mjs
 
+      - name: ELI-RUNTIME physical movement vertical slice
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          ELI_PHYSICAL_MOVEMENT_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/eli-physical-movement-runtime.integration.test.mjs
+
       - name: ELI-IO feature transport adapter validation
         working-directory: backend
         env:
