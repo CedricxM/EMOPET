@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import { and, eq, sql } from 'drizzle-orm';
 import { ActivityVariabilityFeatureObservationCreateSchema } from '@emopet/shared';
 
@@ -27,7 +29,6 @@ export type ActivityFeatureIngestionResult =
 
 function fingerprint(row: {
   dogId: string;
-  ingestionId: string;
   deviceId: string;
   observedAt: Date;
   source: string;
@@ -39,10 +40,12 @@ function fingerprint(row: {
   windowSeconds: number;
   validSeconds: number;
   firmwareVersionAtIngest: string | null;
+  transportVersion: number | null;
+  transportBootSessionId: number | null;
+  transportSequence: number | null;
 }): string {
   return JSON.stringify({
     dogId: row.dogId,
-    ingestionId: row.ingestionId,
     deviceId: row.deviceId,
     observedAt: row.observedAt.toISOString(),
     source: row.source,
@@ -54,6 +57,9 @@ function fingerprint(row: {
     windowSeconds: row.windowSeconds,
     validSeconds: row.validSeconds,
     firmwareVersionAtIngest: row.firmwareVersionAtIngest,
+    transportVersion: row.transportVersion,
+    transportBootSessionId: row.transportBootSessionId,
+    transportSequence: row.transportSequence,
   });
 }
 
@@ -61,12 +67,20 @@ function fingerprint(row: {
  * Canonical backend persistence primitive for #122's first deterministic feature.
  *
  * The caller must supply a canonical authenticated Owner id. No public route
- * imports this service yet. The current BLE V1 frame does not carry
- * activity_variability, so network/runtime activation remains forbidden.
+ * imports this service yet.
  *
- * This service validates only the physical/preprocessed feature contract and
- * provenance/binding. It does not invoke ELI, derive arousal, publish an Owner
- * observation, or claim physical-device authentication (#66 remains separate).
+ * Two replay identities are supported:
+ * - application ingestionId, when an upstream application already owns one;
+ * - the native transport tuple (deviceId, featureKey, bootSessionId, sequence).
+ *
+ * The backend allocates an application ingestion UUID for a first transport-only
+ * persistence. Replays of the same transport tuple return that original row.
+ * If application and transport identities point at different rows, ingestion
+ * fails closed as an explicit conflict.
+ *
+ * Transport provenance is replay evidence only. It does not authenticate a
+ * physical device (#66), map device boot time to wall/event time, invoke ELI,
+ * derive arousal, or authorize Owner-facing publication.
  */
 export async function persistActivityVariabilityFeatureObservation(
   ownerId: string,
@@ -84,6 +98,7 @@ export async function persistActivityVariabilityFeatureObservation(
   }
 
   const input = parsed.data;
+  const transport = input.transportProvenance ?? null;
 
   try {
     return await db.transaction(async (tx) => {
@@ -121,7 +136,7 @@ export async function persistActivityVariabilityFeatureObservation(
 
       const values = {
         dogId: input.dogId,
-        ingestionId: input.ingestionId,
+        ingestionId: input.ingestionId ?? randomUUID(),
         deviceId: device.id,
         observedAt: input.observedAt,
         source: input.source,
@@ -133,12 +148,15 @@ export async function persistActivityVariabilityFeatureObservation(
         windowSeconds: input.windowSeconds,
         validSeconds: input.validSeconds,
         firmwareVersionAtIngest: device.firmwareVersion,
+        transportVersion: transport?.transportVersion ?? null,
+        transportBootSessionId: transport?.bootSessionId ?? null,
+        transportSequence: transport?.sequence ?? null,
       };
 
       const [created] = await tx
         .insert(sensorFeatureObservations)
         .values(values)
-        .onConflictDoNothing({ target: sensorFeatureObservations.ingestionId })
+        .onConflictDoNothing()
         .returning();
 
       if (created) {
@@ -149,13 +167,45 @@ export async function persistActivityVariabilityFeatureObservation(
         } as const;
       }
 
-      const [existing] = await tx
-        .select()
-        .from(sensorFeatureObservations)
-        .where(eq(sensorFeatureObservations.ingestionId, input.ingestionId))
-        .limit(1);
+      const [existingByIngestion] = input.ingestionId
+        ? await tx
+            .select()
+            .from(sensorFeatureObservations)
+            .where(eq(sensorFeatureObservations.ingestionId, input.ingestionId))
+            .limit(1)
+        : [];
 
-      if (!existing || fingerprint(existing) !== fingerprint({
+      const [existingByTransport] = transport
+        ? await tx
+            .select()
+            .from(sensorFeatureObservations)
+            .where(and(
+              eq(sensorFeatureObservations.deviceId, device.id),
+              eq(sensorFeatureObservations.featureKey, input.featureKey),
+              eq(sensorFeatureObservations.transportBootSessionId, transport.bootSessionId),
+              eq(sensorFeatureObservations.transportSequence, transport.sequence),
+            ))
+            .limit(1)
+        : [];
+
+      if (
+        existingByIngestion
+        && existingByTransport
+        && existingByIngestion.id !== existingByTransport.id
+      ) {
+        return { ok: false, error: 'INGESTION_CONFLICT' } as const;
+      }
+
+      const existing = existingByTransport ?? existingByIngestion;
+      if (!existing) {
+        return { ok: false, error: 'INGESTION_CONFLICT' } as const;
+      }
+
+      if (input.ingestionId && existing.ingestionId !== input.ingestionId) {
+        return { ok: false, error: 'INGESTION_CONFLICT' } as const;
+      }
+
+      if (fingerprint(existing) !== fingerprint({
         ...values,
         firmwareVersionAtIngest: device.firmwareVersion ?? null,
       })) {
