@@ -37,6 +37,10 @@ test('mobile BLE service is a real central transport rather than a placeholder',
     'monitorCharacteristicForService',
     'BLE_CHAR_SENSOR_FRAME',
     'BLE_CHAR_FEATURE_SUMMARY',
+    'BLE_CHAR_CLOCK_SAMPLE',
+    'readCharacteristicForService',
+    'parseDeviceClockSampleFrame',
+    'captureDeviceBootClockAnchor',
     'parseSensorFrame',
     'parseActivityVariabilityFeatureFrame',
     'cancelDeviceConnection',
@@ -55,6 +59,8 @@ test('feature-summary UUID is reserved but end-to-end delivery remains fail-hone
   );
   assert.equal(authority.currentTransport.mobileBleNativePluginConfigured, true);
   assert.equal(authority.currentTransport.mobileBleSubscriptionImplemented, true);
+  assert.equal(authority.currentTransport.mobileBootAnchorCaptureImplemented, true);
+  assert.equal(authority.currentTransport.receiveTimeShortcutAllowed, false);
   assert.equal(authority.currentTransport.peripheralGattCharacteristicImplemented, false);
   assert.equal(authority.currentTransport.mobileToBackendForwardingImplemented, false);
   assert.equal(authority.currentTransport.endToEndPath, false);
