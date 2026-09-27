@@ -181,3 +181,19 @@ test('P0 database workflow replays the complete active migration directory on bo
     'P0 workflow must not freeze migration coverage to a hard-coded prefix list',
   );
 });
+
+test('P0 database workflow gates constraint/index parity against the classified drift ledger', () => {
+  const workflow = read(p0WorkflowPath);
+  const fingerprintRun = '-f backend/test/schema-constraint-index-parity.sql';
+
+  assert.equal(
+    workflow.split(fingerprintRun).length - 1,
+    2,
+    'P0 workflow must fingerprint constraints/indexes on path A and on the generated database',
+  );
+  assert.ok(
+    workflow.includes('backend/test/schema-constraint-index-parity.known-drift.txt')
+      && workflow.includes('diff -u /tmp/parity-known.txt /tmp/parity-drift.txt'),
+    'P0 workflow must fail when observed constraint/index drift differs from the ledger',
+  );
+});

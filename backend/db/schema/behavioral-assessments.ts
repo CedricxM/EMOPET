@@ -10,6 +10,7 @@ import {
   index,
   uniqueIndex,
   check,
+  foreignKey,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import { dogs } from './dogs.js';
@@ -231,8 +232,7 @@ export const eliBehavioralPriors = pgTable('eli_behavioral_priors', {
     .references(() => behavioralAssessments.id),
   factorScoreId: uuid('factor_score_id')
     .references(() => behavioralFactorScores.id),
-  mappingAuthorityId: uuid('mapping_authority_id')
-    .references(() => behavioralEliMappingAuthorities.id),
+  mappingAuthorityId: uuid('mapping_authority_id'),
 
   sourceFactorKey: varchar('source_factor_key', { length: 100 }).notNull(),
   targetPriorKey: varchar('target_prior_key', { length: 100 }).notNull(),
@@ -249,6 +249,13 @@ export const eliBehavioralPriors = pgTable('eli_behavioral_priors', {
   index('idx_eli_behavioral_prior_dog').on(table.dogId),
   index('idx_eli_behavioral_prior_assessment').on(table.assessmentId),
   index('idx_eli_behavioral_prior_mapping_authority').on(table.mappingAuthorityId),
+  // Named as in migration 0015, whose name-guarded ADD CONSTRAINT would otherwise
+  // add a second FK next to the Drizzle default name.
+  foreignKey({
+    name: 'fk_eli_behavioral_prior_mapping_authority',
+    columns: [table.mappingAuthorityId],
+    foreignColumns: [behavioralEliMappingAuthorities.id],
+  }),
   check('chk_eli_behavioral_prior_confidence', sql`${table.confidence} BETWEEN 0 AND 1`),
   check(
     'chk_eli_behavioral_prior_status',
