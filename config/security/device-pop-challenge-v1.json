@@ -82,12 +82,19 @@
     "MOBILE_CLIENT_ASSERTION"
   ],
   "runtime": {
-    "challengeIssuer": "NOT_IMPLEMENTED",
+    "challengeIssuer": "SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_AUTHORITIES_REQUIRED / NO_HTTP_ROUTE",
     "deviceSigner": "NOT_IMPLEMENTED",
     "backendVerifier": "NOT_IMPLEMENTED",
     "replayStore": "NOT_IMPLEMENTED",
     "deviceDataTrust": "NOT_IMPLEMENTED",
-    "networkTelemetryPersistence": "BLOCKED"
+    "networkTelemetryPersistence": "BLOCKED",
+    "credentialRepository": "NOT_IMPLEMENTED",
+    "challengePersistence": "NOT_IMPLEMENTED / MIGRATION_SLOT_BLOCKED_BY_PARALLEL_0020",
+    "issuerSource": "backend/api/security/device-pop-challenge-issuer.ts",
+    "issuerUnitTest": "backend/test/device-pop-challenge-issuer.test.mjs",
+    "issuerHasDefaultTtl": false,
+    "issuerHasDefaultStore": false,
+    "issuerHasPublicRoute": false
   },
   "releaseRule": "NO_DEVICE_TRUST_SUCCESS_OR_DURABLE_NETWORK_TELEMETRY_WRITE_UNTIL_RUNTIME_AND_TARGET_HARDWARE_NEGATIVE_EVIDENCE_PASS"
 }
