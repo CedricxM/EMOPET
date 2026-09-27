@@ -2,7 +2,7 @@
 
 **Issue:** #122  
 **Date:** 2026-09-27  
-**Status:** `WIRE + TAG RESPONSE CANDIDATE / MOBILE CAPTURE NOT YET IMPLEMENTED`
+**Status:** `WIRE + TAG RESPONSE MERGED / MOBILE RTT CAPTURE CANDIDATE / BACKEND FORWARDING OPEN`
 
 ## Why this exists
 
@@ -89,7 +89,7 @@ Trust remains #66.
 
 ## Current maturity
 
-Implemented in this candidate:
+Merged via #637:
 - TypeScript request builder;
 - TypeScript response codec + CRC;
 - C request parser;
@@ -97,9 +97,21 @@ Implemented in this candidate:
 - Config GATT write+notify handling for command 0x14 only;
 - C ↔ TypeScript golden-byte parity.
 
+Added by this mobile candidate:
+- Config notification monitor installed before the probe write;
+- monotonic send/receive RTT measurement;
+- nonce correlation;
+- midpoint UTC derivation;
+- conservative half-RTT + timer-quantisation uncertainty;
+- connection cleanup without disconnecting a pre-existing app connection;
+- no canonical device id attached to the raw clock measurement.
+
 Still open:
-- mobile RTT capture;
-- mobile creation of the actual `BOOT_ANCHOR_V1` object;
-- backend network ingestion route;
+- binding the clock measurement to the canonical backend device registry identity;
+- backend network feature-ingestion route;
+- automatic feature forwarding only after that binding exists;
 - real target build/flash and over-air evidence;
 - physical-device authentication.
+
+`productionClockAnchorImplemented` remains false until those downstream
+authorities and real-device evidence exist.
