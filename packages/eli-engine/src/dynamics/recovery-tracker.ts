@@ -21,9 +21,11 @@
  *   - folded into the sub-baseline EMA (alpha 0.1)
  *   - used to compute a 4-week trend per slot (see computeRecoveryTrend4w)
  *
- * Reference: McEwen (1998) NEJM — Type 3 allostatic load (prolonged
- * response after stressor end). Slowing recovery is the most direct
- * signal of accumulating allostatic load.
+ * Evidence boundary (#90): McEwen (1998, Ann NY Acad Sci) supports the
+ * broad concept of prolonged/failed shut-off as an allostatic-load pathway.
+ * It does NOT establish this tracker's thresholds, 5-minute confirmation,
+ * EMA alpha, 28-day split, +20% trend rule or downstream multiplier.
+ * Those are EMOPET model parameters pending validation.
  */
 
 import type { SubBaseline, SubBaselineSlot } from '@emopet/shared';
