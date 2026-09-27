@@ -1,4 +1,5 @@
-import { pgTable, uuid, varchar, timestamp, real, integer, jsonb, index, uniqueIndex } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { pgTable, uuid, varchar, timestamp, real, integer, jsonb, index, uniqueIndex, check } from 'drizzle-orm/pg-core';
 import { users } from './users.js';
 import { dogs } from './dogs.js';
 
@@ -60,8 +61,12 @@ export const communityReports = pgTable('community_reports', {
   id: uuid('id').primaryKey().defaultRandom(),
   reporterUserId: uuid('reporter_user_id').references(() => users.id, { onDelete: 'set null' }),
   contentType: varchar('content_type', { length: 20 }).notNull().default('post'),
-  contentId: uuid('content_id').notNull(),
-  communityId: uuid('community_id').notNull(),
+  // post/comment: content + community. World (#594): subject_user_id, no community;
+  // world_message keeps only the message id, never its content (decision #48 L6).
+  contentId: uuid('content_id'),
+  communityId: uuid('community_id'),
+  // Reported person. Erasure disposition TO_CONFIRM, hence no onDelete behaviour.
+  subjectUserId: uuid('subject_user_id').references(() => users.id),
   reason: varchar('reason', { length: 20 }).notNull(),
   details: varchar('details', { length: 500 }),
   status: varchar('status', { length: 20 }).notNull().default('open'),
@@ -79,6 +84,11 @@ export const communityReports = pgTable('community_reports', {
     table.createdAt.desc().nullsFirst(),
   ),
   index('idx_community_reports_final_action_at').on(table.finalActionAt),
+  index('idx_community_reports_subject_created').on(table.subjectUserId, table.createdAt.desc().nullsFirst()),
+  check('chk_community_reports_target_shape', sql`(${table.contentType} IN ('post', 'comment') AND ${table.contentId} IS NOT NULL AND ${table.communityId} IS NOT NULL AND ${table.subjectUserId} IS NULL)
+    OR (${table.contentType} = 'world_user' AND ${table.subjectUserId} IS NOT NULL AND ${table.contentId} IS NULL AND ${table.communityId} IS NULL)
+    OR (${table.contentType} = 'world_message' AND ${table.subjectUserId} IS NOT NULL AND ${table.contentId} IS NOT NULL AND ${table.communityId} IS NULL)`),
+  check('chk_community_reports_not_self', sql`${table.reporterUserId} IS NULL OR ${table.subjectUserId} IS NULL OR ${table.reporterUserId} <> ${table.subjectUserId}`),
 ]);
 
 export const communityEvents = pgTable('community_events', {

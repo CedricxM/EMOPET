@@ -15,9 +15,9 @@
     "Database mechanics never substitute for privacy disposition authority on unresolved rows."
   ],
   "summary": {
-    "relationalTotal": 44,
+    "relationalTotal": 45,
     "policyAlignedDeleteCandidates": 25,
-    "policyConditionalExecutionRequired": 16,
+    "policyConditionalExecutionRequired": 17,
     "legalAuthorityBlocked": 3,
     "matrixRowsPromoted": 4
   },
@@ -331,6 +331,28 @@
       "promotionAuthorized": true,
       "approvedDecision": "DETACH_IDENTITY_LINK_KEEP_SHARED_PRODUCT_OBJECT",
       "approvalRef": "#446"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "community_reports",
+      "column": "subject_user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "moderation_evidence"
+      ],
+      "why": "World reports (#594) name the reported person as moderation evidence. The approved reporter decision (#446) detaches the reporter on erasure; the reported person's erasure has not been decided: detaching loses re-offence context, keeping an identified row needs a bounded moderation or legal-hold justification.",
+      "requiredDecision": "Define whether a report keeps, detaches or deletes the reported person's identity when that account is erased, within the approved moderation-evidence window and any documented investigation or legal hold.",
+      "allowedOutcomes": [
+        "DETACH",
+        "DELETE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": false
     },
     {
       "subjectRoot": "users.id",
