@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-eli-io-first-slice-v1",
-  "status": "BACKEND_FEATURE_PERSISTENCE_READY / TRANSPORT GAP EXPLICIT / NO END_TO_END ACTIVATION",
+  "status": "FIRMWARE FEATURE WRITER CANDIDATE / BYTE PARITY GATED / LIVE BLE DELIVERY + DEVICE TRUST OPEN",
   "issue": 122,
   "firstFeature": "activity_variability",
   "featureContractVersion": "tag-activity-variability-cv30m-v1",
@@ -9,7 +9,8 @@
     "implementation": "firmware/collar/main/sensors/activity_variability.{h,c}",
     "measurement": "ODBA_CV_30_MIN",
     "minimumValidSeconds": 900,
-    "scienceInterpretation": "SEPARATE_GATE_87"
+    "scienceInterpretation": "SEPARATE_GATE_87",
+    "transportSnapshotApi": "activity_variability_snapshot"
   },
   "currentTransport": {
     "protocol": "BLE_V1",
@@ -19,7 +20,14 @@
     "backendFeaturePersistenceImplemented": true,
     "backendFeaturePersistenceTable": "sensor_feature_observations",
     "backendPersistencePrimitive": "persistActivityVariabilityFeatureObservation",
-    "networkFeatureIngestionActivated": false
+    "networkFeatureIngestionActivated": false,
+    "featureSummaryTransportVersion": 1,
+    "featureSummaryFrameSizeBytes": 27,
+    "firmwareWriterImplemented": true,
+    "firmwareWriter": "firmware/collar/main/transport/activity_feature_summary.{h,c}",
+    "firmwareHostCodecParityGuard": "scripts/control/tag-feature-summary-firmware-conformance.test.mjs",
+    "mobileBleSubscriptionImplemented": false,
+    "productionClockAnchorImplemented": false
   },
   "candidateOwnership": {
     "featureComputation": "FIRMWARE",
@@ -35,17 +43,19 @@
     "backend ingestion fails closed on mismatch",
     "deterministic conformance vector spans producer-to-ingestion"
   ],
-  "currentDecision": "DO_NOT_ACTIVATE",
+  "currentDecision": "DO_NOT_CLAIM_LIVE_TAG_DELIVERY",
   "backendPersistenceBoundary": {
-    "status": "IMPLEMENTED_INTERNAL_ONLY",
+    "status": "IMPLEMENTED_WITH_BOUNDED_PHYSICAL_OWNER_READ",
     "accepts": "VERSIONED_ACTIVITY_VARIABILITY_FEATURE_ENVELOPE",
     "ownerDogBindingRequired": true,
     "tagDeviceBindingRequired": true,
     "firmwareVersionSnapshottedAtIngest": true,
     "idempotentReplayByIngestionId": true,
     "conflictingReplayRejected": true,
-    "publicRoute": false,
+    "publicRoute": true,
     "eliInvocation": false,
-    "ownerProjection": false
+    "ownerProjection": true,
+    "publicRoutePath": "/api/sensors/eli/:dogId/physical-movement",
+    "ownerProjectionAuthority": "PHYSICAL_MOVEMENT_VARIABILITY_ONLY"
   }
 }
