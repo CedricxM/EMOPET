@@ -55,7 +55,13 @@
     "forwardingAcceptsBleTransportIdAsCanonicalIdentity": false,
     "forwardingAnchorFreshnessPolicyRequired": true,
     "forwardingAnchorUncertaintyPolicyRequired": true,
-    "forwardingPolicyValuesSelected": false
+    "forwardingPolicyValuesSelected": false,
+    "networkIngressRouteCandidateImplemented": true,
+    "networkIngressRoute": "/api/sensors/features/activity-variability",
+    "networkIngressRegistryBindingRechecked": true,
+    "networkIngressDeviceTrustGateImplemented": true,
+    "networkIngressDeviceTrustRuntimeImplemented": false,
+    "networkIngressPersistenceReachable": false
   },
   "candidateOwnership": {
     "featureComputation": "FIRMWARE",
