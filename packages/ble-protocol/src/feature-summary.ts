@@ -2,9 +2,9 @@
  * Versioned BLE transport contract for the first deterministic ELI feature.
  *
  * Scope is intentionally narrow:
- * - host-side codec + transport semantics only;
- * - no firmware writer;
- * - no mobile subscription/runtime wiring;
+ * - canonical host-side codec + transport semantics;
+ * - firmware C writer parity is enforced separately under #122;
+ * - no live BLE GATT subscription/runtime wiring;
  * - no backend route;
  * - no physical-device authentication;
  * - no wall-clock mapping;
