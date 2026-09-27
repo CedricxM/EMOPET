@@ -15,6 +15,7 @@ test('physical activity feature read authority stays Owner-scoped, uncertainty-a
   assert.match(source, /eliInvocationAuthorized: false/);
   assert.match(source, /BOUND_DEVICE_NOT_CRYPTOGRAPHICALLY_ATTESTED_BY_THIS_SLICE/);
   assert.match(source, /eventTimeUncertaintyMs/);
+  assert.match(source, /qualityState/);
   assert.match(source, /BOOT_ANCHOR_V1/);
   assert.match(source, /'30d'/);
   assert.match(source, /\.limit\(1440\)/);
