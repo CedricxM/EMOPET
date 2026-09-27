@@ -76,8 +76,11 @@ device_identity_key_provision_p256_v1(
     }
 
     if (generated_id != key_id) {
-        if (generated_id != PSA_KEY_ID_NULL) {
-            (void)psa_destroy_key(generated_id);
+        if (
+            generated_id != PSA_KEY_ID_NULL
+            && psa_destroy_key(generated_id) != PSA_SUCCESS
+        ) {
+            return DEVICE_IDENTITY_KEY_PROVISION_ROLLBACK_ERROR;
         }
         return DEVICE_IDENTITY_KEY_PROVISION_KEY_ID_MISMATCH;
     }
