@@ -46,6 +46,18 @@
     "conflictingReplayRejected": true,
     "publicRoute": false,
     "eliInvocation": false,
-    "ownerProjection": false
+    "ownerProjection": false,
+    "ownerScopedReadService": "IMPLEMENTED_INTERNAL_ONLY",
+    "readService": "readLatestActivityVariabilityObservation / readActivityVariabilityObservationHistory",
+    "historyRanges": [
+      "1h",
+      "6h",
+      "24h",
+      "7d",
+      "30d"
+    ],
+    "publicReadRoute": false,
+    "readInterpretation": "PHYSICAL_MOVEMENT_VARIABILITY_ONLY",
+    "deviceTrustStatus": "BOUND_DEVICE_NOT_CRYPTOGRAPHICALLY_ATTESTED_BY_THIS_SLICE"
   }
 }
