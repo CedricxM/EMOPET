@@ -148,6 +148,11 @@ jobs:
         run: |
           cc --version
           node --test scripts/control/tag-feature-summary-firmware-conformance.test.mjs
+      - name: Enforce TAG clock-anchor C/TypeScript parity (#122)
+        run: |
+          pnpm --filter @emopet/ble-protocol build
+          cc --version
+          node --test scripts/control/tag-clock-anchor-conformance.test.mjs
       - name: Build web application
         id: webbuild
         shell: bash

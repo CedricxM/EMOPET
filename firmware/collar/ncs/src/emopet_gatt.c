@@ -8,6 +8,7 @@
 
 #include "emopet_gatt.h"
 #include "emopet_ble_ids.h"
+#include "clock_anchor_transport.h"
 
 #include <errno.h>
 #include <stdbool.h>
@@ -16,6 +17,7 @@
 
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/gatt.h>
+#include <zephyr/kernel.h>
 #include <zephyr/random/random.h>
 #include <zephyr/sys/util.h>
 
@@ -25,8 +27,11 @@ static struct bt_uuid_128 emopet_sensor_frame_uuid =
     BT_UUID_INIT_128(BT_UUID_EMOPET_SENSOR_FRAME_VAL);
 static struct bt_uuid_128 emopet_feature_summary_uuid =
     BT_UUID_INIT_128(BT_UUID_EMOPET_FEATURE_SUMMARY_VAL);
+static struct bt_uuid_128 emopet_config_uuid =
+    BT_UUID_INIT_128(BT_UUID_EMOPET_CONFIG_VAL);
 
 static bool feature_notify_enabled;
+static bool config_notify_enabled;
 static uint32_t boot_session_id;
 static uint16_t feature_sequence;
 
@@ -37,6 +42,75 @@ static void feature_ccc_changed(
 {
     ARG_UNUSED(attr);
     feature_notify_enabled = (value == BT_GATT_CCC_NOTIFY);
+}
+
+static void config_ccc_changed(
+    const struct bt_gatt_attr *attr,
+    uint16_t value
+)
+{
+    ARG_UNUSED(attr);
+    config_notify_enabled = (value == BT_GATT_CCC_NOTIFY);
+}
+
+static ssize_t config_write(
+    struct bt_conn *conn,
+    const struct bt_gatt_attr *attr,
+    const void *buf,
+    uint16_t len,
+    uint16_t offset,
+    uint8_t flags
+)
+{
+    ARG_UNUSED(conn);
+    ARG_UNUSED(attr);
+    ARG_UNUSED(flags);
+
+    if (offset != 0u) {
+        return BT_GATT_ERR(BT_ATT_ERR_INVALID_OFFSET);
+    }
+    if (len != TAG_CLOCK_ANCHOR_REQUEST_SIZE) {
+        return BT_GATT_ERR(BT_ATT_ERR_INVALID_ATTRIBUTE_LEN);
+    }
+    if (!config_notify_enabled) {
+        return BT_GATT_ERR(BT_ATT_ERR_WRITE_NOT_PERMITTED);
+    }
+
+    uint32_t request_nonce = 0u;
+    const tag_clock_anchor_result_t parsed = tag_clock_anchor_parse_request(
+        (const uint8_t *)buf,
+        len,
+        &request_nonce
+    );
+    if (parsed != TAG_CLOCK_ANCHOR_OK) {
+        return BT_GATT_ERR(BT_ATT_ERR_VALUE_NOT_ALLOWED);
+    }
+
+    uint8_t response[TAG_CLOCK_ANCHOR_RESPONSE_SIZE];
+    const uint32_t device_ms = k_uptime_get_32();
+    const tag_clock_anchor_result_t encoded = tag_clock_anchor_encode_response(
+        request_nonce,
+        boot_session_id,
+        device_ms,
+        response,
+        sizeof(response)
+    );
+    if (encoded != TAG_CLOCK_ANCHOR_OK) {
+        return BT_GATT_ERR(BT_ATT_ERR_UNLIKELY);
+    }
+
+    const int notify_err = bt_gatt_notify_uuid(
+        NULL,
+        &emopet_config_uuid.uuid,
+        &emopet_svc.attrs[0],
+        response,
+        sizeof(response)
+    );
+    if (notify_err != 0) {
+        return BT_GATT_ERR(BT_ATT_ERR_UNLIKELY);
+    }
+
+    return (ssize_t)len;
 }
 
 /*
@@ -67,6 +141,19 @@ BT_GATT_SERVICE_DEFINE(
     ),
     BT_GATT_CCC(
         feature_ccc_changed,
+        BT_GATT_PERM_READ | BT_GATT_PERM_WRITE
+    ),
+
+    BT_GATT_CHARACTERISTIC(
+        &emopet_config_uuid.uuid,
+        BT_GATT_CHRC_WRITE | BT_GATT_CHRC_NOTIFY,
+        BT_GATT_PERM_WRITE,
+        NULL,
+        config_write,
+        NULL
+    ),
+    BT_GATT_CCC(
+        config_ccc_changed,
         BT_GATT_PERM_READ | BT_GATT_PERM_WRITE
     )
 );
@@ -105,6 +192,7 @@ int emopet_gatt_init(void)
     boot_session_id = sys_rand32_get();
     feature_sequence = 0;
     feature_notify_enabled = false;
+    config_notify_enabled = false;
 
     return 0;
 }

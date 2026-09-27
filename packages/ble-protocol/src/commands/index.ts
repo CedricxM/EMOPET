@@ -23,6 +23,13 @@ export const CMD_SET_NOTIFICATION_INTERVAL = 0x10;
 export const CMD_REQUEST_CALIBRATION = 0x11;
 export const CMD_SET_GPS_MODE = 0x12;
 export const CMD_SET_GEOFENCE = 0x13;
+/**
+ * Non-destructive clock-anchor probe.
+ *
+ * Raw transport helper only. It does not authenticate the mobile peer or
+ * authorize any protected device state change.
+ */
+export const CMD_REQUEST_CLOCK_ANCHOR = 0x14;
 export const CMD_FACTORY_RESET = 0xfe;
 
 export type CommandId =
@@ -30,6 +37,7 @@ export type CommandId =
   | typeof CMD_REQUEST_CALIBRATION
   | typeof CMD_SET_GPS_MODE
   | typeof CMD_SET_GEOFENCE
+  | typeof CMD_REQUEST_CLOCK_ANCHOR
   | typeof CMD_FACTORY_RESET;
 
 // ── GPS Modes ───────────────────────────────────────────────────
@@ -84,6 +92,23 @@ export function buildSetGeofence(latE6: number, lonE6: number, radiusM: number):
   view.setInt32(1, latE6, true);
   view.setInt32(5, lonE6, true);
   view.setUint16(9, Math.min(65535, Math.max(0, radiusM)), true);
+  return buf;
+}
+
+/**
+ * Request one boot-relative clock-anchor response.
+ *
+ * Payload: [0x14, requestNonce uint32 LE].
+ */
+export function buildRequestClockAnchor(requestNonce: number): Uint8Array {
+  if (!Number.isSafeInteger(requestNonce) || requestNonce < 0 || requestNonce > 0xffff_ffff) {
+    throw new Error('CLOCK_ANCHOR_NONCE_OUT_OF_RANGE');
+  }
+
+  const buf = new Uint8Array(5);
+  const view = new DataView(buf.buffer);
+  view.setUint8(0, CMD_REQUEST_CLOCK_ANCHOR);
+  view.setUint32(1, requestNonce, true);
   return buf;
 }
 

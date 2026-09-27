@@ -56,6 +56,7 @@ test('TAG platform has one canonical NCS v3.4.1 LTS authority', async () => {
 test('canonical NCS application composes the existing sensor and transport implementations', () => {
   assert.match(cmake, /find_package\(Zephyr REQUIRED/);
   assert.match(cmake, /activity_feature_summary\.c/);
+  assert.match(cmake, /clock_anchor_transport\.c/);
   assert.match(cmake, /activity_variability\.c/);
 
   for (const option of [
@@ -77,10 +78,15 @@ test('GATT scaffold binds controlled proprietary UUIDs and canonical feature ser
     uuidAuthority.active.featureSummary,
     '01141d55-a776-4091-b068-83f0804d8781',
   );
+  assert.equal(
+    uuidAuthority.active.config,
+    '8d5fa4ff-d1fa-49c3-9ce4-2e8865e4d478',
+  );
 
   for (const token of [
     'BT_UUID_128_ENCODE(0xe4e2e9a3, 0x39c8, 0x4140, 0xaba9, 0xc4e37713f59a)',
     'BT_UUID_128_ENCODE(0x01141d55, 0xa776, 0x4091, 0xb068, 0x83f0804d8781)',
+    'BT_UUID_128_ENCODE(0x8d5fa4ff, 0xd1fa, 0x49c3, 0x9ce4, 0x2e8865e4d478)',
   ]) {
     assert.ok(ids.includes(token), token);
   }
@@ -91,6 +97,9 @@ test('GATT scaffold binds controlled proprietary UUIDs and canonical feature ser
   assert.match(gatt, /BT_GATT_CCC/);
   assert.match(gatt, /bt_gatt_notify_uuid/);
   assert.match(gatt, /tag_feature_summary_encode_activity_variability/);
+  assert.match(gatt, /tag_clock_anchor_parse_request/);
+  assert.match(gatt, /tag_clock_anchor_encode_response/);
+  assert.match(gatt, /BT_GATT_CHRC_WRITE \| BT_GATT_CHRC_NOTIFY/);
 });
 
 test('transport provenance remains non-security and preserves measurement-window time', () => {
@@ -100,7 +109,13 @@ test('transport provenance remains non-security and preserves measurement-window
     /emopet_gatt_publish_activity_variability\([\s\S]*uint32_t window_end_ms/,
   );
   assert.match(gatt, /\.window_end_ms = window_end_ms/);
-  assert.doesNotMatch(gatt, /k_uptime_get_32\(\)/);
+
+  const featurePublish = gatt.slice(
+    gatt.indexOf('int emopet_gatt_publish_activity_variability'),
+  );
+  assert.doesNotMatch(featurePublish, /k_uptime_get_32\(\)/);
+
+  assert.match(gatt, /const uint32_t device_ms = k_uptime_get_32\(\)/);
   assert.match(gatt, /feature_sequence\+\+/);
   assert.match(gatt, /non-cryptographic/);
 
@@ -110,6 +125,13 @@ test('transport provenance remains non-security and preserves measurement-window
     'CALLER_OWNED_MONOTONIC_MEASUREMENT_WINDOW_END',
   );
   assert.equal(platform.transport.notificationTimeMayReplaceWindowEndMs, false);
+  assert.equal(platform.transport.clockAnchorProbe.deviceMsSource, 'k_uptime_get_32');
+  assert.deepEqual(
+    platform.transport.clockAnchorProbe.responseIncludes,
+    ['requestNonce', 'bootSessionId', 'deviceMs'],
+  );
+  assert.equal(platform.transport.clockAnchorMobileCaptureImplemented, false);
+  assert.equal(platform.transport.productionBootAnchorV1Implemented, false);
   assert.equal(platform.transport.utcWallClockOnTag, false);
   assert.equal(platform.ble.physicalDeviceAuthentication, false);
 });
