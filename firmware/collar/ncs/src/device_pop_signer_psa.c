@@ -6,6 +6,14 @@
 
 #include <string.h>
 
+static void secure_zero(void *buffer, size_t length)
+{
+    volatile uint8_t *p = (volatile uint8_t *)buffer;
+    while (length-- > 0u) {
+        *p++ = 0u;
+    }
+}
+
 device_pop_sign_result_t device_pop_signer_psa_init(void)
 {
     return psa_crypto_init() == PSA_SUCCESS
