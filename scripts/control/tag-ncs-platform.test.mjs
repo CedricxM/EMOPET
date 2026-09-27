@@ -93,12 +93,23 @@ test('GATT scaffold binds controlled proprietary UUIDs and canonical feature ser
   assert.match(gatt, /tag_feature_summary_encode_activity_variability/);
 });
 
-test('transport provenance remains non-security and non-UTC', () => {
+test('transport provenance remains non-security and preserves measurement-window time', () => {
   assert.match(gatt, /boot_session_id = sys_rand32_get\(\)/);
-  assert.match(gatt, /window_end_ms = k_uptime_get_32\(\)/);
+  assert.match(
+    gatt,
+    /emopet_gatt_publish_activity_variability\([\s\S]*uint32_t window_end_ms/,
+  );
+  assert.match(gatt, /\.window_end_ms = window_end_ms/);
+  assert.doesNotMatch(gatt, /k_uptime_get_32\(\)/);
   assert.match(gatt, /feature_sequence\+\+/);
   assert.match(gatt, /non-cryptographic/);
+
   assert.equal(platform.transport.bootSessionIsSecurityIdentity, false);
+  assert.equal(
+    platform.transport.windowEndMsSource,
+    'CALLER_OWNED_MONOTONIC_MEASUREMENT_WINDOW_END',
+  );
+  assert.equal(platform.transport.notificationTimeMayReplaceWindowEndMs, false);
   assert.equal(platform.transport.utcWallClockOnTag, false);
   assert.equal(platform.ble.physicalDeviceAuthentication, false);
 });

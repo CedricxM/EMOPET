@@ -105,7 +105,8 @@ At Bluetooth initialization:
 - feature sequence starts at 0.
 
 For a published physical feature:
-- `window_end_ms = k_uptime_get_32()`;
+- the feature producer supplies the monotonic **measurement-window end** as `window_end_ms`;
+- the BLE/GATT layer must not replace that timestamp with notification/send time;
 - sequence increments only after a successful queued notification.
 
 The random boot session is **not cryptographic identity**. It is replay/session
