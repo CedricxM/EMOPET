@@ -43,7 +43,9 @@
     "peripheralGattDecision": "DO_NOT_CLAIM_REAL_TAG_BLE_DELIVERY",
     "clockAnchorWireContractImplemented": true,
     "clockAnchorPeripheralResponseImplemented": true,
-    "clockAnchorMobileCaptureImplemented": false
+    "clockAnchorMobileCaptureImplemented": true,
+    "clockAnchorMobileRuntime": "apps/mobile/src/services/ble.ts::captureBleBootClockAnchor",
+    "clockAnchorMathAuthority": "@emopet/ble-protocol::deriveBootClockAnchorFromRoundTrip"
   },
   "candidateOwnership": {
     "featureComputation": "FIRMWARE",
