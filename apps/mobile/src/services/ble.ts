@@ -422,7 +422,7 @@ export async function captureBleBootClockAnchor(
 
   await device.discoverAllServicesAndCharacteristics();
 
-  let subscription: Subscription | null = null;
+  const subscriptionRef: { current: Subscription | null } = { current: null };
   let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
 
   try {
@@ -435,7 +435,7 @@ export async function captureBleBootClockAnchor(
         reject(error);
       };
 
-      subscription = device.monitorCharacteristicForService(
+      subscriptionRef.current = device.monitorCharacteristicForService(
         BLE_SERVICE_UUID,
         BLE_CHAR_CONFIG,
         (error, characteristic) => {
@@ -510,7 +510,7 @@ export async function captureBleBootClockAnchor(
     return result;
   } finally {
     if (timeoutHandle) clearTimeout(timeoutHandle);
-    subscription?.remove();
+    subscriptionRef.current?.remove();
 
     if (openedHere) {
       try {
