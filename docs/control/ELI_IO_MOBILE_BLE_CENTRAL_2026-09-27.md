@@ -45,11 +45,13 @@ The mobile BLE service now owns:
 
 ## Characteristic split
 
+The active identifiers use a proprietary 128-bit UUID namespace. Historical `0000EAxx-0000-1000-8000-00805F9B34FB` aliases are superseded and must not be used for live GATT.
+
 Existing SensorFrame characteristic:
-`0000ea02-0000-1000-8000-00805f9b34fb`
+`66ae0c98-a8ce-4319-b47d-f09fa88d4d83`
 
 Reserved versioned feature-summary characteristic:
-`0000ea05-0000-1000-8000-00805f9b34fb`
+`01141d55-a776-4091-b068-83f0804d8781`
 
 The latter is controlled by `BLE_CHAR_FEATURE_SUMMARY` in `@emopet/shared`.
 
