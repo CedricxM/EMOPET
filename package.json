@@ -26,7 +26,8 @@
     "hardware:tag-source-coherence": "node scripts/hardware/tag-source-coherence.mjs",
     "hardware:tag-source-coherence:test": "node --test scripts/hardware/tag-source-coherence.test.mjs",
     "control:eli-dynamics-authority:test": "node --test scripts/control/eli-dynamics-parameter-authority.test.mjs",
-    "control:wqi-rsi-authority:test": "node --test scripts/control/wqi-rsi-authority.test.mjs"
+    "control:wqi-rsi-authority:test": "node --test scripts/control/wqi-rsi-authority.test.mjs",
+    "control:eli-runtime-conformance:test": "node --test scripts/control/eli-runtime-conformance.test.mjs"
   },
   "devDependencies": {
     "@types/react": "19.2.15",
