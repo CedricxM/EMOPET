@@ -227,7 +227,7 @@ test('derived catalogue covers all 51 current surfaces including feature and sec
 test('checked-in surface catalogue is exactly derived from privacy topology and web code', () => {
   const derived = generator.deriveBreachRecipientSurfaces();
   const rendered = generator.renderGeneratedSource(derived);
-  const current = fs.readFileSync(generator.GENERATED_PATH, 'utf8');
+  const current = generator.readCheckedInSource();
 
   assert.equal(current, rendered);
   assert.notEqual(generator.renderGeneratedSource(derived.slice(1)), current);

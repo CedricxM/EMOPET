@@ -113,10 +113,19 @@ export function renderGeneratedSource(catalogue) {
   ].join('\n');
 }
 
+/**
+ * The checked-in catalogue with LF line endings, as committed. A Windows
+ * checkout under core.autocrlf holds it as CRLF; only that is normalised.
+ */
+export function readCheckedInSource() {
+  if (!fs.existsSync(GENERATED_PATH)) return '';
+  return fs.readFileSync(GENERATED_PATH, 'utf8').replace(/\r\n/g, '\n');
+}
+
 function main() {
   const rendered = renderGeneratedSource(deriveBreachRecipientSurfaces());
   if (process.argv.includes('--check')) {
-    const current = fs.existsSync(GENERATED_PATH) ? fs.readFileSync(GENERATED_PATH, 'utf8') : '';
+    const current = readCheckedInSource();
     if (current !== rendered) {
       console.error('Breach recipient surface catalogue is stale. Regenerate before merging.');
       process.exitCode = 1;
