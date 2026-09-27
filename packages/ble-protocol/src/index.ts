@@ -5,3 +5,5 @@ export * from './commands/index.js';
 export * from './feature-summary.js';
 
 export * from './clock-anchor.js';
+
+export * from './feature-forwarding.js';

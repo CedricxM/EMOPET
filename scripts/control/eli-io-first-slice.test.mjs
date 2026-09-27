@@ -54,3 +54,34 @@ test('first slice assigns one computation owner without authorizing duplicate re
   assert.equal(authority.candidateOwnership.mobileRole, 'TRANSPORT_ONLY');
   assert.equal(authority.candidateOwnership.duplicateIndependentRecompute, 'PROHIBITED_UNLESS_SEPARATELY_AUTHORIZED');
 });
+
+
+test('forwarding candidate gate exists without selecting policy or network authority', async () => {
+  const authority = JSON.parse(
+    await readFile(new URL('../../config/eli/io-first-slice.json', import.meta.url), 'utf8'),
+  );
+  const source = await readFile(
+    new URL('../../packages/ble-protocol/src/feature-forwarding.ts', import.meta.url),
+    'utf8',
+  );
+
+  assert.equal(authority.currentTransport.featureForwardingCandidateGateImplemented, true);
+  assert.equal(
+    authority.currentTransport.featureForwardingCandidateAuthority,
+    'packages/ble-protocol/src/feature-forwarding.ts',
+  );
+  assert.equal(authority.currentTransport.forwardingRequiresCanonicalDeviceId, true);
+  assert.equal(authority.currentTransport.forwardingAcceptsBleTransportIdAsCanonicalIdentity, false);
+  assert.equal(authority.currentTransport.forwardingAnchorFreshnessPolicyRequired, true);
+  assert.equal(authority.currentTransport.forwardingAnchorUncertaintyPolicyRequired, true);
+  assert.equal(authority.currentTransport.forwardingPolicyValuesSelected, false);
+  assert.equal(authority.currentTransport.mobileToBackendForwardingImplemented, false);
+  assert.equal(authority.currentTransport.networkFeatureIngestionActivated, false);
+  assert.equal(authority.currentTransport.endToEndPath, false);
+
+  assert.match(source, /canonicalDeviceId/);
+  assert.match(source, /maxAnchorAgeMs/);
+  assert.match(source, /maxAnchorUncertaintyMs/);
+  assert.match(source, /BOOT_SESSION_MISMATCH/);
+  assert.doesNotMatch(source, /bleDeviceId/);
+});

@@ -15,5 +15,6 @@ test('mobile BOOT_ANCHOR wrapper delegates timing math and owns correlation/sess
   assert.match(source, /response\.bootSessionId !== expectedBootSessionId/);
   assert.match(source, /localWallClockUncertaintyMs/);
   assert.match(source, /new Date\(timing\.anchorUtcMs\)/);
+  assert.match(source, /capturedMonotonicMs: input\.monotonicAfterMs/);
   assert.doesNotMatch(source, /roundTripMs = wallAfterUtcMs - wallBeforeUtcMs/);
 });

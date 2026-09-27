@@ -29,6 +29,12 @@ export interface CapturedBootAnchorV1 {
   uncertaintyMs: number;
   roundTripMs: number;
   wallMonotonicSkewMs: number;
+  /**
+   * Local monotonic instant captured after the matching response arrived.
+   * Used only for freshness decisions on the same app runtime; never sent as
+   * backend identity or UTC authority.
+   */
+  capturedMonotonicMs: number;
 }
 
 /**
@@ -95,5 +101,6 @@ export function buildBootAnchorV1(input: {
     uncertaintyMs: timing.uncertaintyMs,
     roundTripMs: timing.roundTripMs,
     wallMonotonicSkewMs: timing.wallMonotonicSkewMs,
+    capturedMonotonicMs: input.monotonicAfterMs,
   };
 }

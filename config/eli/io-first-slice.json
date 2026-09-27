@@ -47,7 +47,15 @@
     "clockAnchorMobileTimingAuthority": "packages/ble-protocol/src/clock-anchor.ts",
     "clockAnchorLocalWallClockUncertaintyRequired": true,
     "clockAnchorReceiveTimeShortcutAllowed": false,
-    "productionClockAnchorTargetEvidence": false
+    "productionClockAnchorTargetEvidence": false,
+    "clockAnchorCapturedMonotonicInstantRetained": true,
+    "featureForwardingCandidateGateImplemented": true,
+    "featureForwardingCandidateAuthority": "packages/ble-protocol/src/feature-forwarding.ts",
+    "forwardingRequiresCanonicalDeviceId": true,
+    "forwardingAcceptsBleTransportIdAsCanonicalIdentity": false,
+    "forwardingAnchorFreshnessPolicyRequired": true,
+    "forwardingAnchorUncertaintyPolicyRequired": true,
+    "forwardingPolicyValuesSelected": false
   },
   "candidateOwnership": {
     "featureComputation": "FIRMWARE",
