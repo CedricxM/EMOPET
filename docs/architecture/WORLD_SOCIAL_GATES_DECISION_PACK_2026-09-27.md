@@ -1,7 +1,12 @@
 # WORLD — Social gates decision pack (#48 kill gate)
 
 **Date:** 2026-09-27 · **Issue:** #48 (parent #43) · **Inputs:** #565 / draft PR #566, #46, #481
-**Status:** `PROPOSED — FOUNDER DECISION REQUIRED — DECIDES NOTHING BY ITSELF`
+**Status:** `DECIDED 2026-09-27 — founder accepted all recommendations (§4)`
+
+> Decision recorded from the founder's instruction on 2026-09-27: "ok pour toutes les
+> recommandations". It covers L1–L8 and the kill gate exactly as recommended below; it does
+> not close the other gates named in Humane Social Architecture v0.2 §13, sign #478, or
+> authorise any real user before the implementation prerequisites in §5 exist.
 
 This pack turns the gates left open by the Nakama spike into eight explicit decisions.
 Each one has options, evidence from the current repository, and a recommendation. Nothing
@@ -117,19 +122,19 @@ Format: question · current state · options · **recommendation** · what chang
   from presence, no "nearby", no exact or coarse position. Regional hub content is authored,
   not derived from users' positions.
 
-## 4. Decision sheet (founder)
+## 4. Decision sheet (founder) — recorded
 
 | Lock | Recommendation | Decision | Date |
 |---|---|---|---|
-| L1 eligibility | B — invited adult testers, allowlist | ☐ B ☐ A ☐ C ☐ other | |
-| L2 presence | B — opt-in, mutual connections, online/away only | ☐ B ☐ A ☐ C ☐ other | |
-| L3 social graph | B — canonical owner, Nakama projection | ☐ B ☐ A ☐ other | |
-| L4 expression | A — presets only | ☐ A ☐ B ☐ C ☐ other | |
-| L5 block/report | B — canonical, enforced before Nakama | ☐ B ☐ A ☐ other | |
-| L6 retention | B + new #478 category | ☐ B ☐ A ☐ other | |
-| L7 revocation | B — immediate World revocation hook | ☐ B ☐ A ☐ other | |
-| L8 location | none in first test | ☐ agree ☐ other | |
-| **Kill gate** | see §5 | ☐ HOLD Unity ☐ GO Unity ☐ STOP World | |
+| L1 eligibility | B — invited adult testers, allowlist | **B** | 2026-09-27 |
+| L2 presence | B — opt-in, mutual connections, online/away only | **B** | 2026-09-27 |
+| L3 social graph | B — canonical owner, Nakama projection | **B** | 2026-09-27 |
+| L4 expression | A — presets only | **A** | 2026-09-27 |
+| L5 block/report | B — canonical, enforced before Nakama | **B** | 2026-09-27 |
+| L6 retention | B + new #478 category | **B** (pending #478 signature for real users) | 2026-09-27 |
+| L7 revocation | B — immediate World revocation hook | **B** | 2026-09-27 |
+| L8 location | none in first test | **Agree** | 2026-09-27 |
+| **Kill gate** | see §5 | **Transport GO (not activated) · Unity HOLD** | 2026-09-27 |
 
 ## 5. Kill-gate recommendation
 
@@ -154,7 +159,7 @@ keep Nakama unused.
 
 ## 6. What this pack does not do
 
-It closes no gate, sets no retention duration, creates no legal basis, authorises no real
+Beyond the recorded choices above, it closes no gate, sets no retention duration, creates no legal basis, authorises no real
 user, no Unity work and no merge. It records options and a recommendation for a human decision.
 
 ## Sources
