@@ -11,3 +11,4 @@ export * from './sub-baseline.js';
 export * from './inference.js';
 export * from './professional-share.js';
 export * from './eli-api.js';
+export * from './activity-feature-forwarding.js';
