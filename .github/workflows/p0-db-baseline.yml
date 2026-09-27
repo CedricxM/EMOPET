@@ -355,6 +355,14 @@ jobs:
           ACTIVITY_FEATURE_TRANSPORT_ADAPTER_DB_INTEGRATION: '1'
         run: node --test test/activity-feature-transport-adapter.integration.test.mjs
 
+      - name: ELI-IO network registry + Device Trust pre-ingress gate
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          ACTIVITY_FEATURE_NETWORK_AUTHORITY_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/activity-feature-network-authority.integration.test.mjs
+
       - name: INT-06F canonical copresence dog identity
         env:
           GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
