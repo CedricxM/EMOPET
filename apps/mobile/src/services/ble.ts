@@ -367,7 +367,13 @@ export async function captureDeviceBootClockAnchor(
         // evidence for this capture. Ignore it and keep waiting for our nonce.
         if (response.requestNonce !== requestNonce) return;
 
-        const monotonicAfterMs = monotonicNowMs();
+        let monotonicAfterMs: number;
+        try {
+          monotonicAfterMs = monotonicNowMs();
+        } catch (clockError) {
+          fail(clockError);
+          return;
+        }
         const wallAfterUtcMs = Date.now();
 
         try {
@@ -398,7 +404,13 @@ export async function captureDeviceBootClockAnchor(
     );
 
     const wallBeforeUtcMs = Date.now();
-    const monotonicBeforeMs = monotonicNowMs();
+    let monotonicBeforeMs: number;
+    try {
+      monotonicBeforeMs = monotonicNowMs();
+    } catch (clockError) {
+      fail(clockError);
+      return;
+    }
 
     timeoutHandle = setTimeout(() => {
       fail(new BleRuntimeError(
