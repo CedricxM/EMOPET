@@ -59,6 +59,22 @@ export const ACTIVITY_VARIABILITY_FEATURE_CONTRACT_VERSION =
 export type ActivityVariabilityObservationStatus = 'OBSERVED' | 'NOT_OBSERVED';
 export type ActivityVariabilityQualityState = 'VALID' | 'DEGRADED' | 'SUPPRESSED';
 
+export interface ActivityVariabilityFeatureTransportFrame {
+  transportVersion: 1;
+  source: 'TAG';
+  featureKey: 'activity_variability';
+  featureContractVersion: typeof ACTIVITY_VARIABILITY_FEATURE_CONTRACT_VERSION;
+  sequence: number;
+  bootSessionId: number;
+  windowEndMs: number;
+  windowSeconds: 1800;
+  validSeconds: number;
+  observationStatus: ActivityVariabilityObservationStatus;
+  nullReason: ActivityVariabilityNullReason | null;
+  qualityState: ActivityVariabilityQualityState;
+  value: number | null;
+}
+
 export type ActivityVariabilityNullReason =
   | 'INSUFFICIENT_COVERAGE'
   | 'MEAN_BELOW_DIVISION_GUARD';
