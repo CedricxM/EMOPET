@@ -96,7 +96,7 @@ test('decision grouping counts remain explicit and exhaustive', () => {
   );
 
   assert.deepEqual(counts, {
-    POLICY_ALIGNED_DELETE_CANDIDATE: 22,
+    POLICY_ALIGNED_DELETE_CANDIDATE: 23,
     POLICY_CONDITIONAL_EXECUTION_REQUIRED: 16,
     LEGAL_AUTHORITY_BLOCKED: 3,
   });
@@ -118,6 +118,7 @@ test('policy-aligned candidates are DELETE-only suggestions backed by current pr
   const required = new Set([
     'users.id|DIRECT_FK|ai_messages|target_user_id',
     'users.id|DIRECT_FK|dogs|owner_id',
+    'dogs.id|DIRECT_FK|sensor_feature_observations|dog_id',
     'dogs.id|DIRECT_FK|sensor_summaries|dog_id',
     'dogs.id|DIRECT_FK|health_entries|dog_id',
     'dogs.id|DIRECT_FK|copresence_events|dog_a_id',
