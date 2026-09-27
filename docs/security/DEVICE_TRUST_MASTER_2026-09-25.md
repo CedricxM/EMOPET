@@ -20,6 +20,19 @@ The Product trust chain must be:
 
 ## 2. Manufacturing identity
 
+**Current P0 architecture gate:** #648 `DEVICE-TRUST-ID-01`.
+
+The source-backed evaluation authority lives at:
+
+`config/security/device-identity-pop-evaluation-v1.json`
+
+and the decision pack at:
+
+`docs/security/DEVICE_IDENTITY_POP_DECISION_2026-09-27.md`.
+
+No architecture or algorithm is selected yet. The nRF52840-specific comparison
+must close #648 before a Device Data Trust runtime can be activated.
+
 Each production device needs a canonical principal independent of its BLE address.
 
 Required properties:
