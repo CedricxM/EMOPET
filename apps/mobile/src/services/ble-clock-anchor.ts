@@ -22,26 +22,22 @@ export class BootAnchorCaptureError extends Error {
 
 export interface CapturedBootAnchorV1 {
   strategy: 'BOOT_ANCHOR_V1';
-  canonicalDeviceId: string;
-  bleDeviceId: string;
+  requestNonce: number;
   bootSessionId: number;
   anchorDeviceMs: number;
   anchorUtc: Date;
   uncertaintyMs: number;
   roundTripMs: number;
   wallMonotonicSkewMs: number;
-  requestNonce: number;
 }
 
 /**
- * Bind one correlated BLE clock-anchor response to the canonical device.
+ * Bind one correlated BLE response to bounded timing evidence.
  *
- * Timing math lives in @emopet/ble-protocol so it has executable unit tests.
- * This mobile wrapper owns request correlation + feature boot-session matching.
+ * No canonical backend device identity is attached here. BLE transport identity
+ * and registry/Device Trust authority remain separate.
  */
 export function buildBootAnchorV1(input: {
-  canonicalDeviceId: string;
-  bleDeviceId: string;
   wallBeforeUtcMs: number;
   wallAfterUtcMs: number;
   monotonicBeforeMs: number;
@@ -52,8 +48,6 @@ export function buildBootAnchorV1(input: {
   expectedBootSessionId?: number;
 }): CapturedBootAnchorV1 {
   const {
-    canonicalDeviceId,
-    bleDeviceId,
     requestNonce,
     response,
     expectedBootSessionId,
@@ -94,14 +88,12 @@ export function buildBootAnchorV1(input: {
 
   return {
     strategy: 'BOOT_ANCHOR_V1',
-    canonicalDeviceId,
-    bleDeviceId,
+    requestNonce,
     bootSessionId: response.bootSessionId,
     anchorDeviceMs: response.deviceMs,
     anchorUtc: new Date(timing.anchorUtcMs),
     uncertaintyMs: timing.uncertaintyMs,
     roundTripMs: timing.roundTripMs,
     wallMonotonicSkewMs: timing.wallMonotonicSkewMs,
-    requestNonce,
   };
 }
