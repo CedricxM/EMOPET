@@ -40,7 +40,14 @@
     "peripheralGattSourceCandidateImplemented": true,
     "peripheralGattTargetBuildVerified": false,
     "peripheralGattHardwareFlashed": false,
-    "peripheralGattDecision": "DO_NOT_CLAIM_REAL_TAG_BLE_DELIVERY"
+    "peripheralGattDecision": "DO_NOT_CLAIM_REAL_TAG_BLE_DELIVERY",
+    "clockSampleCharacteristic": "7c2c7cc8-91a8-58c1-a38a-2f9b9929f5d5",
+    "clockSampleCharacteristicAuthority": "BLE_CHAR_CLOCK_SAMPLE",
+    "bootAnchorProtocol": "BOOT_ANCHOR_V1",
+    "bootAnchorWireCodecImplemented": true,
+    "mobileBootAnchorCaptureImplemented": true,
+    "productionClockAnchorTargetEvidence": false,
+    "receiveTimeShortcutAllowed": false
   },
   "candidateOwnership": {
     "featureComputation": "FIRMWARE",
