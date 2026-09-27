@@ -21,9 +21,9 @@ The output now exposes both:
 
 The legacy `occurrences_count` remains only as a compatibility alias for above-threshold hits.
 
-Guardian copy is constrained to factual pattern language; it must not claim the dog “is anxious” or that the detector is validated.
+Owner-facing copy is constrained to factual pattern language; it must not claim the dog “is anxious” or that the detector is validated.
 
-Publication remains fail-closed while #89 is unresolved: Bleiz additionally requires `sensor.anticipation_contract_authorized === true`. No current runtime is treated as producing that authority by this record, so a detector threshold hit alone is insufficient for Guardian publication.
+Publication remains fail-closed while #89 is unresolved: Bleiz additionally requires `sensor.anticipation_contract_authorized === true`. No current runtime is treated as producing that authority by this record, so a detector threshold hit alone is insufficient for Owner-facing publication.
 
 ## Recovery
 

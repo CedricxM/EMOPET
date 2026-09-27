@@ -300,7 +300,7 @@ The current controlled states are therefore:
 
 ### Research consequence
 
-The scientifically defensible direction is to treat an appropriately licensed C-BARQ as a **guardian-reported external criterion candidate**, not as ground truth of internal canine state.
+The scientifically defensible direction is to treat an appropriately licensed C-BARQ as a **owner-reported external criterion candidate**, not as ground truth of internal canine state.
 
 Future validation should therefore prefer construct-specific, preregistered, longitudinal hypotheses with explicit missingness/applicability semantics, within-dog baselines, uncertainty/abstention and an external holdout rather than a single global ELI↔questionnaire correlation.
 
@@ -327,7 +327,7 @@ No product runtime change is authorized by this documentation reconciliation alo
 The French-study reconciliation is implemented through separate gates rather than one monolithic “C-BARQ integration” change:
 
 - #538 `BEHAV-DATA-01`: preserve applicability, household context and distinct `NOT_APPLICABLE / NOT_OBSERVED / MISSING / SKIPPED` states; answered zero remains a real answer.
-- #539 `ELI-BEHAV-01`: prevent guardian-reported labels or questionnaire factors from becoming direct ELI latent-state authority.
+- #539 `ELI-BEHAV-01`: prevent owner-reported labels or questionnaire factors from becoming direct ELI latent-state authority.
 - #540 `CBARQ-INSTRUMENT-01`: control exact instrument/version/language/scoring/administration/licence authority; the 63-item EFA result is not an authorized short form.
 - #541 `ELI-VALID-CBARQ-01`: prospective, construct-specific external-criterion validation only; current state remains proposed/not performed.
 - #542 `BEHAV-CONTEXT-01`: preserve declared contextual events as provenance without claiming that TAG/MAT identified the cause or stimulus.

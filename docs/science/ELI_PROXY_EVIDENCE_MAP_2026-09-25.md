@@ -1,4 +1,4 @@
-# ELI Guardian proxy evidence map
+# ELI Owner-facing proxy evidence map
 
 **Issues:** #87, #88  
 **Status:** `CONTROLLED CLAIM-PROVENANCE / NO BLANKET PROXY VALIDATION`  
@@ -6,7 +6,7 @@
 
 ## Rule
 
-A paper relevant to a sensor, physiological concept or modelling idea is not automatically a validation source for an EMOPET Guardian-facing proxy.
+A paper relevant to a sensor, physiological concept or modelling idea is not automatically a validation source for an EMOPET Owner-facing proxy.
 
 Every proxy must separately track:
 
@@ -19,7 +19,7 @@ Every proxy must separately track:
 Machine-readable authority:
 `config/science/eli-proxy-evidence.json`.
 
-## Guardian presentation
+## Owner presentation
 
 The web UI must not display a bare `Référence : paper` label for unresolved proxies. Context citations must be labelled as context and accompanied by the proxy-specific evidence status.
 

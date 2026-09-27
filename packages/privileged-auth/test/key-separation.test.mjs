@@ -28,7 +28,7 @@ test('canonical key assertion rejects short and ordinary-secret reuse while acce
   }));
 });
 
-test('privileged verification refuses a key reused from the ordinary Guardian JWT secret', async () => {
+test('privileged verification refuses a key reused from the ordinary Owner JWT secret', async () => {
   await assert.rejects(
     verifyPrivilegedAccessToken(
       'not-a-real-jwt-but-long-enough-for-key-validation',

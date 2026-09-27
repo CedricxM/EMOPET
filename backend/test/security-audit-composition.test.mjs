@@ -7,12 +7,12 @@ const {
 
 const ADMIN_ID = '11111111-1111-4111-8111-111111111111';
 const SUPPORT_ID = '22222222-2222-4222-8222-222222222222';
-const GUARDIAN_ID = '33333333-3333-4333-8333-333333333333';
+const OWNER_ID = '33333333-3333-4333-8333-333333333333';
 const ACTION = 'account.read_limited';
 const OCCURRED_AT = '2026-09-04T10:00:00Z';
 
 function target() {
-  return { scope: 'account', ref: GUARDIAN_ID };
+  return { scope: 'account', ref: OWNER_ID };
 }
 
 function authorizedDecision() {
@@ -124,7 +124,7 @@ test('unavailable, invalid-action, malformed and extra-field authority fails clo
     { status: 'UNAVAILABLE', reason: 'verifier_unavailable' },
     { status: 'DENIED', reason: 'invalid_action' },
     { status: 'DENIED', reason: 'not_authorized' },
-    { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'guardian', action: ACTION },
+    { status: 'AUTHORIZED', subject: ADMIN_ID, role: 'owner', action: ACTION },
     { ...authorizedDecision(), token: 'must-never-enter-audit-composition' },
     { status: 'DENIED', reason: 'invalid_token', token: 'must-never-enter-audit-composition' },
   ]) {
@@ -150,7 +150,7 @@ test('canonical audit parser blocks malformed identities, unsafe targets and non
     { scope: 'account', ref: 'person@example.invalid' },
     { scope: 'account', ref: 'contains spaces' },
     { scope: 'system', ref: 'unexpected-ref' },
-    { scope: 'account', ref: GUARDIAN_ID, email: 'person@example.invalid' },
+    { scope: 'account', ref: OWNER_ID, email: 'person@example.invalid' },
   ]) {
     assert.deepEqual(
       composePrivilegedAuditEvent(authorizedDecision(), ACTION, unsafeTarget, OCCURRED_AT),

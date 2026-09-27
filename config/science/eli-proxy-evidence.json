@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-eli-proxy-evidence-v1",
-  "status": "CONTROLLED_GUARDIAN_CLAIM_PROVENANCE",
+  "status": "CONTROLLED_OWNER_CLAIM_PROVENANCE",
   "allowedStatuses": [
     "SUPPORTED",
     "MEASUREMENT_CONTEXT",
@@ -10,7 +10,7 @@
     "SEPARATE_GATE",
     "REJECTED"
   ],
-  "guardianPolicy": {
+  "ownerPolicy": {
     "directValidationLanguageRequires": [
       "SUPPORTED"
     ],

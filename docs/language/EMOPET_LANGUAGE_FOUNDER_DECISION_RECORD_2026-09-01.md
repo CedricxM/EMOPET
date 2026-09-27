@@ -99,7 +99,7 @@ Current runtime/library lexicon remains a seed/working inventory until reconcile
 
 ## 3. Semantic truth-class rule
 
-Guardian-declared context must remain a restricted truth class.
+Owner-declared context must remain a restricted truth class.
 
 A user statement must not be promoted into measured or validated biological truth merely because it enters the product context.
 

@@ -93,7 +93,7 @@ The current ELI mapping is therefore an **EMOPET hypothesis**:
 `h_activity_variability(a, baseline) = baseline.activityVariabilityMean + a · k2`
 
 The positive direction, functional form and coefficient must be prospectively
-tested before they receive material scientific or Guardian-facing claim weight.
+tested before they receive material scientific or Owner-facing claim weight.
 Missing baseline still falls back to an effectively infinite R.
 
 > **THE DEFINITION IS COHERENT; THE FUNCTIONAL FORM IS NOT — recorded 2026-09-22.**

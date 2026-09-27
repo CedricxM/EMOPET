@@ -12,7 +12,7 @@
     }
   },
   "prohibitions": [
-    "guardian reports aggression -> ELI fear/aggression state",
+    "owner reports aggression -> ELI fear/aggression state",
     "factor score eligibility flag alone -> active ELI prior",
     "instrument or scoring version mismatch -> active ELI prior",
     "research-only assessment -> active product ELI prior"

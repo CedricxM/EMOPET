@@ -83,8 +83,8 @@ Reported characteristics include:
 
 - dog age median: **5 years [2–8]**;
 - 67.48% purebred, 32.52% mixed breed;
-- guardian sex: **82.11% female**, 16.67% male, 1.22% prefer not to say;
-- **25.20%** of guardians reported a dog-related job;
+- respondent sex: **82.11% female**, 16.67% male, 1.22% prefer not to say;
+- **25.20%** of respondents reported a dog-related job;
 - recruitment was voluntary and network/social-media based.
 
 **Implication:** do not use this sample as a definitive French normative reference for ELI thresholds.
@@ -106,7 +106,7 @@ The four items associated with **Dog rivalry** had insufficient responses for th
 Examples:
 
 - a single-dog household cannot provide meaningful household dog-rivalry observations;
-- a guardian who has never exposed a dog to a situation is not reporting “no behaviour”;
+- a respondent who has never exposed a dog to a situation is not reporting “no behaviour”;
 - absence of a questionnaire response is not evidence of behavioural absence.
 
 Any future questionnaire model, API, database schema, ELI feature transform or analytics pipeline must preserve these semantics explicitly.
@@ -174,11 +174,11 @@ In the French EFA, items usually associated with:
 
 loaded together as **Stranger-directed aggression/fear**.
 
-The authors propose that non-expert guardians may have difficulty distinguishing fear from aggression in observed behaviour.
+The authors propose that non-expert respondents may have difficulty distinguishing fear from aggression in observed behaviour.
 
 #### EMOPET consequence
 
-Never convert a guardian label such as “aggressive” directly into an inferred latent cause.
+Never convert a respondent label such as “aggressive” directly into an inferred latent cause.
 
 A defensible architecture separates:
 
@@ -190,7 +190,7 @@ A defensible architecture separates:
 6. **clinical/behaviourist assessment**, which EMOPET does not replace.
 
 Do not make:
-`guardian says aggressive -> ELI fear/aggression state`
+`respondent says aggressive -> ELI fear/aggression state`
 
 into deterministic logic.
 
@@ -208,7 +208,7 @@ Potential research direction:
 
 - sensor event window;
 - location/context category;
-- guardian-entered trigger;
+- respondent-entered trigger;
 - recovery duration;
 - repeated-event pattern over time.
 
@@ -224,7 +224,7 @@ The authors intentionally use **compulsive-like**, not a clinical diagnosis.
 
 Mandatory wording hierarchy:
 
-- acceptable: “repetitive pattern observed”, “pattern compatible with…”, “guardian-reported compulsive-like behaviour”;
+- acceptable: “repetitive pattern observed”, “pattern compatible with…”, “respondent-reported compulsive-like behaviour”;
 - prohibited without clinical evidence: “compulsive disorder”, “OCD”, or any diagnosis.
 
 This reinforces the project-wide rule:
@@ -273,12 +273,12 @@ At onboarding / study design, capture at least:
 
 ### 8.1 What C-BARQ is useful for
 
-For EMOPET, C-BARQ is best treated as a **validated guardian-reported behavioural instrument / external criterion**, subject to licence terms.
+For EMOPET, C-BARQ is best treated as a **validated owner-reported behavioural instrument / external criterion**, subject to licence terms.
 
 It can potentially contribute:
 
 - baseline behavioural profile;
-- structured guardian perception;
+- structured owner perception;
 - research stratification;
 - convergent/divergent validity analyses;
 - external criterion for evaluating ELI/features;
@@ -316,7 +316,7 @@ Any future ELI scientific validation should distinguish:
 
 - raw/derived sensor measures;
 - behavioural/context annotations;
-- guardian-reported questionnaire dimensions;
+- owner-reported questionnaire dimensions;
 - latent/internal model variables;
 - user-visible observations;
 - clinical interpretation.
@@ -370,7 +370,7 @@ Collect:
 
 - TAG activity/rest-derived features;
 - MAT qualified rest/context features;
-- contextual guardian annotations;
+- contextual owner annotations;
 - data-quality / missingness / wear-compliance metrics;
 - no raw-audio storage under current privacy constraints.
 
@@ -446,7 +446,7 @@ Unless and until separately validated/authorized:
 
 ### Allowed direction
 
-- “guardian-reported behavioural profile”;
+- “owner-reported behavioural profile”;
 - “longitudinal activity/rest pattern”;
 - “contextual observation”;
 - “pattern associated with…”;
