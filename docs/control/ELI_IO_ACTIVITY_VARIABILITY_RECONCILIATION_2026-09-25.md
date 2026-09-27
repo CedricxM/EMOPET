@@ -132,7 +132,7 @@ The mapping:
 
 remains an unvalidated EMOPET hypothesis under #87.
 
-Closing the transport gap does not authorize Guardian publication.
+Closing the transport gap does not authorize Owner-facing publication.
 
 ## Current status
 
