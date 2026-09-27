@@ -156,6 +156,10 @@ jobs:
           pnpm --filter @emopet/ble-protocol build
           pnpm --filter @emopet/api build
           node --test scripts/control/eli-io-feature-transport-conformance.test.mjs
+      - name: Enforce Device Trust C/backend PoP preimage parity (#648)
+        run: |
+          cc --version
+          node --test scripts/control/device-pop-preimage-conformance.test.mjs
       - name: Enforce TAG firmware feature-writer parity (#122)
         run: |
           cc --version

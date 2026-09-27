@@ -197,3 +197,32 @@ test('verifier primitive reconstructs server challenge state and cannot activate
     );
   }
 });
+
+
+test('device-side preimage builder stays serialization-only while signer remains open', async () => {
+  const preimageSource = await readFile(
+    new URL('../../firmware/collar/main/security/device_pop_preimage.c', import.meta.url),
+    'utf8',
+  );
+  const preimageHeader = await readFile(
+    new URL('../../firmware/collar/main/security/device_pop_preimage.h', import.meta.url),
+    'utf8',
+  );
+
+  assert.equal(
+    contract.runtime.devicePreimageBuilder,
+    'SOURCE_IMPLEMENTED / C_BACKEND_BYTE_PARITY_GATED / NO_PRIVATE_KEY_ACCESS',
+  );
+  assert.equal(contract.runtime.deviceSigner, 'NOT_IMPLEMENTED');
+  assert.match(preimageHeader, /DEVICE_POP_PREIMAGE_V1_SIZE\s+106u/);
+  assert.match(preimageSource, /EMOPET_DEVICE_POP_V1/);
+  assert.match(preimageSource, /write_u32_be/);
+  assert.match(preimageSource, /write_u64_be/);
+  const executablePreimageSource = (preimageSource + preimageHeader)
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/.*$/gm, '');
+  assert.doesNotMatch(
+    executablePreimageSource,
+    /psa_|mbedtls_|PSA_KEY_|psa_key_id_t|private.?key|ECDSA/i,
+  );
+});

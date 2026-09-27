@@ -232,3 +232,38 @@ authority.
 
 Durable credential/challenge persistence and target-device signing remain
 required before runtime activation.
+
+
+## 13. Device-side preimage builder — current boundary
+
+Portable TAG-side C source now exists at:
+
+`firmware/collar/main/security/device_pop_preimage.{h,c}`
+
+It owns only deterministic serialization of
+`EMOPET_DEVICE_POP_FIXED_BINARY_V1`.
+
+The builder:
+- emits exactly 106 bytes;
+- fixes protocol version = 1;
+- fixes purpose code = telemetry ingress only;
+- accepts RFC4122/network-order raw device UUID bytes;
+- encodes credential version as uint32 big-endian;
+- accepts raw challenge UUID + 32-byte nonce;
+- encodes issued/expires Unix milliseconds as uint64 big-endian;
+- rejects zero credential version;
+- rejects non-future expiry;
+- owns no private-key handle and calls no crypto/signing API.
+
+Security CI compiles the C source with strict warnings and compares its output
+byte-for-byte with the backend verifier helper
+`buildDevicePopSigningPreimageV1()`.
+
+This closes cross-language preimage ambiguity only.
+
+Still open:
+- PSA P-256 signer;
+- private-key generation/storage;
+- trusted-storage/HUK integration;
+- device challenge transport;
+- representative MS88SF3 sign/verify proof.
