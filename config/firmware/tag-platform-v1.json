@@ -34,7 +34,9 @@
     "featureSummaryCharacteristicRegistered": true,
     "featureSummaryNotifyUsesCanonicalFirmwareSerializer": true,
     "physicalDeviceAuthentication": false,
-    "deviceTrustIssue": 66
+    "deviceTrustIssue": 66,
+    "clockSampleCharacteristicRegisteredInSource": true,
+    "clockSampleReadUsesCanonicalSerializer": true
   },
   "transport": {
     "bootSessionSource": "sys_rand32_get",
@@ -43,7 +45,9 @@
     "windowEndMsSource": "CALLER_OWNED_MONOTONIC_MEASUREMENT_WINDOW_END",
     "utcWallClockOnTag": false,
     "backendClockAnchorStillRequired": true,
-    "notificationTimeMayReplaceWindowEndMs": false
+    "notificationTimeMayReplaceWindowEndMs": false,
+    "clockSampleDeviceMsSource": "k_uptime_get_32_AT_GATT_READ",
+    "clockSampleSharesFeatureBootSessionId": true
   },
   "evidence": {
     "sourceContractGuard": "scripts/control/tag-ncs-platform.test.mjs",
