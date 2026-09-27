@@ -83,8 +83,9 @@ resolves the reported person from the verified session: an allowlisted participa
 **Nakama sender id of a received message translated to its canonical id** (unknown senders
 and self-reports are refused). Only the message id is stored, never its content (L6).
 Reporting deliberately works across blocks. Without a wired sink the route returns 503
-rather than pretending to file. The erasure disposition of the reported person's id
-(`community_reports.subject_user_id`) is still a founder decision (TO_CONFIRM, NO ACTION).
+rather than pretending to file. On erasure of the reported person's account, their id is
+detached (`ON DELETE SET NULL`) and the report kept only within the moderation-evidence
+window (founder decision D5 on #594, mirroring reporter D4 #446).
 
 No EMOPET database credentials are mounted into Nakama. Its separate PostgreSQL
 volume persists transport metadata, not durable product authority. Chat text must be
