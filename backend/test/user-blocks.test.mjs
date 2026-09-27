@@ -144,3 +144,15 @@ test('schema and migration keep blocks canonical, minimal and erasure-neutral', 
   const community = readFileSync(new URL('../api/routes/community.ts', import.meta.url), 'utf8');
   assert.match(community, /communityPersistenceUnavailable\(c, 'create_block'\)/);
 });
+
+test('every account-topology user relation has an erasure residue probe and a discovery count', () => {
+  const topology = JSON.parse(readFileSync(new URL('../../config/privacy/account-erasure-topology.json', import.meta.url), 'utf8'));
+  const residue = readFileSync(new URL('../api/services/erasure-residue-verification.ts', import.meta.url), 'utf8');
+  const missing = topology.directUserReferences
+    .map((row) => `${row.table}.${row.column}`)
+    .filter((relation) => !residue.includes(`probe('${relation}'`));
+  assert.deepEqual(missing, [], 'a user relation without a residue probe would let erasure leave undetected rows');
+  const discovery = readFileSync(new URL('../api/services/subject-discovery.ts', import.meta.url), 'utf8');
+  assert.match(discovery, /userBlocksCreated: counted\(await countWhere\(tx, userBlocks, eq\(userBlocks\.blockerUserId, userId\)\)\)/);
+  assert.match(discovery, /userBlocksReceived: counted\(await countWhere\(tx, userBlocks, eq\(userBlocks\.blockedUserId, userId\)\)/);
+});
