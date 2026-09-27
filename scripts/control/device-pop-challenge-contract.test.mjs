@@ -219,8 +219,8 @@ test('device-side preimage builder stays serialization-only while signer remains
   assert.match(preimageSource, /write_u32_be/);
   assert.match(preimageSource, /write_u64_be/);
   const executablePreimageSource = (preimageSource + preimageHeader)
-    .replace(/\\/\\*[\\s\\S]*?\\*\\//g, '')
-    .replace(/\\/\\/.*$/gm, '');
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/.*$/gm, '');
   assert.doesNotMatch(
     executablePreimageSource,
     /psa_|mbedtls_|PSA_KEY_|psa_key_id_t|private.?key|ECDSA/i,
