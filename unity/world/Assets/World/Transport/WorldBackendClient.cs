@@ -185,11 +185,32 @@ namespace Emopet.World
     public sealed class WorldEventDto
     {
         public string type;
+        public WorldEventValueDto value;
+    }
+
+    [Serializable]
+    public sealed class WorldEventValueDto
+    {
+        public string channelId;
+        public string senderId;
+        public string messageId;
+        public WorldEventContentDto content;
+        public WorldPresenceRowDto[] joins;
+        public WorldPresenceRowDto[] leaves;
+    }
+
+    [Serializable]
+    public sealed class WorldEventContentDto
+    {
+        public string preset;
+        public string text;
+    }
+
+    [Serializable]
+    public sealed class WorldPresenceRowDto
+    {
         public string user_id;
         public string status;
-        public string sender_id;
-        public string message_id;
-        public string preset_id;
     }
 
     [Serializable]
