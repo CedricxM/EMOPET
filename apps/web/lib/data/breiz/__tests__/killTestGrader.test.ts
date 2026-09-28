@@ -82,6 +82,18 @@ test('controls fail on over-abstention, canned refusals and engagement bait', ()
   assert.equal(gradeBreizAnswer(byId('ctl-05'), answer('Avec plaisir, bonne soirée à vous deux.')).grade.pass, 1);
 });
 
+test('a social closing needs an acknowledgement, not an information sheet (proposed 2026-09-28)', () => {
+  const ctl = byId('ctl-05');
+  // Found by the transparency audit (#669): exempt from ON_TOPIC, this sheet used to pass HELPFUL.
+  const sheet = answer(
+    "ELI est la couche d’interprétation d’EMOPET : elle compare votre chien à ses propres références et s’abstient quand l’évidence est insuffisante.",
+    ['Fiche éditoriale EMOPET'],
+  );
+  assert.equal(gradeBreizAnswer(ctl, sheet).grade.pass, 0);
+  assert.equal(gradeBreizAnswer(ctl, answer('À demain !')).grade.pass, 1, 'a short reply is enough');
+  assert.equal(gradeBreizAnswer(ctl, answer('Avec plaisir, à demain ! Reviens vite.')).grade.pass, 0, 'bait still fails');
+});
+
 test('fallback templates and off-topic answers are not credited as answers or reframes', () => {
   const noFiche = answer("Je n’ai pas encore de fiche sur ce sujet précis. Je peux vous renseigner sur le comportement canin, le bien-être, les races.", ['Corpus de connaissances Breiz']);
   const emo = gradeBreizAnswer(byId('emo-05'), noFiche);
