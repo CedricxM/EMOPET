@@ -1549,6 +1549,8 @@ flowchart TB
 
 Les étapes B, C et D ne dépendent d'aucune réponse externe et représentent l'essentiel du travail d'ingénierie.
 
+> **Spécification de construction de `P` :** `docs/research/cbarq-demo-p-spec.md` (2026-09-28). Elle découpe l'étape en neuf lots, recense les portes du dépôt à franchir (contiguïté des migrations, registres de confidentialité déclaratifs, déclenchement CI par chemin, conventions de test), et détaille le protocole du détecteur d'effet de segmentation qui répond à `Q1.d`. Elle vérifie aussi qu'**aucun des onze conflits `C1`–`C11` ne bloque `P`** dès lors que les valeurs par défaut conservatrices sont expédiées.
+
 **Le chemin `séquentiel refusé` mérite d'être regardé en face.** Si Penn refuse la présentation séquentielle, `D.1` et `D.2` deviennent inapplicables au produit grand public — mais **rien de l'architecture n'est perdu** : la politique bascule sur `STANDARD_2S`, les tables de sections et de coupures restent utiles (une administration en deux séances coupe quand même quelque part), les covariables de segmentation deviennent des covariables de position, et l'ensemble des garde-fous G1 à G12 est inchangé. Ce qui serait perdu, ce sont les micro-séances — c'est-à-dire l'expérience, pas la fondation.
 
 C'est précisément pourquoi il faut construire `P` avant l'appel plutôt qu'après : arriver avec une mécanique fonctionnelle, un dispositif de mesure de l'effet de segmentation et zéro item licencié manipulé est un argument nettement plus solide qu'une intention décrite.
