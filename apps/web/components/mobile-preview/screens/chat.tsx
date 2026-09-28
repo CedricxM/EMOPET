@@ -5,6 +5,7 @@ import { animatePress, useMessageAppear, useRevealOnMount } from '../animations'
 import { MPIcon } from '../icon';
 import { MPCard, MPEyebrow, MPPill } from '../primitives';
 import { T } from '../tokens';
+import { ELI_DEMO_PREFIX } from '../../../lib/narration';
 
 type Message = {
   id: string;
@@ -13,6 +14,7 @@ type Message = {
   sources?: string[];
 };
 
+// Aperçu écrit à la main : sources et état ELI de démonstration (#118 G3, D6 de #226).
 const CONVO: Message[] = [
   {
     id: 'u1',
@@ -24,7 +26,7 @@ const CONVO: Message[] = [
     from: 'breiz',
     text:
       "Sur 6 des 7 derniers matins, une courte phase d'éveil est observée de 7 h 40 à 7 h 55 — juste avant votre sortie. C’est un motif stable, pas un signe clinique.",
-    sources: ['MAT · fenêtre 7 h 30 – 8 h 00', 'ELI valide · 9 h 42 capturées'],
+    sources: [`${ELI_DEMO_PREFIX}MAT · fenêtre 7 h 30 – 8 h 00`, `${ELI_DEMO_PREFIX}ELI valide · 9 h 42 capturées`],
   },
   {
     id: 'u2',
@@ -36,7 +38,7 @@ const CONVO: Message[] = [
     from: 'breiz',
     text:
       "Je ne peux pas interpréter un état émotionnel. Ce que j’observe : un motif répété, sans pic d’activité inhabituel et sans fragmentation du repos sur cette fenêtre. Si vous voulez approfondir, un vétérinaire pourra examiner le contexte.",
-    sources: ['Motif répété ≥ 6 j', 'Aucun veto ELI levé'],
+    sources: [`${ELI_DEMO_PREFIX}motif répété ≥ 6 j`, `${ELI_DEMO_PREFIX}aucun veto ELI levé`],
   },
 ];
 
@@ -80,10 +82,10 @@ function ChatHeader() {
           Breiz
         </span>
         <span style={{ fontFamily: T.fontSans, fontSize: 11, color: T.lichen700, fontWeight: 600 }}>
-          Tonalité calme · observations non-médicales
+          Assistant IA · tonalité calme · observations non médicales
         </span>
       </div>
-      <MPPill state="valid" label="Valide" />
+      <MPPill state="valid" label={`${ELI_DEMO_PREFIX}Valide`} />
     </div>
   );
 }
