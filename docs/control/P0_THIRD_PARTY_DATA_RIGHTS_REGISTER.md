@@ -224,6 +224,14 @@ Official-source reviewer role: `candidate source reviewer`. Source confirmation 
 product-use authorization. Re-checking these eight pages, with retained dated evidence, is
 part of DATA-LIC-G1 and DATA-LIC-G5 closure.
 
+### 2026-09-28 addition — FCI breed standards (Breiz rights boundary)
+
+Breiz contains breed-reference material derived from FCI breed sources. No licence or reuse permission is currently recorded for reproducing FCI standard text. Absence of a stated licence is not reuse authority.
+
+| Official ID | Source | State | Remaining boundary |
+|---|---|---|---|
+| DATA-OFFICIAL-009 | FCI breed standards and website | `OPEN` | Owner: verify the standard PDFs' own notices and obtain FCI's reuse position, or remove reproduced excerpts |
+
 ## 6. External dataset register
 
 | Item ID | Dataset and intended repository use | Version evidence | Licence evidence | Payload/checksum receipt | Attribution/citation | Owner role | State | Next action |
@@ -232,6 +240,7 @@ part of DATA-LIC-G1 and DATA-LIC-G5 closure.
 | DATASET-002 | Inertial sensor dataset for Dog Posture Recognition; R&D and preprocessing validation | DOI/version fixed at V1 in registry and official page | CC-BY-4.0 source label confirmed 2026-09-02 | `RECEIPT_MISSING` | Registry text exists; implementation evidence absent | Data/Research owner | `OPEN` | Same, and keep associated-code licensing separate from dataset licensing |
 | DATASET-003 | Vertebrate Breed Ontology; canonical identifiers, synonyms and cross-references | Registry says `controlled-at-retrieval`; §7 now binds the payload to an immutable upstream commit | CC-BY-4.0 source label confirmed 2026-09-02 | `RECEIPT_MISSING` despite proven byte equivalence | Generic attribution text exists; product/distribution evidence absent | Data owner | `OPEN` | Retain an independent upstream retrieval receipt and prove historical transform identity |
 | DATASET-004 | ANMV/Anses reference data; official identifiers and record normalization | Registry says `v2-current-at-retrieval`, not an immutable resource identity | Catalogue label confirmed 2026-09-02; exact legal-code/version receipt open | `RECEIPT_MISSING` | Registry text exists; output evidence absent | Data/Product owner | `OPEN` | Resolve exact resource URL/version, licence URI, retrieval receipt and field-level use |
+| DATASET-005 | FCI breed referential used by onboarding taxonomy and Breiz breed sheets | Release/retrieval identity not recorded | No reuse authority recorded (DATA-OFFICIAL-009) | `RECEIPT_MISSING` | FCI-approved attribution not established | Data/Product owner | `OPEN` | Settle FCI reuse terms before relying on reproduced standard text |
 
 The receipt mechanism is no longer the gap. `scripts/data/register-dataset-file.mjs` already
 computes SHA-256, byte size and a structured `emopet-dataset-receipt-v1` record, and
