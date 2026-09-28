@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, date, integer, real, serial, jsonb, primaryKey, uniqueIndex } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, date, integer, doublePrecision, serial, jsonb, primaryKey, uniqueIndex } from 'drizzle-orm/pg-core';
 
 // ─── Dataset Governance ─────────────────────────────────────────────
 
@@ -59,8 +59,8 @@ export const imuDiscriminationThresholds = pgTable('imu_discrimination_threshold
   activityA: text('activity_a').notNull(),
   activityB: text('activity_b').notNull(),
   featureName: text('feature_name').notNull(),
-  thresholdValue: real('threshold_value').notNull(),
-  confidence: real('confidence').notNull(),
+  thresholdValue: doublePrecision('threshold_value').notNull(),
+  confidence: doublePrecision('confidence').notNull(),
   placement: text('placement').notNull(),
   sourceDataset: text('source_dataset').references(() => datasetRegistry.datasetId),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -75,7 +75,7 @@ export const imuShakeFilter = pgTable('imu_shake_filter', {
   parameter: text('parameter').notNull().unique(),
   value: jsonb('value').notNull(),
   sourceDataset: text('source_dataset').references(() => datasetRegistry.datasetId),
-  confidence: real('confidence').notNull(),
+  confidence: doublePrecision('confidence').notNull(),
   notes: text('notes'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
