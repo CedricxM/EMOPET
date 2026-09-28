@@ -406,6 +406,33 @@ C'est la pièce qui répond à `Q1.d`. Détail en §7, parce que sa conception e
 
 Voir §8.
 
+> **État : `FAIT` (2026-09-28).** `pnpm instruments:artifact` (ou `-- --quick`), ~7 s. Sorties : `.data/demo-p/call-artifact.txt` (le transcript à projeter) et `call-artifact.json` (les mêmes faits, exploitables).
+>
+> Forme retenue : un script reproductible, versionné, sans dépendance — cohérent avec la discipline des huit lots précédents. Chaque pièce est produite en **exécutant** le code, pas en le décrivant.
+>
+> #### Les quatre pièces
+>
+> **1. Une administration séquentielle.** Transcript horodaté : cadrage Breiz (modèle autorisé, et seulement là), huit cartes figées avec leur empreinte et la mention « aucun modèle en boucle », pause en un geste, reprise à l'item exact, contrôle de séance issu du registre figé, puis le lendemain soir un enchaînement jusqu'au bout. Les items affichés demandent la couleur d'une porte : que l'instrument soit **visiblement factice est le propos**, pas une excuse.
+>
+> **2. L'altération détectée, deux fois.** Le contenu modifié après coup (empreinte enregistrée à la présentation ≠ empreinte actuelle, l'item est nommé) ; puis la piste d'audit elle-même — ligne réécrite, ligne retirée, covariable réécrite — chacune donnant son motif et son index.
+>
+> **3. Le détecteur**, ses trois passes, la grille de détectabilité et le tableau d'atténuation, avec la garde d'identifiabilité qui refuse de produire une estimation quand un profil unique rend l'effet non identifiable.
+>
+> **4. La provenance**, quinze champs — dont `licenseStatus: demo_only`, `DEMO_SUM_V0 / not-a-cbarq-scoring-rule`, `publicationState: withheld`, jeu de coupures `emopet_proposed`. Chaque champ qu'une licence exigera a déjà sa place.
+>
+> Le transcript se termine par **ce que la démonstration n'établit pas** : aucune validité psychométrique, aucune preuve d'absence d'effet, aucune validation de traduction, aucune licence.
+>
+> #### L'artefact refuse de se produire si ses propres affirmations tombent
+>
+> Douze contrôles, et un `exit 1` si l'un échoue. Deux défauts réels ont été trouvés par ce mécanisme pendant la construction :
+>
+> 1. **La démonstration de covariable était un faux positif silencieux.** Je réécrivais `positionInSession` vers `1` sur le *premier* item répondu — qui valait déjà `1`. La mutation était un no-op, la chaîne restait valide à juste titre, et le transcript affichait « motif undefined ». Corrigé en ciblant une entrée dont la position est supérieure à 1, et le transcript affiche désormais la transition réelle (`position 2 → 1`).
+> 2. **L'artefact n'attrapait pas un item non factice.** En injectant un item sans préfixe `DEMO — `, **G8 a échoué mais l'artefact s'est produit sans broncher** — alors que c'est lui qu'on projette. Il vérifie maintenant que chaque chaîne réellement affichée est visiblement un factice, et refuse sinon. Éprouvé dans les deux sens.
+>
+> #### Réserve mineure
+>
+> À l'exécution, Node émet `MODULE_TYPELESS_PACKAGE_JSON` parce que `packages/shared/package.json` ne déclare pas `"type": "module"`. Défaut préexistant, sur `stderr` uniquement — le fichier `call-artifact.txt` n'en porte aucune trace. Non corrigé : `shared` est consommé par le web et le mobile, et je ne peux pas vérifier ces builds dans ce conteneur (le build web échoue faute d'accès à Google Fonts). À traiter séparément.
+
 ---
 
 ## 4. Ordre d'exécution

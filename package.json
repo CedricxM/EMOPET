@@ -19,7 +19,8 @@
     "web:start": "pnpm --filter @emopet/web start",
     "legacy-freemium:audit": "node scripts/content/legacy-freemium-authority-audit.mjs",
     "instruments:simulate": "node scripts/instruments/simulate-administration.mjs",
-    "instruments:analyse": "node scripts/instruments/analyse-segmentation-effect.mjs"
+    "instruments:analyse": "node scripts/instruments/analyse-segmentation-effect.mjs",
+    "instruments:artifact": "node scripts/instruments/build-call-artifact.mjs"
   },
   "devDependencies": {
     "@types/react": "19.2.15",
