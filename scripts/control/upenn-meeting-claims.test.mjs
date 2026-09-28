@@ -2,19 +2,25 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const PROHIBITED_CLAIMS = [/Penn validates EMOPET/i, /C-BARQ validates ELI/i];
+// Past tense included: authority §12 lists "Penn validated EMOPET" as not allowed.
+const PROHIBITED_CLAIMS = [/Penn validate[sd] EMOPET/i, /C-BARQ validate[sd] ELI/i];
 
-// Drops the counter-example list that follows a line reading exactly `Avoid:`.
-// The block is that line plus the bullet list after it: blank lines and lines
-// starting with `-`, `*` or `+` are dropped, and the first other line ends the
-// block and is kept. Prose on the `Avoid:` line, a paragraph after the list and
-// any other list are all still matched.
+// Blanks the quoted counter-examples listed under a line reading exactly
+// `Avoid:`. The block is that line plus the bullet list after it: blank lines
+// are skipped, each bullet loses only its leading quoted phrase, and the first
+// other line ends the block and is kept. An unquoted bullet, text after the
+// quote, prose on the `Avoid:` line, a paragraph after the list and any other
+// list are all still matched.
 function stripAvoidLists(source) {
   const kept = [];
   let inAvoidList = false;
   for (const line of source.split(/\r?\n/)) {
     if (inAvoidList) {
-      if (line.trim() === '' || /^\s*[-*+]\s/.test(line)) continue;
+      if (line.trim() === '') continue;
+      if (/^\s*[-*+]\s/.test(line)) {
+        kept.push(line.replace(/^(\s*[-*+]\s+)(?:“[^”]*”|"[^"]*")/, '$1'));
+        continue;
+      }
       inAvoidList = false;
     }
     if (/^Avoid:\s*$/.test(line)) {
@@ -42,19 +48,22 @@ test('UPenn meeting materials do not claim endorsement or completed validation',
   }
 });
 
-test('only a bullet list under an exact `Avoid:` line is exempt', () => {
+test('only quoted phrases in a bullet list under an exact `Avoid:` line are exempt', () => {
   const listed = 'Avoid:\n\n- “C-BARQ validates ELI”\n- “Penn validates EMOPET”\n';
   assert.deepEqual(prohibitedClaims(listed), []);
   assert.deepEqual(prohibitedClaims(listed.replaceAll('\n', '\r\n')), []);
 
-  const penn = ['/Penn validates EMOPET/i'];
+  const penn = ['/Penn validate[sd] EMOPET/i'];
   const leaks = {
     'paragraph after the list': listed + '\nPenn validates EMOPET.\n',
     'CRLF paragraph after the list': (listed + '\nPenn validates EMOPET.\n').replaceAll('\n', '\r\n'),
     'unindented line right after the list': listed + 'Penn validates EMOPET.\n',
+    'unquoted bullet in the Avoid list': listed + '- Penn validates EMOPET\n',
+    'text after a quoted counter-example': 'Avoid:\n\n- “C-BARQ validates ELI” — yet Penn validates EMOPET\n',
     'text on the Avoid line': 'Avoid: Penn validates EMOPET\n',
     'differently labelled list': 'Prefer:\n\n- Penn validates EMOPET\n',
     'prose before the Avoid line': 'Penn validates EMOPET.\n\n' + listed,
+    'past tense': 'Penn validated EMOPET.\n',
   };
   for (const [name, source] of Object.entries(leaks)) {
     assert.deepEqual(prohibitedClaims(source), penn, name);
@@ -70,9 +79,9 @@ test('a claim added to the meeting pack outside its Avoid list still fails', asy
     '- “subject to licensing/permission”',
     '- “subject to licensing/permission”\n- “C-BARQ validates ELI”',
   );
-  assert.deepEqual(prohibitedClaims(inPreferList), ['/C-BARQ validates ELI/i']);
+  assert.deepEqual(prohibitedClaims(inPreferList), ['/C-BARQ validate[sd] ELI/i']);
   assert.deepEqual(prohibitedClaims(source + '\nPenn validates EMOPET.\n'), [
-    '/Penn validates EMOPET/i',
+    '/Penn validate[sd] EMOPET/i',
   ]);
 });
 
