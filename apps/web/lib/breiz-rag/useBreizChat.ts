@@ -32,6 +32,11 @@ export interface BreizMessage {
   /** Réponse touchant une donnée ELI → marqueur « ton factuel verrouillé ». */
   eli?: boolean;
   transparency?: BreizTransparency;
+  /**
+   * Message d'exemple écrit à la main (aucune observation réelle derrière).
+   * Porte le marqueur `DÉMO · ` de #118 (ELI-ARCH-G3) partout où il s'affiche.
+   */
+  demo?: boolean;
 }
 
 export interface UseBreizChat {
