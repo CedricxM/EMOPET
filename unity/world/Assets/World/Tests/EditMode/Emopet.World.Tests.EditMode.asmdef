@@ -1,0 +1,15 @@
+{
+  "name": "Emopet.World.Tests.EditMode",
+  "rootNamespace": "Emopet.World.Tests",
+  "references": ["Emopet.World.Core", "Emopet.World.Transport", "Emopet.World.Session"],
+  "includePlatforms": ["Editor"],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": ["UNITY_INCLUDE_TESTS"],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": ["TestAssemblies"]
+}
