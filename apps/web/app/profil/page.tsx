@@ -130,7 +130,7 @@ export default function ProfilPage() {
 
             <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <Eyebrow>Capteurs</Eyebrow>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16 }}>
                 {MOCK_SENSORS.map((s) => (
                   <Card key={s.id}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
