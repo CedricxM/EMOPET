@@ -198,6 +198,16 @@ test('P0 database workflow gates constraint/index parity against the classified 
   );
 });
 
+test('P0 database workflow checks ID-01 canonical ELI identity on both databases', () => {
+  const workflow = read(p0WorkflowPath);
+
+  assert.equal(
+    workflow.split('-f backend/test/id-01-referential-integrity.sql').length - 1,
+    2,
+    'ID-01 must run on path A (0024) and on the generated database',
+  );
+});
+
 test('P0 database workflow gates column parity against the classified drift ledger', () => {
   const workflow = read(p0WorkflowPath);
   const fingerprintRun = '-f backend/test/schema-column-parity.sql';

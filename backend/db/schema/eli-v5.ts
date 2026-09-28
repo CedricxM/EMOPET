@@ -1,6 +1,11 @@
-import { pgTable, text, uuid, timestamp, date, integer, doublePrecision, boolean, jsonb, serial, index, primaryKey } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { pgTable, text, uuid, timestamp, date, integer, doublePrecision, boolean, jsonb, serial, index, primaryKey, check } from 'drizzle-orm/pg-core';
 import { dogs } from './dogs.js';
 import { users } from './users.js';
+
+// Closed vocabularies enforced since migration 0003; the CHECK names match it.
+// Slots mirror SubBaselineSlot in packages/shared.
+const SUB_BASELINE_SLOTS = sql`('deep_rest_mat', 'light_rest_mat', 'owner_present', 'owner_absent', 'daytime_active')`;
 
 // ─── Dog Sub-Baselines ────────────────────────────────────────────
 
@@ -28,6 +33,7 @@ export const dogSubBaselines = pgTable('dog_sub_baselines', {
   lastUpdated: timestamp('last_updated', { withTimezone: true }),
 }, (table) => [
   primaryKey({ columns: [table.dogId, table.slot] }),
+  check('dog_sub_baselines_slot_check', sql`${table.slot} IN ${SUB_BASELINE_SLOTS}`),
 ]);
 
 // ─── Recovery Events (v6 — migration 0004) ────────────────────────
@@ -42,6 +48,7 @@ export const recoveryEvents = pgTable('recovery_events', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 }, (table) => [
   index('idx_recovery_events_dog_time').on(table.dogId, table.returnedToBaselineAt),
+  check('recovery_events_slot_check', sql`${table.slot} IN ${SUB_BASELINE_SLOTS}`),
 ]);
 
 // ─── Anticipation Events (v6 — migration 0004) ────────────────────
@@ -58,6 +65,8 @@ export const anticipationEvents = pgTable('anticipation_events', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 }, (table) => [
   index('idx_anticipation_events_dog_time').on(table.dogId, table.predictedEventTime),
+  // Mirrors AnticipationEventType in packages/shared.
+  check('anticipation_events_event_type_check', sql`${table.eventType} IN ('owner_departure', 'walk_time', 'meal_time')`),
 ]);
 
 // ─── Baseline Drift Monitor ──────────────────────────────────────
@@ -126,4 +135,5 @@ export const userConfig = pgTable('user_config', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (table) => [
   primaryKey({ columns: [table.userId, table.dogId, table.configKey] }),
+  check('user_config_source_check', sql`${table.source} IN ('system', 'breed', 'learned', 'user')`),
 ]);

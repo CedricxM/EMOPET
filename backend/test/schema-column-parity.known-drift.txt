@@ -10,24 +10,6 @@
 # entries are sorted by the gate, so grouping below is for review only.
 # Recorded 2026-09-27 on postgres:16.15; classification in the reconciliation doc.
 
-# C1 — ELI identifiers: text in 0003, uuid in Drizzle (§7.4, OPEN) (8 pairs)
-A|COLUMN|anticipation_events|dog_id|text NOT NULL
-B|COLUMN|anticipation_events|dog_id|uuid NOT NULL
-A|COLUMN|baseline_drift_monitor|dog_id|text NOT NULL
-B|COLUMN|baseline_drift_monitor|dog_id|uuid NOT NULL
-A|COLUMN|dog_sub_baselines|dog_id|text NOT NULL
-B|COLUMN|dog_sub_baselines|dog_id|uuid NOT NULL
-A|COLUMN|recovery_events|dog_id|text NOT NULL
-B|COLUMN|recovery_events|dog_id|uuid NOT NULL
-A|COLUMN|routine_stability|dog_id|text NOT NULL
-B|COLUMN|routine_stability|dog_id|uuid NOT NULL
-A|COLUMN|user_config|dog_id|text NOT NULL
-B|COLUMN|user_config|dog_id|uuid NOT NULL
-A|COLUMN|user_config|user_id|text NOT NULL
-B|COLUMN|user_config|user_id|uuid NOT NULL
-A|COLUMN|walk_quality|dog_id|text NOT NULL
-B|COLUMN|walk_quality|dog_id|uuid NOT NULL
-
 # C3 — historical morphology columns absent from Drizzle (§7.3, NOT_CURRENT_SCHEMA_AUTHORITY) (4)
 A|COLUMN|breed_sensor_profiles|height_max_cm|real
 A|COLUMN|breed_sensor_profiles|height_min_cm|real
