@@ -336,14 +336,15 @@ export default function HomePage() {
               className="text-2xl md:text-4xl text-[#141C25] mb-4"
               style={{ fontFamily: 'var(--font-display)' }}
             >
-              Une présence qui comprend votre histoire.
+              Une présence qui propose, sans imposer.
             </h2>
+            {/* D3 (#226) : aucune promesse de mémoire tant qu'elle n'existe pas, consentie et corrigeable. */}
             <p
               className="text-[#4A5766] text-base md:text-lg max-w-md mx-auto"
               style={{ fontFamily: 'var(--font-body)' }}
             >
-              Breiz apprend de votre relation pour proposer,
-              jamais pour imposer.
+              Breiz s’appuie sur des sources citées
+              et dit quand il ne sait pas.
             </p>
           </div>
           <BreizConversation />
