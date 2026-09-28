@@ -28,12 +28,9 @@ const controls: ToggleItem[] = [
     description: 'Données anonymisées pour la recherche',
     defaultValue: false,
   },
-  {
-    id: 'memory',
-    label: 'Mémoire personnalisation',
-    description: 'Breiz apprend de vos échanges',
-    defaultValue: true,
-  },
+  // Pas d'interrupteur « Mémoire » : Breiz ne mémorise rien aujourd'hui (#481).
+  // S'il revient, ce sera avec une mémoire consentie et corrigeable, désactivée
+  // par défaut (décision D3, #226).
 ];
 
 export default function PrivacyControls() {
