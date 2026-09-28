@@ -478,9 +478,22 @@ Voir §8.
 > 1. **La démonstration de covariable était un faux positif silencieux.** Je réécrivais `positionInSession` vers `1` sur le *premier* item répondu — qui valait déjà `1`. La mutation était un no-op, la chaîne restait valide à juste titre, et le transcript affichait « motif undefined ». Corrigé en ciblant une entrée dont la position est supérieure à 1, et le transcript affiche désormais la transition réelle (`position 2 → 1`).
 > 2. **L'artefact n'attrapait pas un item non factice.** En injectant un item sans préfixe `DEMO — `, **G8 a échoué mais l'artefact s'est produit sans broncher** — alors que c'est lui qu'on projette. Il vérifie maintenant que chaque chaîne réellement affichée est visiblement un factice, et refuse sinon. Éprouvé dans les deux sens.
 >
-> #### Réserve mineure
+> #### ~~Réserve mineure~~ — **corrigée le 2026-09-28**
 >
-> À l'exécution, Node émet `MODULE_TYPELESS_PACKAGE_JSON` parce que `packages/shared/package.json` ne déclare pas `"type": "module"`. Défaut préexistant, sur `stderr` uniquement — le fichier `call-artifact.txt` n'en porte aucune trace. Non corrigé : `shared` est consommé par le web et le mobile, et je ne peux pas vérifier ces builds dans ce conteneur (le build web échoue faute d'accès à Google Fonts). À traiter séparément.
+> ~~À l'exécution, Node émet `MODULE_TYPELESS_PACKAGE_JSON` parce que `packages/shared/package.json` ne déclare pas `"type": "module"`.~~ Corrigé, après avoir levé l'incertitude qui m'avait fait m'abstenir.
+>
+> **Ce que c'était.** `packages/shared` compile en `module: ESNext`, donc `dist/*.js` contient de la syntaxe ESM, mais sans `"type": "module"` Node classe ces fichiers en CommonJS. Le chargement ne réussissait que grâce au repli de détection de syntaxe de Node : parse CJS en échec, **reparse** en ESM, avertissement sur `stderr`. Cela marchait, au prix d'un double parse et d'une dépendance à un comportement de repli.
+>
+> **Pourquoi je m'étais abstenu, et ce qui a changé.** Je ne peux pas construire le web dans ce conteneur (faute d'accès à Google Fonts) ni exécuter Metro. Mais la question se règle sans ces builds :
+>
+> - `@emopet/shared` était le **seul** paquet du dépôt sans `"type": "module"` : `ai-personality`, `ble-protocol`, `eli-engine`, `privileged-auth` et `backend` le déclarent tous. `apps/web` et `apps/mobile` ne le déclarent pas, mais ce sont des applications empaquetées par leur propre chaîne, où le défaut CJS est normal ;
+> - `apps/web` liste `@emopet/shared` dans `transpilePackages`, aux côtés de `@emopet/ai-personality` et `@emopet/eli-engine` **qui déclarent déjà `type: module`** — Next consomme donc déjà ce cas dans ce dépôt ;
+> - `apps/mobile` importe déjà `@emopet/ai-personality` et `@emopet/ble-protocol`, **tous deux `type: module`** — Metro aussi ;
+> - aucun `require('@emopet/shared')` n'existe dans le dépôt : aucun consommateur CJS à casser.
+>
+> **Vérifié.** `tsc --noEmit` sur le web : 0 erreur avant, 0 après. Sur le mobile : 157 erreurs avant, 157 après, **sortie identique au diff** (ces 157 sont un décalage préexistant de types React, sans rapport, et aucune ne mentionne `@emopet/shared`). Construction de la fermeture `@emopet/api...` : succès. 374 tests backend, 0 échec. Les trois scripts `instruments:*` s'exécutent avec `stderr` **vide**.
+>
+> **Ce que ça ne prouve toujours pas** : ni le bundle Metro, ni le build Next complet, qui ne sont pas exécutables ici. Le différentiel de typecheck et les quatre points ci-dessus sont ce sur quoi la décision repose.
 
 ---
 
