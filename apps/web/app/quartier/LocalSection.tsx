@@ -394,7 +394,7 @@ export function LocalSection() {
       <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <header style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <Eyebrow tone="accent">{t('local', 'mapEyebrow')}</Eyebrow>
-          <H1>{t('local', 'mapTitle')}</H1>
+          <H1 as="h2">{t('local', 'mapTitle')}</H1>
           <Lead>{TOTAL_DOGS} {t('local', 'mapLeadSuffix')}</Lead>
         </header>
 
@@ -577,7 +577,7 @@ export function LocalSection() {
       {/* === Annuaire local existant (vétérinaires, parcs, éducateurs, urgences) === */}
       <header id="local-annuaire" style={{ display: 'flex', flexDirection: 'column', gap: 6, scrollMarginTop: 24 }}>
         <Eyebrow>{t('local', 'nearbyEyebrow')}</Eyebrow>
-        <H1>{t('local', 'nearbyTitle')}</H1>
+        <H1 as="h2">{t('local', 'nearbyTitle')}</H1>
         <Lead>{t('local', 'nearbyLead')}</Lead>
       </header>
 

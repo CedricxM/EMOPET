@@ -112,7 +112,7 @@ export function CommunitySection() {
           <>
             <header style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <Eyebrow tone="accent">{t('communaute', 'eyebrow')}</Eyebrow>
-              <H1>{t('communaute', 'title')}</H1>
+              <H1 as="h2">{t('communaute', 'title')}</H1>
               <Lead>{t('communaute', 'lead')}</Lead>
             </header>
 
