@@ -340,6 +340,39 @@ Trois corrections, toutes vérifiées :
 
 **Une leçon de méthode, notée parce qu'elle a failli produire un faux rapport.** Mon premier scan annonçait onze décalages. Dix étaient les miens : ma regex, ancrée sur `_DB_INTEGRATION` sans fermer l'identifiant, capturait un préfixe de `EMOPET_DB_INTEGRATION_TEST`. Il n'y avait qu'un décalage réel. Le test livré porte la regex corrigée et un commentaire expliquant pourquoi l'ancrage de fin compte.
 
+#### La dérive de FK : cinq doublons **corrigés le 2026-09-28**, dix absences laissées ouvertes
+
+`[ÉTABLI]` Ce que le paragraphe ci-dessus qualifiait d'« arbitrage à part » s'est révélé, à la mesure, être **deux questions de nature différente**. L'une est un défaut de confidentialité au correctif minimal ; elle est corrigée. L'autre est une réconciliation de socle ; elle reste ouverte.
+
+**Le défaut.** `0006`, `0008` et `0009` appliquent la décision approuvée D1–D4 — une référence d'identité se **détache** à l'effacement du compte au lieu de le bloquer — selon le motif `DROP CONSTRAINT IF EXISTS "x_col_users_id_fk"` puis `ADD CONSTRAINT "x_col_users_id_fk" ... ON DELETE SET NULL`. Or le socle brouillon avait créé ces FK sous le nom généré par PostgreSQL, `x_col_fkey`. Le `DROP` ne correspondait à rien, l'`ADD` créait une **seconde** contrainte, et les deux survivaient : une `NO ACTION`, une `SET NULL`.
+
+PostgreSQL applique **toutes** les FK. La contrainte résiduelle `NO ACTION` refusait donc exactement la suppression que `SET NULL` avait été ajoutée pour permettre. Mesuré sur une base construite par la séquence de migrations :
+
+```
+chemin MIGRATIONS : suppression du répondant BLOQUÉE par
+                    « behavioral_assessments_respondent_user_id_fkey »   (D1 défait)
+chemin GÉNÉRÉ     : suppression ACCEPTÉE, respondent_user_id = NULL      (D1 respecté)
+```
+
+**La sémantique de détachement approuvée ne fonctionnait pas du tout sur le chemin des migrations.** Cinq relations concernées : `auth_refresh_sessions.user_id`, `behavioral_assessments.respondent_user_id`, `communities.created_by`, `community_events.created_by`, `community_reports.reporter_user_id`. La CI n'exerçait que la base générée, où le doublon n'existe pas : voilà pourquoi c'est resté invisible.
+
+**Le correctif.** `0014_retire_superseded_detach_foreign_keys.sql` retire les cinq contraintes périmées, et rien d'autre : aucun ajout, aucune donnée touchée. Chaque suppression est conditionnée à la présence effective du pendant `SET NULL` — sinon la migration **lève une exception et annule tout**, parce que laisser une colonne d'identité sans aucune FK transformerait une suppression bloquée en orphelin silencieux, ce qui serait pire que le défaut corrigé.
+
+Vérifié, sur un cluster jetable, en quatre points :
+
+1. **efficacité** — après `0014`, la suppression d'un répondant détache les cinq relations (`detached = t` partout) ; sans `0014`, la même suppression est refusée ;
+2. **idempotence** — réappliquée sur une base déjà corrigée, la migration est un no-op ;
+3. **innocuité sur l'autre chemin** — appliquée au schéma généré par Drizzle, elle ne touche rien (59 FK avant, 59 après), ce qui compte parce que la CI applique `baseline-draft/*` + `migrations/*` **deux fois** et compare les schémas ;
+4. **garde de refus** — en retirant artificiellement `communities_created_by_users_id_fk`, la migration refuse la suppression en nommant les deux contraintes, et la transaction est annulée : aucune des cinq n'est tombée.
+
+**Ce que ça change pour la topologie déclarée.** Avant `0014`, le test de parité de topologie lancé contre le chemin des migrations divergeait sur six points. Après, il n'en reste **qu'un** : `user_config.user_id`, l'une des dix FK manquantes ci-dessous. Toutes les lignes `SET_NULL` correspondent maintenant exactement à `config/privacy/account-erasure-topology.json`.
+
+**Ce qui reste ouvert, et n'est pas corrigé ici.** Dix FK existent dans le schéma généré et pas sur le chemin des migrations : `anticipation_events.dog_id`, `baseline_drift_monitor.dog_id`, `copresence_events.dog_a_id`, `copresence_events.dog_b_id`, `dog_sub_baselines.dog_id`, `recovery_events.dog_id`, `routine_stability.dog_id`, `user_config.dog_id`, `user_config.user_id`, `walk_quality.dog_id`. C'est une **réconciliation de socle**, pas un doublon à retirer : ajouter dix contraintes à une base existante suppose de décider quoi faire des lignes qui les violeraient déjà, et cette décision n'appartient pas à `P`. **Inscrit comme arbitrage ouvert, pas comme oubli.**
+
+**Le garde-fou, parce que la classe de défaut est invisible.** Un doublon de FK ne produit ni erreur, ni avertissement, ni bruit au diff de schéma ; il ne se manifeste que le jour où un effacement est refusé. Les tests de registre existants ne l'attrapent pas non plus : ils vérifient que les relations déclarées sont présentes avec l'action annoncée, et une contrainte correcte **plus** une mauvaise se lit comme correcte si l'on ne cherche que la correcte. D'où `backend/test/privacy-duplicate-foreign-key-detach.integration.test.mjs`, qui interroge directement le catalogue : au plus une FK par couple (colonnes enfant → colonnes parent), et action effective `SET NULL` sur les cinq relations D1–D4. Il est lancé par la CI **sur les deux chemins de construction**, ce qui est le point : la divergence n'était possible que parce qu'un seul des deux était interrogé. Éprouvé dans les deux sens — il échoue sur la base d'avant `0014` en nommant les cinq couples et leurs actions, il passe sur les deux bases d'après.
+
+**Un faux positif corrigé au passage.** `migration-baseline-static.test.mjs` scannait le texte brut des fichiers SQL, commentaires inclus. L'en-tête de `0014` cite le motif fautif (`ALTER TABLE x ...`) pour l'expliquer, et le scanner comptait cette citation comme une vraie instruction, signalant deux violations d'ordre inexistantes. Les commentaires sont désormais blanchis avant scan, en conservant les positions de caractères pour ne pas changer l'ordre des événements. Noté aussi, dans le code, que le scanner ne voit **pas** le DDL construit dynamiquement (`EXECUTE format(...)`) : ce sont les tests adossés à une base qui couvrent ce cas, jamais le scan statique.
+
 ### Lot 7 — Harnais de simulation · `M` · dépend de L1 à L4
 
 > **État : `FAIT` (2026-09-28).** `pnpm instruments:simulate -- --owners 400 --profile mixed --seed 42`. Déterministe (même graine → sortie identique au bit près), sans dépendance ajoutée. Sorties dans `.data/` (déjà ignoré par git) : `administrations.csv`, `responses.csv`, `summary.json`.

@@ -162,6 +162,18 @@ jobs:
           NODE_ENV: test
         run: node --test test/device-unbind-retention-clock.integration.test.mjs
 
+      # Migration 0014 retired five duplicate foreign keys that re-blocked the approved
+      # D1-D4 detach on this build path while the generated schema detached correctly.
+      # The divergence was invisible because only the generated schema was queried, so
+      # the guard runs on both paths from here on.
+      - name: PRIV-ERASURE duplicate foreign keys on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          PRIVACY_DUPLICATE_FK_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/privacy-duplicate-foreign-key-detach.integration.test.mjs
+
       - name: Build backend dependency closure
         run: pnpm --filter @emopet/api... build
 
@@ -348,6 +360,14 @@ jobs:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
           PRIVACY_TOPOLOGY_DB_INTEGRATION: '1'
         run: node --test test/privacy-erasure-topology.integration.test.mjs
+
+      - name: PRIV-ERASURE duplicate foreign keys on generated database
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          PRIVACY_DUPLICATE_FK_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/privacy-duplicate-foreign-key-detach.integration.test.mjs
 
       - name: PRIV-ERASURE-RESIDUE snapshot + negative SQL verification
         working-directory: backend

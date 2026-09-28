@@ -25,7 +25,31 @@ function schemaTableNames() {
   return names;
 }
 
-function sqlEvents(sql) {
+/**
+ * Blanks out SQL comments, keeping every character position.
+ *
+ * Migrations here carry long explanatory headers, and a header that quotes the
+ * statement it is describing ("this did ALTER TABLE x ...") is documentation, not a
+ * statement. Scanning the raw text counted those quotes as real DDL and reported
+ * ordering violations that do not exist. Comments are replaced by spaces rather than
+ * removed so the byte offsets that order the events stay exactly as they were.
+ */
+function withoutComments(sql) {
+  const blank = (text) => text.replace(/[^\n]/g, ' ');
+  return sql
+    .replace(/\/\*[\s\S]*?\*\//g, blank)
+    .replace(/--[^\n]*/g, blank);
+}
+
+/**
+ * CREATE and ALTER events in statement order.
+ *
+ * Only statements written literally are visible. A migration that builds its DDL
+ * dynamically (EXECUTE format(...)) is invisible to this scan by construction; the
+ * database-backed tests are what cover those.
+ */
+function sqlEvents(rawSql) {
+  const sql = withoutComments(rawSql);
   const events = [];
   const createRe = /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:"?([a-zA-Z0-9_]+)"?)/gi;
   const alterRe = /ALTER\s+TABLE\s+(?:IF\s+EXISTS\s+)?(?:"?([a-zA-Z0-9_]+)"?)/gi;
