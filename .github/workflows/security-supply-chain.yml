@@ -32,6 +32,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Test dependency licence evidence summarizer
         run: node --test scripts/security/summarize-pnpm-licenses.test.mjs
+      - name: Test high/critical dependency gate evaluator
+        run: node --test tools/security/evaluate-pnpm-audit.test.mjs
       - name: Collect exact-head dependency licence inventories
         run: |
           pnpm licenses list --json --long > pnpm-licenses-all.json
@@ -94,6 +96,8 @@ jobs:
       # scientific validation or runtime activation; each guard pins one
       # boundary that has already drifted or regressed once. See #114, #116,
       # #118 and #86.
+      - name: Enforce CI coverage of every root scripts/ and tools/ test (#671)
+        run: node --test scripts/control/control-test-ci-coverage.test.mjs
       - name: Enforce control-register pointers (#114, #116)
         run: |
           pnpm control:pointer-audit
@@ -115,6 +119,10 @@ jobs:
           scripts/control/wqi-rsi-authority.test.mjs
       - name: Enforce UPenn meeting-pack claim boundary (C-BARQ / Penn / ELI, #617)
         run: node --test scripts/control/upenn-meeting-claims.test.mjs
+      - name: Enforce INT-08 product and science documentation authorities
+        run: node --test scripts/docs/verify-int08-authorities.test.mjs
+      - name: Enforce TAG ERC/schematic source-coherence checker
+        run: pnpm hardware:tag-source-coherence:test
       - name: Enforce single InferenceResult authority (ELI-ARCH-G2, #118)
         run: pnpm control:eli-contract:test
       - name: Enforce ELI runtime conformance non-activation (#479)

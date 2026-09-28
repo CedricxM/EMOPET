@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { ContentShell } from '../../components/content-shell';
+import { BreizMessageTags } from '../../components/breiz/BreizMessageTags';
 import { LocalKnowledgePanel } from '../../components/breiz/LocalKnowledgePanel';
 import { Button, Card, Eyebrow, H2, Icon, P, P2, Pill } from '../../components/ui';
 import { useBreizChat, type BreizMessage } from '../../lib/breiz-rag/useBreizChat';
+import { ELI_DEMO_PREFIX } from '../../lib/narration';
 import styles from '../../styles/living-pages.module.css';
 
 type Conversation = {
@@ -17,8 +19,10 @@ type Conversation = {
 
 type Message = BreizMessage;
 
+// Historique et conversation d'exemple écrits à la main : aucune observation
+// MAT/TAG ni inférence ELI derrière. Ils portent le marqueur DÉMO (#118 G3).
 const CONVERSATIONS: Conversation[] = [
-  { id: 'c1', title: "Réveils matinaux de Gus", preview: "Il semble anticiper vos départs…", date: "Auj.", active: true },
+  { id: 'c1', title: "Réveils matinaux de Gus", preview: "Courte phase d'éveil avant vos départs…", date: "Auj.", active: true },
   { id: 'c2', title: 'Sorties plus courtes ?', preview: 'Sur 7 jours la moyenne baisse un peu…', date: 'Hier' },
   { id: 'c3', title: 'Nuit du 14 avril', preview: 'Interruptions de repos entre 2 h et 4 h…', date: '14 avr.' },
   { id: 'c4', title: 'Retour au calme', preview: "Gus met 8 à 14 min à revenir…", date: '10 avr.' },
@@ -34,6 +38,7 @@ const MESSAGES: Message[] = [
     id: 'm2',
     from: 'bleiz',
     tone: 'calm',
+    demo: true,
     text:
       "Sur les 6 derniers matins, une courte phase d'éveil de Gus est observée entre 7 h 40 et 7 h 55 — juste avant votre sortie habituelle à 8 h. C'est une observation de rythme, pas une évaluation vétérinaire.",
     sources: ['MAT · fenêtre 7 h 30 – 8 h 00', 'ELI valide · capture 142 min'],
@@ -47,6 +52,7 @@ const MESSAGES: Message[] = [
     id: 'm4',
     from: 'bleiz',
     tone: 'calm',
+    demo: true,
     text:
       "Je ne peux pas interpréter un état émotionnel. Ce que j'observe : une répétition du motif sur plusieurs jours, sans pic d'activité inhabituel ni variation marquée du repos. Si vous souhaitez approfondir, un vétérinaire pourra examiner le contexte.",
     sources: ['Motif répété ≥ 6 j', 'Pas de veto levé'],
@@ -80,12 +86,13 @@ export default function BreizPage() {
       >
         <div className={styles.breizNote}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
-            <Eyebrow>Conversations</Eyebrow>
+            <Eyebrow>{`${ELI_DEMO_PREFIX}conversations d'exemple`}</Eyebrow>
             <Button kind="ghost" size="sm" leading={<Icon name="plus" size={14} />}>
               Nouvelle
             </Button>
           </div>
-          <P2 style={{ marginTop: 8 }}>Breiz croise les notes, les sources locales et les fenêtres fiables sans conclure à la place du propriétaire.</P2>
+          {/* Le repli local ne lit ni le journal ni ELI : ne pas le prétendre. */}
+          <P2 style={{ marginTop: 8 }}>Breiz répond à partir de fiches sourcées, sans conclure à la place du propriétaire. Il n'a pas accès à vos notes ni à vos données ELI.</P2>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {CONVERSATIONS.map((c) => (
@@ -176,11 +183,12 @@ export default function BreizPage() {
                   fontWeight: 'var(--weight-semi)',
                 }}
               >
-                Tonalité calme · observations non-médicales
+                Assistant IA · tonalité calme · observations non médicales
               </span>
             </div>
             <div style={{ marginLeft: 'auto' }}>
-              <Pill state="valid" label="ELI valide" showDot />
+              {/* Aucune donnée ELI n'alimente cette page : l'état est celui de la démo (#118 G3). */}
+              <Pill state="valid" label={`${ELI_DEMO_PREFIX}ELI valide`} showDot />
             </div>
           </div>
 
@@ -214,13 +222,9 @@ export default function BreizPage() {
                     <Icon name="wave" size={14} />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {m.eli && (
-                      <span style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '2px 9px', borderRadius: 'var(--radius-pill)', background: 'var(--bg-sunk)', border: '1px solid var(--border)', fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--fg-muted)' }}>
-                        ⊙ Donnée ELI · ton factuel verrouillé
-                      </span>
-                    )}
+                    <BreizMessageTags message={m} />
                     <P>{m.text}</P>
-                    {m.sources && (
+                    {!!m.sources?.length && (
                       <div
                         style={{
                           display: 'flex',
@@ -319,7 +323,7 @@ export default function BreizPage() {
               textAlign: 'center',
             }}
           >
-            Breiz ne formule pas d'évaluation vétérinaire. Il rappelle ce qui est observé, déclaré, ou interprété.
+            Breiz est une IA. Il ne formule pas d'évaluation vétérinaire et distingue ce qui est observé, déclaré ou interprété.
           </P2>
         </div>
       </Card>

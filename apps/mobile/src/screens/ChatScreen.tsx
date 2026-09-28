@@ -72,6 +72,8 @@ const SUGGESTIONS = [
   "Comment interpréter un changement de routine ?",
 ];
 
+// Racine historique App.v04 (hors expo-router/entry) : conversation écrite à la main,
+// sources de démonstration marquées DÉMO (#118 G3, D6 de #226).
 export function ChatScreen({ variant = 'normal' }: { variant?: 'normal' | 'empty' }) {
   const [draft, setDraft] = useState('');
   const [messages, setMessages] = useState<Message[]>(
@@ -80,26 +82,24 @@ export function ChatScreen({ variant = 'normal' }: { variant?: 'normal' | 'empty
           {
             from: 'breiz',
             text: "Bonjour. Je reste non-médical et je parle avec prudence. Sans capteur associé, je m'appuie sur ce que vous déclarez et sur le contexte local. Je peux vous aider à comprendre les tendances observées — ou juste à poser des questions.",
-            sources: 'Profil · Breiz v6 · tonalité calme · sans capteur',
           },
         ]
       : [
           {
             from: 'breiz',
             text: "Bonjour. Je reste non-médical et je parle avec prudence. Je peux vous aider à comprendre les tendances observées.",
-            sources: 'Profil · Breiz v6 · tonalité calme',
           },
           { from: 'user', text: "Pourquoi Gwen est plus agitée le matin ?" },
           {
             from: 'breiz',
-            text: "Une anticipation de vos départs a été observée 3 fois ce mois-ci. Tendance à confirmer — rien d'alarmant pour l'instant.",
-            sources: 'MAT · 3 fenêtres matinales · signal valide 2 h 40',
+            text: "Une courte phase d'éveil avant vos départs a été observée 3 fois ce mois-ci. Tendance à confirmer sur plusieurs semaines.",
+            sources: 'DÉMO · MAT · 3 fenêtres matinales · signal valide 2 h 40',
           },
           { from: 'user', text: "Je devrais m'inquiéter pour son bien-être ?" },
           {
             from: 'breiz',
             text: "Je ne peux pas conclure sur le bien-être global à partir de cette seule observation. Si cela persiste plusieurs semaines, ou s'accompagne d'autres changements (appétit, posture, vocalisations), j'en parlerais à votre vétérinaire.",
-            sources: 'Interprétation · à confirmer sur plusieurs semaines',
+            sources: 'DÉMO · interprétation à confirmer sur plusieurs semaines',
             disclaimer: true,
           },
         ]
@@ -126,7 +126,7 @@ export function ChatScreen({ variant = 'normal' }: { variant?: 'normal' | 'empty
         <BreizAvatar size={36} />
         <View>
           <Text style={styles.headerTitle}>Breiz</Text>
-          <Text style={styles.headerSubtitle}>Tonalité calme · non-médical</Text>
+          <Text style={styles.headerSubtitle}>Assistant IA · tonalité calme · non-médical</Text>
         </View>
       </View>
 
