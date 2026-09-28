@@ -23,12 +23,12 @@ interface Msg {
   sources?: string;
 }
 
+// Pas de « source » sur l'accueil : un réglage de tonalité n'est pas une provenance.
 const SEED: Msg[] = [
   {
     from: 'bleiz',
     text:
       'Bonjour. Je reste non-médical et je parle avec prudence. Je peux vous aider à comprendre les tendances observées.',
-    sources: 'Profil · Bleiz · tonalité calme',
   },
 ];
 
@@ -69,7 +69,7 @@ export default function ChatScreen() {
         </View>
         <View style={styles.headerText}>
           <Text style={styles.headerTitle}>{persona.displayName}</Text>
-          <Text style={styles.headerMeta}>Tonalité {effective} · non-médical</Text>
+          <Text style={styles.headerMeta}>Assistant IA · tonalité {effective} · non-médical</Text>
         </View>
       </View>
 
@@ -111,6 +111,11 @@ export default function ChatScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={0}
       >
+        {/* Cet écran n'est relié à aucun moteur de réponse : le dire plutôt que laisser
+            croire qu'un message envoyé sera lu (#226, audit de transparence). */}
+        <Text style={styles.notice}>
+          Breiz est une IA. Les réponses ne sont pas encore disponibles dans cette version mobile.
+        </Text>
         <View
           style={[
             styles.composer,
@@ -259,6 +264,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.fgStrong,
     lineHeight: 21,
+  },
+  notice: {
+    fontFamily: fontFamily.sans,
+    fontSize: fontSize.xxs,
+    color: colors.fgMuted,
+    textAlign: 'center',
+    paddingHorizontal: spacing.s4,
+    paddingVertical: spacing.s2,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    backgroundColor: colors.bgAlt,
   },
   composer: {
     flexDirection: 'row',
