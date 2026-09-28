@@ -7,7 +7,7 @@
 
 ## Editor
 
-Pinned editor: **Unity 6.3 LTS — 6000.3.21f1**.
+Pinned editor: **Unity 6.3 LTS — 6000.3.25f1**.
 
 Add `unity/world` as a project in Unity Hub using that editor patch.
 
@@ -44,7 +44,7 @@ There is deliberately no production scene yet.
 
 ## Validation
 
-When Unity 6000.3.21f1 is available, run EditMode tests from the Test Runner or batch mode.
+When Unity 6000.3.25f1 is available, run EditMode tests from the Test Runner or batch mode.
 Until an Editor run exists, repository review is **static only**.
 
 Before any merge:
