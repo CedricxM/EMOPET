@@ -29,28 +29,29 @@ namespace Emopet.World
             request.SetRequestHeader("Authorization", $"Bearer {bearerToken}");
             request.SetRequestHeader("Accept", "application/json");
 
-            using var abortRegistration = cancellationToken.Register(request.Abort);
+            cancellationToken.ThrowIfCancellationRequested();
             var operation = request.SendWebRequest();
+            using var abortRegistration = cancellationToken.Register(request.Abort);
             await AwaitAsync(operation, cancellationToken);
 
             return new WorldHttpResponse(request.responseCode, request.downloadHandler?.text);
         }
 
-        private static Task AwaitAsync(
+        private static async Task AwaitAsync(
             UnityWebRequestAsyncOperation operation,
             CancellationToken cancellationToken)
         {
             if (operation.isDone)
-                return Task.CompletedTask;
+                return;
 
             var completion = new TaskCompletionSource<bool>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
 
             operation.completed += _ => completion.TrySetResult(true);
-            if (cancellationToken.CanBeCanceled)
-                cancellationToken.Register(() => completion.TrySetCanceled(cancellationToken));
+            using var cancellationRegistration = cancellationToken.Register(
+                () => completion.TrySetCanceled(cancellationToken));
 
-            return completion.Task;
+            await completion.Task;
         }
     }
 }
