@@ -1,6 +1,6 @@
 # Breiz AI Transparency Policy
 
-Status: `P0 IMPLEMENTED ON WEB AND MOBILE CHAT SURFACES / SURFACE AUDIT DONE 2026-09-27 / FOUNDER DECISIONS OPEN`
+Status: `P0 IMPLEMENTED ON WEB AND MOBILE CHAT SURFACES / SURFACE AUDIT DONE 2026-09-27 / PERSONA NAMING DECISION OPEN`
 
 ## User disclosure
 
@@ -42,5 +42,5 @@ Before production, audit every Breiz surface (web, mobile, notifications, report
 ## Audit record
 
 - 2026-09-27 — web and mobile surfaces audited: `docs/compliance/BREIZ_TRANSPARENCY_AUDIT_2026-09-27.md`.
-  Violations of this policy are fixed and guarded by tests; seven product, rights and marketing decisions
-  (D1–D7) remain open. Notifications and future Unity/Nakama clients still need auditing once they render Breiz.
+  Violations of this policy are fixed and guarded by tests. Founder decisions D1–D6 are applied
+  (#226, issuecomment-5863088471); D7 (tone persona names) remains open. Notifications and future Unity/Nakama clients still need auditing once they render Breiz.

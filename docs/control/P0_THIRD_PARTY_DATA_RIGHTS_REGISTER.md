@@ -224,6 +224,16 @@ Official-source reviewer role: `candidate source reviewer`. Source confirmation 
 product-use authorization. Re-checking these eight pages, with retained dated evidence, is
 part of DATA-LIC-G1 and DATA-LIC-G5 closure.
 
+### 2026-09-27 addition — FCI breed standards (Breiz transparency audit, D4 of #226)
+
+Breiz displays short temperament excerpts extracted from FCI breed-standard PDFs
+(`apps/web/lib/breiz-rag/breeds.generated.ts`, labelled "Tempérament (standard FCI)"). The FCI
+referential was not in this register.
+
+| Official ID | Source | Official pointer | Observation (2026-09-27) | State | Remaining boundary |
+|---|---|---|---|---|---|
+| DATA-OFFICIAL-009 | FCI breed standards and website | https://www.fci.be/en/nomenclature/publication.aspx ; https://www.fci.be/en/Legal-notice-97.html ; https://www.fci.be/en/FCI-social-media-62.html | No licence, reuse permission or reproduction statement found on the standards publication page, the legal notice or the disclaimer. The standard PDF itself (e.g. `297g01-en.pdf`) could not be text-extracted in this check. | `OPEN` | Absence of a stated licence is not a reuse authority. Owner: read the standard PDFs' own notices and obtain FCI's position, or remove the excerpts |
+
 ## 6. External dataset register
 
 | Item ID | Dataset and intended repository use | Version evidence | Licence evidence | Payload/checksum receipt | Attribution/citation | Owner role | State | Next action |
@@ -232,6 +242,7 @@ part of DATA-LIC-G1 and DATA-LIC-G5 closure.
 | DATASET-002 | Inertial sensor dataset for Dog Posture Recognition; R&D and preprocessing validation | DOI/version fixed at V1 in registry and official page | CC-BY-4.0 source label confirmed 2026-09-02 | `RECEIPT_MISSING` | Registry text exists; implementation evidence absent | Data/Research owner | `OPEN` | Same, and keep associated-code licensing separate from dataset licensing |
 | DATASET-003 | Vertebrate Breed Ontology; canonical identifiers, synonyms and cross-references | Registry says `controlled-at-retrieval`; §7 now binds the payload to an immutable upstream commit | CC-BY-4.0 source label confirmed 2026-09-02 | `RECEIPT_MISSING` despite proven byte equivalence | Generic attribution text exists; product/distribution evidence absent | Data owner | `OPEN` | Retain an independent upstream retrieval receipt and prove historical transform identity |
 | DATASET-004 | ANMV/Anses reference data; official identifiers and record normalization | Registry says `v2-current-at-retrieval`, not an immutable resource identity | Catalogue label confirmed 2026-09-02; exact legal-code/version receipt open | `RECEIPT_MISSING` | Registry text exists; output evidence absent | Data/Product owner | `OPEN` | Resolve exact resource URL/version, licence URI, retrieval receipt and field-level use |
+| DATASET-005 (added 2026-09-27) | FCI breed referential (`data/breed_profiles.json`, `data/reference/fci_breeds.csv`, local standard PDFs); onboarding taxonomy and Breiz breed sheets, including temperament excerpts | No release or retrieval identity recorded; the committed Breiz sheets predate the current `breed_profiles.json` | None found (DATA-OFFICIAL-009) | `RECEIPT_MISSING` | Breiz shows "Profils de races EMOPET (référentiel FCI)"; no FCI-approved attribution | Data/Product owner | `OPEN` | Settle FCI reuse terms. The temperament excerpts are the only text reproduced from the standards; group, origin and size are single data points |
 
 The receipt mechanism is no longer the gap. `scripts/data/register-dataset-file.mjs` already
 computes SHA-256, byte size and a structured `emopet-dataset-receipt-v1` record, and
