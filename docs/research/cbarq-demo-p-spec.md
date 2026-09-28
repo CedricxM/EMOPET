@@ -124,9 +124,15 @@ Neuf lots. Chacun porte ses fichiers, sa définition de terminé, ses dépendanc
 
 ### Lot 1 — Schéma et migration · `M` · sans dépendance
 
+> **État : `FAIT` (2026-09-28).** Magasin privé : **option C** retenue par le fondateur — structure en base, texte licencié dans le magasin privé. Vérifié : typecheck backend propre ; 304 tests backend, 0 échec ; séquence complète socle + 13 migrations appliquée sur PostgreSQL 16 jetable ; `0013` réappliquée sans erreur (idempotente) ; 20 cas de contrainte testés, dont 14 rejets tous imputés à la contrainte visée.
+>
+> **Écart connu, à combler par L6 :** `administration_sessions` et `instrument_administration_events` sont des descendantes transitives de `dogs` via `behavioral_assessments.dog_id`, et ne sont pas encore déclarées dans `config/privacy/dog-erasure-topology.json` (`transitiveDescendants`) ni dans la matrice de disposition. Aucun test n'échoue — ces listes sont comparées config contre config, sans introspection de PostgreSQL — mais la topologie déclarée est donc **incomplète** tant que L6 n'est pas fait. À ne pas laisser passer en production.
+
 **Fichiers**
-- `backend/db/schema/instruments.ts` *(nouveau)* — les six tables de registre + `administration_sessions` + `instrument_administration_events`
-- `backend/db/schema/index.ts` — ajouter `export * from './instruments.js';`
+- `backend/db/schema/instruments.ts` *(nouveau)* — les six tables de registre
+- `backend/db/schema/instrument-administration.ts` *(nouveau)* — `administration_sessions` + `instrument_administration_events`. **Écart assumé par rapport à la spec initiale**, qui prévoyait un seul fichier : les registres sont référencés par `behavioral_assessments` (version, politique), qui est elle-même référencée par les tables de runtime. Un fichier unique aurait créé un import circulaire ; la séparation garde chaque import unidirectionnel.
+- `backend/db/schema/behavioral-assessments.ts` — colonnes additives `version_id`, `policy_id`, `lifecycle_state`, `window_ends_at`
+- `backend/db/schema/index.ts` — exports des deux nouveaux fichiers
 - `backend/db/migrations/0013_instrument_administration.sql` *(nouveau)*
 
 **Contenu** — tel que spécifié dans le document de conception §3.2.1, §3.2.2, §3.2.2 bis, §3.2.3, §3.2.4, §3.2.5. Les contraintes `CHECK` sont la substance, pas de la décoration :
