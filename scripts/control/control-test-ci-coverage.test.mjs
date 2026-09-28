@@ -2,7 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
 
-const CONTROL_TEST_PATH = /scripts\/control\/[\w.-]+\.test\.mjs(?![\w.-])/g;
+// Workspace packages run their tests through `pnpm test` (turbo) with directory
+// globs, so new files there are picked up automatically. Root scripts/ and
+// tools/ tests have no such runner: each one must be named in a workflow.
+const ROOT_TEST_DIRS = ['scripts', 'tools'];
+// Matches a root-relative path, optionally `./`-prefixed, but not the tail of
+// a longer path such as apps/web/scripts/x.test.mjs.
+const ROOT_TEST_PATH = /(?<![\w./-])(?:\.\/)?((?:scripts|tools)\/[\w./-]+\.test\.mjs)(?![\w.-])/g;
 
 const indentOf = (line) => line.length - line.trimStart().length;
 const isBlankOrComment = (line) => line.trim() === '' || line.trimStart().startsWith('#');
@@ -69,11 +75,11 @@ function shellCommands(text) {
     .filter(Boolean);
 }
 
-// Collects every scripts/control test that an every-PR workflow runs with
-// `node --test`, either directly in a `run:` step or through a root
+// Collects every root scripts/ or tools/ test that an every-PR workflow runs
+// with `node --test`, either directly in a `run:` step or through a root
 // package.json script it calls as `pnpm <name>` / `pnpm run <name>`. `if:`
 // conditions and `continue-on-error` are not evaluated.
-function executedControlTests(workflows, scripts) {
+function executedRootTests(workflows, scripts) {
   const executed = new Set();
   const expanded = new Set();
   const visit = (command) => {
@@ -83,7 +89,7 @@ function executedControlTests(workflows, scripts) {
       shellCommands(scripts[pnpm[1]]).forEach(visit);
     }
     if (!/^node\s(.*\s)?--test(\s|$)/.test(command)) return;
-    for (const [path] of command.matchAll(CONTROL_TEST_PATH)) executed.add(path);
+    for (const [, path] of command.matchAll(ROOT_TEST_PATH)) executed.add(path);
   };
   for (const workflow of workflows.filter(runsOnEveryPullRequest)) {
     runBlocks(workflow).flatMap(shellCommands).forEach(visit);
@@ -91,7 +97,7 @@ function executedControlTests(workflows, scripts) {
   return executed;
 }
 
-test('every scripts/control test runs in a workflow triggered by every pull request', async () => {
+test('every root scripts/ and tools/ test runs in a workflow triggered by every pull request', async () => {
   const workflowDir = new URL('../../.github/workflows/', import.meta.url);
   const workflows = await Promise.all(
     (await readdir(workflowDir))
@@ -101,14 +107,20 @@ test('every scripts/control test runs in a workflow triggered by every pull requ
   const { scripts } = JSON.parse(
     await readFile(new URL('../../package.json', import.meta.url), 'utf8'),
   );
-  const controlTests = (await readdir(new URL('./', import.meta.url)))
-    .filter((file) => file.endsWith('.test.mjs'))
-    .map((file) => `scripts/control/${file}`);
+  const rootTests = [];
+  for (const dir of ROOT_TEST_DIRS) {
+    const files = await readdir(new URL(`../../${dir}/`, import.meta.url), { recursive: true });
+    for (const file of files) {
+      const path = `${dir}/${file.replaceAll('\\', '/')}`;
+      if (path.endsWith('.test.mjs') && !path.includes('/node_modules/')) rootTests.push(path);
+    }
+  }
 
-  assert.ok(controlTests.includes('scripts/control/control-test-ci-coverage.test.mjs'));
-  const executed = executedControlTests(workflows, scripts);
+  assert.ok(rootTests.includes('scripts/control/control-test-ci-coverage.test.mjs'));
+  assert.ok(rootTests.some((path) => path.startsWith('tools/')));
+  const executed = executedRootTests(workflows, scripts);
   assert.deepEqual(
-    controlTests.filter((path) => !executed.has(path)),
+    rootTests.filter((path) => !executed.has(path)).sort(),
     [],
     'run each listed file with `node --test` in a workflow that runs on every pull request, ' +
       'e.g. .github/workflows/security-supply-chain.yml',
@@ -124,7 +136,7 @@ test('only an every-PR `node --test` run step, direct or via a root pnpm script,
   const steps = (body) => `jobs:\n  guard:\n    steps:\n${body}`;
   const job = (body) => `on:\n  pull_request:\n${steps(body)}`;
   const run = steps('      - run: node --test scripts/control/a.test.mjs\n');
-  const covered = (workflow) => [...executedControlTests([workflow], scripts)];
+  const covered = (workflow) => [...executedRootTests([workflow], scripts)];
   const a = ['scripts/control/a.test.mjs'];
 
   const counts = {
@@ -147,10 +159,16 @@ test('only an every-PR `node --test` run step, direct or via a root pnpm script,
     'after another command': job('      - run: pnpm build && node --test scripts/control/a.test.mjs\n'),
     'root pnpm script': job('      - run: pnpm guard:a\n'),
     'nested pnpm run script': job('      - run: pnpm run guard:all\n'),
+    './-prefixed path': job('      - run: node --test ./scripts/control/a.test.mjs\n'),
   };
   for (const [name, workflow] of Object.entries(counts)) {
     assert.deepEqual(covered(workflow), a, name);
   }
+  assert.deepEqual(
+    covered(job('      - run: node --test tools/security/t.test.mjs "scripts/docs/x/d.test.mjs"\n')),
+    ['tools/security/t.test.mjs', 'scripts/docs/x/d.test.mjs'],
+    'tools/ and nested scripts/ paths',
+  );
 
   const ignored = {
     'path-filtered pull_request': `on:\n  pull_request:\n    paths:\n      - 'scripts/**'\n${run}`,
@@ -174,6 +192,8 @@ test('only an every-PR `node --test` run step, direct or via a root pnpm script,
     'not run by node --test': job('      - run: cat scripts/control/a.test.mjs\n'),
     'echoed command': job('      - run: echo node --test scripts/control/a.test.mjs\n'),
     'longer file name': job('      - run: node --test scripts/control/a.test.mjs.bak\n'),
+    'workspace-local scripts/ path': job('      - run: node --test apps/web/scripts/control/a.test.mjs\n'),
+    'workspace-local tools/ path': job('      - run: node --test packages/x/tools/control/a.test.mjs\n'),
     'workspace script, not root': job('      - run: pnpm --filter @emopet/web guard:a\n'),
     'unknown pnpm script': job('      - run: pnpm guard:missing\n'),
     'self-referencing pnpm script': job('      - run: pnpm loop\n'),
