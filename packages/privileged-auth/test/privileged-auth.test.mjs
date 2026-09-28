@@ -45,7 +45,7 @@ test('canonical privileged token roundtrip preserves bounded MFA assurance', asy
   assert.equal(payload.expiresAt - payload.issuedAt, 600);
 });
 
-test('privileged signing key cannot silently reuse the ordinary Guardian JWT secret', async () => {
+test('privileged signing key cannot silently reuse the ordinary Owner JWT secret', async () => {
   await assert.rejects(
     signPrivilegedAccessToken({
       subject: ADMIN_ID,
@@ -76,7 +76,7 @@ test('RBAC vocabulary is finite, has no wildcard and keeps web-admin actions adm
     allowed: false,
     reason: 'action_not_allowed',
   });
-  assert.deepEqual(evaluatePrivilegedAuthority('guardian', 'account.read_limited'), {
+  assert.deepEqual(evaluatePrivilegedAuthority('owner', 'account.read_limited'), {
     allowed: false,
     reason: 'invalid_role',
   });

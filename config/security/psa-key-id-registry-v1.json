@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "emopet-psa-key-id-registry-v1",
+  "status": "ACTIVE_NAMESPACE_AUTHORITY / STORAGE_ADDRESS_ONLY / NOT_CREDENTIAL_IDENTITY",
+  "issue": 659,
+  "parentIssue": 657,
+  "psaUserRange": {
+    "min": "0x00000001",
+    "max": "0x3fffffff",
+    "authority": "PSA_KEY_ID_USER_MIN..PSA_KEY_ID_USER_MAX"
+  },
+  "reservedBlocks": [
+    {
+      "owner": "DEVICE_TRUST_IDENTITY",
+      "purpose": "P256_DEVICE_PROOF_OF_POSSESSION",
+      "min": "0x00010000",
+      "max": "0x0001000f",
+      "slots": {
+        "A": {
+          "keyId": "0x00010000",
+          "stateAuthority": "ROTATION_STATE_MACHINE"
+        },
+        "B": {
+          "keyId": "0x00010001",
+          "stateAuthority": "ROTATION_STATE_MACHINE"
+        }
+      },
+      "remainingRange": "0x00010002..0x0001000f / RESERVED_NO_CURRENT_USE"
+    }
+  ],
+  "invariants": {
+    "keyIdIsCredentialIdentity": false,
+    "credentialVersionDerivesKeyId": false,
+    "keyIdDerivesCredentialVersion": false,
+    "maximumActiveIdentityCredentials": 1,
+    "maximumPendingIdentityCredentials": 1,
+    "provisioningMustTargetNonActiveSlot": true,
+    "slotReuseRequiresRevocationAndEraseAuthority": true,
+    "slotReuseMayNeverReuseCredentialVersion": true
+  },
+  "rotationStates": [
+    "EMPTY",
+    "PENDING_PROOF",
+    "ACTIVE",
+    "REVOKED_PENDING_ERASE"
+  ],
+  "allowedTransitions": [
+    "EMPTY -> PENDING_PROOF",
+    "PENDING_PROOF -> ACTIVE",
+    "PENDING_PROOF -> EMPTY / FAILED_PROVISION_ROLLBACK_ONLY",
+    "ACTIVE -> REVOKED_PENDING_ERASE",
+    "REVOKED_PENDING_ERASE -> EMPTY / EXPLICIT_LIFECYCLE_AUTHORITY_REQUIRED"
+  ],
+  "forbiddenTransitions": [
+    "ACTIVE -> EMPTY DIRECT",
+    "ACTIVE -> PENDING_PROOF",
+    "REVOKED_PENDING_ERASE -> ACTIVE",
+    "CREDENTIAL_VERSION_PARITY -> SLOT_SELECTION"
+  ],
+  "currentDecision": "DUAL_SLOT_A_B_RESERVED / DESTRUCTIVE_ROTATION_RUNTIME_NOT_IMPLEMENTED"
+}

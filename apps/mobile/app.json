@@ -33,7 +33,8 @@
       ]
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "react-native-ble-plx"
     ]
   }
 }

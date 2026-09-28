@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "emopet-tag-firmware-platform-v1",
+  "status": "NCS_ZEPHYR_CANONICAL_SCAFFOLD / GATT_SOURCE_PRESENT / DK_COMPILE_HARNESS_ONLY / MS88SF3_BOARD_AUTHORITY_OPEN",
+  "issue": 625,
+  "soc": "nRF52840",
+  "module": "Minew MS88SF3",
+  "sdk": {
+    "family": "nRF Connect SDK",
+    "series": "3.4.x LTS",
+    "version": "3.4.1",
+    "revision": "v3.4.1",
+    "releaseKind": "LTS",
+    "sourceManifest": "firmware/collar/ncs/west.yml",
+    "updatePolicy": "EXPLICIT_AUTHORITY_CHANGE_WITHIN_3.4_X_LTS",
+    "toolchainAcquisition": "OFFICIAL_NORDIC_NRFUTIL_SDK_MANAGER_OR_EQUIVALENT_VERIFIED_NCS_3_4_1_TOOLCHAIN",
+    "toolchainContainer": null,
+    "toolchainContainerDigest": null,
+    "toolchainReceiptStatus": "NOT_YET_CAPTURED_FOR_3.4.1"
+  },
+  "application": {
+    "path": "firmware/collar/ncs",
+    "temporaryCompileHarnessBoard": "nrf52840dk/nrf52840",
+    "temporaryCompileHarnessIsProductionBoardAuthority": false,
+    "productionBoardDefinition": null,
+    "productionBoardStatus": "BLOCKED_ON_G2_AUTHORITY",
+    "westManifest": "firmware/collar/ncs/west.yml",
+    "cleanBuildCommand": "west build -p always -b nrf52840dk/nrf52840 emopet/firmware/collar/ncs",
+    "boardAuthority": "config/firmware/tag-ms88sf3-board-authority-v1.json"
+  },
+  "ble": {
+    "uuidAuthority": "config/ble/uuid-authority-v1.json",
+    "serviceImplementedInScaffold": true,
+    "sensorFrameCharacteristicRegistered": true,
+    "featureSummaryCharacteristicRegistered": true,
+    "featureSummaryNotifyUsesCanonicalFirmwareSerializer": true,
+    "physicalDeviceAuthentication": false,
+    "deviceTrustIssue": 66,
+    "configCharacteristicRegistered": true,
+    "clockAnchorProbeImplementedInSource": true
+  },
+  "transport": {
+    "bootSessionSource": "sys_rand32_get",
+    "bootSessionIsSecurityIdentity": false,
+    "sequence": "uint16_per_boot_increment_after_successful_notify",
+    "windowEndMsSource": "CALLER_OWNED_MONOTONIC_MEASUREMENT_WINDOW_END",
+    "utcWallClockOnTag": false,
+    "backendClockAnchorStillRequired": true,
+    "notificationTimeMayReplaceWindowEndMs": false,
+    "clockAnchorProbe": {
+      "characteristic": "CONFIG",
+      "commandId": "0x14",
+      "requestNonce": "uint32_le",
+      "responseVersion": 1,
+      "responseIncludes": [
+        "requestNonce",
+        "bootSessionId",
+        "deviceMs"
+      ],
+      "deviceMsSource": "k_uptime_get_32",
+      "responseCrc": "xor8",
+      "authenticationAuthority": "NONE / TRANSPORT_ONLY / DEVICE_TRUST_66_OPEN"
+    },
+    "clockAnchorMobileCaptureImplemented": true,
+    "productionBootAnchorV1Implemented": false,
+    "mobileClockUncertaintyAuthority": "EXPLICIT_CALLER_INPUT / PRODUCTION_SOURCE_OPEN"
+  },
+  "evidence": {
+    "sourceContractGuard": "scripts/control/tag-ncs-platform.test.mjs",
+    "ncsTargetBuild": "NOT_YET_IN_CI",
+    "targetFlash": "NOT_RUN",
+    "realBleCapture": "NOT_RUN",
+    "g2BoardAuthorityGuard": "scripts/control/tag-ms88sf3-board-authority.test.mjs"
+  },
+  "currentDecision": "DO_NOT_CLAIM_REAL_TAG_BLE_DELIVERY_OR_MS88SF3_TARGET_BUILD"
+}

@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "emopet-device-private-key-storage-v1",
+  "status": "SOURCE_CANDIDATE / DISABLED_BY_DEFAULT / HUK_SECURE_STORAGE_TARGET_PROOF_OPEN",
+  "issue": 657,
+  "parentIssue": 648,
+  "parentDeviceTrustIssue": 66,
+  "target": {
+    "module": "MS88SF3",
+    "soc": "nRF52840",
+    "kmuPresent": false,
+    "supportedHukType": "KDR_ONLY"
+  },
+  "selectedStorage": {
+    "keyGeneration": "ON_DEVICE_ONLY",
+    "psaKeyLifetime": "PSA_KEY_LIFETIME_PERSISTENT",
+    "keyType": "ECC_KEY_PAIR / SECP_R1 / 256",
+    "usage": "SIGN_HASH_ONLY",
+    "algorithm": "ECDSA_SHA256",
+    "privateKeyExport": "PROHIBITED",
+    "productionPrivateKeyImport": "PROHIBITED",
+    "publicKeyExport": "SEC1_UNCOMPRESSED_P256_65_BYTES",
+    "storageSubsystem": "NCS_SECURE_STORAGE",
+    "atRestProtection": "HUK_KDR_DERIVED_AEAD",
+    "requiredKconfig": [
+      "CONFIG_PSA_CRYPTO",
+      "CONFIG_SECURE_STORAGE",
+      "CONFIG_HW_UNIQUE_KEY",
+      "CONFIG_SECURE_STORAGE_ITS_TRANSFORM_AEAD_KEY_PROVIDER_HUK_LIBRARY"
+    ],
+    "nsibRequired": true,
+    "approtectRequiredBeforeCredentialActive": true,
+    "signedFirmwareRequiredBeforeCredentialActive": true,
+    "applicationKeyIdNamespace": "EMOPET_DEVICE_TRUST_BLOCK_0x00010000_0x0001000F / IDENTITY_SLOTS_A_B",
+    "keyIdRegistry": "config/security/psa-key-id-registry-v1.json",
+    "identitySlots": {
+      "A": "0x00010000",
+      "B": "0x00010001"
+    }
+  },
+  "source": {
+    "kconfig": "firmware/collar/ncs/Kconfig",
+    "provisioner": "firmware/collar/ncs/src/device_identity_key_provisioner_psa.{h,c}",
+    "cmakeGate": "CONFIG_EMOPET_DEVICE_KEY_PROVISIONING",
+    "runtimeEnabledByDefault": false,
+    "signerAuthority": "firmware/collar/ncs/src/device_pop_signer_psa.{h,c}"
+  },
+  "lifecycle": {
+    "overwriteExistingKeyId": false,
+    "duplicateProvisioning": "FAIL_CLOSED",
+    "partialProvisionRollback": "DESTROY_NEWLY_CREATED_KEY_ONLY",
+    "credentialVersionBinding": "CALLER_SUPPLIED / RECEIPT_ONLY / DURABLE_BINDING_OPEN",
+    "rotation": "DUAL_SLOT_A_B_SELECTED / ACTIVE_PLUS_PENDING_MAX_ONE_EACH / DESTRUCTIVE_RUNTIME_OPEN",
+    "revocation": "OPEN",
+    "rma": "OPEN"
+  },
+  "evidence": {
+    "sourceGuard": "scripts/control/device-private-key-storage.test.mjs",
+    "ncsTargetBuildVerified": false,
+    "hukProvisionedOnRepresentativeTarget": false,
+    "secureStorageHukPathVerified": false,
+    "rebootPersistenceVerified": false,
+    "publicKeyEnrollmentVerified": false,
+    "approtectVerified": false,
+    "signedFirmwareVerified": false,
+    "representativeMs88sf3SignVerifyProof": false,
+    "applicationKeyIdNamespaceSelected": true
+  },
+  "hardStops": {
+    "deviceDataTrust": "BLOCKED",
+    "networkTelemetryPersistence": "BLOCKED",
+    "claimBind": "BLOCKED",
+    "trustedCommands": "BLOCKED",
+    "productionOta": "BLOCKED"
+  },
+  "currentDecision": "DO_NOT_ENABLE_DEVICE_IDENTITY_KEY_PROVISIONING_RUNTIME"
+}

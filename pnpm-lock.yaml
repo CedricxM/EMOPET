@@ -62,6 +62,9 @@ importers:
       '@expo-google-fonts/fraunces':
         specifier: ^0.2.3
         version: 0.2.3
+      '@expo-google-fonts/instrument-sans':
+        specifier: ^0.3.0
+        version: 0.3.0
       '@expo-google-fonts/jetbrains-mono':
         specifier: ^0.2.3
         version: 0.2.3
@@ -1769,6 +1772,9 @@ packages:
 
   '@expo-google-fonts/fraunces@0.2.3':
     resolution: {integrity: sha512-krgIGxViwYutW+egNHfSfc8u10ZpP+UL10MZHxbQ8C4LwEKA4HWuWLEiqSsbj1Kq3OoiXnbR+x9ERWgdhuoB1A==}
+
+  '@expo-google-fonts/instrument-sans@0.3.0':
+    resolution: {integrity: sha512-TsvFZXMwNvUI4l9MbYoLW4dUpZmVPP3kiu9Fj9Mfx3ObwJwWlNsPDMKzbHd780fNloo//vOIWjek5rexa8fRkA==}
 
   '@expo-google-fonts/jetbrains-mono@0.2.3':
     resolution: {integrity: sha512-TlAlQzlDYT/cwg3kjME54P/iOl5dxv+EZ0iYSMZ6+3Jhw0oImBI/BVPVKLP+KT+sAs8ze1FvGTYXrtfiYolxtw==}
@@ -8322,6 +8328,8 @@ snapshots:
       levn: 0.4.1
 
   '@expo-google-fonts/fraunces@0.2.3': {}
+
+  '@expo-google-fonts/instrument-sans@0.3.0': {}
 
   '@expo-google-fonts/jetbrains-mono@0.2.3': {}
 

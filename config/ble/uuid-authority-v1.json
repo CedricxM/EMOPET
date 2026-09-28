@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "emopet-ble-uuid-authority-v1",
+  "status": "CONTROLLED_PROPRIETARY_128_BIT_UUIDS / PRE-PERIPHERAL-GATT",
+  "decisionDate": "2026-09-27",
+  "parentIssue": 625,
+  "reason": "Custom EMOPET GATT attributes must not use unassigned aliases in the Bluetooth SIG Base UUID space.",
+  "historicalNamespace": {
+    "status": "SUPERSEDED_DO_NOT_USE_FOR_LIVE_GATT",
+    "service": "0000ea01-0000-1000-8000-00805f9b34fb",
+    "sensorFrame": "0000ea02-0000-1000-8000-00805f9b34fb",
+    "ota": "0000ea03-0000-1000-8000-00805f9b34fb",
+    "config": "0000ea04-0000-1000-8000-00805f9b34fb",
+    "featureSummary": "0000ea05-0000-1000-8000-00805f9b34fb"
+  },
+  "active": {
+    "service": "e4e2e9a3-39c8-4140-aba9-c4e37713f59a",
+    "sensorFrame": "66ae0c98-a8ce-4319-b47d-f09fa88d4d83",
+    "ota": "17780ee9-7def-4b89-aea5-e7a27deaf95c",
+    "config": "8d5fa4ff-d1fa-49c3-9ce4-2e8865e4d478",
+    "featureSummary": "01141d55-a776-4091-b068-83f0804d8781"
+  },
+  "rules": {
+    "allAttributesUseFull128BitProprietaryUuid": true,
+    "bluetoothBaseAliasWithoutAssignedNumberAllowed": false,
+    "runtimeConstantsAuthority": "packages/shared/src/constants/index.ts",
+    "futurePeripheralMustMatchExactly": true,
+    "protocolPayloadVersionUnaffected": true
+  }
+}

@@ -34,3 +34,78 @@ test('vet-report link and report share the same validated period helper', () => 
   assert.match(source, /verifyVetReportShareToken\(shareToken, id, days\)/);
   assert.match(source, /loadVetReportSummary\(id, days\)/);
 });
+
+test('the PDF labels its coverage ratio as sensor coverage, not coverage of the report', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const source = await readFile(
+    new URL('../api/services/vet-report.ts', import.meta.url),
+    'utf8',
+  );
+
+  // coverageRatio is distinctDays(sensorSummaries) / requested days. The report
+  // also contains owner notes and the dog profile, which have different
+  // retention modes, so an unqualified "Couverture de donnees" reads as coverage
+  // of the whole document and overstates what was measured (#140).
+  assert.match(source, /Couverture des donnees capteur:/);
+  assert.doesNotMatch(source, /`Couverture de donnees: /);
+  assert.match(source, /Sensor-derived only/);
+});
+
+test('the owner-note count is decided once, by the reader limit', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const source = await readFile(
+    new URL('../api/services/vet-report.ts', import.meta.url),
+    'utf8',
+  );
+
+  // listHealthEntries fetched 5 while the PDF rendered slice(0, 4), so one
+  // fetched row was always discarded and the count never varied with the
+  // requested period (#140). One place decides it now.
+  assert.doesNotMatch(source, /ownerNotes\.slice\(/);
+  assert.match(source, /\.\.\.summary\.ownerNotes\.map\(/);
+});
+
+test('Vet Report maximum horizon cannot be inferred from one retention category', () => {
+  const routeSource = readFileSync(new URL('../api/routes/dogs.ts', import.meta.url), 'utf8');
+  const reportSource = readFileSync(new URL('../api/services/vet-report.ts', import.meta.url), 'utf8');
+  const inventory = JSON.parse(
+    readFileSync(new URL('../../config/privacy/data-inventory.json', import.meta.url), 'utf8'),
+  );
+  const schedule = JSON.parse(
+    readFileSync(new URL('../../config/privacy/retention-schedule.json', import.meta.url), 'utf8'),
+  );
+
+  const helper = routeSource.match(
+    /function parseVetReportDays\([\s\S]*?\n\}/,
+  )?.[0] ?? '';
+  assert.ok(helper.length > 0);
+  assert.doesNotMatch(helper, /MAX_|Math\.min|<=\s*30\b|<=\s*365\b/);
+
+  assert.match(reportSource, /from\(sensorSummaries\)/);
+  assert.match(reportSource, /from\(healthEntries\)/);
+
+  const category = (id) => inventory.categories.find((entry) => entry.id === id);
+  assert.equal(
+    category('sensor_preprocessed')?.retention,
+    'SEE_RETENTION_SCHEDULE_sensor_preprocessed_detailed_AND_sensor_preprocessed_aggregates',
+  );
+  assert.equal(
+    category('health_records')?.retention,
+    'SEE_RETENTION_SCHEDULE_veterinary_user_entered_records',
+  );
+
+  const retention = (id) => schedule.categories.find((entry) => entry.id === id)?.activeRetention;
+  assert.deepEqual(retention('sensor_preprocessed_detailed'), {
+    mode: 'DURATION',
+    value: 36,
+    unit: 'MONTHS',
+  });
+  assert.deepEqual(retention('sensor_preprocessed_aggregates'), {
+    mode: 'ACTIVE_DOG_PROFILE_LIFETIME',
+  });
+  assert.deepEqual(retention('veterinary_user_entered_records'), {
+    mode: 'WHILE_USER_RETAINS_RECORD',
+  });
+
+  assert.match(routeSource, /#140 VET-PERIOD-G3 intentionally has no numeric maximum here/);
+});

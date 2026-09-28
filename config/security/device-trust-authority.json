@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "emopet-device-trust-authority-v1",
+  "status": "PRE_PRODUCTION / FAIL_CLOSED",
+  "issue": 66,
+  "devicePrincipal": {
+    "canonicalIdentity": "HARDWARE_BOUND_IDENTITY_REQUIRED",
+    "macAddressAuthority": "NOT_AUTHORITY",
+    "manufacturingCredential": "DEVICE_GENERATED_PRIVATE_KEY / BACKEND_PUBLIC_KEY_ENROLLMENT",
+    "productionKeyInjection": "NOT_REQUIRED_FOR_PRIVATE_KEY / HUK_ROOT_PROVISIONING_AND_TRUSTED_STORAGE_SETUP_REQUIRED",
+    "credentialRotation": "OPEN",
+    "revocation": "OPEN",
+    "identityArchitectureGate": 648,
+    "identityArchitectureAuthority": "config/security/device-identity-pop-evaluation-v1.json",
+    "identityArchitectureSelection": "B_DEVICE_SPECIFIC_ASYMMETRIC_POP / ECDSA_SHA256_SECP256R1 / TARGET_PROOF_REQUIRED",
+    "ficrDeviceIdAuthority": "IDENTIFIER_ONLY / NOT_AUTHENTICATOR",
+    "bleRuntimeIdAuthority": "NOT_AUTHORITY"
+  },
+  "claimBinding": {
+    "firstClaim": "OPEN",
+    "proofOfPossession": "REQUIRED",
+    "ownerDogBinding": "SERVER_AUTHORITY_REQUIRED",
+    "rebindTransfer": "OPEN",
+    "factoryReset": "MUST_NOT_BYPASS_SERVER_OR_DEVICE_AUTHORITY",
+    "lostStolenRecovery": "OPEN",
+    "proofOfPossessionArchitecture": "ECDSA_SHA256_SECP256R1 / PUBLIC_KEY_VERIFICATION / RUNTIME_NOT_IMPLEMENTED",
+    "proofOfPossessionContract": "config/security/device-pop-challenge-v1.json",
+    "challengeContract": "DEVICE_POP_CHALLENGE_V1 / RUNTIME_NOT_IMPLEMENTED",
+    "challengeIssuer": "SOURCE_PRIMITIVE_IMPLEMENTED / NO_DEFAULT_STORE / NO_ROUTE",
+    "challengePersistence": "NOT_IMPLEMENTED",
+    "challengeVerifier": "SOURCE_PRIMITIVE_IMPLEMENTED / ACTIVE_CREDENTIAL + SERVER_CHALLENGE REQUIRED / NO_ROUTE"
+  },
+  "commands": {
+    "rawBleBuilders": "UNAUTHENTICATED_PAYLOAD_ONLY",
+    "canonicalDevicePrincipalBinding": "REQUIRED",
+    "ownerAuthorization": "REQUIRED",
+    "nonce": "REQUIRED",
+    "monotonicSequence": "REQUIRED",
+    "expiry": "REQUIRED",
+    "keyVersion": "REQUIRED",
+    "signature": "REQUIRED",
+    "replayCacheOrCounter": "REQUIRED",
+    "runtime": "NOT_IMPLEMENTED"
+  },
+  "ota": {
+    "secureBoot": "OPEN",
+    "imageSigning": "OPEN",
+    "antiRollback": "OPEN",
+    "devProdKeySeparation": "OPEN",
+    "interruptedUpdateRecovery": "OPEN",
+    "distributionChannel": "OPEN",
+    "firmwareSbom": "OPEN",
+    "versionIncidentMapping": "OPEN"
+  },
+  "offlineResync": {
+    "idempotency": "REQUIRED",
+    "ordering": "REQUIRED",
+    "boundedQueue": "REQUIRED",
+    "clockResetWrapPolicy": "OPEN",
+    "conflictPolicy": "OPEN"
+  },
+  "releaseRule": "NO CLAIM/BIND/COMMAND/OTA PRODUCTION AUTHORITY UNTIL TARGET-HARDWARE EVIDENCE EXISTS",
+  "telemetryIngestion": {
+    "canonicalDevicePrincipalBinding": "REQUIRED",
+    "ownerDogBinding": "SERVER_RECHECK_REQUIRED",
+    "physicalDeviceAuthentication": "ASYMMETRIC_POP_REQUIRED / RUNTIME_NOT_IMPLEMENTED",
+    "transportReplayEvidenceIsAuthentication": false,
+    "bleTransportIdentifierIsPrincipal": false,
+    "runtime": "NOT_IMPLEMENTED",
+    "releaseRule": "NO_DURABLE_DEVICE_TELEMETRY_WRITE_FROM_NETWORK_UNTIL_DEVICE_DATA_TRUST_RUNTIME_EXISTS",
+    "deviceIdentityArchitectureGate": 648,
+    "proofOfPossessionContract": "DEVICE_POP_CHALLENGE_V1 / DEVICE_DATA_TELEMETRY_INGRESS / RUNTIME_NOT_IMPLEMENTED",
+    "challengeIssuer": "SOURCE_PRIMITIVE_IMPLEMENTED / NOT_RUNTIME_AUTHORITY",
+    "challengeVerifier": "SOURCE_PRIMITIVE_IMPLEMENTED / CRYPTOGRAPHIC_PROOF_ONLY / DEVICE_DATA_TRUST_NOT_AUTHORIZED"
+  }
+}

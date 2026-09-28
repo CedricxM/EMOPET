@@ -185,6 +185,206 @@ export const SensorSummaryCreateSchema = z.object({
   humidityPct: z.number().finite().min(0).max(100).optional(),
 }).strict();
 
+
+export const ActivityVariabilityFeatureTransportFrameSchema = z.object({
+  transportVersion: z.literal(1),
+  source: z.literal('TAG'),
+  featureKey: z.literal('activity_variability'),
+  featureContractVersion: z.literal('tag-activity-variability-cv30m-v1'),
+  sequence: z.number().int().min(0).max(0xffff),
+  bootSessionId: z.number().int().min(0).max(0xffffffff),
+  windowEndMs: z.number().int().min(0).max(0xffffffff),
+  windowSeconds: z.literal(1800),
+  validSeconds: z.number().int().min(0).max(1800),
+  observationStatus: z.enum(['OBSERVED', 'NOT_OBSERVED']),
+  nullReason: z.enum([
+    'INSUFFICIENT_COVERAGE',
+    'MEAN_BELOW_DIVISION_GUARD',
+  ]).nullable(),
+  qualityState: z.enum(['VALID', 'DEGRADED', 'SUPPRESSED']),
+  value: z.number().finite().min(0).nullable(),
+}).strict().superRefine((value, ctx) => {
+  if (value.observationStatus === 'OBSERVED') {
+    if (value.value === null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['value'],
+        message: 'OBSERVED requires a finite non-null value',
+      });
+    }
+    if (value.nullReason !== null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['nullReason'],
+        message: 'OBSERVED must not carry a null reason',
+      });
+    }
+    if (value.validSeconds < 900) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['validSeconds'],
+        message: 'OBSERVED requires at least 900 valid seconds',
+      });
+    }
+    if (value.qualityState === 'SUPPRESSED') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['qualityState'],
+        message: 'OBSERVED must not be SUPPRESSED',
+      });
+    }
+    return;
+  }
+
+  if (value.value !== null) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['value'],
+      message: 'NOT_OBSERVED must carry null value',
+    });
+  }
+  if (value.nullReason === null) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['nullReason'],
+      message: 'NOT_OBSERVED requires an explicit null reason',
+    });
+  }
+  if (value.nullReason === 'INSUFFICIENT_COVERAGE' && value.validSeconds >= 900) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['validSeconds'],
+      message: 'INSUFFICIENT_COVERAGE requires fewer than 900 valid seconds',
+    });
+  }
+  if (value.nullReason === 'MEAN_BELOW_DIVISION_GUARD' && value.validSeconds < 900) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['validSeconds'],
+      message: 'MEAN_BELOW_DIVISION_GUARD requires at least 900 valid seconds',
+    });
+  }
+});
+
+export const ActivityVariabilityFeatureObservationCreateSchema = z.object({
+  dogId: z.string().uuid(),
+  ingestionId: z.string().uuid().optional(),
+  deviceId: z.string().uuid(),
+  observedAt: z.coerce.date(),
+  source: z.literal('TAG'),
+  featureKey: z.literal('activity_variability'),
+  value: z.number().finite().min(0).nullable(),
+  observationStatus: z.enum(['OBSERVED', 'NOT_OBSERVED']),
+  nullReason: z.enum([
+    'INSUFFICIENT_COVERAGE',
+    'MEAN_BELOW_DIVISION_GUARD',
+  ]).nullable(),
+  featureContractVersion: z.literal('tag-activity-variability-cv30m-v1'),
+  windowSeconds: z.literal(1800),
+  validSeconds: z.number().int().min(0).max(1800),
+  qualityState: z.enum(['VALID', 'DEGRADED', 'SUPPRESSED']).optional(),
+  transportProvenance: z.object({
+    transportVersion: z.literal(1),
+    bootSessionId: z.number().int().min(0).max(0xffffffff),
+    sequence: z.number().int().min(0).max(0xffff),
+    windowEndMs: z.number().int().min(0).max(0xffffffff),
+  }).strict().optional(),
+  eventTimeProvenance: z.object({
+    strategy: z.literal('BOOT_ANCHOR_V1'),
+    anchorDeviceMs: z.number().int().min(0).max(0xffffffff),
+    anchorUtc: z.coerce.date(),
+    uncertaintyMs: z.number().int().min(0).max(0x7fffffff),
+  }).strict().optional(),
+}).strict().superRefine((value, ctx) => {
+  if (!value.ingestionId && !value.transportProvenance) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['ingestionId'],
+      message: 'ingestionId or transportProvenance is required',
+    });
+  }
+
+  if (value.eventTimeProvenance && !value.transportProvenance) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['eventTimeProvenance'],
+      message: 'eventTimeProvenance requires transportProvenance',
+    });
+  }
+
+  if (value.transportProvenance && !value.qualityState) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['qualityState'],
+      message: 'transportProvenance requires qualityState',
+    });
+  }
+
+  if (value.observationStatus === 'OBSERVED') {
+    if (value.value === null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['value'],
+        message: 'OBSERVED requires a finite non-null value',
+      });
+    }
+    if (value.nullReason !== null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['nullReason'],
+        message: 'OBSERVED must not carry a null reason',
+      });
+    }
+    if (value.qualityState === 'SUPPRESSED') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['qualityState'],
+        message: 'OBSERVED must not be SUPPRESSED',
+      });
+    }
+    if (value.validSeconds < 900) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['validSeconds'],
+        message: 'OBSERVED requires at least 900 valid seconds',
+      });
+    }
+    return;
+  }
+
+  if (value.value !== null) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['value'],
+      message: 'NOT_OBSERVED must carry null value',
+    });
+  }
+
+  if (value.nullReason === 'INSUFFICIENT_COVERAGE' && value.validSeconds >= 900) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['validSeconds'],
+      message: 'INSUFFICIENT_COVERAGE requires fewer than 900 valid seconds',
+    });
+  }
+
+  if (value.nullReason === 'MEAN_BELOW_DIVISION_GUARD' && value.validSeconds < 900) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['validSeconds'],
+      message: 'MEAN_BELOW_DIVISION_GUARD requires at least 900 valid seconds',
+    });
+  }
+
+  if (value.nullReason === null) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['nullReason'],
+      message: 'NOT_OBSERVED requires an explicit null reason',
+    });
+  }
+});
+
 // ── Community Validators ────────────────────────────────────────
 
 export const PostCreateSchema = z.object({
@@ -256,3 +456,117 @@ export const VetReportQuerySchema = z.object({
   days: z.coerce.number().int().min(1).max(30).default(14),
   share: StrictBooleanQuerySchema,
 });
+
+export * from './professional-share.js';
+
+
+export const ActivityFeatureForwardingCandidateV1Schema = z.object({
+  schemaVersion: z.literal('activity-feature-forwarding-v1'),
+  dogId: z.string().uuid(),
+  deviceId: z.string().uuid(),
+  frame: ActivityVariabilityFeatureTransportFrameSchema,
+  clockAnchor: z.object({
+    strategy: z.literal('BOOT_ANCHOR_V1'),
+    bootSessionId: z.number().int().min(0).max(0xffffffff),
+    anchorDeviceMs: z.number().int().min(0).max(0xffffffff),
+    anchorUtc: z.string().datetime(),
+    uncertaintyMs: z.number().int().min(0).max(0x7fffffff),
+  }).strict(),
+}).strict().superRefine((value, ctx) => {
+  if (value.frame.bootSessionId !== value.clockAnchor.bootSessionId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['clockAnchor', 'bootSessionId'],
+      message: 'feature frame and clock anchor must share the same boot session',
+    });
+  }
+});
+
+
+export const OwnerDogCanonicalDeviceSchema = z.object({
+  id: z.string().uuid(),
+  dogId: z.string().uuid(),
+  type: z.enum(['MAT', 'TAG']),
+  firmwareVersion: z.string().nullable(),
+  supportsV6Features: z.boolean(),
+  bindingStatus: z.literal('BOUND'),
+  physicalDeviceAuthentication: z.literal('NOT_ESTABLISHED'),
+}).strict();
+
+export const OwnerDogCanonicalDeviceRegistryResponseSchema = z.object({
+  schemaVersion: z.literal('owner-dog-device-registry-v1'),
+  dogId: z.string().uuid(),
+  devices: z.array(OwnerDogCanonicalDeviceSchema),
+  identityAuthority: z.literal('BACKEND_REGISTRY_ONLY'),
+  bleTransportIdentifierIsCanonicalIdentity: z.literal(false),
+  physicalDeviceAuthenticationEstablished: z.literal(false),
+}).strict();
+
+
+// ── Device Trust PoP contract ───────────────────────────────────
+
+const Base64UrlNoPaddingSchema = z.string().regex(/^[A-Za-z0-9_-]+$/);
+
+export const DeviceIdentityKeySlotV1Schema = z.enum(['A', 'B']);
+
+export const DeviceIdentityEnrollmentReceiptV1Schema = z.object({
+  schemaVersion: z.literal('device-identity-enrollment-receipt-v1'),
+  protocolVersion: z.literal(1),
+  credentialVersion: z.number().int().positive().max(0xffffffff),
+  keySlot: DeviceIdentityKeySlotV1Schema,
+  psaKeyId: z.number().int().min(0x00010000).max(0x00010001),
+  algorithm: z.literal('ECDSA_P256_SHA256'),
+  publicKeyFormat: z.literal('SEC1_UNCOMPRESSED_P256_65'),
+  publicKey: Base64UrlNoPaddingSchema.length(87),
+  firmwareVersion: z.string().trim().min(1).max(128),
+  hardwareRevision: z.string().trim().min(1).max(128),
+  bootstrapRevision: z.string().trim().min(1).max(128),
+  state: z.literal('PENDING_PROOF'),
+  privateKeyExported: z.literal(false),
+  devicePrincipalBinding: z.literal('BACKEND_MANUFACTURING_AUTHORITY_REQUIRED'),
+}).strict().superRefine((value, ctx) => {
+  const expectedKeyId = value.keySlot === 'A' ? 0x00010000 : 0x00010001;
+  if (value.psaKeyId !== expectedKeyId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['psaKeyId'],
+      message: 'psaKeyId must match the reserved identity slot',
+    });
+  }
+});
+
+export const DevicePopPurposeV1Schema = z.literal('DEVICE_DATA_TELEMETRY_INGRESS');
+
+export const DevicePopChallengeV1Schema = z.object({
+  schemaVersion: z.literal('device-pop-challenge-v1'),
+  protocolVersion: z.literal(1),
+  deviceId: z.string().uuid(),
+  credentialVersion: z.number().int().positive().max(0xffffffff),
+  purpose: DevicePopPurposeV1Schema,
+  challengeId: z.string().uuid(),
+  nonce: Base64UrlNoPaddingSchema.length(43),
+  issuedAt: z.string().datetime(),
+  expiresAt: z.string().datetime(),
+  signingContract: z.literal('EMOPET_DEVICE_POP_FIXED_BINARY_V1'),
+}).strict().superRefine((value, ctx) => {
+  const issued = Date.parse(value.issuedAt);
+  const expires = Date.parse(value.expiresAt);
+  if (!Number.isFinite(issued) || !Number.isFinite(expires) || expires <= issued) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['expiresAt'],
+      message: 'expiresAt must be strictly after issuedAt',
+    });
+  }
+});
+
+export const DevicePopResponseV1Schema = z.object({
+  schemaVersion: z.literal('device-pop-response-v1'),
+  protocolVersion: z.literal(1),
+  deviceId: z.string().uuid(),
+  credentialVersion: z.number().int().positive().max(0xffffffff),
+  purpose: DevicePopPurposeV1Schema,
+  challengeId: z.string().uuid(),
+  signatureFormat: z.literal('ECDSA_P256_SHA256_P1363_64'),
+  signature: Base64UrlNoPaddingSchema.length(86),
+}).strict();

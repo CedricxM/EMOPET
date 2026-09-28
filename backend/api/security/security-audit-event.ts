@@ -48,7 +48,7 @@ export type SecurityAuditActor =
       role: PrivilegedRole;
     }
   | {
-      kind: 'guardian';
+      kind: 'owner';
       subject: string;
       role: null;
     }
@@ -127,11 +127,11 @@ function parseActor(value: unknown): SecurityAuditActor | null {
       : null;
   }
 
-  if (value.kind === 'guardian') {
+  if (value.kind === 'owner') {
     return typeof value.subject === 'string'
       && UUID_RE.test(value.subject)
       && value.role === null
-      ? { kind: 'guardian', subject: value.subject, role: null }
+      ? { kind: 'owner', subject: value.subject, role: null }
       : null;
   }
 

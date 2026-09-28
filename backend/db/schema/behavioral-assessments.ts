@@ -26,8 +26,8 @@ import { users } from './users.js';
  *   classes and must remain distinguishable in provenance.
  * - A progressive/adaptive administration mode must never be assumed equivalent
  *   to the validated/standard administration. `scientificUseStatus` is the gate.
- * - Missing / skipped / not-applicable responses are preserved explicitly rather
- *   than silently imputed.
+ * - Missing / skipped / not-applicable / not-observed responses are preserved
+ *   explicitly rather than silently imputed or coerced to zero.
  */
 
 export const behavioralAssessments = pgTable('behavioral_assessments', {
@@ -50,6 +50,15 @@ export const behavioralAssessments = pgTable('behavioral_assessments', {
 
   expectedItemCount: integer('expected_item_count'),
   answeredItemCount: integer('answered_item_count').notNull().default(0),
+
+  // Assessment-time household context is snapshotted here so later household
+  // changes cannot retroactively change questionnaire applicability semantics.
+  // `multiDogHousehold` is derived canonically as householdDogCount > 1 when
+  // householdDogCount is known; do not persist a second mutable boolean.
+  householdDogCount: integer('household_dog_count'),
+  householdContextVersion: varchar('household_context_version', { length: 50 }),
+  householdContextCapturedAt: timestamp('household_context_captured_at', { withTimezone: true }),
+  householdContext: jsonb('household_context').default({}),
 
   startedAt: timestamp('started_at', { withTimezone: true }).defaultNow().notNull(),
   completedAt: timestamp('completed_at', { withTimezone: true }),
@@ -79,6 +88,10 @@ export const behavioralAssessments = pgTable('behavioral_assessments', {
     'chk_behavioral_assessment_counts',
     sql`(${table.expectedItemCount} IS NULL OR ${table.expectedItemCount} >= 0) AND ${table.answeredItemCount} >= 0`,
   ),
+  check(
+    'chk_behavioral_assessment_household_dog_count',
+    sql`${table.householdDogCount} IS NULL OR ${table.householdDogCount} >= 1`,
+  ),
 ]);
 
 export const behavioralResponses = pgTable('behavioral_responses', {
@@ -106,14 +119,14 @@ export const behavioralResponses = pgTable('behavioral_responses', {
   index('idx_behavioral_response_assessment').on(table.assessmentId),
   check(
     'chk_behavioral_response_status',
-    sql`${table.responseStatus} IN ('answered','not_applicable','skipped','missing')`,
+    sql`${table.responseStatus} IN ('answered','not_applicable','not_observed','skipped','missing')`,
   ),
   check(
     'chk_behavioral_response_scale',
     sql`${table.scaleMin} <= ${table.scaleMax} AND (
       (${table.responseStatus} = 'answered' AND ${table.responseValue} IS NOT NULL AND ${table.responseValue} BETWEEN ${table.scaleMin} AND ${table.scaleMax})
       OR
-      (${table.responseStatus} IN ('not_applicable','skipped','missing') AND ${table.responseValue} IS NULL)
+      (${table.responseStatus} IN ('not_applicable','not_observed','skipped','missing') AND ${table.responseValue} IS NULL)
     )`,
   ),
 ]);
@@ -139,9 +152,76 @@ export const behavioralFactorScores = pgTable('behavioral_factor_scores', {
 ]);
 
 /**
+ * Versioned scientific authority required before behavioural questionnaire evidence
+ * may become an active ELI prior. Absence of an approved matching row is a hard
+ * fail-closed state, not an invitation for application code to guess.
+ */
+export const behavioralEliMappingAuthorities = pgTable('behavioral_eli_mapping_authorities', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  authorityKey: varchar('authority_key', { length: 100 }).notNull(),
+  authorityVersion: varchar('authority_version', { length: 50 }).notNull(),
+
+  sourceInstrumentCode: varchar('source_instrument_code', { length: 50 }).notNull(),
+  sourceInstrumentVersion: varchar('source_instrument_version', { length: 100 }).notNull(),
+  sourceScoringVersion: varchar('source_scoring_version', { length: 100 }).notNull(),
+  sourceFactorKey: varchar('source_factor_key', { length: 100 }).notNull(),
+  targetPriorKey: varchar('target_prior_key', { length: 100 }).notNull(),
+  algorithmVersion: varchar('algorithm_version', { length: 100 }).notNull(),
+
+  minPriorValue: real('min_prior_value').notNull(),
+  maxPriorValue: real('max_prior_value').notNull(),
+  protocolReference: varchar('protocol_reference', { length: 255 }).notNull(),
+  requiredFactorProvenanceKeys: jsonb('required_factor_provenance_keys').notNull().default([]),
+  reviewAuthority: varchar('review_authority', { length: 255 }),
+  validationStatus: varchar('validation_status', { length: 30 }).notNull().default('unvalidated'),
+  status: varchar('status', { length: 20 }).notNull().default('draft'),
+
+  rationale: jsonb('rationale').default({}),
+  approvedAt: timestamp('approved_at', { withTimezone: true }),
+  activatedAt: timestamp('activated_at', { withTimezone: true }),
+  retiredAt: timestamp('retired_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('uq_behavioral_eli_mapping_authority_version').on(table.authorityKey, table.authorityVersion),
+  index('idx_behavioral_eli_mapping_source').on(table.sourceInstrumentCode, table.sourceFactorKey),
+  check('chk_behavioral_eli_mapping_bounds', sql`${table.minPriorValue} <= ${table.maxPriorValue}`),
+  check(
+    'chk_behavioral_eli_mapping_required_provenance',
+    sql`jsonb_typeof(${table.requiredFactorProvenanceKeys}) = 'array'`,
+  ),
+  check(
+    'chk_behavioral_eli_mapping_validation_status',
+    sql`${table.validationStatus} IN ('unvalidated','research_only','validated_for_mapping')`,
+  ),
+  check(
+    'chk_behavioral_eli_mapping_status',
+    sql`${table.status} IN ('draft','approved','retired','rejected')`,
+  ),
+  check(
+    'chk_behavioral_eli_mapping_retirement',
+    sql`(
+      (${table.status} = 'retired' AND ${table.retiredAt} IS NOT NULL)
+      OR (${table.status} <> 'retired' AND ${table.retiredAt} IS NULL)
+    )`,
+  ),
+  check(
+    'chk_behavioral_eli_mapping_approved_evidence',
+    sql`${table.status} <> 'approved' OR (
+      ${table.validationStatus} = 'validated_for_mapping'
+      AND jsonb_array_length(${table.requiredFactorProvenanceKeys}) > 0
+      AND ${table.reviewAuthority} IS NOT NULL
+      AND ${table.approvedAt} IS NOT NULL
+      AND ${table.activatedAt} IS NOT NULL
+      AND length(trim(${table.protocolReference})) > 0
+    )`,
+  ),
+]);
+
+/**
  * Explicit bridge between behavioural assessment evidence and ELI.
  * Nothing from C-BARQ (or any future instrument) should silently mutate ELI.
- * Every prior is versioned, attributable and can be retired/rejected.
+ * Every active prior must cite a matching approved mapping authority.
  */
 export const eliBehavioralPriors = pgTable('eli_behavioral_priors', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -151,6 +231,8 @@ export const eliBehavioralPriors = pgTable('eli_behavioral_priors', {
     .references(() => behavioralAssessments.id),
   factorScoreId: uuid('factor_score_id')
     .references(() => behavioralFactorScores.id),
+  mappingAuthorityId: uuid('mapping_authority_id')
+    .references(() => behavioralEliMappingAuthorities.id),
 
   sourceFactorKey: varchar('source_factor_key', { length: 100 }).notNull(),
   targetPriorKey: varchar('target_prior_key', { length: 100 }).notNull(),
@@ -166,6 +248,7 @@ export const eliBehavioralPriors = pgTable('eli_behavioral_priors', {
 }, (table) => [
   index('idx_eli_behavioral_prior_dog').on(table.dogId),
   index('idx_eli_behavioral_prior_assessment').on(table.assessmentId),
+  index('idx_eli_behavioral_prior_mapping_authority').on(table.mappingAuthorityId),
   check('chk_eli_behavioral_prior_confidence', sql`${table.confidence} BETWEEN 0 AND 1`),
   check(
     'chk_eli_behavioral_prior_status',

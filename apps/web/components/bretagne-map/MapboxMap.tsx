@@ -1,23 +1,23 @@
 'use client';
 
 /**
- * Carte Mapbox GL réelle (Réalité R1). Activée si NEXT_PUBLIC_MAPBOX_TOKEN
- * est défini ; sinon le wrapper CommunityMap retombe sur la carte SVG.
+ * Controlled Mapbox GL implementation.
  *
- * Affiche : spots communautaires (lon/lat), POI réels OpenStreetMap chargés
- * dans le viewport (vétos, magasins, parcs, plages), et points de RDV
- * d'événements. Bornée à la Bretagne historique.
+ * Mapbox and OSM/Overpass are independent external-service authorities.
+ * Mapbox initialization requires the reviewed Mapbox authority. OSM POIs are
+ * separately gated inside fetchOsmSpots().
  */
 
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from 'mapbox-gl';
 import { useEffect, useRef, useState } from 'react';
+import { getControlledMapboxToken } from '../../lib/mapbox-rights';
 import { categoryMeta } from './spots';
 import type { CommunitySpot } from './spots';
 import { fetchOsmSpots } from '../../lib/osm-spots';
 import type { OsmSpot } from '../../lib/osm-spots';
 import type { MapSurfaceState } from '../../lib/map/mapSurface';
-import { describeMapSurface, resolveMapboxToken } from '../../lib/map/mapSurface';
+import { describeMapSurface } from '../../lib/map/mapSurface';
 
 export interface MapboxEvent {
   id: string;
@@ -39,16 +39,18 @@ const BRETAGNE_BOUNDS: mapboxgl.LngLatBoundsLike = [
   [-0.9, 49.1],
 ];
 
+const OSM_COPYRIGHT_URL = 'https://www.openstreetmap.org/copyright';
+
 function dotEl(color: string, size: number, ring = false): HTMLDivElement {
   const el = document.createElement('div');
-  el.style.width = `${size}px`;
-  el.style.height = `${size}px`;
+  el.style.width = size + 'px';
+  el.style.height = size + 'px';
   el.style.borderRadius = '50%';
   el.style.cursor = 'pointer';
   if (ring) {
-    el.style.border = `2.5px solid ${color}`;
+    el.style.border = '2.5px solid ' + color;
     el.style.background = 'rgba(255,255,255,0.55)';
-    el.style.boxShadow = `0 0 0 3px ${color}33`;
+    el.style.boxShadow = '0 0 0 3px ' + color + '33';
   } else {
     el.style.background = color;
     el.style.border = '2px solid #fff';
@@ -57,20 +59,36 @@ function dotEl(color: string, size: number, ring = false): HTMLDivElement {
   return el;
 }
 
-function osmPopupEl(name: string, label: string): HTMLDivElement {
+function osmPopupEl(spot: OsmSpot, label: string): HTMLDivElement {
   const root = document.createElement('div');
   root.style.fontFamily = 'var(--font-sans)';
   root.style.fontSize = '12px';
 
   const title = document.createElement('strong');
-  title.textContent = name;
+  title.textContent = spot.name;
   root.appendChild(title);
   root.appendChild(document.createElement('br'));
 
   const meta = document.createElement('span');
   meta.style.color = '#6B6F76';
-  meta.textContent = `${label} - OpenStreetMap`;
+  meta.textContent = label + ' · ';
   root.appendChild(meta);
+
+  const sourceLink = document.createElement('a');
+  sourceLink.href = spot.sourceElementUrl;
+  sourceLink.target = '_blank';
+  sourceLink.rel = 'noopener noreferrer';
+  sourceLink.textContent = spot.attributionText;
+  root.appendChild(sourceLink);
+
+  root.appendChild(document.createTextNode(' · '));
+
+  const licenceLink = document.createElement('a');
+  licenceLink.href = spot.licenseUrl;
+  licenceLink.target = '_blank';
+  licenceLink.rel = 'noopener noreferrer';
+  licenceLink.textContent = 'ODbL / attribution';
+  root.appendChild(licenceLink);
 
   return root;
 }
@@ -84,24 +102,15 @@ export function MapboxMap({ spots, events, selectedSpotId, onSpotClick, onEventC
   const [ready, setReady] = useState(false);
   const [surface, setSurface] = useState<MapSurfaceState>('ready');
 
-  // Init carte (une fois)
   useEffect(() => {
-    const resolution = resolveMapboxToken(process.env.NEXT_PUBLIC_MAPBOX_TOKEN);
-    if (resolution.status === 'unconfigured') {
-      // Auparavant on sortait ici sans rien dire, laissant un conteneur vide de
-      // 480 px. `CommunityMap` garde normalement ce cas, mais un composant ne
-      // doit pas dépendre du silence d'un autre pour être honnête.
+    const token = getControlledMapboxToken();
+    if (!token) {
       setSurface('unconfigured');
       return;
     }
     if (!containerRef.current) return;
-    mapboxgl.accessToken = resolution.token;
 
-    // `new mapboxgl.Map()` lève de façon SYNCHRONE quand WebGL n'est pas
-    // disponible — matériel ancien, accélération désactivée, certains parcs
-    // d'entreprise. Rien n'encadrait cet appel : l'exception remontait à React
-    // et emportait toute la route `/quartier`, pas seulement la carte.
-    // Un `map.on('error')` ne peut rien y faire, l'objet n'existant pas encore.
+    mapboxgl.accessToken = token;
     let map: mapboxgl.Map;
     try {
       map = new mapboxgl.Map({
@@ -142,50 +151,58 @@ export function MapboxMap({ spots, events, selectedSpotId, onSpotClick, onEventC
         setOsmUnavailable(true);
       });
     };
-    // Sans cet écouteur, un jeton invalide ou révoqué, un dépassement de quota
-    // ou un fond de carte injoignable ne produisaient aucun `load` — donc aucun
-    // message, et un rectangle vide pour seule réponse.
+
     map.on('error', () => setSurface('unavailable'));
-    map.on('load', () => { setSurface('ready'); setReady(true); loadOsm(); });
+    map.on('load', () => {
+      setSurface('ready');
+      setReady(true);
+      loadOsm();
+    });
     map.on('moveend', loadOsm);
 
-    return () => { map.remove(); mapRef.current = null; };
+    return () => {
+      map.remove();
+      mapRef.current = null;
+    };
   }, []);
 
-  // (Re)rendu des marqueurs
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready) return;
-    markersRef.current.forEach((m) => m.remove());
+    markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
 
-    // POI réels OSM (sous la couche communautaire)
-    for (const s of osmSpots) {
-      const meta = categoryMeta(s.category);
+    for (const spot of osmSpots) {
+      const meta = categoryMeta(spot.category);
       const el = dotEl(meta.color, 11);
       el.style.opacity = '0.75';
-      const popup = new mapboxgl.Popup({ offset: 12, closeButton: false }).setDOMContent(osmPopupEl(s.name, meta.label));
-      const marker = new mapboxgl.Marker({ element: el }).setLngLat([s.lon, s.lat]).setPopup(popup).addTo(map);
+      el.setAttribute('aria-label', spot.name + ', ' + meta.label + ', source OpenStreetMap');
+      const popup = new mapboxgl.Popup({ offset: 12, closeButton: false }).setDOMContent(osmPopupEl(spot, meta.label));
+      const marker = new mapboxgl.Marker({ element: el }).setLngLat([spot.lon, spot.lat]).setPopup(popup).addTo(map);
       markersRef.current.push(marker);
     }
 
-    // Spots communautaires
-    for (const s of spots) {
-      const meta = categoryMeta(s.category);
-      const selected = s.id === selectedSpotId;
+    for (const spot of spots) {
+      const meta = categoryMeta(spot.category);
+      const selected = spot.id === selectedSpotId;
       const el = dotEl(meta.color, selected ? 20 : 15);
-      el.setAttribute('aria-label', `${s.name}, ${meta.label}`);
-      el.addEventListener('click', (e) => { e.stopPropagation(); onSpotClick?.(s.id); });
-      const marker = new mapboxgl.Marker({ element: el }).setLngLat([s.lon, s.lat]).addTo(map);
+      el.setAttribute('aria-label', spot.name + ', ' + meta.label);
+      el.addEventListener('click', (event) => {
+        event.stopPropagation();
+        onSpotClick?.(spot.id);
+      });
+      const marker = new mapboxgl.Marker({ element: el }).setLngLat([spot.lon, spot.lat]).addTo(map);
       markersRef.current.push(marker);
     }
 
-    // Événements (RDV)
-    for (const ev of events) {
+    for (const eventItem of events) {
       const el = dotEl('var(--terracotta-600)', 18, true);
-      el.setAttribute('aria-label', `Événement : ${ev.title}`);
-      el.addEventListener('click', (e) => { e.stopPropagation(); onEventClick?.(ev.id); });
-      const marker = new mapboxgl.Marker({ element: el }).setLngLat([ev.lon, ev.lat]).addTo(map);
+      el.setAttribute('aria-label', 'Événement : ' + eventItem.title);
+      el.addEventListener('click', (event) => {
+        event.stopPropagation();
+        onEventClick?.(eventItem.id);
+      });
+      const marker = new mapboxgl.Marker({ element: el }).setLngLat([eventItem.lon, eventItem.lat]).addTo(map);
       markersRef.current.push(marker);
     }
   }, [spots, events, osmSpots, selectedSpotId, ready, onSpotClick, onEventClick]);
@@ -239,6 +256,31 @@ export function MapboxMap({ spots, events, selectedSpotId, onSpotClick, onEventC
           }}
         >
           Points OpenStreetMap indisponibles pour le moment.
+        </div>
+      )}
+      {surface === 'ready' && osmSpots.length > 0 && (
+        <div
+          aria-label="Attribution des points d’intérêt OpenStreetMap"
+          style={{
+            position: 'absolute',
+            right: 8,
+            bottom: 8,
+            zIndex: 2,
+            padding: '3px 6px',
+            borderRadius: 4,
+            background: 'rgba(255,255,255,0.88)',
+            fontSize: 10,
+            lineHeight: 1.3,
+          }}
+        >
+          POI{' '}
+          <a href={OSM_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">
+            © OpenStreetMap contributors
+          </a>{' '}
+          ·{' '}
+          <a href={OSM_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">
+            ODbL / attribution
+          </a>
         </div>
       )}
     </div>

@@ -113,6 +113,13 @@
       "source": "backend/db/schema/eli-v5.ts",
       "databaseDeleteAction": "NO_ACTION",
       "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "professional_share_grants",
+      "column": "owner_user_id",
+      "source": "backend/db/schema/professional-sharing.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
     }
   ],
   "unconstrainedUserIdentifiers": [],

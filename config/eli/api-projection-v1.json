@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "emopet-eli-api-projection-v1",
+  "status": "CONTRACT_CANDIDATE / ENDPOINT_NOT_ACTIVATED",
+  "issue": 124,
+  "currentEndpointSelection": null,
+  "currentRuntime": "NOT_IMPLEMENTED",
+  "availabilityStates": [
+    "NOT_IMPLEMENTED",
+    "UNAVAILABLE",
+    "NONE_FOUND",
+    "AVAILABLE"
+  ],
+  "availableProjection": {
+    "semanticSubtype": "BLOCKED_PENDING_SCIENCE_AND_PRODUCT_AUTHORITY",
+    "authorizedObservationTypes": [],
+    "rawInternalStatePassThrough": false
+  },
+  "forbiddenPublicFields": [
+    "valence",
+    "load",
+    "sensorReliability",
+    "rawVetoChain",
+    "genericWellbeingScore"
+  ],
+  "requiredObservationEvidence": [
+    "context",
+    "timeWindow",
+    "reference",
+    "sourceProvenance",
+    "qualityConfidence",
+    "limits",
+    "engineVersion",
+    "modelVersion",
+    "configVersion",
+    "featureContractVersion",
+    "baselineVersion"
+  ],
+  "routeActivation": {
+    "allowed": false,
+    "existing501MustRemain": true,
+    "dependencies": [
+      118,
+      122,
+      87
+    ]
+  },
+  "clientRules": {
+    "localCanonicalRecompute": false,
+    "mockFallbackOnFailure": false,
+    "unavailableToZero": false
+  }
+}

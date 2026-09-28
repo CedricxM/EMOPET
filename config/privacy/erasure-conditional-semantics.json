@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-erasure-conditional-semantics-v1",
-  "status": "FOUR_PRODUCT_PRIVACY_DECISIONS_PROMOTED_LEGAL_PRIVACY_DECISION_REMAINS",
+  "status": "FOUR_PRODUCT_PRIVACY_DECISIONS_PROMOTED_FIVE_AUTHORITY_DECISIONS_REMAIN",
   "claimsExecutableErasure": false,
   "claimsCompleteErasure": false,
   "sourcePacket": "config/privacy/erasure-disposition-decision-packet.json",
@@ -13,9 +13,9 @@
     "community_rules_acceptances remains reserved to PRIVACY_LEGAL; research_data_consents and subscriptions remain outside these four product decisions."
   ],
   "summary": {
-    "conditionalRowsTotal": 12,
+    "conditionalRowsTotal": 16,
     "semanticsAlreadyDeterminedByExistingPolicy": 7,
-    "authorityDecisionsStillRequired": 1,
+    "authorityDecisionsStillRequired": 5,
     "matrixRowsPromoted": 4,
     "productPrivacyDecisionsApproved": 4
   },
@@ -191,6 +191,45 @@
   ],
   "authorityDecisionsRemaining": [
     {
+      "relation": "dogs.id|DIRECT_FK|professional_share_grants|dog_id",
+      "decisionClass": "PRODUCT_PRIVACY_LIFECYCLE_DECISION_REQUIRED",
+      "why": "Professional-share grants are recipient-bound and time-bounded, but dog erasure semantics for pending, active, expired and revoked grants have not been approved.",
+      "privacyFirstRecommendation": "Prefer deletion or irreversible de-identification when the dog-side sharing purpose ends; any retained identified grant needs an explicit bounded justification.",
+      "options": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "requiredAuthority": "FOUNDER_PRODUCT_PRIVACY",
+      "promotionAuthorized": false
+    },
+    {
+      "relation": "dogs.id|UNCONSTRAINED_IDENTIFIER|professional_share_access_audits|dog_id",
+      "decisionClass": "LEGAL_PRIVACY_EVIDENCE_DECISION_REQUIRED",
+      "why": "Professional-share access audits intentionally keep unconstrained identifiers so denied or unknown lookups remain auditable; post-erasure evidence handling requires bounded privacy/legal authority.",
+      "privacyFirstRecommendation": "Prefer deletion or irreversible minimisation after the bounded security/audit need ends; identified retention requires a documented purpose and duration.",
+      "options": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "requiredAuthority": "PRIVACY_LEGAL",
+      "promotionAuthorized": false
+    },
+    {
+      "relation": "professional_share_grants.id|UNCONSTRAINED_IDENTIFIER|professional_share_access_audits|grant_id",
+      "decisionClass": "LEGAL_PRIVACY_EVIDENCE_DECISION_REQUIRED",
+      "why": "Grant-linked audit evidence intentionally survives without a foreign key so failed or substituted grant lookups remain auditable; its post-erasure lifecycle requires bounded privacy/legal authority.",
+      "privacyFirstRecommendation": "Prefer deletion or irreversible minimisation after the bounded security/audit need ends; identified retention requires a documented purpose and duration.",
+      "options": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "requiredAuthority": "PRIVACY_LEGAL",
+      "promotionAuthorized": false
+    },
+    {
       "relation": "users.id|DIRECT_FK|community_rules_acceptances|user_id",
       "decisionClass": "LEGAL_PRIVACY_EVIDENCE_DECISION_REQUIRED",
       "why": "Rules acceptance is minimal evidentiary data (version + accepted_at) tied directly to the user. Its post-erasure necessity cannot be decided from product behavior alone.",
@@ -201,6 +240,19 @@
         "RETAIN_WITH_JUSTIFICATION"
       ],
       "requiredAuthority": "PRIVACY_LEGAL",
+      "promotionAuthorized": false
+    },
+    {
+      "relation": "users.id|DIRECT_FK|professional_share_grants|owner_user_id",
+      "decisionClass": "PRODUCT_PRIVACY_LIFECYCLE_DECISION_REQUIRED",
+      "why": "Professional-share grants are recipient-bound and time-bounded, but account erasure semantics for pending, active, expired and revoked grants have not been approved.",
+      "privacyFirstRecommendation": "Prefer deletion or irreversible de-identification once the grant no longer serves an active bounded sharing purpose; any retained identified grant needs an explicit bounded justification.",
+      "options": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "requiredAuthority": "FOUNDER_PRODUCT_PRIVACY",
       "promotionAuthorized": false
     }
   ],

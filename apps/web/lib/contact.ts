@@ -8,8 +8,9 @@
  * demandes vétérinaires. Toute question qui exige un avis vétérinaire → vétérinaire.
  *
  * Frontend-first : validation + localStorage. Le backend (Drizzle/Postgres,
- * chiffrement au repos de `contactValue`, purge cron à 6 mois, vue admin
- * authentifiée) est la passe serveur différée (cf. R3).
+ * chiffrement au repos de `contactValue`, horloge de clôture + purge selon le
+ * calendrier privacy canonique, vue admin authentifiée) est la passe serveur
+ * différée (cf. R3). Aucun purgeur runtime n'est implémenté ici.
  */
 
 export type ContactChannel = 'phone' | 'video';
@@ -83,7 +84,7 @@ export interface ContactRequest {
 }
 
 export const MAX_ACTIVE_REQUESTS = 3;
-export const RETENTION_MONTHS = 6; // purge des demandes completed/cancelled (cron serveur, différé)
+// Retention is governed by config/privacy/retention-schedule.json (support_contact).
 const STORAGE_KEY = 'breiz-contact-requests';
 const OWNER_TOKEN_KEY = 'breiz-contact-owner-token';
 

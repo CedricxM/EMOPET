@@ -158,6 +158,32 @@ New active product code, tests, UI copy and current controlled documentation mus
 
 Do not perform a blind repository-wide replacement. Historical gate identifiers and evidence records remain stable unless a separately controlled compatibility plan changes them. External proper names such as GitGuardian remain unchanged.
 
+## 2026-09-27 active-regression sweep
+
+A current-main sweep found that the 2026-09-11 terminology decision had regressed in several active surfaces after the original migration.
+
+The repair moves current executable/current-authority vocabulary back to `Owner`, including:
+
+- security-audit ordinary-user actor kind;
+- subject-discovery response grouping;
+- current backend/test fixtures;
+- ELI dynamics and proxy-evidence machine-readable keys;
+- current C-BARQ/ELI/Product/Strategy/API documentation;
+- strategy/product indexes pointing to the canonical Owner successor authorities.
+
+The canonical successor files for Owner Relationship, Owner Authority and Owner Continuity are restored to current repository lineage.
+
+A dedicated CI guard now rejects the legacy person-role term in active tracked text while preserving the bounded exceptions already defined by this record:
+
+- historical/superseded evidence;
+- stable legacy gate/evidence identifiers;
+- historical migration/schema lineage;
+- regression/enforcement literals;
+- external provider names such as GitGuardian;
+- non-role external/reference vocabulary where the English word has a different domain meaning (for example a livestock guardian dog category).
+
+This sweep is terminology-only. It does not expand, weaken or reinterpret authorization, ownership, consent, privacy, sharing, deletion or delegated-access semantics.
+
 ## Delegated access rule
 
 A trusted household member, pet-sitter, professional recipient or other delegate does not become an Owner merely because access is granted. The canonical Owner term must therefore not be mechanically substituted into non-owner actor roles.

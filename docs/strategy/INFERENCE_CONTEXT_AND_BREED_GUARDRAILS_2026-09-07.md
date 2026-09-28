@@ -66,17 +66,17 @@ EMOPET must not replace that with:
 - a breed percentile marketed as wellbeing;
 - public ranking against other dogs.
 
-## 5. Owner/Guardian report is a separate evidence class
+## 5. Owner report is a separate evidence class
 
-Guardian input is contextual/declared information, not biological ground truth.
+Owner input is contextual/declared information, not biological ground truth.
 
 Product rules:
 
 - prefer factual/frequency/timing observations;
-- distinguish `Guardian reported` from `EMOPET observed`;
+- distinguish `Owner reported` from `EMOPET observed`;
 - retain disagreement between user report and sensor-derived patterns rather than forcibly reconciling them;
 - no single owner response creates an ELI state;
-- do not label the Guardian unreliable simply because streams disagree.
+- do not label the Owner unreliable simply because streams disagree.
 
 ## 6. C-BARQ boundary
 

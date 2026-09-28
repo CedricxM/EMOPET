@@ -52,6 +52,80 @@ export interface SensorSummary {
   humidityPct?: number;
 }
 
+
+export const ACTIVITY_VARIABILITY_FEATURE_CONTRACT_VERSION =
+  'tag-activity-variability-cv30m-v1' as const;
+
+export type ActivityVariabilityObservationStatus = 'OBSERVED' | 'NOT_OBSERVED';
+export type ActivityVariabilityQualityState = 'VALID' | 'DEGRADED' | 'SUPPRESSED';
+
+export interface ActivityVariabilityFeatureTransportFrame {
+  transportVersion: 1;
+  source: 'TAG';
+  featureKey: 'activity_variability';
+  featureContractVersion: typeof ACTIVITY_VARIABILITY_FEATURE_CONTRACT_VERSION;
+  sequence: number;
+  bootSessionId: number;
+  windowEndMs: number;
+  windowSeconds: 1800;
+  validSeconds: number;
+  observationStatus: ActivityVariabilityObservationStatus;
+  nullReason: ActivityVariabilityNullReason | null;
+  qualityState: ActivityVariabilityQualityState;
+  value: number | null;
+}
+
+export type ActivityVariabilityNullReason =
+  | 'INSUFFICIENT_COVERAGE'
+  | 'MEAN_BELOW_DIVISION_GUARD';
+
+export interface ActivityVariabilityTransportProvenance {
+  transportVersion: 1;
+  bootSessionId: number;
+  sequence: number;
+  /** uint32 milliseconds since device boot at the feature-window end. */
+  windowEndMs: number;
+}
+
+export interface ActivityVariabilityEventTimeProvenance {
+  strategy: 'BOOT_ANCHOR_V1';
+  /** uint32 milliseconds since the same device boot at anchor capture. */
+  anchorDeviceMs: number;
+  /** UTC time correlated with anchorDeviceMs by an upstream clock authority. */
+  anchorUtc: Date;
+  /** Total uncertainty budget supplied by that authority, in milliseconds. */
+  uncertaintyMs: number;
+}
+
+/**
+ * Versioned backend envelope for the deterministic TAG activity-variability feature.
+ *
+ * This is a physical/preprocessed movement observation only. It carries no
+ * arousal, emotion, welfare or other latent interpretation.
+ */
+export interface ActivityVariabilityFeatureObservation {
+  dogId: string;
+  /**
+   * Application-level idempotency key. Optional only when transportProvenance
+   * supplies the canonical device-local replay identity; the backend allocates
+   * an ingestion UUID on first persistence in that mode.
+   */
+  ingestionId?: string;
+  deviceId: string;
+  observedAt: Date;
+  source: 'TAG';
+  featureKey: 'activity_variability';
+  value: number | null;
+  observationStatus: ActivityVariabilityObservationStatus;
+  nullReason: ActivityVariabilityNullReason | null;
+  featureContractVersion: typeof ACTIVITY_VARIABILITY_FEATURE_CONTRACT_VERSION;
+  windowSeconds: 1800;
+  validSeconds: number;
+  qualityState?: ActivityVariabilityQualityState;
+  transportProvenance?: ActivityVariabilityTransportProvenance;
+  eventTimeProvenance?: ActivityVariabilityEventTimeProvenance;
+}
+
 /** Device info. */
 export interface Device {
   id: string;

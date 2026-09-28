@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "emopet-boot-anchor-v1",
+  "issue": 635,
+  "status": "WIRE+TAG+MOBILE_SOURCE_IMPLEMENTED / PRODUCTION_CLOCK_AUTHORITY+TARGET_EVIDENCE+FORWARDING_OPEN",
+  "protocol": "BOOT_ANCHOR_V1",
+  "transport": {
+    "requestCharacteristic": "CONFIG",
+    "commandId": "0x14",
+    "request": [
+      "command:uint8",
+      "requestNonce:uint32_le"
+    ],
+    "response": [
+      "header:0xEC",
+      "version:1",
+      "messageType:CLOCK_ANCHOR_RESPONSE",
+      "requestNonce:uint32_le",
+      "bootSessionId:uint32_le",
+      "deviceMs:uint32_le",
+      "xorCrc:uint8"
+    ],
+    "nonceAuthority": "CORRELATION_ONLY_NOT_SECURITY",
+    "tagUtcField": false
+  },
+  "mobileCapture": {
+    "transportSource": "apps/mobile/src/services/ble.ts",
+    "timingAuthority": "packages/ble-protocol/src/clock-anchor.ts",
+    "wrapper": "apps/mobile/src/services/ble-clock-anchor.ts",
+    "roundTripClock": "MONOTONIC_PERFORMANCE_NOW",
+    "utcPlacementClock": "DATE_NOW_WALL_CLOCK",
+    "localWallClockUncertaintyRequired": true,
+    "localWallClockUncertaintyProductionSource": "OPEN",
+    "maxRoundTripMs": 1500,
+    "maxWallVsMonotonicElapsedSkewMs": 100,
+    "midpoint": "wallBeforeUtcMs + floor(monotonicRttMs / 2)",
+    "uncertainty": "localWallClockUncertaintyMs + ceil(monotonicRttMs/2) + ceil(wallMonotonicSkewMs) + 2",
+    "bootSessionMismatchFailsClosed": true,
+    "responseNonceMismatchIgnoredUntilTimeout": true,
+    "featureReceiveTimeMayBeUsedAsAnchor": false
+  },
+  "evidence": {
+    "firmwareHostWireParity": "scripts/control/tag-clock-anchor-conformance.test.mjs",
+    "hostTimingUnitTests": "packages/ble-protocol/test/clock-anchor.test.mjs",
+    "mobileContractGuard": "apps/mobile/test/ble-clock-anchor-contract.test.mjs",
+    "targetBuild": "NOT_YET_PROVEN",
+    "overAirHandshake": "NOT_YET_PROVEN",
+    "realMobileClockUncertainty": "NOT_YET_PROVEN"
+  },
+  "forwarding": {
+    "mobileToBackendAuthorized": false,
+    "networkFeatureIngestionActivated": false,
+    "anchorFreshnessPolicy": "OPEN",
+    "deviceTrust": "OPEN_UNDER_66"
+  },
+  "currentDecision": "DO_NOT_USE_FEATURE_RECEIVE_TIME_AS_OBSERVATION_TIME"
+}

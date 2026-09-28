@@ -16,6 +16,30 @@ export type BreizSourceUsagePolicy =
   | 'PARTNER_PERMISSION_REQUIRED';
 
 export type BreizSourceAuthority = 'official' | 'institutional' | 'partner' | 'community';
+export type BreizRightsEvidenceState =
+  | 'SOURCE_CONFIRMED'
+  | 'REPOSITORY_FACT'
+  | 'RECEIPT_MISSING'
+  | 'UNVERIFIED_CLAIM'
+  | 'HOLD'
+  | 'OPEN';
+export type BreizReleaseDisposition = 'GO' | 'HOLD' | 'REMEDIATE';
+
+export interface BreizRightsEvidence {
+  /** Immutable identifier for the exact human-reviewed rights record. */
+  authorityRevision: string;
+  /** Exact source or item version covered by that review. */
+  immutableSourceVersion: string;
+  /** Repository-relative controlled receipt/evidence pointer. */
+  receiptPath: string;
+  attributionText: string;
+  permittedUseSummary: string;
+  reviewedAt: string;
+  reviewerRole: string;
+  recheckAt?: string | null;
+  evidenceState: BreizRightsEvidenceState;
+  disposition: BreizReleaseDisposition;
+}
 
 export interface BreizSourceDescriptor {
   id: string;
@@ -30,6 +54,11 @@ export interface BreizSourceDescriptor {
   freshnessHours: number | null;
   enabled: boolean;
   notes: string;
+  /**
+   * Optional controlled review record. No current catalogue entry has one;
+   * absence therefore remains fail-closed for public release.
+   */
+  rightsEvidence?: BreizRightsEvidence;
 }
 
 /**
@@ -185,18 +214,8 @@ export interface BreizSourceRightsVerdict {
 
 /**
  * Contrôle fail-closed des droits d'une source — gate DATA-LIC-G6 de #116.
- *
- * Le registre décrivait les droits sans jamais les faire appliquer : `license`
- * valait `null` sur huit entrées sur neuf, dont deux `enabled: true`, et rien
- * dans le code ne lisait ce champ. La décision par défaut était donc permissive
- * par omission.
- *
- * Ici l'absence de preuve bloque. Une source n'est ingérable que si elle est
- * activée, porte un reçu de licence non vide, déclare une règle de re-contrôle
- * (l'`expiry/recheck rule` exigée par G6) et n'attend pas un accord partenaire.
- *
- * Ce verdict est un contrôle technique, pas un avis juridique : il constate
- * qu'une preuve est présente, jamais qu'elle est suffisante. #116 reste ouverte.
+ * Ce verdict constate la présence d'éléments techniques ; il ne vaut jamais
+ * avis juridique ni autorisation produit.
  */
 export function evaluateBreizSourceRights(source: BreizSourceDescriptor): BreizSourceRightsVerdict {
   const blockers: BreizSourceRightsBlocker[] = [];
@@ -219,15 +238,50 @@ export function evaluateBreizSourceRights(source: BreizSourceDescriptor): BreizS
   };
 }
 
-/**
- * Conserve la signature d'origine, mais ne décide plus sans reçu de licence.
- *
- * La version précédente ne lisait que `usagePolicy` : une source marquée
- * `FULL_TEXT_ALLOWED` sans aucune licence aurait été autorisée à stocker du
- * texte intégral. Aucune entrée du registre ne porte ce drapeau aujourd'hui,
- * donc le défaut n'était pas encore atteignable — il attendait la première
- * source qui l'activerait.
- */
 export function canStoreFullText(source: BreizSourceDescriptor): boolean {
   return evaluateBreizSourceRights(source).fullTextPermitted;
+}
+
+function parseEvidenceTime(value: string): number | null {
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+/**
+ * Public-answer readiness is stricter than ingestion readiness.
+ *
+ * A future GO must be backed by one immutable reviewed record. A later registry
+ * edit therefore cannot retroactively authorize chunks produced under an older
+ * or missing authority revision.
+ */
+export function isBreizSourceReleaseReady(
+  source: BreizSourceDescriptor,
+  nowMs: number = Date.now(),
+): boolean {
+  if (!evaluateBreizSourceRights(source).ingestionPermitted) return false;
+
+  const evidence = source.rightsEvidence;
+  if (!evidence) return false;
+  if (evidence.evidenceState !== 'SOURCE_CONFIRMED' || evidence.disposition !== 'GO') return false;
+
+  if (
+    evidence.authorityRevision.trim().length === 0 ||
+    evidence.immutableSourceVersion.trim().length === 0 ||
+    evidence.receiptPath.trim().length === 0 ||
+    evidence.attributionText.trim().length === 0 ||
+    evidence.permittedUseSummary.trim().length === 0 ||
+    evidence.reviewerRole.trim().length === 0
+  ) {
+    return false;
+  }
+
+  const reviewedAt = parseEvidenceTime(evidence.reviewedAt);
+  if (reviewedAt == null || reviewedAt > nowMs) return false;
+
+  if (evidence.recheckAt != null) {
+    const recheckAt = parseEvidenceTime(evidence.recheckAt);
+    if (recheckAt == null || recheckAt <= nowMs) return false;
+  }
+
+  return true;
 }

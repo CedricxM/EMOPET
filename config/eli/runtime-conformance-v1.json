@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "emopet-eli-runtime-conformance-v1",
+  "status": "CONFORMANCE_HARNESS_ONLY / NOT_RUNTIME_ACTIVATION",
+  "issue": 479,
+  "canonicalEngine": "packages/eli-engine",
+  "orchestrationCandidate": "backend/api",
+  "inputAuthority": "SYNTHETIC_OR_TEST_INJECTED_ONLY",
+  "firstFeature": {
+    "feature": "activity_variability",
+    "source": "TAG",
+    "featureContractVersion": "tag-activity-variability-cv30m-v1",
+    "measurementStatus": "DETERMINISTIC_FEATURE_CONTRACT_COHERENT",
+    "transportStatus": "BLE_V1_DOES_NOT_CARRY_FEATURE",
+    "scienceInterpretation": "EMOPET_HYPOTHESIS_UNVALIDATED",
+    "scienceGate": 87,
+    "ioGate": 122
+  },
+  "allowedPurpose": [
+    "canonical-engine invocation conformance",
+    "veto-path conformance",
+    "reliability propagation conformance",
+    "provenance-shape conformance",
+    "abstention/fail-closed conformance"
+  ],
+  "forbidden": {
+    "liveFeatureIngestion": true,
+    "persistenceWrite": true,
+    "apiActivation": true,
+    "ownerProjection": true,
+    "clientConsumption": true,
+    "scienceValidationClaim": true
+  },
+  "current501MustRemain": true,
+  "apiProjectionGate": 124,
+  "currentDecision": "HOLD_RUNTIME_ACTIVATION"
+}

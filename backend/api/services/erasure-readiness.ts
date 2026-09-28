@@ -1,11 +1,12 @@
-export type ErasureSubjectRoot = 'users.id' | 'dogs.id';
+export type ErasureSubjectRoot = 'users.id' | 'dogs.id' | 'professional_share_grants.id';
 
 export type DatabaseDeleteAction =
   | 'NO_ACTION'
   | 'RESTRICT'
   | 'CASCADE'
   | 'SET_NULL'
-  | 'SET_DEFAULT';
+  | 'SET_DEFAULT'
+  | 'NO_FK_LIFECYCLE_NOT_ENFORCED';
 
 export type ErasureDisposition =
   | 'TO_CONFIRM'
@@ -113,7 +114,7 @@ export interface ErasureReadinessFailure {
 
 export type ErasureReadinessResult = ErasureReadinessReport | ErasureReadinessFailure;
 
-const SUBJECT_ROOTS = new Set<ErasureSubjectRoot>(['users.id', 'dogs.id']);
+const SUBJECT_ROOTS = new Set<ErasureSubjectRoot>(['users.id', 'dogs.id', 'professional_share_grants.id']);
 const RELATION_TYPES = new Set<ErasureRelationType>([
   'DIRECT_FK',
   'TRANSITIVE_FK',
@@ -125,6 +126,7 @@ const DELETE_ACTIONS = new Set<DatabaseDeleteAction>([
   'CASCADE',
   'SET_NULL',
   'SET_DEFAULT',
+  'NO_FK_LIFECYCLE_NOT_ENFORCED',
 ]);
 const DISPOSITIONS = new Set<ErasureDisposition>([
   'TO_CONFIRM',
@@ -268,6 +270,7 @@ export function buildErasureReadinessReport(
     CASCADE: 0,
     SET_NULL: 0,
     SET_DEFAULT: 0,
+    NO_FK_LIFECYCLE_NOT_ENFORCED: 0,
   };
 
   const mechanicsByKey = new Map(

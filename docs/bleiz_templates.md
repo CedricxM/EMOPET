@@ -16,13 +16,14 @@ Implementation: `packages/ai-personality/src/bleiz/bleiz-v6-templates.ts`.
 | Priority | 78 |
 | Cooldown | 30 days per dog |
 | Tone | Gentle, informative, non-clinical |
-| Trigger | `anticipation_index.detection_threshold_met === true` |
+| Trigger | detector threshold met AND explicit `anticipation_contract_authorized === true` |
 
 **Never say**: `"anxiété de séparation"`, `"séparation anxiety"`, `"trouble"`,
 `"pathologie"`, `"maladie"`, `"anxieux"`.
 
 The template describes an observed activity pattern, not a diagnosis. It points
-to generic enrichment ideas and never prescribes treatment.
+to generic enrichment ideas and never prescribes treatment. Publication is
+fail-closed under #89 until an explicit semantic-authority field is supplied.
 
 ## ALLO_RECOVERY_SLOWING
 
@@ -32,10 +33,12 @@ to generic enrichment ideas and never prescribes treatment.
 | Priority | 80 |
 | Cooldown | 21 days per dog |
 | Tone | Measured, concerned but non-alarmist |
-| Trigger | `recoverySpeedCurrent.trend4wPct > 20%` sustained ≥ 7 days |
+| Trigger | `recovery_trend_4w_pct > 20%` AND explicit `recovery_contract_authorized === true` AND `recovery_trend_sustained_days >= 7` |
 
 **Never say**: `"charge allostatique"`, `"stress chronique"`, `"cortisol"`,
 `"épuisement"`.
+
+Publication is fail-closed under #90: cooldown is not persistence, and a one-shot >20% trend is insufficient.
 
 Appends a vet-referral suffix: *"Si cela persiste, en parler à votre
 vétérinaire."*

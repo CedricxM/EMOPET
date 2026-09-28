@@ -18,6 +18,12 @@ on:
       - 'backend/api/services/community-*.ts'
       - 'backend/api/routes/directory.ts'
       - 'backend/test/*.integration.test.mjs'
+      - 'backend/api/services/*retention*.ts'
+      - 'backend/test/*retention*.test.mjs'
+      - 'backend/api/services/ai-zero-durable-retention-readiness.ts'
+      - 'backend/test/ai-zero-durable-retention-readiness.test.mjs'
+      - 'backend/api/services/moderation-retention-readiness.ts'
+      - 'backend/test/moderation-retention-readiness.test.mjs'
       - 'backend/test/migration-baseline-static.test.mjs'
       - 'backend/test/id-01-referential-integrity.sql'
       - 'backend/test/copresence-identity-fingerprint.sql'
@@ -32,6 +38,11 @@ on:
       - 'backend/test/data-export-*.test.mjs'
       - 'backend/test/privacy-dog-export-coverage.test.mjs'
       - 'config/privacy/dog-export-coverage.json'
+      - 'backend/api/services/professional-share-*.ts'
+      - 'backend/test/professional-share-*.test.mjs'
+      - 'packages/shared/src/types/professional-share.ts'
+      - 'packages/shared/src/validators/professional-share.ts'
+      - 'scripts/security/professional-share-authority-audit.mjs'
       - 'backend/test/dataset-writer-authority.sql'
       - 'scripts/ingest_vbo.ts'
       - 'scripts/data/vbo-committed-snapshot-audit.mjs'
@@ -93,7 +104,9 @@ jobs:
 
       - name: Repository-only migration checks
         working-directory: backend
-        run: node --test test/migration-baseline-static.test.mjs
+        run: |
+          node --test test/migration-baseline-static.test.mjs
+          node --test test/behavioral-assessment-context-static.test.mjs
 
       - name: Apply all draft prerequisites in order
         run: |
@@ -108,6 +121,14 @@ jobs:
             echo "Applying $file"
             psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$file"
           done
+
+      - name: ELI-BEHAV-01 mapping authority on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          BEHAVIORAL_ELI_MAPPING_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/behavioral-eli-mapping-authority.integration.test.mjs
 
       - name: Capture first schema
         run: |
@@ -155,6 +176,22 @@ jobs:
       - name: Build backend dependency closure
         run: pnpm --filter @emopet/api... build
 
+      - name: BEHAV-DATA-01 semantics on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          EMOPET_DB_INTEGRATION_TEST: '1'
+          NODE_ENV: test
+        run: node --test test/behavioral-assessment-context.integration.test.mjs
+
+      - name: DEVICE-TRUST-ID-12 public credential repository on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          DEVICE_CREDENTIAL_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/device-credential-repository.integration.test.mjs
+
       - name: Generate isolated Drizzle fresh baseline
         working-directory: backend
         run: |
@@ -180,10 +217,49 @@ jobs:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: pnpm exec drizzle-kit migrate --config=db/drizzle.p0-baseline.config.ts
 
+      # Drizzle emits table/column constraints but not PostgreSQL trigger/function authority.
+      - name: Apply ELI-BEHAV non-Drizzle authority objects
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/0015_behavioral_eli_mapping_authority.sql
+
+      - name: ELI-BEHAV-01 mapping authority on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          BEHAVIORAL_ELI_MAPPING_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/behavioral-eli-mapping-authority.integration.test.mjs
+
+      - name: BEHAV-DATA-01 semantics on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          EMOPET_DB_INTEGRATION_TEST: '1'
+          NODE_ENV: test
+        run: node --test test/behavioral-assessment-context.integration.test.mjs
+
+      - name: DEVICE-TRUST-ID-12 public credential repository on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          DEVICE_CREDENTIAL_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/device-credential-repository.integration.test.mjs
+
       - name: ID-01 canonical identity and FK checks
         env:
           GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: psql "$GENERATED_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/id-01-referential-integrity.sql
+
+      - name: PRIV-RETENTION AI zero-durable negative evidence
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          AI_ZERO_DURABLE_RETENTION_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/ai-zero-durable-retention-readiness.integration.test.mjs
 
       - name: PRIV-RETENTION exact-location max-window readiness
         working-directory: backend
@@ -200,6 +276,30 @@ jobs:
           DETAILED_SENSOR_ELI_RETENTION_DB_INTEGRATION: '1'
           NODE_ENV: test
         run: node --test test/detailed-sensor-eli-retention-readiness.integration.test.mjs
+
+      - name: PRIV-RETENTION UTC calendar expiry parity
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          RETENTION_CALENDAR_PARITY_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/privacy-retention-calendar-parity.integration.test.mjs
+
+      - name: PRIV-RETENTION moderation evidence 12-month readiness
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          MODERATION_RETENTION_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/moderation-retention-readiness.integration.test.mjs
+
+      - name: PRIV-RETENTION aggregate execution plan dry-run
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          RETENTION_EXECUTION_PLAN_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/retention-execution-plan.integration.test.mjs
 
       - name: INT-03B VBO writer and traceability contract
         run: |
@@ -241,6 +341,50 @@ jobs:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
           EMOPET_DB_INTEGRATION_TEST: '1'
         run: node --test test/sensor-summary-ingestion.integration.test.mjs test/sensor-ingestion-authority-concurrency.integration.test.mjs
+
+      - name: ELI-IO canonical device registry read
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          NODE_ENV: test
+        run: node --test test/canonical-device-registry.integration.test.mjs
+
+      - name: ELI-IO activity feature persistence boundary
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          ACTIVITY_FEATURE_DB_INTEGRATION: '1'
+        run: node --test test/activity-feature-ingestion.integration.test.mjs
+
+      - name: ELI-IO activity feature read validation
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          ACTIVITY_FEATURE_READ_DB_INTEGRATION: '1'
+        run: node --test test/activity-feature-read.integration.test.mjs
+
+      - name: ELI-RUNTIME physical movement vertical slice
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          ELI_PHYSICAL_MOVEMENT_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/eli-physical-movement-runtime.integration.test.mjs
+
+      - name: ELI-IO feature transport adapter validation
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          ACTIVITY_FEATURE_TRANSPORT_ADAPTER_DB_INTEGRATION: '1'
+        run: node --test test/activity-feature-transport-adapter.integration.test.mjs
+
+      - name: ELI-IO network registry + Device Trust pre-ingress gate
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          ACTIVITY_FEATURE_NETWORK_AUTHORITY_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/activity-feature-network-authority.integration.test.mjs
 
       - name: INT-06F canonical copresence dog identity
         env:
@@ -305,6 +449,16 @@ jobs:
             test/privacy-dog-export-coverage.test.mjs \
             test/data-export-runtime.integration.test.mjs
 
+      - name: INT-05 backend authority guard
+        run: node scripts/security/professional-share-authority-audit.mjs
+
+      - name: INT-05 recipient-bound professional sharing
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          EMOPET_DB_INTEGRATION_TEST: '1'
+        run: node --test test/professional-share-*.test.mjs
+
       - name: Verify generated snapshot is stable
         working-directory: backend
         run: |
@@ -330,5 +484,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification and INT-04A bounded export authority.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, BEHAV-DATA-01 response/applicability semantics, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification, retention-readiness probes, INT-04A bounded export authority, and INT-05 recipient-bound professional sharing.'
           echo 'It does not authorize production migration, deployment, or release.'

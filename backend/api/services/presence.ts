@@ -149,6 +149,13 @@ function computeGate(
   return 'PUBLISH';
 }
 
+/**
+ * @deprecated PROTOTYPE / NON-AUTHORITATIVE under #133.
+ *
+ * This historical helper treats row count as hours and coerces source-specific
+ * missing fields to zero. No production route currently calls it. Keep it only
+ * as lineage until the explicit source/window contract replaces it.
+ */
 export function computePresenceComparison(
   summaries: Array<Partial<SensorSummary> & { timestamp: Date | string }>,
   events: PresenceEventInput[],

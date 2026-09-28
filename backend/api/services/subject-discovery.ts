@@ -24,10 +24,13 @@ import {
   eliBehavioralPriors,
   eliStates,
   healthEntries,
+  professionalShareGrants,
+  professionalShareAccessAudits,
   posts,
   recoveryEvents,
   researchDataConsents,
   routineStability,
+  sensorFeatureObservations,
   sensorSummaries,
   subscriptions,
   userConfig,
@@ -70,7 +73,7 @@ export interface SubjectDiscoverySuccess {
     requestedDogId: string | null;
     selectedDogIds: string[];
   };
-  guardian: Record<string, DiscoverySurface>;
+  owner: Record<string, DiscoverySurface>;
   dog: Record<string, DiscoverySurface>;
   externalOrUnresolved: Record<string, DiscoverySurface>;
 }
@@ -160,9 +163,12 @@ export async function discoverSubjectData(
         ? [requestedDogId]
         : ownedDogIds;
 
-      const guardian = {
+      const owner = {
         account: counted(1, { ids: [userRow.id] }),
         ownedDogs: counted(ownedDogIds.length, { ids: ownedDogIds }),
+        professionalShareGrantsOwned: counted(
+          await countWhere(tx, professionalShareGrants, eq(professionalShareGrants.ownerUserId, userId)),
+        ),
         subscriptions: counted(await countWhere(tx, subscriptions, eq(subscriptions.userId, userId))),
         achievements: counted(await countWhere(tx, achievements, eq(achievements.userId, userId))),
         aiMessagesTargetingUser: counted(await countWhere(tx, aiMessages, eq(aiMessages.targetUserId, userId))),
@@ -186,8 +192,11 @@ export async function discoverSubjectData(
       };
 
       let dogCounts = {
+        professionalShareGrants: 0,
+        professionalShareAccessAudits: 0,
         devices: 0,
         healthEntries: 0,
+        sensorFeatureObservations: 0,
         sensorSummaries: 0,
         coreEliStates: 0,
         baselines: 0,
@@ -232,8 +241,15 @@ export async function discoverSubjectData(
         const behavioralAssessmentsProduct = productAssessmentIds.length;
 
         dogCounts = {
+          professionalShareGrants: await countWhere(
+            tx, professionalShareGrants, inArray(professionalShareGrants.dogId, selectedDogIds),
+          ),
+          professionalShareAccessAudits: await countWhere(
+            tx, professionalShareAccessAudits, inArray(professionalShareAccessAudits.dogId, selectedDogIds),
+          ),
           devices: await countWhere(tx, devices, inArray(devices.dogId, selectedDogIds)),
           healthEntries: await countWhere(tx, healthEntries, inArray(healthEntries.dogId, selectedDogIds)),
+          sensorFeatureObservations: await countWhere(tx, sensorFeatureObservations, inArray(sensorFeatureObservations.dogId, selectedDogIds)),
           sensorSummaries: await countWhere(tx, sensorSummaries, inArray(sensorSummaries.dogId, selectedDogIds)),
           coreEliStates: await countWhere(tx, eliStates, inArray(eliStates.dogId, selectedDogIds)),
           baselines: await countWhere(tx, baselines, inArray(baselines.dogId, selectedDogIds)),
@@ -286,11 +302,16 @@ export async function discoverSubjectData(
           requestedDogId: requestedDogId ?? null,
           selectedDogIds,
         },
-        guardian,
+        owner,
         dog: {
           profiles: counted(selectedDogIds.length, { ids: selectedDogIds }),
+          professionalShareGrants: counted(dogCounts.professionalShareGrants),
+          professionalShareAccessAudits: counted(dogCounts.professionalShareAccessAudits, {
+            note: 'Counts by requested dog ID only; audit identifiers have no FK and do not prove grant attribution or lifecycle completeness.',
+          }),
           devices: counted(dogCounts.devices),
           healthEntries: counted(dogCounts.healthEntries),
+          sensorFeatureObservations: counted(dogCounts.sensorFeatureObservations),
           sensorSummaries: counted(dogCounts.sensorSummaries),
           coreEliStates: counted(dogCounts.coreEliStates),
           baselines: counted(dogCounts.baselines),
@@ -328,10 +349,6 @@ export async function discoverSubjectData(
           copresenceEvents: counted(dogCounts.copresenceEvents),
         },
         externalOrUnresolved: {
-          professionalSharing: unresolved(
-            'INTEGRATION_DEFERRED',
-            'Professional-sharing persistence is owned by INT-05 and is not reported as absent by INT-04B.',
-          ),
           contactRequests: unresolved(
             'UNRESOLVED_IDENTITY_MAPPING',
             'Contact request storage uses a non-SQL owner-token mapping; PostgreSQL discovery cannot canonically bind or enumerate it yet.',

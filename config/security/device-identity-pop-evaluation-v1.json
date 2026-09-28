@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "emopet-device-identity-pop-evaluation-v1",
+  "status": "P0_ARCHITECTURE_SELECTED / ASYMMETRIC_POP / TARGET_PROOF_REQUIRED / DEVICE_DATA_TRUST_RUNTIME_BLOCKED",
+  "issue": 648,
+  "parentIssue": 66,
+  "target": {
+    "module": "MS88SF3",
+    "soc": "nRF52840",
+    "sdkFamily": "nRF Connect SDK / Zephyr",
+    "sdkSeries": "3.4.x LTS"
+  },
+  "verifiedHardwareFacts": {
+    "cryptoPeripheral": "Arm CryptoCell CC310",
+    "kmuPresent": false,
+    "supportedHukType": "KDR_ONLY",
+    "hukRole": "KEY_DERIVATION_ROOT_ONLY",
+    "ficrDeviceIdRole": "PUBLIC_IDENTIFIER_ONLY / NOT_AUTHENTICATOR",
+    "bleAddressRole": "TRANSPORT_IDENTIFIER_ONLY / NOT_AUTHENTICATOR"
+  },
+  "candidates": {
+    "A_HUK_KDR_DERIVED_SYMMETRIC_POP": {
+      "state": "NOT_SELECTED_FOR_P0 / FALLBACK_ONLY",
+      "root": "KDR_HUK",
+      "applicationKey": "DERIVED_PURPOSE_SEPARATED_KEY",
+      "proofFamily": "SYMMETRIC_CHALLENGE_RESPONSE",
+      "serverEnrollmentModel": "OPEN",
+      "manufacturingFlow": "OPEN",
+      "keyRotationModel": "OPEN",
+      "rmaModel": "OPEN",
+      "knownConstraint": "HUK_ROOT_MUST_NOT_BE_USED_DIRECTLY_AS_APPLICATION_KEY",
+      "nonSelectionReason": "BACKEND_MUST_HOLD_OR_RECOVER_PER_DEVICE_SYMMETRIC_VERIFICATION_SECRET / LARGER_SERVER_SECRET_BLAST_RADIUS"
+    },
+    "B_DEVICE_SPECIFIC_ASYMMETRIC_POP": {
+      "state": "SELECTED_FOR_P0 / TARGET_PROOF_REQUIRED",
+      "privateKeyStorage": "HUK_DERIVED_SECURE_STORAGE_SELECTED / SOURCE_PROVISIONER_CANDIDATE / TARGET_PROOF_OPEN",
+      "proofFamily": "ASYMMETRIC_CHALLENGE_SIGNATURE",
+      "serverEnrollmentModel": "PUBLIC_KEY_OR_EQUIVALENT",
+      "manufacturingFlow": "OPEN",
+      "keyRotationModel": "OPEN",
+      "rmaModel": "OPEN",
+      "knownConstraint": "NO_KMU_ON_NRF52840 / DO_NOT_ASSUME_KMU_BACKED_IDENTITY_KEY_LIBRARY",
+      "selectedPrivateKeyProtection": "HUK_DERIVED_TRUSTED_STORAGE / NSIB_REQUIRED / APPROTECT_REQUIRED",
+      "selectedProof": "ECDSA_SHA256_SECP256R1"
+    },
+    "C_EXTERNAL_SECURE_ELEMENT": {
+      "state": "ESCALATION_ONLY / NOT_SELECTED_FOR_P0",
+      "proofFamily": "HARDWARE_ISOLATED_CHALLENGE_RESPONSE",
+      "bomImpact": true,
+      "pcbImpact": true,
+      "manufacturingFixtureImpact": true,
+      "supplyChainImpact": true,
+      "knownConstraint": "NOT_CURRENTLY_PRESENT_IN_TAG_BOM",
+      "nonSelectionReason": "CURRENT_P0_THREAT_MODEL_DOES_NOT_REQUIRE_EXTRA_BOM_AND_FIXTURE_COMPLEXITY"
+    }
+  },
+  "selection": {
+    "architecture": "B_DEVICE_SPECIFIC_ASYMMETRIC_POP",
+    "algorithmFamily": "ECDSA_SHA256",
+    "keySizeOrCurve": "SECP256R1_256",
+    "challengeFormat": "DEVICE_POP_CHALLENGE_V1 / FIXED_BINARY_SHA256 / ECDSA_P256_P1363_64",
+    "credentialProvisioningFlow": "ON_DEVICE_KEY_GENERATION / PUBLIC_KEY_ENROLLMENT / FRESH_CHALLENGE_PROOF / APPROTECT_BEFORE_ACTIVE",
+    "backendEnrollmentSchema": "PUBLIC_KEY_PER_CANONICAL_DEVICE_PRINCIPAL_AND_CREDENTIAL_VERSION",
+    "rotationRevocationPolicy": "DUAL_SLOT_A_B / NEW_CREDENTIAL_PROOF_BEFORE_ACTIVATION / SERVER_REVOCATION_BEFORE_SLOT_REUSE / DESTRUCTIVE_RUNTIME_OPEN",
+    "debugSwdProductionPolicy": "APPROTECT_REQUIRED_BEFORE_CREDENTIAL_ACTIVE"
+  },
+  "nonAuthorities": [
+    "BLE_RUNTIME_DEVICE_ID",
+    "BLE_MAC_ADDRESS",
+    "FICR_DEVICEID",
+    "BACKEND_DEVICES_ID_BY_ITSELF",
+    "BOOT_SESSION_ID",
+    "TRANSPORT_SEQUENCE",
+    "CRC_VALID_FRAME"
+  ],
+  "requiredEvidenceBeforeSelectionClosure": [
+    "DEVICE_IDENTITY_THREAT_MODEL",
+    "ARCHITECTURE_DECISION_RECORD",
+    "MANUFACTURING_PROVISIONING_SEQUENCE",
+    "BACKEND_ENROLLMENT_MODEL",
+    "VERSIONED_CHALLENGE_RESPONSE_CONTRACT",
+    "REPLAY_AND_FRESHNESS_POLICY",
+    "ROTATION_REVOCATION_REBIND_RMA_LIFECYCLE",
+    "DEBUG_SWD_PRODUCTION_POLICY_DEPENDENCY",
+    "NEGATIVE_AUTHENTICATION_TESTS",
+    "REPRESENTATIVE_TARGET_HARDWARE_PROOF"
+  ],
+  "runtime": {
+    "deviceDataTrust": "NOT_IMPLEMENTED",
+    "networkTelemetryPersistence": "BLOCKED",
+    "claimBind": "NOT_IMPLEMENTED",
+    "trustedCommands": "NOT_IMPLEMENTED"
+  },
+  "releaseRule": "NO_DEVICE_DATA_TRUST_RUNTIME_OR_NETWORK_TELEMETRY_PERSISTENCE_UNTIL_ARCHITECTURE_SELECTION_AND_TARGET_HARDWARE_POP_EVIDENCE",
+  "evidenceState": {
+    "threatModel": {
+      "status": "DELIVERED",
+      "authority": "docs/security/DEVICE_IDENTITY_THREAT_MODEL_2026-09-27.md",
+      "machineReadable": "config/security/device-identity-threat-model-v1.json"
+    },
+    "commonManufacturingProvisioning": {
+      "status": "DELIVERED_AS_ARCHITECTURE_NEUTRAL_FLOW",
+      "authority": "docs/security/DEVICE_IDENTITY_MANUFACTURING_PROVISIONING_2026-09-27.md"
+    },
+    "architectureDecisionRecord": "DELIVERED / B_SELECTED_PENDING_TARGET_PROOF",
+    "backendEnrollmentModel": "SELECTED_PUBLIC_KEY_MODEL / SCHEMA_IMPLEMENTATION_OPEN",
+    "challengeResponseContract": "DELIVERED_AS_VERSIONED_DATA_CONTRACT / RUNTIME_OPEN",
+    "replayFreshnessPolicy": "INVARIANTS_DEFINED / TTL_VALUE_AND_REPLAY_STORE_IMPLEMENTATION_OPEN",
+    "rotationRevocationRebindRma": "PARTIAL_COMMON_FLOW_ONLY",
+    "debugSwdProductionPolicy": "DECISION_REQUIRED / RECEIPT_SHAPE_DEFINED",
+    "negativeAuthenticationTests": "OPEN",
+    "representativeTargetHardwareProof": "OPEN",
+    "challengeIssuer": "SOURCE_PRIMITIVE_DELIVERED / DURABLE_STORE_AND_ROUTE_OPEN",
+    "challengePersistence": "BLOCKED_PENDING_NON_CONFLICTING_ACTIVE_MIGRATION_SLOT",
+    "backendVerifier": "SOURCE_PRIMITIVE_DELIVERED / DURABLE_STORE_ROUTE_DEVICE_DATA_TRUST_OPEN",
+    "devicePreimageCodec": "DELIVERED_C_BACKEND_BYTE_PARITY / SIGNER_AND_KEY_STORAGE_OPEN",
+    "deviceSigner": "DELIVERED_OPAQUE_PSA_P256_SOURCE_PRIMITIVE / NO_RUNTIME_CALL_SITE",
+    "devicePrivateKeyProvisioning": "SOURCE_CANDIDATE_BEHIND_DEFAULT_OFF_KCONFIG / HUK_SECURE_STORAGE_TARGET_PROOF_OPEN",
+    "privateKeyStorage": "SECURE_STORAGE_WITH_HUK_KDR_AEAD_SELECTED / NSIB_AND_TARGET_EVIDENCE_OPEN",
+    "identityKeySlotNamespace": "DUAL_SLOT_A_B_SELECTED / PSA_USER_RANGE / DESTRUCTIVE_ROTATION_RUNTIME_OPEN",
+    "publicEnrollmentReceipt": "VERSIONED_SHARED_CONTRACT_CANDIDATE / PENDING_PROOF_ONLY / DURABLE_ENROLLMENT_OPEN"
+  },
+  "selectedArchitectureDependencies": {
+    "privateKeyAtRest": "TRUSTED_STORAGE_WITH_HUK_DERIVED_AEAD_KEY",
+    "nrf52840HukPrerequisite": "NSIB + CONFIG_HW_UNIQUE_KEY / TARGET_BUILD_PROOF_REQUIRED",
+    "privateKeyInUseIsolation": "NO_TRUSTZONE_ON_NRF52840 / P0_ACCEPTS_WITH_APPROTECT_AND_SIGNED_FIRMWARE_DEPENDENCY",
+    "secureBoot": "REQUIRED_BEFORE_PRODUCTION_TRUST_ACTIVATION",
+    "signedOta": "REQUIRED_BEFORE_PRODUCTION_TRUST_ACTIVATION",
+    "representativeHardwareProof": "REQUIRED_BEFORE_648_CLOSE",
+    "networkPersistence": "STILL_BLOCKED"
+  },
+  "challengeContractAuthority": "config/security/device-pop-challenge-v1.json",
+  "childKeyStorageIssue": 657,
+  "childKeySlotIssue": 659
+}

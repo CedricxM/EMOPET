@@ -1,4 +1,5 @@
-import { pgTable, uuid, varchar, timestamp, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, timestamp, jsonb, check } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 import { users } from './users.js';
 import { dogs } from './dogs.js';
 
@@ -12,4 +13,8 @@ export const aiMessages = pgTable('ai_messages', {
   pushedAt: timestamp('pushed_at', { withTimezone: true }),
   metadata: jsonb('metadata'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-});
+}, () => [
+  // Founder decision AI-A / R4: this table remains discoverable for legacy
+  // residue/erasure evidence, but fresh databases must reject new durable rows.
+  check('chk_ai_messages_no_durable_persistence', sql`false`),
+]);

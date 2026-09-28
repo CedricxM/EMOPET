@@ -9,7 +9,7 @@
 
 ## 1. Product role
 
-Memories is the private longitudinal history of a Guardian–dog relationship.
+Memories is the private longitudinal history of a Owner–dog relationship.
 
 It exists to preserve continuity through deliberately retained:
 
@@ -71,16 +71,16 @@ Already-created Memories must remain accessible independently of social particip
 Photo, short video, note or lived capture deliberately saved.
 
 ### `MILESTONE`
-Guardian-authored or explicitly confirmed fact.
+Owner-authored or explicitly confirmed fact.
 
 ### `PLACE_MEMORY`
-A place the Guardian deliberately chooses to retain. Prefer broad/user-chosen labelling; no automatic home/work inference.
+A place the Owner deliberately chooses to retain. Prefer broad/user-chosen labelling; no automatic home/work inference.
 
 ### `PEOPLE_CONTEXT`
 A person/Circle attached only through permitted identity/audience rules.
 
 ### `RITUAL`
-A routine explicitly named or confirmed by the Guardian. Frequency alone must not be treated as emotional importance.
+A routine explicitly named or confirmed by the Owner. Frequency alone must not be treated as emotional importance.
 
 ### `WORLD_KEEPSAKE`
 Optional symbolic artifact created by user choice.
@@ -169,7 +169,7 @@ Breiz may:
 
 Breiz may not:
 
-- say what the dog “felt” unless quoting Guardian-authored text;
+- say what the dog “felt” unless quoting Owner-authored text;
 - declare the relationship stronger/weaker;
 - create a memory streak;
 - pressure sharing;

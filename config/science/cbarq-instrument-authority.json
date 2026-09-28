@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "emopet-cbarq-instrument-authority-v1",
+  "status": "CONTROLLED_FAIL_CLOSED_DEFAULT",
+  "instrumentOwner": "UNCONFIRMED_LEGAL_AUTHORITY",
+  "instrumentCode": "cbarq",
+  "instrumentVersion": null,
+  "authorityStatus": "NOT_ESTABLISHED",
+  "languages": [
+    {
+      "languageCode": "fr-FR",
+      "translationRevision": null,
+      "translationSource": "PENN_AUTHORIZED_VERSION_REQUIRED",
+      "status": "UNREVIEWED"
+    }
+  ],
+  "formVariants": [
+    {
+      "variantKey": "full-current",
+      "state": "UNREVIEWED"
+    },
+    {
+      "variantKey": "fr-2025-efa-63",
+      "state": "UNREVIEWED",
+      "disposition": "NOT_AUTHORIZED_SHORT_FORM"
+    }
+  ],
+  "scoring": {
+    "version": null,
+    "methodReference": null,
+    "status": "UNREVIEWED"
+  },
+  "administrationProtocol": {
+    "version": null,
+    "status": "UNREVIEWED"
+  },
+  "licence": {
+    "status": "NOT_ESTABLISHED",
+    "reference": null,
+    "effectiveAt": null,
+    "expiresAt": null
+  },
+  "permissions": {
+    "productDisplay": "UNREVIEWED",
+    "researchUse": "UNREVIEWED",
+    "itemLevelStorage": "UNREVIEWED",
+    "scoring": "UNREVIEWED",
+    "repeatedAdministration": "UNREVIEWED",
+    "derivativeDisplays": "UNREVIEWED",
+    "exportPublication": "UNREVIEWED"
+  },
+  "references": [
+    "docs/science/EMOPET_CBARQ_UPENN_SCIENTIFIC_AUTHORITY_2026-09-23.md"
+  ],
+  "runtimeDefault": "DENY_UNLESS_EXACT_AUTHORITY_MATCH"
+}

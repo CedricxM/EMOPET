@@ -1,5 +1,10 @@
 # EMOPET
 
+> [!IMPORTANT]
+> **AI / contributor context gate:** read `AI_READ_FIRST.md` before substantive work.
+> For C-BARQ, ELI scientific validation, canine behaviour, Penn/Penn Vet/Serpell, behavioural questionnaires or sensor-to-behaviour interpretation, the mandatory authority is:
+> `docs/science/EMOPET_CBARQ_UPENN_SCIENTIFIC_AUTHORITY_2026-09-23.md`
+
 EMOPET is a canine-wellbeing software and firmware monorepo. The repository currently contains a web application, a mobile application, a TypeScript API, shared inference/protocol packages, database schemas and migrations, and partial MAT/TAG firmware code.
 
 This README describes the code observed on `main`. It does not establish product maturity, deployment readiness, clinical validity, or a frozen Product V1 scope.
@@ -112,7 +117,7 @@ The committed migrations alter base tables such as `breed_sensor_profiles` and `
 
 ## Safety and privacy constraints
 
-- Backend authorization must enforce Guardian-to-dog access for protected resources.
+- Backend authorization must enforce Owner-to-dog access for protected resources.
 - Clients, Unity, and any future realtime subsystem are untrusted inputs, not policy authorities.
 - Raw audio must not be stored or transmitted; current data contracts use derived vocal counts/energy, but end-to-end negative tests remain required.
 - Sensitive location/telemetry requires explicit purpose, consent, minimization, retention, and deletion rules.

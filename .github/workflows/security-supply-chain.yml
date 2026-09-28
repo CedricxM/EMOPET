@@ -30,7 +30,35 @@ jobs:
           cache: pnpm
       - name: Install exact locked dependency graph
         run: pnpm install --frozen-lockfile
+      - name: Test dependency licence evidence summarizer
+        run: node --test scripts/security/summarize-pnpm-licenses.test.mjs
+      - name: Collect exact-head dependency licence inventories
+        run: |
+          pnpm licenses list --json --long > pnpm-licenses-all.json
+          pnpm licenses list --prod --json --long > pnpm-licenses-production.json
+      - name: Summarize exact-head dependency licence evidence
+        env:
+          EMOPET_CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          node scripts/security/summarize-pnpm-licenses.mjs \
+            pnpm-licenses-all.json \
+            pnpm-licenses-production.json \
+            pnpm-license-evidence.json \
+            pnpm-license-summary.md
+      - name: Upload dependency licence evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: pnpm-license-evidence
+          path: |
+            pnpm-licenses-all.json
+            pnpm-licenses-production.json
+            pnpm-license-evidence.json
+            pnpm-license-summary.md
+          if-no-files-found: error
+          retention-days: 14
       - name: Audit dependencies and preserve machine-readable evidence
+        if: always()
         shell: bash
         run: |
           set +e
@@ -62,6 +90,45 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Enforce legacy freemium quarantine gate
         run: pnpm legacy-freemium:audit
+      # Static, read-only repository guards. A PASS is not rights clearance,
+      # scientific validation or runtime activation; each guard pins one
+      # boundary that has already drifted or regressed once. See #114, #116,
+      # #118 and #86.
+      - name: Enforce control-register pointers (#114, #116)
+        run: |
+          pnpm control:pointer-audit
+          pnpm control:pointer-audit:test
+      - name: Enforce mandatory scientific context pointers (C-BARQ / Penn / ELI)
+        run: node --test scripts/control/mandatory-scientific-context.test.mjs
+      - name: Enforce single InferenceResult authority (ELI-ARCH-G2, #118)
+        run: pnpm control:eli-contract:test
+      - name: Enforce ELI runtime conformance non-activation (#479)
+        run: pnpm control:eli-runtime-conformance:test
+      - name: Enforce Device Trust identity/PoP architecture gate (#648)
+        run: node --test scripts/control/device-identity-pop-authority.test.mjs
+      - name: Enforce Device Trust PoP challenge contract (#648)
+        run: node --test scripts/control/device-pop-challenge-contract.test.mjs
+      - name: Enforce Device Trust threat/provisioning boundary (#648)
+        run: node --test scripts/control/device-identity-threat-model.test.mjs
+      - name: Enforce ELI activity-feature IO boundary (#122)
+        run: node --test scripts/control/eli-io-first-slice.test.mjs
+      - name: Enforce proprietary BLE UUID authority (#625)
+        run: node --test scripts/control/ble-uuid-authority.test.mjs
+      - name: Enforce TAG NCS platform scaffold authority (#625)
+        run: node --test scripts/control/tag-ncs-platform.test.mjs
+      - name: Enforce BOOT_ANCHOR_V1 mobile capture authority (#635)
+        run: node --test scripts/control/boot-anchor-v1.test.mjs
+      - name: Enforce MS88SF3 G2 board-authority gate (#625)
+        run: node --test scripts/control/tag-ms88sf3-board-authority.test.mjs
+      - name: Enforce rr_variability window reachability (#86)
+        run: |
+          pnpm science:rr-audit
+          pnpm science:rr-audit:test
+      - name: Validate mobile native BLE plugin resolution (#122)
+        env:
+          CI: '1'
+          EXPO_NO_TELEMETRY: '1'
+        run: pnpm --filter @emopet/mobile exec expo config --type prebuild > /tmp/emopet-mobile-prebuild-config.txt
       - name: Typecheck workspace
         id: typecheck
         shell: bash
@@ -80,6 +147,36 @@ jobs:
           code=$?
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           set -e
+      - name: Enforce ELI canonical device-registry boundary (#122)
+        run: node --test scripts/control/eli-io-device-registry.test.mjs
+      - name: Enforce ELI mobile network-client fail-closed boundary (#122)
+        run: node --test apps/mobile/test/activity-feature-network-contract.test.mjs
+      - name: Enforce ELI feature transport-to-envelope conformance (#122)
+        run: |
+          pnpm --filter @emopet/ble-protocol build
+          pnpm --filter @emopet/api build
+          node --test scripts/control/eli-io-feature-transport-conformance.test.mjs
+      - name: Enforce Device Trust C/backend PoP preimage parity (#648)
+        run: |
+          cc --version
+          node --test scripts/control/device-pop-preimage-conformance.test.mjs
+      - name: Enforce Device Trust PSA signer source boundary (#648)
+        run: node --test scripts/control/device-pop-psa-signer.test.mjs
+      - name: Enforce Device Trust private-key provisioning boundary (#657)
+        run: node --test scripts/control/device-private-key-storage.test.mjs
+      - name: Enforce Device Trust identity-key slot/enrollment boundary (#659)
+        run: node --test scripts/control/device-identity-key-slots.test.mjs
+      - name: Enforce Device Trust durable public credential boundary (#661)
+        run: node --test scripts/control/device-credential-repository.test.mjs
+      - name: Enforce TAG firmware feature-writer parity (#122)
+        run: |
+          cc --version
+          node --test scripts/control/tag-feature-summary-firmware-conformance.test.mjs
+      - name: Enforce TAG clock-anchor C/TypeScript parity (#122)
+        run: |
+          pnpm --filter @emopet/ble-protocol build
+          cc --version
+          node --test scripts/control/tag-clock-anchor-conformance.test.mjs
       - name: Build web application
         id: webbuild
         shell: bash
