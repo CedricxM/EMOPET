@@ -222,6 +222,16 @@ Le dimensionnement doit refuser toute clé absente de `adaptiveSignals` — **é
 
 ### Lot 4 — Journal d'audit · `M` · dépend de L1, L3
 
+> **État : `FAIT` (2026-09-28).** Vérifié : 10 tests dédiés ; 341 tests backend, 0 échec ; paquets dépendants inchangés. Le journal est pur et append-only, refuse un horodatage qui reculerait, et rend ses entrées par copie pour qu'on ne puisse pas l'éditer depuis l'extérieur.
+>
+> **Le test le plus utile est celui de parité SQL.** Les 26 types d'événements sont déclarés une fois dans le code et comparés au texte de la contrainte `chk_event_type` de la migration `0013`. Une dérive laisserait le code fabriquer un événement que PostgreSQL refuse, ou refuser un événement qu'il accepte — les deux couches cesseraient d'être la même règle. Les invariants `chk_event_item_presentation` et `chk_event_section_title` sont également rejoués côté code, et les messages d'erreur **citent le nom de la contrainte SQL**, pour qu'un échec en développement pointe visiblement la même règle que celle qui aurait rejeté la ligne en base.
+>
+> **Correction de la spec : les covariables sont dans le hachage.** La formule que ce document proposait (`prevHash ‖ sequenceIndex ‖ eventType ‖ itemKey ‖ renderDigest ‖ occurredAt`) laissait les covariables **hors** de l'empreinte. Quelqu'un aurait pu réécrire `positionInSession` après coup et la chaîne aurait continué de vérifier — ce qui aurait rendu les covariables sans valeur probante, alors qu'elles sont précisément l'argument à porter devant Penn. Le hachage couvre maintenant chaque champ sémantique, et cinq tests vérifient qu'altérer n'importe quelle covariable casse la chaîne.
+>
+> **Le vérificateur distingue quatre ruptures** plutôt que de répondre « invalide » : `content_altered` (ligne réécrite), `sequence_gap` (ligne retirée), `link_broken` (lignes réordonnées ou lien repointé), `bad_genesis` (première entrée revendiquant un prédécesseur). C'est ce qui permet de dire à un lecteur s'il regarde une falsification ou une troncature. `verifyChain` est une fonction libre sur un tableau, pas une méthode : la vérification doit fonctionner sur des lignes relues depuis la base par quelqu'un qui ne fait pas confiance au processus qui les a écrites — la seule situation où elle compte.
+>
+> **`fidelityReport` est le livrable d'appel.** Sur une administration complète des 24 items : chaîne `VALID`, 24 présentations, **24 présentations prouvées** (empreinte présente et attestation qu'aucun modèle n'était en boucle), et `llmInvolvedEventTypes` qui ne contient que `frame_presented`. Cette dernière ligne est la démonstration en une valeur : le modèle n'apparaît que dans le cadrage, jamais autour d'un item.
+
 **Fichier** : `backend/api/services/instrument-audit-journal.ts`
 
 Deux mécanismes, tous deux démontrables devant Penn :
