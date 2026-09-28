@@ -9,8 +9,11 @@ export const BREED_DOCS: KnowledgeDoc[] = [
   {
     "id": "breed-122",
     "title": "Retriever du Labrador",
-    "text": "Le Retriever du Labrador (groupe FCI 8, origine Grande Bretagne) : grand gabarit, poil double court. Tempérament observé : Bon caractère, très agile, Nez excellent, passion pour l'eau.",
-    "source": "Profils de races EMOPET (référentiel FCI)",
+    "text": "Le Retriever du Labrador (groupe FCI 8, origine Grande Bretagne) : grand gabarit, poil double court. Tempérament (standard FCI) : Bon caractère, très agile, Nez excellent, passion pour l'eau.",
+    "provenance": {
+      "kind": "dataset",
+      "label": "Profils de races EMOPET (référentiel FCI)"
+    },
     "tags": [
       "race",
       "retriever du labrador"
@@ -19,8 +22,11 @@ export const BREED_DOCS: KnowledgeDoc[] = [
   {
     "id": "breed-297",
     "title": "BORDER COLLIE",
-    "text": "Le BORDER COLLIE (groupe FCI 1, origine Grande Bretagne) : gabarit moyen, poil double court. Tempérament observé : Tenace, travailleur et très docile, Ni craintif ni agressif, FCI-St.",
-    "source": "Profils de races EMOPET (référentiel FCI)",
+    "text": "Le BORDER COLLIE (groupe FCI 1, origine Grande Bretagne) : gabarit moyen, poil double court. Tempérament (standard FCI) : Tenace, travailleur et très docile, Ni craintif ni agressif.",
+    "provenance": {
+      "kind": "dataset",
+      "label": "Profils de races EMOPET (référentiel FCI)"
+    },
     "tags": [
       "race",
       "border collie"
@@ -29,8 +35,11 @@ export const BREED_DOCS: KnowledgeDoc[] = [
   {
     "id": "breed-111",
     "title": "GOLDEN RETRIEVER",
-    "text": "Le GOLDEN RETRIEVER (groupe FCI 8, origine Grande Bretagne) : grand gabarit, poil variable. Tempérament observé : Docil e, intelligent, naturellement doué pour le travail, Doux, amical et sûr de lui.",
-    "source": "Profils de races EMOPET (référentiel FCI)",
+    "text": "Le GOLDEN RETRIEVER (groupe FCI 8, origine Grande Bretagne) : grand gabarit, poil variable. Tempérament (standard FCI) : Docile, intelligent, naturellement doué pour le travail, Doux, amical et sûr de lui.",
+    "provenance": {
+      "kind": "dataset",
+      "label": "Profils de races EMOPET (référentiel FCI)"
+    },
     "tags": [
       "race",
       "golden retriever"
@@ -39,8 +48,11 @@ export const BREED_DOCS: KnowledgeDoc[] = [
   {
     "id": "breed-166",
     "title": "Berger allemand",
-    "text": "Le Berger allemand (groupe FCI 1, origine Allemagne) : grand gabarit, poil variable. Tempérament observé : FCI-St.",
-    "source": "Profils de races EMOPET (référentiel FCI)",
+    "text": "Le Berger allemand (groupe FCI 1, origine Allemagne) : grand gabarit, poil variable.",
+    "provenance": {
+      "kind": "dataset",
+      "label": "Profils de races EMOPET (référentiel FCI)"
+    },
     "tags": [
       "race",
       "berger allemand"
@@ -49,8 +61,11 @@ export const BREED_DOCS: KnowledgeDoc[] = [
   {
     "id": "breed-136",
     "title": "CAVALIER KING CHARLES SPANIEL",
-    "text": "Le CAVALIER KING CHARLES SPANIEL (groupe FCI 9, origine Grande-Bretagne) : gabarit variable, poil double long. Tempérament observé : Plein d'allant, affectueux, très assuré, Gai, amical, non agressif.",
-    "source": "Profils de races EMOPET (référentiel FCI)",
+    "text": "Le CAVALIER KING CHARLES SPANIEL (groupe FCI 9, origine Grande-Bretagne) : gabarit variable, poil double long. Tempérament (standard FCI) : Plein d'allant, affectueux, très assuré, Gai, amical, non agressif.",
+    "provenance": {
+      "kind": "dataset",
+      "label": "Profils de races EMOPET (référentiel FCI)"
+    },
     "tags": [
       "race",
       "cavalier king charles spaniel"
@@ -59,8 +74,11 @@ export const BREED_DOCS: KnowledgeDoc[] = [
   {
     "id": "breed-161",
     "title": "BEAGLE",
-    "text": "Le BEAGLE (groupe FCI 6, origine Grande Bretagne) : gabarit moyen, poil double court. Tempérament observé : Hardi, doué d'une grande activité, d'énergie et de détermination, Vif, intelligent et d'un tempérament égal, Aimable et éveillé, ne montrant ni agressivité ni timidité.",
-    "source": "Profils de races EMOPET (référentiel FCI)",
+    "text": "Le BEAGLE (groupe FCI 6, origine Grande Bretagne) : gabarit moyen, poil double court. Tempérament (standard FCI) : Hardi, doué d'une grande activité, d'énergie et de détermination, Vif, intelligent et d'un tempérament égal, Aimable et éveillé, ne montrant ni agressivité ni timidité.",
+    "provenance": {
+      "kind": "dataset",
+      "label": "Profils de races EMOPET (référentiel FCI)"
+    },
     "tags": [
       "race",
       "beagle"
@@ -69,8 +87,11 @@ export const BREED_DOCS: KnowledgeDoc[] = [
   {
     "id": "breed-5",
     "title": "Cocker Spaniel Anglais",
-    "text": "Le Cocker Spaniel Anglais (groupe FCI 8, origine Grande Bretagne) : grand gabarit, poil bouclé. Tempérament observé : Naturel gai, 2012 3 Doux et affectueux.",
-    "source": "Profils de races EMOPET (référentiel FCI)",
+    "text": "Le Cocker Spaniel Anglais (groupe FCI 8, origine Grande Bretagne) : grand gabarit, poil bouclé. Tempérament (standard FCI) : Naturel gai, Doux et affectueux.",
+    "provenance": {
+      "kind": "dataset",
+      "label": "Profils de races EMOPET (référentiel FCI)"
+    },
     "tags": [
       "race",
       "cocker spaniel anglais"
@@ -79,8 +100,11 @@ export const BREED_DOCS: KnowledgeDoc[] = [
   {
     "id": "breed-345",
     "title": "Terrier Jack Russell",
-    "text": "Le Terrier Jack Russell (groupe FCI 3, origine Angleterre) : petit gabarit, poil ras. Tempérament observé : Hardi et assuré, amical mais avec une tranquille assurance.",
-    "source": "Profils de races EMOPET (référentiel FCI)",
+    "text": "Le Terrier Jack Russell (groupe FCI 3, origine Angleterre) : petit gabarit, poil ras. Tempérament (standard FCI) : Hardi et assuré, amical mais avec une tranquille assurance.",
+    "provenance": {
+      "kind": "dataset",
+      "label": "Profils de races EMOPET (référentiel FCI)"
+    },
     "tags": [
       "race",
       "terrier jack russell"
@@ -90,7 +114,10 @@ export const BREED_DOCS: KnowledgeDoc[] = [
     "id": "breed-218",
     "title": "Chihuahua",
     "text": "Le Chihuahua (groupe FCI 9, origine Mexique) : gabarit variable, poil double court.",
-    "source": "Profils de races EMOPET (référentiel FCI)",
+    "provenance": {
+      "kind": "dataset",
+      "label": "Profils de races EMOPET (référentiel FCI)"
+    },
     "tags": [
       "race",
       "chihuahua"
@@ -99,8 +126,11 @@ export const BREED_DOCS: KnowledgeDoc[] = [
   {
     "id": "breed-45",
     "title": "Bouvier Bernois",
-    "text": "Le Bouvier Bernois (groupe FCI 2, origine Suisse) : gabarit variable, poil ras. Tempérament observé : Bien équilibré, attentif, vigilant et assuré dans les circonstances de la vie de tous les jours, pas trop lourde.",
-    "source": "Profils de races EMOPET (référentiel FCI)",
+    "text": "Le Bouvier Bernois (groupe FCI 2, origine Suisse) : gabarit variable, poil ras. Tempérament (standard FCI) : Bien équilibré, attentif, vigilant et assuré dans les circonstances de la vie de tous les jours, pas trop lourde.",
+    "provenance": {
+      "kind": "dataset",
+      "label": "Profils de races EMOPET (référentiel FCI)"
+    },
     "tags": [
       "race",
       "bouvier bernois"
@@ -109,8 +139,11 @@ export const BREED_DOCS: KnowledgeDoc[] = [
   {
     "id": "breed-148",
     "title": "Teckel",
-    "text": "Le Teckel (groupe FCI 4, origine Allemagne) : gabarit variable, poil variable. Tempérament observé : D'un naturel aimable, ni réservé ni agressif, d'un caractère équilibré, Chie n de chasse passionné, persévérant, vif et fin de nez.",
-    "source": "Profils de races EMOPET (référentiel FCI)",
+    "text": "Le Teckel (groupe FCI 4, origine Allemagne) : gabarit variable, poil variable. Tempérament (standard FCI) : D'un naturel aimable, ni réservé ni agressif, d'un caractère équilibré, Chien de chasse passionné, persévérant, vif et fin de nez.",
+    "provenance": {
+      "kind": "dataset",
+      "label": "Profils de races EMOPET (référentiel FCI)"
+    },
     "tags": [
       "race",
       "teckel"
