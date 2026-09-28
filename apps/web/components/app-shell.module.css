@@ -1,0 +1,172 @@
+/*
+ * Ossature applicative — sidebar + contenu.
+ *
+ * Ces règles reprennent À L'IDENTIQUE les styles inline qui étaient portés par
+ * `app-frame.tsx` et `sidebar.tsx`. Le rendu desktop ne change pas : elles sont
+ * déplacées dans un module uniquement parce qu'un style inline ne peut pas
+ * porter de media query, et que le défaut à corriger n'existe qu'en dessous
+ * d'une certaine largeur.
+ *
+ * Le défaut : l'ossature est un `display: flex` en ligne à TOUTES les largeurs,
+ * avec une sidebar de `--sidebar-w` (244 px). À 390 px, le contenu héritait de
+ * 146 px — mesuré — et débordait horizontalement sur les huit routes de
+ * l'application. Ce n'était pas une absence de responsive : les grilles de
+ * cartes se replient bien dès 980 px. C'était l'ossature elle-même qui ne se
+ * repliait jamais.
+ *
+ * Le seuil de 640 px n'est pas nouveau : `living-pages.module.css` l'utilise
+ * déjà. Au-dessus, le contenu garde au moins 400 px et reste lisible à côté de
+ * la sidebar ; en dessous, la sidebar passe en bandeau horizontal.
+ */
+
+.shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar {
+  width: var(--sidebar-w);
+  min-height: 100vh;
+  border-right: 1px solid var(--border);
+  background: var(--bg-alt);
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: sticky;
+  top: 0;
+}
+
+.brandBlock {
+  padding: 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.sidebarFooter {
+  margin-top: auto;
+  padding: 12px 8px;
+  border-top: 1px solid var(--divider);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------------------------------------------------------------
+   Téléphone — l'ossature se replie et la sidebar devient un bandeau.
+
+   La navigation reste visible et atteignable : elle passe en ligne,
+   défilable horizontalement, et le bandeau reste collé en haut. Aucun
+   tiroir, aucun bouton hamburger — ce serait une nouvelle interaction à
+   concevoir et à tester, pas une correction de débordement.
+   --------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .shell {
+    flex-direction: column;
+  }
+
+  /* `row` + `wrap` donne deux lignes sans toucher au DOM : la marque et le pied
+     tiennent sur la première, la navigation est poussée sur la seconde par son
+     `flex-basis: 100%`. Empiler les trois blocs reprendrait la hauteur qu'on
+     vient justement de libérer. */
+  .sidebar {
+    width: 100%;
+    min-height: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 10px 14px 8px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    /* Non collé sur téléphone. Le bandeau tient en trois lignes compactes
+       (marque, navigation, langue) : figé en haut, il occuperait un tiers d'un
+       écran de 844 px en permanence. Il défile donc avec la page, et la
+       navigation se retrouve en remontant — comportement attendu sur mobile.
+       Le rendre collant demanderait de le réduire à une ligne, donc de toucher
+       à la taille du wordmark : une décision de marque, pas une correction de
+       débordement. */
+    position: static;
+  }
+
+  .brandBlock {
+    padding: 0;
+    flex: 1 1 auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* La baseline est un bloc mono sur deux lignes : elle n'a pas sa place dans
+     un bandeau, et elle est déjà portée par la page d'accueil. */
+  .tagline {
+    display: none;
+  }
+
+  .nav {
+    flex: 1 1 100%;
+    flex-direction: row;
+    gap: 4px;
+    overflow-x: auto;
+    /* Sans ceci, les libellés se compriment au lieu de défiler. */
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    /* Les marges négatives laissent le défilement atteindre les bords de
+       l'écran plutôt que de s'arrêter dans le rembourrage du bandeau. */
+    margin: 0 -14px;
+    padding: 0 14px 2px;
+  }
+
+  .nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .navLink {
+    flex: 0 0 auto;
+    padding: 8px 10px;
+    white-space: nowrap;
+  }
+
+  .sidebarFooter {
+    margin-top: 0;
+    padding: 0;
+    border-top: none;
+    flex: 0 0 auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* Métadonnée technique. Sur desktop elle a sa place en pied de colonne ;
+     dans un bandeau collé en haut d'un téléphone, elle coûtait une troisième
+     ligne en poussant le sélecteur de langue hors de la ligne de marque. */
+  .version {
+    display: none;
+  }
+}
