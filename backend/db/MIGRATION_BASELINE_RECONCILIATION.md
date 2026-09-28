@@ -167,7 +167,7 @@ Status:
 
 `LEGACY_MORPHOLOGY_COMPATIBILITY = NOT_CURRENT_SCHEMA_AUTHORITY`
 
-### 7.4 ELI TEXT identifiers versus UUID core identifiers — open
+### 7.4 ELI TEXT identifiers versus UUID core identifiers — resolved (2026-09-28)
 
 Several ELI tables use `TEXT` identifiers while core `users` and `dogs` use UUID identifiers.
 
@@ -177,9 +177,15 @@ The relationship/FK architecture remains a separate open workstream.
 
 Status:
 
-`ELI_IDENTIFIER_RELATIONSHIP = OPEN`
+`ELI_IDENTIFIER_RELATIONSHIP = OPEN` (superseded 2026-09-28, see the update below)
 
 No automatic type rewrite or FK insertion is authorized in this DB baseline slice.
+
+Update 2026-09-28. The text above predates `bbf9771` (ID-01, "reconstruct canonical ELI identity", 2026-09-20), which moved the Drizzle ELI `dog_id` columns and `user_config.user_id` to UUID with `NO ACTION` FKs to `dogs(id)` / `users(id)`, gated by `backend/test/id-01-referential-integrity.sql` on the generated baseline only. Source and historical SQL therefore no longer agreed. The project owner explicitly authorized the path-A type rewrite and FK insertion on 2026-09-28; active migration `0024_path_a_eli_canonical_identity.sql` replays ID-01 on path A and fails closed on non-UUID or orphan identifiers (verified: full rollback). ID-01 now runs on both databases.
+
+Status:
+
+`ELI_IDENTIFIER_RELATIONSHIP = RESOLVED — ID-01 in source (bbf9771), path A by 0024 (DISPOSABLE QA)`
 
 ### 7.5 Path-A constraint/index drift — gated (2026-09-27)
 
@@ -205,17 +211,20 @@ Resolved by active migration `0023_path_a_integrity_and_index_parity.sql` (forme
 - `idx_anticipation_events_dog_time` and `idx_recovery_events_dog_time` are rebuilt ascending, as declared in Drizzle. A B-tree serves both scan directions, so no query changes;
 - `imu_discrimination_thresholds` and `weather_context` now enforce uniqueness through the Drizzle unique indexes `uq_discrimination` and `uq_weather_location_date`; each index is created before the inline `UNIQUE` constraint is dropped. `onConflictDoNothing()` in `weather.ts` targets no named constraint.
 
+Resolved by active migration `0024_path_a_eli_canonical_identity.sql` (former S1 ELI part and column class C1): ID-01 canonical ELI identity, see §7.4.
+
 Resolved in source schema:
 
+- four `0003` vocabulary CHECKs are now declared in `eli-v5.ts` under their historical names: `dog_sub_baselines_slot_check` and `recovery_events_slot_check` (the five slots of `SubBaselineSlot` in `packages/shared`), `anticipation_events_event_type_check` (`AnticipationEventType`) and `user_config_source_check` (the values documented on the Drizzle column). `routine_stability_rsi_trend_check` is deliberately not promoted: RSI is a historical composite score surface that current authority does not extend;
 - `eli_behavioral_priors.mapping_authority_id`: the Drizzle FK now uses the name that active migration `0015` guards on (`fk_eli_behavioral_prior_mapping_authority`). The CI composition (generated baseline + `0015`) previously held two identical FKs.
 - `device_identity_credentials.psa_key_id` (column type): `0020` (#662) declares `bigint`, the Drizzle schema declared `integer`. The source schema now uses `bigint` (`mode: 'number'`). `psa_key_id_t` is `uint32_t`, which `integer` cannot hold in full, and the same table already maps its other `uint32` field, `credential_version`, to `bigint` on both paths. The CHECK still admits only 65536 and 65537, and the TypeScript type stays `number`.
 
-Gated, not resolved. Recorded entry by entry in `backend/test/schema-constraint-index-parity.known-drift.txt` (176 lines):
+Gated, not resolved. Recorded entry by entry in `backend/test/schema-constraint-index-parity.known-drift.txt` (164 lines):
 
 | Class | Count | Difference | Status |
 |---|---|---|---|
-| S1 | 8 | FK declared in Drizzle, absent from path A (`eli-v5` tables; `copresence_events` resolved by `0023`) | OPEN — ELI FK insertion not authorized (§7.4) |
-| S2 | 8 | CHECK in historical SQL, absent from Drizzle (5 ELI enum checks from `0003`, 3 morphology checks) | OPEN; morphology `NOT_CURRENT_SCHEMA_AUTHORITY` (§7.3) |
+| S1 | 0 | FK declared in Drizzle, absent from path A | RESOLVED by `0023` (copresence) and `0024` (ELI, §7.4) |
+| S2 | 4 | CHECK in historical SQL, absent from Drizzle: `routine_stability_rsi_trend_check` and 3 morphology checks (4 ELI vocabulary checks promoted in source) | NOT PROMOTED — RSI historical score surface; morphology `NOT_CURRENT_SCHEMA_AUTHORITY` (§7.3) |
 | S3 | 0 | unique/index in Drizzle, absent from path A | RESOLVED by `0022` |
 | S4 | 0 | `breed_canonical` indexes from `0001`, absent from Drizzle | RESOLVED by `0023` |
 | S5 | 0 | same index name, `DESC` key only in path A | RESOLVED by `0023` |
@@ -224,11 +233,11 @@ Gated, not resolved. Recorded entry by entry in `backend/test/schema-constraint-
 
 The CI step `P0-DB constraint/index parity (path A vs generated)` fails when the observed drift differs from the ledger in either direction: new drift, or a resolved entry left in the ledger. The fingerprint SQL separately rejects any duplicate FK on the same columns; that class is never ledgered.
 
-Column drift is gated separately. S3 showed that a missing index can hide missing columns, and #662 added a column-type drift that constraint/index parity cannot see. `backend/test/schema-column-parity.sql` prints one line per column (`format_type`, nullability, default, identity/generation); the CI step `P0-DB column parity (path A vs generated)` compares it with `backend/test/schema-column-parity.known-drift.txt` (20 lines, 8 tables) under the same two-direction rule:
+Column drift is gated separately. S3 showed that a missing index can hide missing columns, and #662 added a column-type drift that constraint/index parity cannot see. `backend/test/schema-column-parity.sql` prints one line per column (`format_type`, nullability, default, identity/generation); the CI step `P0-DB column parity (path A vs generated)` compares it with `backend/test/schema-column-parity.known-drift.txt` (4 lines, 1 table) under the same two-direction rule:
 
 | Class | Count | Difference | Status |
 |---|---|---|---|
-| C1 | 8 pairs | ELI identifiers (`dog_id`, `user_config.user_id`): `text` in `0003`, `uuid` in Drizzle | OPEN (§7.4) |
+| C1 | 0 | ELI identifiers (`dog_id`, `user_config.user_id`): `text` in `0003`, `uuid` in Drizzle | RESOLVED by `0024` (§7.4) |
 | C2 | 0 | bare `FLOAT` in `0001` (`imu_*`) and `0003` (ELI tables) resolves to `double precision`; Drizzle declared `real()` | RESOLVED in source schema (`doublePrecision()`) |
 | C3 | 4 | `breed_sensor_profiles` height/weight morphology columns, path A only | `NOT_CURRENT_SCHEMA_AUTHORITY` (§7.3) |
 
@@ -244,11 +253,13 @@ Status:
 
 `COPRESENCE_FK_AND_INDEX_FORM_DRIFT = RESOLVED_BY_0023 (DISPOSABLE QA)`
 
-`REMAINING_CONSTRAINT_INDEX_DRIFT = GATED / OPEN — each class needs its own decision`
+`ELI_CANONICAL_IDENTITY_DRIFT = RESOLVED_BY_0024 (DISPOSABLE QA)`
+
+`REMAINING_CONSTRAINT_INDEX_DRIFT = GATED — S2 not promoted (RSI, §7.3 morphology); N name-only pairs`
 
 `ELI_IMU_FLOAT_PRECISION_DRIFT = RESOLVED_IN_SOURCE_SCHEMA`
 
-`REMAINING_COLUMN_DRIFT = GATED / OPEN (C1 §7.4, C3 §7.3)`
+`REMAINING_COLUMN_DRIFT = GATED — C3 morphology only (§7.3)`
 
 Full record:
 
@@ -308,7 +319,7 @@ Seed loading remains a separate controlled gate.
 
 `PARTIAL / IN RECONCILIATION`
 
-Firmware-column and composite-key drift are resolved in source. Historical morphology compatibility is explicitly not promoted. ELI identifier relationship remains open. Path-A shadow FKs and the `community_reports` index drift are resolved by `0021`, membership uniqueness and sensor-summary provenance by `0022`; `psa_key_id` type drift is resolved in source; remaining constraint/index and column drift is gated and classified (§7.5).
+Firmware-column and composite-key drift are resolved in source. Historical morphology compatibility is explicitly not promoted. ELI identifier relationship is resolved by ID-01 in source and `0024` on path A. Path-A shadow FKs and the `community_reports` index drift are resolved by `0021`, membership uniqueness and sensor-summary provenance by `0022`, copresence FKs and index forms by `0023`, ELI canonical identity by `0024`; `psa_key_id` type drift is resolved in source; remaining constraint/index and column drift is gated and classified (§7.5).
 
 ### DB-G4 — Controlled Drizzle ledger
 

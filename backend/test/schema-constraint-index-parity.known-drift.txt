@@ -13,25 +13,11 @@
 # entries are sorted by the gate, so grouping below is for review only.
 # Recorded 2026-09-27 on postgres:16.15; classification in the reconciliation doc.
 
-# S1 — FK declared in Drizzle, absent from path A (8)
-B|CONSTRAINT|anticipation_events|anticipation_events_dog_id_dogs_id_fk|f|FOREIGN KEY (dog_id) REFERENCES dogs(id)
-B|CONSTRAINT|baseline_drift_monitor|baseline_drift_monitor_dog_id_dogs_id_fk|f|FOREIGN KEY (dog_id) REFERENCES dogs(id)
-B|CONSTRAINT|dog_sub_baselines|dog_sub_baselines_dog_id_dogs_id_fk|f|FOREIGN KEY (dog_id) REFERENCES dogs(id)
-B|CONSTRAINT|recovery_events|recovery_events_dog_id_dogs_id_fk|f|FOREIGN KEY (dog_id) REFERENCES dogs(id)
-B|CONSTRAINT|routine_stability|routine_stability_dog_id_dogs_id_fk|f|FOREIGN KEY (dog_id) REFERENCES dogs(id)
-B|CONSTRAINT|user_config|user_config_dog_id_dogs_id_fk|f|FOREIGN KEY (dog_id) REFERENCES dogs(id)
-B|CONSTRAINT|user_config|user_config_user_id_users_id_fk|f|FOREIGN KEY (user_id) REFERENCES users(id)
-B|CONSTRAINT|walk_quality|walk_quality_dog_id_dogs_id_fk|f|FOREIGN KEY (dog_id) REFERENCES dogs(id)
-
-# S2 — CHECK in historical SQL, absent from Drizzle (8)
-A|CONSTRAINT|anticipation_events|anticipation_events_event_type_check|c|CHECK ((event_type = ANY (ARRAY['owner_departure'::text, 'walk_time'::text, 'meal_time'::text])))
+# S2 — CHECK in historical SQL, absent from Drizzle (4)
 A|CONSTRAINT|breed_sensor_profiles|chk_brachy|c|CHECK ((NOT ((is_brachycephalic = 1) AND (fci_number = ANY (ARRAY[105, 205, 218, 230, 235, 249, 292, 344])))))
 A|CONSTRAINT|breed_sensor_profiles|chk_height|c|CHECK (((height_min_cm > (0)::double precision) AND (height_max_cm > height_min_cm) AND (height_max_cm < (120)::double precision)))
 A|CONSTRAINT|breed_sensor_profiles|chk_weight|c|CHECK (((weight_min_kg > (0)::double precision) AND (weight_max_kg > weight_min_kg) AND (weight_max_kg < (120)::double precision)))
-A|CONSTRAINT|dog_sub_baselines|dog_sub_baselines_slot_check|c|CHECK ((slot = ANY (ARRAY['deep_rest_mat'::text, 'light_rest_mat'::text, 'owner_present'::text, 'owner_absent'::text, 'daytime_active'::text])))
-A|CONSTRAINT|recovery_events|recovery_events_slot_check|c|CHECK ((slot = ANY (ARRAY['deep_rest_mat'::text, 'light_rest_mat'::text, 'owner_present'::text, 'owner_absent'::text, 'daytime_active'::text])))
 A|CONSTRAINT|routine_stability|routine_stability_rsi_trend_check|c|CHECK ((rsi_trend = ANY (ARRAY['stable'::text, 'declining'::text, 'improving'::text])))
-A|CONSTRAINT|user_config|user_config_source_check|c|CHECK ((source = ANY (ARRAY['system'::text, 'breed'::text, 'learned'::text, 'user'::text])))
 
 # N — name-only drift: identical definition, different name (80 pairs)
 # Inline unnamed declarations in baseline-draft/historical SQL get PostgreSQL names

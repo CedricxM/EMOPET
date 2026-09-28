@@ -169,6 +169,11 @@ jobs:
       - name: Repeatability — complete schema dump
         run: diff -u /tmp/schema-a.sql /tmp/schema-b.sql
 
+      - name: ID-01 canonical identity and FK checks on historical migrations
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/id-01-referential-integrity.sql
+
       - name: PRIV-RETENTION device unbind clock on historical migrations
         working-directory: backend
         env:
