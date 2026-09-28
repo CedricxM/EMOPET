@@ -73,6 +73,10 @@ Status:
 
 No automatic type rewrite or foreign-key insertion is authorized here.
 
+Update 2026-09-28, superseded: `bbf9771` (ID-01, 2026-09-20) bound the Drizzle ELI identifiers to the core UUID identities with FKs, and, with the project owner's explicit authorization, active migration `0024_path_a_eli_canonical_identity.sql` (#707) replays it on the historical path. Details: `backend/db/MIGRATION_BASELINE_RECONCILIATION.md` §7.4.
+
+Status: `RESOLVED — ID-01 IN SOURCE, 0024 ON PATH A (DISPOSABLE QA)`
+
 ## Active-baseline strategy under test
 
 The repository now contains an isolated Drizzle generation config:
@@ -104,7 +108,7 @@ The generated directory is still QA output until the run passes and its exact fi
 
 `HISTORICAL MORPHOLOGY COMPATIBILITY = NOT PROMOTED`
 
-`ELI TEXT/UUID RELATIONSHIP = OPEN`
+`ELI TEXT/UUID RELATIONSHIP = RESOLVED (ID-01 in source; 0024 on path A; disposable QA only)`
 
 `ACTIVE DRIZZLE BASELINE = OPEN / UNDER DISPOSABLE VALIDATION`
 
