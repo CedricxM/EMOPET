@@ -174,6 +174,18 @@ jobs:
           NODE_ENV: test
         run: node --test test/privacy-duplicate-foreign-key-detach.integration.test.mjs
 
+      # Eight identity columns are TEXT here and uuid in the Drizzle schema, so they cannot
+      # hold the foreign key the declared erasure topology says they have. The set is on
+      # record in the test, per build path, and must not drift in either direction.
+      - name: PRIV-ERASURE identity column types on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          PRIVACY_IDENTITY_COLUMN_TYPE_DB_INTEGRATION: '1'
+          IDENTITY_SCHEMA_PATH: migrations
+          NODE_ENV: test
+        run: node --test test/privacy-identity-column-type-divergence.integration.test.mjs
+
       - name: Build backend dependency closure
         run: pnpm --filter @emopet/api... build
 
@@ -368,6 +380,15 @@ jobs:
           PRIVACY_DUPLICATE_FK_DB_INTEGRATION: '1'
           NODE_ENV: test
         run: node --test test/privacy-duplicate-foreign-key-detach.integration.test.mjs
+
+      - name: PRIV-ERASURE identity column types on generated database
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          PRIVACY_IDENTITY_COLUMN_TYPE_DB_INTEGRATION: '1'
+          IDENTITY_SCHEMA_PATH: generated
+          NODE_ENV: test
+        run: node --test test/privacy-identity-column-type-divergence.integration.test.mjs
 
       - name: PRIV-ERASURE-RESIDUE snapshot + negative SQL verification
         working-directory: backend

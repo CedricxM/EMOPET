@@ -367,7 +367,39 @@ Vérifié, sur un cluster jetable, en quatre points :
 
 **Ce que ça change pour la topologie déclarée.** Avant `0014`, le test de parité de topologie lancé contre le chemin des migrations divergeait sur six points. Après, il n'en reste **qu'un** : `user_config.user_id`, l'une des dix FK manquantes ci-dessous. Toutes les lignes `SET_NULL` correspondent maintenant exactement à `config/privacy/account-erasure-topology.json`.
 
-**Ce qui reste ouvert, et n'est pas corrigé ici.** Dix FK existent dans le schéma généré et pas sur le chemin des migrations : `anticipation_events.dog_id`, `baseline_drift_monitor.dog_id`, `copresence_events.dog_a_id`, `copresence_events.dog_b_id`, `dog_sub_baselines.dog_id`, `recovery_events.dog_id`, `routine_stability.dog_id`, `user_config.dog_id`, `user_config.user_id`, `walk_quality.dog_id`. C'est une **réconciliation de socle**, pas un doublon à retirer : ajouter dix contraintes à une base existante suppose de décider quoi faire des lignes qui les violeraient déjà, et cette décision n'appartient pas à `P`. **Inscrit comme arbitrage ouvert, pas comme oubli.**
+**Les dix FK manquantes — mesurées, et pas ce que je croyais.** Voir la sous-section suivante : deux relevaient d'une simple contrainte absente et sont ajoutées par `0015` ; les huit autres sont un **écart de type de colonne**, ce qui est un diagnostic différent et un arbitrage qui ne m'appartient pas.
+
+#### Les dix FK manquantes : deux ajoutées, huit sur un écart de type · **2026-09-28**
+
+`[ÉTABLI]` En instrumentant la mesure au lieu de m'arrêter au premier échec d'assertion, j'ai trouvé **plus grave que le nombre ne le suggère**. Le test de parité de topologie compare le compte de relations déclarées à celles présentes, mais son assertion côté comptes utilisateur échoue **avant** celle côté chien, ce qui masquait le résultat chien. Mesuré directement, sur le chemin des migrations et après `0014` :
+
+| Registre déclaré | Déclaré | Présent (migrations) | Présent (généré) |
+|---|---|---|---|
+| `account-erasure-topology` — références utilisateur directes | 15 | 14 | 15 |
+| `dog-erasure-topology` — FK chien canoniques | 18 | **9** | 18 |
+| `dog-subject-lineage` — identifiants chien **sans** FK | 0 | **9** | 0 |
+
+**La moitié de la topologie d'effacement chien déclarée n'existait pas sur ce chemin.** Supprimer un chien n'y rencontrait pas le mur « FK canonique, `NO ACTION` » que le registre décrit : il laissait des lignes orphelines dans neuf tables ELI et capteur, silencieusement. C'est plus lourd que le côté compte, et c'est exactement ce que ces registres existent pour empêcher.
+
+**Le diagnostic réel.** Deux des dix étaient une contrainte simplement absente. Les huit autres le sont **à cause de ce qui se trouve dessous** : `0003` et `0004` créent la colonne en `dog_id TEXT NOT NULL` / `user_id TEXT NOT NULL`, alors que le schéma Drizzle contre lequel le code applicatif compile déclare `uuid('dog_id').notNull().references(() => dogs.id)`. **Une FK de `text` vers `uuid` ne peut pas exister** : la contrainte absente est le symptôme, le type est le défaut.
+
+- `uuid` sur les deux chemins, donc contraignables : `copresence_events.dog_a_id`, `copresence_events.dog_b_id` ;
+- `text` ici et `uuid` dans le schéma : `anticipation_events.dog_id`, `baseline_drift_monitor.dog_id`, `dog_sub_baselines.dog_id`, `recovery_events.dog_id`, `routine_stability.dog_id`, `user_config.dog_id`, `user_config.user_id`, `walk_quality.dog_id`.
+
+**Ce que fait `0015`, et ce qu'il refuse de faire.** Il compare, pour chacune des dix relations, le type de la colonne enfant à celui de la clé parente. Types égaux → la contrainte est ajoutée, avec le nom et les actions que le schéma généré emploie déjà, de sorte que les deux chemins **convergent** au lieu d'être simplement tous deux défendables. Types divergents → la relation est **nommée dans un `NOTICE` et sautée**, parce que `ALTER COLUMN ... TYPE uuid USING col::uuid` est une décision de données (chaque valeur stockée doit déjà être un UUID valide) sur des champs que le contrat de modalité capteur gouverne. Cette décision n'est pas celle de `P`, et elle est **inscrite, pas masquée**.
+
+Rien n'est touché côté données. Les dix colonnes sont `NOT NULL`, donc `NO ACTION` est la seule action cohérente — il n'y a aucune colonne à mettre à `NULL`. Une contrainte n'est ajoutée que si la table est déjà propre ; **une seule ligne orpheline fait lever la migration** en nommant table, colonne et compte, et annule tout. Si elle lève, les orphelins sont réels et leur sort appartient au propriétaire des données.
+
+Vérifié : ajoute les deux sur le chemin des migrations en nommant les huit autres ; réappliquée, no-op ; sur le schéma généré, no-op (59 FK avant/après). Après `0015`, la topologie chien passe de 9 à **11 présentes sur 18**, et les identifiants chien non contraints de 9 à **7** — les huit écarts restants sont exactement les colonnes `text`.
+
+**Le garde-fou, qui verrouille l'arbitrage ouvert au lieu de l'oublier.** `privacy-identity-column-type-divergence.integration.test.mjs` pose deux règles, sur le chemin que l'appelant **nomme** (`IDENTITY_SCHEMA_PATH`, jamais deviné — déduire le chemin du schéma observé reviendrait à tirer la réponse attendue de la réponse constatée) :
+
+1. toute colonne d'identité dont le type correspond à sa clé parente **porte** une FK — rien de contraignable n'est laissé non contraint ;
+2. toute colonne dont le type **ne** correspond pas est l'une des huit inscrites, et sur le chemin généré cet ensemble est **vide**, ce qui est asserté aussi.
+
+L'inventaire est gelé volontairement, **dans les deux sens** : une neuvième divergence échoue, et corriger l'une des huit sans mettre l'inventaire à jour échoue également. C'est le point — la liste est le **registre d'un arbitrage ouvert**, et elle ne doit pouvoir dériver ni en s'aggravant ni en se résolvant sans qu'on le voie. Éprouvé sur les quatre cas : passe sur les deux chemins correctement nommés, échoue si le chemin n'est pas nommé, échoue si le mauvais chemin est annoncé. Les deux étapes de CI sont ajoutées.
+
+**Ce qui reste à trancher, et par qui.** Convertir les huit colonnes `text` en `uuid` : faisable seulement si toutes les valeurs stockées sont des UUID valides, sur des champs sous contrat capteur (`SENSOR_MODALITY_GLOSSARY_2026-09-07.md`), et cela ne se décide pas depuis `P`. Tant que ce n'est pas tranché, **le chemin des migrations ne réalise pas la topologie d'effacement que `config/privacy` déclare**, et c'est maintenant mesuré, chiffré et gardé au lieu d'être supposé.
 
 **Le garde-fou, parce que la classe de défaut est invisible.** Un doublon de FK ne produit ni erreur, ni avertissement, ni bruit au diff de schéma ; il ne se manifeste que le jour où un effacement est refusé. Les tests de registre existants ne l'attrapent pas non plus : ils vérifient que les relations déclarées sont présentes avec l'action annoncée, et une contrainte correcte **plus** une mauvaise se lit comme correcte si l'on ne cherche que la correcte. D'où `backend/test/privacy-duplicate-foreign-key-detach.integration.test.mjs`, qui interroge directement le catalogue : au plus une FK par couple (colonnes enfant → colonnes parent), et action effective `SET NULL` sur les cinq relations D1–D4. Il est lancé par la CI **sur les deux chemins de construction**, ce qui est le point : la divergence n'était possible que parce qu'un seul des deux était interrogé. Éprouvé dans les deux sens — il échoue sur la base d'avant `0014` en nommant les cinq couples et leurs actions, il passe sur les deux bases d'après.
 
