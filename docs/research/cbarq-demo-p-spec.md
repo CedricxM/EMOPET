@@ -287,6 +287,32 @@ La même suite passe contre la base **générée** par Drizzle, qui est celle qu
 
 ### Lot 7 — Harnais de simulation · `M` · dépend de L1 à L4
 
+> **État : `FAIT` (2026-09-28).** `pnpm instruments:simulate -- --owners 400 --profile mixed --seed 42`. Déterministe (même graine → sortie identique au bit près), sans dépendance ajoutée. Sorties dans `.data/` (déjà ignoré par git) : `administrations.csv`, `responses.csv`, `summary.json`.
+>
+> **Le harnais vérifie ses propres invariants et sort en échec s'ils cassent.** Sur 400 administrations : chaîne d'audit valide partout, chaque présentation prouvée, modèle présent uniquement sur `frame_presented`, et **ordre des items identique pour les 400 répondants** — l'invariance sur laquelle repose toute la conception séquentielle, vérifiée sur chaque répondant simulé plutôt qu'affirmée une fois.
+>
+> #### Deux découvertes, dont un défaut réel corrigé
+>
+> **1. Le calage sur les points de coupure violait le plafond de la politique.** Le profil `grazer` souhaite 13 items, se calait sur la coupure de la position 16, et produisait une séance de **16 items sous un plafond de 15** — donc 2 séances au lieu de 3, donc un `scoring_allowed` indu quand le plafond était relevé. J'avais énoncé le principe dans le code (« une séance trop longue ne peut plus être raccourcie ») sans l'appliquer. Corrigé : les candidats au-delà du plafond sont écartés, la fin d'instrument devient un candidat comme un autre, et quand aucune fin légale ne tient dans le plafond le moteur prend la plus précoce — le plus petit dépassement possible — et le signale par `exceedsPolicyMaximum`. La fidélité prime sur le confort, mais le fait est enregistré. Deux tests couvrent la régression.
+>
+> **2. L'identifiabilité de l'effet de position dépend de la variabilité du découpage.** C'est l'argument le plus fort pour `Q1.d`, et il était contre-intuitif.
+>
+> Quand tous les répondants ont le même découpage, la position dans la séance est une **fonction déterministe** de la position canonique : item et position sont parfaitement confondus, et aucune quantité de données ne les sépare. Mesuré : `--profile grazer` seul donne **0/24 items identifiables**. Profils mixtes : **22/24**.
+>
+> Autrement dit, **c'est le découpage adaptatif qui rend l'effet de position mesurable**. La variabilité que Penn pourrait redouter est précisément ce qui permet de l'auditer. Le harnais publie ce diagnostic (`positionIdentifiability`) dans chaque `summary.json`, avec un avertissement explicite quand il vaut zéro.
+>
+> Recouvrement vérifié sur 600 répondants mixtes, avec un estimateur intra-item normalisé par la longueur de séance :
+>
+> | δ injecté | δ estimé |
+> |---:|---:|
+> | 0 | −0,005 |
+> | 0,2 | +0,062 |
+> | 0,4 | +0,294 |
+>
+> Monotone, nul quand rien n'est injecté, atténué par l'arrondi sur l'échelle entière — ce qui est attendu. L'estimateur propre, avec effets item et répondant, est le travail de L8 ; ce tableau établit seulement que le signal est présent et séparable.
+>
+> **Correction apportée aux sorties :** `responses.csv` exporte aussi `session_index` et `session_item_count`. L'effet est défini *par séance*, donc sans la longueur de séance aucun estimateur ne peut normaliser — la table aurait paru complète tout en étant inutilisable.
+
 **Fichier** : `scripts/instruments/simulate-administration.mjs`
 
 Style aligné sur les scripts existants `[ÉTABLI]` (`scripts/content/legacy-freemium-authority-audit.mjs`, invoqué par un script `package.json`).

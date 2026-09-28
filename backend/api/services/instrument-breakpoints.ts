@@ -90,24 +90,41 @@ export interface SessionBoundary {
   /** The whitelisted cut point used, or null when the session runs to the end. */
   readonly closedAtBreakpointPosition: number | null;
   readonly reachesEndOfInstrument: boolean;
+  /**
+   * True when no legal end existed within the policy's item ceiling, so the
+   * structure of the instrument forced a longer session than the policy wants.
+   *
+   * Recorded rather than hidden: the whitelist wins over the comfort bound,
+   * because cutting where no cut point exists would break fidelity while an
+   * over-long session only breaks the two-to-three-minute promise. But a session
+   * that had to overshoot is a fact about the cut-point set, and the audit trail
+   * should be able to say so.
+   */
+  readonly exceedsPolicyMaximum: boolean;
 }
 
 /**
  * Choose the legal end of a session starting at `startPosition`.
  *
- * The desired count is a wish, not an instruction: the session ends at the
- * whitelisted cut point nearest the wish, or at the end of the instrument.
- * Ending at the last item is always legal — it is a completion, not a cut.
+ * The desired count is a wish, not an instruction: the session ends at a
+ * whitelisted cut point or at the end of the instrument, whichever sits nearest
+ * the wish. Ending at the last item is always legal — it is a completion, not a
+ * cut.
  *
- * Ties break toward the shorter session. A respondent who wanted a three-minute
- * session and is offered either four or twelve more items is better served by the
- * shorter one, since chaining lets them continue freely while an over-long
- * session cannot be shortened once begun.
+ * `maxItemCount` is a hard ceiling wherever the structure permits one. A session
+ * that is too short costs nothing, because chaining lets the respondent continue
+ * freely; a session that is too long cannot be shortened once begun. So candidates
+ * over the ceiling are discarded, and only when none remains does the engine
+ * overshoot — taking the earliest legal end, the smallest possible overshoot, and
+ * flagging it.
+ *
+ * Ties break toward the shorter session, for the same reason.
  */
 export function selectSessionBoundary(
   plan: AdministrationPlanInput,
   startPosition: number,
   desiredItemCount: number,
+  maxItemCount?: number,
 ): SessionBoundary {
   const total = plan.expectedItemCount;
 
@@ -117,54 +134,50 @@ export function selectSessionBoundary(
   if (!Number.isInteger(desiredItemCount) || desiredItemCount < 1) {
     throw new BreakpointError(`desiredItemCount must be a positive integer, got ${desiredItemCount}`);
   }
+  if (maxItemCount !== undefined && (!Number.isInteger(maxItemCount) || maxItemCount < 1)) {
+    throw new BreakpointError(`maxItemCount must be a positive integer, got ${maxItemCount}`);
+  }
 
   const { positions } = resolveUsableBreakpoints(plan.breakpoints);
-  const ahead = positions.filter((position) => position >= startPosition && position < total);
 
-  if (ahead.length === 0) {
-    return {
-      startPosition,
-      endPosition: total,
-      itemCount: total - startPosition + 1,
-      closedAtBreakpointPosition: null,
-      reachesEndOfInstrument: true,
-    };
-  }
+  // The end of the instrument is always a legal end, so it joins the candidates
+  // rather than being a separate branch. That also removes any chance of leaving a
+  // one-item stub session behind.
+  const candidates = [
+    ...positions.filter((position) => position >= startPosition && position < total),
+    total,
+  ];
+
+  const countFor = (position: number): number => position - startPosition + 1;
+  const withinCeiling =
+    maxItemCount === undefined
+      ? candidates
+      : candidates.filter((position) => countFor(position) <= maxItemCount);
+
+  const exceedsPolicyMaximum = withinCeiling.length === 0;
+  // No legal end fits the ceiling: take the earliest, which overshoots least.
+  const usable = exceedsPolicyMaximum ? [candidates[0] as number] : withinCeiling;
 
   const wished = startPosition + desiredItemCount - 1;
 
-  let best = ahead[0] as number;
+  let best = usable[0] as number;
   let bestDistance = Math.abs(best - wished);
-  for (const position of ahead.slice(1)) {
+  for (const position of usable.slice(1)) {
     const distance = Math.abs(position - wished);
-    // Strictly-less keeps the earliest position on a tie, which is the shorter
-    // session.
+    // Strictly-less keeps the earliest position on a tie, hence the shorter session.
     if (distance < bestDistance) {
       best = position;
       bestDistance = distance;
     }
   }
 
-  // If the nearest cut point is the last one before the end, and the remainder
-  // after it would be shorter than the distance we already travelled, running to
-  // the end avoids leaving a stub session behind.
-  const lastAhead = ahead[ahead.length - 1] as number;
-  if (best === lastAhead && total - lastAhead <= 1) {
-    return {
-      startPosition,
-      endPosition: total,
-      itemCount: total - startPosition + 1,
-      closedAtBreakpointPosition: null,
-      reachesEndOfInstrument: true,
-    };
-  }
-
   return {
     startPosition,
     endPosition: best,
-    itemCount: best - startPosition + 1,
-    closedAtBreakpointPosition: best,
-    reachesEndOfInstrument: false,
+    itemCount: countFor(best),
+    closedAtBreakpointPosition: best === total ? null : best,
+    reachesEndOfInstrument: best === total,
+    exceedsPolicyMaximum,
   };
 }
 

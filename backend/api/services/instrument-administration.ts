@@ -212,7 +212,12 @@ export function planNextSession(
   }
 
   const sizing = computeSessionSize(state.policy, signals, remaining);
-  const boundary = selectSessionBoundary(state.plan, state.cursor, sizing.itemCount);
+  const boundary = selectSessionBoundary(
+    state.plan,
+    state.cursor,
+    sizing.itemCount,
+    state.policy.maxItemsPerSession,
+  );
 
   const session: AdministrationSession = {
     sessionIndex: state.sessions.length + 1,
@@ -504,7 +509,12 @@ export function acceptContinuation(
 
   const session = currentSession(state) as AdministrationSession;
   const sizing = computeSessionSize(state.policy, signals, remainingItemCount(state));
-  const boundary = selectSessionBoundary(state.plan, state.cursor, sizing.itemCount);
+  const boundary = selectSessionBoundary(
+    state.plan,
+    state.cursor,
+    sizing.itemCount,
+    state.policy.maxItemsPerSession,
+  );
 
   return replaceLastSession(state, {
     ...session,

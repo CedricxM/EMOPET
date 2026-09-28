@@ -96,6 +96,66 @@ test('a session end is always a whitelisted cut point or the end of the instrume
   }
 });
 
+test('the policy item ceiling is respected wherever the structure allows it', () => {
+  // Snapping to a cut point must not silently produce a session longer than the
+  // policy permits: a short session costs nothing because chaining continues it,
+  // while a long one cannot be shortened once begun.
+  for (const maxItemCount of [5, 8, 10, 12, 15, 20]) {
+    for (let start = 1; start <= 24; start += 1) {
+      const boundary = breakpoints.selectSessionBoundary(plan, start, 13, maxItemCount);
+      assert.ok(breakpoints.isLegalSessionEnd(plan, boundary.endPosition));
+      if (!boundary.exceedsPolicyMaximum) {
+        assert.ok(
+          boundary.itemCount <= maxItemCount,
+          `start ${start}, max ${maxItemCount} produced ${boundary.itemCount} items`,
+        );
+      }
+    }
+  }
+
+  // The regression the simulation harness surfaced: wishing for 13 items from
+  // position 1 used to snap to the cut point at 16, producing a 16-item session
+  // under a 15-item ceiling.
+  const snapped = breakpoints.selectSessionBoundary(plan, 1, 13, 15);
+  assert.equal(snapped.endPosition, 8);
+  assert.equal(snapped.itemCount, 8);
+  assert.equal(snapped.exceedsPolicyMaximum, false);
+
+  // When no legal end fits, the engine overshoots by the smallest possible amount
+  // and says so rather than cutting where no cut point exists.
+  const forced = breakpoints.selectSessionBoundary(plan, 1, 3, 4);
+  assert.equal(forced.exceedsPolicyMaximum, true);
+  assert.equal(forced.endPosition, 8, 'the earliest legal end is the smallest overshoot');
+  assert.ok(breakpoints.isLegalSessionEnd(plan, forced.endPosition));
+});
+
+test('the engine never plans a session beyond the policy ceiling', () => {
+  // The grazer profile wishes for 13 items; every planned session must still fit.
+  let state = engine.createAdministration(policy(), plan, T0);
+  let clock = T0;
+  const counts = [];
+
+  while (state.cursor <= plan.expectedItemCount) {
+    state = engine.planNextSession(
+      state,
+      { median_session_duration: 190, completion_rate: 0.85, pause_frequency: 0.2 },
+      clock,
+    );
+    const session = state.sessions[state.sessions.length - 1];
+    counts.push(session.plannedItemCount);
+    assert.ok(
+      session.plannedItemCount <= policy().maxItemsPerSession,
+      `session ${session.sessionIndex} planned ${session.plannedItemCount} items`,
+    );
+    state = engine.openSession(state, clock);
+    const run = answerOpenSession(state, { at: clock });
+    state = engine.closeSession(run.state, run.clock);
+    clock = run.clock + 24 * HOUR;
+  }
+
+  assert.deepEqual(counts, [8, 8, 8], 'section boundaries give three eight-item sessions');
+});
+
 test('sizing rejects any signal outside the closed list, loudly', () => {
   const p = policy();
 
