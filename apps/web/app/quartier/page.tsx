@@ -76,8 +76,10 @@ export default function QuartierPage() {
             return (
               <button
                 key={tab.id}
+                id={`quartier-tab-${tab.id}`}
                 role="tab"
                 aria-selected={active}
+                aria-controls="quartier-tabpanel"
                 onClick={() => setSection(tab.id)}
                 style={{
                   padding: '8px 18px',
@@ -98,7 +100,14 @@ export default function QuartierPage() {
           })}
         </div>
 
-        <div role="tabpanel">
+        {/* Le panneau tire son nom de l'onglet actif : sans ce lien, un lecteur
+            d'écran annonce « panneau » sans dire lequel, et rien ne relie
+            visuellement l'onglet au contenu qu'il commande. */}
+        <div
+          role="tabpanel"
+          id="quartier-tabpanel"
+          aria-labelledby={`quartier-tab-${section}`}
+        >
           {section === 'carte' ? <LocalSection /> : <CommunitySection />}
         </div>
       </div>
