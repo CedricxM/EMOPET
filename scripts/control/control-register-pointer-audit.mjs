@@ -30,8 +30,9 @@
 
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
-export const ROOT = new URL('../../', import.meta.url).pathname;
+export const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 
 /** Each register declares pointers with its own row-id prefixes. */
 export const REGISTERS = [

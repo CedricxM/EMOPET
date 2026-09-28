@@ -94,16 +94,35 @@ jobs:
       # scientific validation or runtime activation; each guard pins one
       # boundary that has already drifted or regressed once. See #114, #116,
       # #118 and #86.
+      - name: Enforce CI coverage of every scripts/control test (#671)
+        run: node --test scripts/control/control-test-ci-coverage.test.mjs
       - name: Enforce control-register pointers (#114, #116)
         run: |
           pnpm control:pointer-audit
           pnpm control:pointer-audit:test
       - name: Enforce mandatory scientific context pointers (C-BARQ / Penn / ELI)
         run: node --test scripts/control/mandatory-scientific-context.test.mjs
+      - name: Enforce remaining repository control authorities
+        run: >
+          node --test
+          scripts/control/activity-variability-authority.test.mjs
+          scripts/control/eli-api-projection.test.mjs
+          scripts/control/eli-dynamics-parameter-authority.test.mjs
+          scripts/control/eli-proxy-evidence.test.mjs
+          scripts/control/mat-incremental-value.test.mjs
+          scripts/control/presence-comparison-authority.test.mjs
+          scripts/control/rr-variability-semantic.test.mjs
+          scripts/control/tag-external-partner-rfq.test.mjs
+          scripts/control/tag-feasibility.test.mjs
+          scripts/control/wqi-rsi-authority.test.mjs
+      - name: Enforce UPenn meeting-pack claim boundary (C-BARQ / Penn / ELI, #617)
+        run: node --test scripts/control/upenn-meeting-claims.test.mjs
       - name: Enforce single InferenceResult authority (ELI-ARCH-G2, #118)
         run: pnpm control:eli-contract:test
       - name: Enforce ELI runtime conformance non-activation (#479)
         run: pnpm control:eli-runtime-conformance:test
+      - name: Enforce Device Trust fail-closed command/claim/OTA boundary (#66)
+        run: node --test scripts/control/device-trust-boundary.test.mjs
       - name: Enforce Device Trust identity/PoP architecture gate (#648)
         run: node --test scripts/control/device-identity-pop-authority.test.mjs
       - name: Enforce Device Trust PoP challenge contract (#648)

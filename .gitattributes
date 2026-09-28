@@ -1,0 +1,9 @@
+# Cross-platform checkout policy for byte-sensitive repository artifacts.
+#
+# Generated TypeScript sources are compared byte-for-byte against LF-joined
+# generator output. Keep them LF on every platform regardless of core.autocrlf.
+*.generated.ts text eol=lf
+
+# VBO snapshots are bound to SHA-256 / Git-blob provenance evidence and must
+# retain their exact committed bytes. Never apply text or line-ending filters.
+data/vbo/** -text

@@ -27,6 +27,8 @@ on:
       - 'backend/test/migration-baseline-static.test.mjs'
       - 'backend/test/id-01-referential-integrity.sql'
       - 'backend/test/copresence-identity-fingerprint.sql'
+      - 'backend/test/schema-constraint-index-parity.sql'
+      - 'backend/test/schema-constraint-index-parity.known-drift.txt'
       - 'backend/test/subject-discovery-postgres.test.mjs'
       - 'backend/test/privacy-erasure-topology.integration.test.mjs'
       - 'backend/test/privacy-erasure-residue-verification.integration.test.mjs'
@@ -223,6 +225,26 @@ jobs:
         env:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/0015_behavioral_eli_mapping_authority.sql
+
+      # Table inventory cannot see constraint/index drift (a shadow NO ACTION FK kept
+      # blocking the approved D4 DETACH #446 on path A only). Compare the untouched
+      # path-A replay with the generated baseline before any test writes to either.
+      - name: P0-DB constraint/index parity (path A vs generated)
+        env:
+          REPEAT_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_repeat
+          GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+        run: |
+          export LC_ALL=C
+          psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/schema-constraint-index-parity.sql > /tmp/parity-a.txt
+          psql "$GENERATED_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/schema-constraint-index-parity.sql > /tmp/parity-generated.txt
+          { comm -23 /tmp/parity-a.txt /tmp/parity-generated.txt | sed 's/^/A|/'
+            comm -13 /tmp/parity-a.txt /tmp/parity-generated.txt | sed 's/^/B|/'; } | sort > /tmp/parity-drift.txt
+          sed 's/\r$//;/^#/d;/^$/d' backend/test/schema-constraint-index-parity.known-drift.txt | sort > /tmp/parity-known.txt
+          if ! diff -u /tmp/parity-known.txt /tmp/parity-drift.txt; then
+            echo '::error::Constraint/index drift between path A and the generated baseline changed. "+" = new drift: fix the migration or schema. "-" = resolved drift: delete it from backend/test/schema-constraint-index-parity.known-drift.txt.'
+            exit 1
+          fi
+          echo "Constraint/index drift matches the classified ledger ($(wc -l < /tmp/parity-drift.txt) entries)."
 
       - name: ELI-BEHAV-01 mapping authority on generated baseline
         working-directory: backend
