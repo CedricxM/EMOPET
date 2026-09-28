@@ -198,6 +198,16 @@ Points de coupure : 2 frontières de section (après 08 et 16) + 4 intra-section
 
 ### Lot 3 — Moteur d'administration · `L` · dépend de L1, L2
 
+> **État : `FAIT` (2026-09-28).** Vérifié : 15 tests dédiés ; 331 tests backend, 0 échec ; les quatre paquets dépendants passent. Le moteur est **pur** — aucune fonction ne lit d'horloge, de base, de capteur ni d'aléatoire : l'appelant fournit `now`, ce qui rend une fenêtre de quatorze jours testable en une milliseconde et interdit par construction les entrées que le moteur ne doit pas consulter.
+>
+> **Constat remonté par la démonstration, à porter à l'appel d'octobre.** La règle conservatrice tient : tant qu'aucun point de coupure intra-section n'est `licensed` ou `emopet_approved`, seules les frontières de section sont utilisables. Conséquence mesurée sur le contenu factice : la cible de 3 minutes souhaite **12 items**, mais le moteur ne peut couper qu'à 8 et 16, donc les séances font **8 items**. Les trois coupures intra-section proposées sont ignorées, et un test le prouve dans les deux sens — approuver celle de la position 12 fait passer les positions utilisables de `[8, 16]` à `[8, 12, 16]`.
+>
+> C'est exactement ce qu'il faut montrer à Penn : la question des points de coupure (`C11`, `Q1.c`) n'est pas théorique, elle change la forme de l'administration de façon observable. Et le défaut est du bon côté : sans approbation, le système est plus rigide, pas plus permissif.
+>
+> **Deux corrections faites en cours de route.** `planNextSession` avance désormais l'horloge avant de planifier — planifier dans une fenêtre expirée réussissait silencieusement et produisait des items que personne ne pourrait scorer. Et `validitySnapshot` n'expose que des compteurs et une décision de fatigue, jamais les drapeaux eux-mêmes, pour qu'un appelant distrait ne puisse pas les transmettre à un client.
+>
+> **Non implémenté, délibérément :** le contrôle d'incohérence des items inversés (§4.3) exige les règles officielles de l'instrument. L'inventer serait fabriquer de la psychométrie. Les trois autres contrôles sont en place.
+
 **Fichiers**
 - `backend/api/services/instrument-administration.ts` — machine à états
 - `backend/api/services/instrument-session-sizing.ts` — dimensionnement `D.1.1`/`D.2.1`
