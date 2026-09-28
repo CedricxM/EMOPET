@@ -224,15 +224,15 @@ Gated, not resolved. Recorded entry by entry in `backend/test/schema-constraint-
 
 The CI step `P0-DB constraint/index parity (path A vs generated)` fails when the observed drift differs from the ledger in either direction: new drift, or a resolved entry left in the ledger. The fingerprint SQL separately rejects any duplicate FK on the same columns; that class is never ledgered.
 
-Column drift is gated separately. S3 showed that a missing index can hide missing columns, and #662 added a column-type drift that constraint/index parity cannot see. `backend/test/schema-column-parity.sql` prints one line per column (`format_type`, nullability, default, identity/generation); the CI step `P0-DB column parity (path A vs generated)` compares it with `backend/test/schema-column-parity.known-drift.txt` (92 lines, 10 tables) under the same two-direction rule:
+Column drift is gated separately. S3 showed that a missing index can hide missing columns, and #662 added a column-type drift that constraint/index parity cannot see. `backend/test/schema-column-parity.sql` prints one line per column (`format_type`, nullability, default, identity/generation); the CI step `P0-DB column parity (path A vs generated)` compares it with `backend/test/schema-column-parity.known-drift.txt` (20 lines, 8 tables) under the same two-direction rule:
 
 | Class | Count | Difference | Status |
 |---|---|---|---|
 | C1 | 8 pairs | ELI identifiers (`dog_id`, `user_config.user_id`): `text` in `0003`, `uuid` in Drizzle | OPEN (§7.4) |
-| C2 | 36 pairs | bare `FLOAT` in `0001` (`imu_*`) and `0003` (ELI tables) resolves to `double precision`; Drizzle declares `real()` | OPEN — precision of ELI/IMU values not decided |
+| C2 | 0 | bare `FLOAT` in `0001` (`imu_*`) and `0003` (ELI tables) resolves to `double precision`; Drizzle declared `real()` | RESOLVED in source schema (`doublePrecision()`) |
 | C3 | 4 | `breed_sensor_profiles` height/weight morphology columns, path A only | `NOT_CURRENT_SCHEMA_AUTHORITY` (§7.3) |
 
-C2 was previously unrecorded. Promoting the generated baseline as-is (§8) would store these values as `real` (about 7 significant digits) instead of `double precision`; that choice is not made here.
+C2 (36 columns in `eli-v5.ts` and `datasets.ts`) is resolved in the source schema, as in §7.1/§7.2: the Drizzle columns now use `doublePrecision()`, the type the historical SQL already declared. The values are computed as JavaScript float64; `real` (float4, about 7 significant digits) would have silently rounded them on every write, so a stored baseline, drift sigma or threshold could no longer be reproduced from its inputs. No migration: path A was already `double precision`, and the TypeScript type stays `number`.
 
 Status:
 
@@ -246,7 +246,9 @@ Status:
 
 `REMAINING_CONSTRAINT_INDEX_DRIFT = GATED / OPEN — each class needs its own decision`
 
-`REMAINING_COLUMN_DRIFT = GATED / OPEN (C1 §7.4, C2 undecided, C3 §7.3)`
+`ELI_IMU_FLOAT_PRECISION_DRIFT = RESOLVED_IN_SOURCE_SCHEMA`
+
+`REMAINING_COLUMN_DRIFT = GATED / OPEN (C1 §7.4, C3 §7.3)`
 
 Full record:
 
