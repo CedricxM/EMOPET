@@ -100,6 +100,8 @@ jobs:
           pnpm control:pointer-audit:test
       - name: Enforce mandatory scientific context pointers (C-BARQ / Penn / ELI)
         run: node --test scripts/control/mandatory-scientific-context.test.mjs
+      - name: Enforce Penn meeting-material claim boundary (C-BARQ / Penn / ELI, #617)
+        run: node --test scripts/control/upenn-meeting-claims.test.mjs
       - name: Enforce single InferenceResult authority (ELI-ARCH-G2, #118)
         run: pnpm control:eli-contract:test
       - name: Enforce ELI runtime conformance non-activation (#479)
