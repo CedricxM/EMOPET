@@ -90,16 +90,17 @@ describe('14-day synthetic pipeline', () => {
     }));
     const imu: Array<{ timestamp: Date; odba: number }> = [];
     for (const o of occurrences) {
-      for (let s = 0; s < 900; s++) {
-        imu.push({ timestamp: new Date(o.at.getTime() - (900 - s) * 1000), odba: 0.65 });
+      // Exactly 50% of the 15-minute 1 Hz window: the detector's minimum
+      // accepted pre-event coverage, while avoiding redundant object churn.
+      for (let s = 0; s < 450; s++) {
+        imu.push({ timestamp: new Date(o.at.getTime() - (450 - s) * 1000), odba: 0.65 });
       }
     }
-    // Non-event-day baseline
+    // The baseline value is constant, so one same-hour sample per non-event
+    // day preserves the exact mean (0.2) without allocating 3,600 duplicates.
     for (let d = 1; d <= 28; d++) {
       if (occurrences.some((o) => o.at.getUTCDate() === d)) continue;
-      for (let s = 0; s < 3600; s++) {
-        imu.push({ timestamp: new Date(Date.UTC(2026, 3, d, 8, 0, s)), odba: 0.2 });
-      }
+      imu.push({ timestamp: new Date(Date.UTC(2026, 3, d, 8, 0, 0)), odba: 0.2 });
     }
     const result = computeAnticipationIndex({
       dogId: 'd1',

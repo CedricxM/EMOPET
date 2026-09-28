@@ -63,19 +63,19 @@ Section la plus importante de cette spécification. Le dépôt impose des invari
 
 ### 2.1 Numérotation de migration — contrainte dure
 
-`backend/test/migration-baseline-static.test.mjs` impose que les préfixes de migration soient **uniques et contigus depuis `0001`**. La dernière migration active est `0012_ai_zero_durable_write_guard.sql`.
+`backend/test/migration-baseline-static.test.mjs` impose que les préfixes de migration soient **uniques et contigus depuis `0001`**. À la rédaction, la dernière migration active était `0012_ai_zero_durable_write_guard.sql`.
 
-> La migration de `P` **doit** s'appeler `0013_<nom>.sql`. Pas `0013b`, pas de saut, pas deux fichiers `0013`.
+> La migration de `P` **doit** porter le numéro suivant, en un seul fichier. Pas de suffixe, pas de saut, pas deux fichiers du même numéro.
 
-Si un autre travail en cours prend `0013`, `P` prend le numéro suivant — mais un seul.
+`[CORRIGÉ 28/09]` C'est précisément ce qui est arrivé : écrite en `0013`, elle est devenue **`0025_instrument_administration.sql`** à la fusion, `main` ayant pris `0013` à `0024` entre-temps. Le contenu n'a pas changé et n'entre en collision avec aucune d'elles. Leçon à retenir pour la prochaine branche longue : **relire le numéro juste avant de pousser**, le test de contiguïté ne voyant que la branche locale.
 
 ### 2.2 Toute table Drizzle doit avoir un `CREATE TABLE`
 
 Le même test vérifie que **chaque** nom passé à `pgTable()` dans `backend/db/schema/*.ts` possède un `CREATE TABLE` quelque part dans `backend/db/baseline-draft/` + `backend/db/migrations/`, et que tout `ALTER TABLE` cible une table créée **plus tôt** dans la séquence.
 
 Conséquences pour `P` :
-- les huit nouvelles tables doivent être créées dans `0013`, avec des noms identiques à ceux des `pgTable()` ;
-- les colonnes ajoutées à `behavioral_assessments` passent par `ALTER TABLE` dans `0013` — licite, la table est créée en `0005` `[ÉTABLI]` ;
+- les huit nouvelles tables doivent être créées dans la migration de `P` (`0025` après fusion), avec des noms identiques à ceux des `pgTable()` ;
+- les colonnes ajoutées à `behavioral_assessments` passent par `ALTER TABLE` dans cette même migration — licite, la table est créée en `0005` `[ÉTABLI]`, et sans collision avec les colonnes `household_*` que `main` y ajoute en `0014` ;
 - rien ne va dans `baseline-draft/`, réservé au socle historique.
 
 ### 2.3 Registres de confidentialité déclaratifs
@@ -124,7 +124,7 @@ Neuf lots. Chacun porte ses fichiers, sa définition de terminé, ses dépendanc
 
 ### Lot 1 — Schéma et migration · `M` · sans dépendance
 
-> **État : `FAIT` (2026-09-28).** Magasin privé : **option C** retenue par le fondateur — structure en base, texte licencié dans le magasin privé. Vérifié : typecheck backend propre ; 304 tests backend, 0 échec ; séquence complète socle + 13 migrations appliquée sur PostgreSQL 16 jetable ; `0013` réappliquée sans erreur (idempotente) ; 20 cas de contrainte testés, dont 14 rejets tous imputés à la contrainte visée.
+> **État : `FAIT` (2026-09-28).** Magasin privé : **option C** retenue par le fondateur — structure en base, texte licencié dans le magasin privé. Vérifié : typecheck backend propre ; 304 tests backend, 0 échec ; séquence complète socle + migrations appliquée sur PostgreSQL 16 jetable (25 migrations après fusion, 56 tables, identiques au schéma généré) ; la migration réappliquée sans erreur (idempotente) ; 20 cas de contrainte testés, dont 14 rejets tous imputés à la contrainte visée.
 >
 > **Écart connu, à combler par L6 :** `administration_sessions` et `instrument_administration_events` sont des descendantes transitives de `dogs` via `behavioral_assessments.dog_id`, et ne sont pas encore déclarées dans `config/privacy/dog-erasure-topology.json` (`transitiveDescendants`) ni dans la matrice de disposition. Aucun test n'échoue — ces listes sont comparées config contre config, sans introspection de PostgreSQL — mais la topologie déclarée est donc **incomplète** tant que L6 n'est pas fait. À ne pas laisser passer en production.
 
@@ -340,13 +340,11 @@ Trois corrections, toutes vérifiées :
 
 **Une leçon de méthode, notée parce qu'elle a failli produire un faux rapport.** Mon premier scan annonçait onze décalages. Dix étaient les miens : ma regex, ancrée sur `_DB_INTEGRATION` sans fermer l'identifiant, capturait un préfixe de `EMOPET_DB_INTEGRATION_TEST`. Il n'y avait qu'un décalage réel. Le test livré porte la regex corrigée et un commentaire expliquant pourquoi l'ancrage de fin compte.
 
-#### La dérive de FK : cinq doublons **corrigés le 2026-09-28**, dix absences laissées ouvertes
+#### La dérive de FK : mesurée ici, **déjà corrigée sur `main`** · corrigé le 2026-09-28
 
-`[ÉTABLI]` Ce que le paragraphe ci-dessus qualifiait d'« arbitrage à part » s'est révélé, à la mesure, être **deux questions de nature différente**. L'une est un défaut de confidentialité au correctif minimal ; elle est corrigée. L'autre est une réconciliation de socle ; elle reste ouverte.
+`[ÉTABLI]` Ce que le paragraphe ci-dessus qualifiait d'« arbitrage à part » était un vrai défaut, et j'ai eu tort de croire que je le découvrais.
 
-**Le défaut.** `0006`, `0008` et `0009` appliquent la décision approuvée D1–D4 — une référence d'identité se **détache** à l'effacement du compte au lieu de le bloquer — selon le motif `DROP CONSTRAINT IF EXISTS "x_col_users_id_fk"` puis `ADD CONSTRAINT "x_col_users_id_fk" ... ON DELETE SET NULL`. Or le socle brouillon avait créé ces FK sous le nom généré par PostgreSQL, `x_col_fkey`. Le `DROP` ne correspondait à rien, l'`ADD` créait une **seconde** contrainte, et les deux survivaient : une `NO ACTION`, une `SET NULL`.
-
-PostgreSQL applique **toutes** les FK. La contrainte résiduelle `NO ACTION` refusait donc exactement la suppression que `SET NULL` avait été ajoutée pour permettre. Mesuré sur une base construite par la séquence de migrations :
+**Ce que j'ai mesuré, sur ma base de branche.** `0006`/`0008`/`0009` appliquent la décision approuvée D1–D4 — une référence d'identité **se détache** à l'effacement du compte — avec `DROP CONSTRAINT IF EXISTS "x_col_users_id_fk"` puis un `ADD ... ON DELETE SET NULL`. Le socle brouillon avait créé ces FK sous le nom généré par PostgreSQL, `x_col_fkey`. Le `DROP` ne correspondait à rien, l'`ADD` créait une **seconde** contrainte, les deux survivaient : une `NO ACTION`, une `SET NULL`. PostgreSQL applique les deux, donc la résiduelle refusait exactement la suppression que `SET NULL` autorisait :
 
 ```
 chemin MIGRATIONS : suppression du répondant BLOQUÉE par
@@ -354,56 +352,31 @@ chemin MIGRATIONS : suppression du répondant BLOQUÉE par
 chemin GÉNÉRÉ     : suppression ACCEPTÉE, respondent_user_id = NULL      (D1 respecté)
 ```
 
-**La sémantique de détachement approuvée ne fonctionnait pas du tout sur le chemin des migrations.** Cinq relations concernées : `auth_refresh_sessions.user_id`, `behavioral_assessments.respondent_user_id`, `communities.created_by`, `community_events.created_by`, `community_reports.reporter_user_id`. La CI n'exerçait que la base générée, où le doublon n'existe pas : voilà pourquoi c'est resté invisible.
+En poursuivant les dix FK manquantes, j'ai trouvé pire : `dog-erasure-topology` déclare 18 FK chien canoniques et **neuf** existaient ; `dog-subject-lineage` déclare zéro identifiant chien non contraint et **neuf** l'étaient. Le résultat côté chien était masqué derrière l'assertion côté compte, qui échoue d'abord. Diagnostic réel : `0003`/`0004` créent `dog_id TEXT` alors que le schéma Drizzle déclare `uuid(...).references(...)` — une FK `text` → `uuid` ne peut pas exister, la contrainte absente n'est que le symptôme.
 
-**Le correctif.** `0014_retire_superseded_detach_foreign_keys.sql` retire les cinq contraintes périmées, et rien d'autre : aucun ajout, aucune donnée touchée. Chaque suppression est conditionnée à la présence effective du pendant `SET NULL` — sinon la migration **lève une exception et annule tout**, parce que laisser une colonne d'identité sans aucune FK transformerait une suppression bloquée en orphelin silencieux, ce qui serait pire que le défaut corrigé.
+**Correction de ce que j'ai écrit.** J'ai écrit deux migrations, `0014_retire_superseded_detach_foreign_keys.sql` et `0015_reconcile_missing_identity_foreign_keys.sql`, et j'ai dit que la conversion `text` → `uuid` « n'appartenait pas à `P` ». **`main` avait déjà tout corrigé**, la veille, et plus complètement :
 
-Vérifié, sur un cluster jetable, en quatre points :
+| Sur `main` | Ce qu'elle fait | Ce qu'elle remplace chez moi |
+|---|---|---|
+| `0021_path_a_constraint_index_parity` (27/09) | retire les cinq FK `_fkey` périmées — même diagnostic, même correctif, **plus** `device_identity_credentials` et un index | mon `0014`, intégralement |
+| `0023_path_a_integrity_and_index_parity` | ajoute les deux FK `copresence_events` | la moitié tenable de mon `0015` |
+| `0024_path_a_eli_canonical_identity` | `ALTER COLUMN ... TYPE uuid USING ...::uuid` sur les huit colonnes, **puis** ajoute leurs FK | l'arbitrage que je disais ouvert — il est tranché |
 
-1. **efficacité** — après `0014`, la suppression d'un répondant détache les cinq relations (`detached = t` partout) ; sans `0014`, la même suppression est refusée ;
-2. **idempotence** — réappliquée sur une base déjà corrigée, la migration est un no-op ;
-3. **innocuité sur l'autre chemin** — appliquée au schéma généré par Drizzle, elle ne touche rien (59 FK avant, 59 après), ce qui compte parce que la CI applique `baseline-draft/*` + `migrations/*` **deux fois** et compare les schémas ;
-4. **garde de refus** — en retirant artificiellement `communities_created_by_users_id_fk`, la migration refuse la suppression en nommant les deux contraintes, et la transaction est annulée : aucune des cinq n'est tombée.
+Ma branche partait d'un `main` antérieur à ces commits, donc ma mesure était juste **pour ma base** et fausse comme description de l'état du dépôt. Mes deux migrations sont donc **supprimées à la fusion**, pas renumérotées : les garder n'ajouterait que deux no-ops. `0013_instrument_administration.sql` devient `0025`, `main` ayant pris `0013` à `0024`.
 
-**Ce que ça change pour la topologie déclarée.** Avant `0014`, le test de parité de topologie lancé contre le chemin des migrations divergeait sur six points. Après, il n'en reste **qu'un** : `user_config.user_id`, l'une des dix FK manquantes ci-dessous. Toutes les lignes `SET_NULL` correspondent maintenant exactement à `config/privacy/account-erasure-topology.json`.
+**Ce qui survit, et qui vaut d'être gardé.** Le constat était juste ; ce qui manquait au dépôt, c'est qu'aucun garde-fou n'empêche la récidive. `0021` retire les doublons mais rien n'interdit qu'un prochain `ADD CONSTRAINT` sous un nom non conventionnel en recrée un ; `0024` convertit les colonnes mais rien n'interdit qu'une nouvelle colonne d'identité naisse en `text`. Deux tests, lancés par la CI **sur les deux chemins de construction** — le point étant que la divergence n'était possible que parce qu'un seul des deux était interrogé :
 
-**Les dix FK manquantes — mesurées, et pas ce que je croyais.** Voir la sous-section suivante : deux relevaient d'une simple contrainte absente et sont ajoutées par `0015` ; les huit autres sont un **écart de type de colonne**, ce qui est un diagnostic différent et un arbitrage qui ne m'appartient pas.
+1. `privacy-duplicate-foreign-key-detach.integration.test.mjs` — au plus une FK par couple (colonnes enfant → colonnes parent), et action effective `SET NULL` sur les cinq relations D1–D4. Un doublon ne produit ni erreur, ni avertissement, ni bruit au diff de schéma ; il ne se manifeste que le jour où un effacement est refusé. Les tests de registre ne l'attrapent pas non plus : une contrainte correcte **plus** une mauvaise se lit comme correcte si l'on ne cherche que la correcte.
+2. `privacy-identity-column-type-divergence.integration.test.mjs` — aucune colonne d'identité ne diverge en type de la clé qu'elle référence ; et toute colonne au bon type est contrainte **ou déclarée non contrainte dans `config/privacy`**.
 
-#### Les dix FK manquantes : deux ajoutées, huit sur un écart de type · **2026-09-28**
+**Ma première version de la règle 2 était trop forte, et le dépôt me l'a montré.** Je l'avais écrite « toute colonne au bon type porte une FK ». Elle échouait sur `professional_share_access_audits.dog_id`, uuid sans FK sur les deux chemins — parce que c'est **délibéré et déclaré** : les registres le portent en `unconstrainedDogIdentifiers`. Le test lit donc maintenant la déclaration dans `config/privacy` au lieu de la réécrire : une exception doit être **inscrite** pour passer. Le garde-fou s'aligne sur le registre qui gouverne, pas sur ma supposition.
 
-`[ÉTABLI]` En instrumentant la mesure au lieu de m'arrêter au premier échec d'assertion, j'ai trouvé **plus grave que le nombre ne le suggère**. Le test de parité de topologie compare le compte de relations déclarées à celles présentes, mais son assertion côté comptes utilisateur échoue **avant** celle côté chien, ce qui masquait le résultat chien. Mesuré directement, sur le chemin des migrations et après `0014` :
+**Résultat après fusion, vérifié :** le test de parité de topologie passe **sur le chemin des migrations**, ce qui n'était jamais arrivé. 493 tests backend, 0 échec. Les quatre gardes de base passent sur les deux chemins (56 tables de chaque côté).
 
-| Registre déclaré | Déclaré | Présent (migrations) | Présent (généré) |
-|---|---|---|---|
-| `account-erasure-topology` — références utilisateur directes | 15 | 14 | 15 |
-| `dog-erasure-topology` — FK chien canoniques | 18 | **9** | 18 |
-| `dog-subject-lineage` — identifiants chien **sans** FK | 0 | **9** | 0 |
+**Deux faux positifs de scanner corrigés, tous deux les miens.**
 
-**La moitié de la topologie d'effacement chien déclarée n'existait pas sur ce chemin.** Supprimer un chien n'y rencontrait pas le mur « FK canonique, `NO ACTION` » que le registre décrit : il laissait des lignes orphelines dans neuf tables ELI et capteur, silencieusement. C'est plus lourd que le côté compte, et c'est exactement ce que ces registres existent pour empêcher.
-
-**Le diagnostic réel.** Deux des dix étaient une contrainte simplement absente. Les huit autres le sont **à cause de ce qui se trouve dessous** : `0003` et `0004` créent la colonne en `dog_id TEXT NOT NULL` / `user_id TEXT NOT NULL`, alors que le schéma Drizzle contre lequel le code applicatif compile déclare `uuid('dog_id').notNull().references(() => dogs.id)`. **Une FK de `text` vers `uuid` ne peut pas exister** : la contrainte absente est le symptôme, le type est le défaut.
-
-- `uuid` sur les deux chemins, donc contraignables : `copresence_events.dog_a_id`, `copresence_events.dog_b_id` ;
-- `text` ici et `uuid` dans le schéma : `anticipation_events.dog_id`, `baseline_drift_monitor.dog_id`, `dog_sub_baselines.dog_id`, `recovery_events.dog_id`, `routine_stability.dog_id`, `user_config.dog_id`, `user_config.user_id`, `walk_quality.dog_id`.
-
-**Ce que fait `0015`, et ce qu'il refuse de faire.** Il compare, pour chacune des dix relations, le type de la colonne enfant à celui de la clé parente. Types égaux → la contrainte est ajoutée, avec le nom et les actions que le schéma généré emploie déjà, de sorte que les deux chemins **convergent** au lieu d'être simplement tous deux défendables. Types divergents → la relation est **nommée dans un `NOTICE` et sautée**, parce que `ALTER COLUMN ... TYPE uuid USING col::uuid` est une décision de données (chaque valeur stockée doit déjà être un UUID valide) sur des champs que le contrat de modalité capteur gouverne. Cette décision n'est pas celle de `P`, et elle est **inscrite, pas masquée**.
-
-Rien n'est touché côté données. Les dix colonnes sont `NOT NULL`, donc `NO ACTION` est la seule action cohérente — il n'y a aucune colonne à mettre à `NULL`. Une contrainte n'est ajoutée que si la table est déjà propre ; **une seule ligne orpheline fait lever la migration** en nommant table, colonne et compte, et annule tout. Si elle lève, les orphelins sont réels et leur sort appartient au propriétaire des données.
-
-Vérifié : ajoute les deux sur le chemin des migrations en nommant les huit autres ; réappliquée, no-op ; sur le schéma généré, no-op (59 FK avant/après). Après `0015`, la topologie chien passe de 9 à **11 présentes sur 18**, et les identifiants chien non contraints de 9 à **7** — les huit écarts restants sont exactement les colonnes `text`.
-
-**Le garde-fou, qui verrouille l'arbitrage ouvert au lieu de l'oublier.** `privacy-identity-column-type-divergence.integration.test.mjs` pose deux règles, sur le chemin que l'appelant **nomme** (`IDENTITY_SCHEMA_PATH`, jamais deviné — déduire le chemin du schéma observé reviendrait à tirer la réponse attendue de la réponse constatée) :
-
-1. toute colonne d'identité dont le type correspond à sa clé parente **porte** une FK — rien de contraignable n'est laissé non contraint ;
-2. toute colonne dont le type **ne** correspond pas est l'une des huit inscrites, et sur le chemin généré cet ensemble est **vide**, ce qui est asserté aussi.
-
-L'inventaire est gelé volontairement, **dans les deux sens** : une neuvième divergence échoue, et corriger l'une des huit sans mettre l'inventaire à jour échoue également. C'est le point — la liste est le **registre d'un arbitrage ouvert**, et elle ne doit pouvoir dériver ni en s'aggravant ni en se résolvant sans qu'on le voie. Éprouvé sur les quatre cas : passe sur les deux chemins correctement nommés, échoue si le chemin n'est pas nommé, échoue si le mauvais chemin est annoncé. Les deux étapes de CI sont ajoutées.
-
-**Ce qui reste à trancher, et par qui.** Convertir les huit colonnes `text` en `uuid` : faisable seulement si toutes les valeurs stockées sont des UUID valides, sur des champs sous contrat capteur (`SENSOR_MODALITY_GLOSSARY_2026-09-07.md`), et cela ne se décide pas depuis `P`. Tant que ce n'est pas tranché, **le chemin des migrations ne réalise pas la topologie d'effacement que `config/privacy` déclare**, et c'est maintenant mesuré, chiffré et gardé au lieu d'être supposé.
-
-**Le garde-fou, parce que la classe de défaut est invisible.** Un doublon de FK ne produit ni erreur, ni avertissement, ni bruit au diff de schéma ; il ne se manifeste que le jour où un effacement est refusé. Les tests de registre existants ne l'attrapent pas non plus : ils vérifient que les relations déclarées sont présentes avec l'action annoncée, et une contrainte correcte **plus** une mauvaise se lit comme correcte si l'on ne cherche que la correcte. D'où `backend/test/privacy-duplicate-foreign-key-detach.integration.test.mjs`, qui interroge directement le catalogue : au plus une FK par couple (colonnes enfant → colonnes parent), et action effective `SET NULL` sur les cinq relations D1–D4. Il est lancé par la CI **sur les deux chemins de construction**, ce qui est le point : la divergence n'était possible que parce qu'un seul des deux était interrogé. Éprouvé dans les deux sens — il échoue sur la base d'avant `0014` en nommant les cinq couples et leurs actions, il passe sur les deux bases d'après.
-
-**Un faux positif corrigé au passage.** `migration-baseline-static.test.mjs` scannait le texte brut des fichiers SQL, commentaires inclus. L'en-tête de `0014` cite le motif fautif (`ALTER TABLE x ...`) pour l'expliquer, et le scanner comptait cette citation comme une vraie instruction, signalant deux violations d'ordre inexistantes. Les commentaires sont désormais blanchis avant scan, en conservant les positions de caractères pour ne pas changer l'ordre des événements. Noté aussi, dans le code, que le scanner ne voit **pas** le DDL construit dynamiquement (`EXECUTE format(...)`) : ce sont les tests adossés à une base qui couvrent ce cas, jamais le scan statique.
+1. `migration-baseline-static.test.mjs` scannait le texte brut des fichiers SQL, commentaires inclus, et comptait une citation d'`ALTER TABLE` dans un en-tête explicatif comme une vraie instruction. Les commentaires sont blanchis avant scan, en conservant les positions de caractères pour ne pas changer l'ordre des événements. Noté dans le code : le scanner ne voit **pas** le DDL construit dynamiquement (`EXECUTE format(...)`) — ce sont les tests adossés à une base qui couvrent ce cas.
+2. `ci-integration-flag-parity.test.mjs` ne reconnaissait que les noms de fichiers littéraux. L'étape `node --test test/professional-share-*.test.mjs` en lance cinq ; mon scan les déclarait « lancées par aucune étape ». **Un garde-fou qui invente des défauts est pire que pas de garde-fou** : le glob est désormais développé contre le répertoire. Éprouvé dans les deux sens — il passe, et il échoue encore en nommant l'étape si l'on remet un mauvais nom de drapeau.
 
 ### Lot 7 — Harnais de simulation · `M` · dépend de L1 à L4
 

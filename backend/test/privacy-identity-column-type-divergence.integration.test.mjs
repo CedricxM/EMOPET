@@ -1,35 +1,35 @@
 import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 /**
  * An identity column that cannot hold a foreign key is an erasure hole, not a detail.
  *
  * config/privacy declares the erasure topology: which tables reference a user or a dog,
- * and what the database does on deletion. Measured after 0014, that declaration held on
- * the Drizzle-generated schema and not on the migration path, where dog-erasure-topology
- * declares eighteen canonical dog foreign keys and nine existed. Deleting a dog there
- * left orphan rows in nine ELI and sensor tables instead of meeting the NO ACTION wall
- * the registry describes.
+ * what the database does on deletion, and — separately — which identifiers are carried
+ * deliberately without a constraint. The declaration only means something if the database
+ * actually looks like it, on both build paths.
  *
- * Two of the ten were simply missing constraints; 0015 adds them. The other eight are
- * missing because of what is underneath: migrations 0003 and 0004 create the column as
- * `dog_id TEXT NOT NULL` while the Drizzle schema the application compiles against
- * declares `uuid('dog_id').notNull().references(() => dogs.id)`. A foreign key from text
- * to uuid cannot exist, so the absent constraint is the symptom and the type is the
- * defect. Converting it (`ALTER COLUMN ... TYPE uuid USING col::uuid`) is a data
- * decision on fields the sensor modality contract governs, so it is inventoried here
- * rather than forced through.
+ * It did not. Measured on the hand-written migration sequence, dog-erasure-topology
+ * declared eighteen canonical dog foreign keys and nine existed; nine dog identifiers were
+ * unconstrained where the registry declared none. Deleting a dog left orphan rows in nine
+ * ELI and sensor tables instead of meeting the NO ACTION wall the registry describes. The
+ * cause was not a forgotten constraint but the column type: 0003 and 0004 created them as
+ * `dog_id TEXT` while the Drizzle schema declares `uuid('dog_id').references(...)`, and a
+ * foreign key from text to uuid cannot exist. Migration 0024 converted them and added the
+ * constraints; 0021 and 0023 fixed the related name and copresence gaps.
  *
- * Two rules, both asserted against whichever build path DATABASE_URL points at:
+ * Two rules, asserted against whichever build path DATABASE_URL points at:
  *
- *   1. every identity column whose type matches its parent key carries a foreign key —
- *      nothing that CAN be constrained is left unconstrained;
- *   2. every identity column whose type does NOT match is one of the eight already
- *      known and recorded.
+ *   1. an identity column whose type matches its parent key either carries a foreign key
+ *      or is declared unconstrained in the privacy registries — an exception has to be
+ *      written down to pass, and nothing else is left unconstrained by accident;
+ *   2. no identity column diverges in type from the key it references, because such a
+ *      column cannot carry the constraint the topology gives it whatever anyone declares.
  *
- * The inventory is frozen deliberately. A ninth divergence fails, and so does fixing one
- * of the eight without updating this list — which is the point: the list is the record
- * of an open decision, and it should not be able to drift in either direction unnoticed.
+ * The declaration is read from config/privacy rather than restated here. Restating it
+ * would mean the guard agrees with itself instead of with the registry that governs.
  */
 
 const integrationEnabled = process.env.PRIVACY_IDENTITY_COLUMN_TYPE_DB_INTEGRATION === '1';
@@ -44,12 +44,14 @@ after(async () => {
   if (sql) await sql.end({ timeout: 5 });
 });
 
+const privacyDir = resolve(process.cwd(), '..', 'config', 'privacy');
+const readJson = (name) => JSON.parse(readFileSync(resolve(privacyDir, name), 'utf8'));
+
 /**
  * Column names that carry a user or dog identity.
  *
- * Kept as an explicit list rather than a pattern: a pattern would quietly start or stop
- * covering columns as the schema grows, and this test's value depends on knowing exactly
- * what it looked at.
+ * An explicit list rather than a pattern: a pattern would quietly start or stop covering
+ * columns as the schema grows, and this guard's worth depends on knowing what it looked at.
  */
 const IDENTITY_COLUMNS = [
   'dog_id',
@@ -65,30 +67,28 @@ const IDENTITY_COLUMNS = [
 ];
 
 /**
- * Identity columns whose type diverges from the key they are meant to reference, per build
- * path. On the hand-written sequence, eight are created as TEXT by migrations 0003 and
- * 0004 while the Drizzle schema declares them uuid with a reference — an open decision,
- * not a defect to fix here; see 0015's header. On the generated schema there are none,
- * and that emptiness is itself asserted, so a divergence appearing there fails too.
+ * Identity columns the registries declare as deliberately unconstrained.
  *
- * The path is named by the caller rather than guessed. Inferring it from the schema would
- * mean deriving the expected answer from the observed one, which is no test at all.
+ * Read from both the lineage and the topology files, which a separate test already holds
+ * to agreement, so an entry has to exist in the governing registry to be tolerated here.
  */
-const TYPE_DIVERGENCES_BY_PATH = {
-  migrations: [
-    'anticipation_events.dog_id',
-    'baseline_drift_monitor.dog_id',
-    'dog_sub_baselines.dog_id',
-    'recovery_events.dog_id',
-    'routine_stability.dog_id',
-    'user_config.dog_id',
-    'user_config.user_id',
-    'walk_quality.dog_id',
-  ],
-  generated: [],
-};
+function declaredUnconstrained() {
+  const files = [
+    ['dog-subject-lineage.json', ['unconstrainedDogIdentifiers', 'unconstrainedGrantIdentifiers']],
+    ['dog-erasure-topology.json', ['unconstrainedDogIdentifiers', 'unconstrainedGrantIdentifiers']],
+    ['user-subject-lineage.json', ['unconstrainedUserIdentifiers']],
+    ['account-erasure-topology.json', ['unconstrainedUserIdentifiers']],
+  ];
 
-const schemaPath = process.env.IDENTITY_SCHEMA_PATH ?? '';
+  const declared = new Set();
+  for (const [name, fields] of files) {
+    const doc = readJson(name);
+    for (const field of fields) {
+      for (const row of doc[field] ?? []) declared.add(`${row.table}.${row.column}`);
+    }
+  }
+  return declared;
+}
 
 /** Every identity column, with its type, its parent's key type and whether it is constrained. */
 async function identityColumns() {
@@ -130,58 +130,46 @@ async function identityColumns() {
   `;
 }
 
-test('every identity column that can be constrained is constrained', {
+test('an identity column is constrained unless the registries declare it unconstrained', {
   skip: !integrationEnabled,
 }, async () => {
   const rows = await identityColumns();
   assert.ok(rows.length > 0, 'no identity column found — the scan itself is broken');
 
-  const unconstrained = rows
+  const declared = declaredUnconstrained();
+  const undeclared = rows
     .filter((row) => row.data_type === row.parent_type && row.constrained === false)
-    .map((row) => `${row.table_name}.${row.column_name} -> ${row.parent_table}.id`);
+    .map((row) => `${row.table_name}.${row.column_name}`)
+    .filter((name) => !declared.has(name))
+    .sort();
 
   assert.deepEqual(
-    unconstrained,
+    undeclared,
     [],
-    'These columns have the right type and no foreign key, so erasing the parent leaves '
-      + 'orphans instead of being refused:\n  ' + unconstrained.join('\n  '),
+    'These columns have the right type, no foreign key, and no entry in config/privacy '
+      + 'declaring them unconstrained. Erasing the parent leaves orphans instead of being '
+      + 'refused, and no registry says so:\n  ' + undeclared.join('\n  '),
   );
 });
 
-test('the identity columns that cannot be constrained are exactly those on record for this path', {
+test('no identity column diverges in type from the key it references', {
   skip: !integrationEnabled,
 }, async () => {
-  assert.ok(
-    Object.hasOwn(TYPE_DIVERGENCES_BY_PATH, schemaPath),
-    `IDENTITY_SCHEMA_PATH must be one of ${Object.keys(TYPE_DIVERGENCES_BY_PATH).join(', ')} `
-      + `(got ${schemaPath ? `"${schemaPath}"` : 'nothing'}). The expected set differs per `
-      + 'build path, so the caller has to say which one it pointed DATABASE_URL at.',
-  );
-
   const rows = await identityColumns();
 
   const diverging = rows
     .filter((row) => row.data_type !== row.parent_type)
-    .map((row) => `${row.table_name}.${row.column_name}`)
+    .map((row) => `${row.table_name}.${row.column_name} is ${row.data_type} `
+      + `while ${row.parent_table}.id is ${row.parent_type}`)
     .sort();
 
-  const known = [...TYPE_DIVERGENCES_BY_PATH[schemaPath]].sort();
-  const unexpected = diverging.filter((name) => !known.includes(name));
-  const resolved = known.filter((name) => !diverging.includes(name));
-
-  // A new divergence is a new erasure hole. A resolved one means the open decision was
-  // taken somewhere and this record went stale; either way the list must move with it.
+  // No declaration can excuse this one. A type mismatch makes the constraint impossible,
+  // so a registry that gives the column a canonical foreign key is simply wrong about the
+  // database — which is exactly how nine dog references went unenforced on path A.
   assert.deepEqual(
-    unexpected,
+    diverging,
     [],
-    `Identity columns whose type diverges on the ${schemaPath} path and are not on record:\n  `
-      + unexpected.join('\n  '),
-  );
-  assert.deepEqual(
-    resolved,
-    [],
-    `These divergences are on record for the ${schemaPath} path but no longer present. If `
-      + 'the type was converted, remove them from TYPE_DIVERGENCES_BY_PATH and add the '
-      + 'foreign key in a migration:\n  ' + resolved.join('\n  '),
+    'Identity columns that cannot hold the foreign key the declared topology gives them:\n  '
+      + diverging.join('\n  '),
   );
 });

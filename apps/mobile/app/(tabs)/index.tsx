@@ -15,21 +15,30 @@ import {
 } from '../../src/components/ui';
 import { AnticipationCard } from '../../src/components/anticipation-card';
 import { RecoveryTooltip } from '../../src/components/recovery-tooltip';
+import { usePhysicalMovementObservation } from '../../src/hooks/use-physical-movement-observation';
 import {
   V6_INSIGHTS_RUNTIME_SOURCE,
   shouldShowAnticipationCard,
   shouldShowRecoveryTooltip,
   useV6Insights,
 } from '../../src/hooks/use-v6-insights';
-import { useDogStore } from '../../src/store';
+import { useAuthStore, useDogStore } from '../../src/store';
 import { colors, fontFamily, fontSize, spacing } from '../../src/theme';
 
 export default function HomeScreen() {
+  const token = useAuthStore((s) => s.token);
   const dogs = useDogStore((s) => s.dogs);
+  const selectedDogId = useDogStore((s) => s.selectedDogId);
   const insights = useV6Insights();
+  const physicalMovement = usePhysicalMovementObservation(selectedDogId, token);
   const [anticipationDismissedAt, setAnticipationDismissedAt] = useState<Date | null>(null);
 
-  const dogName = dogs[0]?.name ?? 'Votre chien';
+  const selectedDog = dogs.find((dog) => dog.id === selectedDogId) ?? dogs[0];
+  const dogName = selectedDog?.name ?? 'Votre chien';
+  const movementObservation =
+    physicalMovement.response?.status === 'AVAILABLE'
+      ? physicalMovement.response.observation
+      : null;
   const showAnticipation = shouldShowAnticipationCard(insights, anticipationDismissedAt);
   const showRecoveryTooltip = shouldShowRecoveryTooltip(insights);
 
@@ -80,6 +89,50 @@ export default function HomeScreen() {
               baselineMinutes={insights.recoveryBaselineMinutes}
             />
           )}
+      </Card>
+
+      {/* First authorised #479 live slice: physical measurement only, no latent ELI semantics. */}
+      <Card style={styles.card}>
+        <View style={styles.pillRow}>
+          <Pill
+            state={
+              movementObservation?.qualityState === 'VALID'
+                ? 'valid'
+                : movementObservation?.qualityState === 'DEGRADED'
+                  ? 'degraded'
+                  : 'suppressed'
+            }
+            label={movementObservation ? 'Mesure physique' : 'Indisponible'}
+          />
+          <Caption style={styles.windowText}>TAG · fenêtre 30 min</Caption>
+        </View>
+        <Eyebrow>Variabilité de mouvement</Eyebrow>
+        {physicalMovement.loading ? (
+          <Text style={styles.restTitle}>Chargement…</Text>
+        ) : movementObservation ? (
+          <>
+            <View style={styles.valueRow}>
+              <DataXL>{movementObservation.value.toFixed(2)}</DataXL>
+              <Text style={styles.valueUnit}>CV ODBA</Text>
+            </View>
+            <P2 style={styles.cardBody}>
+              Variation physique du mouvement mesurée par le TAG sur 30 minutes. Cette valeur ne décrit
+              ni une émotion, ni du stress, ni le bien-être de {dogName}.
+            </P2>
+            <Caption style={styles.cardBody}>
+              {movementObservation.validSeconds}s valides · horodatage ±
+              {movementObservation.eventTime.uncertaintyMs} ms
+            </Caption>
+          </>
+        ) : (
+          <>
+            <Text style={styles.restTitle}>Données indisponibles</Text>
+            <P2 style={styles.cardBody}>
+              EMOPET s abstient si la mesure, sa qualité ou sa provenance temporelle ne sont pas suffisantes.
+              Aucun score émotionnel n est substitué.
+            </P2>
+          </>
+        )}
       </Card>
 
       {/* Repos — no synthetic metrics while the sensor runtime is unwired. */}

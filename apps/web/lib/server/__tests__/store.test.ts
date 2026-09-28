@@ -133,6 +133,10 @@ test('fichier illisible (permissions) = état inconnu', (t) => {
     t.skip('root outrepasse les permissions de fichier');
     return;
   }
+  if (process.platform === 'win32') {
+    t.skip('Windows ignore chmod 0o000 : le fichier reste lisible');
+    return;
+  }
   const name = fixture('interdite');
   const file = fileOf(name);
   writeFileSync(file, JSON.stringify(REAL_ROWS), 'utf8');

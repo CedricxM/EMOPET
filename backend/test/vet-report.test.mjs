@@ -73,7 +73,7 @@ test('authoritative read failure rejects instead of producing a no-data summary'
 });
 
 test('vet-report share token remains dog, period and scope bound', async () => {
-  const token = await createVetReportShareToken('guardian-a', DOG_ID, 14);
+  const token = await createVetReportShareToken('owner-a', DOG_ID, 14);
 
   assert.equal(await verifyVetReportShareToken(token, DOG_ID, 14), true);
   assert.equal(await verifyVetReportShareToken(token, OTHER_DOG_ID, 14), false);
@@ -86,7 +86,7 @@ test('vet-report share token remains dog, period and scope bound', async () => {
     scope: 'vet-report',
   })
     .setProtectedHeader({ alg: 'HS256' })
-    .setSubject('guardian-a')
+    .setSubject('owner-a')
     .setIssuedAt()
     .setExpirationTime(Math.floor(Date.now() / 1000) - 60)
     .sign(new TextEncoder().encode(TEST_REPORT_SECRET));

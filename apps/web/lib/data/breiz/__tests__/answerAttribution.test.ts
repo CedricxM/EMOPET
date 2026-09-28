@@ -1,33 +1,60 @@
-/**
- * Une réponse Breiz publiée porte les termes de ses sources — gate DATA-LIC-G6
- * de #116, moitié « attribution ».
- *
- * #116 relève que les neuf entrées de `BREIZ_SOURCE_REGISTRY` sont marquées
- * `ATTRIBUTION_REQUIRED` et qu'il manque « attribution » parmi les preuves
- * exigées par item. Le récupérateur citait pourtant `title`, `source_name` et
- * `source_url`, et rien d'autre : la citation ne transportait aucun terme, et
- * le filtre de publication ne regardait pas non plus si une licence existait.
- *
- * Les deux moitiés se tenaient — on ne vérifiait pas la licence, et on ne la
- * publiait pas. Les tests ci-dessous couvrent les deux.
- *
- * Ce contrôle est technique : il constate qu'une licence accompagne l'extrait,
- * jamais qu'elle en autorise l'usage. #116 reste ouverte.
- */
-
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import type { BreizDocument } from '../breizDocument.schema';
-import { createBreizMockStore, retrieveBreizLocalKnowledge } from '../breizRetriever';
-import { MOCK_BREIZ_DOCUMENTS } from '../mockDocuments';
+import { chunkBreizDocuments } from '../chunkDocuments';
+import { evaluateBreizChunkReleaseAuthority } from '../breizRetriever';
+import type { BreizSourceDescriptor } from '../sourceRegistry';
+
+const NOW = Date.parse('2026-09-23T10:00:00.000Z');
+
+function source(overrides: Partial<BreizSourceDescriptor> = {}): BreizSourceDescriptor {
+  return {
+    id: 'fixture-source',
+    name: 'Fixture source',
+    publisher: 'Fixture publisher',
+    canonicalUrl: 'https://example.invalid/source',
+    territory: 'Bretagne',
+    accessMode: 'api',
+    authority: 'official',
+    usagePolicy: ['ATTRIBUTION_REQUIRED'],
+    license: 'Licence Ouverte 2.0',
+    freshnessHours: 24,
+    enabled: true,
+    notes: '',
+    rightsEvidence: {
+      authorityRevision: 'review-001',
+      immutableSourceVersion: 'dataset-v1',
+      receiptPath: 'data/registry/receipts/fixture.json',
+      attributionText: 'Fixture publisher',
+      permittedUseSummary: 'Test fixture use only',
+      reviewedAt: '2026-09-22T10:00:00.000Z',
+      reviewerRole: 'TEST_REVIEWER',
+      recheckAt: '2026-10-22T10:00:00.000Z',
+      evidenceState: 'SOURCE_CONFIRMED',
+      disposition: 'GO',
+    },
+    ...overrides,
+  };
+}
 
 function document(overrides: Partial<BreizDocument> = {}): BreizDocument {
   return {
     id: 'fixture-lorient',
     title: 'Boucle du port de Lorient',
-    source_name: 'Fixture locale',
-    source_url: 'https://example.invalid/lorient',
+    source_name: 'Fixture source',
+    source_url: 'https://example.invalid/source',
+    source_registry_id: 'fixture-source',
+    source_authority_binding: {
+      source_registry_id: 'fixture-source',
+      authority_revision: 'review-001',
+      immutable_source_version: 'dataset-v1',
+      receipt_path: 'data/registry/receipts/fixture.json',
+      source_name: 'Fixture source',
+      source_url: 'https://example.invalid/source',
+      license: 'Licence Ouverte 2.0',
+      attribution_text: 'Fixture publisher',
+    },
     license: 'Licence Ouverte 2.0',
     territory: 'Bretagne',
     region: 'Bretagne',
@@ -36,75 +63,88 @@ function document(overrides: Partial<BreizDocument> = {}): BreizDocument {
     theme: 'local_knowledge',
     tags: ['lorient', 'balade'],
     summary: 'Boucle plate le long du port de Lorient.',
-    content: 'Boucle plate le long du port de Lorient, praticable toute l’année, sans dénivelé notable.',
+    content: 'Boucle plate le long du port de Lorient.',
     reliability_level: 'source_verified',
-    last_checked_at: '2026-09-20',
+    last_checked_at: '2026-09-23',
     allowed_usage: 'public_answer_with_source',
     ...overrides,
   };
 }
 
-const QUERY = 'boucle port Lorient';
+function firstChunk(doc: BreizDocument = document()) {
+  return chunkBreizDocuments([doc], { maxWords: 40, overlapWords: 5 })[0]!;
+}
 
-test('chaque source publiée porte une licence non vide', () => {
-  const store = createBreizMockStore([document()]);
-  const answer = retrieveBreizLocalKnowledge(QUERY, store);
-
-  assert.equal(answer.status, 'answered_from_sources');
-  assert.ok(answer.source_refs.length > 0);
-  for (const ref of answer.source_refs) {
-    assert.ok(ref.license.trim().length > 0, `source sans licence : ${ref.source_name}`);
-  }
+test('exact reviewed authority binding is eligible', () => {
+  const verdict = evaluateBreizChunkReleaseAuthority(firstChunk(), source(), NOW);
+  assert.equal(verdict.authorized, true);
+  assert.deepEqual(verdict.blockers, []);
 });
 
-test('la licence publiée est celle du document, pas une valeur par défaut', () => {
-  const store = createBreizMockStore([document({ license: 'ODbL-1.0' })]);
-  const answer = retrieveBreizLocalKnowledge(QUERY, store);
-  assert.deepEqual(answer.source_refs.map((ref) => ref.license), ['ODbL-1.0']);
+test('old chunk cannot inherit a later GO authority revision', () => {
+  const laterSource = source({
+    rightsEvidence: {
+      ...source().rightsEvidence!,
+      authorityRevision: 'review-002',
+    },
+  });
+
+  const verdict = evaluateBreizChunkReleaseAuthority(firstChunk(), laterSource, NOW);
+  assert.equal(verdict.authorized, false);
+  assert.ok(verdict.blockers.includes('AUTHORITY_REVISION_MISMATCH'));
 });
 
-test('extrait publiable mais sans licence → non publié, et abstention assumée', () => {
-  // `allowed_usage` disait « publiable avec source ». Sans licence, il n'y a
-  // pas de source complète à publier : on s'abstient plutôt que de citer une
-  // référence dont les termes manquent.
-  const store = createBreizMockStore([document({ license: '' })]);
-  const answer = retrieveBreizLocalKnowledge(QUERY, store);
+test('immutable source-version mismatch fails closed', () => {
+  const laterSource = source({
+    rightsEvidence: {
+      ...source().rightsEvidence!,
+      immutableSourceVersion: 'dataset-v2',
+    },
+  });
 
-  assert.equal(answer.status, 'not_enough_information');
-  assert.deepEqual(answer.chunks, []);
-  assert.deepEqual(answer.source_refs, []);
+  const verdict = evaluateBreizChunkReleaseAuthority(firstChunk(), laterSource, NOW);
+  assert.equal(verdict.authorized, false);
+  assert.ok(verdict.blockers.includes('IMMUTABLE_VERSION_MISMATCH'));
 });
 
-test('une licence faite d’espaces ne vaut pas licence', () => {
-  const store = createBreizMockStore([document({ license: '   ' })]);
-  assert.equal(retrieveBreizLocalKnowledge(QUERY, store).status, 'not_enough_information');
+test('matching registry id cannot authorize mismatched source identity', () => {
+  const mismatched = document({ source_name: 'Unrelated fixture' });
+  const verdict = evaluateBreizChunkReleaseAuthority(firstChunk(mismatched), source(), NOW);
+
+  assert.equal(verdict.authorized, false);
+  assert.ok(verdict.blockers.includes('SOURCE_NAME_MISMATCH'));
 });
 
-test('un extrait sans licence ne fait pas tomber les autres', () => {
-  const store = createBreizMockStore([
-    document({ id: 'sans-licence', license: '' }),
-    document({ id: 'avec-licence', license: 'CC-BY-4.0' }),
-  ]);
-  const answer = retrieveBreizLocalKnowledge(QUERY, store);
+test('mismatched source URL or licence fails closed', () => {
+  const badUrl = document({ source_url: 'https://example.invalid/other' });
+  const badLicence = document({ license: 'Different licence' });
 
-  assert.equal(answer.status, 'answered_from_sources');
-  assert.ok(answer.source_refs.every((ref) => ref.license === 'CC-BY-4.0'));
+  const urlVerdict = evaluateBreizChunkReleaseAuthority(firstChunk(badUrl), source(), NOW);
+  const licenceVerdict = evaluateBreizChunkReleaseAuthority(firstChunk(badLicence), source(), NOW);
+
+  assert.equal(urlVerdict.authorized, false);
+  assert.ok(urlVerdict.blockers.includes('SOURCE_URL_MISMATCH'));
+  assert.equal(licenceVerdict.authorized, false);
+  assert.ok(licenceVerdict.blockers.includes('SOURCE_LICENCE_MISMATCH'));
 });
 
-test('le filtre `internal_reference` d’origine reste en place', () => {
-  // Régression : ajouter la condition de licence ne doit pas relâcher la
-  // condition d'usage qui existait déjà.
-  const store = createBreizMockStore([
-    document({ allowed_usage: 'internal_reference', license: 'CC-BY-4.0' }),
-  ]);
-  assert.equal(retrieveBreizLocalKnowledge(QUERY, store).status, 'not_enough_information');
+test('missing immutable binding fails closed even with public flags', () => {
+  const unbound = document({ source_authority_binding: null });
+  const verdict = evaluateBreizChunkReleaseAuthority(firstChunk(unbound), source(), NOW);
+
+  assert.equal(verdict.authorized, false);
+  assert.ok(verdict.blockers.includes('AUTHORITY_BINDING_MISSING'));
 });
 
-test('le corpus de démonstration porte lui aussi ses licences', () => {
-  // Les documents mock contournent `ingestBreizDocuments`, donc
-  // `validateBreizDocument` ne les voit jamais. Ils sont honnêtement étiquetés
-  // (« EMOPET local mock »), mais rien ne le garantissait mécaniquement.
-  for (const mock of MOCK_BREIZ_DOCUMENTS) {
-    assert.ok(mock.license.trim().length > 0, `document mock sans licence : ${mock.id}`);
-  }
+test('expired reviewed authority cannot authorize a still-bound chunk', () => {
+  const expired = source({
+    rightsEvidence: {
+      ...source().rightsEvidence!,
+      recheckAt: '2026-09-23T09:59:59.000Z',
+    },
+  });
+  const verdict = evaluateBreizChunkReleaseAuthority(firstChunk(), expired, NOW);
+
+  assert.equal(verdict.authorized, false);
+  assert.ok(verdict.blockers.includes('REGISTRY_RELEASE_NOT_READY'));
 });

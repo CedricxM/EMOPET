@@ -1,4 +1,9 @@
--- Migration 0013: Licensed instrument registries and administration runtime (2026-09-28)
+-- Migration 0025: Licensed instrument registries and administration runtime (2026-09-28)
+--
+-- Written as 0013 on a branch taken from an older main, and renumbered on merge: main
+-- had meanwhile taken 0013 through 0024. Nothing in it changed, and it collides with
+-- none of them — it adds version_id, policy_id, lifecycle_state and window_ends_at to
+-- behavioral_assessments, where 0014 added the household_* columns.
 --
 -- Adds the structural half of a licensed behavioural instrument integration.
 -- Under the approved storage split, structure lives in PostgreSQL and the

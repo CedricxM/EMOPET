@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "emopet-eli-runtime-physical-movement-v1",
+  "status": "DELIVERED_ON_MAIN / PHYSICAL_ONLY / NO_LATENT_ACTIVATION",
+  "issue": 479,
+  "technicalRuntimeOwner": "backend/api",
+  "engineGateOwner": "packages/eli-engine",
+  "publicContractOwner": "packages/shared",
+  "clientProjection": "apps/mobile/app/(tabs)/index.tsx",
+  "sourcePersistence": "sensor_feature_observations",
+  "sourceFeature": {
+    "feature": "activity_variability",
+    "source": "TAG",
+    "featureContractVersion": "tag-activity-variability-cv30m-v1",
+    "measurementAuthority": "PHYSICAL_MOVEMENT_VARIABILITY_ONLY",
+    "scienceGate": 87
+  },
+  "runtime": {
+    "version": "eli-runtime-physical-movement-v1",
+    "endpoint": "/api/sensors/eli/:dogId/physical-movement",
+    "states": [
+      "AVAILABLE",
+      "NONE_FOUND",
+      "UNAVAILABLE"
+    ],
+    "genericEliEndpointRemainsNotImplemented": true,
+    "genericEliHistoryRemainsNotImplemented": true
+  },
+  "publication": {
+    "ownerFacing": true,
+    "arousal": false,
+    "valence": false,
+    "load": false,
+    "emotion": false,
+    "stress": false,
+    "wellbeing": false,
+    "behaviouralInterpretation": false,
+    "localFallback": false
+  },
+  "requiredEvidence": {
+    "qualityState": true,
+    "firmwareVersionAtIngest": true,
+    "eventTimeResolution": "BOOT_ANCHOR_V1",
+    "eventTimeUncertainty": true,
+    "minimumValidSeconds": 900
+  },
+  "remainingOpen": {
+    "realTagFirmwareEmissionAndDelivery": 122,
+    "physicalDeviceTrust": 66,
+    "activityVariabilityToArousal": 87,
+    "genericEliApiActivation": 124,
+    "latentRuntime": 118
+  },
+  "currentDecision": "BOUNDED_PHYSICAL_SLICE_DELIVERED / LATENT_ELI_REMAINS_BLOCKED",
+  "delivery": {
+    "pr": 621,
+    "mergeCommit": "f818d1d05a7df51aa2aaef6d07222831a1301397",
+    "exactHead": "ebd9fff99120988de08e0c784157824d11af8e98",
+    "exactHeadCi": {
+      "ownerTerminology": "SUCCESS",
+      "p0DatabaseBaseline": "SUCCESS",
+      "securitySupplyChain": "SUCCESS"
+    },
+    "evidenceMeaning": "SOFTWARE_AND_DATA_CONTRACT_CONFORMANCE_ONLY"
+  }
+}

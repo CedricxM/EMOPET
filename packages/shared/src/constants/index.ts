@@ -34,14 +34,26 @@ export const BLE_SOURCE_MAT = 0x01;
 export const BLE_SOURCE_TAG = 0x02;
 export const BLE_NOTIFICATION_INTERVAL_MS = 5000;
 
-/** Custom EMOPET BLE service UUID. */
-export const BLE_SERVICE_UUID = '0000ea01-0000-1000-8000-00805f9b34fb';
+/**
+ * Proprietary 128-bit EMOPET BLE UUID namespace.
+ *
+ * Do not replace these with Bluetooth Base UUID aliases (0000XXXX-0000-1000-
+ * 8000-00805f9b34fb) unless EMOPET owns the corresponding SIG Assigned Number.
+ */
+export const BLE_SERVICE_UUID = 'e4e2e9a3-39c8-4140-aba9-c4e37713f59a';
 /** SensorFrame characteristic UUID. */
-export const BLE_CHAR_SENSOR_FRAME = '0000ea02-0000-1000-8000-00805f9b34fb';
+export const BLE_CHAR_SENSOR_FRAME = '66ae0c98-a8ce-4319-b47d-f09fa88d4d83';
 /** OTA characteristic UUID. */
-export const BLE_CHAR_OTA = '0000ea03-0000-1000-8000-00805f9b34fb';
+export const BLE_CHAR_OTA = '17780ee9-7def-4b89-aea5-e7a27deaf95c';
 /** Config characteristic UUID. */
-export const BLE_CHAR_CONFIG = '0000ea04-0000-1000-8000-00805f9b34fb';
+export const BLE_CHAR_CONFIG = '8d5fa4ff-d1fa-49c3-9ce4-2e8865e4d478';
+/**
+ * Versioned deterministic feature-summary notification characteristic.
+ *
+ * Reserved by #122 for feature-summary transport. The UUID assignment does not
+ * imply that current TAG firmware already exposes a live GATT characteristic.
+ */
+export const BLE_CHAR_FEATURE_SUMMARY = '01141d55-a776-4091-b068-83f0804d8781';
 
 // ── Fur Class Definitions ───────────────────────────────────────
 export const FUR_CLASSES = {

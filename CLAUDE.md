@@ -1,5 +1,12 @@
 # CLAUDE.md — Contexte permanent EMOPET
 
+> [!IMPORTANT]
+> **READ FIRST — C-BARQ / ELI / behaviour / Penn**
+> Avant toute tâche liée à C-BARQ, University of Pennsylvania / Penn Vet, James Serpell, ELI scientifique, questionnaires comportementaux, validation longitudinale ou mapping capteurs → comportement, lire **en entier** :
+> `docs/science/EMOPET_CBARQ_UPENN_SCIENTIFIC_AUTHORITY_2026-09-23.md`
+>
+> Le fichier `AI_READ_FIRST.md` est le gate racine de contexte obligatoire. Ne pas inférer une licence C-BARQ, une validation ELI ou un endorsement Penn à partir d'un article, d'un prototype ou d'un ancien deck.
+
 Ce fichier est lu automatiquement par Claude Code à chaque session.
 Il résume les garde-fous de travail. En cas de conflit, les autorités contrôlées citées ci-dessous priment sur ce résumé.
 

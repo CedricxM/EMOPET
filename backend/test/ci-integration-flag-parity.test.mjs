@@ -36,6 +36,27 @@ const testDir = resolve(process.cwd(), 'test');
  */
 const FLAG = '[A-Z][A-Z0-9_]*_DB_INTEGRATION(?:_[A-Z]+)?';
 
+const testFiles = readdirSync(testDir).filter((name) => name.endsWith('.test.mjs'));
+
+/**
+ * Expands a test reference from a workflow step into the files it actually runs.
+ *
+ * A step may name a file or a glob — `node --test test/professional-share-*.test.mjs` runs
+ * five files. An earlier version of this scan matched literal names only, so it reported
+ * those five as tests no CI step ran, and would have skipped their flag parity entirely.
+ * A guard that invents defects is worse than none, so the glob is expanded here against
+ * the directory rather than assumed away.
+ */
+function expand(reference) {
+  if (!reference.includes('*')) return [reference];
+  const pattern = new RegExp(`^${reference.split('*').map(escapeRegExp).join('[^/]*')}$`);
+  return testFiles.filter((name) => pattern.test(name));
+}
+
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 /** Steps of the workflow, each with the flags it sets and the tests it runs. */
 function workflowSteps() {
   return workflow
@@ -45,7 +66,7 @@ function workflowSteps() {
       name: block.split('\n')[0].trim(),
       flags: new Set([...block.matchAll(new RegExp(`^\\s+(${FLAG}):`, 'gm'))].map((m) => m[1])),
       tests: [...new Set(
-        [...block.matchAll(/test\/([a-z0-9.\-]+\.test\.mjs)/g)].map((m) => m[1]),
+        [...block.matchAll(/test\/([a-z0-9.*\-]+\.test\.mjs)/g)].flatMap((m) => expand(m[1])),
       )],
     }))
     .filter((step) => step.tests.length > 0);

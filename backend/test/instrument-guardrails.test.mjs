@@ -204,7 +204,7 @@ const GUARDRAILS = [
   },
   {
     id: 'G3', what: 'the database refuses an item presentation involving a model',
-    file: 'db/migrations/0013_instrument_administration.sql', marker: 'chk_event_item_presentation',
+    file: 'db/migrations/0025_instrument_administration.sql', marker: 'chk_event_item_presentation',
   },
   {
     id: 'G4', what: 'render digests are recomputed before presentation',

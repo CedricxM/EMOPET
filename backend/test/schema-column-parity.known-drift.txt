@@ -1,0 +1,17 @@
+# Known column drift: path A (baseline-draft + active migrations) vs the
+# Drizzle-generated baseline. Read by the "P0-DB column parity" step of
+# .github/workflows/p0-db-baseline.yml, which fails when the observed drift differs
+# from these entries in EITHER direction:
+#   - a new line means new drift: fix the migration or the schema, do not append it
+#     here unless it is classified in MIGRATION_BASELINE_RECONCILIATION.md §7.5;
+#   - a missing line means drift was resolved: delete the entry.
+# Format: <A|B>|COLUMN|table|column|type [NOT NULL] [DEFAULT expr]
+# A = only in path A, B = only in the generated database. '#' lines are ignored and
+# entries are sorted by the gate, so grouping below is for review only.
+# Recorded 2026-09-27 on postgres:16.15; classification in the reconciliation doc.
+
+# C3 — historical morphology columns absent from Drizzle (§7.3, NOT_CURRENT_SCHEMA_AUTHORITY) (4)
+A|COLUMN|breed_sensor_profiles|height_max_cm|real
+A|COLUMN|breed_sensor_profiles|height_min_cm|real
+A|COLUMN|breed_sensor_profiles|weight_max_kg|real
+A|COLUMN|breed_sensor_profiles|weight_min_kg|real

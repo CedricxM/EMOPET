@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "emopet-presence-comparison-authority-v1",
+  "status": "SEMANTIC_CONTRACT_CANDIDATE / PUBLICATION_BLOCKED",
+  "issue": 133,
+  "legacyComputePresenceComparison": "PROTOTYPE_NON_AUTHORITATIVE",
+  "productionRouteUsesLegacyFunction": false,
+  "windowContract": {
+    "explicitStartEndRequired": true,
+    "explicitCoveredSecondsRequired": true,
+    "rowCountMayRepresentHours": false,
+    "timezoneBucketing": "OPEN",
+    "partialWindowPolicy": "OPEN",
+    "duplicateReplayPolicy": "OPEN_PENDING_JOIN_OWNER"
+  },
+  "sourceSemantics": {
+    "MAT": {
+      "matPresenceMinutes": "MEASURABLE",
+      "vocalEvents": "SOURCE_NOT_APPLICABLE",
+      "agitationEvents": "SOURCE_NOT_APPLICABLE"
+    },
+    "TAG": {
+      "matPresenceMinutes": "SOURCE_NOT_APPLICABLE",
+      "vocalEvents": "MEASURABLE",
+      "agitationEvents": "MEASURABLE"
+    },
+    "missingMayEqualZero": false
+  },
+  "publication": {
+    "ratesPerHour": "BLOCKED",
+    "validHours": "BLOCKED",
+    "effectSize": "BLOCKED",
+    "publishDegradeReject": "BLOCKED"
+  },
+  "dependencies": [
+    94,
+    122
+  ],
+  "nextDecisions": [
+    "hour/timezone boundary",
+    "MAT_TAG join identity",
+    "partial coverage",
+    "duplicate/replay handling",
+    "rate denominator",
+    "publication thresholds"
+  ]
+}

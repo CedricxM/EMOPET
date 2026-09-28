@@ -11,7 +11,7 @@
 
 Care is the CORE daily observation domain of EMOPET.
 
-It exists to help a Guardian understand:
+It exists to help a Owner understand:
 
 - what was observed;
 - in which context;
@@ -19,7 +19,7 @@ It exists to help a Guardian understand:
 - with what quality/confidence;
 - relative to which individual reference;
 - what cannot be concluded;
-- what the Guardian themselves recorded.
+- what the Owner themselves recorded.
 
 Care is **not**:
 
@@ -55,7 +55,7 @@ Latest eligible observation or explicit epistemic silence.
 Longitudinal observations by context.
 
 ### `JOURNAL`
-Guardian-authored factual/context notes.
+Owner-authored factual/context notes.
 
 ### `DEVICES`
 MAT/TAG technical state and data freshness.
@@ -126,9 +126,9 @@ TAG context does **not** independently authorise:
 
 Collar-only evidence may support/qualify context and may be insufficient for publication.
 
-## 9. Guardian journal
+## 9. Owner journal
 
-Guardian entries are:
+Owner entries are:
 
 - first-person context;
 - factual notes;
@@ -145,7 +145,7 @@ If journal context and sensor-derived patterns differ:
 
 - retain both;
 - do not force reconciliation;
-- do not label the Guardian “wrong”;
+- do not label the Owner “wrong”;
 - do not silently overwrite the model.
 
 ## 11. Epistemic silence
@@ -174,7 +174,7 @@ Care succeeds when users can distinguish:
 - device state;
 - signal quality;
 - observation;
-- Guardian note;
+- Owner note;
 - uncertainty;
 - no-result state.
 

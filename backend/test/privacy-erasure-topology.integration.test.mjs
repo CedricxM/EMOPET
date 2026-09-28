@@ -82,6 +82,12 @@ test('PRIV-ERASURE-TOPOLOGY static controls remain fail closed', () => {
     'dog lineage and topology must enumerate the same unconstrained dog identifiers',
   );
 
+  assert.deepEqual(
+    (dogLineage.unconstrainedGrantIdentifiers ?? []).map((row) => `${row.table}.${row.column}`).sort(),
+    (dogTopology.unconstrainedGrantIdentifiers ?? []).map((row) => `${row.table}.${row.column}`).sort(),
+    'dog lineage and topology must enumerate the same unconstrained grant identifiers',
+  );
+
   const approvedDetaches = new Set([
     'users.id|DIRECT_FK|behavioral_assessments|respondent_user_id',
     'users.id|DIRECT_FK|communities|created_by',
@@ -112,6 +118,9 @@ test('PRIV-ERASURE-TOPOLOGY static controls remain fail closed', () => {
     ...accountTopology.directUserReferences.map((row) => relationKey('users.id', 'DIRECT_FK', row)),
     ...dogTopology.canonicalForeignKeys.map((row) => relationKey('dogs.id', 'DIRECT_FK', row)),
     ...dogTopology.unconstrainedDogIdentifiers.map((row) => relationKey('dogs.id', 'UNCONSTRAINED_IDENTIFIER', row)),
+    ...(dogTopology.unconstrainedGrantIdentifiers ?? []).map((row) => (
+      relationKey(row.references, 'UNCONSTRAINED_IDENTIFIER', row)
+    )),
     ...dogTopology.transitiveDescendants.map((row) => relationKey('dogs.id', 'TRANSITIVE_FK', row)),
   ];
   const actualMatrix = matrix.entries.map((row) => relationKey(row.subjectRoot, row.relationType, row));
@@ -181,6 +190,17 @@ test('PRIV-ERASURE-TOPOLOGY static controls remain fail closed', () => {
   );
   assert.match(mappedByTable.behavioral_assessments.mappingRationale, /administration_mode='research'/);
   assert.match(mappedByTable.behavioral_assessments.mappingRationale, /product rows/);
+
+  assert.equal(mappedByTable.professional_share_grants.classificationStatus, 'MAPPED_TO_EXISTING_PRIVACY_CATEGORY');
+  assert.deepEqual(mappedByTable.professional_share_grants.inventoryCategories, ['professional_sharing']);
+  assert.match(mappedByTable.professional_share_grants.mappingRationale, /recipient binding\/contact/);
+
+  assert.equal(mappedByTable.professional_share_access_audits.classificationStatus, 'MAPPED_TO_EXISTING_PRIVACY_CATEGORY');
+  assert.deepEqual(
+    mappedByTable.professional_share_access_audits.inventoryCategories,
+    ['professional_sharing', 'security_logs'],
+  );
+  assert.match(mappedByTable.professional_share_access_audits.mappingRationale, /security-log/);
 
   assert.equal(mappedByTable.user_config.classificationStatus, 'MAPPED_TO_EXISTING_PRIVACY_CATEGORY');
   assert.deepEqual(mappedByTable.user_config.inventoryCategories, ['account', 'dog_profile']);

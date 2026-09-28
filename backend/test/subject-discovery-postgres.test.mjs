@@ -26,6 +26,8 @@ const CONSENT_A = randomUUID();
 const SESSION_A = randomUUID();
 const MESSAGE_A = randomUUID();
 const COPRESENCE_A = randomUUID();
+const PROFESSIONAL_SHARE_GRANT_A = randomUUID();
+const PROFESSIONAL_SHARE_AUDIT_A = randomUUID();
 
 let sql = null;
 let lockConnection = null;
@@ -54,6 +56,8 @@ after(async () => {
     await sql`DELETE FROM auth_refresh_sessions WHERE id = ${SESSION_A}`;
     await sql`DELETE FROM ai_messages WHERE id = ${MESSAGE_A}`;
     await validateAiMessageWriteGuard(sql);
+    await sql`DELETE FROM professional_share_access_audits WHERE id = ${PROFESSIONAL_SHARE_AUDIT_A}`;
+    await sql`DELETE FROM professional_share_grants WHERE id = ${PROFESSIONAL_SHARE_GRANT_A}`;
     await sql`DELETE FROM copresence_events WHERE id = ${COPRESENCE_A}`;
     await sql`DELETE FROM user_config WHERE user_id IN (${USER_A}, ${USER_B})`;
     await sql`DELETE FROM dogs WHERE id IN (${DOG_A}, ${DOG_B})`;
@@ -104,8 +108,8 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
   await sql`
     INSERT INTO users (id, email, password_hash, name)
     VALUES
-      (${USER_A}, ${`disc-a-${USER_A}@example.test`}, 'test-only-a', 'Guardian A'),
-      (${USER_B}, ${`disc-b-${USER_B}@example.test`}, 'test-only-b', 'Guardian B')
+      (${USER_A}, ${`disc-a-${USER_A}@example.test`}, 'test-only-a', 'Owner A'),
+      (${USER_B}, ${`disc-b-${USER_B}@example.test`}, 'test-only-b', 'Owner B')
   `;
 
   await sql`
@@ -197,21 +201,48 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
     )
   `;
 
-  await t.test('stable discovery counts current core, AUTH and behavioral surfaces and marks later slices deferred', async () => {
+  await sql`
+    INSERT INTO professional_share_grants (
+      id, owner_user_id, dog_id,
+      recipient_display_name, recipient_type, recipient_email,
+      purpose, scopes, data_from, data_to, access_expires_at,
+      status
+    ) VALUES (
+      ${PROFESSIONAL_SHARE_GRANT_A}, ${USER_A}, ${DOG_A},
+      'Fixture Vet', 'VETERINARIAN', 'fixture-vet@example.invalid',
+      'VETERINARY_CONSULTATION', '["VETERINARY_SUMMARY"]'::jsonb,
+      NOW() - INTERVAL '7 days', NOW(), NOW() + INTERVAL '7 days',
+      'PENDING'
+    )
+  `;
+  await sql`
+    INSERT INTO professional_share_access_audits (
+      id, grant_id, dog_id, event, decision_status, reason
+    ) VALUES (
+      ${PROFESSIONAL_SHARE_AUDIT_A}, ${PROFESSIONAL_SHARE_GRANT_A}, ${DOG_A},
+      'PROFESSIONAL_SHARE_POLICY_DECISION', 'DENIED', 'RECIPIENT_MISMATCH'
+    )
+  `;
+
+  await t.test('stable discovery counts current core, AUTH, behavioral and professional-share surfaces without mutation', async () => {
     const before = await snapshot();
     const first = await discoverSubjectData(USER_A, DOG_A);
 
     assert.equal(first.ok, true);
     assert.deepEqual(first.subject.selectedDogIds, [DOG_A]);
-    assert.equal(first.guardian.ownedDogs.count, 1);
-    assert.equal(first.guardian.subscriptions.count, 1);
-    assert.equal(first.guardian.achievements.count, 1);
-    assert.equal(first.guardian.aiMessagesTargetingUser.count, 1);
-    assert.equal(first.guardian.authRefreshSessions.count, 1);
-    assert.equal(first.guardian.behavioralAssessmentsAsRespondent.count, 1);
-    assert.equal(first.guardian.researchDataConsents.count, 1);
-    assert.equal(first.guardian.userConfig.count, 1);
+    assert.equal(first.owner.ownedDogs.count, 1);
+    assert.equal(first.owner.professionalShareGrantsOwned.count, 1);
+    assert.equal(first.owner.subscriptions.count, 1);
+    assert.equal(first.owner.achievements.count, 1);
+    assert.equal(first.owner.aiMessagesTargetingUser.count, 1);
+    assert.equal(first.owner.authRefreshSessions.count, 1);
+    assert.equal(first.owner.behavioralAssessmentsAsRespondent.count, 1);
+    assert.equal(first.owner.researchDataConsents.count, 1);
+    assert.equal(first.owner.userConfig.count, 1);
 
+    assert.equal(first.dog.professionalShareGrants.count, 1);
+    assert.equal(first.dog.professionalShareAccessAudits.count, 1);
+    assert.match(first.dog.professionalShareAccessAudits.note, /no FK/);
     assert.equal(first.dog.aiMessagesTargetingDog.count, 1);
     assert.equal(first.dog.eliUserConfig.count, 1);
     assert.equal(first.dog.behavioralAssessments.count, 2);
@@ -233,12 +264,12 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
     assert.equal(first.externalOrUnresolved.contactRequests.status, 'UNRESOLVED_IDENTITY_MAPPING');
     assert.equal(first.externalOrUnresolved.contactRequests.count, null);
 
-    assert.equal(first.guardian.communitiesCreated.count, 0);
-    assert.equal(first.guardian.communityMemberships.count, 0);
-    assert.equal(first.guardian.communityRulesAcceptances.count, 0);
-    assert.equal(first.guardian.communityReportsFiled.count, 0);
+    assert.equal(first.owner.communitiesCreated.count, 0);
+    assert.equal(first.owner.communityMemberships.count, 0);
+    assert.equal(first.owner.communityRulesAcceptances.count, 0);
+    assert.equal(first.owner.communityReportsFiled.count, 0);
     assert.equal(Object.hasOwn(first.externalOrUnresolved, 'community'), false);
-    assert.equal(first.externalOrUnresolved.professionalSharing.status, 'INTEGRATION_DEFERRED');
+    assert.equal(Object.hasOwn(first.externalOrUnresolved, 'professionalSharing'), false);
     assert.equal(first.externalOrUnresolved.erasureDisposition.status, 'POLICY_AUTHORITY_OPEN');
 
     const second = await discoverSubjectData(USER_A, DOG_A);
@@ -260,7 +291,7 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
     const result = await discoverSubjectData(USER_A);
     assert.equal(result.ok, true);
     assert.deepEqual(result.subject.selectedDogIds, [DOG_A]);
-    assert.deepEqual(result.guardian.ownedDogs.ids, [DOG_A]);
+    assert.deepEqual(result.owner.ownedDogs.ids, [DOG_A]);
   });
 
   await t.test('ownership transfer that wins before discovery authority denies the former Owner', async () => {

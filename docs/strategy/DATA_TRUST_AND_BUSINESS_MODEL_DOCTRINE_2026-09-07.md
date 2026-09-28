@@ -37,7 +37,7 @@ A contribution request should disclose, where relevant:
 - EU / non-EU transfer;
 - retention;
 - downstream sharing;
-- Guardian benefit or compensation;
+- Owner benefit or compensation;
 - whether EMOPET is remunerated;
 - withdrawal route;
 - contact / governance route.

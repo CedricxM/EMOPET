@@ -12,7 +12,18 @@ const scanRoots = [
   'apps',
   'packages',
   'scripts',
+  // `tools/*` is a declared pnpm workspace package with executable .mjs and was
+  // omitted from this scan, so a writer added there would not have been caught.
+  'tools',
 ];
+
+// SCOPE BOUNDARY, stated because it is not obvious and is not a gap this guard
+// can close: backend/db/schema, backend/db/migrations and backend/db/baseline-draft
+// are skipped by path below, so the raw-SQL mutation patterns only ever match SQL
+// embedded in .ts/.js/.mjs. A migration that wrote to ai_messages would be caught
+// by the PostgreSQL CHECK from 0012 at runtime, not here — and not at all if it
+// were ordered before 0012. That residual belongs to migration review, not to
+// this scan.
 
 const allowedReadOnlyReferences = new Set([
   'backend/api/services/ai-zero-durable-retention-readiness.ts',
@@ -21,6 +32,10 @@ const allowedReadOnlyReferences = new Set([
   // Reviewed read-only composition only: consumes the canonical AI readiness
   // result and never reads or mutates ai_messages directly.
   'backend/api/services/retention-execution-plan.ts',
+  // Generated read-only incident-topology catalogue: records that ai_messages
+  // exists as an affected surface so breach scoping cannot silently omit it.
+  // It has no database handle or mutation path; mutationPatterns still apply.
+  'backend/api/privacy/breach-recipient-surfaces.generated.ts',
 ]);
 
 const skippedDirectoryNames = new Set([

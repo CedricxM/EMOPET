@@ -66,6 +66,8 @@ function dependencies(overrides = {}) {
         counts: {
           sensorDetailedTotal: 0,
           sensorBeyondWindow: 0,
+          featureDetailedTotal: 0,
+          featureBeyondWindow: 0,
           eliDetailedTotal: 0,
           eliBeyondWindow: 0,
         },
@@ -205,6 +207,8 @@ test('observed expiry signals are composed with blockers rather than execution a
         value.counts = {
           sensorDetailedTotal: 8,
           sensorBeyondWindow: 4,
+          featureDetailedTotal: 3,
+          featureBeyondWindow: 1,
           eliDetailedTotal: 7,
           eliBeyondWindow: 2,
         };

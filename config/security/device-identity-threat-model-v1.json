@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "emopet-device-identity-threat-model-v1",
+  "status": "THREAT_MODEL_AND_COMMON_PROVISIONING_DELIVERED / ARCHITECTURE_UNSELECTED",
+  "issue": 648,
+  "parentIssue": 66,
+  "p0AttackBoundary": {
+    "remoteReplay": "MUST_RESIST",
+    "maliciousMobileFabrication": "MUST_RESIST",
+    "identifierOnlyImpersonation": "MUST_RESIST",
+    "lostDeviceReplayAfterRevocation": "MUST_RESIST",
+    "ordinarySwdMemoryReadout": "MUST_RESIST_WITH_PRODUCTION_DEBUG_POLICY",
+    "manufacturingCredentialReuse": "MUST_RESIST",
+    "invasiveSiliconLabAttack": "OUT_OF_P0_CLAIM / REEVALUATE_IF_REQUIRED"
+  },
+  "nonAuthorities": [
+    "FICR_DEVICEID",
+    "BLE_MAC",
+    "BLE_RUNTIME_ID",
+    "CRC",
+    "BOOT_SESSION_ID",
+    "TRANSPORT_SEQUENCE",
+    "BACKEND_DEVICE_ROW_BY_ITSELF"
+  ],
+  "requiredProofBindings": [
+    "PROTOCOL_VERSION",
+    "CANONICAL_DEVICE_PRINCIPAL",
+    "CREDENTIAL_VERSION",
+    "SERVER_CHALLENGE",
+    "PURPOSE_DOMAIN",
+    "FRESHNESS_EXPIRY",
+    "REPLAY_STATE"
+  ],
+  "manufacturingStages": [
+    "M0_INCOMING_TRACE_ID",
+    "M1_APPROVED_FIRMWARE",
+    "M2_CREATE_CRYPTO_AUTHORITY",
+    "M3_BACKEND_ENROLLMENT_PENDING",
+    "M4_FRESH_CHALLENGE_PROOF",
+    "M5_FINAL_DEBUG_SWD_STATE",
+    "M6_ACTIVATE_CREDENTIAL",
+    "M7_FAILURE_REWORK",
+    "M8_RMA_REPLACEMENT"
+  ],
+  "productionDebugPolicy": {
+    "approtectRequiredDecision": true,
+    "receiptRequired": true,
+    "temporaryFactoryDebugMustDifferFromProduction": true,
+    "rmaMustNotPreserveTrustByIdentifierOnly": true,
+    "selectedRequirement": "APPROTECT_REQUIRED_BEFORE_CREDENTIAL_ACTIVE"
+  },
+  "selection": {
+    "architecture": "B_DEVICE_SPECIFIC_ASYMMETRIC_POP",
+    "algorithmFamily": "ECDSA_SHA256",
+    "curve": "SECP256R1_256",
+    "challengeFormat": null,
+    "backendCredentialRepresentation": "PUBLIC_KEY_PER_DEVICE_PRINCIPAL_AND_CREDENTIAL_VERSION"
+  },
+  "runtime": {
+    "deviceDataTrust": "NOT_IMPLEMENTED",
+    "networkTelemetryPersistence": "BLOCKED"
+  }
+}

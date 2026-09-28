@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "emopet-tag-ms88sf3-board-authority-v1",
+  "issue": 625,
+  "status": "G2_AUTHORITY_REGISTER / PRODUCTION_BOARD_FILE_BLOCKED",
+  "module": "Minew MS88SF3",
+  "soc": "nRF52840",
+  "productionBoardDefinitionAllowed": false,
+  "productionBoardDefinition": null,
+  "supply": {
+    "vddPad": 31,
+    "vddhPad": 32,
+    "rail": "3V3_CANDIDATE",
+    "status": "CONTROLLED_REV_B_CANDIDATE / HARDWARE_QA_OPEN"
+  },
+  "knownSignals": {
+    "ntcAdc": {
+      "gpio": "P0.04",
+      "function": "AIN2",
+      "modulePad": null,
+      "purpose": "NTC_ADC_MEASUREMENT",
+      "status": "LOGICAL_FIRMWARE_HANDOFF / MODULE_PAD_AUTHORITY_OPEN"
+    },
+    "ntcExcite": {
+      "gpio": "P0.05",
+      "modulePad": 15,
+      "purpose": "NTC_EXCITATION",
+      "status": "CONTROLLED_REV_B_CANDIDATE"
+    },
+    "hostUartTx": {
+      "gpio": "P0.06",
+      "modulePad": 21,
+      "purpose": "MS88SF3_TX_TO_NRF9151_RXD",
+      "status": "CONTROLLED_REV_B_CANDIDATE"
+    },
+    "hostUartRx": {
+      "gpio": "P0.08",
+      "modulePad": 26,
+      "purpose": "MS88SF3_RX_FROM_NRF9151_TXD",
+      "status": "CONTROLLED_REV_B_CANDIDATE"
+    },
+    "modemMainVddGate": {
+      "gpio": "P0.07",
+      "modulePad": 20,
+      "purpose": "NRF9151_MAIN_VDD_GATE",
+      "status": "CONTROLLED_REV_B_CANDIDATE"
+    },
+    "modemVddGpioGate": {
+      "gpio": "P0.17",
+      "modulePad": 41,
+      "purpose": "NRF9151_VDD_GPIO_GATE",
+      "status": "CONTROLLED_REV_B_CANDIDATE"
+    }
+  },
+  "openAuthorities": {
+    "nrf9151SideUartPins": "OPEN",
+    "bmi270I2cScl": "OPEN",
+    "bmi270I2cSda": "OPEN",
+    "bmi270Int1": "OPEN",
+    "inmp441PdmClk": "OPEN",
+    "inmp441PdmData": "OPEN",
+    "hfClockSourceAndConfig": "OPEN",
+    "lfClockSourceAndConfig": "OPEN",
+    "swdProgrammingContract": "OPEN",
+    "boardSpecificFlashPartitionAssumptions": "OPEN"
+  },
+  "encodingPolicy": {
+    "unknownSignals": "MUST_REMAIN_ABSENT_OR_DISABLED",
+    "dkDefaultsMayBecomeProductionAuthority": false,
+    "memoryOrClockDefaultsMayBeInheritedSilently": false,
+    "productionDevicetreeBeforeAllBlockingAuthoritiesClose": false
+  },
+  "sources": {
+    "revBClosure": "docs/hardware/TAG_REV_B_CLOSURE_AUTHORITY_2026-09-22.md",
+    "ntcFirmwareHandoff": ".claude/commands/tag-temp.md",
+    "platformAuthority": "config/firmware/tag-platform-v1.json"
+  },
+  "currentDecision": "DO_NOT_CREATE_PRODUCTION_MS88SF3_DEVICETREE"
+}

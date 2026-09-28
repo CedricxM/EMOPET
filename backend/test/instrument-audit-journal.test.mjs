@@ -25,7 +25,7 @@ const MIGRATION = resolve(
   process.cwd(),
   'db',
   'migrations',
-  '0013_instrument_administration.sql',
+  '0025_instrument_administration.sql',
 );
 const BUNDLE = resolve(process.cwd(), '..', 'config', 'instruments', 'demo-instrument-v0.json');
 

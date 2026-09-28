@@ -53,12 +53,12 @@ test('subject discovery includes durable Community persistence after INT-06 comp
 
   const result = await discoverSubjectData(USER);
   assert.equal(result.ok, true);
-  assert.equal(result.guardian.communitiesCreated.count, 1);
-  assert.equal(result.guardian.communityMemberships.count, 1);
-  assert.equal(result.guardian.communityPostsAuthored.count, 1);
-  assert.equal(result.guardian.communityCommentsAuthored.count, 1);
-  assert.equal(result.guardian.communityEventsCreated.count, 1);
-  assert.equal(result.guardian.communityRulesAcceptances.count, 1);
-  assert.equal(result.guardian.communityReportsFiled.count, 1);
+  assert.equal(result.owner.communitiesCreated.count, 1);
+  assert.equal(result.owner.communityMemberships.count, 1);
+  assert.equal(result.owner.communityPostsAuthored.count, 1);
+  assert.equal(result.owner.communityCommentsAuthored.count, 1);
+  assert.equal(result.owner.communityEventsCreated.count, 1);
+  assert.equal(result.owner.communityRulesAcceptances.count, 1);
+  assert.equal(result.owner.communityReportsFiled.count, 1);
   assert.equal(Object.hasOwn(result.externalOrUnresolved, 'community'), false);
 });

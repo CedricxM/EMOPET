@@ -27,6 +27,10 @@ on:
       - 'backend/test/migration-baseline-static.test.mjs'
       - 'backend/test/id-01-referential-integrity.sql'
       - 'backend/test/copresence-identity-fingerprint.sql'
+      - 'backend/test/schema-constraint-index-parity.sql'
+      - 'backend/test/schema-constraint-index-parity.known-drift.txt'
+      - 'backend/test/schema-column-parity.sql'
+      - 'backend/test/schema-column-parity.known-drift.txt'
       - 'backend/test/subject-discovery-postgres.test.mjs'
       - 'backend/test/privacy-erasure-topology.integration.test.mjs'
       - 'backend/test/privacy-erasure-residue-verification.integration.test.mjs'
@@ -42,6 +46,11 @@ on:
       - 'backend/test/data-export-*.test.mjs'
       - 'backend/test/privacy-dog-export-coverage.test.mjs'
       - 'config/privacy/dog-export-coverage.json'
+      - 'backend/api/services/professional-share-*.ts'
+      - 'backend/test/professional-share-*.test.mjs'
+      - 'packages/shared/src/types/professional-share.ts'
+      - 'packages/shared/src/validators/professional-share.ts'
+      - 'scripts/security/professional-share-authority-audit.mjs'
       - 'backend/test/dataset-writer-authority.sql'
       - 'scripts/ingest_vbo.ts'
       - 'scripts/data/vbo-committed-snapshot-audit.mjs'
@@ -103,7 +112,9 @@ jobs:
 
       - name: Repository-only migration checks
         working-directory: backend
-        run: node --test test/migration-baseline-static.test.mjs
+        run: |
+          node --test test/migration-baseline-static.test.mjs
+          node --test test/behavioral-assessment-context-static.test.mjs
 
       - name: Apply all draft prerequisites in order
         run: |
@@ -118,6 +129,14 @@ jobs:
             echo "Applying $file"
             psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$file"
           done
+
+      - name: ELI-BEHAV-01 mapping authority on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          BEHAVIORAL_ELI_MAPPING_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/behavioral-eli-mapping-authority.integration.test.mjs
 
       - name: Capture first schema
         run: |
@@ -154,6 +173,11 @@ jobs:
       - name: Repeatability — complete schema dump
         run: diff -u /tmp/schema-a.sql /tmp/schema-b.sql
 
+      - name: ID-01 canonical identity and FK checks on historical migrations
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/id-01-referential-integrity.sql
+
       - name: PRIV-RETENTION device unbind clock on historical migrations
         working-directory: backend
         env:
@@ -174,15 +198,14 @@ jobs:
           NODE_ENV: test
         run: node --test test/privacy-duplicate-foreign-key-detach.integration.test.mjs
 
-      # Eight identity columns are TEXT here and uuid in the Drizzle schema, so they cannot
-      # hold the foreign key the declared erasure topology says they have. The set is on
-      # record in the test, per build path, and must not drift in either direction.
+      # An identity column typed differently from the key it references cannot hold the
+      # foreign key the erasure topology declares, so erasing the parent leaves orphans.
+      # Eight were TEXT on this path until 0024 converted them; this keeps them converted.
       - name: PRIV-ERASURE identity column types on historical migrations
         working-directory: backend
         env:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
           PRIVACY_IDENTITY_COLUMN_TYPE_DB_INTEGRATION: '1'
-          IDENTITY_SCHEMA_PATH: migrations
           NODE_ENV: test
         run: node --test test/privacy-identity-column-type-divergence.integration.test.mjs
 
@@ -203,6 +226,22 @@ jobs:
       - name: CI integration flag parity
         working-directory: backend
         run: node --test test/ci-integration-flag-parity.test.mjs
+
+      - name: BEHAV-DATA-01 semantics on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          EMOPET_DB_INTEGRATION_TEST: '1'
+          NODE_ENV: test
+        run: node --test test/behavioral-assessment-context.integration.test.mjs
+
+      - name: DEVICE-TRUST-ID-12 public credential repository on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          DEVICE_CREDENTIAL_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/device-credential-repository.integration.test.mjs
 
       - name: Generate isolated Drizzle fresh baseline
         working-directory: backend
@@ -228,6 +267,74 @@ jobs:
         env:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: pnpm exec drizzle-kit migrate --config=db/drizzle.p0-baseline.config.ts
+
+      # Drizzle emits table/column constraints but not PostgreSQL trigger/function authority.
+      - name: Apply ELI-BEHAV non-Drizzle authority objects
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/0015_behavioral_eli_mapping_authority.sql
+
+      # Table inventory cannot see constraint/index drift (a shadow NO ACTION FK kept
+      # blocking the approved D4 DETACH #446 on path A only). Compare the untouched
+      # path-A replay with the generated baseline before any test writes to either.
+      - name: P0-DB constraint/index parity (path A vs generated)
+        env:
+          REPEAT_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_repeat
+          GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+        run: |
+          export LC_ALL=C
+          psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/schema-constraint-index-parity.sql > /tmp/parity-a.txt
+          psql "$GENERATED_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/schema-constraint-index-parity.sql > /tmp/parity-generated.txt
+          { comm -23 /tmp/parity-a.txt /tmp/parity-generated.txt | sed 's/^/A|/'
+            comm -13 /tmp/parity-a.txt /tmp/parity-generated.txt | sed 's/^/B|/'; } | sort > /tmp/parity-drift.txt
+          sed 's/\r$//;/^#/d;/^$/d' backend/test/schema-constraint-index-parity.known-drift.txt | sort > /tmp/parity-known.txt
+          if ! diff -u /tmp/parity-known.txt /tmp/parity-drift.txt; then
+            echo '::error::Constraint/index drift between path A and the generated baseline changed. "+" = new drift: fix the migration or schema. "-" = resolved drift: delete it from backend/test/schema-constraint-index-parity.known-drift.txt.'
+            exit 1
+          fi
+          echo "Constraint/index drift matches the classified ledger ($(wc -l < /tmp/parity-drift.txt) entries)."
+
+      - name: P0-DB column parity (path A vs generated)
+        env:
+          REPEAT_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_repeat
+          GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+        run: |
+          export LC_ALL=C
+          psql "$REPEAT_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/schema-column-parity.sql > /tmp/columns-a.txt
+          psql "$GENERATED_DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/test/schema-column-parity.sql > /tmp/columns-generated.txt
+          { comm -23 /tmp/columns-a.txt /tmp/columns-generated.txt | sed 's/^/A|/'
+            comm -13 /tmp/columns-a.txt /tmp/columns-generated.txt | sed 's/^/B|/'; } | sort > /tmp/columns-drift.txt
+          sed 's/\r$//;/^#/d;/^$/d' backend/test/schema-column-parity.known-drift.txt | sort > /tmp/columns-known.txt
+          if ! diff -u /tmp/columns-known.txt /tmp/columns-drift.txt; then
+            echo '::error::Column drift between path A and the generated baseline changed. "+" = new drift: fix the migration or schema. "-" = resolved drift: delete it from backend/test/schema-column-parity.known-drift.txt.'
+            exit 1
+          fi
+          echo "Column drift matches the classified ledger ($(wc -l < /tmp/columns-drift.txt) entries)."
+
+      - name: ELI-BEHAV-01 mapping authority on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          BEHAVIORAL_ELI_MAPPING_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/behavioral-eli-mapping-authority.integration.test.mjs
+
+      - name: BEHAV-DATA-01 semantics on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          EMOPET_DB_INTEGRATION_TEST: '1'
+          NODE_ENV: test
+        run: node --test test/behavioral-assessment-context.integration.test.mjs
+
+      - name: DEVICE-TRUST-ID-12 public credential repository on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          DEVICE_CREDENTIAL_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/device-credential-repository.integration.test.mjs
 
       - name: ID-01 canonical identity and FK checks
         env:
@@ -323,6 +430,50 @@ jobs:
           EMOPET_DB_INTEGRATION_TEST: '1'
         run: node --test test/sensor-summary-ingestion.integration.test.mjs test/sensor-ingestion-authority-concurrency.integration.test.mjs
 
+      - name: ELI-IO canonical device registry read
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          NODE_ENV: test
+        run: node --test test/canonical-device-registry.integration.test.mjs
+
+      - name: ELI-IO activity feature persistence boundary
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          ACTIVITY_FEATURE_DB_INTEGRATION: '1'
+        run: node --test test/activity-feature-ingestion.integration.test.mjs
+
+      - name: ELI-IO activity feature read validation
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          ACTIVITY_FEATURE_READ_DB_INTEGRATION: '1'
+        run: node --test test/activity-feature-read.integration.test.mjs
+
+      - name: ELI-RUNTIME physical movement vertical slice
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          ELI_PHYSICAL_MOVEMENT_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/eli-physical-movement-runtime.integration.test.mjs
+
+      - name: ELI-IO feature transport adapter validation
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          ACTIVITY_FEATURE_TRANSPORT_ADAPTER_DB_INTEGRATION: '1'
+        run: node --test test/activity-feature-transport-adapter.integration.test.mjs
+
+      - name: ELI-IO network registry + Device Trust pre-ingress gate
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          ACTIVITY_FEATURE_NETWORK_AUTHORITY_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/activity-feature-network-authority.integration.test.mjs
+
       - name: INT-06F canonical copresence dog identity
         env:
           GENERATED_DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
@@ -386,7 +537,6 @@ jobs:
         env:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
           PRIVACY_IDENTITY_COLUMN_TYPE_DB_INTEGRATION: '1'
-          IDENTITY_SCHEMA_PATH: generated
           NODE_ENV: test
         run: node --test test/privacy-identity-column-type-divergence.integration.test.mjs
 
@@ -410,6 +560,16 @@ jobs:
             test/data-export-summary-window.test.mjs \
             test/privacy-dog-export-coverage.test.mjs \
             test/data-export-runtime.integration.test.mjs
+
+      - name: INT-05 backend authority guard
+        run: node scripts/security/professional-share-authority-audit.mjs
+
+      - name: INT-05 recipient-bound professional sharing
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          EMOPET_DB_INTEGRATION_TEST: '1'
+        run: node --test test/professional-share-*.test.mjs
 
       - name: Verify generated snapshot is stable
         working-directory: backend
@@ -436,5 +596,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification, retention-readiness probes and INT-04A bounded export authority.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, BEHAV-DATA-01 response/applicability semantics, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification, retention-readiness probes, INT-04A bounded export authority, and INT-05 recipient-bound professional sharing.'
           echo 'It does not authorize production migration, deployment, or release.'

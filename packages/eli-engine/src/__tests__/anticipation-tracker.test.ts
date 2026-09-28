@@ -20,6 +20,39 @@ describe('detectRecurringHour', () => {
     expect(detectRecurringHour(occ)).toBeNull();
   });
 
+  // Characterisation, not endorsement (#89). The existing fixtures place every
+  // occurrence exactly on the hour, where the UTC bucket and the documented
+  // "+/-30 min of the mode hour" are indistinguishable. These two cases use
+  // off-the-hour times and pin what the bucket actually does, so that
+  // implementing the documented rule shows up as a deliberate change here
+  // rather than as a silent behaviour shift.
+  it('CHARACTERISATION: splits a tight cluster that straddles two hour buckets', () => {
+    // Eight departures within a 30-minute band around 08:00 — a very regular
+    // routine by the documented rule, yet only 4/8 share the modal bucket.
+    const occ = [
+      new Date(Date.UTC(2026, 3, 1, 7, 45)), new Date(Date.UTC(2026, 3, 2, 7, 50)),
+      new Date(Date.UTC(2026, 3, 3, 7, 55)), new Date(Date.UTC(2026, 3, 4, 7, 58)),
+      new Date(Date.UTC(2026, 3, 5, 8, 2)), new Date(Date.UTC(2026, 3, 6, 8, 5)),
+      new Date(Date.UTC(2026, 3, 7, 8, 10)), new Date(Date.UTC(2026, 3, 8, 8, 14)),
+    ].map((at) => ({ type: 'owner_departure' as const, at }));
+    // 4 in bucket 7 and 4 in bucket 8 => coverage 0.5 exactly, and the mode is
+    // whichever bucket is reached first. One more early departure would drop it
+    // below the 50% gate and reject a routine the documented rule calls narrow.
+    expect(detectRecurringHour(occ)!.coverage).toBeCloseTo(0.5, 5);
+  });
+
+  it('CHARACTERISATION: accepts a loose cluster spread across one hour bucket', () => {
+    // Eight departures spread over 08:00-08:55 — a 55-minute spread, outside
+    // the documented +/-30 min window for half of them, yet coverage is 1.0.
+    const occ = [0, 8, 16, 24, 32, 40, 48, 55].map((min, i) => ({
+      type: 'owner_departure' as const,
+      at: new Date(Date.UTC(2026, 3, i + 1, 8, min)),
+    }));
+    const r = detectRecurringHour(occ)!;
+    expect(r.hour).toBe(8);
+    expect(r.coverage).toBe(1);
+  });
+
   it('returns the mode hour when coverage >= 50%', () => {
     const occ = Array.from({ length: 10 }, (_, i) => ({
       type: 'owner_departure' as const,
