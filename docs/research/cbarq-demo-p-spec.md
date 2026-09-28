@@ -152,6 +152,19 @@ Neuf lots. Chacun porte ses fichiers, sa définition de terminé, ses dépendanc
 
 ### Lot 2 — Contenu factice et adaptateur de magasin · `M` · dépend de L1
 
+> **État : `FAIT` (2026-09-28).** Vérifié : 12 tests dédiés, tous verts ; 316 tests backend, 0 échec ; `shared`, `eli-engine`, `ai-personality`, `ble-protocol` et `privileged-auth` passent après modification du paquet `shared`. Scan du dépôt : **toute** clé d'item versionnée est `DEMO_ITEM_*`, toute clé de section `DEMO_SECTION_*`.
+>
+> *(`@emopet/web` échoue au build dans ce conteneur faute de pouvoir télécharger Fraunces, Instrument Sans et JetBrains Mono depuis Google Fonts — restriction réseau, sans lien avec ce lot.)*
+>
+> **Quatre écarts par rapport à la spec initiale, tous assumés :**
+>
+> 1. **Empreinte calculée contre un `versionRef` stable** (`code:version:locale`) et non contre l'`uuid` de la ligne en base, comme l'indiquait le document de conception. Un `uuid` rendrait l'empreinte incalculable avant l'existence de la ligne et différente après un réamorçage de la base. Le triplet stable permet de la calculer à l'ingestion, de la recalculer avant chaque présentation et de la comparer entre environnements.
+> 2. **Pas de second fichier de fixture invalide.** `validateBundle()` est exporté, donc n'importe quel défaut s'exerce sur une copie mutée en mémoire. Treize cas de rejet sont testés, dont celui du « point de coupure mal placé » : une coupure déclarée `section_boundary` là où aucune section ne finit laisserait le moteur scinder une section en rapportant le contraire. Un fichier cassé de moins à maintenir, et une couverture plus large.
+> 3. **Les méthodes de `SecretStoreContentStore` sont `async`.** Une méthode dont la signature promet une `Promise` doit rejeter, pas lever de façon synchrone — sinon chaque appelant a besoin d'un `try/catch` *et* d'un `.catch`.
+> 4. **Les sous-échelles traversent délibérément les frontières de section** dans le contenu factice (4 sous-échelles de 6 items, 3 sections de 8). Une sous-échelle est un regroupement de scoring, une section un regroupement de présentation : le contenu factice rend impossible de confondre les deux par accident, et un test le vérifie.
+>
+> **Ce que le magasin refuse**, en plus des treize cas de validation : servir un contenu dont la licence n'est pas `demo_only` depuis le dépôt (la seule erreur qui mettrait du contenu licencié dans git), et servir quoi que ce soit sous `not_proven`, `expired` ou `revoked`. Une licence `granted` route vers le magasin réel non implémenté — donc **échoue bruyamment** plutôt que de servir du contenu factice comme s'il était l'instrument.
+
 **Fichiers**
 - `config/instruments/demo-instrument-v0.json` *(nouveau)* — l'instrument factice, versionné dans le dépôt parce qu'il est **factice**
 - `packages/shared/src/instruments/types.ts` *(nouveau)* — types opaques `ItemKey`, `SectionKey`, `InstrumentReference`
