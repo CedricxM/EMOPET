@@ -10,7 +10,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '../ui';
-import { useBreizChat, type BreizEvidenceLevel } from '../../lib/breiz-rag/useBreizChat';
+import { useBreizChat } from '../../lib/breiz-rag/useBreizChat';
+import { BreizMessageTags } from './BreizMessageTags';
 
 const GREETING = {
   id: 'dock-greeting',
@@ -23,15 +24,6 @@ const GREETING = {
     evidenceLevel: 'external_context' as const,
     medicalStatus: 'non_diagnostic' as const,
   },
-};
-
-const EVIDENCE_LABELS: Record<BreizEvidenceLevel, string> = {
-  measured: 'Mesuré',
-  preprocessed: 'Prétraité',
-  inferred: 'Inféré',
-  mixed_or_inferred: 'Mixte / inféré',
-  external_context: 'Contexte externe',
-  unknown: 'Niveau inconnu',
 };
 
 export function BreizDock() {
@@ -96,21 +88,7 @@ export function BreizDock() {
             {messages.map((m) =>
               m.from === 'bleiz' ? (
                 <div key={m.id} style={{ display: 'flex', flexDirection: 'column', gap: 4, maxWidth: '92%' }}>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    <span style={{ alignSelf: 'flex-start', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--fg-muted)', background: 'var(--bg-sunk)', padding: '2px 7px', borderRadius: 'var(--radius-pill)', border: '1px solid var(--border)' }}>
-                      IA
-                    </span>
-                    {m.transparency?.evidenceLevel && (
-                      <span style={{ alignSelf: 'flex-start', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg-muted)', background: 'var(--bg-sunk)', padding: '2px 7px', borderRadius: 'var(--radius-pill)', border: '1px solid var(--border)' }}>
-                        {EVIDENCE_LABELS[m.transparency.evidenceLevel]}
-                      </span>
-                    )}
-                    {m.eli && (
-                      <span style={{ alignSelf: 'flex-start', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--fg-muted)', background: 'var(--bg-sunk)', padding: '2px 7px', borderRadius: 'var(--radius-pill)', border: '1px solid var(--border)' }}>
-                        donnée ELI · ton verrouillé
-                      </span>
-                    )}
-                  </div>
+                  <BreizMessageTags message={m} />
                   <p style={{ margin: 0, fontFamily: 'var(--font-sans)', fontSize: 'var(--text-sm)', color: 'var(--fg)', lineHeight: 'var(--lh-normal)' }}>{m.text}</p>
                   {!!m.sources?.length && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
