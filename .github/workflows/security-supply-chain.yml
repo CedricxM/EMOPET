@@ -145,6 +145,8 @@ jobs:
         run: node --test scripts/control/boot-anchor-v1.test.mjs
       - name: Enforce MS88SF3 G2 board-authority gate (#625)
         run: node --test scripts/control/tag-ms88sf3-board-authority.test.mjs
+      - name: Enforce emopet-web Vercel ignored build step inputs
+        run: node --test scripts/control/vercel-ignore-build.test.mjs
       - name: Enforce rr_variability window reachability (#86)
         run: |
           pnpm science:rr-audit
