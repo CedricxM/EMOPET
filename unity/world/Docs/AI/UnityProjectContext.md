@@ -7,7 +7,7 @@
 
 ## Confirmed environment
 
-- Unity: **6.3 LTS / 6000.3.21f1**
+- Unity: **6.3 LTS / 6000.3.25f1**
 - Render pipeline: **unresolved / no SRP package installed in the first slice**
 - Input: **unresolved / no Input System package installed in the first slice**
 - Networking: **no Unity networking framework and no Nakama SDK**
