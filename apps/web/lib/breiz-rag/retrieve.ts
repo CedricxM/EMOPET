@@ -13,6 +13,9 @@ const STOPWORDS = new Set([
   'il', 'elle', 'je', 'tu', 'on', 'nous', 'vous', 'ils', 'elles', 'se', 'ne', 'pas', 'plus',
   'en', 'y', 'comment', 'pourquoi', 'quand', 'quel', 'quelle', 'quels', 'quelles', 'mon',
   'chien', 'chienne', 'gus', 'capitaine', 'me', 'mes', 'fait', 'faire', 'est-ce', 'qu',
+  // Le nom de l'assistant n'est jamais un sujet : « Merci Breiz » ne doit pas
+  // servir la fiche qui mentionne Breiz (#226, audit de transparence).
+  'breiz',
 ]);
 
 /** Normalise : minuscules, sans accents, tokens alphanumériques utiles. */
