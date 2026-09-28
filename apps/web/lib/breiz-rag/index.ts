@@ -11,6 +11,7 @@ import { fetchCurrentWeather } from '../weather';
 import { narrateBreedStory } from '../narration';
 import type { Breed } from '../breeds';
 import { ALL_DOCS, type KnowledgeDoc } from './corpus';
+import { isServable, sourceLabel } from './provenance';
 import { retrieve, tokenize } from './retrieve';
 
 export { ALL_DOCS } from './corpus';
@@ -46,6 +47,17 @@ const WEATHER_TERMS = new Set([
 
 const LORIENT = { lat: 47.7482, lon: -3.3702 };
 
+/** Libellé de provenance d'une fiche servie (D1, #226) ; vide si non publiable. */
+function sourcesOf(doc: KnowledgeDoc): string[] {
+  const label = sourceLabel(doc.provenance);
+  return label ? [label] : [];
+}
+
+/** Fiches publiables : un fait de tiers sans autorité de publication revue est ignoré. */
+function servable(query: string, k: number) {
+  return retrieve(query, ALL_DOCS.length).filter((hit) => isServable(hit.doc.provenance)).slice(0, k);
+}
+
 function leadFor(tags: string[]): string {
   if (tags.includes('race')) return '';
   if (tags.includes('comportement') || tags.includes('éducation')) return 'Côté comportement — ';
@@ -76,14 +88,14 @@ export async function askBreiz(query: string, context: BreizAskContext = {}): Pr
   const isWeather = [...tokens].some((t) => WEATHER_TERMS.has(t));
   if (isWeather) {
     const w = await fetchCurrentWeather(LORIENT.lat, LORIENT.lon);
-    const advice = retrieve('météo bretagne balade pluie vent', 1)[0]?.doc;
+    const advice = servable('météo bretagne balade pluie vent', 1)[0]?.doc;
     if (w) {
       return {
         text:
           `À Lorient en ce moment : ${w.tempC}°, ${w.label.toLowerCase()}, vent ${w.windKph} km/h. ` +
           (advice ? advice.text : '') +
           (w.tempC >= 24 ? ' Avec cette chaleur, privilégiez les heures fraîches et de l’eau.' : ''),
-        sources: ['Open-Meteo — météo Lorient (temps réel)', ...(advice ? [advice.source] : [])],
+        sources: ['Open-Meteo — météo Lorient (temps réel)', ...(advice ? sourcesOf(advice) : [])],
       };
     }
   }
@@ -114,7 +126,7 @@ export async function askBreiz(query: string, context: BreizAskContext = {}): Pr
   // répond donc qu'à une question qui nomme cette race.
   const namesBreed = (doc: KnowledgeDoc) =>
     doc.tags.some((tag) => tag !== 'race' && tokenize(tag).some((t) => tokens.has(t)));
-  const hits = retrieve(query, ALL_DOCS.length)
+  const hits = servable(query, ALL_DOCS.length)
     .filter((hit) => !hit.doc.tags.includes('race') || namesBreed(hit.doc))
     .slice(0, 3);
   // « sa race », « la race de mon chien » : la réponse dépend d'un chien que
@@ -142,13 +154,13 @@ export async function askBreiz(query: string, context: BreizAskContext = {}): Pr
   const top = hits[0]!.doc;
   const lead = leadFor(top.tags);
   let text = `${lead}${top.text}`;
-  const sources = [top.source];
+  const sources = sourcesOf(top);
 
   // Ajoute une 2e source si pertinente et sur un autre document.
   const second = hits[1];
-  if (second && second.score >= hits[0]!.score - 1 && second.doc.source !== top.source) {
+  if (second && second.score >= hits[0]!.score - 1 && sourceLabel(second.doc.provenance) !== sourceLabel(top.provenance)) {
     text += ` ${second.doc.text}`;
-    sources.push(second.doc.source);
+    sources.push(...sourcesOf(second.doc));
   }
 
   return { text, sources };

@@ -22,7 +22,7 @@ type Message = BreizMessage;
 // Historique et conversation d'exemple écrits à la main : aucune observation
 // MAT/TAG ni inférence ELI derrière. Ils portent le marqueur DÉMO (#118 G3).
 const CONVERSATIONS: Conversation[] = [
-  { id: 'c1', title: "Réveils matinaux de Gus", preview: "Il semble anticiper vos départs…", date: "Auj.", active: true },
+  { id: 'c1', title: "Réveils matinaux de Gus", preview: "Courte phase d'éveil avant vos départs…", date: "Auj.", active: true },
   { id: 'c2', title: 'Sorties plus courtes ?', preview: 'Sur 7 jours la moyenne baisse un peu…', date: 'Hier' },
   { id: 'c3', title: 'Nuit du 14 avril', preview: 'Interruptions de repos entre 2 h et 4 h…', date: '14 avr.' },
   { id: 'c4', title: 'Retour au calme', preview: "Gus met 8 à 14 min à revenir…", date: '10 avr.' },

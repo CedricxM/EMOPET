@@ -21,6 +21,19 @@ const WANT = [
 
 const SIZE_FR = { small: 'petit gabarit', medium: 'gabarit moyen', large: 'grand gabarit', giant: 'très grand gabarit' };
 
+/**
+ * Les descripteurs sont extraits des PDF des standards FCI : ce texte n'est
+ * jamais une observation du chien (« Tempérament (standard FCI) », D4 de #226).
+ * On retire les résidus d'extraction : renvois « FCI-St », numéros de page ou
+ * d'année, mots coupés en fin de ligne (« Docil e » → « Docile »).
+ */
+function cleanDescriptors(descriptors) {
+  return descriptors
+    .filter((d) => !/FCI/i.test(d))
+    .map((d) => d.replace(/\b\d+\b\s*/g, '').replace(/(\p{L}{3,}) ([b-xz])(?=[\s,.]|$)/gu, '$1$2').trim())
+    .filter(Boolean);
+}
+
 function pick(name) {
   return all.find((b) => (b.breed_name_fr || '').toLowerCase().includes(name.toLowerCase()));
 }
@@ -31,20 +44,20 @@ for (const name of WANT) {
   if (!b) continue;
   const m = b.morphology || {};
   const t = b.temperament || {};
-  const desc = (t.descriptors || []).slice(0, 3).join(', ');
+  const desc = cleanDescriptors(t.descriptors || []).slice(0, 3).join(', ');
   const brach = m.is_brachycephalic ? ', race brachycéphale (prudence chaleur/effort)' : '';
   const coatFR = { double_short: 'double court', double_long: 'double long', smooth: 'ras', short: 'court', long: 'long', wiry: 'dur', curly: 'bouclé' };
   const text = [
     `Le ${b.breed_name_fr} (groupe FCI ${b.fci_group}, origine ${b.country_origin}) :`,
     `${SIZE_FR[m.size_class] || m.size_class || 'gabarit variable'}, poil ${coatFR[m.coat_type] || m.coat_type || 'variable'}${brach}.`,
-    desc ? `Tempérament observé : ${desc}.` : '',
+    desc ? `Tempérament (standard FCI) : ${desc}.` : '',
   ].join(' ').replace(/\s+/g, ' ').trim();
 
   docs.push({
     id: `breed-${b.fci_number}`,
     title: b.breed_name_fr,
     text,
-    source: 'Profils de races EMOPET (référentiel FCI)',
+    provenance: { kind: 'dataset', label: 'Profils de races EMOPET (référentiel FCI)' },
     tags: ['race', (b.breed_name_fr || '').toLowerCase()],
   });
 }

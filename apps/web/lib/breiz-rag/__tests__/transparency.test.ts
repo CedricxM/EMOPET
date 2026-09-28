@@ -104,6 +104,25 @@ test('the /breiz page marks its hand-written example and never claims a live ELI
   assert.doesNotMatch(page, /croise les notes/, 'the fallback reads neither the journal nor ELI');
 });
 
+test('D3: the landing promises no Breiz memory and has no memory toggle', () => {
+  const landing = web('app/page.tsx');
+  assert.doesNotMatch(landing, /apprend de votre relation|comprend votre histoire/);
+  assert.doesNotMatch(web('components/landing/BreizConversation.tsx'), /Tu m'avais dit|adorait/);
+  const privacy = web('components/landing/PrivacyControls.tsx');
+  assert.doesNotMatch(privacy, /id: 'memory'|apprend de vos échanges/);
+});
+
+test('D5/D6: demo chats attribute no intent to the dog and mark their sensor-like sources', () => {
+  assert.doesNotMatch(web('app/breiz/page.tsx'), /anticiper/);
+  const preview = web('components/mobile-preview/screens/chat.tsx');
+  const seeded = preview.slice(preview.indexOf('const CONVO'), preview.indexOf('function ChatHeader'));
+  for (const list of seeded.match(/sources: \[[^\]]*\]/g) ?? []) {
+    for (const item of list.match(/`[^`]*`|'[^']*'/g) ?? []) assert.match(item, /ELI_DEMO_PREFIX/, item);
+  }
+  assert.match(preview, /Assistant IA/);
+  assert.doesNotMatch(preview, /label="Valide"/);
+});
+
 test('the model path does not cite the assistant itself as a source', () => {
   const route = web('app/api/breiz/route.ts');
   assert.doesNotMatch(route, /ancrage \$\{/);

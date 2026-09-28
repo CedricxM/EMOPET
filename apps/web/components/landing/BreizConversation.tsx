@@ -7,14 +7,12 @@ interface Message {
   text: string;
 }
 
+// D3 (#226) : pas de souvenir attribué (« tu m'avais dit… ») ni de préférence
+// prêtée au chien tant qu'aucune mémoire consentie n'existe.
 const conversation: Message[] = [
   {
     sender: 'breiz',
-    text: "Tu m'avais dit que Nala adorait les longues promenades près de l'eau.",
-  },
-  {
-    sender: 'breiz',
-    text: "Il fera doux cet après-midi. J'ai trouvé une idée pas très loin.",
+    text: "Il fera doux cet après-midi. J'ai trouvé une idée de balade près de l'eau, pas très loin.",
   },
   {
     sender: 'gardien',
