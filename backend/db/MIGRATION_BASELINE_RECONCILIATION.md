@@ -198,22 +198,29 @@ Resolved by active migration `0022_path_a_membership_and_summary_provenance.sql`
 
 `0022` fails closed instead of rewriting data: duplicate memberships abort the unique index, and existing summary rows abort the `NOT NULL` provenance columns (no ingestion id or device can be recovered for them). Both aborts were verified to roll back the whole migration.
 
+Resolved by active migration `0023_path_a_integrity_and_index_parity.sql` (former classes S4–S6 and the non-ELI part of S1):
+
+- `3f51896` (INT-06F, canonical copresence dog identity) bound `copresence_events.dog_a_id`/`dog_b_id` to `dogs(id)` in the Drizzle schema, the privacy topology and CI, without a path-A migration. Path A accepted copresence events for dogs that do not exist; `0023` adds both `NO ACTION` FKs and fails closed on such rows (verified: full rollback);
+- `idx_breed_canonical_slug` (duplicate of the `breed_slug` unique constraint) and `idx_breed_canonical_fci` (no query uses it), both from `0001`, are dropped;
+- `idx_anticipation_events_dog_time` and `idx_recovery_events_dog_time` are rebuilt ascending, as declared in Drizzle. A B-tree serves both scan directions, so no query changes;
+- `imu_discrimination_thresholds` and `weather_context` now enforce uniqueness through the Drizzle unique indexes `uq_discrimination` and `uq_weather_location_date`; each index is created before the inline `UNIQUE` constraint is dropped. `onConflictDoNothing()` in `weather.ts` targets no named constraint.
+
 Resolved in source schema:
 
 - `eli_behavioral_priors.mapping_authority_id`: the Drizzle FK now uses the name that active migration `0015` guards on (`fk_eli_behavioral_prior_mapping_authority`). The CI composition (generated baseline + `0015`) previously held two identical FKs.
 - `device_identity_credentials.psa_key_id` (column type): `0020` (#662) declares `bigint`, the Drizzle schema declared `integer`. The source schema now uses `bigint` (`mode: 'number'`). `psa_key_id_t` is `uint32_t`, which `integer` cannot hold in full, and the same table already maps its other `uint32` field, `credential_version`, to `bigint` on both paths. The CHECK still admits only 65536 and 65537, and the TypeScript type stays `number`.
 
-Gated, not resolved. Recorded entry by entry in `backend/test/schema-constraint-index-parity.known-drift.txt` (190 lines):
+Gated, not resolved. Recorded entry by entry in `backend/test/schema-constraint-index-parity.known-drift.txt` (176 lines):
 
 | Class | Count | Difference | Status |
 |---|---|---|---|
-| S1 | 10 | FK declared in Drizzle, absent from path A (`eli-v5` tables, `copresence_events`) | OPEN — ELI FK insertion not authorized (§7.4) |
+| S1 | 8 | FK declared in Drizzle, absent from path A (`eli-v5` tables; `copresence_events` resolved by `0023`) | OPEN — ELI FK insertion not authorized (§7.4) |
 | S2 | 8 | CHECK in historical SQL, absent from Drizzle (5 ELI enum checks from `0003`, 3 morphology checks) | OPEN; morphology `NOT_CURRENT_SCHEMA_AUTHORITY` (§7.3) |
 | S3 | 0 | unique/index in Drizzle, absent from path A | RESOLVED by `0022` |
-| S4 | 2 | `breed_canonical` indexes from `0001`, absent from Drizzle | OPEN |
-| S5 | 2 pairs | same index name, `DESC` key only in path A (`anticipation_events`, `recovery_events`) | OPEN |
-| S6 | 2 | uniqueness as a constraint in path A, as a unique index in Drizzle | OPEN — same enforcement, different form |
-| N | 82 pairs | identical definition, different name (`_fkey`/`_key`/`_pkey`/`<col>_check` vs Drizzle names) | OPEN — a future `DROP CONSTRAINT IF EXISTS <drizzle name>` misses path A |
+| S4 | 0 | `breed_canonical` indexes from `0001`, absent from Drizzle | RESOLVED by `0023` |
+| S5 | 0 | same index name, `DESC` key only in path A | RESOLVED by `0023` |
+| S6 | 0 | uniqueness as a constraint in path A, as a unique index in Drizzle | RESOLVED by `0023` (also removes 2 N pairs) |
+| N | 80 pairs | identical definition, different name (`_fkey`/`_key`/`_pkey`/`<col>_check` vs Drizzle names) | OPEN — a future `DROP CONSTRAINT IF EXISTS <drizzle name>` misses path A |
 
 The CI step `P0-DB constraint/index parity (path A vs generated)` fails when the observed drift differs from the ledger in either direction: new drift, or a resolved entry left in the ledger. The fingerprint SQL separately rejects any duplicate FK on the same columns; that class is never ledgered.
 
@@ -226,6 +233,8 @@ Status:
 `S3_MEMBERSHIP_AND_SUMMARY_PROVENANCE_DRIFT = RESOLVED_BY_0022 (DISPOSABLE QA)`
 
 `DEVICE_IDENTITY_PSA_KEY_ID_TYPE_DRIFT = RESOLVED_IN_SOURCE_SCHEMA`
+
+`COPRESENCE_FK_AND_INDEX_FORM_DRIFT = RESOLVED_BY_0023 (DISPOSABLE QA)`
 
 `REMAINING_CONSTRAINT_INDEX_DRIFT = GATED / OPEN — each class needs its own decision`
 

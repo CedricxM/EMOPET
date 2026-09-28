@@ -13,11 +13,9 @@
 # entries are sorted by the gate, so grouping below is for review only.
 # Recorded 2026-09-27 on postgres:16.15; classification in the reconciliation doc.
 
-# S1 — FK declared in Drizzle, absent from path A (10)
+# S1 — FK declared in Drizzle, absent from path A (8)
 B|CONSTRAINT|anticipation_events|anticipation_events_dog_id_dogs_id_fk|f|FOREIGN KEY (dog_id) REFERENCES dogs(id)
 B|CONSTRAINT|baseline_drift_monitor|baseline_drift_monitor_dog_id_dogs_id_fk|f|FOREIGN KEY (dog_id) REFERENCES dogs(id)
-B|CONSTRAINT|copresence_events|copresence_events_dog_a_id_dogs_id_fk|f|FOREIGN KEY (dog_a_id) REFERENCES dogs(id)
-B|CONSTRAINT|copresence_events|copresence_events_dog_b_id_dogs_id_fk|f|FOREIGN KEY (dog_b_id) REFERENCES dogs(id)
 B|CONSTRAINT|dog_sub_baselines|dog_sub_baselines_dog_id_dogs_id_fk|f|FOREIGN KEY (dog_id) REFERENCES dogs(id)
 B|CONSTRAINT|recovery_events|recovery_events_dog_id_dogs_id_fk|f|FOREIGN KEY (dog_id) REFERENCES dogs(id)
 B|CONSTRAINT|routine_stability|routine_stability_dog_id_dogs_id_fk|f|FOREIGN KEY (dog_id) REFERENCES dogs(id)
@@ -35,21 +33,7 @@ A|CONSTRAINT|recovery_events|recovery_events_slot_check|c|CHECK ((slot = ANY (AR
 A|CONSTRAINT|routine_stability|routine_stability_rsi_trend_check|c|CHECK ((rsi_trend = ANY (ARRAY['stable'::text, 'declining'::text, 'improving'::text])))
 A|CONSTRAINT|user_config|user_config_source_check|c|CHECK ((source = ANY (ARRAY['system'::text, 'breed'::text, 'learned'::text, 'user'::text])))
 
-# S4 — index in historical SQL, absent from Drizzle (2)
-A|INDEX|breed_canonical|idx_breed_canonical_fci|CREATE INDEX idx_breed_canonical_fci ON public.breed_canonical USING btree (fci_number)
-A|INDEX|breed_canonical|idx_breed_canonical_slug|CREATE INDEX idx_breed_canonical_slug ON public.breed_canonical USING btree (breed_slug)
-
-# S5 — same index name, different key order (DESC) (4)
-A|INDEX|anticipation_events|idx_anticipation_events_dog_time|CREATE INDEX idx_anticipation_events_dog_time ON public.anticipation_events USING btree (dog_id, predicted_event_time DESC)
-B|INDEX|anticipation_events|idx_anticipation_events_dog_time|CREATE INDEX idx_anticipation_events_dog_time ON public.anticipation_events USING btree (dog_id, predicted_event_time)
-A|INDEX|recovery_events|idx_recovery_events_dog_time|CREATE INDEX idx_recovery_events_dog_time ON public.recovery_events USING btree (dog_id, returned_to_baseline_at DESC)
-B|INDEX|recovery_events|idx_recovery_events_dog_time|CREATE INDEX idx_recovery_events_dog_time ON public.recovery_events USING btree (dog_id, returned_to_baseline_at)
-
-# S6 — UNIQUE constraint in path A, unique index (no constraint) in Drizzle (2)
-A|CONSTRAINT|imu_discrimination_thresholds|imu_discrimination_thresholds_activity_a_activity_b_feature_key|u|UNIQUE (activity_a, activity_b, feature_name, placement)
-A|CONSTRAINT|weather_context|weather_context_location_key_date_key|u|UNIQUE (location_key, date)
-
-# N — name-only drift: identical definition, different name (82 pairs)
+# N — name-only drift: identical definition, different name (80 pairs)
 # Inline unnamed declarations in baseline-draft/historical SQL get PostgreSQL names
 # (_fkey, _key, _pkey, <col>_check); Drizzle names them _<ref>_<col>_fk, _unique, _pk, chk_*.
 A|CONSTRAINT|achievements|achievements_user_id_fkey|f|FOREIGN KEY (user_id) REFERENCES users(id)
@@ -166,8 +150,6 @@ A|CONSTRAINT|health_entries|health_entries_dog_id_fkey|f|FOREIGN KEY (dog_id) RE
 B|CONSTRAINT|health_entries|health_entries_dog_id_dogs_id_fk|f|FOREIGN KEY (dog_id) REFERENCES dogs(id)
 A|CONSTRAINT|imu_activity_profiles|imu_activity_profiles_source_dataset_fkey|f|FOREIGN KEY (source_dataset) REFERENCES dataset_registry(dataset_id)
 B|CONSTRAINT|imu_activity_profiles|imu_activity_profiles_source_dataset_dataset_registry_dataset_i|f|FOREIGN KEY (source_dataset) REFERENCES dataset_registry(dataset_id)
-A|INDEX|imu_discrimination_thresholds|imu_discrimination_thresholds_activity_a_activity_b_feature_key|CREATE UNIQUE INDEX imu_discrimination_thresholds_activity_a_activity_b_feature_key ON public.imu_discrimination_thresholds USING btree (activity_a, activity_b, feature_name, placement)
-B|INDEX|imu_discrimination_thresholds|uq_discrimination|CREATE UNIQUE INDEX uq_discrimination ON public.imu_discrimination_thresholds USING btree (activity_a, activity_b, feature_name, placement)
 A|CONSTRAINT|imu_discrimination_thresholds|imu_discrimination_thresholds_source_dataset_fkey|f|FOREIGN KEY (source_dataset) REFERENCES dataset_registry(dataset_id)
 B|CONSTRAINT|imu_discrimination_thresholds|imu_discrimination_thresholds_source_dataset_dataset_registry_d|f|FOREIGN KEY (source_dataset) REFERENCES dataset_registry(dataset_id)
 A|CONSTRAINT|imu_shake_filter|imu_shake_filter_parameter_key|u|UNIQUE (parameter)
@@ -214,5 +196,3 @@ A|CONSTRAINT|users|users_email_key|u|UNIQUE (email)
 B|CONSTRAINT|users|users_email_unique|u|UNIQUE (email)
 A|INDEX|users|users_email_key|CREATE UNIQUE INDEX users_email_key ON public.users USING btree (email)
 B|INDEX|users|users_email_unique|CREATE UNIQUE INDEX users_email_unique ON public.users USING btree (email)
-A|INDEX|weather_context|weather_context_location_key_date_key|CREATE UNIQUE INDEX weather_context_location_key_date_key ON public.weather_context USING btree (location_key, date)
-B|INDEX|weather_context|uq_weather_location_date|CREATE UNIQUE INDEX uq_weather_location_date ON public.weather_context USING btree (location_key, date)
