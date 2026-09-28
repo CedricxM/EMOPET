@@ -34,10 +34,7 @@ namespace Emopet.World
             }
             catch (WorldBackendException error)
             {
-                if (error.Code == WorldErrorCode.Forbidden || error.Code == WorldErrorCode.InvalidSession)
-                    stateMachine.MarkRevoked();
-                else
-                    stateMachine.MarkDegraded();
+                ApplyFailure(error);
                 throw;
             }
         }
@@ -45,9 +42,18 @@ namespace Emopet.World
         public async Task ShowPresenceAsync(CancellationToken cancellationToken)
         {
             EnsureConnected();
-            await backend.ShowPresenceAsync(Handle, cancellationToken);
-            if (State == WorldSessionState.ConnectedInvisible)
-                stateMachine.PresenceBecameVisible();
+
+            try
+            {
+                await backend.ShowPresenceAsync(Handle, cancellationToken);
+                if (State == WorldSessionState.ConnectedInvisible)
+                    stateMachine.PresenceBecameVisible();
+            }
+            catch (WorldBackendException error)
+            {
+                ApplyFailure(error);
+                throw;
+            }
         }
 
         public async Task HidePresenceAsync(CancellationToken cancellationToken)
@@ -55,14 +61,31 @@ namespace Emopet.World
             if (State != WorldSessionState.ConnectedVisible)
                 return;
 
-            await backend.HidePresenceAsync(Handle, cancellationToken);
-            stateMachine.PresenceBecameInvisible();
+            try
+            {
+                await backend.HidePresenceAsync(Handle, cancellationToken);
+                stateMachine.PresenceBecameInvisible();
+            }
+            catch (WorldBackendException error)
+            {
+                ApplyFailure(error);
+                throw;
+            }
         }
 
-        public Task<WorldEventsResult> PollEventsAsync(CancellationToken cancellationToken)
+        public async Task<WorldEventsResult> PollEventsAsync(CancellationToken cancellationToken)
         {
             EnsureConnected();
-            return backend.GetEventsAsync(Handle, cancellationToken);
+
+            try
+            {
+                return await backend.GetEventsAsync(Handle, cancellationToken);
+            }
+            catch (WorldBackendException error)
+            {
+                ApplyFailure(error);
+                throw;
+            }
         }
 
         public async Task DisconnectAsync(CancellationToken cancellationToken)
@@ -71,13 +94,19 @@ namespace Emopet.World
             Handle = null;
             ExpiresAtUnixMs = 0;
 
-            if (!string.IsNullOrEmpty(handle))
+            try
             {
-                try { await backend.DisconnectAsync(handle, cancellationToken); }
-                catch (WorldBackendException) { }
+                if (!string.IsNullOrEmpty(handle))
+                    await backend.DisconnectAsync(handle, cancellationToken);
             }
-
-            stateMachine.Disconnect();
+            catch (WorldBackendException)
+            {
+                // Disconnect is best-effort: local state must still close.
+            }
+            finally
+            {
+                stateMachine.Disconnect();
+            }
         }
 
         public void MarkRevokedLocally()
@@ -85,6 +114,23 @@ namespace Emopet.World
             Handle = null;
             ExpiresAtUnixMs = 0;
             stateMachine.MarkRevoked();
+        }
+
+        private void ApplyFailure(WorldBackendException error)
+        {
+            switch (error.Code)
+            {
+                case WorldErrorCode.InvalidSession:
+                case WorldErrorCode.Forbidden:
+                    Handle = null;
+                    ExpiresAtUnixMs = 0;
+                    stateMachine.MarkRevoked();
+                    break;
+                case WorldErrorCode.Unavailable:
+                case WorldErrorCode.Timeout:
+                    stateMachine.MarkDegraded();
+                    break;
+            }
         }
 
         private void EnsureConnected()
