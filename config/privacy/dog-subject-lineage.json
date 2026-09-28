@@ -132,6 +132,22 @@
       "source": "backend/db/schema/behavioral-assessments.ts",
       "databaseDeleteAction": "NO_ACTION",
       "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "administration_sessions",
+      "column": "assessment_id",
+      "references": "behavioral_assessments.id",
+      "source": "backend/db/schema/instrument-administration.ts",
+      "databaseDeleteAction": "CASCADE",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "instrument_administration_events",
+      "column": "assessment_id",
+      "references": "behavioral_assessments.id",
+      "source": "backend/db/schema/instrument-administration.ts",
+      "databaseDeleteAction": "CASCADE",
+      "erasureDisposition": "TO_CONFIRM"
     }
   ],
   "scopeLimitations": [

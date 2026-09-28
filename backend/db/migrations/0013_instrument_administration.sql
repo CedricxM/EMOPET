@@ -392,6 +392,16 @@ ALTER TABLE "behavioral_assessments"
   FOREIGN KEY ("version_id") REFERENCES "public"."instrument_versions"("id")
   ON DELETE NO ACTION ON UPDATE NO ACTION;
 
+-- This constraint name is 73 bytes and PostgreSQL truncates identifiers to 63,
+-- so it is stored as "behavioral_assessments_policy_id_instrument_administration_poli"
+-- and applying this file emits a truncate_identifier notice. That is expected and
+-- deliberate: the name follows Drizzle's {table}_{column}_{reftable}_{refcolumn}_fk
+-- convention, so the hand-applied migration path and the generated Drizzle
+-- baseline truncate to the SAME name and the two databases agree. Shortening it
+-- here would make them disagree, which is exactly how the duplicate
+-- respondent_user_id foreign keys visible on the migration path arose.
+-- Truncation is deterministic, so the DROP below matches the stored name and this
+-- file stays idempotent.
 ALTER TABLE "behavioral_assessments"
   DROP CONSTRAINT IF EXISTS "behavioral_assessments_policy_id_instrument_administration_policies_id_fk";
 ALTER TABLE "behavioral_assessments"

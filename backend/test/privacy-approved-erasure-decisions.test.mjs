@@ -8,11 +8,15 @@ const source = (path) => readFile(new URL(path, root), 'utf8');
 test('approved D1-D4 privacy decisions are recorded while legal/privacy acceptance stays unresolved', async () => {
   const semantics = JSON.parse(await source('config/privacy/erasure-conditional-semantics.json'));
   assert.equal(semantics.summary.productPrivacyDecisionsApproved, 4);
-  assert.equal(semantics.summary.authorityDecisionsStillRequired, 1);
+  assert.equal(semantics.summary.authorityDecisionsStillRequired, 3);
   assert.equal(semantics.productPrivacyDecisionsApproved.length, 4);
   assert.deepEqual(
-    semantics.authorityDecisionsRemaining.map((row) => row.relation),
-    ['users.id|DIRECT_FK|community_rules_acceptances|user_id'],
+    semantics.authorityDecisionsRemaining.map((row) => row.relation).sort(),
+    [
+      'dogs.id|TRANSITIVE_FK|administration_sessions|assessment_id',
+      'dogs.id|TRANSITIVE_FK|instrument_administration_events|assessment_id',
+      'users.id|DIRECT_FK|community_rules_acceptances|user_id',
+    ],
   );
   for (const row of semantics.productPrivacyDecisionsApproved) {
     assert.equal(row.promotionAuthorized, true);

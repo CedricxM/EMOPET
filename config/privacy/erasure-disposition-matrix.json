@@ -346,6 +346,26 @@
       "disposition": "TO_CONFIRM",
       "executionStatus": "NOT_IMPLEMENTED",
       "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "TRANSITIVE_FK",
+      "table": "administration_sessions",
+      "column": "assessment_id",
+      "references": "behavioral_assessments.id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "TRANSITIVE_FK",
+      "table": "instrument_administration_events",
+      "column": "assessment_id",
+      "references": "behavioral_assessments.id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
     }
   ],
   "nonSqlSurfaces": [

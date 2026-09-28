@@ -15,9 +15,9 @@
     "Database mechanics never substitute for privacy disposition authority on unresolved rows."
   ],
   "summary": {
-    "relationalTotal": 37,
+    "relationalTotal": 39,
     "policyAlignedDeleteCandidates": 22,
-    "policyConditionalExecutionRequired": 12,
+    "policyConditionalExecutionRequired": 14,
     "legalAuthorityBlocked": 3,
     "matrixRowsPromoted": 4
   },
@@ -717,6 +717,52 @@
         "eli_inferred_aggregates"
       ],
       "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "TRANSITIVE_FK",
+      "table": "administration_sessions",
+      "column": "assessment_id",
+      "references": "behavioral_assessments.id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "behavioral_assessment_product",
+        "research_validation_personal_datasets"
+      ],
+      "why": "Session pacing inherits its parent assessment's product/research split: a session under a research administration_mode must defer to research governance exactly as its responses and factor scores do, so one static disposition cannot express both branches.",
+      "requiredDecision": "Resolve alongside the parent assessment's product/research branch rather than encoding a single disposition for both.",
+      "allowedOutcomes": [
+        "DELETE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "TRANSITIVE_FK",
+      "table": "instrument_administration_events",
+      "column": "assessment_id",
+      "references": "behavioral_assessments.id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "behavioral_assessment_product",
+        "research_validation_personal_datasets"
+      ],
+      "why": "The fidelity audit journal holds digests and timings only, never item wording, but a licensed instrument may require administration-conformity evidence to outlive the responses it records. Product erasure and licence evidence can therefore point in opposite directions, and the research branch defers as above.",
+      "requiredDecision": "Obtain the instrument licence and legal position on whether administration-conformity evidence must survive erasure of the responses it records; until then neither deletion nor retention is authorised.",
+      "allowedOutcomes": [
+        "DELETE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
       "promotionAuthorized": false
     }
   ],

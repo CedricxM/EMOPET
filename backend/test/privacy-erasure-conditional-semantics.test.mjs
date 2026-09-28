@@ -34,9 +34,9 @@ test('conditional semantics preserve fail-closed erasure with four approved matr
   assert.equal(semantics.claimsExecutableErasure, false);
   assert.equal(semantics.claimsCompleteErasure, false);
   assert.deepEqual(semantics.summary, {
-    conditionalRowsTotal: 12,
+    conditionalRowsTotal: 14,
     semanticsAlreadyDeterminedByExistingPolicy: 7,
-    authorityDecisionsStillRequired: 1,
+    authorityDecisionsStillRequired: 3,
     matrixRowsPromoted: 4,
     productPrivacyDecisionsApproved: 4,
   });
@@ -61,7 +61,7 @@ test('conditional semantics preserve fail-closed erasure with four approved matr
   }
 });
 
-test('the 12 conditional packet rows are partitioned exactly into 7 determined semantics plus 5 real decisions', () => {
+test('the 14 conditional packet rows are partitioned exactly into 7 determined semantics plus 7 real decisions', () => {
   const packetConditional = packet.relations
     .filter((row) => row.decisionSupportStatus === 'POLICY_CONDITIONAL_EXECUTION_REQUIRED')
     .map(key)
@@ -73,9 +73,9 @@ test('the 12 conditional packet rows are partitioned exactly into 7 determined s
     ...semantics.productPrivacyDecisionsApproved.map((row) => row.relation),
   ].sort();
 
-  assert.equal(packetConditional.length, 12);
-  assert.equal(semanticsKeys.length, 12);
-  assert.equal(new Set(semanticsKeys).size, 12);
+  assert.equal(packetConditional.length, 14);
+  assert.equal(semanticsKeys.length, 14);
+  assert.equal(new Set(semanticsKeys).size, 14);
   assert.deepEqual(semanticsKeys, packetConditional);
 });
 
@@ -263,7 +263,11 @@ test('only rules acceptance still requires privacy/legal authority', () => {
 
   assert.deepEqual(
     Object.keys(remaining).sort(),
-    ['users.id|DIRECT_FK|community_rules_acceptances|user_id'],
+    [
+      'dogs.id|TRANSITIVE_FK|administration_sessions|assessment_id',
+      'dogs.id|TRANSITIVE_FK|instrument_administration_events|assessment_id',
+      'users.id|DIRECT_FK|community_rules_acceptances|user_id',
+    ],
   );
 
   assert.equal(

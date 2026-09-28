@@ -228,11 +228,29 @@ Les tests sont le produit, pas la vérification du produit. Répartition selon l
 
 **Terminé quand** : `pnpm --filter @emopet/api test` passe en entier, y compris les 85 fichiers de test existants `[ÉTABLI]`, sans régression.
 
-### Lot 6 — Registres de confidentialité et CI · `S` · dépend de L1
+### Lot 6 — Registres de confidentialité et CI · ~~`S`~~ `M` · dépend de L1
 
-Application mécanique de §2.3, §2.4, §2.5. Petit lot, mais **c'est celui qu'on oublie**, et son oubli rend la couverture RGPD silencieusement fausse.
+> **État : `FAIT` (2026-09-28).** L'écart de topologie déclarée laissé par L1 est refermé. Vérifié : 304 tests backend, 0 échec ; topologie, résidu d'effacement et découverte de sujet passent contre la base **générée** (voir l'avertissement ci-dessous). `p0-generated-baseline` et le cluster jetable ont été supprimés.
+>
+> **Le lot s'est révélé plus gros que prévu (`S` → `M`).** Déclarer deux tables oblige à traverser toute la chaîne de registres, parce qu'ils sont vérifiés les uns contre les autres : `dog-erasure-topology` → `dog-subject-lineage` → `erasure-disposition-matrix` → `erasure-disposition-decision-packet` → `erasure-conditional-semantics`, plus quatre tests qui encodent des compteurs exacts. C'est la chaîne qui fait la valeur du dispositif, mais il faut la budgéter : deux lignes de schéma coûtent cinq registres et quatre tests.
+>
+> **Décision de classification prise, à faire valider.** Les deux tables sont classées `POLICY_CONDITIONAL_EXECUTION_REQUIRED`, comme leurs sœurs `behavioral_responses` et `behavioral_factor_scores`, et inscrites en `authorityDecisionsRemaining` :
+> - `administration_sessions` → autorité `RESEARCH_LEGAL_GOVERNANCE`, parce qu'une séance hérite du partage produit/recherche de son administration parente ;
+> - `instrument_administration_events` → autorité `INSTRUMENT_LICENCE_PRIVACY_LEGAL`, parce que le droit à l'effacement et une obligation contractuelle de preuve de conformité peuvent pointer en sens inverse. C'est la question ouverte sur la survie du journal, laissée ouverte et non tranchée.
+>
+> Rien ne devient exécutable : toutes les lignes restent `TO_CONFIRM` / `NOT_IMPLEMENTED` / `promotionAuthorized: false`. Je n'ai **pas** classé le journal en `LEGAL_AUTHORITY_BLOCKED` : un test impose que les bloqueurs légaux soient exactement trois entrées nommées, et y toucher serait un acte de gouvernance, pas de tenue de registre.
+
+Application de §2.3, §2.4, §2.5.
 
 **Terminé quand** : les tests de confidentialité existants passent ; `p0-db-baseline.yml` se déclenche effectivement sur une modification d'un fichier `instrument-*`.
+
+#### Défaut préexistant trouvé au passage, non corrigé
+
+`[ÉTABLI]` La CI expose l'étape « PRIV-ERASURE-TOPOLOGY generated database parity » avec `PRIVACY_ERASURE_TOPOLOGY_DB_INTEGRATION: '1'`, mais `backend/test/privacy-erasure-topology.integration.test.mjs` lit `PRIVACY_TOPOLOGY_DB_INTEGRATION`. **Les noms diffèrent, donc la moitié « base de données » de ce test ne s'exécute jamais en CI** : l'étape passe au vert en ne comparant que des fichiers JSON entre eux.
+
+Ce n'est pas corrigé ici, et délibérément. En activant la variable localement contre la base construite **par les migrations**, le test échoue sur une dérive préexistante : `auth_refresh_sessions`, `behavioral_assessments`, `communities`, `community_events` et `community_reports` portent chacune **deux** FK sur la même colonne (une `NO_ACTION` héritée du socle, une `SET_NULL` ajoutée par `0006`/`0008`/`0009`), et `user_config.user_id` manque. Cause : les `DROP CONSTRAINT IF EXISTS` de ces migrations nomment des contraintes que le socle n'avait pas créées sous ce nom.
+
+La même suite passe contre la base **générée** par Drizzle, qui est celle que la CI teste réellement. Le défaut est donc latent, pas actif — mais renommer la variable rendrait la CI rouge pour des raisons antérieures à ce chantier. **C'est un arbitrage à prendre séparément**, avec deux options : réconcilier les migrations pour que les deux chemins convergent, ou acter que seule la base générée fait foi et retirer l'étape trompeuse.
 
 ### Lot 7 — Harnais de simulation · `M` · dépend de L1 à L4
 
