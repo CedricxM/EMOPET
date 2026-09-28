@@ -13,6 +13,7 @@ import {
 } from '@emopet/shared';
 
 import { isLegalSessionEnd, selectSessionBoundary } from './instrument-breakpoints.js';
+import { sessionControl } from './instrument-session-controls.js';
 import { computeSessionSize } from './instrument-session-sizing.js';
 import { assessValidity, decideFatigueResponse, type FatigueOutcome } from './instrument-validity.js';
 
@@ -175,9 +176,10 @@ export function deadlineWarning(state: AdministrationState, now: number): Deadli
       && hoursRemaining <= state.policy.deadlineWarningHoursBefore
       && !alreadySent,
     hoursRemaining,
-    message:
-      'Ce qui se termine est la possibilité de scorer cette administration. '
-      + 'Les réponses déjà données sont conservées, et une nouvelle administration reste possible.',
+    // Drawn from the frozen session-control registry rather than written here, so
+    // the wording passes the same forbidden-pattern checks as every other string
+    // shown to a respondent during an administration.
+    message: sessionControl('DEADLINE_NOTICE').text,
   };
 }
 

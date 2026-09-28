@@ -318,6 +318,14 @@ jobs:
           NODE_ENV: test
         run: node --test test/subject-discovery-postgres.test.mjs test/community-subject-discovery.integration.test.mjs
 
+      - name: Instrument administration database guards
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          INSTRUMENT_ADMINISTRATION_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/instrument-database-guards.integration.test.mjs
+
       - name: PRIV-ERASURE-TOPOLOGY generated database parity
         working-directory: backend
         env:

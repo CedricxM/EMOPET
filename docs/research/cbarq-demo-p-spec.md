@@ -243,6 +243,45 @@ Deux mécanismes, tous deux démontrables devant Penn :
 
 ### Lot 5 — Garde-fous · `L` · dépend de L1 à L4
 
+> **État : `FAIT` (2026-09-28).** 368 tests backend, 0 échec (dont 9 tests d'intégration exécutés contre un PostgreSQL 16 jetable, portant la base **générée**). Étape CI ajoutée : `Instrument administration database guards`.
+>
+> #### Un manque réel comblé : G12 n'existait pas
+>
+> En L3 j'avais **conçu** le canal des contrôles de séance — la phase 2 bis, les chaînes figées qui permettent de continuer, s'arrêter, faire une pause — sans jamais écrire le registre. La seule chaîne visible par le propriétaire vivait en dur dans le moteur. `backend/api/services/instrument-session-controls.ts` existe maintenant : sept contrôles versionnés, et `validateRegistry()` les passe exhaustivement contre sept motifs interdits (lexique d'échelle, commentaire de réponse, suggestion, **retour sur le rythme ou la régularité**, lexique comportemental, cadrage de perte, série ou récompense). L'alerte d'échéance du moteur est désormais servie par le registre — un test vérifie l'identité des chaînes, pas leur ressemblance, pour qu'elle ne puisse pas dériver hors de portée des contrôles.
+>
+> La règle qui rend un interrogatif acceptable est ainsi rendue explicite : elle contraint le **producteur**, pas la surface. Un modèle qui ne pose aucune question ne peut pas glisser un item en contrebande ; un bouton qui propose de continuer n'est pas un item déguisé. Seul un contrôle de type `prompt` peut contenir un `?`, et le registre le vérifie.
+>
+> #### G9 — éprouvé, pas seulement écrit
+>
+> Un garde-fou non éprouvé ne prouve rien. J'ai donc injecté temporairement `import { CONF_PUBLISH } from '@emopet/eli-engine'` dans `instrument-validity.ts` : le test a échoué en **nommant le chemin exact** (`instrument-validity.ts -> @emopet/eli-engine`), puis le fichier a été restauré à l'identique. Le test résout les imports de façon transitive, statiques et dynamiques, et **épingle la liste complète des dépendances externes du moteur** à quatre entrées (`@emopet/shared`, `node:crypto`, `node:fs/promises`, `node:path`) — une entrée nouvelle est une décision qui mérite un relecteur, pas quelque chose qui passe avec une fonctionnalité.
+>
+> #### Ce que les tests ont trouvé dans mes propres tests
+>
+> Deux défauts, tous deux instructifs. Ma regex d'import capturait `from '${…}'` dans un littéral de gabarit — corrigé en exigeant qu'un spécificateur de module n'ait ni interpolation ni espace. Et les tests d'intégration ne rapportaient que la **première** contrainte violée : PostgreSQL abandonne la transaction dès la première erreur, donc les refus suivants remontaient « transaction is aborted ». Corrigé par un `SAVEPOINT` autour de chaque refus attendu, ce qui permet à chaque test de nommer sa contrainte.
+>
+> #### La carte de couverture
+>
+> `instrument-guardrails.test.mjs` porte une table des douze garde-fous, chacun avec **son fichier et son marqueur d'application**. Douze garde-fous sont faciles à décrire et faciles à perdre : un est refactorisé, la description reste, personne ne s'en aperçoit. Le test vérifie que chaque point d'application existe encore, et que la liste couvre `G1` à `G12` sans trou.
+>
+> | | Garde-fou | Appliqué dans |
+> |---|---|---|
+> | G1 | Le libellé n'entre dans aucun appel modèle | `instrument-content-store.ts` |
+> | G2 | Types opaques en entrée de prompt | `shared/instruments/types.ts` |
+> | G3 | La base refuse une présentation impliquant un modèle | migration `0013` |
+> | G4 | Empreintes recalculées avant présentation | `instrument-content-store.ts` |
+> | G5 | Le journal rejoue les invariants de la base | `instrument-audit-journal.ts` |
+> | G6 | Validation de bundle fail-closed | `instrument-content-store.ts` |
+> | G7 | Payloads scellés rendus mot pour mot | `shared/instruments/types.ts` |
+> | G8 | Aucun contenu licencié versionné | `instrument-no-licensed-content.test.mjs` |
+> | G9 | Aucun chemin d'import vers capteur ou ELI | `instrument-sensor-embargo.test.mjs` |
+> | G10 | Une coupure n'est légale que si listée | `instrument-breakpoints.ts` |
+> | G11 | L'ordre ne dépend jamais du répondant | `instrument-administration.ts` |
+> | G12 | Contrôles de séance figés et versionnés | `instrument-session-controls.ts` |
+>
+> **G8 scanne les fichiers suivis par git**, pas l'arbre de travail : ce qui compte est ce que git peut emporter, et l'historique reste exposé même après passage en privé. Il vérifie aussi que la CI surveille bien les chemins `instrument-*` — un fichier hors de la liste de chemins ne déclenche **aucune** validation, ce qui est la façon la plus discrète pour un garde-fou de cesser de garder.
+>
+> **Consolidation assumée :** la spec listait `instrument-reminder-cap.integration` et `instrument-audit-chain.integration` séparément ; ils sont réunis dans `instrument-database-guards.integration.test.mjs`, car ils partagent les mêmes fixtures et se lisent mieux côte à côte. Chaque test roule dans une transaction systématiquement annulée, donc la base jetable est laissée exactement telle qu'elle a été trouvée.
+
 Les tests sont le produit, pas la vérification du produit. Répartition selon les conventions du dépôt §2.6 :
 
 | Test | Fichier | Base ? | Couvre |
