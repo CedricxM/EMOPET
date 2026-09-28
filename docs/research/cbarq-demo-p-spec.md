@@ -337,6 +337,32 @@ Profils de propriétaire simulés : `sprinter` (enchaîne tout), `grazer` (une s
 
 C'est la pièce qui répond à `Q1.d`. Détail en §7, parce que sa conception est l'idée centrale de `P`.
 
+> **État : `FAIT` (2026-09-28).** `pnpm instruments:analyse` (ou `-- --quick`). Six contrôles, tous verts, exécution complète en ~8 s.
+>
+> **Écart assumé par rapport à §7.4 :** j'avais recommandé d'exporter en CSV et d'analyser **hors dépôt**, pour éviter d'ajouter une bibliothèque statistique sous la politique de dépendances strictes. C'était une précaution inutile : l'estimateur dont on a besoin — **effets fixes à deux facteurs** (item et répondant) par démoyennage itératif, plus **erreurs-types groupées par répondant** — s'écrit en une soixantaine de lignes sans aucune dépendance. L'avoir dans le dépôt vaut mieux pour une démonstration : une seule commande, reproductible, relisible par un tiers.
+>
+> #### Ce que l'estimateur contrôle, et pourquoi
+>
+> Démoyenner par item est **indispensable**, pas une raffinerie. Les items ne sont pas répondus de la même façon, et dans une administration à ordre fixe l'item et sa position sont corrélés : comparer brutalement les premières réponses aux dernières mesure surtout *quels items* ce sont. Le groupement des erreurs-types par répondant est tout aussi nécessaire — traiter les réponses d'une même personne comme indépendantes resserrerait l'intervalle et **fabriquerait** de la significativité.
+>
+> #### Résultats des trois passes
+>
+> **A — puissance** (δ = 0,40 ; 800 répondants) : δ̂ = 0,214, IC 95 % [0,177 ; 0,250], **détecté**.
+> **B — spécificité** (δ = 0 ; 800 répondants) : δ̂ = 0,003, IC [−0,031 ; 0,037], **rien détecté**. Le détecteur n'invente pas d'effet.
+> **C — sensibilité** : frontière de détectabilité, qui répond par un nombre à « combien d'administrations vous faut-il ? »
+>
+> | δ | 100 | 200 | 400 | 800 |
+> |---:|:---:|:---:|:---:|:---:|
+> | 0,10 | non | non | non | **oui** |
+> | 0,20 | non | non | **oui** | **oui** |
+> | 0,30 | **oui** | **oui** | **oui** | **oui** |
+>
+> #### Deux propriétés à énoncer avant qu'on ne les découvre
+>
+> **L'estimation est atténuée d'environ moitié** (42 à 55 % de l'effet injecté recouvré, dose-réponse monotone). Cause : les réponses sont des entiers sur une échelle à cinq points et sont bornées aux extrémités, donc l'arrondi et la saturation tirent l'estimation vers zéro. Conséquence à dire clairement : **δ̂ est une borne inférieure de l'effet latent, pas son estimation.** Et le biais va dans le bon sens — le détecteur sous-estime, il ne surestime pas.
+>
+> **Le détecteur refuse de répondre quand l'effet n'est pas identifiable.** Avec un profil unique pour tous, `0/24` items sont identifiables et aucune estimation n'est produite. C'est le garde-fou contre la pire erreur possible : conclure « aucun effet » depuis des données où il était indétectable par construction.
+
 ### Lot 9 — Assemblage de l'artefact d'appel · `S` · dépend de tout
 
 Voir §8.
