@@ -316,13 +316,29 @@ Application de §2.3, §2.4, §2.5.
 
 **Terminé quand** : les tests de confidentialité existants passent ; `p0-db-baseline.yml` se déclenche effectivement sur une modification d'un fichier `instrument-*`.
 
-#### Défaut préexistant trouvé au passage, non corrigé
+#### Défaut préexistant trouvé au passage — **corrigé le 2026-09-28**
 
-`[ÉTABLI]` La CI expose l'étape « PRIV-ERASURE-TOPOLOGY generated database parity » avec `PRIVACY_ERASURE_TOPOLOGY_DB_INTEGRATION: '1'`, mais `backend/test/privacy-erasure-topology.integration.test.mjs` lit `PRIVACY_TOPOLOGY_DB_INTEGRATION`. **Les noms diffèrent, donc la moitié « base de données » de ce test ne s'exécute jamais en CI** : l'étape passe au vert en ne comparant que des fichiers JSON entre eux.
+`[ÉTABLI]` La CI exposait l'étape « PRIV-ERASURE-TOPOLOGY generated database parity » avec `PRIVACY_ERASURE_TOPOLOGY_DB_INTEGRATION: '1'`, alors que `backend/test/privacy-erasure-topology.integration.test.mjs` lit `PRIVACY_TOPOLOGY_DB_INTEGRATION`. Les noms différaient, donc **la moitié « base de données » de ce test ne s'exécutait jamais** : l'étape passait au vert en ne comparant que des fichiers JSON entre eux.
 
-Ce n'est pas corrigé ici, et délibérément. En activant la variable localement contre la base construite **par les migrations**, le test échoue sur une dérive préexistante : `auth_refresh_sessions`, `behavioral_assessments`, `communities`, `community_events` et `community_reports` portent chacune **deux** FK sur la même colonne (une `NO_ACTION` héritée du socle, une `SET_NULL` ajoutée par `0006`/`0008`/`0009`), et `user_config.user_id` manque. Cause : les `DROP CONSTRAINT IF EXISTS` de ces migrations nomment des contraintes que le socle n'avait pas créées sous ce nom.
+> **Correction d'une affirmation de ce document.** J'avais écrit que renommer la variable « rendrait la CI rouge pour des raisons antérieures à ce chantier ». **C'était faux**, et la conclusion venait d'une erreur de méthode : j'avais testé contre la base construite **par les migrations**, alors que cette étape de CI tourne contre `emopet_qa_generated`, la base **générée par Drizzle**. Vérifié en reproduisant le chemin exact de la CI : avec le nom actuel le test passe en `SKIP`, avec le bon nom il **passe**. Le renommage était donc sûr, et il est fait.
+>
+> La dérive de FK sur le chemin des migrations existe bel et bien — `auth_refresh_sessions`, `behavioral_assessments`, `communities`, `community_events` et `community_reports` portent chacune deux FK sur la même colonne, et `user_config.user_id` manque, parce que les `DROP CONSTRAINT IF EXISTS` de `0006`/`0008`/`0009` nomment des contraintes que le socle n'avait pas créées sous ce nom. Mais elle est **hors du périmètre de cette étape**, qui ne teste que la base générée. Elle reste un arbitrage à part.
 
-La même suite passe contre la base **générée** par Drizzle, qui est celle que la CI teste réellement. Le défaut est donc latent, pas actif — mais renommer la variable rendrait la CI rouge pour des raisons antérieures à ce chantier. **C'est un arbitrage à prendre séparément**, avec deux options : réconcilier les migrations pour que les deux chemins convergent, ou acter que seule la base générée fait foi et retirer l'étape trompeuse.
+#### Une classe de défaut, pas un cas isolé
+
+En cherchant d'autres décalages, j'ai trouvé que **les six fichiers de tests statiques d'instrument ne s'exécutaient dans aucune étape de CI**. Les chemins ajoutés en L6 déclenchaient bien le job, mais rien ne lançait `instrument-content-store`, `instrument-administration`, `instrument-audit-journal`, `instrument-sensor-embargo`, `instrument-no-licensed-content` ni `instrument-guardrails` — donc G8, G9, G10, G11 et G12 étaient présents dans le dépôt et vérifiés nulle part.
+
+Même défaut de fond dans les deux cas : **un garde-fou présent mais jamais exécuté**, et un mode de défaillance invisible par construction. Un test gaté qui s'auto-ignore ne se plaint pas ; une étape mal nommée affiche son nom rassurant.
+
+Trois corrections, toutes vérifiées :
+
+1. le drapeau de l'étape de topologie est renommé — la moitié base s'exécute désormais ;
+2. deux étapes ajoutées, « Instrument repository-only guards » et « CI integration flag parity », placées juste après la construction du backend dont elles dépendent ;
+3. `backend/test/ci-integration-flag-parity.test.mjs` empêche la récidive. Il compare, pour chaque étape, le drapeau que pose la CI et celui que lit le test ; vérifie qu'aucun test gaté n'est orphelin ; vérifie que les tests de garde-fous d'instrument sont lancés ; et vérifie **qu'il est lui-même lancé**, sans quoi il serait un garde-fou de plus que personne n'exécute.
+
+Éprouvé dans les deux sens : en réintroduisant le mauvais nom de drapeau, le test échoue en nommant l'étape et les deux noms ; en retirant l'étape des garde-fous, il nomme le fichier orphelin.
+
+**Une leçon de méthode, notée parce qu'elle a failli produire un faux rapport.** Mon premier scan annonçait onze décalages. Dix étaient les miens : ma regex, ancrée sur `_DB_INTEGRATION` sans fermer l'identifiant, capturait un préfixe de `EMOPET_DB_INTEGRATION_TEST`. Il n'y avait qu'un décalage réel. Le test livré porte la regex corrigée et un commentaire expliquant pourquoi l'ancrage de fin compte.
 
 ### Lot 7 — Harnais de simulation · `M` · dépend de L1 à L4
 

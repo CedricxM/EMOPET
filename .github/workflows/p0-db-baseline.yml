@@ -36,6 +36,7 @@ on:
       - 'backend/api/services/subject-access.ts'
       - 'backend/api/services/instrument-*.ts'
       - 'backend/test/instrument-*.test.mjs'
+      - 'backend/test/ci-*.test.mjs'
       - 'config/instruments/**'
       - 'backend/api/services/data-export-policy.ts'
       - 'backend/test/data-export-*.test.mjs'
@@ -163,6 +164,21 @@ jobs:
 
       - name: Build backend dependency closure
         run: pnpm --filter @emopet/api... build
+
+      - name: Instrument repository-only guards
+        working-directory: backend
+        run: |
+          node --test \
+            test/instrument-content-store.test.mjs \
+            test/instrument-administration.test.mjs \
+            test/instrument-audit-journal.test.mjs \
+            test/instrument-sensor-embargo.test.mjs \
+            test/instrument-no-licensed-content.test.mjs \
+            test/instrument-guardrails.test.mjs
+
+      - name: CI integration flag parity
+        working-directory: backend
+        run: node --test test/ci-integration-flag-parity.test.mjs
 
       - name: Generate isolated Drizzle fresh baseline
         working-directory: backend
@@ -330,7 +346,7 @@ jobs:
         working-directory: backend
         env:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
-          PRIVACY_ERASURE_TOPOLOGY_DB_INTEGRATION: '1'
+          PRIVACY_TOPOLOGY_DB_INTEGRATION: '1'
         run: node --test test/privacy-erasure-topology.integration.test.mjs
 
       - name: PRIV-ERASURE-RESIDUE snapshot + negative SQL verification
