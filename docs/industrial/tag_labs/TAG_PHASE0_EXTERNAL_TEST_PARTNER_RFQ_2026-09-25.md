@@ -8,20 +8,27 @@
 
 EMOPET is preparing five TAG Phase-0 engineering prototypes.
 
-MOKO Technology's clarified role remains:
+MOKO Technology's clarified role is now:
 
 - PCB/PCBA fabrication and assembly from EMOPET-controlled design files;
 - AOI / X-ray / flying-probe and agreed factory inspection;
-- manufacture/assembly of a test fixture if EMOPET supplies a sufficiently controlled test package;
-- execution of an agreed functional test on the five prototypes and later batches.
+- **design + manufacture/assembly of a simple physical test fixture** when EMOPET supplies complete test requirements, test points, scripts, step-by-step procedure and pass/fail criteria;
+- execution of the agreed functional test on the five prototypes and later batches.
 
-MOKO is **not** currently the owner of TAG schematic closure, PCB/RF/power/mechanical design or one-off engineering validation.
+This fixture capability was confirmed by Alyson Tong on 2026-09-28 (Gmail message `1a0e5afd2285bd78`).
 
-This RFQ therefore seeks external partners for one of two distinct tracks.
+MOKO is **not** currently the owner of TAG schematic closure, PCB/RF/power/mechanical design or specialist RF/EMC engineering validation.
 
-## 2. Track A — one-off fixture / bring-up engineering
+This RFQ therefore preserves two external lanes, but **Track A is now fallback only**; Track B remains independently relevant.
 
-EMOPET may need a one-time engineering partner to convert our controlled requirements into a reproducible test system that can later be transferred to MOKO.
+## 2. Track A — one-off fixture / bring-up engineering — FALLBACK ONLY
+
+MOKO has confirmed it can design the simple physical fixture itself from a complete EMOPET-controlled test package. Therefore do **not** appoint an external Track A provider by default.
+
+Use this lane only if, after MOKO reviews the final input package:
+- MOKO says the fixture/test exceeds its engineering capability;
+- EMOPET needs independent one-off test-method engineering beyond physical fixture design;
+- or a required instrument/automation layer cannot be closed within the agreed MOKO scope.
 
 ### Requested scope
 
@@ -196,9 +203,13 @@ Please answer explicitly:
 
 For Track A, please confirm whether the completed fixture/test package can be transferred to another EMS factory for repeated execution.
 
-Preferred end state:
+Preferred end state now:
 
-`engineering partner develops/validates once -> EMOPET owns controlled package -> MOKO reproduces/runs routine test`
+`EMOPET freezes requirements/scripts/limits -> MOKO designs + builds simple fixture -> MOKO runs repeatable test`
+
+Fallback only if needed:
+
+`external engineering partner develops unresolved specialist layer -> EMOPET owns controlled handover -> MOKO reproduces/runs routine test`
 
 If your commercial model requires that the fixture/software remain proprietary or only executable at your facility, state that clearly.
 
@@ -225,6 +236,8 @@ The RFQ is intended to generate engineering evidence and quotations, not to repr
 
 ## 10. Selection status
 
-`TAG_EXTERNAL_TEST_PARTNER = RFQ / NO PROVIDER SELECTED`
+`TAG_EXTERNAL_FIXTURE_PARTNER = FALLBACK / NO PROVIDER SELECTED`
+
+`TAG_EXTERNAL_RF_EMC_LAB = RFQ / NO PROVIDER SELECTED`
 
 No website claim, email response or quotation alone authorizes supplier selection or fabrication release.
