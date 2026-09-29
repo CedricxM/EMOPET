@@ -1,9 +1,9 @@
 # EMOPET × MOKO — Communications Evidence Record
 
-**Control date:** 2026-09-22  
+**Control date:** 2026-09-29  
 **Counterparty:** MOKO Technology / Alyson Tong  
 **Primary Gmail thread:** `19f7e608c5fe1172`  
-**Current state:** ACTIVE SUPPLIER REVIEW / MAT QUOTATION RECEIVED / UPDATED PHASE 0 PACKAGE ACKNOWLEDGED / MOKO FABRICATION+TEST SCOPE CLARIFIED / NO MANUFACTURING OR TOOLING RELEASE INFERRED
+**Current state:** ACTIVE SUPPLIER REVIEW / MAT QUOTATION RECEIVED / UPDATED PHASE 0 PACKAGE ACKNOWLEDGED / MOKO CAN DESIGN+BUILD SIMPLE FIXTURE FROM CONTROLLED EMOPET TEST REQUIREMENTS / NO MANUFACTURING OR TOOLING RELEASE INFERRED
 
 ## Material evidence currently identified
 
@@ -130,11 +130,39 @@ Controlled implication: TAG design closure remains an EMOPET / separately appoin
 
 For Phase 0 test evidence, EMOPET should request structured measurement/test records and raw/minimally processed data where available rather than a supplier-authored engineering interpretation report.
 
+## 2026-09-24 to 2026-09-28 fixture-design clarification
+
+**Direction:** BILATERAL CLARIFICATION  
+**EMOPET message IDs:** `1a0d25fea62e7ac8`, `1a0d33f4a1cc700f`  
+**MOKO message IDs:** `1a0d26caf849f630`, `1a0e5afd2285bd78`  
+**Status proven:** `MOKO SIMPLE FIXTURE DESIGN + BUILD CAPABILITY CONFIRMED FROM CONTROLLED INPUTS`
+
+MOKO first confirmed that it can:
+- manufacture/assemble a simple functional-test fixture;
+- execute the resulting functional test on the five prototypes and later production batches;
+- provide standard flying-probe, AOI and X-ray inspection, with additional environmental equipment available subject to exact scope.
+
+EMOPET then asked the narrower ownership question: whether MOKO can design the physical fixture itself when EMOPET provides the complete test requirements rather than completed fixture CAD.
+
+Alyson Tong answered on 2026-09-28:
+
+> MOKO can design the physical test fixture itself if EMOPET provides the complete test requirements, test points, scripts, step-by-step procedure and pass/fail criteria.
+
+Controlled implication:
+- MOKO is now the preferred first path for **simple physical fixture design + manufacture + repeatable execution**;
+- EMOPET remains authority for the test requirements, test points, scripts/logic, procedure and pass/fail criteria unless a separately approved engineering scope says otherwise;
+- an external fixture-engineering bureau is fallback only if the final fixture/test package exceeds MOKO's confirmed simple-fixture capability;
+- this confirmation does not transfer TAG schematic/RF/power/mechanical design authority to MOKO;
+- specialist RF/GNSS/EMC/pre-compliance work remains a separate laboratory lane.
+
+No purchase order, fixture release, manufacturing release or tooling authority is created by this clarification.
+
 ## Current supplier action gates
 
 - Original RFQ acknowledgement / active bilateral supplier discussion: **PROVEN BY SUBSEQUENT REPLIES**.
 - MAT quotation + BOM-alternative notes: **RECEIVED 2026-09-17 / NOT ACCEPTED BY RECEIPT ALONE**.
 - Consolidated Phase 0 quotation: `PARTIAL SCOPE RESPONSE RECEIVED / UPDATED COST QUOTATION PENDING`.
+- Simple fixture design ownership: `MOKO CAPABLE FROM COMPLETE EMOPET REQUIREMENTS / FIXTURE INPUT PACKAGE NOT YET RELEASED`.
 - 22 September updated engineering package: `SENT / ACKNOWLEDGED BY MOKO`.
 - TAG final fabrication package: `NOT YET RELEASED`.
 - Tooling/manufacturing release: **not authorized by any Phase 0 RFQ/package transmission**.
