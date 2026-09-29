@@ -138,7 +138,7 @@ test('canonical device FK and challenge invariants fail closed', {
     store.createIfAbsent({
       challenge: challenge({
         challengeId: CHALLENGE_B,
-        nonce: 'A'.repeat(43),
+        nonce: 'A'.repeat(42) + 'B',
       }),
       consumedAt: null,
     }),
