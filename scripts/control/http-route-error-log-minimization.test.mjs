@@ -38,10 +38,28 @@ function isConsoleCall(node) {
     && node.expression.expression.text === 'console';
 }
 
-function containsIdentifier(node, name) {
+function isValueReferenceIdentifier(node) {
+  const parent = node.parent;
+  if (!parent) return true;
+
+  // Static object/property names such as { error: 'bounded_code' } are not
+  // references to the caught variable named "error".
+  if (ts.isPropertyAssignment(parent) && parent.name === node) return false;
+  if (ts.isPropertyAccessExpression(parent) && parent.name === node) return false;
+
+  return true;
+}
+
+function containsIdentifierReference(node, name) {
   let found = false;
   descendants(node, (child) => {
-    if (ts.isIdentifier(child) && child.text === name) found = true;
+    if (
+      ts.isIdentifier(child)
+      && child.text === name
+      && isValueReferenceIdentifier(child)
+    ) {
+      found = true;
+    }
   });
   return found;
 }
@@ -67,7 +85,7 @@ test('active HTTP handlers do not use console logging or reflect raw caught exce
 
       descendants(node.block, (child) => {
         if (!ts.isReturnStatement(child) || !child.expression) return;
-        if (!containsIdentifier(child.expression, errorName)) return;
+        if (!containsIdentifierReference(child.expression, errorName)) return;
         const { line } = sf.getLineAndCharacterOfPosition(child.getStart(sf));
         failures.push(relative(file) + ':' + (line + 1) + " returns data derived directly from caught exception '" + errorName + "'");
       });
