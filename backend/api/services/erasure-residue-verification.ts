@@ -37,6 +37,7 @@ import {
   userConfig,
   users,
   walkQuality,
+  worldPilotAccess,
 } from '../../db/schema/index.js';
 import { isCanonicalSubjectUuid } from './subject-access.js';
 
@@ -343,6 +344,7 @@ export async function verifyErasureResidue(
           probe('user_blocks.blocked_user_id', await countWhere(tx, userBlocks, eq(userBlocks.blockedUserId, snapshot.accountId))),
           probe('user_blocks.blocker_user_id', await countWhere(tx, userBlocks, eq(userBlocks.blockerUserId, snapshot.accountId))),
           probe('user_config.user_id', await countWhere(tx, userConfig, eq(userConfig.userId, snapshot.accountId))),
+          probe('world_pilot_access.user_id', await countWhere(tx, worldPilotAccess, eq(worldPilotAccess.userId, snapshot.accountId))),
         );
       }
 
