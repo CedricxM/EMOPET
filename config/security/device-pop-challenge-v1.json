@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-device-pop-challenge-contract-v1",
-  "status": "DATA_CONTRACT_SELECTED / ISSUER+VERIFIER+DEVICE_SIGNER_SOURCE_PRIMITIVES_IMPLEMENTED / KEY_STORAGE+DURABLE_RUNTIME_NOT_IMPLEMENTED / TELEMETRY_PERSISTENCE_BLOCKED",
+  "status": "DATA_CONTRACT_SELECTED / ISSUER+VERIFIER+DEVICE_SIGNER+REPLAY_STORE_SOURCE_IMPLEMENTED / KEY_STORAGE+DEVICE_DATA_TRUST_RUNTIME_OPEN / TELEMETRY_PERSISTENCE_BLOCKED",
   "issue": 648,
   "parentIssue": 66,
   "architecture": {
@@ -85,11 +85,11 @@
     "challengeIssuer": "SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_AUTHORITIES_REQUIRED / NO_HTTP_ROUTE",
     "deviceSigner": "SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_OPAQUE_PSA_KEY_ID / NO_KEY_GENERATION_OR_STORAGE",
     "backendVerifier": "SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_AUTHORITIES_REQUIRED / NO_HTTP_ROUTE",
-    "replayStore": "NOT_IMPLEMENTED",
+    "replayStore": "DURABLE_POSTGRES_IMPLEMENTED / EXPLICIT_DEPENDENCY / NO_HTTP_ROUTE",
     "deviceDataTrust": "NOT_IMPLEMENTED",
     "networkTelemetryPersistence": "BLOCKED",
     "credentialRepository": "NOT_IMPLEMENTED",
-    "challengePersistence": "NOT_IMPLEMENTED / MIGRATION_SLOT_BLOCKED_BY_PARALLEL_0020",
+    "challengePersistence": "DURABLE_POSTGRES_IMPLEMENTED / MIGRATION_0026 / NO_DEFAULT_TTL / NO_CLEANUP_POLICY",
     "issuerSource": "backend/api/security/device-pop-challenge-issuer.ts",
     "issuerUnitTest": "backend/test/device-pop-challenge-issuer.test.mjs",
     "issuerHasDefaultTtl": false,
@@ -109,7 +109,9 @@
     "deviceSignerSignatureEncoding": "PSA_RAW_R32_PLUS_S32 / 64_BYTES",
     "deviceSignerTargetBuildVerified": false,
     "devicePrivateKeyProvisioning": "NOT_IMPLEMENTED",
-    "devicePrivateKeyStorage": "NOT_IMPLEMENTED / HUK_KDR_PROTECTION_EVIDENCE_OPEN"
+    "devicePrivateKeyStorage": "NOT_IMPLEMENTED / HUK_KDR_PROTECTION_EVIDENCE_OPEN",
+    "challengeRepositorySource": "backend/api/security/device-pop-challenge-repository.ts",
+    "challengeRepositoryIntegrationTest": "backend/test/device-pop-challenge-repository.integration.test.mjs"
   },
   "releaseRule": "NO_DEVICE_TRUST_SUCCESS_OR_DURABLE_NETWORK_TELEMETRY_WRITE_UNTIL_RUNTIME_AND_TARGET_HARDWARE_NEGATIVE_EVIDENCE_PASS"
 }
