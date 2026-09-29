@@ -73,6 +73,13 @@
       "erasureDisposition": "DETACH"
     },
     {
+      "table": "community_reports",
+      "column": "subject_user_id",
+      "source": "backend/db/schema/community.ts",
+      "databaseDeleteAction": "SET_NULL",
+      "erasureDisposition": "DETACH"
+    },
+    {
       "table": "community_rules_acceptances",
       "column": "user_id",
       "source": "backend/db/schema/community.ts",
@@ -108,6 +115,20 @@
       "erasureDisposition": "TO_CONFIRM"
     },
     {
+      "table": "user_blocks",
+      "column": "blocked_user_id",
+      "source": "backend/db/schema/user-blocks.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "user_blocks",
+      "column": "blocker_user_id",
+      "source": "backend/db/schema/user-blocks.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
       "table": "user_config",
       "column": "user_id",
       "source": "backend/db/schema/eli-v5.ts",
@@ -125,7 +146,7 @@
   "unconstrainedUserIdentifiers": [],
   "dogDescendantAuthority": "config/privacy/dog-erasure-topology.json",
   "scopeLimitations": [
-    "SET_NULL on the four approved D1-D4 provenance/report relations implements automatic identity detachment when an account root is deleted.",
+    "SET_NULL on the five approved D1-D5 provenance/report relations (#446, #594) implements automatic identity detachment when an account root is deleted.",
     "SET_NULL on auth_refresh_sessions.user_id provides schema support for phased account erasure while retained revoked/expired session evidence remains bounded by its original expiry; it does not promote the matrix disposition.",
     "Other unresolved account relations remain fail-closed and keep their existing database mechanics until separately authorized.",
     "External/object/cache/analytics/backup copies remain blockers to any complete-erasure claim."
