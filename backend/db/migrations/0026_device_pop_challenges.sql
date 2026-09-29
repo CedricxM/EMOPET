@@ -3,7 +3,7 @@
 
 CREATE TABLE device_pop_challenges (
   challenge_id uuid PRIMARY KEY,
-  device_id uuid NOT NULL REFERENCES devices(id),
+  device_id uuid NOT NULL,
   credential_version bigint NOT NULL,
   purpose varchar(48) NOT NULL,
   nonce varchar(43) NOT NULL,
@@ -12,6 +12,9 @@ CREATE TABLE device_pop_challenges (
   signing_contract varchar(48) NOT NULL,
   consumed_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
+
+  CONSTRAINT device_pop_challenges_device_id_devices_id_fk
+    FOREIGN KEY (device_id) REFERENCES devices(id),
 
   CONSTRAINT chk_device_pop_challenges_credential_version
     CHECK (credential_version BETWEEN 1 AND 4294967295),
