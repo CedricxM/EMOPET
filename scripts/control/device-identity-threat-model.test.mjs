@@ -51,7 +51,10 @@ test('manufacturing flow cannot activate trust without challenge proof and final
     assert.ok(threat.manufacturingStages.includes(stage), stage);
   }
 
-  assert.match(provisioningSource, /PROVISIONING_PENDING_PROOF/);
+  assert.match(provisioningSource, /state = `PENDING_PROOF`/);
+  assert.match(provisioningSource, /atomic cutover/i);
+  assert.match(provisioningSource, /PENDING_PROOF -> ACTIVE/);
+  assert.match(provisioningSource, /ACTIVE -> REVOKED_PENDING_ERASE/);
   assert.match(provisioningSource, /APPROTECT/);
   assert.match(provisioningSource, /No raw device root\/private key belongs in the receipt/);
 });
