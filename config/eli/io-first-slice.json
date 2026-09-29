@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-eli-io-first-slice-v1",
-  "status": "FIRMWARE WRITER + MOBILE BLE CENTRAL CANDIDATE / PERIPHERAL GATT + NETWORK FORWARDING OPEN",
+  "status": "FIRMWARE WRITER + MOBILE BLE CENTRAL + FORWARDING PREFLIGHT / LIVE NETWORK + PHYSICAL TRUST OPEN",
   "issue": 122,
   "firstFeature": "activity_variability",
   "featureContractVersion": "tag-activity-variability-cv30m-v1",
@@ -73,7 +73,13 @@
     "mobileNetworkPostAcceptsPregatedCandidateOnly": true,
     "mobileNetworkSuccessContractImplemented": false,
     "mobileAutomaticRetryImplemented": false,
-    "mobileOfflineQueueImplemented": false
+    "mobileOfflineQueueImplemented": false,
+    "mobileForwardingPreflightImplemented": true,
+    "mobileForwardingPreflightAuthority": "apps/mobile/src/services/activity-feature-forwarding-preflight.ts",
+    "mobileForwardingPreflightBuildsPregatedCandidate": true,
+    "mobileForwardingPreflightPerformsNetworkIo": false,
+    "mobileForwardingPreflightSubmissionAuthorized": false,
+    "mobileForwardingPreflightPhysicalTrustRequired": true
   },
   "candidateOwnership": {
     "featureComputation": "FIRMWARE",
