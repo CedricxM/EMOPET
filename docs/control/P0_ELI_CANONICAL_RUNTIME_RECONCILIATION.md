@@ -159,6 +159,25 @@ What was delivered is **containment**: every surface that could show an ELI valu
 whether it is a demo, and every read that has no producer says so instead of returning an
 empty success. No surface shows a value produced by the engine, because no path invokes it.
 
+
+### 5.1 2026-09-29 G1 controlled disposition
+
+G1 is now closed narrowly as an inventory/classification gate. The repository carries a
+machine-readable surface authority at `config/eli/surface-authority-v1.json`, and Security CI
+runs `scripts/control/eli-surface-authority.test.mjs`.
+
+The guard pins:
+- every direct source under `apps/web/lib/eli` and `apps/web/lib/data/eli`;
+- every direct backend source under `backend/api/services/eli-runtime`;
+- the exact two production-code importers of `@emopet/eli-engine` outside the engine package;
+- the UI-only status of `catalog.ts`;
+- the mock/science-gated status of `eliValidation.ts`;
+- the demo/unwired status of web/mobile fallback surfaces;
+- the continued absence of a canonical latent `eli_states` writer.
+
+This does **not** close G4–G8, activate the generic ELI API, authorize latent publication,
+or establish scientific validity.
+
 ## 6. Open finding carried into the gate: `valence` in the shared result
 
 `@emopet/shared::InferenceResult` carries `eli: ELIState`, and `ELIState` carries `valence`

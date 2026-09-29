@@ -1,9 +1,13 @@
 /**
  * Catalogue ELI v6 — référence UI (Sprint 03, Couche C).
  *
- * 4 familles, 23 proxies, 11 vetoes contextuels, confidence gating.
- * Valeurs alignées sur le moteur canonique (`@emopet/eli-engine`) mais
- * définies localement pour éviter tout import cross-package dans le build Next.
+ * ELI_SURFACE_AUTHORITY: UI_CATALOG_ONLY / NOT_RUNTIME_AUTHORITY /
+ * NOT_SCIENCE_AUTHORITY (#118 G1).
+ *
+ * This file retains presentation metadata and legacy/prototype model-like
+ * constants for UI compatibility. It is not canonical engine configuration and
+ * must not be used as a substitute for `@emopet/eli-engine`, Product/Science
+ * authority, or an unavailable backend runtime.
  *
  * ⚠ Invariants : aucun terme médical/pathologique, aucune émotion humaine.
  * Le système OBSERVE des indicateurs de bien-être NON médicaux.

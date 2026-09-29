@@ -1,0 +1,147 @@
+{
+  "schemaVersion": "emopet-eli-surface-authority-v1",
+  "issue": 118,
+  "status": "G1_INVENTORY_CLASSIFIED_AND_GUARDED / LATENT_RUNTIME_NOT_ACTIVATED",
+  "canonicalEngine": {
+    "path": "packages/eli-engine/src",
+    "classification": "CANONICAL_ENGINE_SOURCE",
+    "scientificAuthority": false,
+    "runtimeAuthority": "BOUNDED_ONLY"
+  },
+  "authorizedRuntimeImporters": [
+    {
+      "path": "backend/api/services/eli-runtime/activity-variability-conformance.ts",
+      "classification": "SYNTHETIC_CONFORMANCE_ONLY",
+      "userProjection": false,
+      "persistenceWrite": false,
+      "latentPublication": false
+    },
+    {
+      "path": "backend/api/services/eli-runtime/physical-movement-observation.ts",
+      "classification": "BOUNDED_PHYSICAL_MOVEMENT_RUNTIME",
+      "userProjection": true,
+      "persistenceWrite": false,
+      "latentPublication": false
+    }
+  ],
+  "surfaces": [
+    {
+      "path": "packages/shared/src/types/inference.ts",
+      "classification": "CROSS_SURFACE_CONTRACT",
+      "authoritative": true,
+      "runtimeProducer": false
+    },
+    {
+      "path": "apps/web/lib/eli/catalog.ts",
+      "classification": "UI_CATALOG_ONLY_WITH_LEGACY_MODEL_LIKE_CONSTANTS",
+      "authoritative": false,
+      "runtimeProducer": false,
+      "scientificAuthority": false
+    },
+    {
+      "path": "apps/web/lib/eli/breed-aware-interpretation.ts",
+      "classification": "UI_INTERPRETATION_HELPER",
+      "authoritative": false,
+      "runtimeProducer": false
+    },
+    {
+      "path": "apps/web/lib/eli/mock.ts",
+      "classification": "DEMO_MOCK_ONLY",
+      "authoritative": false,
+      "runtimeProducer": false
+    },
+    {
+      "path": "apps/web/lib/eli/mock-provenance.ts",
+      "classification": "DEMO_PROVENANCE_GUARD",
+      "authoritative": false,
+      "runtimeProducer": false
+    },
+    {
+      "path": "apps/web/lib/narration.ts",
+      "classification": "USER_FACING_NARRATION_PROVENANCE_REQUIRED",
+      "authoritative": false,
+      "runtimeProducer": false
+    },
+    {
+      "path": "apps/web/lib/data/eli/appObservation.schema.ts",
+      "classification": "PRODUCT_DATA_CONTRACT",
+      "authoritative": true,
+      "runtimeProducer": false
+    },
+    {
+      "path": "apps/web/lib/data/eli/dogProfile.schema.ts",
+      "classification": "PRODUCT_DATA_CONTRACT",
+      "authoritative": true,
+      "runtimeProducer": false
+    },
+    {
+      "path": "apps/web/lib/data/eli/matEvent.schema.ts",
+      "classification": "PRODUCT_DATA_CONTRACT",
+      "authoritative": true,
+      "runtimeProducer": false
+    },
+    {
+      "path": "apps/web/lib/data/eli/tagEvent.schema.ts",
+      "classification": "PRODUCT_DATA_CONTRACT",
+      "authoritative": true,
+      "runtimeProducer": false
+    },
+    {
+      "path": "apps/web/lib/data/eli/eliLabels.ts",
+      "classification": "OBSERVABLE_LABEL_VOCABULARY",
+      "authoritative": false,
+      "runtimeProducer": false
+    },
+    {
+      "path": "apps/web/lib/data/eli/eliValidation.ts",
+      "classification": "MOCK_VALIDATION_HELPER_SCIENCE_GATED",
+      "authoritative": false,
+      "runtimeProducer": false,
+      "scientificAuthority": false
+    },
+    {
+      "path": "apps/web/lib/data/eli/mockEliPipeline.ts",
+      "classification": "DEMO_MOCK_ONLY",
+      "authoritative": false,
+      "runtimeProducer": false
+    },
+    {
+      "path": "apps/web/lib/data/eli/mockSensorEvents.ts",
+      "classification": "DEMO_MOCK_ONLY",
+      "authoritative": false,
+      "runtimeProducer": false
+    },
+    {
+      "path": "apps/mobile/src/hooks/use-v6-insights.ts",
+      "classification": "UNWIRED_CLIENT_PLACEHOLDER",
+      "authoritative": false,
+      "runtimeProducer": false
+    },
+    {
+      "path": "backend/db/schema/eli-v5.ts",
+      "classification": "PERSISTENCE_SCHEMA_CAPABILITY_ONLY",
+      "authoritative": false,
+      "runtimeProducer": false
+    },
+    {
+      "path": "backend/api/routes/sensors.ts",
+      "classification": "GENERIC_ELI_API_FAIL_CLOSED_PLUS_PHYSICAL_ROUTE",
+      "authoritative": false,
+      "runtimeProducer": false
+    },
+    {
+      "path": "backend/api/routes/data-export.ts",
+      "classification": "EXPORT_READER_NO_CANONICAL_LATENT_PRODUCER",
+      "authoritative": false,
+      "runtimeProducer": false
+    }
+  ],
+  "hardStops": {
+    "genericLatentRuntimeActivated": false,
+    "eliStatesCanonicalWriterPresent": false,
+    "webMayRecomputeCanonicalEli": false,
+    "mobileMayRecomputeCanonicalEli": false,
+    "demoMayFallbackForUnavailableRuntime": false,
+    "scienceValidityImpliedByClassification": false
+  }
+}
