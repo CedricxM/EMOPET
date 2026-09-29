@@ -43,13 +43,21 @@ Typical rotation:
 1. active credential remains in slot A;
 2. manufacturing/runtime authority selects empty slot B;
 3. #658 provisioner creates the new key in B;
-4. public enrollment receipt is sent/stored;
-5. proof-of-possession succeeds;
-6. backend activates new credential version;
-7. backend revokes old credential;
+4. public enrollment receipt is sent/stored as PENDING_PROOF;
+5. fresh proof-of-possession succeeds;
+6. final M5 debug/APPROTECT evidence is verified;
+7. backend performs one atomic cutover transaction:
+   - old slot A credential: `ACTIVE -> REVOKED_PENDING_ERASE`;
+   - new slot B credential: `PENDING_PROOF -> ACTIVE`;
 8. only a later explicit lifecycle authority may erase/reuse slot A.
 
 The same works with A/B reversed.
+
+The order above is intentional. The database enforces one ACTIVE credential per
+device, so a rotation implementation must not attempt to activate the new
+credential before revoking the old one in the same locked transaction.
+
+Activation/cutover implementation authority: #721.
 
 ## Enrollment receipt
 
@@ -76,7 +84,8 @@ device principal.
 
 This contract does not implement:
 - durable backend enrollment persistence;
-- ACTIVE credential mutation;
+- ACTIVE credential mutation / atomic rotation cutover (#721);
+- M4/M5 manufacturing evidence authority;
 - key destruction after revocation;
 - rotation/RMA runtime;
 - HUK/Secure Storage target evidence;
