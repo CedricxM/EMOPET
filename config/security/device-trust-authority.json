@@ -26,7 +26,7 @@
     "proofOfPossessionContract": "config/security/device-pop-challenge-v1.json",
     "challengeContract": "DEVICE_POP_CHALLENGE_V1 / RUNTIME_NOT_IMPLEMENTED",
     "challengeIssuer": "SOURCE_PRIMITIVE_IMPLEMENTED / NO_DEFAULT_STORE / NO_ROUTE",
-    "challengePersistence": "NOT_IMPLEMENTED",
+    "challengePersistence": "DURABLE_POSTGRES_IMPLEMENTED / MIGRATION_0026 / EXPLICIT_INJECTION_ONLY / NO_ROUTE / NO_DEFAULT_TTL / NO_CLEANUP_POLICY",
     "challengeVerifier": "SOURCE_PRIMITIVE_IMPLEMENTED / ACTIVE_CREDENTIAL + SERVER_CHALLENGE REQUIRED / NO_ROUTE"
   },
   "commands": {
