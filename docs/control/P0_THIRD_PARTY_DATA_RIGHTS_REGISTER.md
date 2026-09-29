@@ -114,6 +114,41 @@ aggregate gate:
 
 `G-THIRD-PARTY-DATA-RIGHTS-01 = OPEN`.
 
+
+### 0.4 Breiz / territorial-source reconciliation — 2026-09-29
+
+This section records the current repository state after the Breiz credential/access
+reconciliation and the BCD partnership preparation. It does **not** rewrite the historical
+pointer snapshot or promote any source to GO.
+
+Current reconciliation boundary:
+`main@821faff8b35a0fc116dd5d5408861b1de71eedaa`.
+
+| Reconciliation ID | Area | Current-main fact | Rights / release disposition |
+|---|---|---|---|
+| INT07-REC-009 | BCD / Bécédia | `bcd-becedia` remains disabled and `manual_review`; full-text/vector ingestion is not authorized and partner permission is required before richer editorial reuse | `HOLD / PARTNER_PERMISSION_REQUIRED` |
+| INT07-REC-010 | BCD / Bretania | `bretania` is classified as metadata access and remains disabled. Public portal aggregation/provenance is established, but a supported public OAI-PMH endpoint is **not established** in current EMOPET evidence | `HOLD / MACHINE_ACCESS + ITEM_RIGHTS OPEN` |
+| INT07-REC-011 | INSEE / SIRENE | Repository now carries the current SIRENE request/auth contract (`INSEE_API_KEY`, explicit OFF flag, `X-INSEE-Api-Key-Integration` header). Credential success does not authorize publication or bypass privacy/data-minimisation review | `OPEN / TECHNICAL CONTRACT PRESENT / SOURCE DISABLED` |
+| INT07-REC-012 | DATAtourisme | Repository now carries the current v1 catalogue request/auth contract (`DATATOURISME_API_KEY`, explicit OFF flag, `X-API-Key`, bounded request construction). Provider- and record-level licence/attribution evidence is still required | `OPEN / TECHNICAL CONTRACT PRESENT / SOURCE DISABLED` |
+| INT07-REC-013 | BCD outreach | A partnership/access brief exists on current main and asks BCD for supported machine access, metadata/editorial/media reuse, attribution, caching/indexing/RAG and takedown/update rules. Outreach preparation does not itself create rights | `DISCUSSION_PREPARED / NO RIGHTS GRANTED` |
+| INT07-REC-014 | Breiz kill-test bench | The offline 42-case kill-test bench is now on main. It evaluates bounded behaviour/provenance/abstention; it does not convert missing source rights into usable content authority | `EVALUATION PRESENT / RIGHTS GATE UNCHANGED` |
+
+Controlled consequences:
+
+- API credentials are transport credentials, not data-use licences.
+- A public portal or metadata page does not establish a supported bulk/machine-access method.
+- Bretania must not be reclassified as public OAI-PMH without a new controlled evidence receipt.
+- Bécédia full-text/vector ingestion remains disabled unless written authority supports the exact use.
+- SIRENE and DATAtourisme stay fail-closed until their runtime flags, credentials and existing
+  rights/privacy gates are all satisfied.
+- No source in this section is promoted to `GO`.
+
+`BREIZ_BCD_INGESTION = HOLD`
+
+`BRETANIA_OAI_PMH = NOT_ESTABLISHED`
+
+`G-THIRD-PARTY-DATA-RIGHTS-01 = OPEN`
+
 ## 1. Purpose and authority boundary
 
 This register records repository-observable facts, official-source checks and missing
