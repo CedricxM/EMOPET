@@ -166,7 +166,77 @@ Ask whether Penn would be open to discussing any of:
 
 Do not assume any of these from a positive licensing conversation.
 
-## 7. Red-line language during the meeting
+## 7. Bilateral collaboration ladder
+
+Do not present collaboration as “Penn gives EMOPET credibility” or “EMOPET gives Penn data.”
+
+The useful exchange is more specific and must remain permissioned.
+
+### What EMOPET can credibly offer now
+
+Without changing the current IP doctrine, EMOPET can offer to discuss:
+
+- implementation of a prospective, preregistered longitudinal study under an agreed protocol;
+- instrumented real-world observation infrastructure combining TAG/MAT/context where scientifically appropriate;
+- well-documented provenance, missingness, device/model versions and quality gates;
+- consented research cohorts rather than opportunistic reuse of product data;
+- governed de-identified research datasets where consent, ethics and a DUA permit it;
+- independent/reproducible analysis packages for the agreed study;
+- publication of limitations, negative/null findings and failed hypotheses rather than only positive product-friendly results;
+- scientific methods, validation protocols and claim boundaries that can be inspected and criticised;
+- appropriate academic credit, authorship or acknowledgement according to actual contribution and journal/institution rules;
+- possible student/research-project participation if Penn identifies a useful structure.
+
+### What remains protected unless separately approved
+
+The current EMOPET governance direction does **not** automatically offer:
+
+- product source code;
+- proprietary ELI implementation/parameters;
+- sensing architecture and industrial know-how;
+- security architecture;
+- unrestricted product-user data;
+- perpetual model-training rights;
+- ownership of EMOPET IP.
+
+If EMOPET later wants an open-source scientific artifact, the safer current option is a **research-specific validation/evaluation harness, protocol implementation or reproducibility package** that does not expose the proprietary product engine. Open-sourcing the production inference engine would require a separate explicit IP decision.
+
+### What EMOPET can ask Penn for
+
+Keep the ask modular:
+
+| Lane | EMOPET can ask | Separate authority needed |
+|---|---|---|
+| C-BARQ commercial use | exact instrument/version, digital rights, scoring/storage/repeated-use terms, quote path | copyright licence |
+| Scientific protocol | critique of hypotheses, constructs, timing, outcomes, analysis and interpretation boundaries | scientific advice / collaboration scope |
+| Research collaboration | prospective study co-design, analysis, replication/holdout design, publication pathway | written research/collaboration agreement as applicable |
+| Reference data | availability of norms/benchmarks or other suitable reference material | explicit data-use right / DUA if offered |
+| Publication | contribution roles, authorship/acknowledgement expectations, publication review mechanics | research/publication agreement as applicable |
+| Student/research involvement | suitable thesis/project/lab involvement | institutional/project approval |
+
+Do not bundle these into a single “partnership” ask.
+
+### Recommended collaboration ladder
+
+Prefer the smallest useful step first:
+
+1. **Call + written follow-up** — instrument/licensing and scientific questions.
+2. **Protocol review** — bounded comments on the prospective validation design.
+3. **Pilot/research design** — define cohort, outcomes, governance and analysis before recruitment.
+4. **Formal study collaboration** — only if both sides identify a real scientific project and the required agreements exist.
+5. **Longer-term scientific commons** — governed data access, replication, reproducibility artifacts or additional studies if the first work produces useful evidence.
+
+A positive answer at one level does not imply the next.
+
+### Conflict-of-interest / personal-recognition boundary
+
+Do not offer an informal personal payment, gift, equity interest or other private benefit to Professor Serpell in exchange for scientific guidance, favourable conclusions or institutional access.
+
+If paid advisory work ever becomes appropriate, handle it as a transparent, written consulting/advisory arrangement compatible with Penn's rules and disclose it where required. Scientific credit should follow actual contribution; authorship should not be used as compensation.
+
+This is an EMOPET governance safeguard, not a statement that Penn has requested compensation.
+
+## 8. Red-line language during the meeting
 
 Prefer:
 
@@ -186,7 +256,7 @@ Avoid:
 - “scientifically proven”
 - “partnership with Penn” unless formally agreed.
 
-## 8. Meeting notes template
+## 9. Meeting notes template
 
 For every answer record:
 
@@ -210,7 +280,7 @@ Suggested statuses:
 - `AGREED_NEXT_STEP`
 - `UNRESOLVED`
 
-## 9. Post-call rule
+## 10. Post-call rule
 
 Do not convert verbal guidance into repository licence authority unless the relevant permission is actually documented in writing.
 
