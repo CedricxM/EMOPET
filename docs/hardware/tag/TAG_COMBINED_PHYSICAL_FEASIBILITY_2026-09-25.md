@@ -177,11 +177,14 @@ This allocation is a test-management proposal, not a requirement to sacrifice al
 
 #580 owns partner qualification; merged #614 places the controlled RFQ package on current main while keeping provider selection and purchase authority open.
 
-Preferred split:
+Preferred split, updated by MOKO's 2026-09-28 written clarification:
 
-- MOKO: PCB/PCBA fabrication, AOI/X-ray/flying probe, fixture manufacture/assembly, repeatable agreed functional execution;
-- one-off engineering partner if needed: fixture/test-method development and bring-up;
+- MOKO: PCB/PCBA fabrication, AOI/X-ray/flying probe, **simple physical fixture design + manufacture/assembly** from a complete EMOPET-controlled test package, and repeatable agreed functional execution;
+- EMOPET: test requirements, test points, scripts/logic, SOP, pass/fail criteria and release authority;
+- one-off engineering partner: fallback only if the final fixture/test method exceeds MOKO's confirmed simple-fixture capability;
 - specialist/accredited lab: RF/GNSS/EMC/environmental evidence.
+
+The current controlled preparation package is `docs/industrial/moko/MOKO_TAG_SIMPLE_FIXTURE_INPUT_PACKAGE_2026-09-29.md`. Physical test-point mapping remains blocked until a coherent controlled PCB revision exists.
 
 ## Evidence packet required per test
 
