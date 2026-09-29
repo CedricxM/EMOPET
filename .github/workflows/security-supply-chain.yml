@@ -193,7 +193,7 @@ jobs:
         run: node --test scripts/control/device-identity-key-slots.test.mjs
       - name: Enforce Device Trust durable public credential boundary (#661)
         run: node --test scripts/control/device-credential-repository.test.mjs
-      - name: Enforce Device Trust atomic credential activation gate (#721)
+      - name: Enforce Device Trust atomic credential activation gate (#720)
         run: node --test scripts/control/device-credential-activation-gate.test.mjs
       - name: Enforce TAG firmware feature-writer parity (#122)
         run: |
