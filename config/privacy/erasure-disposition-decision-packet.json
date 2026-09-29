@@ -15,8 +15,8 @@
     "Database mechanics never substitute for privacy disposition authority on unresolved rows."
   ],
   "summary": {
-    "relationalTotal": 47,
-    "policyAlignedDeleteCandidates": 25,
+    "relationalTotal": 48,
+    "policyAlignedDeleteCandidates": 26,
     "policyConditionalExecutionRequired": 19,
     "legalAuthorityBlocked": 3,
     "matrixRowsPromoted": 5
@@ -288,6 +288,22 @@
       ],
       "decisionRef": "#594 (issuecomment-5856975549)",
       "rationale": "Founder decision #594 (issuecomment-5856975549): blocks are account-scoped safety settings deleted on erasure of either the blocker or the blocked account, through the ordered erasure executor rather than a database cascade; re-registration abuse is handled by moderation, never by retaining an erased person's identifier. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "world_pilot_access",
+      "column": "user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "account_auth"
+      ],
+      "rationale": "Account-scoped access entitlement (#596, decision #48 L1): the existing approved account_auth policy terminates it on account erasure, through the ordered erasure executor rather than a database cascade. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
       "promotionAuthorized": false
     },
     {
