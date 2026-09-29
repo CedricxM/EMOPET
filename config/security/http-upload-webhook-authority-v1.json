@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "emopet-http-upload-webhook-authority-v1",
+  "status": "NO_ACTIVE_SURFACES_CONFIRMED / ACTIVATION_REQUIRES_EXPLICIT_EVIDENCE",
+  "parentIssue": 214,
+  "uploadSurfaces": [],
+  "webhookSurfaces": [],
+  "requiredUploadControls": [
+    "BOUNDED_BODY_SIZE",
+    "CONTENT_TYPE_ALLOWLIST",
+    "CONTENT_SIGNATURE_OR_MAGIC_VALIDATION_WHERE_APPLICABLE",
+    "AUTHORIZATION",
+    "SAFE_STORAGE_OR_NO_STORAGE_BOUNDARY",
+    "NO_SECRET_OR_PERSONAL_PAYLOAD_LOGGING"
+  ],
+  "requiredWebhookControls": [
+    "ORIGIN_OR_INTEGRITY_AUTHENTICATION",
+    "FRESHNESS_AND_REPLAY_HANDLING",
+    "BOUNDED_BODY_SIZE",
+    "CONTENT_TYPE_OR_SCHEMA_VALIDATION",
+    "SECRET_EXCLUSION_FROM_LOGS",
+    "FAIL_CLOSED_INVALID_SIGNATURE"
+  ],
+  "activationRule": "ANY_DETECTED_SURFACE_MUST_BE_REGISTERED_WITH_A_DEDICATED_EVIDENCE_TEST_BEFORE_CI_MAY_PASS",
+  "nonEffects": {
+    "uploadRuntimeAuthorized": false,
+    "webhookRuntimeAuthorized": false,
+    "providerSelected": false,
+    "productionReleaseAuthorized": false
+  }
+}
