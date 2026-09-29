@@ -243,6 +243,14 @@ jobs:
           NODE_ENV: test
         run: node --test test/device-credential-repository.integration.test.mjs
 
+      - name: DEVICE-TRUST-ID-13 challenge replay store on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          DEVICE_POP_CHALLENGE_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/device-pop-challenge-repository.integration.test.mjs
+
       - name: Generate isolated Drizzle fresh baseline
         working-directory: backend
         run: |
@@ -335,6 +343,14 @@ jobs:
           DEVICE_CREDENTIAL_DB_INTEGRATION: '1'
           NODE_ENV: test
         run: node --test test/device-credential-repository.integration.test.mjs
+
+      - name: DEVICE-TRUST-ID-13 challenge replay store on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          DEVICE_POP_CHALLENGE_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/device-pop-challenge-repository.integration.test.mjs
 
       - name: ID-01 canonical identity and FK checks
         env:

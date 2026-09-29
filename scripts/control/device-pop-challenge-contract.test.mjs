@@ -11,6 +11,8 @@ const [
   ingressSource,
   issuerSource,
   verifierSource,
+  challengeRepositorySource,
+  challengeMigrationSource,
 ] = await Promise.all([
   readFile(new URL('../../config/security/device-pop-challenge-v1.json', import.meta.url), 'utf8'),
   readFile(new URL('../../config/security/device-identity-pop-evaluation-v1.json', import.meta.url), 'utf8'),
@@ -20,6 +22,8 @@ const [
   readFile(new URL('../../backend/api/security/device-data-trust.ts', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/api/security/device-pop-challenge-issuer.ts', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/api/security/device-pop-verifier.ts', import.meta.url), 'utf8'),
+  readFile(new URL('../../backend/api/security/device-pop-challenge-repository.ts', import.meta.url), 'utf8'),
+  readFile(new URL('../../backend/db/migrations/0026_device_pop_challenges.sql', import.meta.url), 'utf8'),
 ]);
 
 const contract = JSON.parse(contractSource);
@@ -93,8 +97,8 @@ test('replay and expiry remain server-owned and fail closed', () => {
     contract.runtime.deviceSigner,
     'SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_OPAQUE_PSA_KEY_ID / NO_KEY_GENERATION_OR_STORAGE',
   );
+  assert.match(contract.runtime.replayStore, /DURABLE_POSTGRES_IMPLEMENTED/);
   for (const state of [
-    'replayStore',
     'credentialRepository',
     'deviceDataTrust',
   ]) {
@@ -108,14 +112,37 @@ test('replay and expiry remain server-owned and fail closed', () => {
   assert.equal(contract.runtime.verifierHasPublicRoute, false);
   assert.equal(contract.runtime.verifierAuthorizesDeviceDataTrust, false);
   assert.equal(contract.runtime.verifierAuthorizesTelemetryPersistence, false);
-  assert.equal(
-    contract.runtime.challengePersistence,
-    'NOT_IMPLEMENTED / MIGRATION_SLOT_BLOCKED_BY_PARALLEL_0020',
-  );
+  assert.match(contract.runtime.challengePersistence, /DURABLE_POSTGRES_IMPLEMENTED/);
+  assert.match(contract.runtime.challengePersistence, /MIGRATION_0026/);
+  assert.match(contract.runtime.challengePersistence, /NO_DEFAULT_TTL/);
+  assert.match(contract.runtime.challengePersistence, /NO_CLEANUP_POLICY/);
   assert.equal(contract.runtime.issuerHasDefaultTtl, false);
   assert.equal(contract.runtime.issuerHasDefaultStore, false);
   assert.equal(contract.runtime.issuerHasPublicRoute, false);
   assert.equal(contract.runtime.networkTelemetryPersistence, 'BLOCKED');
+});
+
+test('durable replay store implements both injected interfaces without creating runtime authority', () => {
+  assert.match(challengeRepositorySource, /durableDevicePopChallengeRepository/);
+  assert.match(challengeRepositorySource, /DevicePopChallengeStore\s*&\s*DevicePopVerificationChallengeStore/);
+  assert.match(challengeRepositorySource, /onConflictDoNothing/);
+  assert.match(challengeRepositorySource, /consumeIfUnconsumed/);
+  assert.match(challengeRepositorySource, /isNull\(devicePopChallenges\.consumedAt\)/);
+  assert.match(challengeRepositorySource, /lte\(devicePopChallenges\.issuedAt, consumedAtDate\)/);
+  assert.match(challengeRepositorySource, /gt\(devicePopChallenges\.expiresAt, consumedAtDate\)/);
+  assert.doesNotMatch(challengeRepositorySource, /app\.(get|post|put|delete|patch)\(/);
+
+  assert.match(challengeMigrationSource, /CREATE TABLE device_pop_challenges/);
+  assert.match(challengeMigrationSource, /device_pop_challenges_device_id_devices_id_fk/);
+  assert.match(challengeMigrationSource, /CHECK \(expires_at > issued_at\)/);
+  assert.match(challengeMigrationSource, /consumed_at IS NULL/);
+  assert.doesNotMatch(challengeMigrationSource, /signature|private_key|public_key/i);
+
+  assert.equal(contract.runtime.issuerHasDefaultStore, false);
+  assert.equal(contract.runtime.verifierHasDefaultStore, false);
+  assert.equal(contract.runtime.verifierHasPublicRoute, false);
+  assert.equal(contract.runtime.verifierAuthorizesDeviceDataTrust, false);
+  assert.equal(contract.runtime.verifierAuthorizesTelemetryPersistence, false);
 });
 
 test('shared boundary validates challenge/response shape without implementing verification', () => {
@@ -196,7 +223,7 @@ test('verifier primitive reconstructs server challenge state and cannot activate
   for (const routeSource of routeSources) {
     assert.doesNotMatch(
       routeSource,
-      /device-pop-(?:challenge-issuer|verifier)|issueDevicePopChallengeV1|verifyDevicePopResponseV1/,
+      /device-pop-(?:challenge-issuer|verifier|challenge-repository)|issueDevicePopChallengeV1|verifyDevicePopResponseV1/,
     );
   }
 });

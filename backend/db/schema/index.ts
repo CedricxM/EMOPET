@@ -13,3 +13,4 @@ export * from './auth-sessions.js';
 export * from './professional-sharing.js';
 
 export * from './device-identity.js';
+export * from './device-pop-challenges.js';
