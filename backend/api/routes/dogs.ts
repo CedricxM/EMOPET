@@ -482,7 +482,7 @@ dogs.get('/:id/vet-report', async (c) => {
       c.header('Cache-Control', 'private, max-age=0, no-store');
       return c.json(
         {
-          error: error.code,
+          error: 'vet_report_data_unavailable',
           message: 'Vet report data is temporarily unavailable.',
         },
         503,
