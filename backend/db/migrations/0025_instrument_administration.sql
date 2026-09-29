@@ -5,6 +5,14 @@
 -- none of them — it adds version_id, policy_id, lifecycle_state and window_ends_at to
 -- behavioral_assessments, where 0014 added the household_* columns.
 --
+-- Every constraint here is named explicitly, matching the name the Drizzle schema
+-- generates, because the P0 constraint/index parity gate compares this path against the
+-- generated baseline and an unnamed inline CHECK or REFERENCES takes PostgreSQL's own
+-- <table>_<column>_check / _fkey instead. That is real drift, not cosmetics: a later
+-- DROP CONSTRAINT IF EXISTS by the Drizzle name would silently miss this path, which is
+-- exactly how 0021 came to exist. Several of these names exceed 63 bytes; see the note at
+-- the foot of this file on why the truncation is deliberate and must not be shortened.
+--
 -- Adds the structural half of a licensed behavioural instrument integration.
 -- Under the approved storage split, structure lives in PostgreSQL and the
 -- licensed wording lives in a private content store reached at runtime:
@@ -38,7 +46,7 @@ BEGIN;
 -- ============================================================
 CREATE TABLE IF NOT EXISTS instruments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  code VARCHAR(50) NOT NULL UNIQUE,
+  code VARCHAR(50) NOT NULL CONSTRAINT instruments_code_unique UNIQUE,
   owner_organisation VARCHAR(255) NOT NULL,
 
   -- Attribution wording required by the licence. Rendered verbatim, never
@@ -50,7 +58,9 @@ CREATE TABLE IF NOT EXISTS instruments (
 
 CREATE TABLE IF NOT EXISTS instrument_versions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  instrument_id UUID NOT NULL REFERENCES instruments(id),
+  instrument_id UUID NOT NULL
+    CONSTRAINT instrument_versions_instrument_id_instruments_id_fk
+    REFERENCES instruments(id),
   version VARCHAR(100) NOT NULL,
   locale VARCHAR(10) NOT NULL,
 
@@ -60,11 +70,13 @@ CREATE TABLE IF NOT EXISTS instrument_versions (
 
   license_reference VARCHAR(255),
   license_status VARCHAR(30) NOT NULL DEFAULT 'not_proven'
+    CONSTRAINT chk_instrument_version_license
     CHECK (license_status IN ('not_proven','granted','expired','revoked','demo_only')),
 
   -- A translation changes wording, and changed wording can invalidate an item.
   -- A locale that is not 'official' cannot claim comparability with reference norms.
   translation_status VARCHAR(30) NOT NULL DEFAULT 'unreviewed'
+    CONSTRAINT chk_instrument_version_translation
     CHECK (translation_status IN ('unreviewed','official','back_translated','not_equivalent')),
 
   expected_item_count INTEGER NOT NULL,
@@ -96,7 +108,9 @@ CREATE INDEX IF NOT EXISTS idx_instrument_version_instrument
 -- add framing the reference administration does not have. Closed by default.
 CREATE TABLE IF NOT EXISTS instrument_sections (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  version_id UUID NOT NULL REFERENCES instrument_versions(id),
+  version_id UUID NOT NULL
+    CONSTRAINT instrument_sections_version_id_instrument_versions_id_fk
+    REFERENCES instrument_versions(id),
   section_key VARCHAR(100) NOT NULL,
   ordinal INTEGER NOT NULL,
   first_position INTEGER NOT NULL,
@@ -123,7 +137,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_section_version_ordinal
 -- respondents is verifiable by inspecting this table.
 CREATE TABLE IF NOT EXISTS instrument_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  version_id UUID NOT NULL REFERENCES instrument_versions(id),
+  version_id UUID NOT NULL
+    CONSTRAINT instrument_items_version_id_instrument_versions_id_fk
+    REFERENCES instrument_versions(id),
 
   item_key VARCHAR(100) NOT NULL,
   subscale_key VARCHAR(100),
@@ -157,12 +173,16 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_instrument_item_position
 -- about how a validated instrument is administered and must be submitted.
 CREATE TABLE IF NOT EXISTS instrument_breakpoints (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  version_id UUID NOT NULL REFERENCES instrument_versions(id),
+  version_id UUID NOT NULL
+    CONSTRAINT instrument_breakpoints_version_id_instrument_versions_id_fk
+    REFERENCES instrument_versions(id),
 
   after_position INTEGER NOT NULL,
   breakpoint_kind VARCHAR(30) NOT NULL
+    CONSTRAINT chk_breakpoint_kind
     CHECK (breakpoint_kind IN ('section_boundary','intra_section')),
   authority VARCHAR(30) NOT NULL DEFAULT 'emopet_proposed'
+    CONSTRAINT chk_breakpoint_authority
     CHECK (authority IN ('licensed','emopet_proposed','emopet_approved')),
   approval_reference VARCHAR(255),
   rationale JSONB DEFAULT '{}'::jsonb,
@@ -189,13 +209,17 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_breakpoint
 -- at close, so the effective status is computed then and capped by this value.
 CREATE TABLE IF NOT EXISTS instrument_administration_policies (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  version_id UUID NOT NULL REFERENCES instrument_versions(id),
+  version_id UUID NOT NULL
+    CONSTRAINT instrument_administration_policies_version_id_instrument_versions_id_fk
+    REFERENCES instrument_versions(id),
   policy_key VARCHAR(100) NOT NULL,
   policy_version INTEGER NOT NULL DEFAULT 1,
 
   administration_mode VARCHAR(30) NOT NULL
+    CONSTRAINT chk_policy_mode
     CHECK (administration_mode IN ('standardized','progressive','research','unknown')),
   order_strategy VARCHAR(40) NOT NULL DEFAULT 'canonical'
+    CONSTRAINT chk_policy_order_strategy
     CHECK (order_strategy IN ('canonical','subscale_blocked','licensed_randomized')),
 
   target_session_minutes INTEGER NOT NULL DEFAULT 3,
@@ -222,9 +246,11 @@ CREATE TABLE IF NOT EXISTS instrument_administration_policies (
   -- offered in reaction to fast or uniform answering is itself a comment on
   -- those answers. It is therefore the default.
   fatigue_response_mode VARCHAR(30) NOT NULL DEFAULT 'silent_flag'
+    CONSTRAINT chk_policy_fatigue_mode
     CHECK (fatigue_response_mode IN ('silent_flag','boundary_offer','immediate_offer')),
 
   max_scientific_use_status VARCHAR(30) NOT NULL
+    CONSTRAINT chk_policy_use_status
     CHECK (max_scientific_use_status IN ('unreviewed','scoring_allowed','research_only','not_equivalent')),
 
   approved_by VARCHAR(255),
@@ -256,9 +282,12 @@ CREATE INDEX IF NOT EXISTS idx_policy_version
 -- be recognised as such when the effective scientific status is computed.
 CREATE TABLE IF NOT EXISTS administration_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  assessment_id UUID NOT NULL REFERENCES behavioral_assessments(id) ON DELETE CASCADE,
+  assessment_id UUID NOT NULL
+    CONSTRAINT administration_sessions_assessment_id_behavioral_assessments_id_fk
+    REFERENCES behavioral_assessments(id) ON DELETE CASCADE,
   session_index INTEGER NOT NULL,
   state VARCHAR(30) NOT NULL DEFAULT 'planned'
+    CONSTRAINT chk_session_state
     CHECK (state IN ('planned','invited','open','paused','closed','expired','abandoned')),
 
   planned_item_keys JSONB NOT NULL,
@@ -268,8 +297,12 @@ CREATE TABLE IF NOT EXISTS administration_sessions (
   closed_at TIMESTAMPTZ,
 
   breakpoint_set_version INTEGER NOT NULL,
-  opened_at_breakpoint_id UUID REFERENCES instrument_breakpoints(id),
-  closed_at_breakpoint_id UUID REFERENCES instrument_breakpoints(id),
+  opened_at_breakpoint_id UUID
+    CONSTRAINT administration_sessions_opened_at_breakpoint_id_instrument_breakpoints_id_fk
+    REFERENCES instrument_breakpoints(id),
+  closed_at_breakpoint_id UUID
+    CONSTRAINT administration_sessions_closed_at_breakpoint_id_instrument_breakpoints_id_fk
+    REFERENCES instrument_breakpoints(id),
 
   -- Only keys drawn from the policy's closed adaptive_signals list may appear.
   sizing_signals JSONB DEFAULT '{}'::jsonb,
@@ -322,11 +355,16 @@ CREATE INDEX IF NOT EXISTS idx_session_assessment
 -- variability into an analysable covariate instead of uncontrolled noise.
 CREATE TABLE IF NOT EXISTS instrument_administration_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  assessment_id UUID NOT NULL REFERENCES behavioral_assessments(id) ON DELETE CASCADE,
-  session_id UUID REFERENCES administration_sessions(id) ON DELETE CASCADE,
+  assessment_id UUID NOT NULL
+    CONSTRAINT instrument_administration_events_assessment_id_behavioral_assessments_id_fk
+    REFERENCES behavioral_assessments(id) ON DELETE CASCADE,
+  session_id UUID
+    CONSTRAINT instrument_administration_events_session_id_administration_sessions_id_fk
+    REFERENCES administration_sessions(id) ON DELETE CASCADE,
   sequence_index INTEGER NOT NULL,
 
   event_type VARCHAR(40) NOT NULL
+    CONSTRAINT chk_event_type
     CHECK (event_type IN (
       'assessment_opened','session_planned','session_invited','session_opened',
       'frame_presented','section_title_presented','item_presented','item_answered','item_revised',

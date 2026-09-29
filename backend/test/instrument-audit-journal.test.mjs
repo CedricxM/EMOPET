@@ -33,8 +33,13 @@ const T0 = Date.UTC(2026, 8, 28, 9, 0, 0);
 
 test('the event vocabulary matches the database constraint exactly', async () => {
   const sql = await readFile(MIGRATION, 'utf8');
-  const block = sql.match(/event_type VARCHAR\(40\) NOT NULL\s*CHECK \(event_type IN \(([\s\S]*?)\)\)/);
-  assert.ok(block, 'could not locate chk_event_type in the migration');
+  // The constraint name is part of the match on purpose. Path A and the Drizzle
+  // baseline must agree on it — an unnamed inline CHECK gets PostgreSQL's own
+  // <table>_<column>_check, which the P0 constraint/index parity gate reports as drift.
+  const block = sql.match(
+    /event_type VARCHAR\(40\) NOT NULL\s*CONSTRAINT chk_event_type\s*CHECK \(event_type IN \(([\s\S]*?)\)\)/,
+  );
+  assert.ok(block, 'could not locate the named chk_event_type in the migration');
 
   const inSql = [...block[1].matchAll(/'([a-z_]+)'/g)].map((match) => match[1]).sort();
   const inCode = [...AUDIT_EVENT_TYPES].sort();
