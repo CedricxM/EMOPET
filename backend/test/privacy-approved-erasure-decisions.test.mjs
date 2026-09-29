@@ -5,11 +5,11 @@ import { readFile } from 'node:fs/promises';
 const root = new URL('../../', import.meta.url);
 const source = (path) => readFile(new URL(path, root), 'utf8');
 
-test('approved D1-D4 privacy decisions remain four while five lifecycle/evidence authorities stay unresolved', async () => {
+test('approved D1-D5 privacy decisions are five while five lifecycle/evidence authorities stay unresolved', async () => {
   const semantics = JSON.parse(await source('config/privacy/erasure-conditional-semantics.json'));
-  assert.equal(semantics.summary.productPrivacyDecisionsApproved, 4);
-  assert.equal(semantics.summary.authorityDecisionsStillRequired, 7);
-  assert.equal(semantics.productPrivacyDecisionsApproved.length, 4);
+  assert.equal(semantics.summary.productPrivacyDecisionsApproved, 5);
+  assert.equal(semantics.summary.authorityDecisionsStillRequired, 5);
+  assert.equal(semantics.productPrivacyDecisionsApproved.length, 5);
   assert.deepEqual(
     semantics.authorityDecisionsRemaining.map((row) => row.relation).sort(),
     [
@@ -28,7 +28,7 @@ test('approved D1-D4 privacy decisions remain four while five lifecycle/evidence
   }
 });
 
-test('D1-D4 identity foreign keys detach rather than block account-root deletion', async () => {
+test('D1-D5 identity foreign keys detach rather than block account-root deletion', async () => {
   const [behavioral, community, migration, topology, matrix] = await Promise.all([
     source('backend/db/schema/behavioral-assessments.ts'),
     source('backend/db/schema/community.ts'),
@@ -40,6 +40,9 @@ test('D1-D4 identity foreign keys detach rather than block account-root deletion
   assert.match(behavioral, /respondentUserId: uuid\('respondent_user_id'\)\.references\(\(\) => users\.id, \{ onDelete: 'set null' \}\)/);
   assert.match(community, /createdBy: uuid\('created_by'\)\.references\(\(\) => users\.id, \{ onDelete: 'set null' \}\)/);
   assert.match(community, /reporterUserId: uuid\('reporter_user_id'\)\.references\(\(\) => users\.id, \{ onDelete: 'set null' \}\)/);
+  // D5 (#594): the reported person in World reports detaches like the reporter.
+  assert.match(community, /subjectUserId: uuid\('subject_user_id'\)\.references\(\(\) => users\.id, \{ onDelete: 'set null' \}\)/);
+  assert.match(await source('backend/db/migrations/0027_world_report_intake.sql'), /FOREIGN KEY \(subject_user_id\) REFERENCES users\(id\) ON DELETE SET NULL/);
   assert.match(migration, /behavioral_assessments[\s\S]*ON DELETE SET NULL/);
   assert.match(migration, /communities[\s\S]*ON DELETE SET NULL/);
   assert.match(migration, /community_events[\s\S]*ON DELETE SET NULL/);
@@ -53,6 +56,7 @@ test('D1-D4 identity foreign keys detach rather than block account-root deletion
     'communities.created_by',
     'community_events.created_by',
     'community_reports.reporter_user_id',
+    'community_reports.subject_user_id',
   ]);
   const topologyJson = JSON.parse(topology);
   const matrixJson = JSON.parse(matrix);
