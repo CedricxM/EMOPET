@@ -129,8 +129,8 @@ These rows establish only the narrow facts stated. None of them says an ELI valu
 | `packages/shared/src/types/inference.ts` | Cross-surface result type | `SHARED_CONTRACT_CANDIDATE` | Sole `InferenceResult`; guarded |
 | `packages/eli-engine/src/hooks/index.ts::PostInferenceCandidate` | Hook-local intermediate | `ENGINE_INTERNAL` | `DELIVERED` (G2) |
 | `apps/web/lib/eli/mock.ts` | Deterministic simulated dashboard data | `DEMO_MOCK_ONLY` | `CONTAINED` (G3) |
-| `apps/web/lib/eli/catalog.ts` | UI metadata plus model-like constants | `MIXED_SURFACE` | `OPEN` — split not done; stale rationale comment remains |
-| `apps/web/lib/data/eli/` contract half | Observation/profile schemas used by product code | `CONTRACT_CANDIDATE` | Live; thresholds such as `0.62` lack provenance (#86–#91) |
+| `apps/web/lib/eli/catalog.ts` | UI metadata plus model-like constants | `UI_CATALOG_ONLY / NOT_RUNTIME_AUTHORITY / NOT_SCIENCE_AUTHORITY` | `DELIVERED / GUARDED` — retained for UI compatibility; cannot masquerade as canonical engine config |
+| `apps/web/lib/data/eli/` contract half | Observation/profile schemas used by product code | `PRODUCT_DATA_CONTRACT / NOT_ELI_RUNTIME` | `DELIVERED / GUARDED`; `eliValidation.ts` is separately classified mock-only and science-gated |
 | `apps/web/lib/data/eli/` demo half | Mock pipeline and events | `DEMO_MOCK_ONLY` | `CONTAINED`, import boundary tested |
 | `apps/web/lib/narration.ts` | Second user-facing publication path | `PROVENANCE_REQUIRED` | `CONTAINED` |
 | `apps/mobile/src/hooks/use-v6-insights.ts` | Client placeholder | `UNWIRED` | `CONTAINED` (G7 client half) |
@@ -144,7 +144,7 @@ These rows establish only the narrow facts stated. None of them says an ELI valu
 
 | Gate | State at `main@3fa5c52` | Evidence | Next action |
 |---|---|---|---|
-| ELI-ARCH-G1 canonical inventory | `OPEN / EXTENDED` | Three implementations and two publication paths now mapped (§0.2) | Carry a disposition for `catalog.ts`'s model-like constants and for the `data/eli` contract half into whichever object owns the runtime |
+| ELI-ARCH-G1 canonical inventory | `DELIVERED / GUARDED` | `config/eli/surface-authority-v1.json` classifies every retained ELI source surface and the only two canonical-engine runtime importers; `scripts/control/eli-surface-authority.test.mjs` guards the inventory | Keep the guard; any new surface/importer requires an explicit disposition in the same change |
 | ELI-ARCH-G2 one result contract | `DELIVERED / GUARDED` | `40accfa`, `5f7be7f`, merged by `bbe9db9` (#294); CI guard `scripts/control/eli-result-contract.test.mjs` | Keep the guard; nothing else |
 | ELI-ARCH-G3 web mock quarantine | `DELIVERED` for dashboard, `data/eli` and narration | `86ae21a`, `7926841` merged by `994b0c2` (#295); `7f74d33`; `02ca232` | `catalog.ts` split remains under G1 |
 | ELI-ARCH-G4 firmware/mobile boundary | `OPEN` | No parsed-frame → feature-vector transform located | Owned by #122; blocked on #86/#87 feature semantics |
@@ -158,6 +158,25 @@ These rows establish only the narrow facts stated. None of them says an ELI valu
 What was delivered is **containment**: every surface that could show an ELI value now says
 whether it is a demo, and every read that has no producer says so instead of returning an
 empty success. No surface shows a value produced by the engine, because no path invokes it.
+
+
+### 5.1 2026-09-29 G1 controlled disposition
+
+G1 is now closed narrowly as an inventory/classification gate. The repository carries a
+machine-readable surface authority at `config/eli/surface-authority-v1.json`, and Security CI
+runs `scripts/control/eli-surface-authority.test.mjs`.
+
+The guard pins:
+- every direct source under `apps/web/lib/eli` and `apps/web/lib/data/eli`;
+- every direct backend source under `backend/api/services/eli-runtime`;
+- the exact two production-code importers of `@emopet/eli-engine` outside the engine package;
+- the UI-only status of `catalog.ts`;
+- the mock/science-gated status of `eliValidation.ts`;
+- the demo/unwired status of web/mobile fallback surfaces;
+- the continued absence of a canonical latent `eli_states` writer.
+
+This does **not** close G4–G8, activate the generic ELI API, authorize latent publication,
+or establish scientific validity.
 
 ## 6. Open finding carried into the gate: `valence` in the shared result
 
