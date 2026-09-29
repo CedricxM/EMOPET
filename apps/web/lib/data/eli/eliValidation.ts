@@ -1,3 +1,12 @@
+/**
+ * ELI_SURFACE_AUTHORITY: MOCK_VALIDATION_HELPER / SCIENCE_GATED /
+ * NOT_RUNTIME_AUTHORITY (#118 G1).
+ *
+ * DEFAULT_ELI_QUALITY_THRESHOLDS are prototype constants used only to decide
+ * whether legacy/demo inputs are suitable for `valid_for_mock_output`.
+ * They are not production quality thresholds and carry no scientific validity.
+ */
+
 import type { AppObservationEvent } from './appObservation.schema';
 import { validateAppObservationEvent } from './appObservation.schema';
 import type { DogProfile, SignalConstraintEstimate } from './dogProfile.schema';
