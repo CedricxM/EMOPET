@@ -52,7 +52,7 @@ export interface DatatourismeCatalogQuery {
  * Prepare a DATAtourisme catalogue request without performing network I/O.
  *
  * The API key is sent only through X-API-Key, never through api_key in the URL.
- * The current provider cap is 250 objects per page. Direct page-number access
+ * The current provider cap is 100 objects per page. Direct page-number access
  * is documented only within the first 10,000 results; deeper traversal must
  * follow the response meta.next link in a future networked connector.
  */
@@ -67,7 +67,7 @@ export function prepareDatatourismeCatalogRequest(
     || page < 1
     || !Number.isSafeInteger(pageSize)
     || pageSize < 1
-    || pageSize > 250
+    || pageSize > 100
     || ((page - 1) * pageSize) >= 10_000
   ) {
     return { ready: false, reason: 'invalid_input' };
