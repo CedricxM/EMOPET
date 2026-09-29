@@ -118,3 +118,36 @@ test('network ingress candidate is double-gated before durable persistence', asy
   assert.doesNotMatch(routes, /persistActivityVariabilityFeatureObservation/);
   assert.match(trust, /DEVICE_DATA_TRUST_RUNTIME_NOT_IMPLEMENTED/);
 });
+
+
+test('mobile forwarding preflight composes evidence but cannot authorize network delivery', async () => {
+  const authority = JSON.parse(
+    await readFile(new URL('../../config/eli/io-first-slice.json', import.meta.url), 'utf8'),
+  );
+  const source = await readFile(
+    new URL('../../apps/mobile/src/services/activity-feature-forwarding-preflight.ts', import.meta.url),
+    'utf8',
+  );
+
+  assert.equal(authority.currentTransport.mobileForwardingPreflightImplemented, true);
+  assert.equal(
+    authority.currentTransport.mobileForwardingPreflightAuthority,
+    'apps/mobile/src/services/activity-feature-forwarding-preflight.ts',
+  );
+  assert.equal(authority.currentTransport.mobileForwardingPreflightBuildsPregatedCandidate, true);
+  assert.equal(authority.currentTransport.mobileForwardingPreflightPerformsNetworkIo, false);
+  assert.equal(authority.currentTransport.mobileForwardingPreflightSubmissionAuthorized, false);
+  assert.equal(authority.currentTransport.mobileForwardingPreflightPhysicalTrustRequired, true);
+
+  // Live delivery authority remains explicitly false.
+  assert.equal(authority.currentTransport.mobileToBackendForwardingImplemented, false);
+  assert.equal(authority.currentTransport.networkFeatureIngestionActivated, false);
+  assert.equal(authority.currentTransport.networkIngressDeviceTrustRuntimeImplemented, false);
+  assert.equal(authority.currentTransport.endToEndPath, false);
+
+  assert.match(source, /buildActivityFeatureForwardingCandidate/);
+  assert.match(source, /PHYSICAL_DEVICE_AUTHENTICATION_NOT_ESTABLISHED/);
+  assert.match(source, /networkSubmissionAuthorized:\s*false/);
+  assert.doesNotMatch(source, /submitActivityFeatureCandidate/);
+  assert.doesNotMatch(source, /\bfetch\s*\(/);
+});
