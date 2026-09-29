@@ -15,8 +15,8 @@ const [authoritySource, registrySource, migrationSource, manufacturingSource, sl
 const authority = JSON.parse(authoritySource);
 const registry = JSON.parse(registrySource);
 
-test('#721 keeps credential activation blocked behind M4/M5 physical evidence', () => {
-  assert.equal(authority.issue, 721);
+test('#720 keeps credential activation blocked behind M4/M5 physical evidence', () => {
+  assert.equal(authority.issue, 720);
   assert.match(authority.status, /RUNTIME_BLOCKED/);
   assert.match(authority.status, /M4_M5_TARGET_EVIDENCE_REQUIRED/);
 
