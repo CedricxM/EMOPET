@@ -97,7 +97,13 @@ test('dual-slot rotation state machine forbids destructive shortcuts', () => {
 
   assert.equal(
     registry.currentDecision,
-    'DUAL_SLOT_A_B_RESERVED / DESTRUCTIVE_ROTATION_RUNTIME_NOT_IMPLEMENTED',
+    'DUAL_SLOT_A_B_RESERVED / ATOMIC_ROTATION_CUTOVER_REQUIRED / DESTRUCTIVE_ROTATION_RUNTIME_NOT_IMPLEMENTED',
+  );
+  assert.equal(registry.invariants.rotationActivationRequiresAtomicCutover, true);
+  assert.equal(registry.invariants.standaloneActivateThenRevokeAllowed, false);
+  assert.equal(
+    registry.invariants.activationAuthority,
+    'config/security/device-credential-activation-v1.json',
   );
 });
 
