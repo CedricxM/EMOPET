@@ -15,6 +15,7 @@ import {
 import { sql } from 'drizzle-orm';
 import { dogs } from './dogs.js';
 import { users } from './users.js';
+import { instrumentVersions, instrumentAdministrationPolicies } from './instruments.js';
 
 /**
  * Behavioural instrument data is intentionally stored separately from sensor
@@ -41,6 +42,12 @@ export const behavioralAssessments = pgTable('behavioral_assessments', {
   instrumentVersion: varchar('instrument_version', { length: 100 }),
   licenseReference: varchar('license_reference', { length: 255 }),
 
+  // Referential replacements for the free-text instrument fields above. Both are
+  // nullable so existing rows stay valid; the free-text columns remain for
+  // compatibility and are deprecated in favour of these.
+  versionId: uuid('version_id').references(() => instrumentVersions.id),
+  policyId: uuid('policy_id').references(() => instrumentAdministrationPolicies.id),
+
   administrationMode: varchar('administration_mode', { length: 30 })
     .notNull()
     .default('standardized'),
@@ -48,6 +55,15 @@ export const behavioralAssessments = pgTable('behavioral_assessments', {
     .notNull()
     .default('unreviewed'),
   status: varchar('status', { length: 20 }).notNull().default('in_progress'),
+
+  // `status` stays the public three-value projection so the existing CHECK and
+  // the privacy discovery services that read it keep working. The finer
+  // lifecycle of a sequential administration is carried here instead.
+  lifecycleState: varchar('lifecycle_state', { length: 30 }).notNull().default('draft'),
+
+  // End of the completion window. Passing it forbids scoring; it destroys
+  // nothing, so a respondent is never told they have lost answers.
+  windowEndsAt: timestamp('window_ends_at', { withTimezone: true }),
 
   expectedItemCount: integer('expected_item_count'),
   answeredItemCount: integer('answered_item_count').notNull().default(0),
@@ -88,6 +104,13 @@ export const behavioralAssessments = pgTable('behavioral_assessments', {
   check(
     'chk_behavioral_assessment_counts',
     sql`(${table.expectedItemCount} IS NULL OR ${table.expectedItemCount} >= 0) AND ${table.answeredItemCount} >= 0`,
+  ),
+  check(
+    'chk_behavioral_assessment_lifecycle',
+    sql`${table.lifecycleState} IN (
+      'draft','planned','in_progress','awaiting_session','complete',
+      'scored','expired','partial_retained','abandoned','invalidated'
+    )`,
   ),
   check(
     'chk_behavioral_assessment_household_dog_count',

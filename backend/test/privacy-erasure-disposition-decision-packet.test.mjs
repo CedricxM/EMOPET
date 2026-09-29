@@ -77,9 +77,9 @@ test('packet covers every canonical matrix relation exactly once and mirrors pro
 
 test('decision grouping counts remain explicit and exhaustive', () => {
   assert.deepEqual(packet.summary, {
-    relationalTotal: 42,
+    relationalTotal: 44,
     policyAlignedDeleteCandidates: 23,
-    policyConditionalExecutionRequired: 16,
+    policyConditionalExecutionRequired: 18,
     legalAuthorityBlocked: 3,
     matrixRowsPromoted: 4,
   });
@@ -97,7 +97,7 @@ test('decision grouping counts remain explicit and exhaustive', () => {
 
   assert.deepEqual(counts, {
     POLICY_ALIGNED_DELETE_CANDIDATE: 23,
-    POLICY_CONDITIONAL_EXECUTION_REQUIRED: 16,
+    POLICY_CONDITIONAL_EXECUTION_REQUIRED: 18,
     LEGAL_AUTHORITY_BLOCKED: 3,
   });
 });

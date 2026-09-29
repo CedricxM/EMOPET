@@ -8,12 +8,14 @@ const source = (path) => readFile(new URL(path, root), 'utf8');
 test('approved D1-D4 privacy decisions remain four while five lifecycle/evidence authorities stay unresolved', async () => {
   const semantics = JSON.parse(await source('config/privacy/erasure-conditional-semantics.json'));
   assert.equal(semantics.summary.productPrivacyDecisionsApproved, 4);
-  assert.equal(semantics.summary.authorityDecisionsStillRequired, 5);
+  assert.equal(semantics.summary.authorityDecisionsStillRequired, 7);
   assert.equal(semantics.productPrivacyDecisionsApproved.length, 4);
   assert.deepEqual(
     semantics.authorityDecisionsRemaining.map((row) => row.relation).sort(),
     [
       'dogs.id|DIRECT_FK|professional_share_grants|dog_id',
+      'dogs.id|TRANSITIVE_FK|administration_sessions|assessment_id',
+      'dogs.id|TRANSITIVE_FK|instrument_administration_events|assessment_id',
       'dogs.id|UNCONSTRAINED_IDENTIFIER|professional_share_access_audits|dog_id',
       'professional_share_grants.id|UNCONSTRAINED_IDENTIFIER|professional_share_access_audits|grant_id',
       'users.id|DIRECT_FK|community_rules_acceptances|user_id',

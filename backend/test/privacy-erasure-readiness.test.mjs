@@ -127,13 +127,13 @@ test('dog erasure preflight reflects detachable device binding plus remaining bl
   assert.equal(result.status, 'BLOCKED');
   assert.equal(result.destructiveActionAuthorized, false);
 
-  assert.equal(result.relational.total, 25);
-  assert.equal(result.relational.unresolvedDisposition, 25);
-  assert.equal(result.relational.notImplemented, 25);
+  assert.equal(result.relational.total, 27);
+  assert.equal(result.relational.unresolvedDisposition, 27);
+  assert.equal(result.relational.notImplemented, 27);
   assert.deepEqual(result.relational.databaseMechanics, {
     NO_ACTION: 21,
     RESTRICT: 0,
-    CASCADE: 2,
+    CASCADE: 4,
     SET_NULL: 1,
     SET_DEFAULT: 0,
     NO_FK_LIFECYCLE_NOT_ENFORCED: 1,
@@ -145,8 +145,10 @@ test('dog erasure preflight reflects detachable device binding plus remaining bl
       .map((row) => `${row.table}.${row.column}`)
       .sort(),
     [
+      'administration_sessions.assessment_id',
       'behavioral_factor_scores.assessment_id',
       'behavioral_responses.assessment_id',
+      'instrument_administration_events.assessment_id',
     ],
   );
 

@@ -8,10 +8,12 @@ import {
   authRefreshSessions,
   baselines,
   baselineDriftMonitor,
+  administrationSessions,
   behavioralAssessments,
   behavioralFactorScores,
   behavioralResponses,
   comments,
+  instrumentAdministrationEvents,
   communities,
   communityEvents,
   communityMembers,
@@ -217,6 +219,8 @@ export async function discoverSubjectData(
         behavioralFactorScores: 0,
         behavioralFactorScoresProduct: 0,
         behavioralFactorScoresResearch: 0,
+        administrationSessions: 0,
+        instrumentAdministrationEvents: 0,
         eliBehavioralPriors: 0,
         researchDataConsents: 0,
         copresenceEvents: 0,
@@ -282,6 +286,12 @@ export async function discoverSubjectData(
           behavioralFactorScoresResearch: researchAssessmentIds.length > 0
             ? await countWhere(tx, behavioralFactorScores, inArray(behavioralFactorScores.assessmentId, researchAssessmentIds))
             : 0,
+          administrationSessions: assessmentIds.length > 0
+            ? await countWhere(tx, administrationSessions, inArray(administrationSessions.assessmentId, assessmentIds))
+            : 0,
+          instrumentAdministrationEvents: assessmentIds.length > 0
+            ? await countWhere(tx, instrumentAdministrationEvents, inArray(instrumentAdministrationEvents.assessmentId, assessmentIds))
+            : 0,
           eliBehavioralPriors: await countWhere(tx, eliBehavioralPriors, inArray(eliBehavioralPriors.dogId, selectedDogIds)),
           researchDataConsents: await countWhere(tx, researchDataConsents, inArray(researchDataConsents.dogId, selectedDogIds)),
           copresenceEvents: await countWhere(
@@ -343,6 +353,12 @@ export async function discoverSubjectData(
           }),
           behavioralFactorScoresResearch: counted(dogCounts.behavioralFactorScoresResearch, {
             note: 'Factor scores whose parent assessment is research; product erasure must defer these descendants with their research parent.',
+          }),
+          administrationSessions: counted(dogCounts.administrationSessions, {
+            note: 'Session pacing of an instrument administration. Cascades with its parent assessment; holds no item wording.',
+          }),
+          instrumentAdministrationEvents: counted(dogCounts.instrumentAdministrationEvents, {
+            note: 'Fidelity audit journal. Digests and timings only: no item wording and no generated conversational text. Whether this journal must outlive the responses it records, to evidence administration conformity, is an open licensing and legal question.',
           }),
           eliBehavioralPriors: counted(dogCounts.eliBehavioralPriors),
           researchDataConsents: counted(dogCounts.researchDataConsents),

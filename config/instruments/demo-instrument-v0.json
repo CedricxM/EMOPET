@@ -1,0 +1,308 @@
+{
+  "schemaVersion": "emopet-instrument-content-bundle-v1",
+  "status": "DEMO_FIXTURE_NOT_A_VALIDATED_INSTRUMENT",
+  "notice": "Fictional fixture for development and tests. Every rendered string is prefixed 'DEMO — ' so it cannot be mistaken for a licensed instrument, even out of context. The items ask about household objects and geometry and contain no behavioural vocabulary at all. This bundle is NOT an instrument, is NOT validated, and its scores mean nothing. Licensed content never lives in this repository: it is loaded at runtime from a private content store.",
+  "instrumentCode": "DEMO",
+  "version": "v0",
+  "locale": "fr-FR",
+  "licenseStatus": "demo_only",
+  "translationStatus": "not_equivalent",
+  "scales": {
+    "demo_ordinal_5": {
+      "scaleType": "demo_ordinal_5",
+      "scaleMin": 0,
+      "scaleMax": 4,
+      "labels": [
+        "DEMO — niveau 0",
+        "DEMO — niveau 1",
+        "DEMO — niveau 2",
+        "DEMO — niveau 3",
+        "DEMO — niveau 4"
+      ]
+    }
+  },
+  "breakpointSetVersion": 1,
+  "sections": [
+    {
+      "sectionKey": "DEMO_SECTION_A",
+      "ordinal": 0,
+      "firstPosition": 1,
+      "lastPosition": 8,
+      "title": "DEMO — section A (intitulé factice, pas un intitulé d'instrument)"
+    },
+    {
+      "sectionKey": "DEMO_SECTION_B",
+      "ordinal": 1,
+      "firstPosition": 9,
+      "lastPosition": 16,
+      "title": "DEMO — section B (intitulé factice, pas un intitulé d'instrument)"
+    },
+    {
+      "sectionKey": "DEMO_SECTION_C",
+      "ordinal": 2,
+      "firstPosition": 17,
+      "lastPosition": 24,
+      "title": "DEMO — section C (intitulé factice, pas un intitulé d'instrument)"
+    }
+  ],
+  "items": [
+    {
+      "itemKey": "DEMO_ITEM_01",
+      "canonicalPosition": 1,
+      "subscaleKey": "DEMO_SUBSCALE_1",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": false,
+      "text": "DEMO — de quelle couleur est la porte de la cuisine ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_02",
+      "canonicalPosition": 2,
+      "subscaleKey": "DEMO_SUBSCALE_1",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": false,
+      "text": "DEMO — combien de chaises entourent la table ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_03",
+      "canonicalPosition": 3,
+      "subscaleKey": "DEMO_SUBSCALE_1",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": false,
+      "text": "DEMO — la fenêtre du salon donne-t-elle sur la rue ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_04",
+      "canonicalPosition": 4,
+      "subscaleKey": "DEMO_SUBSCALE_1",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": false,
+      "text": "DEMO — quelle est la hauteur de l'étagère du couloir ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_05",
+      "canonicalPosition": 5,
+      "subscaleKey": "DEMO_SUBSCALE_1",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": false,
+      "text": "DEMO — le tapis de l'entrée est-il rectangulaire ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_06",
+      "canonicalPosition": 6,
+      "subscaleKey": "DEMO_SUBSCALE_1",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": true,
+      "allowsNotApplicable": false,
+      "text": "DEMO — combien de tiroirs compte le meuble du couloir ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_07",
+      "canonicalPosition": 7,
+      "subscaleKey": "DEMO_SUBSCALE_2",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": false,
+      "text": "DEMO — la poignée de la porte d'entrée est-elle en métal ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_08",
+      "canonicalPosition": 8,
+      "subscaleKey": "DEMO_SUBSCALE_2",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": false,
+      "text": "DEMO — quelle est la largeur du plan de travail ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_09",
+      "canonicalPosition": 9,
+      "subscaleKey": "DEMO_SUBSCALE_2",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": false,
+      "text": "DEMO — de quelle couleur est le carrelage de la salle de bain ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_10",
+      "canonicalPosition": 10,
+      "subscaleKey": "DEMO_SUBSCALE_2",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": false,
+      "text": "DEMO — le rideau de la chambre est-il à motifs ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_11",
+      "canonicalPosition": 11,
+      "subscaleKey": "DEMO_SUBSCALE_2",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": false,
+      "text": "DEMO — combien d'ampoules éclairent le couloir ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_12",
+      "canonicalPosition": 12,
+      "subscaleKey": "DEMO_SUBSCALE_2",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": false,
+      "text": "DEMO — la table basse est-elle ronde ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_13",
+      "canonicalPosition": 13,
+      "subscaleKey": "DEMO_SUBSCALE_3",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": false,
+      "text": "DEMO — quelle est la teinte du mur de l'escalier ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_14",
+      "canonicalPosition": 14,
+      "subscaleKey": "DEMO_SUBSCALE_3",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": false,
+      "text": "DEMO — le miroir de l'entrée est-il plus haut que large ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_15",
+      "canonicalPosition": 15,
+      "subscaleKey": "DEMO_SUBSCALE_3",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": false,
+      "text": "DEMO — combien de marches compte l'escalier ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_16",
+      "canonicalPosition": 16,
+      "subscaleKey": "DEMO_SUBSCALE_3",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": false,
+      "text": "DEMO — la boîte aux lettres est-elle grise ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_17",
+      "canonicalPosition": 17,
+      "subscaleKey": "DEMO_SUBSCALE_3",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": false,
+      "text": "DEMO — à quelle distance se trouve l'arrêt de bus ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_18",
+      "canonicalPosition": 18,
+      "subscaleKey": "DEMO_SUBSCALE_3",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": true,
+      "allowsNotApplicable": false,
+      "text": "DEMO — combien de fenêtres donnent au sud ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_19",
+      "canonicalPosition": 19,
+      "subscaleKey": "DEMO_SUBSCALE_4",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": false,
+      "text": "DEMO — quelle est la longueur du couloir en pas ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_20",
+      "canonicalPosition": 20,
+      "subscaleKey": "DEMO_SUBSCALE_4",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": true,
+      "text": "DEMO — le portail du jardin est-il plus large que la porte ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_21",
+      "canonicalPosition": 21,
+      "subscaleKey": "DEMO_SUBSCALE_4",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": false,
+      "text": "DEMO — combien d'étages compte le bâtiment ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_22",
+      "canonicalPosition": 22,
+      "subscaleKey": "DEMO_SUBSCALE_4",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": false,
+      "text": "DEMO — quelle est la profondeur du placard ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_23",
+      "canonicalPosition": 23,
+      "subscaleKey": "DEMO_SUBSCALE_4",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": false,
+      "text": "DEMO — le trottoir est-il plus large que deux mètres ?"
+    },
+    {
+      "itemKey": "DEMO_ITEM_24",
+      "canonicalPosition": 24,
+      "subscaleKey": "DEMO_SUBSCALE_4",
+      "scaleRef": "demo_ordinal_5",
+      "reverseScored": false,
+      "allowsNotApplicable": false,
+      "text": "DEMO — combien de portes séparent l'entrée du salon ?"
+    }
+  ],
+  "breakpoints": [
+    {
+      "afterPosition": 4,
+      "breakpointKind": "intra_section",
+      "authority": "emopet_proposed",
+      "rationale": {
+        "note": "Demo fixture cut point. Carries no scientific justification."
+      }
+    },
+    {
+      "afterPosition": 8,
+      "breakpointKind": "section_boundary",
+      "authority": "emopet_proposed",
+      "rationale": {
+        "note": "Demo fixture cut point. Carries no scientific justification."
+      }
+    },
+    {
+      "afterPosition": 12,
+      "breakpointKind": "intra_section",
+      "authority": "emopet_proposed",
+      "rationale": {
+        "note": "Demo fixture cut point. Carries no scientific justification."
+      }
+    },
+    {
+      "afterPosition": 16,
+      "breakpointKind": "section_boundary",
+      "authority": "emopet_proposed",
+      "rationale": {
+        "note": "Demo fixture cut point. Carries no scientific justification."
+      }
+    },
+    {
+      "afterPosition": 20,
+      "breakpointKind": "intra_section",
+      "authority": "emopet_proposed",
+      "rationale": {
+        "note": "Demo fixture cut point. Carries no scientific justification."
+      }
+    }
+  ]
+}

@@ -7,6 +7,8 @@ export * from './datasets.js';
 export * from './freemium.js';
 export * from './eli-v5.js';
 export * from './behavioral-assessments.js';
+export * from './instruments.js';
+export * from './instrument-administration.js';
 export * from './auth-sessions.js';
 export * from './professional-sharing.js';
 

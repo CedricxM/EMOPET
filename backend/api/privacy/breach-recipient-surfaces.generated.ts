@@ -81,6 +81,12 @@ export const BREACH_RECIPIENT_SURFACES = [
     "source": "config/privacy account+dog erasure topology"
   },
   {
+    "surface": "sql:administration_sessions",
+    "authority": "CANONICAL_SQL",
+    "requiredGap": null,
+    "source": "config/privacy account+dog erasure topology"
+  },
+  {
     "surface": "sql:ai_messages",
     "authority": "CANONICAL_SQL",
     "requiredGap": null,
@@ -202,6 +208,12 @@ export const BREACH_RECIPIENT_SURFACES = [
   },
   {
     "surface": "sql:health_entries",
+    "authority": "CANONICAL_SQL",
+    "requiredGap": null,
+    "source": "config/privacy account+dog erasure topology"
+  },
+  {
+    "surface": "sql:instrument_administration_events",
     "authority": "CANONICAL_SQL",
     "requiredGap": null,
     "source": "config/privacy account+dog erasure topology"

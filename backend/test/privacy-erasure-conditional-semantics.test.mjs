@@ -34,9 +34,9 @@ test('conditional semantics preserve fail-closed erasure with four approved matr
   assert.equal(semantics.claimsExecutableErasure, false);
   assert.equal(semantics.claimsCompleteErasure, false);
   assert.deepEqual(semantics.summary, {
-    conditionalRowsTotal: 16,
+    conditionalRowsTotal: 18,
     semanticsAlreadyDeterminedByExistingPolicy: 7,
-    authorityDecisionsStillRequired: 5,
+    authorityDecisionsStillRequired: 7,
     matrixRowsPromoted: 4,
     productPrivacyDecisionsApproved: 4,
   });
@@ -61,7 +61,7 @@ test('conditional semantics preserve fail-closed erasure with four approved matr
   }
 });
 
-test('the 16 conditional packet rows are partitioned exactly into 7 determined semantics plus 9 human decisions', () => {
+test('the 18 conditional packet rows are partitioned exactly into 7 determined semantics plus 11 human decisions', () => {
   const packetConditional = packet.relations
     .filter((row) => row.decisionSupportStatus === 'POLICY_CONDITIONAL_EXECUTION_REQUIRED')
     .map(key)
@@ -73,9 +73,9 @@ test('the 16 conditional packet rows are partitioned exactly into 7 determined s
     ...semantics.productPrivacyDecisionsApproved.map((row) => row.relation),
   ].sort();
 
-  assert.equal(packetConditional.length, 16);
-  assert.equal(semanticsKeys.length, 16);
-  assert.equal(new Set(semanticsKeys).size, 16);
+  assert.equal(packetConditional.length, 18);
+  assert.equal(semanticsKeys.length, 18);
+  assert.equal(new Set(semanticsKeys).size, 18);
   assert.deepEqual(semanticsKeys, packetConditional);
 });
 
@@ -265,6 +265,8 @@ test('five conditional rows remain explicit human authority decisions', () => {
     Object.keys(remaining).sort(),
     [
       'dogs.id|DIRECT_FK|professional_share_grants|dog_id',
+      'dogs.id|TRANSITIVE_FK|administration_sessions|assessment_id',
+      'dogs.id|TRANSITIVE_FK|instrument_administration_events|assessment_id',
       'dogs.id|UNCONSTRAINED_IDENTIFIER|professional_share_access_audits|dog_id',
       'professional_share_grants.id|UNCONSTRAINED_IDENTIFIER|professional_share_access_audits|grant_id',
       'users.id|DIRECT_FK|community_rules_acceptances|user_id',

@@ -38,6 +38,10 @@ on:
       - 'config/privacy/**'
       - 'backend/api/services/subject-discovery.ts'
       - 'backend/api/services/subject-access.ts'
+      - 'backend/api/services/instrument-*.ts'
+      - 'backend/test/instrument-*.test.mjs'
+      - 'backend/test/ci-*.test.mjs'
+      - 'config/instruments/**'
       - 'backend/api/services/data-export-policy.ts'
       - 'backend/test/data-export-*.test.mjs'
       - 'backend/test/privacy-dog-export-coverage.test.mjs'
@@ -182,8 +186,46 @@ jobs:
           NODE_ENV: test
         run: node --test test/device-unbind-retention-clock.integration.test.mjs
 
+      # Migration 0014 retired five duplicate foreign keys that re-blocked the approved
+      # D1-D4 detach on this build path while the generated schema detached correctly.
+      # The divergence was invisible because only the generated schema was queried, so
+      # the guard runs on both paths from here on.
+      - name: PRIV-ERASURE duplicate foreign keys on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          PRIVACY_DUPLICATE_FK_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/privacy-duplicate-foreign-key-detach.integration.test.mjs
+
+      # An identity column typed differently from the key it references cannot hold the
+      # foreign key the erasure topology declares, so erasing the parent leaves orphans.
+      # Eight were TEXT on this path until 0024 converted them; this keeps them converted.
+      - name: PRIV-ERASURE identity column types on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          PRIVACY_IDENTITY_COLUMN_TYPE_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/privacy-identity-column-type-divergence.integration.test.mjs
+
       - name: Build backend dependency closure
         run: pnpm --filter @emopet/api... build
+
+      - name: Instrument repository-only guards
+        working-directory: backend
+        run: |
+          node --test \
+            test/instrument-content-store.test.mjs \
+            test/instrument-administration.test.mjs \
+            test/instrument-audit-journal.test.mjs \
+            test/instrument-sensor-embargo.test.mjs \
+            test/instrument-no-licensed-content.test.mjs \
+            test/instrument-guardrails.test.mjs
+
+      - name: CI integration flag parity
+        working-directory: backend
+        run: node --test test/ci-integration-flag-parity.test.mjs
 
       - name: BEHAV-DATA-01 semantics on historical migrations
         working-directory: backend
@@ -467,12 +509,36 @@ jobs:
           NODE_ENV: test
         run: node --test test/subject-discovery-postgres.test.mjs test/community-subject-discovery.integration.test.mjs
 
+      - name: Instrument administration database guards
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          INSTRUMENT_ADMINISTRATION_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/instrument-database-guards.integration.test.mjs
+
       - name: PRIV-ERASURE-TOPOLOGY generated database parity
         working-directory: backend
         env:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
-          PRIVACY_ERASURE_TOPOLOGY_DB_INTEGRATION: '1'
+          PRIVACY_TOPOLOGY_DB_INTEGRATION: '1'
         run: node --test test/privacy-erasure-topology.integration.test.mjs
+
+      - name: PRIV-ERASURE duplicate foreign keys on generated database
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          PRIVACY_DUPLICATE_FK_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/privacy-duplicate-foreign-key-detach.integration.test.mjs
+
+      - name: PRIV-ERASURE identity column types on generated database
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          PRIVACY_IDENTITY_COLUMN_TYPE_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/privacy-identity-column-type-divergence.integration.test.mjs
 
       - name: PRIV-ERASURE-RESIDUE snapshot + negative SQL verification
         working-directory: backend
