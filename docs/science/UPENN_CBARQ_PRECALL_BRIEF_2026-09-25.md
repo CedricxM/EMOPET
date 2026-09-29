@@ -244,7 +244,8 @@ Leave the meeting with:
 7. indicative licence structure / inputs required for a quote;
 8. whether reference/normative data access exists;
 9. whether data/research use needs a separate agreement;
-10. named next step, owner and documents required from EMOPET.
+10. named next step, owner and documents required from EMOPET;
+11. whether Penn sees a useful next scientific step beyond licensing — protocol review, pilot design or formal research discussion — without assuming that any collaboration exists.
 
 ## 13. Current controlled statuses
 
@@ -259,5 +260,7 @@ Leave the meeting with:
 `ELI VALIDATION AGAINST C-BARQ = PROPOSED / NOT PERFORMED`
 
 `PENN COLLABORATION = DISCUSSION / NOT AGREED`
+
+`EMOPET SCIENTIFIC CONTRIBUTION = PROSPECTIVE / GOVERNED COHORTS + REPRODUCIBILITY + PUBLISHABLE METHODS/RESULTS / NO PRODUCT-ENGINE OPEN-SOURCE COMMITMENT`
 
 `PENN ENDORSEMENT = NONE`
