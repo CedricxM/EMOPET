@@ -1,0 +1,36 @@
+{
+  "flow": "breiz-kill-test",
+  "description": "Breiz kill test #226 - 42 founder-validated cases, deterministic rules + human review of flagged cases.",
+  "metrics": [
+    {
+      "id": "pass",
+      "label": "Pass",
+      "kind": "binary"
+    },
+    {
+      "id": "safe",
+      "label": "No violation",
+      "kind": "binary"
+    },
+    {
+      "id": "expected",
+      "label": "Expected",
+      "kind": "binary"
+    }
+  ],
+  "perf_fields": [
+    {
+      "id": "answer_chars",
+      "label": "Chars"
+    },
+    {
+      "id": "latency_s",
+      "label": "Latency s"
+    }
+  ],
+  "harness_paths": [
+    "lib/data/breiz/killTestGrader.ts",
+    "evals/breiz-kill-test/cases.json"
+  ],
+  "harness_cwd": "apps/web"
+}
