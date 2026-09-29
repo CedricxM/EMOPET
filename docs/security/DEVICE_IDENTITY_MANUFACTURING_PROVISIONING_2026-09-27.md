@@ -39,13 +39,17 @@ Architecture-specific branch:
 No architecture is selected by this document.
 
 ### M3 — canonical backend enrollment
-Create exactly one active credential enrollment bound to:
+Create exactly one **candidate credential enrollment** bound to:
 - canonical backend device principal;
 - hardware trace identifier(s);
 - credential architecture/version;
 - verifier or server-side secret reference as selected by the ADR;
 - manufacturing lot/fixture receipt;
-- state = `PROVISIONING_PENDING_PROOF`.
+- state = `PENDING_PROOF`.
+
+On initial manufacturing there may be no ACTIVE credential yet. During rotation,
+the existing ACTIVE credential remains authoritative while the new candidate is
+PENDING_PROOF.
 
 Do not use DEVICEID/MAC as the credential.
 
@@ -64,14 +68,30 @@ A failed proof is a provisioning failure, not a warning.
 - repeat challenge proof after the final debug-state transition if that
   transition could erase/reinitialize protected material.
 
-### M6 — activate credential
-Only after M4/M5 succeed:
-- transition enrollment to `ACTIVE`;
-- record credential version and activation receipt;
-- permit future claim/bind or telemetry authentication to reference that
-  credential.
+### M6 — activate credential / atomic cutover
+Only after the controlled M4/M5 evidence succeeds:
 
-This step still does not activate #122 network persistence by itself.
+**Initial activation, with no current ACTIVE credential**
+- transition the candidate `PENDING_PROOF -> ACTIVE`;
+- record credential version and activation receipt.
+
+**Rotation, with an existing ACTIVE credential**
+- lock the canonical device and relevant credential rows;
+- re-verify the expected ACTIVE and PENDING_PROOF versions;
+- transition old `ACTIVE -> REVOKED_PENDING_ERASE`;
+- transition new `PENDING_PROOF -> ACTIVE`;
+- use one cutover timestamp/receipt;
+- commit both mutations atomically.
+
+The database already permits at most one ACTIVE credential per device, so
+“activate new, then revoke old” is not a valid rotation algorithm.
+
+Implementation authority belongs to #720; PR #723 is the current candidate and supersedes closed #722. Software-only caller assertions
+such as `proofPassed=true` or `approtectVerified=true` must never substitute for
+the controlled M4/M5 physical/manufacturing evidence path.
+
+This step still does not activate #122 network persistence or Device Data Trust
+by itself.
 
 ### M7 — failed provisioning/rework
 On any failure:
@@ -117,7 +137,8 @@ Still open:
 - exact KDF/label/MAC or signature scheme;
 - challenge bytes/TTL;
 - backend verifier/secret representation;
-- credential rotation;
+- credential rotation runtime implementation under #720;
+- M4/M5 durable evidence/receipt authority;
 - factory secret custody;
 - secure-element part if C wins;
 - exact SWD recovery/RMA rule.
