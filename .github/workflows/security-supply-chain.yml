@@ -115,6 +115,7 @@ jobs:
           scripts/control/mat-incremental-value.test.mjs
           scripts/control/presence-comparison-authority.test.mjs
           scripts/control/rr-variability-semantic.test.mjs
+          scripts/control/http-route-error-log-minimization.test.mjs
           scripts/control/tag-external-partner-rfq.test.mjs
           scripts/control/tag-feasibility.test.mjs
           scripts/control/wqi-rsi-authority.test.mjs
