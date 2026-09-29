@@ -128,7 +128,7 @@ test('database failure is a controlled 503 without upstream details', async () =
 });
 
 test('schema and migration keep blocks canonical, minimal and erasure-neutral', () => {
-  const migration = readFileSync(new URL('../db/migrations/0026_user_blocks.sql', import.meta.url), 'utf8');
+  const migration = readFileSync(new URL('../db/migrations/0027_user_blocks.sql', import.meta.url), 'utf8');
   const schema = readFileSync(new URL('../db/schema/user-blocks.ts', import.meta.url), 'utf8');
   const code = (text) => text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*(--|\/\/).*$/gm, '');
   for (const source of [code(migration), code(schema)]) {
