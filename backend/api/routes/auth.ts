@@ -6,6 +6,7 @@ import { RegisterSchema, LoginSchema } from '@emopet/shared';
 import { db } from '../../db/index.js';
 import { authRefreshSessions, users } from '../../db/schema/index.js';
 import { authMiddleware, signAccessToken } from '../middleware/auth.js';
+import { revokeActor } from '../services/actor-revocation.js';
 import {
   ACCESS_TOKEN_TTL_SECONDS,
   hashPassword,
@@ -229,12 +230,12 @@ auth.post('/logout', async (c) => {
   const refreshToken = readRefreshToken(body);
   if (!refreshToken) return c.json({ error: 'Invalid refresh token' }, 400);
 
-  await withAuthSessionTransaction(async (tx) => {
+  const loggedOutUserId = await withAuthSessionTransaction(async (tx) => {
     const [session] = await tx.select({
       userId: authRefreshSessions.userId, familyId: authRefreshSessions.familyId,
     }).from(authRefreshSessions)
       .where(eq(authRefreshSessions.tokenHash, hashRefreshToken(refreshToken))).limit(1);
-    if (!session?.userId || !await lockAuthUser(tx, session.userId)) return;
+    if (!session?.userId || !await lockAuthUser(tx, session.userId)) return null;
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${session.familyId}, 0))`);
     const now = new Date();
     // A rotated token still identifies this login session. Revoke its active
@@ -246,7 +247,10 @@ auth.post('/logout', async (c) => {
         eq(authRefreshSessions.familyId, session.familyId),
         isNull(authRefreshSessions.revokedAt),
       ));
+    return session.userId;
   });
+  // After commit: live realtime sessions must not outlive the logout (#596, #48 L7).
+  if (loggedOutUserId) await revokeActor(loggedOutUserId, 'logout');
 
   c.header('Cache-Control', 'no-store');
   return c.body(null, 204);
@@ -254,13 +258,15 @@ auth.post('/logout', async (c) => {
 
 auth.post('/logout-all', authMiddleware, async (c) => {
   const userId = c.get('userId');
-  await withAuthSessionTransaction(async (tx) => {
-    if (!await lockAuthUser(tx, userId)) return;
+  const revoked = await withAuthSessionTransaction(async (tx) => {
+    if (!await lockAuthUser(tx, userId)) return false;
     const now = new Date();
     await tx.update(authRefreshSessions)
       .set({ revokedAt: now, revokeReason: 'logout_all', lastUsedAt: now })
       .where(and(eq(authRefreshSessions.userId, userId), isNull(authRefreshSessions.revokedAt)));
+    return true;
   });
+  if (revoked) await revokeActor(userId, 'logout_all');
 
   c.header('Cache-Control', 'no-store');
   return c.body(null, 204);
