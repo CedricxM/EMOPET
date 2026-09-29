@@ -118,6 +118,8 @@ jobs:
           scripts/control/tag-external-partner-rfq.test.mjs
           scripts/control/tag-feasibility.test.mjs
           scripts/control/wqi-rsi-authority.test.mjs
+      - name: Enforce upload/webhook activation boundary (#214)
+        run: node --test scripts/control/http-upload-webhook-activation.test.mjs
       - name: Enforce UPenn meeting-pack claim boundary (C-BARQ / Penn / ELI, #617)
         run: node --test scripts/control/upenn-meeting-claims.test.mjs
       - name: Enforce INT-08 product and science documentation authorities
