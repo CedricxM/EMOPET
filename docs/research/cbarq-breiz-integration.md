@@ -350,6 +350,8 @@ flowchart TB
 
 **Dans le dépôt, uniquement des items factices.** Un fichier `packages/shared/src/instruments/demo-items.ts` `[PROPOSÉ]` contenant `DEMO_ITEM_01 … DEMO_ITEM_12`, avec un préfixe `DEMO_` obligatoire et un test qui échoue si une clé d'item de production apparaît dans un fichier versionné.
 
+> `[IMPLÉMENTÉ AUTREMENT — 28/09]` La proposition ci-dessus n'a pas été suivie, et ce fichier **n'existe pas** : ne pas le chercher. Le factice est un **bundle JSON** chargé par le magasin de contenu, `config/instruments/demo-instrument-v0.json` (24 items, 3 sections, 5 points de coupure, `licenseStatus: demo_only`, `status: DEMO_FIXTURE_NOT_A_VALIDATED_INSTRUMENT`). Raison : un module TypeScript aurait fait du libellé une constante compilée dans le bundle applicatif, alors que la contrainte est justement que le libellé arrive **au runtime depuis un magasin**, et que le chemin de chargement du factice soit le même que celui du contenu licencié. La règle du préfixe et le test sont bien là — `instrument-no-licensed-content.test.mjs` et `instrument-guardrails.test.mjs` (G8), qui vérifient que chaque chaîne réellement affichée est visiblement factice.
+
 ---
 
 ## 3. Schéma de données

@@ -133,7 +133,7 @@ Neuf lots. Chacun porte ses fichiers, sa définition de terminé, ses dépendanc
 - `backend/db/schema/instrument-administration.ts` *(nouveau)* — `administration_sessions` + `instrument_administration_events`. **Écart assumé par rapport à la spec initiale**, qui prévoyait un seul fichier : les registres sont référencés par `behavioral_assessments` (version, politique), qui est elle-même référencée par les tables de runtime. Un fichier unique aurait créé un import circulaire ; la séparation garde chaque import unidirectionnel.
 - `backend/db/schema/behavioral-assessments.ts` — colonnes additives `version_id`, `policy_id`, `lifecycle_state`, `window_ends_at`
 - `backend/db/schema/index.ts` — exports des deux nouveaux fichiers
-- `backend/db/migrations/0013_instrument_administration.sql` *(nouveau)*
+- `backend/db/migrations/0025_instrument_administration.sql` *(nouveau ; écrit en `0013`, renuméroté à la fusion — voir §2.1)*
 
 **Contenu** — tel que spécifié dans le document de conception §3.2.1, §3.2.2, §3.2.2 bis, §3.2.3, §3.2.4, §3.2.5. Les contraintes `CHECK` sont la substance, pas de la décoration :
 
@@ -146,9 +146,9 @@ Neuf lots. Chacun porte ses fichiers, sa définition de terminé, ses dépendanc
 | `chk_policy_fatigue_mode` | Un mode de fatigue hors des trois valeurs |
 | `chk_instrument_version_license` | Un statut de licence inventé |
 
-**Terminé quand** : `pnpm --filter @emopet/api typecheck` passe ; `node --test test/migration-baseline-static.test.mjs` passe (contiguïté `0013`, toutes tables créées, aucun `ALTER` prématuré) ; la migration s'applique sur une base vide **et** sur une base déjà migrée jusqu'à `0012`.
+**Terminé quand** : `pnpm --filter @emopet/api typecheck` passe ; `node --test test/migration-baseline-static.test.mjs` passe (contiguïté du numéro, toutes tables créées, aucun `ALTER` prématuré) ; la migration s'applique sur une base vide **et** sur une base déjà migrée jusqu'à la précédente.
 
-> **Piège à éviter.** Ne pas régénérer les migrations avec `drizzle-kit generate`. `[ÉTABLI]` Les douze migrations existantes sont écrites à la main et le test statique vérifie leur forme. Écrire `0013` à la main, dans le même style.
+> **Piège à éviter.** Ne pas régénérer les migrations avec `drizzle-kit generate`. `[ÉTABLI]` Les migrations existantes sont écrites à la main et le test statique vérifie leur forme. Écrire la nouvelle à la main, dans le même style.
 
 ### Lot 2 — Contenu factice et adaptateur de magasin · `M` · dépend de L1
 
@@ -224,7 +224,7 @@ Le dimensionnement doit refuser toute clé absente de `adaptiveSignals` — **é
 
 > **État : `FAIT` (2026-09-28).** Vérifié : 10 tests dédiés ; 341 tests backend, 0 échec ; paquets dépendants inchangés. Le journal est pur et append-only, refuse un horodatage qui reculerait, et rend ses entrées par copie pour qu'on ne puisse pas l'éditer depuis l'extérieur.
 >
-> **Le test le plus utile est celui de parité SQL.** Les 26 types d'événements sont déclarés une fois dans le code et comparés au texte de la contrainte `chk_event_type` de la migration `0013`. Une dérive laisserait le code fabriquer un événement que PostgreSQL refuse, ou refuser un événement qu'il accepte — les deux couches cesseraient d'être la même règle. Les invariants `chk_event_item_presentation` et `chk_event_section_title` sont également rejoués côté code, et les messages d'erreur **citent le nom de la contrainte SQL**, pour qu'un échec en développement pointe visiblement la même règle que celle qui aurait rejeté la ligne en base.
+> **Le test le plus utile est celui de parité SQL.** Les 26 types d'événements sont déclarés une fois dans le code et comparés au texte de la contrainte `chk_event_type` de la migration `0025`. Une dérive laisserait le code fabriquer un événement que PostgreSQL refuse, ou refuser un événement qu'il accepte — les deux couches cesseraient d'être la même règle. Les invariants `chk_event_item_presentation` et `chk_event_section_title` sont également rejoués côté code, et les messages d'erreur **citent le nom de la contrainte SQL**, pour qu'un échec en développement pointe visiblement la même règle que celle qui aurait rejeté la ligne en base.
 >
 > **Correction de la spec : les covariables sont dans le hachage.** La formule que ce document proposait (`prevHash ‖ sequenceIndex ‖ eventType ‖ itemKey ‖ renderDigest ‖ occurredAt`) laissait les covariables **hors** de l'empreinte. Quelqu'un aurait pu réécrire `positionInSession` après coup et la chaîne aurait continué de vérifier — ce qui aurait rendu les covariables sans valeur probante, alors qu'elles sont précisément l'argument à porter devant Penn. Le hachage couvre maintenant chaque champ sémantique, et cinq tests vérifient qu'altérer n'importe quelle covariable casse la chaîne.
 >
@@ -266,12 +266,12 @@ Deux mécanismes, tous deux démontrables devant Penn :
 > | | Garde-fou | Appliqué dans |
 > |---|---|---|
 > | G1 | Le libellé n'entre dans aucun appel modèle | `instrument-content-store.ts` |
-> | G2 | Types opaques en entrée de prompt | `shared/instruments/types.ts` |
-> | G3 | La base refuse une présentation impliquant un modèle | migration `0013` |
+> | G2 | Types opaques en entrée de prompt | `packages/shared/src/instruments/types.ts` |
+> | G3 | La base refuse une présentation impliquant un modèle | migration `0025` |
 > | G4 | Empreintes recalculées avant présentation | `instrument-content-store.ts` |
 > | G5 | Le journal rejoue les invariants de la base | `instrument-audit-journal.ts` |
 > | G6 | Validation de bundle fail-closed | `instrument-content-store.ts` |
-> | G7 | Payloads scellés rendus mot pour mot | `shared/instruments/types.ts` |
+> | G7 | Payloads scellés rendus mot pour mot | `packages/shared/src/instruments/types.ts` |
 > | G8 | Aucun contenu licencié versionné | `instrument-no-licensed-content.test.mjs` |
 > | G9 | Aucun chemin d'import vers capteur ou ELI | `instrument-sensor-embargo.test.mjs` |
 > | G10 | Une coupure n'est légale que si listée | `instrument-breakpoints.ts` |
@@ -611,8 +611,8 @@ Ce que vous ouvrez réellement devant Penn. Quatre pièces, pas plus.
 | Risque | Probabilité | Atténuation |
 |---|---|---|
 | L'appel avance ou glisse | Moyenne | Le chemin critique `L1→L4, L7, L8` est irréductible ; le reste est sacrifiable dans l'ordre de §4 |
-| Régression sur les 85 fichiers de test existants | Moyenne | `L1` touche `schema/index.ts`, lu par les services de confidentialité. Lancer la suite complète à chaque lot, pas seulement à la fin |
-| Migration `0013` prise par un autre travail | Faible | Vérifier juste avant d'écrire ; un seul numéro, contigu |
+| Régression sur les 85 fichiers de test existants | Moyenne | `L1` touche `backend/db/schema/index.ts`, lu par les services de confidentialité. Lancer la suite complète à chaque lot, pas seulement à la fin |
+| ~~Migration prise par un autre travail~~ **survenu** | ~~Faible~~ **réalisé** | `[CORRIGÉ 28/09]` Mal évalué : `main` a pris `0013` à `0024` pendant la branche. Coût réel, faible : un renommage en `0025` et deux migrations à supprimer, sans collision de colonnes. La parade — « vérifier juste avant d'écrire » — était la bonne, je ne l'ai pas appliquée avant de pousser. Voir §2.1 |
 | Dérive de périmètre vers le produit | **Élevée** | C'est le risque principal. `P` est un artefact d'appel. Toute demande d'interface, de portrait ou de restitution est un autre chantier |
 | Tentation d'un scoring plausible | Moyenne | §5 — un scoring visiblement faux est une garantie |
 | Penn refuse le séquentiel malgré `P` | Réelle | §10.3 du document de conception : la bascule sur `STANDARD_2S` conserve tout sauf les micro-séances |
