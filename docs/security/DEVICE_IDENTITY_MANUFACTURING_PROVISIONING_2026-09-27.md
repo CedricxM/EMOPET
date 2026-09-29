@@ -86,7 +86,7 @@ Only after the controlled M4/M5 evidence succeeds:
 The database already permits at most one ACTIVE credential per device, so
 “activate new, then revoke old” is not a valid rotation algorithm.
 
-Implementation authority belongs to #721. Software-only caller assertions
+Implementation authority belongs to #721; PR #723 is the current candidate and supersedes closed #722. Software-only caller assertions
 such as `proofPassed=true` or `approtectVerified=true` must never substitute for
 the controlled M4/M5 physical/manufacturing evidence path.
 
