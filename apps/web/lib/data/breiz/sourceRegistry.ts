@@ -168,7 +168,7 @@ export const BREIZ_SOURCE_REGISTRY: readonly BreizSourceDescriptor[] = [
     id: 'sirene',
     name: 'SIRENE',
     publisher: 'INSEE',
-    canonicalUrl: 'https://sirene.fr/',
+    canonicalUrl: 'https://www.insee.fr/fr/information/3591226',
     territory: 'France',
     accessMode: 'api',
     authority: 'official',
@@ -176,7 +176,7 @@ export const BREIZ_SOURCE_REGISTRY: readonly BreizSourceDescriptor[] = [
     license: 'Licence Ouverte / Open Licence where applicable',
     freshnessHours: 24,
     enabled: false,
-    notes: 'Candidate for veterinary and pet-service directory. Apply data minimisation and do not republish restricted personal data.',
+    notes: 'Candidate for veterinary and pet-service directory. The legacy sirene.fr site is closed; use the INSEE API catalogue. API calls use X-INSEE-Api-Key-Integration. Apply data minimisation and do not republish restricted personal data.',
   },
   {
     id: 'datatourisme',
@@ -190,7 +190,7 @@ export const BREIZ_SOURCE_REGISTRY: readonly BreizSourceDescriptor[] = [
     license: null,
     freshnessHours: 24,
     enabled: false,
-    notes: 'Candidate for events and POIs. Respect provider- and record-level licence/attribution.',
+    notes: 'Candidate for events and POIs. DATAtourisme API v1 recommends X-API-Key authentication. Respect provider- and record-level licence/attribution.',
   },
 ];
 
