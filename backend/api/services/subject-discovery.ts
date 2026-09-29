@@ -39,6 +39,7 @@ import {
   userConfig,
   users,
   walkQuality,
+  worldPilotAccess,
 } from '../../db/schema/index.js';
 import { isCanonicalSubjectUuid } from './subject-access.js';
 
@@ -199,6 +200,7 @@ export async function discoverSubjectData(
         userBlocksReceived: counted(await countWhere(tx, userBlocks, eq(userBlocks.blockedUserId, userId)), {
           note: 'Count only. Blocks are silent to the blocked person; disclosing received blocks to the subject is an open privacy decision.',
         }),
+        worldPilotAccess: counted(await countWhere(tx, worldPilotAccess, eq(worldPilotAccess.userId, userId))),
       };
 
       let dogCounts = {
