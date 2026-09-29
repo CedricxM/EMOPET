@@ -297,6 +297,12 @@ export const BREACH_RECIPIENT_SURFACES = [
     "source": "config/privacy account+dog erasure topology"
   },
   {
+    "surface": "sql:world_pilot_access",
+    "authority": "CANONICAL_SQL",
+    "requiredGap": null,
+    "source": "config/privacy account+dog erasure topology"
+  },
+  {
     "surface": "web:breiz-community-events",
     "authority": "WEB_PROTOTYPE_GAP_REQUIRED",
     "requiredGap": "canonical_subject_missing",
