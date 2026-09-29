@@ -125,6 +125,8 @@ jobs:
         run: pnpm hardware:tag-source-coherence:test
       - name: Enforce single InferenceResult authority (ELI-ARCH-G2, #118)
         run: pnpm control:eli-contract:test
+      - name: Enforce ELI surface classification authority (ELI-ARCH-G1, #118)
+        run: node --test scripts/control/eli-surface-authority.test.mjs
       - name: Enforce ELI runtime conformance non-activation (#479)
         run: pnpm control:eli-runtime-conformance:test
       - name: Enforce Device Trust fail-closed command/claim/OTA boundary (#66)
