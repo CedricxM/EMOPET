@@ -79,7 +79,7 @@ test('DATAtourisme catalog request encodes bounded query and keeps key out of UR
     insee: '56121',
     lang: 'fr',
     page: 2,
-    pageSize: 250,
+    pageSize: 100,
     geoDistance: '47.748,-3.3702,10km',
   });
   assert.equal(request.ready, true);
@@ -91,7 +91,7 @@ test('DATAtourisme catalog request encodes bounded query and keeps key out of UR
   assert.equal(url.searchParams.get('insee'), '56121');
   assert.equal(url.searchParams.get('lang'), 'fr');
   assert.equal(url.searchParams.get('page'), '2');
-  assert.equal(url.searchParams.get('page_size'), '250');
+  assert.equal(url.searchParams.get('page_size'), '100');
   assert.equal(url.searchParams.get('geo_distance'), '47.748,-3.3702,10km');
   assert.equal(url.searchParams.has('api_key'), false);
   assert.deepEqual(request.headers, {
@@ -106,9 +106,9 @@ test('DATAtourisme rejects invalid pagination and INSEE code', () => {
   for (const input of [
     { page: 0 },
     { pageSize: 0 },
-    { pageSize: 251 },
+    { pageSize: 101 },
     { page: 1.5 },
-    { page: 41, pageSize: 250 },
+    { page: 101, pageSize: 100 },
     { insee: '5612' },
     { insee: 'ABCDE' },
   ]) {
@@ -123,13 +123,13 @@ test('DATAtourisme accepts the last direct page inside the documented 10k window
   process.env.API_DATATOURISME_ENABLED = 'true';
   process.env.DATATOURISME_API_KEY = 'test-datatourisme-key';
 
-  const request = prepareDatatourismeCatalogRequest({ page: 40, pageSize: 250 });
+  const request = prepareDatatourismeCatalogRequest({ page: 100, pageSize: 100 });
   assert.equal(request.ready, true);
   if (!request.ready) return;
 
   const url = new URL(request.url);
-  assert.equal(url.searchParams.get('page'), '40');
-  assert.equal(url.searchParams.get('page_size'), '250');
+  assert.equal(url.searchParams.get('page'), '100');
+  assert.equal(url.searchParams.get('page_size'), '100');
 });
 
 test('DATAtourisme defaults to page 1, 20 rows and French', () => {
