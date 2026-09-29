@@ -57,7 +57,7 @@ The order above is intentional. The database enforces one ACTIVE credential per
 device, so a rotation implementation must not attempt to activate the new
 credential before revoking the old one in the same locked transaction.
 
-Activation/cutover implementation authority: #721.
+Activation/cutover implementation authority: #720.
 
 ## Enrollment receipt
 
@@ -84,7 +84,7 @@ device principal.
 
 This contract does not implement:
 - durable backend enrollment persistence;
-- ACTIVE credential mutation / atomic rotation cutover (#721);
+- ACTIVE credential mutation / atomic rotation cutover (#720);
 - M4/M5 manufacturing evidence authority;
 - key destruction after revocation;
 - rotation/RMA runtime;
