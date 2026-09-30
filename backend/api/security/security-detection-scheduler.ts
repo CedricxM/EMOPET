@@ -159,6 +159,8 @@ export async function runSecurityDetectionSchedulerTick(
 
       const [cursor] = await tx
         .select({
+          monitoringStartedAt:
+            securityDetectionSchedulerState.monitoringStartedAt,
           lastSuccessfulWindowEnd:
             securityDetectionSchedulerState.lastSuccessfulWindowEnd,
         })
@@ -171,7 +173,9 @@ export async function runSecurityDetectionSchedulerTick(
 
       const windowStart = cursor?.lastSuccessfulWindowEnd.toISOString()
         ?? request.initialWindowStart;
-      if (!windowStart) {
+      const monitoringStartedAt = cursor?.monitoringStartedAt
+        ?? (windowStart ? new Date(windowStart) : null);
+      if (!windowStart || !monitoringStartedAt) {
         return { status: 'INITIAL_CURSOR_REQUIRED', cursorAdvanced: false };
       }
 
@@ -209,6 +213,7 @@ export async function runSecurityDetectionSchedulerTick(
         .insert(securityDetectionSchedulerState)
         .values({
           streamId: SECURITY_DETECTION_STREAM_ID,
+          monitoringStartedAt,
           lastSuccessfulWindowEnd: databaseNow,
           updatedAt: databaseNow,
         })
