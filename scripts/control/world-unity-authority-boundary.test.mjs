@@ -158,6 +158,23 @@ test('Unity maps no-response transport failures to bounded unavailable state', a
   );
 });
 
+test('Unity never claims visibility/disconnect certainty after cancelled or unknown outcomes', async () => {
+  const coordinator = await read('Assets/World/Session/WorldSessionCoordinator.cs');
+
+  assert.match(
+    coordinator,
+    /ShowPresenceAsync[\s\S]*catch \(OperationCanceledException\)[\s\S]*stateMachine\.MarkDegraded\(\);/,
+  );
+  assert.match(
+    coordinator,
+    /DisconnectAsync[\s\S]*catch \(WorldBackendException\)[\s\S]*stateMachine\.MarkDegraded\(\);/,
+  );
+  assert.match(
+    coordinator,
+    /DisconnectAsync[\s\S]*catch \(OperationCanceledException\)[\s\S]*stateMachine\.MarkDegraded\(\);/,
+  );
+});
+
 test('presence withdrawal never claims invisibility when no HTTP outcome is known', async () => {
   const coordinator = await read('Assets/World/Session/WorldSessionCoordinator.cs');
 
