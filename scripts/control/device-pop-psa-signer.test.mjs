@@ -88,8 +88,22 @@ test('signer has no key generation, import, export, destruction or storage autho
     'SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_OPAQUE_PSA_KEY_ID / NO_KEY_GENERATION_OR_STORAGE',
   );
   assert.equal(runtime.runtime.deviceSignerTargetBuildVerified, false);
-  assert.equal(runtime.runtime.devicePrivateKeyProvisioning, 'NOT_IMPLEMENTED');
-  assert.match(runtime.runtime.devicePrivateKeyStorage, /NOT_IMPLEMENTED/);
+  assert.match(
+    runtime.runtime.devicePrivateKeyProvisioning,
+    /SOURCE_PRIMITIVE_IMPLEMENTED/,
+  );
+  assert.match(
+    runtime.runtime.devicePrivateKeyProvisioning,
+    /DEFAULT_OFF_KCONFIG/,
+  );
+  assert.match(
+    runtime.runtime.devicePrivateKeyProvisioning,
+    /TARGET_HUK_SECURE_STORAGE_PROOF_OPEN/,
+  );
+  assert.match(
+    runtime.runtime.devicePrivateKeyStorage,
+    /PRODUCTION_STORAGE_NOT_PROVEN/,
+  );
 });
 
 test('NCS source enables only the crypto features required by this signer', () => {
