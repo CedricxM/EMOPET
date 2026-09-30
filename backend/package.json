@@ -14,7 +14,8 @@
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
     "auth-email:dispatch": "node dist/api/workers/auth-email-verification-delivery.js",
-    "auth-email:legacy-audit": "node dist/api/workers/auth-email-legacy-rollout-audit.js"
+    "auth-email:legacy-audit": "node dist/api/workers/auth-email-legacy-rollout-audit.js",
+    "security:detection-scan": "node dist/api/workers/security-detection-scan.js"
   },
   "dependencies": {
     "@emopet/eli-engine": "workspace:*",

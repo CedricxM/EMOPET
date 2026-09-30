@@ -269,6 +269,14 @@ jobs:
           NODE_ENV: test
         run: node --test test/security-audit-repository.integration.test.mjs
 
+      - name: PRIV-SEC-G5 bounded detection runtime on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          SECURITY_DETECTION_RUNTIME_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/security-detection-runtime.integration.test.mjs
+
       - name: AUTH-EMAIL-VERIFY-01 token authority on historical migrations
         working-directory: backend
         env:
@@ -446,6 +454,14 @@ jobs:
           SECURITY_AUDIT_DB_INTEGRATION: '1'
           NODE_ENV: test
         run: node --test test/security-audit-repository.integration.test.mjs
+
+      - name: PRIV-SEC-G5 bounded detection runtime on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          SECURITY_DETECTION_RUNTIME_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/security-detection-runtime.integration.test.mjs
 
       - name: AUTH-EMAIL-VERIFY-01 token authority on generated baseline
         working-directory: backend

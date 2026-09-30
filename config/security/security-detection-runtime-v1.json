@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "emopet-security-detection-runtime-v1",
+  "issue": 525,
+  "status": "DB_SOURCE_AND_ONE_SHOT_EXECUTION_CANDIDATE / CONTINUOUS_RUNTIME_OPEN",
+  "eventSource": "security_audit_events",
+  "detector": "backend/api/security/security-anomaly-detection.ts",
+  "runtimeService": "backend/api/security/security-detection-runtime.ts",
+  "worker": "backend/api/workers/security-detection-scan.ts",
+  "httpRoute": null,
+  "policy": {
+    "productionValuesSelected": false,
+    "defaultsInRuntime": false,
+    "requiredPerRun": true
+  },
+  "technicalSafety": {
+    "maxEventsHardCap": 10000,
+    "callerMustProvideLowerOrEqualLimit": true
+  },
+  "stdout": {
+    "actorKeys": false,
+    "targetReferences": false,
+    "countsAndDetectionTypesOnly": true
+  },
+  "operationalGaps": {
+    "continuousScheduler": "NOT_IMPLEMENTED",
+    "durableDetectionHistory": "NOT_IMPLEMENTED",
+    "productionPolicyApproval": "OPEN",
+    "providerMonitoring": "NOT_SELECTED",
+    "alertDelivery": "OPEN_UNDER_526",
+    "responseSla": "OPEN"
+  }
+}
