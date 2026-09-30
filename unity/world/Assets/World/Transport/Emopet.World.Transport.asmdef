@@ -1,0 +1,14 @@
+{
+  "name": "Emopet.World.Transport",
+  "rootNamespace": "Emopet.World",
+  "references": ["Emopet.World.Core"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
