@@ -280,6 +280,31 @@ function detectMachinePrivilegedAttempts(
     }));
 }
 
+/**
+ * Maximum event-time context required by the currently enabled windowed
+ * detectors. This derives replay context from the exact explicit policy rather
+ * than introducing a hidden late-arrival lookback constant.
+ *
+ * Returns null for an invalid policy and 0 when no enabled detector needs
+ * neighboring event-time context.
+ */
+export function securityDetectionContextWindowSeconds(
+  policyInput: unknown,
+): number | null {
+  const policy = parsePolicy(policyInput);
+  if (!policy) return null;
+
+  let windowSeconds = 0;
+  if (policy.repeatedDenials.enabled) {
+    windowSeconds = Math.max(windowSeconds, policy.repeatedDenials.windowSeconds);
+  }
+  if (policy.rapidMultiTargetAccess.enabled) {
+    windowSeconds = Math.max(windowSeconds, policy.rapidMultiTargetAccess.windowSeconds);
+  }
+
+  return windowSeconds;
+}
+
 export function evaluateSecurityAnomalies(
   values: readonly unknown[],
   policyInput: unknown,
