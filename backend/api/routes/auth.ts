@@ -1,5 +1,5 @@
 import { and, eq, isNull, sql } from 'drizzle-orm';
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import {
   EmailVerificationConsumeSchema,
@@ -123,7 +123,7 @@ async function issueAndDeliverEmailVerification(userId: string, email: string): 
   await deliverEmailVerification({ to: email, verificationUrl });
 }
 
-function genericEmailVerificationAcknowledgement(c: Parameters<typeof auth.post>[1] extends never ? never : any) {
+function genericEmailVerificationAcknowledgement(c: Context) {
   c.header('Cache-Control', 'no-store');
   return c.json(GENERIC_EMAIL_VERIFICATION_ACK, 202);
 }
