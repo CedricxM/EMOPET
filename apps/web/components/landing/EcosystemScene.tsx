@@ -86,7 +86,7 @@ export default function EcosystemScene() {
           <div className="flex flex-col items-center gap-2">
             <div className="w-14 h-14 md:w-18 md:h-18 rounded-full bg-[#F7E5DA] border border-[#E5B29D] flex items-center justify-center">
               <span
-                className="text-[#9B5A3E] text-xs md:text-sm font-semibold"
+                className="text-[#5A6570] text-xs md:text-sm font-semibold"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
                 TAG
