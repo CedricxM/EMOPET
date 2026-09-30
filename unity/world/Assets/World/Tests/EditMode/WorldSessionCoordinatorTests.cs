@@ -76,6 +76,24 @@ namespace Emopet.World.Tests
         }
 
         [Test]
+        public async Task AuthMiddleware401RevokesConnectedSession()
+        {
+            var http = new QueueHttp(
+                new WorldHttpResponse(200, BootstrapJson()),
+                new WorldHttpResponse(401, "{\"error\":\"Invalid or expired token\"}"));
+            var coordinator = Create(http);
+
+            await coordinator.ConnectAsync(CancellationToken.None);
+            var error = Assert.ThrowsAsync<WorldBackendException>(() =>
+                coordinator.PollEventsAsync(CancellationToken.None));
+
+            Assert.That(error.Code, Is.EqualTo(WorldErrorCode.InvalidSession));
+            Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Revoked));
+            Assert.That(coordinator.Handle, Is.Null);
+            Assert.That(coordinator.ExpiresAtUnixMs, Is.EqualTo(0));
+        }
+
+        [Test]
         public async Task EventsUnavailableMovesConnectedSessionToDegraded()
         {
             var http = new QueueHttp(
