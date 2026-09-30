@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-erasure-disposition-decision-packet-v1",
-  "status": "FOUR_PRODUCT_PRIVACY_DISPOSITIONS_PROMOTED_REMAINDER_DECISION_SUPPORT",
+  "status": "FIVE_PRODUCT_PRIVACY_DISPOSITIONS_PROMOTED_REMAINDER_DECISION_SUPPORT",
   "claimsExecutableErasure": false,
   "claimsCompleteErasure": false,
   "sourceMatrix": "config/privacy/erasure-disposition-matrix.json",
@@ -9,17 +9,17 @@
   "boundaries": [
     "This packet mirrors the canonical erasure-disposition matrix and provides decision support; it does not authorize destructive account erasure.",
     "A candidate DELETE direction is product-policy alignment only, not privacy/legal approval and not runtime deletion authority.",
-    "Four founder-approved D1-D4 account relations are promoted to DETACH because their identity links are implemented with PostgreSQL SET NULL.",
+    "Five founder-approved account relations (D1-D4 in #446, D5 reported person in #594) are promoted to DETACH because their identity links are implemented with PostgreSQL SET NULL.",
     "Conditional rows not explicitly approved still require their documented row-level or phased execution semantics before promotion.",
     "Legal-authority-blocked rows cannot be promoted by product or engineering alone.",
     "Database mechanics never substitute for privacy disposition authority on unresolved rows."
   ],
   "summary": {
-    "relationalTotal": 45,
-    "policyAlignedDeleteCandidates": 24,
-    "policyConditionalExecutionRequired": 18,
+    "relationalTotal": 52,
+    "policyAlignedDeleteCandidates": 30,
+    "policyConditionalExecutionRequired": 19,
     "legalAuthorityBlocked": 3,
-    "matrixRowsPromoted": 4
+    "matrixRowsPromoted": 5
   },
   "relations": [
     {
@@ -275,6 +275,104 @@
     {
       "subjectRoot": "users.id",
       "relationType": "DIRECT_FK",
+      "table": "user_blocks",
+      "column": "blocked_user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "account_auth"
+      ],
+      "decisionRef": "#594 (issuecomment-5856975549)",
+      "rationale": "Founder decision #594 (issuecomment-5856975549): blocks are account-scoped safety settings deleted on erasure of either the blocker or the blocked account, through the ordered erasure executor rather than a database cascade; re-registration abuse is handled by moderation, never by retaining an erased person's identifier. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "user_blocks",
+      "column": "blocker_user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "account_auth"
+      ],
+      "decisionRef": "#594 (issuecomment-5856975549)",
+      "rationale": "Founder decision #594 (issuecomment-5856975549): blocks are account-scoped safety settings deleted on erasure of either the blocker or the blocked account, through the ordered erasure executor rather than a database cascade; re-registration abuse is handled by moderation, never by retaining an erased person's identifier. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "world_pilot_access",
+      "column": "user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "account_auth"
+      ],
+      "rationale": "Account-scoped access entitlement (#596, decision #48 L1): the existing approved account_auth policy terminates it on account erasure, through the ordered erasure executor rather than a database cascade. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "social_connections",
+      "column": "user_high_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "account_auth"
+      ],
+      "rationale": "Account-scoped World social state between two accounts (#595, decision #48 L3), like user_blocks: the existing account_auth policy terminates it on erasure of either account, through the ordered erasure executor rather than a database cascade. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "social_connections",
+      "column": "user_low_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "account_auth"
+      ],
+      "rationale": "Account-scoped World social state between two accounts (#595, decision #48 L3), like user_blocks: the existing account_auth policy terminates it on erasure of either account, through the ordered erasure executor rather than a database cascade. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "world_presence_consents",
+      "column": "user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "account_auth"
+      ],
+      "rationale": "Account-scoped World presence consent record (#595, decision #48 L2): the existing account_auth policy terminates it on account erasure, through the ordered erasure executor. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
       "table": "user_config",
       "column": "user_id",
       "disposition": "TO_CONFIRM",
@@ -313,6 +411,30 @@
       "promotionAuthorized": true,
       "approvedDecision": "DETACH_IDENTITY_LINK_KEEP_SHARED_PRODUCT_OBJECT",
       "approvalRef": "#446"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "community_reports",
+      "column": "subject_user_id",
+      "disposition": "DETACH",
+      "executionStatus": "IMPLEMENTED",
+      "testEvidence": "backend/test/privacy-approved-erasure-decisions.test.mjs",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": "DETACH",
+      "policyRefs": [
+        "moderation_evidence"
+      ],
+      "why": "World reports (#594) name the reported person as moderation evidence. The approved reporter decision (#446) detaches the reporter on erasure; the reported person's erasure has not been decided: detaching loses re-offence context, keeping an identified row needs a bounded moderation or legal-hold justification.",
+      "requiredDecision": "Define whether a report keeps, detaches or deletes the reported person's identity when that account is erased, within the approved moderation-evidence window and any documented investigation or legal hold.",
+      "allowedOutcomes": [
+        "DETACH",
+        "DELETE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": true,
+      "approvedDecision": "DETACH_IDENTITY_LINK_KEEP_SHARED_PRODUCT_OBJECT",
+      "approvalRef": "#594 (issuecomment-5857198114)"
     },
     {
       "subjectRoot": "users.id",
