@@ -109,6 +109,26 @@ namespace Emopet.World.Tests
         }
 
         [Test]
+        public async Task HidePresenceNoResponseKeepsUncertainHandleAndDegrades()
+        {
+            var http = new QueueHttp(
+                new WorldHttpResponse(200, BootstrapJson()),
+                new WorldHttpResponse(200, "{\"presence\":\"visible\",\"until\":123}"),
+                new WorldHttpResponse(0, string.Empty));
+            var coordinator = Create(http);
+
+            await coordinator.ConnectAsync(CancellationToken.None);
+            await coordinator.ShowPresenceAsync(CancellationToken.None);
+            var error = Assert.ThrowsAsync<WorldBackendException>(() =>
+                coordinator.HidePresenceAsync(CancellationToken.None));
+
+            Assert.That(error.Code, Is.EqualTo(WorldErrorCode.Unavailable));
+            Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Degraded));
+            Assert.That(coordinator.Handle, Is.EqualTo(Handle));
+            Assert.That(coordinator.ExpiresAtUnixMs, Is.EqualTo(123));
+        }
+
+        [Test]
         public async Task HidePresenceFailureStillClearsDeadServerHandle()
         {
             var http = new QueueHttp(
