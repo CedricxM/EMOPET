@@ -73,7 +73,7 @@ export async function persistSecurityAuditEvent(
     return {
       ok: false,
       error: 'DATABASE_UNAVAILABLE',
-      retryable: false,
+      retryable: true,
     };
   }
 }
