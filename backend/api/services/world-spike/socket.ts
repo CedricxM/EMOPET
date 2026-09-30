@@ -15,7 +15,7 @@ export class NakamaSocket {
   async connect(url: string, token: string, signal: AbortSignal): Promise<void> {
     if (signal.aborted) throw new WorldError('timeout');
     const endpoint = new URL('/ws', url);
-    endpoint.protocol = 'ws:';
+    endpoint.protocol = endpoint.protocol === 'https:' ? 'wss:' : 'ws:';
     endpoint.searchParams.set('token', token);
     endpoint.searchParams.set('status', 'true');
     endpoint.searchParams.set('format', 'json');
