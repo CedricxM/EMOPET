@@ -77,6 +77,23 @@ test('real transport emits official REST and socket contracts, never forwards ca
   connection.close();
   assert.equal(socket.closed, true);
 });
+test('transport profiles isolate local HTTP from remote HTTPS release', () => {
+  const key = 'a'.repeat(64);
+  assert.doesNotThrow(() => new NakamaTransport('http://127.0.0.1:7350', key, 'local-spike'));
+  assert.throws(() => new NakamaTransport('https://nakama.example.test', key, 'local-spike'), /loopback HTTP/);
+  assert.throws(() => new NakamaTransport('http://nakama.example.test', key, 'release'), /remote HTTPS/);
+  assert.throws(() => new NakamaTransport('https://127.0.0.1:7350', key, 'release'), /remote HTTPS/);
+  assert.doesNotThrow(() => new NakamaTransport('https://nakama.example.test', key, 'release'));
+});
+
+test('HTTPS Nakama endpoints use WSS for the realtime socket', async t => {
+  const instances = sockets(t);
+  const socket = new NakamaSocket(() => {}, () => {});
+  await socket.connect('https://nakama.example.test', 'synthetic', new AbortController().signal);
+  assert.equal(new URL(instances[0].url).protocol, 'wss:');
+  socket.close();
+});
+
 test('socket abort during connection closes CONNECTING native socket', async t => {
   const instances = sockets(t, { open: false });
   const socket = new NakamaSocket(() => {}, () => {});
