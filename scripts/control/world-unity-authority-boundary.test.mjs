@@ -144,6 +144,19 @@ test('Unity maps middleware auth/service status fallbacks to bounded World error
   );
 });
 
+test('Unity distinguishes structured World errors from HTTP status fallbacks', async () => {
+  const exception = await read('Assets/World/Transport/WorldBackendException.cs');
+  const client = await read('Assets/World/Transport/WorldBackendClient.cs');
+  const coordinator = await read('Assets/World/Session/WorldSessionCoordinator.cs');
+
+  assert.match(exception, /public bool IsStructuredWorldError \{ get; \}/);
+  assert.match(client, /isStructuredWorldError/);
+  assert.match(
+    coordinator,
+    /error\.IsStructuredWorldError[\s\S]*WorldErrorCode\.InvalidSession/,
+  );
+});
+
 test('Unity maps no-response transport failures to bounded unavailable state', async () => {
   const client = await read('Assets/World/Transport/WorldBackendClient.cs');
   const coordinator = await read('Assets/World/Session/WorldSessionCoordinator.cs');
@@ -180,7 +193,7 @@ test('presence withdrawal never claims invisibility when no HTTP outcome is know
 
   assert.match(
     coordinator,
-    /catch \(WorldBackendException error\) when \(error\.StatusCode > 0\)[\s\S]*ClearDisconnected\(\);/,
+    /catch \(WorldBackendException error\) when \([\s\S]*error\.IsStructuredWorldError[\s\S]*WorldErrorCode\.Unavailable[\s\S]*\)[\s\S]*ClearDisconnected\(\);/,
   );
   assert.match(
     coordinator,
