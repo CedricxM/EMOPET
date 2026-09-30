@@ -1,7 +1,7 @@
 {
   "schemaVersion": "emopet-security-detection-runtime-v1",
   "issue": 525,
-  "status": "DB_SOURCE_AND_ONE_SHOT_EXECUTION_CANDIDATE / CONTINUOUS_RUNTIME_OPEN",
+  "status": "DB_SOURCE + ONE_SHOT + CURSOR_BACKED_SCHEDULER_TICK_CANDIDATE / CONTINUOUS_DEPLOYMENT_OPEN",
   "eventSource": "security_audit_events",
   "detector": "backend/api/security/security-anomaly-detection.ts",
   "runtimeService": "backend/api/security/security-detection-runtime.ts",
@@ -22,11 +22,23 @@
     "countsAndDetectionTypesOnly": true
   },
   "operationalGaps": {
-    "continuousScheduler": "NOT_IMPLEMENTED",
+    "continuousScheduler": "CURSOR_BACKED_TICK_IMPLEMENTED / DEPLOYMENT_CADENCE_OPEN",
     "durableDetectionHistory": "NOT_IMPLEMENTED",
     "productionPolicyApproval": "OPEN",
     "providerMonitoring": "NOT_SELECTED",
     "alertDelivery": "OPEN_UNDER_526",
     "responseSla": "OPEN"
+  },
+  "scheduler": {
+    "issue": 769,
+    "runtimeService": "backend/api/security/security-detection-scheduler.ts",
+    "worker": "backend/api/workers/security-detection-scheduler-tick.ts",
+    "stateTable": "security_detection_scheduler_state",
+    "streamId": "security-audit-v1",
+    "serialization": "POSTGRES_TRANSACTION_ADVISORY_LOCK",
+    "cursorAdvance": "EVALUATED_ONLY",
+    "databaseClockWindowEnd": true,
+    "initialCursorRequired": true,
+    "httpRoute": null
   }
 }
