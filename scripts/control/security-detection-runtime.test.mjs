@@ -35,8 +35,11 @@ test('#525 runtime has canonical DB source without claiming continuous productio
   assert.equal(authority.scheduler.cursorAdvance, 'EVALUATED_ONLY');
   assert.equal(authority.scheduler.databaseClockWindowEnd, true);
   assert.equal(authority.scheduler.httpRoute, null);
+  assert.match(authority.scheduler.lateArrivalBoundary, /OPEN/);
+  assert.match(authority.scheduler.lateArrivalBoundary, /NOT UNBOUNDED LATE-COMMIT/);
 
   assert.match(authority.operationalGaps.continuousScheduler, /DEPLOYMENT_CADENCE_OPEN/);
+  assert.match(authority.operationalGaps.lateAuditEventArrival, /ZERO-LOSS CLAIM/);
   assert.equal(authority.operationalGaps.durableDetectionHistory, 'NOT_IMPLEMENTED');
   assert.equal(authority.operationalGaps.productionPolicyApproval, 'OPEN');
   assert.equal(authority.operationalGaps.alertDelivery, 'OPEN_UNDER_526');
