@@ -2,7 +2,7 @@
 
 **Issue:** #35  
 **Date:** 2026-09-29  
-**Status:** `PARTNERSHIP PREP / NO RIGHTS GRANTED / NO CONTENT INGESTION AUTHORIZED`
+**Status:** `OUTREACH SENT / AWAITING BCD RESPONSE / NO RIGHTS GRANTED / NO CONTENT INGESTION AUTHORIZED`
 
 ## 1. Purpose
 
@@ -191,16 +191,23 @@ Until written evidence exists:
 
 ## 10. Current communication state
 
-A Gmail draft has been prepared for:
-`contact@bcd.bzh`
+**Direction:** SENT  
+**Recipient:** `contact@bcd.bzh`  
+**Date:** 2026-09-30  
+**Gmail message ID:** `1a0f26dc12da6c01`  
+**Subject:** `EMOPET × Bretagne Culture Diversité — Bécédia / Bretania : accès, droits et piste de partenariat`
 
-Subject:
-`EMOPET × Bretagne Culture Diversité — Bécédia / Bretania : accès, droits et piste de partenariat`
+The outreach asks BCD to clarify:
+- supported technical access for Bécédia/Bretania;
+- metadata/editorial/media reuse rights;
+- attribution/update/takedown rules;
+- caching/search/RAG conditions;
+- whether a bounded regional-context partnership/pilot is of interest.
 
-Status:
-`DRAFT ONLY / NOT SENT`
+Current status:
+`SENT / RESPONSE NOT YET RECEIVED`
 
-The draft asks about technical access, reuse rights, attribution, caching/indexing/RAG conditions and a possible partnership/pilot.
+No licence, access right or partnership is inferred from the outbound message.
 
 ## 11. Desired outputs from first exchange
 
@@ -219,12 +226,12 @@ Leave the first exchange with:
 
 ## 12. Gate
 
-`BCD_CONTACT = DRAFT_READY / NOT_SENT`
+`BCD_CONTACT = SENT_2026_09_30 / AWAITING_RESPONSE`
 
 `BRETANIA_MACHINE_ACCESS = OPEN / OAI_PMH_NOT_ASSUMED`
 
 `BECEDIA_EDITORIAL_REUSE = PERMISSION_REQUIRED`
 
-`BCD_PARTNERSHIP = DISCUSSION_NOT_STARTED`
+`BCD_PARTNERSHIP = OUTREACH_SENT / NO_AGREEMENT`
 
 `BREIZ_BCD_INGESTION = HOLD`
