@@ -54,12 +54,24 @@ PENDING_PROOF.
 Do not use DEVICEID/MAC as the credential.
 
 ### M4 — challenge proof before release
-The backend/test authority issues a fresh single-use challenge.
+The backend/test authority issues a fresh single-use challenge for the exact
+candidate `PENDING_PROOF` credential.
 
-The physical device must produce a valid proof under the architecture selected
-later.
+The controlled M4 purpose is:
 
-A failed proof is a provisioning failure, not a warning.
+`DEVICE_CREDENTIAL_ACTIVATION` / purpose code `0x02`.
+
+It is domain-separated from runtime telemetry proof
+(`DEVICE_DATA_TELEMETRY_INGRESS` / `0x01`). A telemetry-purpose proof is not
+valid M4 activation evidence.
+
+The physical device must produce a valid proof using the candidate credential's
+private key. Backend verification must use the corresponding enrolled
+`PENDING_PROOF` public key and atomically consume the challenge.
+
+A successful source-level cryptographic proof still does not satisfy M5,
+representative-target evidence or M6 activation. A failed proof is a
+provisioning failure, not a warning.
 
 ### M5 — production debug/SWD state
 - apply the selected production debug policy;

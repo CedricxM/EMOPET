@@ -51,6 +51,12 @@ test('#720 keeps credential activation blocked behind M4/M5 physical evidence', 
   assert.equal(authority.runtime.rotationCutoverImplemented, false);
   assert.equal(authority.runtime.m4M5EvidenceAuthorityImplemented, false);
   assert.equal(authority.runtime.publicActivationRouteImplemented, false);
+  assert.equal(authority.runtime.manufacturingPopIssuerSourceImplemented, true);
+  assert.equal(authority.runtime.manufacturingPopVerifierSourceImplemented, true);
+  assert.equal(authority.runtime.manufacturingPopEvidencePersistenceImplemented, false);
+  assert.equal(authority.runtime.manufacturingPopPublicRouteImplemented, false);
+  assert.equal(authority.runtime.m4M5EvidenceStoresImplemented, false);
+  assert.equal(authority.runtime.m4M5EvidenceAuthorityImplemented, false);
 });
 
 test('rotation contract requires one locked atomic cutover, never activate-then-revoke', () => {

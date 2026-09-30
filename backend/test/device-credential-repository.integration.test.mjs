@@ -13,6 +13,7 @@ const MAT = 'd6610000-0000-4000-8000-000000000005';
 let sql = null;
 let enroll = null;
 let resolver = null;
+let pendingResolver = null;
 let closeDatabase = null;
 
 if (enabled) {
@@ -24,6 +25,7 @@ if (enabled) {
   sql = postgres(process.env.DATABASE_URL, { max: 1 });
   enroll = repoModule.enrollPendingDeviceIdentityCredential;
   resolver = repoModule.durableDevicePopCredentialRepository;
+  pendingResolver = repoModule.durablePendingDevicePopCredentialRepository;
   closeDatabase = dbModule.closeDatabase;
 }
 
@@ -121,6 +123,23 @@ test('durable enrollment stores public PENDING_PROOF credentials and refuses imp
 
   const active = await resolver.resolveActiveCredential(TAG_A, 1);
   assert.equal(active, null);
+
+  const pending = await pendingResolver.resolvePendingCredential(TAG_A, 1);
+  assert.ok(pending);
+  assert.equal(pending.deviceId, TAG_A);
+  assert.equal(pending.credentialVersion, 1);
+  assert.equal(pending.state, 'PENDING_PROOF');
+  assert.equal(
+    Buffer.from(pending.publicKeySec1).toString('base64url'),
+    firstReceipt.publicKey,
+  );
+  assert.equal(pending.firmwareVersion, '6.1.0');
+  assert.equal(pending.hardwareRevision, 'MS88SF3-P0');
+  assert.equal(pending.bootstrapRevision, 'fixture-1');
+  assert.equal(
+    await pendingResolver.resolvePendingCredential(TAG_A, 2),
+    null,
+  );
 
   const duplicateVersion = await enroll(TAG_A, receipt({
     version: 1,
