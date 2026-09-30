@@ -26,7 +26,7 @@ test('Unity World spike pins the approved LTS editor and canonical backend bound
   const version = await read('ProjectSettings/ProjectVersion.txt');
   const client = await read('Assets/World/Transport/WorldBackendClient.cs');
 
-  assert.match(version, /m_EditorVersion: 6000\.3\.21f1/);
+  assert.match(version, /m_EditorVersion: 6000\.3\.25f1/);
   assert.match(client, /private const string Mount = "\/api\/world-spike";/);
 });
 
