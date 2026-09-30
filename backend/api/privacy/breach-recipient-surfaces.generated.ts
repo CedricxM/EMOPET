@@ -99,6 +99,12 @@ export const BREACH_RECIPIENT_SURFACES = [
     "source": "config/privacy account+dog erasure topology"
   },
   {
+    "surface": "sql:auth_email_verification_tokens",
+    "authority": "CANONICAL_SQL",
+    "requiredGap": null,
+    "source": "config/privacy account+dog erasure topology"
+  },
+  {
     "surface": "sql:auth_refresh_sessions",
     "authority": "CANONICAL_SQL",
     "requiredGap": null,
