@@ -5,6 +5,7 @@ import {
   achievements,
   aiMessages,
   anticipationEvents,
+  authEmailVerificationTokens,
   authRefreshSessions,
   baselines,
   baselineDriftMonitor,
@@ -325,6 +326,7 @@ export async function verifyErasureResidue(
         accountRelationProbes.push(
           probe('achievements.user_id', await countWhere(tx, achievements, eq(achievements.userId, snapshot.accountId))),
           probe('ai_messages.target_user_id', await countWhere(tx, aiMessages, eq(aiMessages.targetUserId, snapshot.accountId))),
+          probe('auth_email_verification_tokens.user_id', await countWhere(tx, authEmailVerificationTokens, eq(authEmailVerificationTokens.userId, snapshot.accountId))),
           probe('auth_refresh_sessions.user_id', await countWhere(tx, authRefreshSessions, eq(authRefreshSessions.userId, snapshot.accountId))),
           probe('behavioral_assessments.respondent_user_id', await countWhere(tx, behavioralAssessments, eq(behavioralAssessments.respondentUserId, snapshot.accountId))),
           probe('comments.author_id', await countWhere(tx, comments, eq(comments.authorId, snapshot.accountId))),

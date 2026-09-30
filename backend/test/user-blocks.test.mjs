@@ -155,6 +155,7 @@ test('every account-topology user relation has an erasure residue probe and a di
     .filter((relation) => !residue.includes(`probe('${relation}'`));
   assert.deepEqual(missing, [], 'a user relation without a residue probe would let erasure leave undetected rows');
   const discovery = readFileSync(new URL('../api/services/subject-discovery.ts', import.meta.url), 'utf8');
+  assert.match(discovery, /authEmailVerificationTokens: counted\(await countWhere\(tx, authEmailVerificationTokens, eq\(authEmailVerificationTokens\.userId, userId\)\)/);
   assert.match(discovery, /userBlocksCreated: counted\(await countWhere\(tx, userBlocks, eq\(userBlocks\.blockerUserId, userId\)\)\)/);
   assert.match(discovery, /userBlocksReceived: counted\(await countWhere\(tx, userBlocks, eq\(userBlocks\.blockedUserId, userId\)\)/);
 });

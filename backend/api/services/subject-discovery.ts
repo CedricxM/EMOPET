@@ -5,6 +5,7 @@ import {
   achievements,
   aiMessages,
   anticipationEvents,
+  authEmailVerificationTokens,
   authRefreshSessions,
   baselines,
   baselineDriftMonitor,
@@ -178,6 +179,9 @@ export async function discoverSubjectData(
         subscriptions: counted(await countWhere(tx, subscriptions, eq(subscriptions.userId, userId))),
         achievements: counted(await countWhere(tx, achievements, eq(achievements.userId, userId))),
         aiMessagesTargetingUser: counted(await countWhere(tx, aiMessages, eq(aiMessages.targetUserId, userId))),
+        authEmailVerificationTokens: counted(await countWhere(tx, authEmailVerificationTokens, eq(authEmailVerificationTokens.userId, userId)), {
+          note: 'Count only. Verification token hashes and lifecycle internals are not disclosed.',
+        }),
         authRefreshSessions: counted(await countWhere(tx, authRefreshSessions, eq(authRefreshSessions.userId, userId)), {
           note: 'Count only. Refresh token hashes and session internals are not disclosed.',
         }),
