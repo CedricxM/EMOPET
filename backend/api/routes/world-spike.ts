@@ -128,7 +128,8 @@ export function configuredWorldSpike(env: NodeJS.ProcessEnv = process.env,
   const transport = new NakamaTransport(env['NAKAMA_URL'] ?? 'http://127.0.0.1:7350', env['NAKAMA_HTTP_KEY'] ?? '');
   // Configuration is refused first (loopback URL, key), whatever the runtime; then the runtime capability.
   if (typeof globalThis.WebSocket !== 'function') throw new Error('World spike requires Node >=22 with WebSocket');
-  const adapter = new WorldRealtimeAdapter(transport, access, blocks, social);
+  const freeText = env['WORLD_SPIKE_FREE_TEXT'] === 'true';
+  const adapter = new WorldRealtimeAdapter(transport, access, blocks, social, undefined, undefined, undefined, { freeText });
   // Logout, logout_all and pilot revocation close live World handles at once (#48 L7).
   onActorRevoked(async (userId, reason) => {
     adapter.revokeActor(userId);
@@ -136,7 +137,7 @@ export function configuredWorldSpike(env: NodeJS.ProcessEnv = process.env,
     // canonically yet; when built it must call revokeActor(userId, 'account_deletion').
     if (reason === 'account_deletion') await adapter.purgeTransportAccount(userId);
   });
-  return createWorldSpikeRoutes(adapter, reports, { freeText: env['WORLD_SPIKE_FREE_TEXT'] === 'true' });
+  return createWorldSpikeRoutes(adapter, reports, { freeText });
 }
 
 /** Canonical connections and presence consent (#595) behind the World port. */

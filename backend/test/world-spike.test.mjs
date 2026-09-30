@@ -49,7 +49,8 @@ function setup(t, options = {}) {
     async hasPresenceConsent(u) { social.check(); return social.consent.has(u); },
     async grantPresenceConsent(u, expiresAt) { social.check(); social.grants.push([u, expiresAt]); social.consent.add(u); },
     async withdrawPresenceConsent(u) { social.withdrawals.push(u); social.check(); social.consent.delete(u); } };
-  const adapter = new WorldRealtimeAdapter(transport, access, policy, social, () => now, async ms => { sleeps.push(ms); }, options.deadline ?? 100);
+  const adapter = new WorldRealtimeAdapter(transport, access, policy, social, () => now, async ms => { sleeps.push(ms); }, options.deadline ?? 100,
+    { freeText: options.freeText === true });
   t.after(() => adapter.close());
   return { adapter, connections, calls, sleeps, transport, policy, access, social, expire: () => { now += 400000; }, exp: now + 600000,
     block: (blocker, target) => blocked.add(`${blocker}|${target}`), unblock: (blocker, target) => blocked.delete(`${blocker}|${target}`) };
@@ -505,6 +506,8 @@ test('the configured spike subscribes the adapter to canonical revocation', () =
   assert.match(route, /onActorRevoked\(async \(userId, reason\) => \{\s+adapter\.revokeActor\(userId\);/);
   assert.match(route, /access: WorldAccessPolicy = drizzleWorldPilotAccess\(\)/);
   assert.doesNotMatch(route, /env\['WORLD_SPIKE_TEST_USER_IDS'\]/);
+  assert.match(route, /const freeText = env\['WORLD_SPIKE_FREE_TEXT'\] === 'true';/);
+  assert.match(route, /new WorldRealtimeAdapter\(transport, access, blocks, social, undefined, undefined, undefined, \{ freeText \}\)/);
 });
 
 // WORLD-SOCIAL-02 (#595): canonical connections and presence consent.
@@ -557,7 +560,16 @@ test('chat events carry only sender, message id and a preset (or allowed text)',
   await adapter.bootstrap(B, exp);
   connections[0].event({ type: 'chat', value: { channelId: 'g', senderId: B, messageId: 'm1', content: { preset: 'merci', lat: 1 }, dogId: 'x' } });
   connections[0].event({ type: 'chat', value: { channelId: 'g', senderId: B, messageId: 'm2', content: { preset: 'not-a-preset' } } });
+  connections[0].event({ type: 'chat', value: { channelId: 'g', senderId: B, messageId: 'm3', content: { text: 'must stay hidden' } } });
   assert.deepEqual((await adapter.events(A, a.handle)).events, [{ type: 'chat', value: { channelId: 'g', senderId: B, messageId: 'm1', content: { preset: 'merci' } } }]);
+});
+test('incoming free text is visible only behind the explicit free-text flag', async t => {
+  const { adapter, connections, exp } = setup(t, { freeText: true });
+  const a = await adapter.bootstrap(A, exp);
+  await adapter.bootstrap(B, exp);
+  connections[0].event({ type: 'chat', value: { channelId: 'g', senderId: B, messageId: 'm4', content: { text: 'explicitly enabled' } } });
+  assert.deepEqual((await adapter.events(A, a.handle)).events,
+    [{ type: 'chat', value: { channelId: 'g', senderId: B, messageId: 'm4', content: { text: 'explicitly enabled' } } }]);
 });
 test('withdrawing presence closes the socket first, even if recording the withdrawal fails', async t => {
   const { adapter, connections, social, exp } = setup(t);

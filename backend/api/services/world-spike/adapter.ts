@@ -22,10 +22,10 @@ function presenceRow(row: { user_id?: unknown; status?: unknown }) {
   return { user_id: row.user_id, ...(row.status === 'online' || row.status === 'away' ? { status: row.status } : {}) };
 }
 /** Chat carries a preset id, or free text only when that separate flag allowed it to be sent. */
-function chatContent(content: unknown): Record<string, string> | null {
+function chatContent(content: unknown, allowFreeText = false): Record<string, string> | null {
   const value = content as { preset?: unknown; text?: unknown } | null;
   if (typeof value?.preset === 'string' && Object.hasOwn(WORLD_PRESETS, value.preset)) return { preset: value.preset };
-  if (typeof value?.text === 'string' && value.text.length <= 1000) return { text: value.text };
+  if (allowFreeText && typeof value?.text === 'string' && value.text.length <= 1000) return { text: value.text };
   return null;
 }
 
@@ -58,7 +58,7 @@ export class WorldRealtimeAdapter {
   constructor(private transport: WorldTransport, private access: WorldAccessPolicy,
     private blocks: WorldBlockPolicy, private social: WorldSocialPolicy,
     private clock = Date.now, private sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms)),
-    private deadlineMs = 5000) {}
+    private deadlineMs = 5000, private options: { freeText?: boolean } = {}) {}
 
   private actor(userId: string) {
     customIdentity(userId);
@@ -251,7 +251,7 @@ export class WorldRealtimeAdapter {
     const out: unknown[] = [];
     for (const event of events as { type?: unknown; value?: Record<string, unknown> }[]) {
       if (event?.type === 'chat' && event.value) {
-        const content = chatContent(event.value['content']);
+        const content = chatContent(event.value['content'], this.options.freeText === true);
         if (content && await visible(event.value['senderId'])) {
           out.push({ type: 'chat', value: { channelId: event.value['channelId'], senderId: event.value['senderId'],
             messageId: event.value['messageId'], content } });
