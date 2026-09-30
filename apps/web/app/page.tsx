@@ -10,6 +10,12 @@ import AppMockup from '@/components/landing/AppMockup';
 import BreizConversation from '@/components/landing/BreizConversation';
 import PrivacyControls from '@/components/landing/PrivacyControls';
 import LandingFooter from '@/components/landing/LandingFooter';
+import {
+  CLINICAL_BOUNDARY,
+  MATURITY_CAPTION,
+  MATURITY_PILL_IN_PROGRESS,
+  MATURITY_PILL_PLANNED,
+} from '@/components/landing/maturity-labels';
 
 export default function HomePage() {
   const heroRef = useRef<HTMLDivElement>(null);
@@ -115,7 +121,7 @@ export default function HomePage() {
             {/* Status badge */}
             <div className="mt-12">
               <span
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#E3EAE4] text-[#1E9A90] text-xs font-medium rounded-full"
+                className={`inline-flex items-center gap-2 px-4 py-2 ${MATURITY_PILL_PLANNED} text-xs font-medium rounded-full`}
                 style={{ fontFamily: 'var(--font-body)' }}
               >
                 <span className="w-2 h-2 rounded-full bg-[#2CB7AB] animate-pulse" />
@@ -203,7 +209,7 @@ export default function HomePage() {
                 <div className="w-full max-w-md aspect-[16/9] rounded-2xl border-2 border-dashed border-[#A8BCAC]/40" />
               </div>
             </div>
-            <p className="text-center text-[#A8BCAC] text-[10px] tracking-[0.2em] uppercase mt-2" style={{ fontFamily: 'var(--font-body)' }}>CONCEPT VISUAL</p>
+            <p className={`text-center ${MATURITY_CAPTION} text-[10px] tracking-[0.2em] uppercase mt-2`} style={{ fontFamily: 'var(--font-body)' }}>CONCEPT VISUAL</p>
 
             <h2
               className="text-2xl md:text-4xl text-[#141C25] mb-4"
@@ -227,7 +233,7 @@ export default function HomePage() {
               pour le confort de votre chien.
             </p>
             <span
-              className="inline-block mt-4 px-3 py-1 bg-[#F7E5DA] text-[#9B5A3E] text-xs font-medium rounded-full"
+              className={`inline-block mt-4 px-3 py-1 ${MATURITY_PILL_IN_PROGRESS} text-xs font-medium rounded-full`}
               style={{ fontFamily: 'var(--font-body)' }}
             >
               EN DÉVELOPPEMENT
@@ -259,7 +265,7 @@ export default function HomePage() {
               </svg>
             </div>
 
-            <p className="text-center text-[#C6BBA4] text-[10px] tracking-[0.2em] uppercase mb-6" style={{ fontFamily: 'var(--font-body)' }}>CONCEPT VISUAL</p>
+            <p className={`text-center ${MATURITY_CAPTION} text-[10px] tracking-[0.2em] uppercase mb-6`} style={{ fontFamily: 'var(--font-body)' }}>CONCEPT VISUAL</p>
             <h2
               className="text-2xl md:text-4xl text-[#141C25] mb-4"
               style={{ fontFamily: 'var(--font-display)' }}
@@ -282,7 +288,7 @@ export default function HomePage() {
               Le Tag aide à compléter l&apos;image du quotidien.
             </p>
             <span
-              className="inline-block mt-4 px-3 py-1 bg-[#F7E5DA] text-[#9B5A3E] text-xs font-medium rounded-full"
+              className={`inline-block mt-4 px-3 py-1 ${MATURITY_PILL_IN_PROGRESS} text-xs font-medium rounded-full`}
               style={{ fontFamily: 'var(--font-body)' }}
             >
               EN DÉVELOPPEMENT
@@ -315,7 +321,7 @@ export default function HomePage() {
           <AppMockup />
           <div className="text-center mt-8">
             <span
-              className="inline-block px-3 py-1 bg-[#F7E5DA] text-[#9B5A3E] text-xs font-medium rounded-full"
+              className={`inline-block px-3 py-1 ${MATURITY_PILL_IN_PROGRESS} text-xs font-medium rounded-full`}
               style={{ fontFamily: 'var(--font-body)' }}
             >
               EN DÉVELOPPEMENT
@@ -350,7 +356,7 @@ export default function HomePage() {
           <BreizConversation />
           <div className="text-center mt-8">
             <span
-              className="inline-block px-3 py-1 bg-[#F7E5DA] text-[#9B5A3E] text-xs font-medium rounded-full"
+              className={`inline-block px-3 py-1 ${MATURITY_PILL_IN_PROGRESS} text-xs font-medium rounded-full`}
               style={{ fontFamily: 'var(--font-body)' }}
             >
               EN DÉVELOPPEMENT
@@ -407,7 +413,7 @@ export default function HomePage() {
             </div>
 
             <span
-              className="inline-block mt-8 px-3 py-1 bg-[#E3EAE4] text-[#1E9A90] text-xs font-medium rounded-full"
+              className={`inline-block mt-8 px-3 py-1 ${MATURITY_PILL_PLANNED} text-xs font-medium rounded-full`}
               style={{ fontFamily: 'var(--font-body)' }}
             >
               PRÉVU
@@ -476,7 +482,7 @@ export default function HomePage() {
 
             <div className="text-center mt-6">
               <span
-                className="inline-block px-3 py-1 bg-[#E3EAE4] text-[#1E9A90] text-xs font-medium rounded-full"
+                className={`inline-block px-3 py-1 ${MATURITY_PILL_PLANNED} text-xs font-medium rounded-full`}
                 style={{ fontFamily: 'var(--font-body)' }}
               >
                 PRÉVU
@@ -542,7 +548,7 @@ export default function HomePage() {
 
             <div className="mt-6">
               <span
-                className="inline-block px-3 py-1 bg-[#E3EAE4] text-[#1E9A90] text-xs font-medium rounded-full"
+                className={`inline-block px-3 py-1 ${MATURITY_PILL_PLANNED} text-xs font-medium rounded-full`}
                 style={{ fontFamily: 'var(--font-body)' }}
               >
                 PRÉVU
@@ -636,7 +642,7 @@ export default function HomePage() {
             </div>
 
             <p
-              className="text-center text-[#6B7684] text-xs mt-6"
+              className={`text-center ${CLINICAL_BOUNDARY} text-xs mt-6`}
               style={{ fontFamily: 'var(--font-body)' }}
             >
               EMOPET propose des informations, pas des diagnostics.

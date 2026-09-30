@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { MATURITY_FOOTNOTE } from '@/components/landing/maturity-labels';
 
 export default function LandingFooter() {
   const linkGroups = [
@@ -92,7 +93,7 @@ export default function LandingFooter() {
             © 2025 EMOPET · Lorient, Bretagne
           </p>
           <p
-            className="text-xs text-[#6B7684] italic"
+            className={`text-xs ${MATURITY_FOOTNOTE} italic`}
             style={{ fontFamily: 'var(--font-body)' }}
           >
             Projet en développement
