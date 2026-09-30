@@ -283,6 +283,34 @@ jobs:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
         run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/0015_behavioral_eli_mapping_authority.sql
 
+      - name: Create least-privilege disposable runtime role
+        env:
+          GENERATED_ADMIN_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+        run: |
+          psql "$GENERATED_ADMIN_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE ROLE emopet_runtime_qa
+            LOGIN
+            PASSWORD 'runtime_qa_only'
+            NOSUPERUSER
+            NOCREATEDB
+            NOCREATEROLE
+            NOREPLICATION
+            NOBYPASSRLS;
+          GRANT CONNECT ON DATABASE emopet_qa_generated TO emopet_runtime_qa;
+          GRANT USAGE ON SCHEMA public TO emopet_runtime_qa;
+          REVOKE CREATE ON SCHEMA public FROM emopet_runtime_qa;
+          GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO emopet_runtime_qa;
+          GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO emopet_runtime_qa;
+          SQL
+
+      - name: HARDEN-G6 least-privilege runtime role proof
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_runtime_qa:runtime_qa_only@127.0.0.1:5432/emopet_qa_generated
+          RUNTIME_DB_AUTHORITY_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/database-runtime-authority.integration.test.mjs
+
       # Table inventory cannot see constraint/index drift (a shadow NO ACTION FK kept
       # blocking the approved D4 DETACH #446 on path A only). Compare the untouched
       # path-A replay with the generated baseline before any test writes to either.

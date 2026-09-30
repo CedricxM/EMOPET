@@ -13,6 +13,7 @@ import { directory } from './routes/directory.js';
 import { dataExport } from './routes/data-export.js';
 import { authMiddleware } from './middleware/auth.js';
 import { rateLimitMiddleware } from './middleware/rate-limit.js';
+import { assertRuntimeDatabaseAuthority } from '../db/index.js';
 
 const app = new Hono();
 
@@ -55,6 +56,10 @@ app.route('/api/directory', directory);
 app.route('/api/data-export', dataExport);
 
 // ── Start Server ────────────────────────────────────────────────
+
+if (process.env['NODE_ENV'] === 'production') {
+  await assertRuntimeDatabaseAuthority();
+}
 
 const port = Number(process.env['PORT'] ?? 3000);
 
