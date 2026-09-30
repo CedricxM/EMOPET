@@ -45,7 +45,7 @@ function resolveAuthRateLimitHmacSecret(): string {
   if (
     !configured
     || configured.length < 32
-    || configured === 'replace-with-random-secret'
+    || configured.startsWith('replace-with-')
     || configured === 'dev-secret-change-in-production'
   ) {
     throw new Error(
