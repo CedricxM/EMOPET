@@ -19,15 +19,15 @@ export const securityDetectionSchedulerState = pgTable(
   'security_detection_scheduler_state',
   {
     streamId: varchar('stream_id', { length: 64 }).primaryKey(),
-    monitoringStartedAt: timestamp('monitoring_started_at', {
-      withTimezone: true,
-    }).notNull(),
     lastSuccessfulWindowEnd: timestamp('last_successful_window_end', {
       withTimezone: true,
     }).notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
       .notNull(),
+    monitoringStartedAt: timestamp('monitoring_started_at', {
+      withTimezone: true,
+    }).notNull(),
   },
   (table) => [
     check(
