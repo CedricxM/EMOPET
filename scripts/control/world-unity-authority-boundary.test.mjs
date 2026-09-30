@@ -233,3 +233,26 @@ test('Core stays engine-independent and session defaults to invisible presence',
     /BootstrapConnected\(\)[\s\S]*State = WorldSessionState\.ConnectedInvisible;/,
   );
 });
+
+
+test('Unity live harness stays loopback-only and reuses canonical World boundaries', async () => {
+  const host = await readFile(path.join(root, 'backend', 'test', 'world-spike-unity-host.mjs'), 'utf8');
+  const live = await read('Assets/World/Tests/EditMode/WorldBackendClientLiveTests.cs');
+
+  assert.match(host, /process\.env\.NODE_ENV === 'production'/);
+  assert.match(host, /hostname: '127\.0\.0\.1'/);
+  assert.match(host, /createWorldSpikeRoutes\(adapter, reportSink\)/);
+  assert.match(host, /new NakamaTransport\(/);
+  assert.match(host, /signAccessToken\(id\)/);
+  assert.match(host, /unity', 'world', 'Temp', 'world-live-harness\.json'/);
+  assert.doesNotMatch(host, /console\.log\([^\n]*(tokenA|tokenB|NAKAMA_HTTP_KEY|JWT_SECRET)/);
+
+  assert.match(live, /new UnityWebRequestWorldHttpTransport\(\)/);
+  assert.match(live, /baseUri\.IsLoopback/);
+  assert.match(live, /ConnectedInvisible/);
+  assert.match(live, /ShowPresenceAsync/);
+  assert.match(live, /SendPresetAsync/);
+  assert.match(live, /BootstrapAsync\(previousHandle/);
+  assert.match(live, /WorldSessionState\.Degraded/);
+  assert.doesNotMatch(live, /Nakama(Client|Session|Socket)|HeroicLabs|authenticateCustom/);
+});
