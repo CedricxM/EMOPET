@@ -71,6 +71,17 @@ test('first-slice Unity chat remains preset-only', async () => {
   assert.match(client, /WorldPresets\.IsAllowed\(presetId\)/);
 });
 
+test('Unity retries one fresh invisible bootstrap after a stale renewal handle', async () => {
+  const coordinator = await read('Assets/World/Session/WorldSessionCoordinator.cs');
+
+  assert.match(coordinator, /var previousHandle = Handle;/);
+  assert.match(
+    coordinator,
+    /error\.Code == WorldErrorCode\.InvalidSession && !string\.IsNullOrEmpty\(previousHandle\)/,
+  );
+  assert.match(coordinator, /result = await backend\.BootstrapAsync\(null, cancellationToken\);/);
+});
+
 test('Unity rejects expired bootstrap sessions before connected state', async () => {
   const coordinator = await read('Assets/World/Session/WorldSessionCoordinator.cs');
 
