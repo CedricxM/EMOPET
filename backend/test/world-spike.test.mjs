@@ -12,6 +12,7 @@ process.env.JWT_SECRET = 'world-spike-synthetic-test-secret-not-production';
 const A = '11111111-1111-4111-8111-111111111111';
 const B = '22222222-2222-4222-8222-222222222222';
 const GROUP = '33333333-3333-4333-8333-333333333333';
+const messageId = (n) => `44444444-4444-4444-8444-${Number(n).toString(16).padStart(12, '0')}`;
 function setup(t, options = {}) {
   let now = Date.now();
   const connections = [], calls = [], sleeps = [];
@@ -145,10 +146,10 @@ test('Friends, Groups, Presence and Chat go only through adapter transport', asy
 test('bounded event polling signals overflow and consumes events once', async t => {
   const { adapter, connections, exp } = setup(t);
   const session = await adapter.bootstrap(A, exp);
-  for (let i = 0; i < 105; i++) connections[0].event({ type: 'chat', value: { senderId: A, messageId: String(i), content: { preset: 'salut' } } });
+  for (let i = 0; i < 105; i++) connections[0].event({ type: 'chat', value: { senderId: A, messageId: messageId(i), content: { preset: 'salut' } } });
   const events = await adapter.events(A, session.handle);
   assert.equal(events.events.length, 100);
-  assert.equal(events.events[0].value.messageId, '5');
+  assert.equal(events.events[0].value.messageId, messageId(5));
   assert.equal(events.resyncRequired, true);
   assert.equal((await adapter.events(A, session.handle)).events.length, 0);
 });
@@ -310,19 +311,20 @@ test('friend lists, presence and chat hide blocked participants both ways, inclu
   const { adapter, connections, exp, block, social } = setup(t);
   const a = await adapter.bootstrap(A, exp);
   const b = await adapter.bootstrap(B, exp);
-  const chat = (sender, text) => ({ type: 'chat', value: { channelId: 'g', senderId: sender, messageId: text, content: { text } } });
+  const fromB = messageId(201), ownEcho = messageId(202), unknown = messageId(203), fromA = messageId(204);
+  const chat = (sender, id) => ({ type: 'chat', value: { channelId: 'g', senderId: sender, messageId: id, content: { preset: 'salut' } } });
   const presence = (...ids) => ({ type: 'presence', value: { joins: ids.map(user_id => ({ user_id, status: 'online' })), leaves: [] } });
   // Buffered before the block exists: filtering at read time still applies.
-  connections[0].event(chat(B, 'from-b'));
-  connections[0].event(chat(A, 'own-echo'));
+  connections[0].event(chat(B, fromB));
+  connections[0].event(chat(A, ownEcho));
   connections[0].event(presence(B));
-  connections[0].event(chat('unknown-transport-id', 'unknown'));
+  connections[0].event(chat('unknown-transport-id', unknown));
   connections[0].event({ type: 'unexpected', value: {} });
-  connections[1].event(chat(A, 'from-a'));
+  connections[1].event(chat(A, fromA));
   connections[1].event(presence(A, B));
   block(A, B);
   const forA = await adapter.events(A, a.handle);
-  assert.deepEqual(forA.events.map(e => e.value.messageId ?? 'presence'), ['own-echo']);
+  assert.deepEqual(forA.events.map(e => e.value.messageId ?? 'presence'), [ownEcho]);
   const forB = await adapter.events(B, b.handle);
   assert.equal(forB.events.length, 1);
   assert.deepEqual(forB.events[0].value.joins.map(p => p.user_id), [B], 'the blocker is not visible to the blocked person');
@@ -349,7 +351,8 @@ test('unknown block state fails closed without degrading the session or losing e
   const { adapter, connections, calls, policy, exp } = setup(t);
   const a = await adapter.bootstrap(A, exp);
   await adapter.bootstrap(B, exp);
-  connections[0].event({ type: 'chat', value: { senderId: B, messageId: 'kept', content: { preset: 'salut' } } });
+  const kept = messageId(301);
+  connections[0].event({ type: 'chat', value: { senderId: B, messageId: kept, content: { preset: 'salut' } } });
   policy.down = true;
   await assert.rejects(adapter.execute(A, a.handle, { op: 'presence.follow', targetUserId: B }), /unavailable/);
   await assert.rejects(adapter.events(A, a.handle), /unavailable/);
@@ -357,7 +360,7 @@ test('unknown block state fails closed without degrading the session or losing e
   policy.down = false;
   const batch = await adapter.events(A, a.handle);
   assert.equal(batch.state, 'connected');
-  assert.deepEqual(batch.events.map(e => e.value.messageId), ['kept'], 'events stay buffered until blocks can be checked');
+  assert.deepEqual(batch.events.map(e => e.value.messageId), [kept], 'events stay buffered until blocks can be checked');
   const blocked = await createWorldSpikeRoutes(adapter).request(`/sessions/${a.handle}/commands`, { method: 'POST',
     headers: { Authorization: `Bearer ${await signAccessToken(A)}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ op: 'presence.follow', targetUserId: A }) });
@@ -570,18 +573,20 @@ test('chat events carry only sender, message id and a preset (or allowed text)',
   const { adapter, connections, exp } = setup(t);
   const a = await adapter.bootstrap(A, exp);
   await adapter.bootstrap(B, exp);
-  connections[0].event({ type: 'chat', value: { channelId: 'g', senderId: B, messageId: 'm1', content: { preset: 'merci', lat: 1 }, dogId: 'x' } });
-  connections[0].event({ type: 'chat', value: { channelId: 'g', senderId: B, messageId: 'm2', content: { preset: 'not-a-preset' } } });
-  connections[0].event({ type: 'chat', value: { channelId: 'g', senderId: B, messageId: 'm3', content: { text: 'must stay hidden' } } });
-  assert.deepEqual((await adapter.events(A, a.handle)).events, [{ type: 'chat', value: { channelId: 'g', senderId: B, messageId: 'm1', content: { preset: 'merci' } } }]);
+  const m1 = messageId(401), m2 = messageId(402), m3 = messageId(403);
+  connections[0].event({ type: 'chat', value: { channelId: 'g', senderId: B, messageId: m1, content: { preset: 'merci', lat: 1 }, dogId: 'x' } });
+  connections[0].event({ type: 'chat', value: { channelId: 'g', senderId: B, messageId: m2, content: { preset: 'not-a-preset' } } });
+  connections[0].event({ type: 'chat', value: { channelId: 'g', senderId: B, messageId: m3, content: { text: 'must stay hidden' } } });
+  assert.deepEqual((await adapter.events(A, a.handle)).events, [{ type: 'chat', value: { channelId: 'g', senderId: B, messageId: m1, content: { preset: 'merci' } } }]);
 });
 test('incoming free text is visible only behind the explicit free-text flag', async t => {
   const { adapter, connections, exp } = setup(t, { freeText: true });
   const a = await adapter.bootstrap(A, exp);
   await adapter.bootstrap(B, exp);
-  connections[0].event({ type: 'chat', value: { channelId: 'g', senderId: B, messageId: 'm4', content: { text: 'explicitly enabled' } } });
+  const m4 = messageId(404);
+  connections[0].event({ type: 'chat', value: { channelId: 'g', senderId: B, messageId: m4, content: { text: 'explicitly enabled' } } });
   assert.deepEqual((await adapter.events(A, a.handle)).events,
-    [{ type: 'chat', value: { channelId: 'g', senderId: B, messageId: 'm4', content: { text: 'explicitly enabled' } } }]);
+    [{ type: 'chat', value: { channelId: 'g', senderId: B, messageId: m4, content: { text: 'explicitly enabled' } } }]);
 });
 test('withdrawing presence closes the socket first, even if recording the withdrawal fails', async t => {
   const { adapter, connections, social, exp } = setup(t);
@@ -632,7 +637,7 @@ test('presence consent routes: opt in for the session, withdraw with 204', async
 test('the configured spike wires the canonical connections and consent', () => {
   const route = readFileSync(new URL('../api/routes/world-spike.ts', import.meta.url), 'utf8');
   assert.match(route, /social: WorldSocialPolicy = drizzleWorldSocialPolicy\(\)/);
-  assert.match(route, /access, blocks, social\)/);
+  assert.match(route, /new WorldRealtimeAdapter\(transport, access, blocks, social,/);
 });
 
 // #48 L6: account erasure deletes the Nakama account; nothing else of the person stays in Nakama.
