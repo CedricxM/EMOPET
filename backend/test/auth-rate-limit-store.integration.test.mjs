@@ -68,6 +68,41 @@ test('concurrent callers share one PostgreSQL auth budget', {
   assert.equal(row.count, 3);
 });
 
+test('repeated concurrent bursts keep the shared budget and row clocks monotonic', {
+  skip: !enabled,
+}, async () => {
+  await cleanup();
+
+  for (let round = 0; round < 20; round += 1) {
+    const rawKey = `auth:203.0.113.${100 + round}`;
+    const results = await Promise.all([
+      checkSharedAuthRateLimit(rawKey, OPTIONS),
+      checkSharedAuthRateLimit(rawKey, OPTIONS),
+      checkSharedAuthRateLimit(rawKey, OPTIONS),
+      checkSharedAuthRateLimit(rawKey, OPTIONS),
+    ]);
+
+    assert.equal(
+      results.filter((result) => result.status === 'ALLOWED').length,
+      2,
+      `round ${round}: allowed budget`,
+    );
+    assert.equal(
+      results.filter((result) => result.status === 'RATE_LIMITED').length,
+      2,
+      `round ${round}: limited budget`,
+    );
+  }
+
+  const [invalidClockRow] = await sql`
+    SELECT count(*)::int AS count
+    FROM auth_rate_limit_windows
+    WHERE updated_at < window_started_at
+       OR updated_at >= reset_at
+  `;
+  assert.equal(invalidClockRow.count, 0);
+});
+
 test('stored bucket is HMAC pseudonymous and never contains raw client identity', {
   skip: !enabled,
 }, async () => {
