@@ -1107,7 +1107,6 @@
 .inventoryTab:focus-visible {
   border-color: color-mix(in srgb, var(--emopet-teal) 44%, var(--border));
   color: var(--fg-strong);
-  outline: none;
 }
 
 .inventoryTabActive {
@@ -1156,7 +1155,6 @@
 .buildTitleButton:focus-visible {
   color: var(--emopet-navy);
   text-decoration: underline;
-  outline: none;
 }
 
 .stateBadge {
