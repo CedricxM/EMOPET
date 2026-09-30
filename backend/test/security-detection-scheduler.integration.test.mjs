@@ -215,13 +215,8 @@ test('scheduler cursor table contains operational cursor state only', {
     'updated_at',
   ]);
 
-  const serialized = JSON.stringify(columns);
-  assert.equal(
-    /actor|target|email|token|detection|payload|policy|subject|user/i.test(serialized),
-    true,
-  );
-
-  // The table name includes "detection", but column names must not.
+  // Cursor columns must remain operational-only. The table name contains
+  // "detection"; the columns themselves must not grow detection/identity data.
   for (const row of columns) {
     assert.doesNotMatch(
       row.column_name,
