@@ -71,6 +71,23 @@ test('first-slice Unity chat remains preset-only', async () => {
   assert.match(client, /WorldPresets\.IsAllowed\(presetId\)/);
 });
 
+test('Unity fails closed on malformed successful World payloads', async () => {
+  const coordinator = await read('Assets/World/Session/WorldSessionCoordinator.cs');
+
+  assert.match(
+    coordinator,
+    /result == null \|\| result\.state != "connected" \|\| result\.events == null/,
+  );
+  assert.match(
+    coordinator,
+    /result == null \|\| result\.presence != "visible" \|\| result\.until <= 0/,
+  );
+  assert.match(
+    coordinator,
+    /WorldErrorCode\.Unavailable, 200/,
+  );
+});
+
 test('Unity maps no-response transport failures to bounded unavailable state', async () => {
   const client = await read('Assets/World/Transport/WorldBackendClient.cs');
   const coordinator = await read('Assets/World/Session/WorldSessionCoordinator.cs');
