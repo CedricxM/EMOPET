@@ -83,6 +83,13 @@ namespace Emopet.World
                 ApplyFailure(error);
                 throw;
             }
+            catch (OperationCanceledException)
+            {
+                // Presence opt-in may already have reached the backend. Do not preserve an
+                // "invisible" client claim when the outcome is unknown.
+                stateMachine.MarkDegraded();
+                throw;
+            }
         }
 
         public async Task HidePresenceAsync(CancellationToken cancellationToken)
@@ -141,21 +148,33 @@ namespace Emopet.World
         public async Task DisconnectAsync(CancellationToken cancellationToken)
         {
             var handle = Handle;
-            Handle = null;
-            ExpiresAtUnixMs = 0;
+            if (string.IsNullOrEmpty(handle))
+            {
+                ClearDisconnected();
+                return;
+            }
 
             try
             {
-                if (!string.IsNullOrEmpty(handle))
-                    await backend.DisconnectAsync(handle, cancellationToken);
+                await backend.DisconnectAsync(handle, cancellationToken);
+                ClearDisconnected();
+            }
+            catch (WorldBackendException error) when (error.Code == WorldErrorCode.InvalidSession)
+            {
+                // The backend says the handle is already unusable/expired.
+                ClearDisconnected();
             }
             catch (WorldBackendException)
             {
-                // Disconnect is best-effort: local state must still close.
+                // A service/transport error does not prove the DELETE reached the session
+                // route. Preserve the handle as uncertain evidence and never claim offline.
+                stateMachine.MarkDegraded();
+                throw;
             }
-            finally
+            catch (OperationCanceledException)
             {
-                stateMachine.Disconnect();
+                stateMachine.MarkDegraded();
+                throw;
             }
         }
 
