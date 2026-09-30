@@ -148,3 +148,18 @@ data/reference/**/*.zip
 
 # Word documents - keep local unless explicitly reviewed
 *.docx
+
+
+# Unity World spike — generated/editor state
+unity/**/[Ll]ibrary/
+unity/**/[Tt]emp/
+unity/**/[Oo]bj/
+unity/**/[Bb]uild/
+unity/**/[Bb]uilds/
+unity/**/[Ll]ogs/
+unity/**/[Uu]serSettings/
+unity/**/*.csproj
+unity/**/*.sln
+unity/**/*.suo
+unity/**/*.user
+unity/**/*.userprefs
