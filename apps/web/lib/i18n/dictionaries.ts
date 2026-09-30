@@ -191,6 +191,7 @@ export const fr = {
     worldCta: 'Ouvrir Mon monde',
   },
   nav: {
+    skipToContent: 'Aller au contenu principal',
     home: 'Accueil',
     mobilePreview: 'Aperçu mobile',
     dashboard: 'ELI · Dashboard',
@@ -417,6 +418,7 @@ export const en: Dict = {
     worldCta: 'Open My Dog World',
   },
   nav: {
+    skipToContent: 'Skip to main content',
     home: 'Home',
     mobilePreview: 'Mobile preview',
     dashboard: 'ELI · Dashboard',
