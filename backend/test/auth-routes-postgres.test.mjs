@@ -52,7 +52,8 @@ test('AUTH-EMAIL-VERIFY-01 registration is generic and creates no session before
 }, async () => {
   const email = 'verify-route@emopet.invalid';
   const unknownEmail = 'verify-unknown@emopet.invalid';
-  const password = 'Correct Horse Battery Staple 2026!';
+  const password = 'Attacker Known Registration Password 2026!';
+  const verifiedPassword = 'Email Owner Selected Password 2026!';
 
   await sql`DELETE FROM users WHERE email IN (${email}, ${unknownEmail})`;
 
@@ -129,6 +130,7 @@ test('AUTH-EMAIL-VERIFY-01 registration is generic and creates no session before
 
   const verifyResponse = await jsonRequest('/verify-email', {
     token: rawVerificationToken,
+    password: verifiedPassword,
   });
   assert.equal(verifyResponse.status, 200);
   assert.equal(verifyResponse.headers.get('cache-control'), 'no-store');
@@ -136,6 +138,7 @@ test('AUTH-EMAIL-VERIFY-01 registration is generic and creates no session before
 
   const replayResponse = await jsonRequest('/verify-email', {
     token: rawVerificationToken,
+    password: 'Replay Password Must Not Win 2026!',
   });
   assert.equal(replayResponse.status, 400);
 
@@ -146,13 +149,49 @@ test('AUTH-EMAIL-VERIFY-01 registration is generic and creates no session before
   `;
   assert.ok(verifiedUser.email_verified_at instanceof Date);
 
-  const loginAfterVerification = await jsonRequest('/login', { email, password });
+  // Pre-hijack regression: the password chosen before email ownership was
+  // proven must not become authority after verification.
+  const attackerPasswordLogin = await jsonRequest('/login', { email, password });
+  assert.equal(attackerPasswordLogin.status, 401);
+  assert.deepEqual(await attackerPasswordLogin.json(), { error: 'Invalid credentials' });
+
+  const loginAfterVerification = await jsonRequest('/login', {
+    email,
+    password: verifiedPassword,
+  });
   assert.equal(loginAfterVerification.status, 200);
   const authenticated = await loginAfterVerification.json();
   assert.match(authenticated.refreshToken, /^emopet_rt_/);
 
   await sql`DELETE FROM auth_refresh_sessions WHERE user_id = ${user.id}`;
   await sql`DELETE FROM users WHERE id = ${user.id}`;
+});
+
+test('legacy accounts are not silently enrolled into email-verification rollout', {
+  skip: !enabled,
+}, async () => {
+  const email = 'legacy-no-rollout@emopet.invalid';
+  const passwordHash = await hashPassword('Legacy Password 2026!');
+
+  await sql`DELETE FROM users WHERE email = ${email}`;
+  const [legacy] = await sql`
+    INSERT INTO users (email, password_hash, name)
+    VALUES (${email}, ${passwordHash}, 'Legacy No Rollout')
+    RETURNING id, email_verification_required_at
+  `;
+  assert.equal(legacy.email_verification_required_at, null);
+
+  const resend = await jsonRequest('/verify-email/resend', { email });
+  assert.equal(resend.status, 202);
+
+  const [tokens] = await sql`
+    SELECT count(*)::int AS count
+    FROM auth_email_verification_tokens
+    WHERE user_id = ${legacy.id}
+  `;
+  assert.equal(tokens.count, 0);
+
+  await sql`DELETE FROM users WHERE id = ${legacy.id}`;
 });
 
 test('AUTH-01 routes persist credentials, rotate refresh sessions, and revoke server-side', {
