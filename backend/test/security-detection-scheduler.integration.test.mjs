@@ -100,17 +100,21 @@ test('first successful tick creates cursor and next tick resumes exactly at prio
 }, async () => {
   await cleanup();
 
-  const first = await runSecurityDetectionSchedulerTick(request());
+  const initialStart = new Date(Date.now() - 120_000).toISOString();
+  const first = await runSecurityDetectionSchedulerTick(
+    request({ initialWindowStart: initialStart }),
+  );
   assert.equal(first.status, 'EVALUATED');
   if (first.status !== 'EVALUATED') return;
   assert.equal(first.cursorAdvanced, true);
 
   const [storedAfterFirst] = await sql`
-    SELECT stream_id, last_successful_window_end
+    SELECT stream_id, monitoring_started_at, last_successful_window_end
     FROM security_detection_scheduler_state
     WHERE stream_id = ${STREAM_ID}
   `;
   assert.equal(storedAfterFirst.stream_id, STREAM_ID);
+  assert.equal(storedAfterFirst.monitoring_started_at.toISOString(), initialStart);
   assert.equal(
     storedAfterFirst.last_successful_window_end.toISOString(),
     first.windowEnd,
@@ -126,6 +130,13 @@ test('first successful tick creates cursor and next tick resumes exactly at prio
 
   assert.equal(second.windowStart, first.windowEnd);
   assert.ok(Date.parse(second.windowEnd) > Date.parse(second.windowStart));
+
+  const [storedAfterSecond] = await sql`
+    SELECT monitoring_started_at
+    FROM security_detection_scheduler_state
+    WHERE stream_id = ${STREAM_ID}
+  `;
+  assert.equal(storedAfterSecond.monitoring_started_at.toISOString(), initialStart);
 });
 
 test('failed detector scan does not create or advance cursor', {
@@ -211,6 +222,7 @@ test('scheduler cursor table contains operational cursor state only', {
 
   assert.deepEqual(columns.map((row) => row.column_name), [
     'stream_id',
+    'monitoring_started_at',
     'last_successful_window_end',
     'updated_at',
   ]);
