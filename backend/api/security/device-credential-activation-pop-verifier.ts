@@ -1,82 +1,67 @@
-import { createPublicKey, verify } from 'node:crypto';
+import { createPublicKey, randomUUID, verify } from 'node:crypto';
 
 import {
   DevicePopChallengeV1Schema,
   DevicePopResponseV1Schema,
   type DevicePopChallengeV1,
-  type DevicePopPurposeV1,
   type DevicePopResponseV1,
 } from '@emopet/shared';
 
-export type DevicePopVerifyError =
+import {
+  buildDevicePopSigningPreimageV1,
+  type DevicePopStoredChallengeStateV1,
+  type DevicePopVerificationChallengeStore,
+} from './device-pop-verifier.js';
+
+export interface DevicePopPendingVerificationCredentialV1 {
+  deviceId: string;
+  credentialVersion: number;
+  state: 'PENDING_PROOF';
+  publicKeySec1: Uint8Array;
+}
+
+export interface DevicePopPendingVerificationCredentialResolver {
+  resolvePendingCredential(
+    deviceId: string,
+    credentialVersion: number,
+  ): Promise<DevicePopPendingVerificationCredentialV1 | null>;
+}
+
+export interface DeviceCredentialActivationPopVerifierDependencies {
+  challenges: DevicePopVerificationChallengeStore;
+  pendingCredentials: DevicePopPendingVerificationCredentialResolver;
+  now?: () => Date;
+  randomUuid?: () => string;
+}
+
+export type DeviceCredentialActivationPopVerifyError =
   | 'INVALID_RESPONSE_CONTRACT'
   | 'PURPOSE_NOT_ALLOWED'
   | 'CHALLENGE_NOT_FOUND'
   | 'CHALLENGE_ALREADY_CONSUMED'
   | 'CHALLENGE_EXPIRED'
   | 'CHALLENGE_MISMATCH'
-  | 'ACTIVE_CREDENTIAL_NOT_FOUND'
+  | 'PENDING_CREDENTIAL_NOT_FOUND'
   | 'INVALID_PUBLIC_KEY'
   | 'INVALID_SIGNATURE'
   | 'CHALLENGE_CONSUME_CONFLICT'
   | 'CHALLENGE_STORE_FAILURE'
   | 'CREDENTIAL_RESOLVER_FAILURE';
 
-export interface DevicePopStoredChallengeStateV1 {
-  challenge: DevicePopChallengeV1;
-  consumedAt: string | null;
-}
-
-export interface DevicePopVerificationChallengeStore {
-  findByChallengeId(
-    challengeId: string,
-  ): Promise<DevicePopStoredChallengeStateV1 | null>;
-
-  /**
-   * Atomically consume only if the challenge is still unconsumed.
-   *
-   * A false result is a replay/race refusal. The verifier must not retry or
-   * silently treat a prior concurrent success as this call's success.
-   */
-  consumeIfUnconsumed(
-    challengeId: string,
-    consumedAt: string,
-  ): Promise<boolean>;
-}
-
-export interface DevicePopVerificationCredentialV1 {
-  deviceId: string;
-  credentialVersion: number;
-  state: 'ACTIVE';
-  /**
-   * SEC1 uncompressed P-256 point: 0x04 || X(32) || Y(32).
-   */
-  publicKeySec1: Uint8Array;
-}
-
-export interface DevicePopVerificationCredentialResolver {
-  resolveActiveCredential(
-    deviceId: string,
-    credentialVersion: number,
-  ): Promise<DevicePopVerificationCredentialV1 | null>;
-}
-
-export interface DevicePopVerifierDependencies {
-  challenges: DevicePopVerificationChallengeStore;
-  credentials: DevicePopVerificationCredentialResolver;
-  now?: () => Date;
-}
-
-export type VerifyDevicePopResult =
+export type VerifyDeviceCredentialActivationPopResult =
   | {
       ok: true;
       proof: {
-        schemaVersion: 'device-pop-proof-verification-v1';
+        schemaVersion: 'device-credential-activation-pop-proof-v1';
+        receiptId: string;
+        authority: 'SERVER_SIDE_POP_VERIFICATION_AUTHORITY';
         deviceId: string;
         credentialVersion: number;
-        purpose: 'DEVICE_DATA_TELEMETRY_INGRESS';
+        purpose: 'DEVICE_CREDENTIAL_ACTIVATION';
         challengeId: string;
+        verificationResult: 'VERIFIED_AND_CONSUMED';
         verifiedAt: string;
+        consumedAt: string;
         cryptographicProofVerified: true;
         deviceDataTrustAuthorized: false;
         telemetryPersistenceAuthorized: false;
@@ -84,46 +69,13 @@ export type VerifyDevicePopResult =
     }
   | {
       ok: false;
-      error: DevicePopVerifyError;
+      error: DeviceCredentialActivationPopVerifyError;
     };
 
-const DOMAIN_SEPARATOR = Buffer.from('EMOPET_DEVICE_POP_V1', 'ascii');
 const P256_SPKI_PREFIX = Buffer.from(
   '3059301306072a8648ce3d020106082a8648ce3d030107034200',
   'hex',
 );
-
-function uuidToBytes(uuid: string): Buffer {
-  const hex = uuid.replaceAll('-', '');
-  if (!/^[0-9a-fA-F]{32}$/.test(hex)) {
-    throw new Error('invalid uuid');
-  }
-  return Buffer.from(hex, 'hex');
-}
-
-function uint32be(value: number): Buffer {
-  const out = Buffer.allocUnsafe(4);
-  out.writeUInt32BE(value, 0);
-  return out;
-}
-
-function uint64be(value: number): Buffer {
-  if (!Number.isSafeInteger(value) || value < 0) {
-    throw new Error('invalid uint64 source');
-  }
-  const out = Buffer.allocUnsafe(8);
-  out.writeBigUInt64BE(BigInt(value), 0);
-  return out;
-}
-
-export function devicePopPurposeCodeV1(purpose: DevicePopPurposeV1): number {
-  switch (purpose) {
-    case 'DEVICE_DATA_TELEMETRY_INGRESS':
-      return 0x01;
-    case 'DEVICE_CREDENTIAL_ACTIVATION':
-      return 0x02;
-  }
-}
 
 function decodeBase64UrlExact(value: string, bytes: number): Buffer {
   const decoded = Buffer.from(value, 'base64url');
@@ -131,40 +83,6 @@ function decodeBase64UrlExact(value: string, bytes: number): Buffer {
     throw new Error('invalid base64url length');
   }
   return decoded;
-}
-
-/**
- * Canonical fixed-binary PoP preimage from #652.
- *
- * This helper intentionally accepts only the stored server-side challenge.
- * Response JSON never supplies nonce/timestamps/public-key authority.
- */
-export function buildDevicePopSigningPreimageV1(
-  challenge: DevicePopChallengeV1,
-): Buffer {
-  const parsed = DevicePopChallengeV1Schema.parse(challenge);
-  const issuedAt = Date.parse(parsed.issuedAt);
-  const expiresAt = Date.parse(parsed.expiresAt);
-
-  if (
-    !Number.isSafeInteger(issuedAt)
-    || !Number.isSafeInteger(expiresAt)
-    || expiresAt <= issuedAt
-  ) {
-    throw new Error('invalid challenge time');
-  }
-
-  return Buffer.concat([
-    DOMAIN_SEPARATOR,
-    Buffer.from([parsed.protocolVersion]),
-    Buffer.from([devicePopPurposeCodeV1(parsed.purpose)]),
-    uuidToBytes(parsed.deviceId),
-    uint32be(parsed.credentialVersion),
-    uuidToBytes(parsed.challengeId),
-    decodeBase64UrlExact(parsed.nonce, 32),
-    uint64be(issuedAt),
-    uint64be(expiresAt),
-  ]);
 }
 
 function publicKeyFromSec1(sec1: Uint8Array) {
@@ -194,27 +112,22 @@ function responseMatchesChallenge(
 }
 
 /**
- * Source-level verifier primitive for #648.
+ * M4 PoP verifier for a PENDING_PROOF credential.
  *
- * Positive result means only that one ACTIVE enrolled P-256 credential proved
- * possession against one live server challenge. It deliberately does NOT:
- * - authorize Device Data Trust;
- * - authorize telemetry persistence;
- * - expose a route;
- * - select TTL/rate policy;
- * - provide a default credential/challenge repository.
+ * A positive result is manufacturing evidence only. It does not activate the
+ * credential and does not authorize Device Data Trust or telemetry persistence.
  */
-export async function verifyDevicePopResponseV1(
+export async function verifyDeviceCredentialActivationPopResponseV1(
   responseInput: unknown,
-  dependencies: DevicePopVerifierDependencies,
-): Promise<VerifyDevicePopResult> {
+  dependencies: DeviceCredentialActivationPopVerifierDependencies,
+): Promise<VerifyDeviceCredentialActivationPopResult> {
   const responseParsed = DevicePopResponseV1Schema.safeParse(responseInput);
   if (!responseParsed.success) {
     return { ok: false, error: 'INVALID_RESPONSE_CONTRACT' };
   }
   const response = responseParsed.data;
 
-  if (response.purpose !== 'DEVICE_DATA_TELEMETRY_INGRESS') {
+  if (response.purpose !== 'DEVICE_CREDENTIAL_ACTIVATION') {
     return { ok: false, error: 'PURPOSE_NOT_ALLOWED' };
   }
 
@@ -240,7 +153,7 @@ export async function verifyDevicePopResponseV1(
   }
   const challenge = challengeParsed.data;
 
-  if (challenge.purpose !== 'DEVICE_DATA_TELEMETRY_INGRESS') {
+  if (challenge.purpose !== 'DEVICE_CREDENTIAL_ACTIVATION') {
     return { ok: false, error: 'PURPOSE_NOT_ALLOWED' };
   }
 
@@ -259,9 +172,9 @@ export async function verifyDevicePopResponseV1(
     return { ok: false, error: 'CHALLENGE_EXPIRED' };
   }
 
-  let credential: DevicePopVerificationCredentialV1 | null;
+  let credential: DevicePopPendingVerificationCredentialV1 | null;
   try {
-    credential = await dependencies.credentials.resolveActiveCredential(
+    credential = await dependencies.pendingCredentials.resolvePendingCredential(
       challenge.deviceId,
       challenge.credentialVersion,
     );
@@ -271,11 +184,11 @@ export async function verifyDevicePopResponseV1(
 
   if (
     credential == null
-    || credential.state !== 'ACTIVE'
+    || credential.state !== 'PENDING_PROOF'
     || credential.deviceId !== challenge.deviceId
     || credential.credentialVersion !== challenge.credentialVersion
   ) {
-    return { ok: false, error: 'ACTIVE_CREDENTIAL_NOT_FOUND' };
+    return { ok: false, error: 'PENDING_CREDENTIAL_NOT_FOUND' };
   }
 
   let key;
@@ -324,12 +237,16 @@ export async function verifyDevicePopResponseV1(
   return {
     ok: true,
     proof: {
-      schemaVersion: 'device-pop-proof-verification-v1',
+      schemaVersion: 'device-credential-activation-pop-proof-v1',
+      receiptId: (dependencies.randomUuid ?? randomUUID)(),
+      authority: 'SERVER_SIDE_POP_VERIFICATION_AUTHORITY',
       deviceId: challenge.deviceId,
       credentialVersion: challenge.credentialVersion,
-      purpose: challenge.purpose,
+      purpose: 'DEVICE_CREDENTIAL_ACTIVATION',
       challengeId: challenge.challengeId,
+      verificationResult: 'VERIFIED_AND_CONSUMED',
       verifiedAt,
+      consumedAt: verifiedAt,
       cryptographicProofVerified: true,
       deviceDataTrustAuthorized: false,
       telemetryPersistenceAuthorized: false,

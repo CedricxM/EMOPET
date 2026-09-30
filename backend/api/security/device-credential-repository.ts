@@ -37,6 +37,16 @@ export interface DurableDevicePopCredential {
   publicKeySec1: Uint8Array;
 }
 
+export interface DurablePendingDevicePopCredential {
+  deviceId: string;
+  credentialVersion: number;
+  state: 'PENDING_PROOF';
+  publicKeySec1: Uint8Array;
+  firmwareVersion: string;
+  hardwareRevision: string;
+  bootstrapRevision: string;
+}
+
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -240,3 +250,65 @@ export const durableDevicePopCredentialRepository = {
   },
 };
 
+
+
+/**
+ * Explicit PENDING_PROOF resolver for the manufacturing M4 lane.
+ *
+ * This is intentionally separate from durableDevicePopCredentialRepository so
+ * runtime telemetry code cannot accidentally treat a candidate credential as
+ * ACTIVE authority.
+ */
+export const durablePendingDevicePopCredentialRepository = {
+  async resolvePendingCredential(
+    deviceId: string,
+    credentialVersion: number,
+  ): Promise<DurablePendingDevicePopCredential | null> {
+    if (!UUID_RE.test(deviceId)) return null;
+    if (
+      !Number.isSafeInteger(credentialVersion)
+      || credentialVersion <= 0
+      || credentialVersion > 0xffffffff
+    ) {
+      return null;
+    }
+
+    try {
+      const [row] = await db
+        .select({
+          deviceId: deviceIdentityCredentials.deviceId,
+          credentialVersion: deviceIdentityCredentials.credentialVersion,
+          state: deviceIdentityCredentials.state,
+          publicKeyBase64Url: deviceIdentityCredentials.publicKeyBase64Url,
+          firmwareVersion: deviceIdentityCredentials.firmwareVersion,
+          hardwareRevision: deviceIdentityCredentials.hardwareRevision,
+          bootstrapRevision: deviceIdentityCredentials.bootstrapRevision,
+        })
+        .from(deviceIdentityCredentials)
+        .where(and(
+          eq(deviceIdentityCredentials.deviceId, deviceId),
+          eq(deviceIdentityCredentials.credentialVersion, credentialVersion),
+          eq(deviceIdentityCredentials.state, 'PENDING_PROOF'),
+        ))
+        .limit(1);
+
+      if (!row || row.state !== 'PENDING_PROOF') return null;
+      const publicKeySec1 = decodeCanonicalSec1PublicKey(
+        row.publicKeyBase64Url,
+      );
+      if (publicKeySec1 == null) return null;
+
+      return {
+        deviceId: row.deviceId,
+        credentialVersion: row.credentialVersion,
+        state: 'PENDING_PROOF',
+        publicKeySec1,
+        firmwareVersion: row.firmwareVersion,
+        hardwareRevision: row.hardwareRevision,
+        bootstrapRevision: row.bootstrapRevision,
+      };
+    } catch {
+      return null;
+    }
+  },
+};

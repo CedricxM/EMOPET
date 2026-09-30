@@ -547,7 +547,10 @@ export const DeviceIdentityEnrollmentReceiptV1Schema = z.object({
   }
 });
 
-export const DevicePopPurposeV1Schema = z.literal('DEVICE_DATA_TELEMETRY_INGRESS');
+export const DevicePopPurposeV1Schema = z.enum([
+  'DEVICE_DATA_TELEMETRY_INGRESS',
+  'DEVICE_CREDENTIAL_ACTIVATION',
+]);
 
 export const DevicePopChallengeV1Schema = z.object({
   schemaVersion: z.literal('device-pop-challenge-v1'),

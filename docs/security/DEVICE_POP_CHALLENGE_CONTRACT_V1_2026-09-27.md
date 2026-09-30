@@ -18,15 +18,39 @@ It does **not** implement:
 - Device Data Trust success;
 - telemetry persistence.
 
-## 2. Initial purpose
+## 2. Purpose domains
 
-V1 authorizes exactly one proof purpose:
+V1 now authorizes two **domain-separated** proof purposes:
+
+### Runtime telemetry
 
 `DEVICE_DATA_TELEMETRY_INGRESS`
 
 Purpose code: `0x01`.
 
-A proof created for telemetry ingress must never silently authorize:
+Authority:
+- challenge issuance requires an `ACTIVE` enrolled credential;
+- backend verification requires that same `ACTIVE` credential;
+- a successful proof remains cryptographic evidence only and does not by itself authorize telemetry persistence.
+
+### Manufacturing credential activation
+
+`DEVICE_CREDENTIAL_ACTIVATION`
+
+Purpose code: `0x02`.
+
+Authority:
+- challenge issuance requires the exact candidate `PENDING_PROOF` credential/version;
+- backend verification requires that same `PENDING_PROOF` public key;
+- a successful proof is M4 manufacturing evidence only;
+- it does not mutate the credential to ACTIVE;
+- it does not satisfy M5 APPROTECT/debug or representative-target evidence;
+- it does not authorize Device Data Trust or telemetry persistence.
+
+The purpose byte is part of the signed fixed-binary preimage. A valid `0x01`
+signature therefore cannot be replayed as `0x02`, and vice versa.
+
+Neither purpose authorizes:
 - first claim/bind;
 - transfer/rebind;
 - privileged commands;
@@ -97,7 +121,12 @@ DER signatures are not accepted by this contract.
 
 The response never supplies its own verifier key.
 
-The backend loads the active enrolled public key using:
+The backend verifier authority is purpose-scoped:
+
+- `0x01` telemetry loads the ACTIVE enrolled public key;
+- `0x02` manufacturing activation loads the exact PENDING_PROOF public key.
+
+Both are resolved by:
 
 `canonical device principal + credential version`.
 
@@ -161,11 +190,19 @@ A backend source primitive now exists at:
 
 `backend/api/security/device-pop-challenge-issuer.ts`
 
-It can construct a contract-valid telemetry challenge **only** when the caller
-injects:
+The runtime telemetry issuer can construct a contract-valid `0x01` challenge
+**only** when the caller injects:
 - an ACTIVE canonical-device credential resolver;
 - an atomic challenge `createIfAbsent` store;
 - an explicit future `expiresAt` selected by another policy authority.
+
+A separate manufacturing issuer exists at:
+
+`backend/api/security/device-credential-activation-pop-issuer.ts`
+
+It can construct a `0x02` challenge only for the exact requested
+`PENDING_PROOF` credential/version. It reuses the same atomic challenge store
+but has no route, no default TTL and no activation authority.
 
 The primitive has:
 - no default TTL;
@@ -201,10 +238,19 @@ A backend source primitive now exists at:
 
 `backend/api/security/device-pop-verifier.ts`
 
-It verifies only the telemetry-purpose PoP v1 contract and requires injected:
+The runtime verifier verifies only the `0x01` telemetry-purpose contract and
+requires injected:
 - server-side challenge lookup + atomic consume authority;
 - ACTIVE enrolled credential resolver for canonical device + credential version;
 - backend time authority.
+
+A separate manufacturing verifier exists at:
+
+`backend/api/security/device-credential-activation-pop-verifier.ts`
+
+It verifies only `0x02` and resolves the exact `PENDING_PROOF` credential.
+Its positive result is an M4 proof record shape only; it cannot activate a
+credential and keeps Device Data Trust + telemetry persistence false.
 
 The verifier:
 - validates the strict response contract;
@@ -246,7 +292,9 @@ It owns only deterministic serialization of
 The builder:
 - emits exactly 106 bytes;
 - fixes protocol version = 1;
-- fixes purpose code = telemetry ingress only;
+- accepts only the two controlled v1 purpose codes:
+  - `0x01` telemetry ingress;
+  - `0x02` credential activation;
 - accepts RFC4122/network-order raw device UUID bytes;
 - encodes credential version as uint32 big-endian;
 - accepts raw challenge UUID + 32-byte nonce;

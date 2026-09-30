@@ -5,7 +5,9 @@
  * sign, verify, consume replay state or authorize telemetry.
  */
 
-export type DevicePopPurposeV1 = 'DEVICE_DATA_TELEMETRY_INGRESS';
+export type DevicePopPurposeV1 =
+  | 'DEVICE_DATA_TELEMETRY_INGRESS'
+  | 'DEVICE_CREDENTIAL_ACTIVATION';
 
 export interface DevicePopChallengeV1 {
   schemaVersion: 'device-pop-challenge-v1';
