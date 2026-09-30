@@ -31,7 +31,7 @@ Unity is a rendering/input client. It is **not** durable authority for:
 The client talks to the canonical EMOPET backend under `/api/world-spike`.
 It never authenticates directly with Nakama and never owns a Nakama token/socket.
 
-Presence withdrawal is terminal only when the backend outcome is known. If an HTTP response is received, the backend route has handled the request and Unity clears the local handle. If no HTTP response is obtained (or the request is cancelled before the outcome is known), Unity keeps the handle only as uncertain evidence, enters `Degraded`, and never claims the user is invisible.
+Visibility-changing requests never fabricate certainty. Confirmed presence withdrawal/disconnect clears the local handle. If show-presence, withdrawal or disconnect is cancelled or returns an unknown transport/service outcome, Unity enters `Degraded`, preserves any existing handle only as uncertain evidence, and does not claim visible/invisible/offline state.
 
 ## First slice
 
