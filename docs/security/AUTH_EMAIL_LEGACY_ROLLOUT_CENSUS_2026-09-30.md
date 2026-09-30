@@ -41,6 +41,11 @@ The report intentionally excludes:
 
 It performs no INSERT, UPDATE or DELETE.
 
+That is a repository/code-path guarantee only. It does **not** prove that the
+PostgreSQL principal supplied through `DATABASE_URL` is itself read-only.
+Use a dedicated read-only operator credential where the deployment provides one;
+database-role evidence remains external/unverified.
+
 Running the census does **not** authorize:
 - marking legacy accounts verified;
 - forcing re-verification;
