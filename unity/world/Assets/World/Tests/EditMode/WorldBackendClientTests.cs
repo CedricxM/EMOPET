@@ -36,6 +36,20 @@ namespace Emopet.World.Tests
         }
 
         [Test]
+        public async Task IncomingFreeTextIsNotPartOfFirstSliceDto()
+        {
+            var http = new FakeHttp(200,
+                "{\"state\":\"connected\",\"resyncRequired\":false,\"events\":[{\"type\":\"chat\",\"value\":{\"senderId\":\"22222222-2222-4222-8222-222222222222\",\"messageId\":\"33333333-3333-4333-8333-333333333333\",\"content\":{\"preset\":\"merci\",\"text\":\"must-not-deserialize\"}}}]}");
+            var client = new WorldBackendClient("http://127.0.0.1:3000", new FakeToken(), http);
+
+            var result = await client.GetEventsAsync(Handle, CancellationToken.None);
+
+            Assert.That(result.events, Has.Length.EqualTo(1));
+            Assert.That(result.events[0].value.content.preset, Is.EqualTo("merci"));
+            Assert.That(typeof(WorldEventContentDto).GetField("text"), Is.Null);
+        }
+
+        [Test]
         public void UnreachableMapsBlockedAndOfflineToSameClientError()
         {
             var http = new FakeHttp(404, "{\"error\":\"unreachable\",\"state\":\"rejected\"}");

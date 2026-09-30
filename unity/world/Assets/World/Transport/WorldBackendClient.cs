@@ -203,7 +203,6 @@ namespace Emopet.World
     public sealed class WorldEventContentDto
     {
         public string preset;
-        public string text;
     }
 
     [Serializable]

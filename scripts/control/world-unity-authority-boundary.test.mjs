@@ -67,6 +67,7 @@ test('first-slice Unity chat remains preset-only', async () => {
   }
 
   assert.doesNotMatch(client, /chat\.send_text|SendText|FreeText/i);
+  assert.doesNotMatch(client, /public\s+string\s+text\s*;/, 'Unity first slice must not deserialize free-text chat content');
   assert.match(client, /WorldPresets\.IsAllowed\(presetId\)/);
 });
 
