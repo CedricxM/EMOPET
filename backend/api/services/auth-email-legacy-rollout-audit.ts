@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm';
+import { eq, gt, isNotNull, isNull, sql } from 'drizzle-orm';
 
 import { db } from '../../db/index.js';
 import { authRefreshSessions, users } from '../../db/schema/index.js';
@@ -63,39 +63,39 @@ export async function collectAuthEmailLegacyRolloutCensus(
   const [sessionCounts] = await db
     .select({
       total: sql<number>`count(*) FILTER (
-        WHERE ${authRefreshSessions.revokedAt} IS NULL
-          AND ${authRefreshSessions.expiresAt} > ${now}
+        WHERE ${isNull(authRefreshSessions.revokedAt)}
+          AND ${gt(authRefreshSessions.expiresAt, now)}
       )::int`,
       detached: sql<number>`count(*) FILTER (
-        WHERE ${authRefreshSessions.revokedAt} IS NULL
-          AND ${authRefreshSessions.expiresAt} > ${now}
-          AND ${authRefreshSessions.userId} IS NULL
+        WHERE ${isNull(authRefreshSessions.revokedAt)}
+          AND ${gt(authRefreshSessions.expiresAt, now)}
+          AND ${isNull(authRefreshSessions.userId)}
       )::int`,
       legacyUnverified: sql<number>`count(*) FILTER (
-        WHERE ${authRefreshSessions.revokedAt} IS NULL
-          AND ${authRefreshSessions.expiresAt} > ${now}
-          AND ${authRefreshSessions.userId} IS NOT NULL
+        WHERE ${isNull(authRefreshSessions.revokedAt)}
+          AND ${gt(authRefreshSessions.expiresAt, now)}
+          AND ${isNotNull(authRefreshSessions.userId)}
           AND ${users.emailVerificationRequiredAt} IS NULL
           AND ${users.emailVerifiedAt} IS NULL
       )::int`,
       legacyVerified: sql<number>`count(*) FILTER (
-        WHERE ${authRefreshSessions.revokedAt} IS NULL
-          AND ${authRefreshSessions.expiresAt} > ${now}
-          AND ${authRefreshSessions.userId} IS NOT NULL
+        WHERE ${isNull(authRefreshSessions.revokedAt)}
+          AND ${gt(authRefreshSessions.expiresAt, now)}
+          AND ${isNotNull(authRefreshSessions.userId)}
           AND ${users.emailVerificationRequiredAt} IS NULL
           AND ${users.emailVerifiedAt} IS NOT NULL
       )::int`,
       verificationRequiredUnverified: sql<number>`count(*) FILTER (
-        WHERE ${authRefreshSessions.revokedAt} IS NULL
-          AND ${authRefreshSessions.expiresAt} > ${now}
-          AND ${authRefreshSessions.userId} IS NOT NULL
+        WHERE ${isNull(authRefreshSessions.revokedAt)}
+          AND ${gt(authRefreshSessions.expiresAt, now)}
+          AND ${isNotNull(authRefreshSessions.userId)}
           AND ${users.emailVerificationRequiredAt} IS NOT NULL
           AND ${users.emailVerifiedAt} IS NULL
       )::int`,
       verificationRequiredVerified: sql<number>`count(*) FILTER (
-        WHERE ${authRefreshSessions.revokedAt} IS NULL
-          AND ${authRefreshSessions.expiresAt} > ${now}
-          AND ${authRefreshSessions.userId} IS NOT NULL
+        WHERE ${isNull(authRefreshSessions.revokedAt)}
+          AND ${gt(authRefreshSessions.expiresAt, now)}
+          AND ${isNotNull(authRefreshSessions.userId)}
           AND ${users.emailVerificationRequiredAt} IS NOT NULL
           AND ${users.emailVerifiedAt} IS NOT NULL
       )::int`,
