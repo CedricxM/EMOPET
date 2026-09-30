@@ -11,6 +11,7 @@ import {
 import { drizzleSocialConnectionRepository, drizzleWorldPresenceConsentRepository } from '../services/social-connections.js';
 import { onActorRevoked } from '../services/actor-revocation.js';
 import { drizzleWorldPilotAccess } from '../services/world-pilot-access.js';
+import { isWorldProductionReleaseAuthorized, type WorldReleaseAuthority } from '../services/world-release-authority.js';
 import { drizzleUserBlockRepository } from '../services/user-blocks.js';
 import {
   WORLD_REPORT_REASONS, WorldReportError, drizzleWorldReportSink, type WorldReportSink,
@@ -118,16 +119,34 @@ export function createWorldSpikeRoutes(adapter: WorldRealtimeAdapter, reports?: 
   app.delete('/sessions/:handle', c => { adapter.disconnect(c.get('userId'), c.req.param('handle')); return c.body(null, 204); });
   return app;
 }
+export type WorldRuntimeMode = 'DISABLED' | 'SPIKE_LOCAL' | 'RELEASE_GO' | 'HOLD';
+
+export function worldRuntimeMode(env: NodeJS.ProcessEnv = process.env,
+  authority?: WorldReleaseAuthority): WorldRuntimeMode {
+  if (env['NODE_ENV'] === 'production') {
+    if (env['EMOPET_WORLD_RELEASE_GATE'] !== 'GO') return 'DISABLED';
+    return isWorldProductionReleaseAuthorized(authority) ? 'RELEASE_GO' : 'HOLD';
+  }
+  if (env['WORLD_NAKAMA_SPIKE_ENABLED'] !== 'true') return 'DISABLED';
+  if (['development', 'test'].includes(env['NODE_ENV'] ?? '')) return 'SPIKE_LOCAL';
+  return 'HOLD';
+}
+
 export function configuredWorldSpike(env: NodeJS.ProcessEnv = process.env,
   blocks: WorldBlockPolicy = drizzleUserBlockRepository(), reports: WorldReportSink = drizzleWorldReportSink(),
-  access: WorldAccessPolicy = drizzleWorldPilotAccess(), social: WorldSocialPolicy = drizzleWorldSocialPolicy()) {
-  if (env['WORLD_NAKAMA_SPIKE_ENABLED'] !== 'true') return null;
-  if (!['development', 'test'].includes(env['NODE_ENV'] ?? '')) throw new Error('World spike is local development/test only');
+  access: WorldAccessPolicy = drizzleWorldPilotAccess(), social: WorldSocialPolicy = drizzleWorldSocialPolicy(),
+  releaseAuthority?: WorldReleaseAuthority) {
+  const mode = worldRuntimeMode(env, releaseAuthority);
+  if (mode === 'DISABLED') return null;
+  if (mode === 'HOLD') throw new Error('World production release authority is HOLD');
+
   // Access is canonical (world_pilot_access + live login, #596). WORLD_SPIKE_TEST_USER_IDS now only
-  // feeds the Nakama runtime allowlist, a derived projection that this backend never reads.
-  const transport = new NakamaTransport(env['NAKAMA_URL'] ?? 'http://127.0.0.1:7350', env['NAKAMA_HTTP_KEY'] ?? '');
-  // Configuration is refused first (loopback URL, key), whatever the runtime; then the runtime capability.
-  if (typeof globalThis.WebSocket !== 'function') throw new Error('World spike requires Node >=22 with WebSocket');
+  // feeds the local Nakama runtime allowlist, a derived projection that this backend never reads.
+  const nakamaUrl = env['NAKAMA_URL'] ?? (mode === 'SPIKE_LOCAL' ? 'http://127.0.0.1:7350' : '');
+  const transport = new NakamaTransport(nakamaUrl, env['NAKAMA_HTTP_KEY'] ?? '',
+    mode === 'RELEASE_GO' ? 'release' : 'local-spike');
+  // Configuration is refused before runtime capability checks.
+  if (typeof globalThis.WebSocket !== 'function') throw new Error('World runtime requires Node >=22 with WebSocket');
   const freeText = env['WORLD_SPIKE_FREE_TEXT'] === 'true';
   const adapter = new WorldRealtimeAdapter(transport, access, blocks, social, undefined, undefined, undefined, { freeText });
   // Logout, logout_all and pilot revocation close live World handles at once (#48 L7).
