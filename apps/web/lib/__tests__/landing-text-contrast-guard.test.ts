@@ -76,6 +76,8 @@ test('les combinaisons de texte déjà mesurées en échec ne reviennent pas', (
     /text-\[#6B7684\]/,
     /text-\[#1E9A90\]/,
     /text-\[#2CB7AB\]/,
+    /text-\[#A8BCAC\]/,
+    /text-\[#9B5A3E\]/,
     /bg-\[#B46A4A\]\s+text-white/,
     /bg-\[#2CB7AB\]\s+text-white/,
     /placeholder-\[#C6BBA4\]/,
