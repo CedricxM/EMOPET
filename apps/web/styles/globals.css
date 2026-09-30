@@ -246,3 +246,37 @@ button { font-family: inherit; cursor: pointer; }
     border-radius: var(--radius-lg);
   }
 }
+
+/* ---------------------------------------------------------------------------
+   prefers-reduced-motion — filet global
+   ---------------------------------------------------------------------------
+   Le dépôt traitait déjà la préférence, mais composant par composant : dix
+   fichiers la déclarent, et ce qu'ils ne couvrent pas continue de bouger.
+   Mesuré au navigateur avant ce bloc, sous `prefers-reduced-motion: reduce` :
+   /profil gardait ses 14 éléments animés — la route n'y répondait pas du tout —
+   et /world en gardait 36 sur 48. Les transitions concernées portent sur
+   `transform`, `filter` et la largeur : c'est du mouvement, pas de la couleur.
+
+   Ce bloc ne change RIEN au rendu par défaut : il ne s'applique que lorsque
+   l'utilisateur a demandé moins de mouvement au niveau de son système.
+
+   `0.01ms` plutôt que `0s` : une durée nulle peut ne pas émettre
+   `transitionend`/`animationend`, dont dépendent des composants pour enchaîner
+   leur état. Une durée quasi nulle neutralise le mouvement tout en laissant
+   l'événement partir.
+
+   Volontairement NON traité ici : `prefers-reduced-motion` ne dit rien des
+   changements de couleur ou d'opacité, qui restent permis et ne sont pas du
+   mouvement. Ce bloc les raccourcit néanmoins, faute de pouvoir distinguer les
+   deux en CSS — c'est le coût assumé d'un filet global.
+   --------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
