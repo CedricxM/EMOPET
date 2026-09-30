@@ -64,12 +64,14 @@ namespace Emopet.World
             try
             {
                 await backend.HidePresenceAsync(Handle, cancellationToken);
-                stateMachine.PresenceBecameInvisible();
             }
-            catch (WorldBackendException error)
+            finally
             {
-                ApplyFailure(error);
-                throw;
+                // The backend closes the World session before persisting the canonical
+                // presence withdrawal. Even a later 503 therefore leaves this handle dead.
+                Handle = null;
+                ExpiresAtUnixMs = 0;
+                stateMachine.Disconnect();
             }
         }
 
