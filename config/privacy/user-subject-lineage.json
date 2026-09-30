@@ -98,6 +98,21 @@
       "source": "backend/db/schema/world-pilot-access.ts"
     },
     {
+      "table": "social_connections",
+      "column": "user_high_id",
+      "source": "backend/db/schema/social-connections.ts"
+    },
+    {
+      "table": "social_connections",
+      "column": "user_low_id",
+      "source": "backend/db/schema/social-connections.ts"
+    },
+    {
+      "table": "world_presence_consents",
+      "column": "user_id",
+      "source": "backend/db/schema/social-connections.ts"
+    },
+    {
       "table": "user_config",
       "column": "user_id",
       "source": "backend/db/schema/eli-v5.ts"

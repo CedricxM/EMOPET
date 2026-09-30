@@ -1,7 +1,8 @@
-import { and, desc, eq, or } from 'drizzle-orm';
+import { and, desc, eq, inArray, or } from 'drizzle-orm';
 
 import { db, type Database } from '../../db/index.js';
-import { userBlocks, users } from '../../db/schema/index.js';
+import { socialConnections, userBlocks, users } from '../../db/schema/index.js';
+import { orderedPair } from './social-connections.js';
 
 /**
  * Where a stored block currently has a runtime effect. Kept explicit so no client
@@ -43,6 +44,14 @@ function isForeignKeyViolation(error: unknown): boolean {
 
 export function drizzleUserBlockRepository(database: Database = db): UserBlockRepository {
   const record = { blockedUserId: userBlocks.blockedUserId, createdAt: userBlocks.createdAt };
+  // #595 decision (issuecomment-5866924308): a block dissolves the connection, any pending
+  // request and any TRUSTED grant; unblocking restores nothing. A decline is kept, since it
+  // protects the person who declined.
+  const dissolveConnection = async (a: string, b: string) => {
+    const { low, high } = orderedPair(a, b);
+    await database.delete(socialConnections).where(and(eq(socialConnections.userLowId, low),
+      eq(socialConnections.userHighId, high), inArray(socialConnections.status, ['PENDING', 'CONNECTED'])));
+  };
   return {
     async create(blockerUserId, blockedUserId) {
       const [target] = await database.select({ id: users.id }).from(users)
@@ -53,7 +62,7 @@ export function drizzleUserBlockRepository(database: Database = db): UserBlockRe
           .values({ blockerUserId, blockedUserId })
           .onConflictDoNothing({ target: [userBlocks.blockerUserId, userBlocks.blockedUserId] })
           .returning(record);
-        if (created) return { result: 'created', block: created };
+        if (created) { await dissolveConnection(blockerUserId, blockedUserId); return { result: 'created', block: created }; }
       } catch (error) {
         // The target account can disappear between the lookup and the insert.
         if (isForeignKeyViolation(error)) return { result: 'target_not_found' };
@@ -62,7 +71,9 @@ export function drizzleUserBlockRepository(database: Database = db): UserBlockRe
       const [existing] = await database.select(record).from(userBlocks)
         .where(and(eq(userBlocks.blockerUserId, blockerUserId), eq(userBlocks.blockedUserId, blockedUserId)))
         .limit(1);
-      return existing ? { result: 'exists', block: existing } : { result: 'target_not_found' };
+      if (!existing) return { result: 'target_not_found' };
+      await dissolveConnection(blockerUserId, blockedUserId);
+      return { result: 'exists', block: existing };
     },
     async remove(blockerUserId, blockedUserId) {
       await database.delete(userBlocks)

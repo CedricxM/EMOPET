@@ -15,8 +15,8 @@
     "Database mechanics never substitute for privacy disposition authority on unresolved rows."
   ],
   "summary": {
-    "relationalTotal": 48,
-    "policyAlignedDeleteCandidates": 26,
+    "relationalTotal": 51,
+    "policyAlignedDeleteCandidates": 29,
     "policyConditionalExecutionRequired": 19,
     "legalAuthorityBlocked": 3,
     "matrixRowsPromoted": 5
@@ -304,6 +304,54 @@
         "account_auth"
       ],
       "rationale": "Account-scoped access entitlement (#596, decision #48 L1): the existing approved account_auth policy terminates it on account erasure, through the ordered erasure executor rather than a database cascade. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "social_connections",
+      "column": "user_high_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "account_auth"
+      ],
+      "rationale": "Account-scoped World social state between two accounts (#595, decision #48 L3), like user_blocks: the existing account_auth policy terminates it on erasure of either account, through the ordered erasure executor rather than a database cascade. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "social_connections",
+      "column": "user_low_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "account_auth"
+      ],
+      "rationale": "Account-scoped World social state between two accounts (#595, decision #48 L3), like user_blocks: the existing account_auth policy terminates it on erasure of either account, through the ordered erasure executor rather than a database cascade. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "world_presence_consents",
+      "column": "user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "account_auth"
+      ],
+      "rationale": "Account-scoped World presence consent record (#595, decision #48 L2): the existing account_auth policy terminates it on account erasure, through the ordered erasure executor. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
       "promotionAuthorized": false
     },
     {

@@ -148,6 +148,33 @@
     {
       "subjectRoot": "users.id",
       "relationType": "DIRECT_FK",
+      "table": "social_connections",
+      "column": "user_high_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "social_connections",
+      "column": "user_low_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "world_presence_consents",
+      "column": "user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
       "table": "user_config",
       "column": "user_id",
       "disposition": "TO_CONFIRM",

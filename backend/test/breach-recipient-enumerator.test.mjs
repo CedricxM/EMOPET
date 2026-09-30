@@ -208,14 +208,16 @@ test('invalid input never produces a completeness claim', async () => {
   });
 });
 
-test('derived catalogue covers all 55 current surfaces including feature, second-order behavioral, instrument administration, user-block and World pilot-access tables', () => {
+test('derived catalogue covers all 57 current surfaces including feature, second-order behavioral, instrument administration, user-block and World pilot-access tables', () => {
   const counts = { sql: 0, non_sql: 0, provider: 0, web: 0 };
   for (const entry of BREACH_RECIPIENT_SURFACES) counts[entry.surface.split(':', 1)[0]] += 1;
 
-  assert.equal(BREACH_RECIPIENT_SURFACES.length, 55);
-  assert.deepEqual(counts, { sql: 38, non_sql: 5, provider: 7, web: 5 });
+  assert.equal(BREACH_RECIPIENT_SURFACES.length, 57);
+  assert.deepEqual(counts, { sql: 40, non_sql: 5, provider: 7, web: 5 });
   assert.ok(BREACH_RECIPIENT_SURFACES.some((entry) => entry.surface === 'sql:user_blocks'));
   assert.ok(BREACH_RECIPIENT_SURFACES.some((entry) => entry.surface === 'sql:world_pilot_access'));
+  assert.ok(BREACH_RECIPIENT_SURFACES.some((entry) => entry.surface === 'sql:social_connections'));
+  assert.ok(BREACH_RECIPIENT_SURFACES.some((entry) => entry.surface === 'sql:world_presence_consents'));
   assert.ok(BREACH_RECIPIENT_SURFACES.some((entry) => entry.surface === 'sql:behavioral_responses'));
   assert.ok(BREACH_RECIPIENT_SURFACES.some((entry) => entry.surface === 'sql:behavioral_factor_scores'));
   assert.ok(BREACH_RECIPIENT_SURFACES.some((entry) => entry.surface === 'sql:professional_share_grants'));

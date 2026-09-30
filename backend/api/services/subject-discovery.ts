@@ -34,12 +34,14 @@ import {
   routineStability,
   sensorFeatureObservations,
   sensorSummaries,
+  socialConnections,
   subscriptions,
   userBlocks,
   userConfig,
   users,
   walkQuality,
   worldPilotAccess,
+  worldPresenceConsents,
 } from '../../db/schema/index.js';
 import { isCanonicalSubjectUuid } from './subject-access.js';
 
@@ -201,6 +203,10 @@ export async function discoverSubjectData(
           note: 'Count only. Blocks are silent to the blocked person; disclosing received blocks to the subject is an open privacy decision.',
         }),
         worldPilotAccess: counted(await countWhere(tx, worldPilotAccess, eq(worldPilotAccess.userId, userId))),
+        socialConnections: counted(await countWhere(tx, socialConnections, or(eq(socialConnections.userLowId, userId), eq(socialConnections.userHighId, userId))!), {
+          note: 'Count includes declined requests, which stay silent to the declined person.',
+        }),
+        worldPresenceConsents: counted(await countWhere(tx, worldPresenceConsents, eq(worldPresenceConsents.userId, userId))),
       };
 
       let dogCounts = {

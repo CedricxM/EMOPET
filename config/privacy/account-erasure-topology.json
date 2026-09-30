@@ -136,6 +136,27 @@
       "erasureDisposition": "TO_CONFIRM"
     },
     {
+      "table": "social_connections",
+      "column": "user_high_id",
+      "source": "backend/db/schema/social-connections.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "social_connections",
+      "column": "user_low_id",
+      "source": "backend/db/schema/social-connections.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "world_presence_consents",
+      "column": "user_id",
+      "source": "backend/db/schema/social-connections.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
       "table": "user_config",
       "column": "user_id",
       "source": "backend/db/schema/eli-v5.ts",

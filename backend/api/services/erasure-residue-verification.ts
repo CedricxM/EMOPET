@@ -32,12 +32,14 @@ import {
   routineStability,
   sensorFeatureObservations,
   sensorSummaries,
+  socialConnections,
   subscriptions,
   userBlocks,
   userConfig,
   users,
   walkQuality,
   worldPilotAccess,
+  worldPresenceConsents,
 } from '../../db/schema/index.js';
 import { isCanonicalSubjectUuid } from './subject-access.js';
 
@@ -339,12 +341,15 @@ export async function verifyErasureResidue(
             professionalShareGrants,
             eq(professionalShareGrants.ownerUserId, snapshot.accountId),
           )),
+          probe('social_connections.user_high_id', await countWhere(tx, socialConnections, eq(socialConnections.userHighId, snapshot.accountId))),
+          probe('social_connections.user_low_id', await countWhere(tx, socialConnections, eq(socialConnections.userLowId, snapshot.accountId))),
           probe('research_data_consents.user_id', await countWhere(tx, researchDataConsents, eq(researchDataConsents.userId, snapshot.accountId))),
           probe('subscriptions.user_id', await countWhere(tx, subscriptions, eq(subscriptions.userId, snapshot.accountId))),
           probe('user_blocks.blocked_user_id', await countWhere(tx, userBlocks, eq(userBlocks.blockedUserId, snapshot.accountId))),
           probe('user_blocks.blocker_user_id', await countWhere(tx, userBlocks, eq(userBlocks.blockerUserId, snapshot.accountId))),
           probe('user_config.user_id', await countWhere(tx, userConfig, eq(userConfig.userId, snapshot.accountId))),
           probe('world_pilot_access.user_id', await countWhere(tx, worldPilotAccess, eq(worldPilotAccess.userId, snapshot.accountId))),
+          probe('world_presence_consents.user_id', await countWhere(tx, worldPresenceConsents, eq(worldPresenceConsents.userId, snapshot.accountId))),
         );
       }
 

@@ -16,3 +16,4 @@ export * from './device-identity.js';
 export * from './device-pop-challenges.js';
 export * from './user-blocks.js';
 export * from './world-pilot-access.js';
+export * from './social-connections.js';
