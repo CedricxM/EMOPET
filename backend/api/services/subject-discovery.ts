@@ -34,10 +34,14 @@ import {
   routineStability,
   sensorFeatureObservations,
   sensorSummaries,
+  socialConnections,
   subscriptions,
+  userBlocks,
   userConfig,
   users,
   walkQuality,
+  worldPilotAccess,
+  worldPresenceConsents,
 } from '../../db/schema/index.js';
 import { isCanonicalSubjectUuid } from './subject-access.js';
 
@@ -191,6 +195,18 @@ export async function discoverSubjectData(
         communityEventsCreated: counted(await countWhere(tx, communityEvents, eq(communityEvents.createdBy, userId))),
         communityRulesAcceptances: counted(await countWhere(tx, communityRulesAcceptances, eq(communityRulesAcceptances.userId, userId))),
         communityReportsFiled: counted(await countWhere(tx, communityReports, eq(communityReports.reporterUserId, userId))),
+        communityReportsAboutSubject: counted(await countWhere(tx, communityReports, eq(communityReports.subjectUserId, userId)), {
+          note: 'Count only. Reports about the subject protect reporters; their disclosure to the subject is an open privacy decision.',
+        }),
+        userBlocksCreated: counted(await countWhere(tx, userBlocks, eq(userBlocks.blockerUserId, userId))),
+        userBlocksReceived: counted(await countWhere(tx, userBlocks, eq(userBlocks.blockedUserId, userId)), {
+          note: 'Count only. Blocks are silent to the blocked person; disclosing received blocks to the subject is an open privacy decision.',
+        }),
+        worldPilotAccess: counted(await countWhere(tx, worldPilotAccess, eq(worldPilotAccess.userId, userId))),
+        socialConnections: counted(await countWhere(tx, socialConnections, or(eq(socialConnections.userLowId, userId), eq(socialConnections.userHighId, userId))!), {
+          note: 'Count includes declined requests, which stay silent to the declined person.',
+        }),
+        worldPresenceConsents: counted(await countWhere(tx, worldPresenceConsents, eq(worldPresenceConsents.userId, userId))),
       };
 
       let dogCounts = {
