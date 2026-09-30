@@ -7,6 +7,9 @@ import {
   type DevicePopResponseV1,
 } from '@emopet/shared';
 
+import type {
+  DeviceCredentialActivationPopEvidenceAuthority,
+} from './device-credential-activation-pop-evidence-repository.js';
 import {
   buildDevicePopSigningPreimageV1,
   type DevicePopStoredChallengeStateV1,
@@ -30,6 +33,7 @@ export interface DevicePopPendingVerificationCredentialResolver {
 export interface DeviceCredentialActivationPopVerifierDependencies {
   challenges: DevicePopVerificationChallengeStore;
   pendingCredentials: DevicePopPendingVerificationCredentialResolver;
+  popEvidence: DeviceCredentialActivationPopEvidenceAuthority;
   now?: () => Date;
   randomUuid?: () => string;
 }
@@ -46,6 +50,7 @@ export type DeviceCredentialActivationPopVerifyError =
   | 'INVALID_SIGNATURE'
   | 'CHALLENGE_CONSUME_CONFLICT'
   | 'CHALLENGE_STORE_FAILURE'
+  | 'POP_EVIDENCE_STORE_FAILURE'
   | 'CREDENTIAL_RESOLVER_FAILURE';
 
 export type VerifyDeviceCredentialActivationPopResult =
@@ -222,31 +227,40 @@ export async function verifyDeviceCredentialActivationPopResponseV1(
   }
 
   const verifiedAt = now.toISOString();
+  const receiptId = (dependencies.randomUuid ?? randomUUID)();
+
+  let durableEvidence;
   try {
-    const consumed = await dependencies.challenges.consumeIfUnconsumed(
-      challenge.challengeId,
-      verifiedAt,
-    );
-    if (!consumed) {
-      return { ok: false, error: 'CHALLENGE_CONSUME_CONFLICT' };
-    }
+    durableEvidence =
+      await dependencies.popEvidence.consumeAndPersistVerifiedEvidence({
+        receiptId,
+        deviceId: challenge.deviceId,
+        credentialVersion: challenge.credentialVersion,
+        challengeId: challenge.challengeId,
+        verifiedAt,
+        consumedAt: verifiedAt,
+      });
   } catch {
-    return { ok: false, error: 'CHALLENGE_STORE_FAILURE' };
+    return { ok: false, error: 'POP_EVIDENCE_STORE_FAILURE' };
+  }
+
+  if (durableEvidence == null) {
+    return { ok: false, error: 'CHALLENGE_CONSUME_CONFLICT' };
   }
 
   return {
     ok: true,
     proof: {
       schemaVersion: 'device-credential-activation-pop-proof-v1',
-      receiptId: (dependencies.randomUuid ?? randomUUID)(),
-      authority: 'SERVER_SIDE_POP_VERIFICATION_AUTHORITY',
-      deviceId: challenge.deviceId,
-      credentialVersion: challenge.credentialVersion,
+      receiptId: durableEvidence.receiptId,
+      authority: durableEvidence.authority,
+      deviceId: durableEvidence.deviceId,
+      credentialVersion: durableEvidence.credentialVersion,
       purpose: 'DEVICE_CREDENTIAL_ACTIVATION',
-      challengeId: challenge.challengeId,
-      verificationResult: 'VERIFIED_AND_CONSUMED',
-      verifiedAt,
-      consumedAt: verifiedAt,
+      challengeId: durableEvidence.challengeId,
+      verificationResult: durableEvidence.verificationResult,
+      verifiedAt: durableEvidence.verifiedAt,
+      consumedAt: durableEvidence.consumedAt,
       cryptographicProofVerified: true,
       deviceDataTrustAuthorized: false,
       telemetryPersistenceAuthorized: false,
