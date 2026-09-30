@@ -296,3 +296,5 @@ export async function authorizePrivilegedAccessToken(input: {
     mfaMethod: payload.mfaMethod,
   };
 }
+
+export * from './internal-audit-service.js';
