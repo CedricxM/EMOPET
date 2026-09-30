@@ -50,6 +50,30 @@ namespace Emopet.World.Tests
         }
 
         [Test]
+        public void AuthMiddleware401MapsToInvalidSessionWithoutExactErrorString()
+        {
+            var http = new FakeHttp(401, "{\"error\":\"Invalid or expired token\"}");
+            var client = new WorldBackendClient("http://127.0.0.1:3000", new FakeToken(), http);
+
+            var error = Assert.ThrowsAsync<WorldBackendException>(() =>
+                client.FriendsListAsync(Handle, CancellationToken.None));
+
+            Assert.That(error.Code, Is.EqualTo(WorldErrorCode.InvalidSession));
+        }
+
+        [Test]
+        public void Generic503MapsToUnavailableWithoutExactErrorString()
+        {
+            var http = new FakeHttp(503, "{\"error\":\"upstream unavailable\"}");
+            var client = new WorldBackendClient("http://127.0.0.1:3000", new FakeToken(), http);
+
+            var error = Assert.ThrowsAsync<WorldBackendException>(() =>
+                client.FriendsListAsync(Handle, CancellationToken.None));
+
+            Assert.That(error.Code, Is.EqualTo(WorldErrorCode.Unavailable));
+        }
+
+        [Test]
         public void NoHttpResponseMapsToUnavailableWithoutLeakingTransportDetail()
         {
             var http = new FakeHttp(0, string.Empty);
