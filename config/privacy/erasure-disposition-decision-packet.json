@@ -67,7 +67,7 @@
       "policyRefs": [
         "account_auth"
       ],
-      "rationale": "Email-ownership verification state is account-authentication material with no independent product purpose after account erasure. The FK already cascades mechanically, but privacy disposition remains non-executable until the wider erasure authority promotes it.",
+      "rationale": "Email-ownership verification state is account-authentication material with no independent product purpose after account erasure. The FK already cascades mechanically. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
       "promotionAuthorized": false
     },
     {
