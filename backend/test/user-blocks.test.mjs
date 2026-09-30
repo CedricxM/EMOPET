@@ -76,7 +76,7 @@ test('block requires a verified JWT and binds the blocker to the token subject',
   assert.equal(created.headers.get('Cache-Control'), 'private, no-store');
 });
 
-test('block is idempotent, one-sided, and discloses that no surface enforces it yet', async () => {
+test('block is idempotent, one-sided, and discloses where it is enforced', async () => {
   const repository = fakeRepository();
   const root = app(repository);
   const first = await call(root, A, 'POST', '/api/blocks', { targetUserId: B });
@@ -84,7 +84,7 @@ test('block is idempotent, one-sided, and discloses that no surface enforces it 
   assert.equal(first.status, 201);
   assert.equal(again.status, 200);
   assert.equal(repository.rows.length, 1);
-  assert.deepEqual(first.body.enforcement, { community: 'ENFORCED', world: 'NOT_ENFORCED' });
+  assert.deepEqual(first.body.enforcement, { community: 'ENFORCED', world: 'ENFORCED_WHEN_WORLD_ENABLED' });
   assert.deepEqual(first.body.enforcement, BLOCK_ENFORCEMENT);
 
   // One-sided: B's own list is empty, and nothing tells B about A's block.

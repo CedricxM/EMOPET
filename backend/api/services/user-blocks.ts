@@ -11,7 +11,8 @@ import { orderedPair } from './social-connections.js';
 export const BLOCK_ENFORCEMENT = {
   // Community feed, events and comment creation hide people blocked either way.
   community: 'ENFORCED',
-  world: 'NOT_ENFORCED',
+  // The World adapter enforces blocks whenever the (default-off) World spike is enabled.
+  world: 'ENFORCED_WHEN_WORLD_ENABLED',
 } as const;
 
 export const MAX_LISTED_BLOCKS = 500;
