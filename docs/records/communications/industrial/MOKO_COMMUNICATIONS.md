@@ -1,9 +1,9 @@
 # EMOPET × MOKO — Communications Evidence Record
 
-**Control date:** 2026-09-29  
+**Control date:** 2026-09-30  
 **Counterparty:** MOKO Technology / Alyson Tong  
 **Primary Gmail thread:** `19f7e608c5fe1172`  
-**Current state:** ACTIVE SUPPLIER REVIEW / MAT QUOTATION RECEIVED / UPDATED PHASE 0 PACKAGE ACKNOWLEDGED / MOKO CAN DESIGN+BUILD SIMPLE FIXTURE FROM CONTROLLED EMOPET TEST REQUIREMENTS / NO MANUFACTURING OR TOOLING RELEASE INFERRED
+**Current state:** ACTIVE SUPPLIER REVIEW / MAT QUOTATION RECEIVED / UPDATED TAG PACKAGE SENT 2026-09-30 / MOKO CAN DESIGN+BUILD SIMPLE FIXTURE FROM CONTROLLED EMOPET TEST REQUIREMENTS / NO MANUFACTURING OR TOOLING RELEASE INFERRED
 
 ## Material evidence currently identified
 
@@ -156,6 +156,17 @@ Controlled implication:
 - specialist RF/GNSS/EMC/pre-compliance work remains a separate laboratory lane.
 
 No purchase order, fixture release, manufacturing release or tooling authority is created by this clarification.
+
+## 2026-09-30 updated TAG package sent
+
+**Direction:** SENT  
+**Recipient:** `alyson@mokotechnology.com`  
+**Gmail message ID:** `1a0f26b354b99628`  
+**Status:** `SENT / RESPONSE PENDING`
+
+The email states that the updated TAG fabrication/assembly package was attached and that programming/test files will follow separately.
+
+This transmission does not prove supplier acceptance, DFM approval, quotation update, purchase order, tooling release or manufacturing release.
 
 ## Current supplier action gates
 
