@@ -23,14 +23,8 @@ import {
   rotateRefreshCredential,
   type RefreshSessionRepository,
 } from '../services/auth-sessions.js';
-import {
-  buildEmailVerificationUrl,
-  deliverEmailVerification,
-} from '../services/auth-email-delivery.js';
-import {
-  consumeEmailVerificationToken,
-  issueEmailVerificationToken,
-} from '../services/auth-email-verification.js';
+import { enqueueEmailVerificationDeliveryRequest } from '../services/auth-email-delivery-outbox.js';
+import { consumeEmailVerificationToken } from '../services/auth-email-verification.js';
 
 const auth = new Hono<{ Variables: { userId: string } }>();
 
@@ -100,18 +94,6 @@ function requiresEmailVerification(user: {
   return user.emailVerificationRequiredAt !== null && user.emailVerifiedAt === null;
 }
 
-async function issueAndDeliverEmailVerification(userId: string, email: string): Promise<void> {
-  const issued = await issueEmailVerificationToken(userId, email);
-  if (!issued.ok) return;
-
-  const verificationUrl = buildEmailVerificationUrl(issued.rawToken);
-  if (!verificationUrl) return;
-
-  // Delivery outcome is intentionally not reflected in the public response.
-  // The raw token never leaves the provider message path.
-  await deliverEmailVerification({ to: email, verificationUrl });
-}
-
 function genericEmailVerificationAcknowledgement(c: Context) {
   c.header('Cache-Control', 'no-store');
   return c.json(GENERIC_EMAIL_VERIFICATION_ACK, 202);
@@ -125,7 +107,7 @@ auth.post('/register', zValidator('json', RegisterSchema), async (c) => {
   const passwordHash = await hashPassword(body.password);
   const now = new Date();
 
-  const [created] = await db
+  await db
     .insert(users)
     .values({
       email,
@@ -134,36 +116,11 @@ auth.post('/register', zValidator('json', RegisterSchema), async (c) => {
       gdprConsentAt: null,
       emailVerificationRequiredAt: now,
     })
-    .onConflictDoNothing({ target: users.email })
-    .returning({
-      id: users.id,
-      email: users.email,
-      emailVerifiedAt: users.emailVerifiedAt,
-      emailVerificationRequiredAt: users.emailVerificationRequiredAt,
-    });
+    .onConflictDoNothing({ target: users.email });
 
-  let target = created ?? null;
-  if (!target) {
-    const [existing] = await db
-      .select({
-        id: users.id,
-        email: users.email,
-        emailVerifiedAt: users.emailVerifiedAt,
-        emailVerificationRequiredAt: users.emailVerificationRequiredAt,
-      })
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1);
-    target = existing ?? null;
-  }
-
-  if (
-    target
-    && target.emailVerificationRequiredAt !== null
-    && !target.emailVerifiedAt
-  ) {
-    await issueAndDeliverEmailVerification(target.id, target.email);
-  }
+  // Public-path timing no longer depends on account eligibility or provider I/O.
+  // The worker resolves eligibility and performs token/provider work later.
+  await enqueueEmailVerificationDeliveryRequest(email);
 
   return genericEmailVerificationAcknowledgement(c);
 });
@@ -193,25 +150,7 @@ auth.post(
   async (c) => {
     const email = normalizeEmail(c.req.valid('json').email);
 
-    const [user] = await db
-      .select({
-        id: users.id,
-        email: users.email,
-        emailVerifiedAt: users.emailVerifiedAt,
-        emailVerificationRequiredAt: users.emailVerificationRequiredAt,
-      })
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1);
-
-    if (
-      user
-      && user.emailVerificationRequiredAt !== null
-      && !user.emailVerifiedAt
-    ) {
-      await issueAndDeliverEmailVerification(user.id, user.email);
-    }
-
+    await enqueueEmailVerificationDeliveryRequest(email);
     return genericEmailVerificationAcknowledgement(c);
   },
 );
