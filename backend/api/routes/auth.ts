@@ -139,6 +139,7 @@ auth.post('/register', zValidator('json', RegisterSchema), async (c) => {
       id: users.id,
       email: users.email,
       emailVerifiedAt: users.emailVerifiedAt,
+      emailVerificationRequiredAt: users.emailVerificationRequiredAt,
     });
 
   let target = created ?? null;
@@ -148,6 +149,7 @@ auth.post('/register', zValidator('json', RegisterSchema), async (c) => {
         id: users.id,
         email: users.email,
         emailVerifiedAt: users.emailVerifiedAt,
+        emailVerificationRequiredAt: users.emailVerificationRequiredAt,
       })
       .from(users)
       .where(eq(users.email, email))
@@ -155,7 +157,11 @@ auth.post('/register', zValidator('json', RegisterSchema), async (c) => {
     target = existing ?? null;
   }
 
-  if (target && !target.emailVerifiedAt) {
+  if (
+    target
+    && target.emailVerificationRequiredAt !== null
+    && !target.emailVerifiedAt
+  ) {
     await issueAndDeliverEmailVerification(target.id, target.email);
   }
 
@@ -166,8 +172,8 @@ auth.post(
   '/verify-email',
   zValidator('json', EmailVerificationConsumeSchema),
   async (c) => {
-    const { token } = c.req.valid('json');
-    const verified = await consumeEmailVerificationToken(token);
+    const { token, password } = c.req.valid('json');
+    const verified = await consumeEmailVerificationToken(token, password);
 
     c.header('Cache-Control', 'no-store');
     if (!verified) {
@@ -192,12 +198,17 @@ auth.post(
         id: users.id,
         email: users.email,
         emailVerifiedAt: users.emailVerifiedAt,
+        emailVerificationRequiredAt: users.emailVerificationRequiredAt,
       })
       .from(users)
       .where(eq(users.email, email))
       .limit(1);
 
-    if (user && !user.emailVerifiedAt) {
+    if (
+      user
+      && user.emailVerificationRequiredAt !== null
+      && !user.emailVerifiedAt
+    ) {
       await issueAndDeliverEmailVerification(user.id, user.email);
     }
 
