@@ -7,6 +7,8 @@ on:
       - 'backend/api/routes/auth.ts'
       - 'backend/api/middleware/auth.ts'
       - 'backend/api/services/auth-*.ts'
+      - 'backend/api/workers/auth-email-verification-delivery.ts'
+      - 'backend/package.json'
       - 'backend/test/auth-*.test.mjs'
       - 'backend/api/routes/dogs.ts'
       - 'backend/api/routes/health.ts'
