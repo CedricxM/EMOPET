@@ -151,6 +151,7 @@ test('AUTH-EMAIL-VERIFY-01 registration is generic and creates no session before
   const authenticated = await loginAfterVerification.json();
   assert.match(authenticated.refreshToken, /^emopet_rt_/);
 
+  await sql`DELETE FROM auth_refresh_sessions WHERE user_id = ${user.id}`;
   await sql`DELETE FROM users WHERE id = ${user.id}`;
 });
 
