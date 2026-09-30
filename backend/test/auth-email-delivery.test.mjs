@@ -152,7 +152,11 @@ test('verification URL builder appends token without accepting credential-bearin
   const parsed = new URL(url);
   assert.equal(parsed.origin + parsed.pathname, 'https://app.example.test/verify-email');
   assert.equal(parsed.searchParams.get('source'), 'auth');
-  assert.equal(parsed.searchParams.get('token'), 'emopet_ev_test-token');
+  assert.equal(parsed.searchParams.has('token'), false);
+  assert.equal(
+    new URLSearchParams(parsed.hash.slice(1)).get('token'),
+    'emopet_ev_test-token',
+  );
 
   assert.equal(
     buildEmailVerificationUrl('token', {
