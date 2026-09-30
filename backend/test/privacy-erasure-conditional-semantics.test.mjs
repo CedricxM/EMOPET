@@ -29,16 +29,16 @@ test('conditional semantics preserve fail-closed erasure with four approved matr
   );
   assert.equal(
     semantics.status,
-    'FOUR_PRODUCT_PRIVACY_DECISIONS_PROMOTED_FIVE_AUTHORITY_DECISIONS_REMAIN',
+    'FIVE_PRODUCT_PRIVACY_DECISIONS_PROMOTED_FIVE_AUTHORITY_DECISIONS_REMAIN',
   );
   assert.equal(semantics.claimsExecutableErasure, false);
   assert.equal(semantics.claimsCompleteErasure, false);
   assert.deepEqual(semantics.summary, {
-    conditionalRowsTotal: 18,
+    conditionalRowsTotal: 17,
     semanticsAlreadyDeterminedByExistingPolicy: 7,
-    authorityDecisionsStillRequired: 7,
-    matrixRowsPromoted: 4,
-    productPrivacyDecisionsApproved: 4,
+    authorityDecisionsStillRequired: 5,
+    matrixRowsPromoted: 5,
+    productPrivacyDecisionsApproved: 5,
   });
 
   for (const row of [...semantics.policyDetermined, ...semantics.authorityDecisionsRemaining]) {
@@ -61,7 +61,7 @@ test('conditional semantics preserve fail-closed erasure with four approved matr
   }
 });
 
-test('the 18 conditional packet rows are partitioned exactly into 7 determined semantics plus 11 human decisions', () => {
+test('the 19 conditional packet rows are partitioned exactly into 7 determined semantics plus 12 human decisions', () => {
   const packetConditional = packet.relations
     .filter((row) => row.decisionSupportStatus === 'POLICY_CONDITIONAL_EXECUTION_REQUIRED')
     .map(key)
@@ -73,9 +73,9 @@ test('the 18 conditional packet rows are partitioned exactly into 7 determined s
     ...semantics.productPrivacyDecisionsApproved.map((row) => row.relation),
   ].sort();
 
-  assert.equal(packetConditional.length, 18);
-  assert.equal(semanticsKeys.length, 18);
-  assert.equal(new Set(semanticsKeys).size, 18);
+  assert.equal(packetConditional.length, 19);
+  assert.equal(semanticsKeys.length, 19);
+  assert.equal(new Set(semanticsKeys).size, 19);
   assert.deepEqual(semanticsKeys, packetConditional);
 });
 
@@ -337,6 +337,12 @@ test('moderation reporter and rules-acceptance decisions stay unresolved rather 
   );
   assert.equal(report.decision, 'ANONYMIZE_OR_DETACH_REPORTER_KEEP_REPORT');
   assert.equal(report.executionStatus, 'IMPLEMENTED');
+  const subject = semantics.productPrivacyDecisionsApproved.find(
+    (row) => row.relation === 'users.id|DIRECT_FK|community_reports|subject_user_id',
+  );
+  assert.equal(subject.decision, 'ANONYMIZE_OR_DETACH_SUBJECT_KEEP_REPORT');
+  assert.equal(subject.approvalRef, '#594 (issuecomment-5857198114)');
+  assert.ok(subject.semantics.includes('IDENTIFIED_ATTRIBUTION_REQUIRES_ACTIVE_DOCUMENTED_INVESTIGATION_OR_LEGAL_HOLD'));
 
   const rules = semantics.authorityDecisionsRemaining.find(
     (row) => row.relation === 'users.id|DIRECT_FK|community_rules_acceptances|user_id',
