@@ -27,7 +27,8 @@
     "productionPolicyApproval": "OPEN",
     "providerMonitoring": "NOT_SELECTED",
     "alertDelivery": "OPEN_UNDER_526",
-    "responseSla": "OPEN"
+    "responseSla": "OPEN",
+    "lateAuditEventArrival": "OPEN / REQUIRES INGESTION-LATENESS OR COMMIT-WATERMARK AUTHORITY BEFORE ZERO-LOSS CLAIM"
   },
   "scheduler": {
     "issue": 769,
@@ -39,6 +40,7 @@
     "cursorAdvance": "EVALUATED_ONLY",
     "databaseClockWindowEnd": true,
     "initialCursorRequired": true,
-    "httpRoute": null
+    "httpRoute": null,
+    "lateArrivalBoundary": "OPEN / CURSOR COVERS SCHEDULER WINDOWS, NOT UNBOUNDED LATE-COMMIT OCCURRED_AT EVENTS"
   }
 }
