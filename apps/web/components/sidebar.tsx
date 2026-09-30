@@ -7,6 +7,7 @@ import { LanguageSwitcher } from './i18n/LanguageSwitcher';
 import { Icon, type IconName } from './ui/icon';
 import { useI18n } from '../lib/i18n';
 import type { Dict } from '../lib/i18n';
+import styles from './app-shell.module.css';
 
 type NavItem = { href: string; key: keyof Dict['nav'] & string; icon: IconName };
 
@@ -27,21 +28,8 @@ export function Sidebar() {
   const pathname = usePathname();
   const { t } = useI18n();
   return (
-    <aside
-      style={{
-        width: 'var(--sidebar-w)',
-        minHeight: '100vh',
-        borderRight: '1px solid var(--border)',
-        background: 'var(--bg-alt)',
-        padding: '24px 16px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 24,
-        position: 'sticky',
-        top: 0,
-      }}
-    >
-      <div style={{ padding: '0 8px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <aside className={styles.sidebar}>
+      <div className={styles.brandBlock}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <BrandLogo variant="navy" mode="mark" width={32} height={32} />
           <span
@@ -57,6 +45,7 @@ export function Sidebar() {
           </span>
         </div>
         <div
+          className={styles.tagline}
           style={{
             fontFamily: 'var(--font-mono)',
             fontSize: 'var(--text-xxs)',
@@ -70,26 +59,18 @@ export function Sidebar() {
         </div>
       </div>
 
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <nav className={styles.nav}>
         {ITEMS.map((item) => {
           const active = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
           return (
             <Link
               key={item.href}
               href={item.href}
+              className={styles.navLink}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                padding: '10px 12px',
-                borderRadius: 'var(--radius-md)',
                 color: active ? 'var(--accent-press)' : 'var(--fg)',
                 background: active ? 'var(--accent-soft)' : 'transparent',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 'var(--text-sm)',
                 fontWeight: active ? 'var(--weight-semi)' : 'var(--weight-medium)',
-                textDecoration: 'none',
-                transition: 'background var(--dur-fast) var(--ease-out)',
               }}
             >
               <Icon name={item.icon} size={18} />
@@ -99,9 +80,10 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div style={{ marginTop: 'auto', padding: '12px 8px', borderTop: '1px solid var(--divider)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div className={styles.sidebarFooter}>
         <LanguageSwitcher />
         <div
+          className={styles.version}
           style={{
             fontFamily: 'var(--font-sans)',
             fontSize: 'var(--text-xxs)',
