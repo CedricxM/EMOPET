@@ -39,7 +39,7 @@ export const devicePopChallenges = pgTable('device_pop_challenges', {
   ),
   check(
     'chk_device_pop_challenges_purpose',
-    sql`${table.purpose} = 'DEVICE_DATA_TELEMETRY_INGRESS'`,
+    sql`${table.purpose} IN ('DEVICE_DATA_TELEMETRY_INGRESS', 'DEVICE_CREDENTIAL_ACTIVATION')`,
   ),
   check(
     'chk_device_pop_challenges_signing_contract',

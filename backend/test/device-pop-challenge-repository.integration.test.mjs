@@ -31,13 +31,14 @@ function challenge({
   nonce = Buffer.alloc(32, 0x5a).toString('base64url'),
   issuedAt = '2026-09-29T10:00:00.000Z',
   expiresAt = '2026-09-29T10:05:00.000Z',
+  purpose = 'DEVICE_DATA_TELEMETRY_INGRESS',
 } = {}) {
   return {
     schemaVersion: 'device-pop-challenge-v1',
     protocolVersion: 1,
     deviceId,
     credentialVersion,
-    purpose: 'DEVICE_DATA_TELEMETRY_INGRESS',
+    purpose,
     challengeId,
     nonce,
     issuedAt,
@@ -107,6 +108,35 @@ test('challenge store persists exact server challenge and duplicate id is atomic
   assert.equal('signature' in row, false);
   assert.equal('public_key' in row, false);
   assert.equal('private_key' in row, false);
+});
+
+test('challenge store round-trips credential-activation purpose without relabeling it', {
+  skip: !enabled,
+}, async () => {
+  await seedDevice();
+
+  const activation = challenge({
+    challengeId: CHALLENGE_B,
+    purpose: 'DEVICE_CREDENTIAL_ACTIVATION',
+  });
+
+  assert.equal(
+    await store.createIfAbsent({ challenge: activation, consumedAt: null }),
+    true,
+  );
+
+  const stored = await store.findByChallengeId(CHALLENGE_B);
+  assert.deepEqual(stored, {
+    challenge: activation,
+    consumedAt: null,
+  });
+
+  const [row] = await sql`
+    SELECT purpose
+    FROM device_pop_challenges
+    WHERE challenge_id = ${CHALLENGE_B}
+  `;
+  assert.equal(row.purpose, 'DEVICE_CREDENTIAL_ACTIVATION');
 });
 
 test('canonical device FK and challenge invariants fail closed', {

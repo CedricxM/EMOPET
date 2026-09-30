@@ -138,6 +138,36 @@ test('verifier accepts one valid P-256 proof and atomically consumes the challen
   assert.equal(f.consumedAt, NOW.toISOString());
 });
 
+test('runtime telemetry verifier rejects credential-activation purpose before credential authority', async () => {
+  let credentialCalls = 0;
+  const activationChallenge = challenge({
+    purpose: 'DEVICE_CREDENTIAL_ACTIVATION',
+  });
+  const response = signedResponse(activationChallenge);
+  const f = fixture({
+    challenges: {
+      async findByChallengeId() {
+        return { challenge: activationChallenge, consumedAt: null };
+      },
+      async consumeIfUnconsumed() {
+        throw new Error('must not consume');
+      },
+    },
+    credentials: {
+      async resolveActiveCredential() {
+        credentialCalls++;
+        throw new Error('must not resolve');
+      },
+    },
+  });
+
+  const result = await verifyDevicePopResponseV1(response, f.deps);
+
+  assert.deepEqual(result, { ok: false, error: 'PURPOSE_NOT_ALLOWED' });
+  assert.equal(credentialCalls, 0);
+  assert.equal(f.consumeCalls, 0);
+});
+
 test('invalid signature authorizes nothing and does not consume challenge', async () => {
   const f = fixture();
   const response = signedResponse(f.stored);

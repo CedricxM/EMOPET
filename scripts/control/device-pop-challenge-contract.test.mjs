@@ -11,8 +11,11 @@ const [
   ingressSource,
   issuerSource,
   verifierSource,
+  manufacturingIssuerSource,
+  manufacturingVerifierSource,
   challengeRepositorySource,
   challengeMigrationSource,
+  purposeMigrationSource,
   credentialRepositorySource,
   keyProvisionerSource,
 ] = await Promise.all([
@@ -24,8 +27,11 @@ const [
   readFile(new URL('../../backend/api/security/device-data-trust.ts', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/api/security/device-pop-challenge-issuer.ts', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/api/security/device-pop-verifier.ts', import.meta.url), 'utf8'),
+  readFile(new URL('../../backend/api/security/device-credential-activation-pop-issuer.ts', import.meta.url), 'utf8'),
+  readFile(new URL('../../backend/api/security/device-credential-activation-pop-verifier.ts', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/api/security/device-pop-challenge-repository.ts', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/db/migrations/0026_device_pop_challenges.sql', import.meta.url), 'utf8'),
+  readFile(new URL('../../backend/db/migrations/0039_device_pop_activation_purpose.sql', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/api/security/device-credential-repository.ts', import.meta.url), 'utf8'),
   readFile(new URL('../../firmware/collar/ncs/src/device_identity_key_provisioner_psa.c', import.meta.url), 'utf8'),
 ]);
@@ -56,12 +62,18 @@ test('PoP v1 signs a fixed domain-separated binary contract rather than JSON', (
   ]);
 });
 
-test('initial proof purpose is telemetry-only and cannot silently authorize another domain', () => {
+test('PoP v1 purpose bytes separate ACTIVE telemetry from PENDING manufacturing proof', () => {
   assert.equal(contract.challenge.purpose.initialAllowed, 'DEVICE_DATA_TELEMETRY_INGRESS');
   assert.equal(contract.challenge.purpose.code, 1);
+  assert.equal(contract.challenge.purpose.credentialState, 'ACTIVE');
+  assert.equal(contract.challenge.purpose.activationAllowed, 'DEVICE_CREDENTIAL_ACTIVATION');
+  assert.equal(contract.challenge.purpose.activationCode, 2);
+  assert.equal(contract.challenge.purpose.activationCredentialState, 'PENDING_PROOF');
+  assert.equal(contract.challenge.purpose.crossPurposeReuse, false);
   assert.equal(contract.challenge.purpose.reuseForClaimBindOrCommands, false);
 
   assert.match(typesSource, /DEVICE_DATA_TELEMETRY_INGRESS/);
+  assert.match(typesSource, /DEVICE_CREDENTIAL_ACTIVATION/);
   assert.match(validatorsSource, /DevicePopPurposeV1Schema/);
   assert.doesNotMatch(typesSource, /CLAIM_BIND|TRUSTED_COMMAND|OTA_INSTALL/);
 });
@@ -78,7 +90,7 @@ test('challenge entropy, signature encoding and public verifier authority are ex
 
   assert.equal(
     contract.backendVerification.publicKeySource,
-    'ACTIVE_ENROLLED_CREDENTIAL_FOR_CANONICAL_DEVICE_PRINCIPAL_AND_VERSION',
+    'PURPOSE_SCOPED / TELEMETRY_ACTIVE_CREDENTIAL / ACTIVATION_PENDING_PROOF_CREDENTIAL',
   );
   assert.equal(contract.architecture.publicKeyEnrollment, 'SEC1_UNCOMPRESSED_P256_65_BYTES');
 });
@@ -117,7 +129,11 @@ test('replay and expiry remain server-owned and fail closed', () => {
   assert.equal(contract.runtime.verifierAuthorizesTelemetryPersistence, false);
   assert.match(contract.runtime.challengePersistence, /DURABLE_POSTGRES_IMPLEMENTED/);
   assert.match(contract.runtime.challengePersistence, /MIGRATION_0026/);
-  assert.match(contract.runtime.challengePersistence, /HISTORICAL\+GENERATED_DB_PROOF_GREEN/);
+  assert.match(
+    contract.runtime.challengePersistence,
+    /HISTORICAL\+GENERATED_DB_PROOF_(?:PENDING_THIS_PR|GREEN)/,
+  );
+  assert.match(contract.runtime.challengePersistence, /0039/);
   assert.match(contract.runtime.challengePersistence, /NO_DEFAULT_TTL/);
   assert.match(contract.runtime.challengePersistence, /NO_CLEANUP_POLICY/);
   assert.equal(contract.runtime.issuerHasDefaultTtl, false);
@@ -140,7 +156,10 @@ test('durable replay store implements both injected interfaces without creating 
   assert.match(challengeMigrationSource, /device_pop_challenges_device_id_devices_id_fk/);
   assert.match(challengeMigrationSource, /CHECK \(expires_at > issued_at\)/);
   assert.match(challengeMigrationSource, /consumed_at IS NULL/);
+  assert.match(purposeMigrationSource, /DEVICE_DATA_TELEMETRY_INGRESS/);
+  assert.match(purposeMigrationSource, /DEVICE_CREDENTIAL_ACTIVATION/);
   assert.doesNotMatch(challengeMigrationSource, /signature|private_key|public_key/i);
+  assert.doesNotMatch(purposeMigrationSource, /signature|private_key|public_key/i);
 
   assert.equal(contract.runtime.issuerHasDefaultStore, false);
   assert.equal(contract.runtime.verifierHasDefaultStore, false);
@@ -269,6 +288,42 @@ test('issuer primitive requires injected credential + atomic store authority and
   }
 });
 
+
+test('manufacturing PoP lane is PENDING_PROOF-only and never routed or trust-authoritative', async () => {
+  assert.match(manufacturingIssuerSource, /DEVICE_CREDENTIAL_ACTIVATION/);
+  assert.match(manufacturingIssuerSource, /resolvePendingCredential/);
+  assert.match(manufacturingIssuerSource, /PENDING_CREDENTIAL_NOT_FOUND/);
+  assert.doesNotMatch(manufacturingIssuerSource, /resolveActiveCredential/);
+  assert.doesNotMatch(manufacturingIssuerSource, /app\.(get|post|put|delete|patch)\(/);
+
+  assert.match(manufacturingVerifierSource, /DEVICE_CREDENTIAL_ACTIVATION/);
+  assert.match(manufacturingVerifierSource, /resolvePendingCredential/);
+  assert.match(manufacturingVerifierSource, /state !== 'PENDING_PROOF'/);
+  assert.match(manufacturingVerifierSource, /deviceDataTrustAuthorized:\s*false/);
+  assert.match(manufacturingVerifierSource, /telemetryPersistenceAuthorized:\s*false/);
+  assert.doesNotMatch(manufacturingVerifierSource, /resolveActiveCredential/);
+  assert.doesNotMatch(manufacturingVerifierSource, /app\.(get|post|put|delete|patch)\(/);
+
+  assert.match(verifierSource, /response\.purpose !== 'DEVICE_DATA_TELEMETRY_INGRESS'/);
+  assert.match(verifierSource, /challenge\.purpose !== 'DEVICE_DATA_TELEMETRY_INGRESS'/);
+
+  const { readdir } = await import('node:fs/promises');
+  const routeDir = new URL('../../backend/api/routes/', import.meta.url);
+  const routeFiles = (await readdir(routeDir)).filter((name) => name.endsWith('.ts'));
+  const routeSources = await Promise.all(
+    routeFiles.map((name) => readFile(new URL(name, routeDir), 'utf8')),
+  );
+  for (const routeSource of routeSources) {
+    assert.doesNotMatch(
+      routeSource,
+      /device-credential-activation-pop-(?:issuer|verifier)|issueDeviceCredentialActivationChallengeV1|verifyDeviceCredentialActivationPopResponseV1/,
+    );
+  }
+
+  assert.equal(contract.runtime.manufacturingVerifierAuthorizesActivation, false);
+  assert.equal(contract.runtime.manufacturingVerifierAuthorizesDeviceDataTrust, false);
+  assert.equal(contract.runtime.manufacturingVerifierAuthorizesTelemetryPersistence, false);
+});
 
 test('verifier primitive reconstructs server challenge state and cannot activate trust', async () => {
   assert.match(verifierSource, /verifyDevicePopResponseV1/);
