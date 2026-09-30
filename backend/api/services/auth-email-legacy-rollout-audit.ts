@@ -74,24 +74,28 @@ export async function collectAuthEmailLegacyRolloutCensus(
       legacyUnverified: sql<number>`count(*) FILTER (
         WHERE ${authRefreshSessions.revokedAt} IS NULL
           AND ${authRefreshSessions.expiresAt} > ${now}
+          AND ${authRefreshSessions.userId} IS NOT NULL
           AND ${users.emailVerificationRequiredAt} IS NULL
           AND ${users.emailVerifiedAt} IS NULL
       )::int`,
       legacyVerified: sql<number>`count(*) FILTER (
         WHERE ${authRefreshSessions.revokedAt} IS NULL
           AND ${authRefreshSessions.expiresAt} > ${now}
+          AND ${authRefreshSessions.userId} IS NOT NULL
           AND ${users.emailVerificationRequiredAt} IS NULL
           AND ${users.emailVerifiedAt} IS NOT NULL
       )::int`,
       verificationRequiredUnverified: sql<number>`count(*) FILTER (
         WHERE ${authRefreshSessions.revokedAt} IS NULL
           AND ${authRefreshSessions.expiresAt} > ${now}
+          AND ${authRefreshSessions.userId} IS NOT NULL
           AND ${users.emailVerificationRequiredAt} IS NOT NULL
           AND ${users.emailVerifiedAt} IS NULL
       )::int`,
       verificationRequiredVerified: sql<number>`count(*) FILTER (
         WHERE ${authRefreshSessions.revokedAt} IS NULL
           AND ${authRefreshSessions.expiresAt} > ${now}
+          AND ${authRefreshSessions.userId} IS NOT NULL
           AND ${users.emailVerificationRequiredAt} IS NOT NULL
           AND ${users.emailVerifiedAt} IS NOT NULL
       )::int`,
