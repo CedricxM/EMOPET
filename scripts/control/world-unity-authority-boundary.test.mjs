@@ -102,6 +102,23 @@ test('Unity maps no-response transport failures to bounded unavailable state', a
   );
 });
 
+test('presence withdrawal never claims invisibility when no HTTP outcome is known', async () => {
+  const coordinator = await read('Assets/World/Session/WorldSessionCoordinator.cs');
+
+  assert.match(
+    coordinator,
+    /catch \(WorldBackendException error\) when \(error\.StatusCode > 0\)[\s\S]*ClearDisconnected\(\);/,
+  );
+  assert.match(
+    coordinator,
+    /catch \(WorldBackendException\)[\s\S]*stateMachine\.MarkDegraded\(\);/,
+  );
+  assert.match(
+    coordinator,
+    /catch \(OperationCanceledException\)[\s\S]*stateMachine\.MarkDegraded\(\);/,
+  );
+});
+
 test('presence withdrawal clears the dead handle and closes the Unity session', async () => {
   const coordinator = await read('Assets/World/Session/WorldSessionCoordinator.cs');
 
