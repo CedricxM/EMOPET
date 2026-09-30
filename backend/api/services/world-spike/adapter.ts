@@ -280,12 +280,13 @@ export class WorldRealtimeAdapter {
         const senderId = event.value['senderId'];
         const messageId = event.value['messageId'];
         const content = chatContent(event.value['content'], this.options.freeText === true);
-        const subject = typeof senderId === 'string' ? this.transportActors.get(senderId) : undefined;
-        if (content && subject && typeof messageId === 'string' && isCanonicalUserId(messageId)
-          && await visible(senderId)) {
+        const sender = typeof senderId === 'string' ? senderId : undefined;
+        const subject = sender ? this.transportActors.get(sender) : undefined;
+        if (content && sender && subject && typeof messageId === 'string' && isCanonicalUserId(messageId)
+          && await visible(sender)) {
           seenActors.add(subject);
-          seenMessages.push([messageId.toLowerCase(), { senderId, subject }]);
-          out.push({ type: 'chat', value: { channelId: event.value['channelId'], senderId, messageId, content } });
+          seenMessages.push([messageId.toLowerCase(), { senderId: sender, subject }]);
+          out.push({ type: 'chat', value: { channelId: event.value['channelId'], senderId: sender, messageId, content } });
         }
       } else if ((event?.type === 'presence' || event?.type === 'channel-presence') && event.value) {
         const joins = await people(event.value['joins'], true);
