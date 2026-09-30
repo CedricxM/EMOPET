@@ -10,6 +10,39 @@ namespace Emopet.World.Tests
         private const string Handle = "11111111-1111-4111-8111-111111111111";
 
         [Test]
+        public async Task MalformedSuccessfulEventsResponseFailsClosed()
+        {
+            var http = new QueueHttp(
+                new WorldHttpResponse(200, BootstrapJson()),
+                new WorldHttpResponse(200, "{\"state\":\"connected\"}"));
+            var coordinator = Create(http);
+
+            await coordinator.ConnectAsync(CancellationToken.None);
+            var error = Assert.ThrowsAsync<WorldBackendException>(() =>
+                coordinator.PollEventsAsync(CancellationToken.None));
+
+            Assert.That(error.Code, Is.EqualTo(WorldErrorCode.Unavailable));
+            Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Degraded));
+        }
+
+        [Test]
+        public async Task MalformedSuccessfulPresenceResponseFailsClosed()
+        {
+            var http = new QueueHttp(
+                new WorldHttpResponse(200, BootstrapJson()),
+                new WorldHttpResponse(200, "{\"presence\":\"visible\",\"until\":0}"));
+            var coordinator = Create(http);
+
+            await coordinator.ConnectAsync(CancellationToken.None);
+            var error = Assert.ThrowsAsync<WorldBackendException>(() =>
+                coordinator.ShowPresenceAsync(CancellationToken.None));
+
+            Assert.That(error.Code, Is.EqualTo(WorldErrorCode.Unavailable));
+            Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Degraded));
+            Assert.That(coordinator.Handle, Is.EqualTo(Handle));
+        }
+
+        [Test]
         public async Task NoHttpResponseMovesConnectedSessionToDegraded()
         {
             var http = new QueueHttp(
