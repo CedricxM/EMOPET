@@ -211,6 +211,8 @@ jobs:
         run: node --test scripts/control/device-credential-repository.test.mjs
       - name: Enforce Device Trust atomic credential activation gate (#720)
         run: node --test scripts/control/device-credential-activation-gate.test.mjs
+      - name: Enforce PRIV-SEC G5 detection runtime boundary (#525)
+        run: node --test scripts/control/security-detection-runtime.test.mjs
       - name: Enforce TAG firmware feature-writer parity (#122)
         run: |
           cc --version
