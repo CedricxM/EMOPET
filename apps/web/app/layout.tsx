@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getServerLocale } from '../lib/i18n/server';
 import { Fraunces, Instrument_Sans, JetBrains_Mono } from 'next/font/google';
 import type { ReactNode } from 'react';
 import { AppFrame } from '../components/app-frame';
@@ -37,10 +38,14 @@ export const metadata: Metadata = {
 
 const PLAUSIBLE_DOMAIN = process.env['NEXT_PUBLIC_PLAUSIBLE_DOMAIN'];
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  // Langue décidée ICI, au rendu serveur, et non après montage côté client :
+  // c'est ce qui supprime la bascule de langue visible à l'hydratation.
+  const locale = await getServerLocale();
+
   return (
     <html
-      lang="fr"
+      lang={locale}
       className={`${fraunces.variable} ${instrumentSans.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
@@ -50,7 +55,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <script defer data-domain={PLAUSIBLE_DOMAIN} src="https://plausible.io/js/script.js" />
       )}
       <body>
-        <Providers>
+        <Providers locale={locale}>
           <AppFrame>{children}</AppFrame>
         </Providers>
       </body>
