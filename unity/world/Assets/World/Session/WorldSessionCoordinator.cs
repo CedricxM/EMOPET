@@ -25,8 +25,12 @@ namespace Emopet.World
             try
             {
                 var result = await backend.BootstrapAsync(Handle, cancellationToken);
-                if (result == null || !Guid.TryParse(result.handle, out _) || result.state != "connected")
+                var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                if (result == null || !Guid.TryParse(result.handle, out _) || result.state != "connected"
+                    || result.expiresAt <= now)
+                {
                     throw new WorldBackendException(WorldErrorCode.InvalidSession, 503);
+                }
 
                 Handle = result.handle;
                 ExpiresAtUnixMs = result.expiresAt;
