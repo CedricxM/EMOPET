@@ -45,7 +45,10 @@ namespace Emopet.World
 
             try
             {
-                await backend.ShowPresenceAsync(Handle, cancellationToken);
+                var result = await backend.ShowPresenceAsync(Handle, cancellationToken);
+                if (result == null || result.presence != "visible" || result.until <= 0)
+                    throw new WorldBackendException(WorldErrorCode.Unavailable, 200);
+
                 if (State == WorldSessionState.ConnectedInvisible)
                     stateMachine.PresenceBecameVisible();
             }
@@ -81,7 +84,11 @@ namespace Emopet.World
 
             try
             {
-                return await backend.GetEventsAsync(Handle, cancellationToken);
+                var result = await backend.GetEventsAsync(Handle, cancellationToken);
+                if (result == null || result.state != "connected" || result.events == null)
+                    throw new WorldBackendException(WorldErrorCode.Unavailable, 200);
+
+                return result;
             }
             catch (WorldBackendException error)
             {
