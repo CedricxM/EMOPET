@@ -102,11 +102,13 @@ namespace Emopet.World
                 await backend.HidePresenceAsync(Handle, cancellationToken);
                 ClearDisconnected();
             }
-            catch (WorldBackendException error) when (error.StatusCode > 0)
+            catch (WorldBackendException error) when (
+                error.IsStructuredWorldError
+                && (error.Code == WorldErrorCode.InvalidSession || error.Code == WorldErrorCode.Unavailable))
             {
-                // An HTTP response proves the backend handled the request. The server-side
-                // withdrawal path drops the World handle before persisting canonical consent,
-                // so even a later 503 leaves this handle dead.
+                // A structured World error proves our World boundary handled the request.
+                // invalid_session means the handle is already gone; unavailable from this
+                // route is raised after the server-side drop and canonical withdrawal attempt.
                 ClearDisconnected();
                 throw;
             }
@@ -159,9 +161,10 @@ namespace Emopet.World
                 await backend.DisconnectAsync(handle, cancellationToken);
                 ClearDisconnected();
             }
-            catch (WorldBackendException error) when (error.Code == WorldErrorCode.InvalidSession)
+            catch (WorldBackendException error) when (
+                error.IsStructuredWorldError && error.Code == WorldErrorCode.InvalidSession)
             {
-                // The backend says the handle is already unusable/expired.
+                // The World session route says the handle is already unusable/expired.
                 ClearDisconnected();
             }
             catch (WorldBackendException)
