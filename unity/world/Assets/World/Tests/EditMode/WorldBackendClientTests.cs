@@ -59,6 +59,7 @@ namespace Emopet.World.Tests
                 client.FriendsListAsync(Handle, CancellationToken.None));
 
             Assert.That(error.Code, Is.EqualTo(WorldErrorCode.InvalidSession));
+            Assert.That(error.IsStructuredWorldError, Is.False);
         }
 
         [Test]
@@ -71,6 +72,20 @@ namespace Emopet.World.Tests
                 client.FriendsListAsync(Handle, CancellationToken.None));
 
             Assert.That(error.Code, Is.EqualTo(WorldErrorCode.Unavailable));
+            Assert.That(error.IsStructuredWorldError, Is.False);
+        }
+
+        [Test]
+        public void StructuredWorld503RetainsBoundaryEvidence()
+        {
+            var http = new FakeHttp(503, "{\"error\":\"unavailable\",\"state\":\"degraded\"}");
+            var client = new WorldBackendClient("http://127.0.0.1:3000", new FakeToken(), http);
+
+            var error = Assert.ThrowsAsync<WorldBackendException>(() =>
+                client.FriendsListAsync(Handle, CancellationToken.None));
+
+            Assert.That(error.Code, Is.EqualTo(WorldErrorCode.Unavailable));
+            Assert.That(error.IsStructuredWorldError, Is.True);
         }
 
         [Test]
@@ -84,6 +99,7 @@ namespace Emopet.World.Tests
 
             Assert.That(error.Code, Is.EqualTo(WorldErrorCode.Unavailable));
             Assert.That(error.StatusCode, Is.EqualTo(0));
+            Assert.That(error.IsStructuredWorldError, Is.False);
         }
 
         [Test]
