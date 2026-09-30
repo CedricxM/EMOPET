@@ -1,4 +1,4 @@
-import { and, asc, gte, lte } from 'drizzle-orm';
+import { and, asc, gte, lt } from 'drizzle-orm';
 
 import { db } from '../../db/index.js';
 import { securityAuditEvents } from '../../db/schema/index.js';
@@ -190,7 +190,8 @@ function rowToCanonicalEvent(
  *
  * No production schedule, threshold/window defaults or delivery channel are
  * selected here. The caller must provide the complete detector policy and scan
- * window for every invocation.
+ * window for every invocation. Scan windows are half-open [start, end) so
+ * adjacent scheduled runs cannot double-count an event exactly on a boundary.
  */
 export async function runSecurityDetectionScan(
   input: unknown,
@@ -212,7 +213,7 @@ export async function runSecurityDetectionScan(
       .from(securityAuditEvents)
       .where(and(
         gte(securityAuditEvents.occurredAt, new Date(request.windowStart)),
-        lte(securityAuditEvents.occurredAt, new Date(request.windowEnd)),
+        lt(securityAuditEvents.occurredAt, new Date(request.windowEnd)),
       ))
       .orderBy(
         asc(securityAuditEvents.occurredAt),
