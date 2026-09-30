@@ -13,6 +13,8 @@ const [
   verifierSource,
   challengeRepositorySource,
   challengeMigrationSource,
+  credentialRepositorySource,
+  keyProvisionerSource,
 ] = await Promise.all([
   readFile(new URL('../../config/security/device-pop-challenge-v1.json', import.meta.url), 'utf8'),
   readFile(new URL('../../config/security/device-identity-pop-evaluation-v1.json', import.meta.url), 'utf8'),
@@ -24,6 +26,8 @@ const [
   readFile(new URL('../../backend/api/security/device-pop-verifier.ts', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/api/security/device-pop-challenge-repository.ts', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/db/migrations/0026_device_pop_challenges.sql', import.meta.url), 'utf8'),
+  readFile(new URL('../../backend/api/security/device-credential-repository.ts', import.meta.url), 'utf8'),
+  readFile(new URL('../../firmware/collar/ncs/src/device_identity_key_provisioner_psa.c', import.meta.url), 'utf8'),
 ]);
 
 const contract = JSON.parse(contractSource);
@@ -98,12 +102,11 @@ test('replay and expiry remain server-owned and fail closed', () => {
     'SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_OPAQUE_PSA_KEY_ID / NO_KEY_GENERATION_OR_STORAGE',
   );
   assert.match(contract.runtime.replayStore, /DURABLE_POSTGRES_IMPLEMENTED/);
-  for (const state of [
-    'credentialRepository',
-    'deviceDataTrust',
-  ]) {
-    assert.equal(contract.runtime[state], 'NOT_IMPLEMENTED', state);
-  }
+  assert.match(contract.runtime.credentialRepository, /DURABLE_POSTGRES_IMPLEMENTED/);
+  assert.match(contract.runtime.credentialRepository, /PENDING_PROOF_ENROLLMENT/);
+  assert.match(contract.runtime.credentialRepository, /ACTIVE_READ_ONLY_RESOLVER/);
+  assert.match(contract.runtime.credentialRepository, /NO_ACTIVATION_MUTATION/);
+  assert.equal(contract.runtime.deviceDataTrust, 'NOT_IMPLEMENTED');
   assert.equal(
     contract.runtime.backendVerifier,
     'SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_AUTHORITIES_REQUIRED / NO_HTTP_ROUTE',
@@ -114,6 +117,7 @@ test('replay and expiry remain server-owned and fail closed', () => {
   assert.equal(contract.runtime.verifierAuthorizesTelemetryPersistence, false);
   assert.match(contract.runtime.challengePersistence, /DURABLE_POSTGRES_IMPLEMENTED/);
   assert.match(contract.runtime.challengePersistence, /MIGRATION_0026/);
+  assert.match(contract.runtime.challengePersistence, /HISTORICAL\+GENERATED_DB_PROOF_GREEN/);
   assert.match(contract.runtime.challengePersistence, /NO_DEFAULT_TTL/);
   assert.match(contract.runtime.challengePersistence, /NO_CLEANUP_POLICY/);
   assert.equal(contract.runtime.issuerHasDefaultTtl, false);
@@ -143,6 +147,73 @@ test('durable replay store implements both injected interfaces without creating 
   assert.equal(contract.runtime.verifierHasPublicRoute, false);
   assert.equal(contract.runtime.verifierAuthorizesDeviceDataTrust, false);
   assert.equal(contract.runtime.verifierAuthorizesTelemetryPersistence, false);
+});
+
+test('durable credential repository is delivered but cannot activate trust', () => {
+  assert.equal(
+    contract.runtime.credentialRepositorySource,
+    'backend/api/security/device-credential-repository.ts',
+  );
+  assert.equal(
+    contract.runtime.credentialRepositoryIntegrationTest,
+    'backend/test/device-credential-repository.integration.test.mjs',
+  );
+
+  assert.match(credentialRepositorySource, /enrollPendingDeviceIdentityCredential/);
+  assert.match(credentialRepositorySource, /state:\s*'PENDING_PROOF'/);
+  assert.match(credentialRepositorySource, /durableDevicePopCredentialRepository/);
+  assert.match(credentialRepositorySource, /eq\(deviceIdentityCredentials\.state, 'ACTIVE'\)/);
+  assert.doesNotMatch(
+    credentialRepositorySource,
+    /set\(\{[^}]*state:\s*'ACTIVE'/s,
+  );
+
+  assert.match(
+    evaluation.evidenceState.backendEnrollmentModel,
+    /DURABLE_POSTGRES_IMPLEMENTED/,
+  );
+  assert.match(
+    evaluation.evidenceState.publicEnrollmentReceipt,
+    /DURABLE_PERSISTENCE_IMPLEMENTED/,
+  );
+  assert.match(
+    evaluation.evidenceState.publicEnrollmentReceipt,
+    /PENDING_PROOF_ONLY/,
+  );
+});
+
+test('device key provisioning source exists but remains default-off and target-unproven', () => {
+  assert.match(
+    contract.runtime.devicePrivateKeyProvisioning,
+    /SOURCE_PRIMITIVE_IMPLEMENTED/,
+  );
+  assert.match(
+    contract.runtime.devicePrivateKeyProvisioning,
+    /DEFAULT_OFF_KCONFIG/,
+  );
+  assert.match(
+    contract.runtime.devicePrivateKeyProvisioning,
+    /TARGET_HUK_SECURE_STORAGE_PROOF_OPEN/,
+  );
+  assert.match(
+    contract.runtime.devicePrivateKeyStorage,
+    /PRODUCTION_STORAGE_NOT_PROVEN/,
+  );
+
+  assert.match(keyProvisionerSource, /device_identity_key_provision_p256_v1/);
+  assert.match(keyProvisionerSource, /PSA_KEY_LIFETIME_PERSISTENT/);
+  assert.match(keyProvisionerSource, /device_identity_key_id_is_reserved_slot/);
+  assert.match(keyProvisionerSource, /psa_export_public_key/);
+  assert.doesNotMatch(keyProvisionerSource, /psa_export_key\s*\(/);
+
+  assert.match(
+    evaluation.evidenceState.devicePrivateKeyProvisioning,
+    /SOURCE_IMPLEMENTED_BEHIND_DEFAULT_OFF_KCONFIG/,
+  );
+  assert.match(
+    evaluation.evidenceState.devicePrivateKeyProvisioning,
+    /HUK_SECURE_STORAGE_TARGET_PROOF_OPEN/,
+  );
 });
 
 test('shared boundary validates challenge/response shape without implementing verification', () => {
@@ -248,8 +319,9 @@ test('device-side preimage stays serialization-only while signer source remains 
     'SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_OPAQUE_PSA_KEY_ID / NO_KEY_GENERATION_OR_STORAGE',
   );
   assert.equal(contract.runtime.deviceSignerTargetBuildVerified, false);
-  assert.equal(contract.runtime.devicePrivateKeyProvisioning, 'NOT_IMPLEMENTED');
-  assert.match(contract.runtime.devicePrivateKeyStorage, /NOT_IMPLEMENTED/);
+  assert.match(contract.runtime.devicePrivateKeyProvisioning, /SOURCE_PRIMITIVE_IMPLEMENTED/);
+  assert.match(contract.runtime.devicePrivateKeyProvisioning, /TARGET_HUK_SECURE_STORAGE_PROOF_OPEN/);
+  assert.match(contract.runtime.devicePrivateKeyStorage, /PRODUCTION_STORAGE_NOT_PROVEN/);
   assert.match(preimageHeader, /DEVICE_POP_PREIMAGE_V1_SIZE\s+106u/);
   assert.match(preimageSource, /EMOPET_DEVICE_POP_V1/);
   assert.match(preimageSource, /write_u32_be/);
