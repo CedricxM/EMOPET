@@ -249,7 +249,7 @@ test('sink unavailability returns failure and never reports a successful durable
     assert.deepEqual(result, {
       ok: false,
       error: 'DATABASE_UNAVAILABLE',
-      retryable: false,
+      retryable: true,
     });
   } finally {
     await sql`ALTER TABLE security_audit_events_unavailable_test RENAME TO security_audit_events`;
