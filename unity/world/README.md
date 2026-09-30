@@ -56,3 +56,43 @@ Before any merge:
 4. run EditMode tests;
 5. confirm zero Console compile errors;
 6. keep the PR draft until explicit approval.
+
+
+## Live loopback validation
+
+The first slice can be exercised end-to-end without a scene and without installing a Nakama SDK in Unity.
+
+Prerequisites:
+- the isolated Nakama spike is already healthy from `infra/nakama/compose.yml`;
+- backend dependencies are installed and `@emopet/api` has been built;
+- the ignored `infra/nakama/.env` contains only synthetic test ids/secrets.
+
+From the repository root, start the loopback-only Hono harness and keep it running:
+
+```powershell
+node --env-file=infra/nakama/.env backend/test/world-spike-unity-host.mjs
+```
+
+The host:
+- refuses `NODE_ENV=production`;
+- accepts only loopback HTTP Nakama;
+- binds Hono to `127.0.0.1` only;
+- reuses `createWorldSpikeRoutes`, `WorldRealtimeAdapter`, the canonical access-token signer, and the real Nakama transport;
+- writes short-lived synthetic access tokens only to ignored `unity/world/Temp/world-live-harness.json`;
+- removes that fixture on normal Ctrl+C shutdown;
+- never prints access tokens.
+
+With the host running, open the project in Unity 6000.3.25f1 and run:
+
+`WorldBackendClientLiveTests.LiveTwoUserBootstrapPresenceChatRenewalAndDegradedTransport`
+
+The live EditMode test proves the actual Unity `UnityWebRequestWorldHttpTransport` path through Hono to Nakama for:
+- two synthetic session bootstraps;
+- canonical friend visibility;
+- opt-in presence follow/update and event delivery;
+- group creation/join;
+- preset-only chat and event delivery;
+- session renewal with chat-subscription restoration;
+- a real no-response Unity transport failure reaching `Degraded`.
+
+If the fixture file is absent, the live test is skipped rather than fabricating success. Stop the host with Ctrl+C after the run. This remains **SPIKE / NOT PRODUCTION AUTHORITY**.
