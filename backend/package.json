@@ -18,6 +18,7 @@
     "@emopet/eli-engine": "workspace:*",
     "@emopet/privileged-auth": "workspace:*",
     "@emopet/shared": "workspace:*",
+    "@heroiclabs/nakama-js": "2.8.0",
     "@hono/node-server": "^1.19.13",
     "@hono/zod-validator": "^0.8.0",
     "drizzle-orm": "^0.45.2",

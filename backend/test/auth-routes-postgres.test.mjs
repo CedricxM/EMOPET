@@ -9,6 +9,7 @@ let hashRefreshToken = null;
 let hashPassword = null;
 let hashEmailVerificationToken = null;
 let closeDatabase = null;
+let onActorRevoked = null;
 
 if (enabled) {
   const [
@@ -17,14 +18,17 @@ if (enabled) {
     { hashEmailVerificationToken: hashVerificationToken },
     { closeDatabase: closeSharedDatabase },
     { default: postgres },
+    { onActorRevoked: subscribe },
   ] = await Promise.all([
     import('../dist/api/routes/auth.js'),
     import('../dist/api/services/auth-security.js'),
     import('../dist/api/services/auth-email-verification.js'),
     import('../dist/db/index.js'),
     import('postgres'),
+    import('../dist/api/services/actor-revocation.js'),
   ]);
   auth = authRouter;
+  onActorRevoked = subscribe;
   hashRefreshToken = hashToken;
   hashPassword = hashPasswordValue;
   hashEmailVerificationToken = hashVerificationToken;
@@ -327,10 +331,14 @@ test('AUTH-01 routes persist credentials, rotate refresh sessions, and revoke se
   assert.equal(secondLoginResponse.status, 200);
   const secondLogin = await secondLoginResponse.json();
 
+  // #596 (L7): live realtime sessions hear every logout, after the commit.
+  const revocations = [];
+  const stopListening = onActorRevoked((userId, reason) => { revocations.push([userId, reason]); });
   const logoutResponse = await jsonRequest('/logout', {
     refreshToken: secondLogin.refreshToken,
   });
   assert.equal(logoutResponse.status, 204);
+  assert.deepEqual(revocations, [[storedUser.id, 'logout']]);
   assert.equal(logoutResponse.headers.get('cache-control'), 'no-store');
 
   const loggedOutRefresh = await jsonRequest('/refresh', {
@@ -351,6 +359,8 @@ test('AUTH-01 routes persist credentials, rotate refresh sessions, and revoke se
     `Bearer ${thirdLogin.accessToken}`,
   );
   assert.equal(logoutAllResponse.status, 204);
+  assert.deepEqual(revocations, [[storedUser.id, 'logout'], [storedUser.id, 'logout_all']]);
+  stopListening();
   assert.equal(logoutAllResponse.headers.get('cache-control'), 'no-store');
 
   const [activeCount] = await sql`
