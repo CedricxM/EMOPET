@@ -104,7 +104,7 @@ namespace Emopet.World
             try
             {
                 var result = await backend.GetEventsAsync(Handle, cancellationToken);
-                if (result == null || result.state != "connected" || result.events == null)
+                if (!ValidEvents(result))
                     throw new WorldBackendException(WorldErrorCode.Unavailable, 200);
 
                 return result;
@@ -149,6 +149,61 @@ namespace Emopet.World
             Handle = null;
             ExpiresAtUnixMs = 0;
             stateMachine.MarkRevoked();
+        }
+
+        private static bool ValidEvents(WorldEventsResult result)
+        {
+            if (result == null || result.state != "connected" || result.events == null)
+                return false;
+
+            foreach (var item in result.events)
+            {
+                if (item == null || item.value == null)
+                    return false;
+
+                if (item.type == "chat")
+                {
+                    if (string.IsNullOrWhiteSpace(item.value.channelId)
+                        || string.IsNullOrWhiteSpace(item.value.senderId)
+                        || !Guid.TryParse(item.value.messageId, out _)
+                        || item.value.content == null
+                        || !WorldPresets.IsAllowed(item.value.content.preset))
+                    {
+                        return false;
+                    }
+
+                    continue;
+                }
+
+                if (item.type == "presence" || item.type == "channel-presence")
+                {
+                    if (!ValidPresenceRows(item.value.joins) || !ValidPresenceRows(item.value.leaves))
+                        return false;
+
+                    continue;
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool ValidPresenceRows(WorldPresenceRowDto[] rows)
+        {
+            if (rows == null)
+                return false;
+
+            foreach (var row in rows)
+            {
+                if (row == null || string.IsNullOrWhiteSpace(row.user_id))
+                    return false;
+
+                if (!string.IsNullOrEmpty(row.status) && row.status != "online" && row.status != "away")
+                    return false;
+            }
+
+            return true;
         }
 
         private void ApplyFailure(WorldBackendException error)
