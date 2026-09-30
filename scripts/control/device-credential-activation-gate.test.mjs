@@ -11,6 +11,8 @@ const [
   trustSource,
   activationTypesSource,
   validatorsSource,
+  activationTransactionSource,
+  activationReceiptMigrationSource,
 ] = await Promise.all([
     readFile(new URL('../../config/security/device-credential-activation-v1.json', import.meta.url), 'utf8'),
     readFile(new URL('../../config/security/psa-key-id-registry-v1.json', import.meta.url), 'utf8'),
@@ -20,6 +22,8 @@ const [
     readFile(new URL('../../backend/api/security/device-data-trust.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../packages/shared/src/types/device-credential-activation.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../packages/shared/src/validators/index.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../backend/api/security/device-credential-activation-transaction.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../backend/db/migrations/0030_device_credential_activation_receipts.sql', import.meta.url), 'utf8'),
   ]);
 
 const authority = JSON.parse(authoritySource);
@@ -27,7 +31,7 @@ const registry = JSON.parse(registrySource);
 
 test('#720 keeps credential activation blocked behind M4/M5 physical evidence', () => {
   assert.equal(authority.issue, 720);
-  assert.match(authority.status, /RUNTIME_BLOCKED/);
+  assert.match(authority.status, /M6_SERVICE_BLOCKED/);
   assert.match(authority.status, /M4_M5_TARGET_EVIDENCE_REQUIRED/);
 
   for (const required of [
@@ -39,9 +43,12 @@ test('#720 keeps credential activation blocked behind M4/M5 physical evidence', 
     assert.ok(authority.requiredEvidence.includes(required), required);
   }
 
+  assert.equal(authority.runtime.atomicMutationPrimitiveImplemented, true);
+  assert.equal(authority.runtime.activationReceiptPersistenceImplemented, true);
   assert.equal(authority.runtime.activationServiceImplemented, false);
   assert.equal(authority.runtime.rotationCutoverImplemented, false);
   assert.equal(authority.runtime.m4M5EvidenceAuthorityImplemented, false);
+  assert.equal(authority.runtime.publicActivationRouteImplemented, false);
 });
 
 test('rotation contract requires one locked atomic cutover, never activate-then-revoke', () => {
@@ -137,6 +144,44 @@ test('activation evidence contract is reference-only and server-resolved', () =>
   assert.match(validatorsSource, /DeviceCredentialActivationReceiptV1Schema/);
   assert.match(validatorsSource, /evidence credential version must match activated credential/);
   assert.match(validatorsSource, /ROTATION must retire predecessor as REVOKED_PENDING_ERASE/);
+});
+
+test('internal cutover primitive is transactional but is not M4/M5 authority', () => {
+  assert.match(
+    activationTransactionSource,
+    /commitVerifiedDeviceCredentialActivationReceipt/,
+  );
+  assert.match(activationTransactionSource, /db\.transaction/);
+  assert.match(activationTransactionSource, /\.for\('update'\)/);
+  assert.match(activationTransactionSource, /REVOKED_PENDING_ERASE/);
+  assert.match(activationTransactionSource, /PENDING_PROOF/);
+  assert.match(activationTransactionSource, /deviceCredentialActivationReceipts/);
+  assert.match(
+    activationTransactionSource,
+    /does NOT resolve or verify M4\/M5 evidence/i,
+  );
+
+  assert.doesNotMatch(activationTransactionSource, /proofPassed\s*:/);
+  assert.doesNotMatch(activationTransactionSource, /approtectVerified\s*:/);
+  assert.doesNotMatch(activationTransactionSource, /hardwareVerified\s*:/);
+  assert.doesNotMatch(activationTransactionSource, /app\.(get|post|put|delete|patch)\(/);
+
+  assert.match(
+    activationReceiptMigrationSource,
+    /CREATE TABLE device_credential_activation_receipts/,
+  );
+  assert.match(
+    activationReceiptMigrationSource,
+    /device_data_trust_authorized boolean NOT NULL/,
+  );
+  assert.match(
+    activationReceiptMigrationSource,
+    /network_telemetry_persistence_authorized boolean NOT NULL/,
+  );
+  assert.match(
+    activationReceiptMigrationSource,
+    /CHECK \([\s\S]*device_data_trust_authorized = false[\s\S]*network_telemetry_persistence_authorized = false/,
+  );
 });
 
 test('future activation receipt remains non-authoritative for Device Data Trust', () => {
