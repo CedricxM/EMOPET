@@ -646,7 +646,7 @@ test('purging an account closes sessions and deletes its report-attribution rece
   const filed = [];
   const sink = { async create(input) { filed.push(input); return { id: 'r1', kind: input.kind, status: 'open', createdAt: new Date(0) }; } };
   const app = createWorldSpikeRoutes(adapter, sink);
-  const report = () => app.request(`/sessions/${a.handle}/reports`, { method: 'POST',
+  const report = async () => app.request(`/sessions/${a.handle}/reports`, { method: 'POST',
     headers: { Authorization: `Bearer ${await signAccessToken(A)}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ kind: 'world_message', senderId: B, messageId: MESSAGE, reason: 'spam' }) });
   assert.equal((await report()).status, 201, 'delivered message is reportable before erasure');
