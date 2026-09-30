@@ -37,7 +37,7 @@ test('invalid world reports are rejected before any write', () => {
 
 test('schema and migration keep one moderation queue with an explicit target shape', () => {
   const code = (text) => text.replace(/^\s*(--|\/\/).*$/gm, '');
-  const migration = code(readFileSync(new URL('../db/migrations/0028_world_report_intake.sql', import.meta.url), 'utf8'));
+  const migration = code(readFileSync(new URL('../db/migrations/0030_world_report_intake.sql', import.meta.url), 'utf8'));
   const schema = code(readFileSync(new URL('../db/schema/community.ts', import.meta.url), 'utf8'));
   for (const source of [migration, schema]) {
     assert.match(source, /chk_community_reports_target_shape/);

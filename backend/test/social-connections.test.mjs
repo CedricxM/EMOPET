@@ -7,7 +7,7 @@ const { createConnectionRoutes } = await import('../dist/api/routes/connections.
 const { orderedPair } = await import('../dist/api/services/social-connections.js');
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8').replace(/\r\n/g, '\n');
-const migration = read('../db/migrations/0030_world_social_connections.sql');
+const migration = read('../db/migrations/0032_world_social_connections.sql');
 const A = '11111111-1111-4111-8111-111111111111';
 const B = '22222222-2222-4222-8222-222222222222';
 
