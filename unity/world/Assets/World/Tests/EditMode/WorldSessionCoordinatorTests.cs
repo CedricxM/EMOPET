@@ -68,6 +68,20 @@ namespace Emopet.World.Tests
         }
 
         [Test]
+        public void CancelledBootstrapLeavesRecoverableDegradedState()
+        {
+            var coordinator = Create(new CancelledHttp());
+            using var cancellation = new CancellationTokenSource();
+            cancellation.Cancel();
+
+            Assert.ThrowsAsync<OperationCanceledException>(() =>
+                coordinator.ConnectAsync(cancellation.Token));
+
+            Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Degraded));
+            Assert.That(coordinator.Handle, Is.Null);
+        }
+
+        [Test]
         public async Task StaleRenewalHandleFallsBackToFreshInvisibleBootstrap()
         {
             var http = new QueueHttp(
@@ -275,6 +289,20 @@ namespace Emopet.World.Tests
         {
             public Task<string> GetAccessTokenAsync(CancellationToken cancellationToken) =>
                 Task.FromResult("test-token");
+        }
+
+        private sealed class CancelledHttp : IWorldHttpTransport
+        {
+            public Task<WorldHttpResponse> SendAsync(
+                string method,
+                string absoluteUrl,
+                string bearerToken,
+                string jsonBody,
+                CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                throw new OperationCanceledException(cancellationToken);
+            }
         }
 
         private sealed class QueueHttp : IWorldHttpTransport
