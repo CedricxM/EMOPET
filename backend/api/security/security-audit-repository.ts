@@ -17,8 +17,13 @@ export type SecurityAuditPersistenceResult =
     }
   | {
       ok: false;
-      error: SecurityAuditPersistenceError;
+      error: 'INVALID_AUDIT_EVENT';
       retryable: false;
+    }
+  | {
+      ok: false;
+      error: 'DATABASE_UNAVAILABLE';
+      retryable: true;
     };
 
 /**
@@ -55,7 +60,7 @@ export async function persistSecurityAuditEvent(
       return {
         ok: false,
         error: 'DATABASE_UNAVAILABLE',
-        retryable: false,
+        retryable: true,
       };
     }
 
