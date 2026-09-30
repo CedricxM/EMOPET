@@ -14,6 +14,10 @@ import { CityPicto, LighthouseGlyph } from './pictograms';
 import { CityDogPin, EventBadge, SpotPin } from './pins';
 import { SunMoon } from './SunMoon';
 
+const MAP_VIEWBOX_WIDTH = 1000;
+const MAP_VIEWBOX_HEIGHT = 720;
+const MIN_POINTER_TARGET_PX = 24;
+
 /** Marqueur de spot communautaire projeté dans le repère viewBox. */
 export interface SpotMarker {
   id: string;
@@ -79,7 +83,8 @@ export function BretagneMap({
   onEventMarkerClick,
 }: BretagneMapProps = {}) {
   return (
-    <svg
+    <div style={{ position: 'relative', width: '100%' }}>
+      <svg
       viewBox="0 0 1000 720"
       preserveAspectRatio="xMidYMid meet"
       role="img"
@@ -324,25 +329,16 @@ export function BretagneMap({
         </g>
       )}
 
-      {/* Spots communautaires (Sprint 01) — couche supérieure, interactifs */}
+      {/* Spots communautaires (Sprint 01) — couche visuelle uniquement.
+          La cible interactive vit en HTML au-dessus du SVG : un rayon SVG se
+          contracte avec le viewBox et ne peut donc pas garantir 24 CSS px. */}
       {spots && spots.length > 0 && (
-        <g>
-          {spots.map((spot) => {
-            const interactive = !!onSpotClick;
-            return (
-              <g
-                key={spot.id}
-                role={interactive ? 'button' : undefined}
-                tabIndex={interactive ? 0 : undefined}
-                aria-label={interactive ? spot.label : undefined}
-                style={{ cursor: interactive ? 'pointer' : 'default' }}
-                onClick={interactive ? () => onSpotClick?.(spot.id) : undefined}
-                onKeyDown={interactive ? activateOnKey(() => onSpotClick?.(spot.id)) : undefined}
-              >
-                <SpotPin x={spot.x} y={spot.y} color={spot.color} selected={spot.id === selectedSpotId} />
-              </g>
-            );
-          })}
+        <g aria-hidden="true" pointerEvents="none">
+          {spots.map((spot) => (
+            <g key={spot.id}>
+              <SpotPin x={spot.x} y={spot.y} color={spot.color} selected={spot.id === selectedSpotId} />
+            </g>
+          ))}
         </g>
       )}
 
@@ -376,6 +372,36 @@ export function BretagneMap({
       >
         ⊙ AR VEUTE
       </text>
-    </svg>
+      </svg>
+
+      {/* WCAG 2.2 §2.5.8 — cibles de spot en pixels CSS, sans grossir les pins.
+          Les boutons suivent exactement les coordonnées normalisées du viewBox.
+          Leur dessin reste transparent ; le focus clavier visible vient de la
+          règle globale :focus-visible du produit. */}
+      {spots && onSpotClick && spots.map((spot) => (
+        <button
+          key={`spot-target-${spot.id}`}
+          type="button"
+          aria-label={spot.label}
+          onClick={() => onSpotClick(spot.id)}
+          style={{
+            position: 'absolute',
+            left: `${(spot.x / MAP_VIEWBOX_WIDTH) * 100}%`,
+            top: `${(spot.y / MAP_VIEWBOX_HEIGHT) * 100}%`,
+            width: MIN_POINTER_TARGET_PX,
+            height: MIN_POINTER_TARGET_PX,
+            minWidth: MIN_POINTER_TARGET_PX,
+            minHeight: MIN_POINTER_TARGET_PX,
+            padding: 0,
+            border: 'none',
+            borderRadius: '50%',
+            background: 'transparent',
+            transform: 'translate(-50%, -50%)',
+            cursor: 'pointer',
+            zIndex: 2,
+          }}
+        />
+      ))}
+    </div>
   );
 }
