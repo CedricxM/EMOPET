@@ -71,6 +71,19 @@ test('first-slice Unity chat remains preset-only', async () => {
   assert.match(client, /WorldPresets\.IsAllowed\(presetId\)/);
 });
 
+test('Unity rejects expired bootstrap sessions before connected state', async () => {
+  const coordinator = await read('Assets/World/Session/WorldSessionCoordinator.cs');
+
+  assert.match(
+    coordinator,
+    /DateTimeOffset\.UtcNow\.ToUnixTimeMilliseconds\(\)/,
+  );
+  assert.match(
+    coordinator,
+    /result\.expiresAt <= now/,
+  );
+});
+
 test('Unity fails closed on malformed successful World payloads', async () => {
   const coordinator = await read('Assets/World/Session/WorldSessionCoordinator.cs');
 
