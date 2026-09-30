@@ -240,6 +240,8 @@ export async function runSecurityDetectionScan(
   }
 
   const events: SecurityAuditEvent[] = [];
+  const detectorInputs: unknown[] = [];
+
   for (const row of rows) {
     const event = rowToCanonicalEvent(row);
     if (!event) {
@@ -249,10 +251,22 @@ export async function runSecurityDetectionScan(
         detections: [],
       };
     }
+
     events.push(event);
+
+    // parseSecurityAuditEvent() returns the canonical stored/domain object with
+    // schemaVersion attached. The existing anomaly evaluator deliberately owns
+    // its own input parsing and accepts the wire/input shape without that
+    // derived field. Strip only the derived schemaVersion before handing the
+    // already source-validated event to the unchanged canonical detector.
+    const {
+      schemaVersion: _schemaVersion,
+      ...detectorInput
+    } = event;
+    detectorInputs.push(detectorInput);
   }
 
-  const evaluated = evaluateSecurityAnomalies(events, request.policy);
+  const evaluated = evaluateSecurityAnomalies(detectorInputs, request.policy);
   if (evaluated.status !== 'EVALUATED') {
     // Defensive parity with pre-query validation. Never reinterpret a policy
     // failure as a successful empty evaluation.
