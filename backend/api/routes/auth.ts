@@ -1,7 +1,12 @@
 import { and, eq, isNull, sql } from 'drizzle-orm';
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import { zValidator } from '@hono/zod-validator';
-import { RegisterSchema, LoginSchema } from '@emopet/shared';
+import {
+  EmailVerificationConsumeSchema,
+  EmailVerificationResendSchema,
+  LoginSchema,
+  RegisterSchema,
+} from '@emopet/shared';
 
 import { db } from '../../db/index.js';
 import { authRefreshSessions, users } from '../../db/schema/index.js';
@@ -18,6 +23,14 @@ import {
   rotateRefreshCredential,
   type RefreshSessionRepository,
 } from '../services/auth-sessions.js';
+import {
+  buildEmailVerificationUrl,
+  deliverEmailVerification,
+} from '../services/auth-email-delivery.js';
+import {
+  consumeEmailVerificationToken,
+  issueEmailVerificationToken,
+} from '../services/auth-email-verification.js';
 
 const auth = new Hono<{ Variables: { userId: string } }>();
 
@@ -35,10 +48,27 @@ async function withAuthSessionTransaction<T>(operation: (tx: AuthTransaction) =>
 // Password KDF and JWT signing stay outside these short database transactions.
 async function lockAuthUser(tx: AuthTransaction, userId: string) {
   const [user] = await tx.select({
-    id: users.id, email: users.email, name: users.name, passwordHash: users.passwordHash,
+    id: users.id,
+    email: users.email,
+    name: users.name,
+    passwordHash: users.passwordHash,
+    emailVerifiedAt: users.emailVerifiedAt,
+    emailVerificationRequiredAt: users.emailVerificationRequiredAt,
   }).from(users).where(eq(users.id, userId)).limit(1).for('update');
   return user;
 }
+
+type LockedAuthUser = NonNullable<Awaited<ReturnType<typeof lockAuthUser>>>;
+type LoginSessionResult =
+  | {
+      ok: false;
+      reason: 'invalid_credentials' | 'email_verification_required';
+    }
+  | {
+      ok: true;
+      user: LockedAuthUser;
+      credential: ReturnType<typeof issueRefreshCredential>;
+    };
 
 function readRefreshToken(body: unknown): string | null {
   if (!body || typeof body !== 'object') return null;
@@ -46,29 +76,6 @@ function readRefreshToken(body: unknown): string | null {
   if (typeof value !== 'string') return null;
   const trimmed = value.trim();
   return trimmed.length >= 32 && trimmed.length <= 512 ? trimmed : null;
-}
-
-function hasDatabaseErrorCode(error: unknown, expectedCode: string): boolean {
-  let current: unknown = error;
-  const seen = new Set<object>();
-
-  for (let depth = 0; depth < 8; depth += 1) {
-    if (typeof current !== 'object' || current === null) return false;
-    if (seen.has(current)) return false;
-    seen.add(current);
-
-    if ('code' in current && (current as { code?: unknown }).code === expectedCode) {
-      return true;
-    }
-
-    current = 'cause' in current ? (current as { cause?: unknown }).cause : null;
-  }
-
-  return false;
-}
-
-function isUniqueViolation(error: unknown): boolean {
-  return hasDatabaseErrorCode(error, '23505');
 }
 
 function tokenResponse(accessToken: string, refreshToken: string, refreshTokenExpiresAt: Date) {
@@ -81,44 +88,122 @@ function tokenResponse(accessToken: string, refreshToken: string, refreshTokenEx
   };
 }
 
+const GENERIC_EMAIL_VERIFICATION_ACK = Object.freeze({
+  status: 'accepted' as const,
+  message: 'If this email is eligible, verification instructions will be sent.',
+});
+
+function requiresEmailVerification(user: {
+  emailVerifiedAt: Date | null;
+  emailVerificationRequiredAt: Date | null;
+}): boolean {
+  return user.emailVerificationRequiredAt !== null && user.emailVerifiedAt === null;
+}
+
+async function issueAndDeliverEmailVerification(userId: string, email: string): Promise<void> {
+  const issued = await issueEmailVerificationToken(userId, email);
+  if (!issued.ok) return;
+
+  const verificationUrl = buildEmailVerificationUrl(issued.rawToken);
+  if (!verificationUrl) return;
+
+  // Delivery outcome is intentionally not reflected in the public response.
+  // The raw token never leaves the provider message path.
+  await deliverEmailVerification({ to: email, verificationUrl });
+}
+
+function genericEmailVerificationAcknowledgement(c: Context) {
+  c.header('Cache-Control', 'no-store');
+  return c.json(GENERIC_EMAIL_VERIFICATION_ACK, 202);
+}
+
 auth.post('/register', zValidator('json', RegisterSchema), async (c) => {
   const body = c.req.valid('json');
   const email = normalizeEmail(body.email);
+
+  // Always pay the password-KDF cost before account-state branching.
   const passwordHash = await hashPassword(body.password);
+  const now = new Date();
 
-  try {
-    const result = await db.transaction(async (tx) => {
-      const [user] = await tx
-        .insert(users)
-        .values({
-          email,
-          passwordHash,
-          name: body.name.trim(),
-          gdprConsentAt: null,
-        })
-        .returning({ id: users.id, email: users.email, name: users.name });
-
-      if (!user) throw new Error('Failed to create user');
-
-      const credential = issueRefreshCredential(user.id);
-      await tx.insert(authRefreshSessions).values(credential.session);
-
-      return { user, credential };
+  const [created] = await db
+    .insert(users)
+    .values({
+      email,
+      passwordHash,
+      name: body.name.trim(),
+      gdprConsentAt: null,
+      emailVerificationRequiredAt: now,
+    })
+    .onConflictDoNothing({ target: users.email })
+    .returning({
+      id: users.id,
+      email: users.email,
+      emailVerifiedAt: users.emailVerifiedAt,
     });
 
-    const accessToken = await signAccessToken(result.user.id);
-    c.header('Cache-Control', 'no-store');
-    return c.json({
-      user: result.user,
-      ...tokenResponse(accessToken, result.credential.rawToken, result.credential.session.expiresAt),
-    }, 201);
-  } catch (error) {
-    if (isUniqueViolation(error)) {
-      return c.json({ error: 'Account already exists' }, 409);
-    }
-    throw error;
+  let target = created ?? null;
+  if (!target) {
+    const [existing] = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        emailVerifiedAt: users.emailVerifiedAt,
+      })
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+    target = existing ?? null;
   }
+
+  if (target && !target.emailVerifiedAt) {
+    await issueAndDeliverEmailVerification(target.id, target.email);
+  }
+
+  return genericEmailVerificationAcknowledgement(c);
 });
+
+auth.post(
+  '/verify-email',
+  zValidator('json', EmailVerificationConsumeSchema),
+  async (c) => {
+    const { token } = c.req.valid('json');
+    const verified = await consumeEmailVerificationToken(token);
+
+    c.header('Cache-Control', 'no-store');
+    if (!verified) {
+      return c.json({ error: 'Invalid or expired verification token' }, 400);
+    }
+
+    return c.json({
+      verified: true,
+      next: 'login',
+    });
+  },
+);
+
+auth.post(
+  '/verify-email/resend',
+  zValidator('json', EmailVerificationResendSchema),
+  async (c) => {
+    const email = normalizeEmail(c.req.valid('json').email);
+
+    const [user] = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        emailVerifiedAt: users.emailVerifiedAt,
+      })
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+
+    if (user && !user.emailVerifiedAt) {
+      await issueAndDeliverEmailVerification(user.id, user.email);
+    }
+
+    return genericEmailVerificationAcknowledgement(c);
+  },
+);
 
 auth.post('/login', zValidator('json', LoginSchema), async (c) => {
   const body = c.req.valid('json');
@@ -130,6 +215,8 @@ auth.post('/login', zValidator('json', LoginSchema), async (c) => {
       email: users.email,
       name: users.name,
       passwordHash: users.passwordHash,
+      emailVerifiedAt: users.emailVerifiedAt,
+      emailVerificationRequiredAt: users.emailVerificationRequiredAt,
     })
     .from(users)
     .where(eq(users.email, email))
@@ -143,17 +230,32 @@ auth.post('/login', zValidator('json', LoginSchema), async (c) => {
   const passwordOk = await verifyPassword(body.password, user.passwordHash);
   if (!passwordOk) return c.json({ error: 'Invalid credentials' }, 401);
 
-  const result = await withAuthSessionTransaction(async (tx) => {
+  const result = await withAuthSessionTransaction<LoginSessionResult>(async (tx) => {
     const currentUser = await lockAuthUser(tx, user.id);
     // A credential change/deletion while the KDF ran invalidates the preflight.
-    if (!currentUser || currentUser.passwordHash !== user.passwordHash) return null;
+    if (!currentUser || currentUser.passwordHash !== user.passwordHash) {
+      return { ok: false, reason: 'invalid_credentials' as const };
+    }
+
+    if (requiresEmailVerification(currentUser)) {
+      return { ok: false, reason: 'email_verification_required' as const };
+    }
+
     const credential = issueRefreshCredential(currentUser.id);
     await tx.insert(authRefreshSessions).values(credential.session);
-    return { user: currentUser, credential };
+    return { ok: true, user: currentUser, credential } as const;
   });
-  if (!result) return c.json({ error: 'Invalid credentials' }, 401);
+
+  if (!result.ok) {
+    if (result.reason === 'email_verification_required') {
+      c.header('Cache-Control', 'no-store');
+      return c.json({ error: 'Email verification required' }, 403);
+    }
+    return c.json({ error: 'Invalid credentials' }, 401);
+  }
+
   const { credential } = result;
-  const accessToken = await signAccessToken(user.id);
+  const accessToken = await signAccessToken(result.user.id);
 
   c.header('Cache-Control', 'no-store');
   return c.json({
@@ -186,7 +288,8 @@ auth.post('/refresh', async (c) => {
         return row ?? null;
       },
       async lockUser(userId) {
-        return Boolean(await lockAuthUser(tx, userId));
+        const lockedUser = await lockAuthUser(tx, userId);
+        return Boolean(lockedUser && !requiresEmailVerification(lockedUser));
       },
       async lockFamily(familyId) {
         await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${familyId}, 0))`);

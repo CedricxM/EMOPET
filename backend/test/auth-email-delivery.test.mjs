@@ -1,7 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { deliverEmailVerification } from '../dist/api/services/auth-email-delivery.js';
+import {
+  assertEmailVerificationRuntimeConfiguration,
+  buildEmailVerificationUrl,
+  deliverEmailVerification,
+} from '../dist/api/services/auth-email-delivery.js';
 
 const configuredEnv = {
   RESEND_API_KEY: 'test-only-not-a-real-key',
@@ -136,4 +140,56 @@ test('successful provider response may omit parseable message metadata', async (
     provider: 'resend',
     providerMessageId: null,
   });
+});
+
+
+test('verification URL builder appends token without accepting credential-bearing bases', () => {
+  const env = {
+    AUTH_EMAIL_VERIFICATION_URL: 'https://app.example.test/verify-email?source=auth',
+  };
+  const url = buildEmailVerificationUrl('emopet_ev_test-token', env);
+  assert.ok(url);
+  const parsed = new URL(url);
+  assert.equal(parsed.origin + parsed.pathname, 'https://app.example.test/verify-email');
+  assert.equal(parsed.searchParams.get('source'), 'auth');
+  assert.equal(parsed.searchParams.has('token'), false);
+  assert.equal(
+    new URLSearchParams(parsed.hash.slice(1)).get('token'),
+    'emopet_ev_test-token',
+  );
+
+  assert.equal(
+    buildEmailVerificationUrl('token', {
+      AUTH_EMAIL_VERIFICATION_URL: 'https://user:pass@app.example.test/verify-email',
+    }),
+    null,
+  );
+});
+
+test('production runtime requires Resend and an HTTPS verification URL', () => {
+  assert.throws(
+    () => assertEmailVerificationRuntimeConfiguration({ NODE_ENV: 'production' }),
+    /RESEND_API_KEY.*RESEND_FROM.*AUTH_EMAIL_VERIFICATION_URL_HTTPS/,
+  );
+
+  assert.throws(
+    () => assertEmailVerificationRuntimeConfiguration({
+      NODE_ENV: 'production',
+      RESEND_API_KEY: 'test-key',
+      RESEND_FROM: 'EMOPET <verify@example.test>',
+      AUTH_EMAIL_VERIFICATION_URL: 'http://app.example.test/verify-email',
+    }),
+    /AUTH_EMAIL_VERIFICATION_URL_HTTPS/,
+  );
+
+  assert.doesNotThrow(() => assertEmailVerificationRuntimeConfiguration({
+    NODE_ENV: 'production',
+    RESEND_API_KEY: 'test-key',
+    RESEND_FROM: 'EMOPET <verify@example.test>',
+    AUTH_EMAIL_VERIFICATION_URL: 'https://app.example.test/verify-email',
+  }));
+
+  assert.doesNotThrow(() => assertEmailVerificationRuntimeConfiguration({
+    NODE_ENV: 'development',
+  }));
 });

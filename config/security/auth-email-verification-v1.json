@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-auth-email-verification-v1",
-  "status": "CORE_AUTHORITY_SELECTED / RUNTIME_REGISTRATION_INTEGRATION_OPEN / PROVIDER_DELIVERY_OPEN",
+  "status": "RUNTIME_INTEGRATION_CANDIDATE / NEW_REGISTRATION_GATE_ACTIVE / LEGACY_ROLLOUT_OPEN",
   "issue": 738,
   "parentIssue": 214,
   "decisions": {
@@ -12,21 +12,29 @@
     "newTokenSupersedesPriorLiveToken": true,
     "verificationIssuesSession": false,
     "postVerificationSessionPolicy": "REQUIRE_NORMAL_LOGIN",
-    "genericRegistrationAcknowledgement": "REQUIRED_BEFORE_RUNTIME_INTEGRATION",
-    "normalSessionBeforeVerification": "FORBIDDEN"
+    "genericRegistrationAcknowledgement": "202_ACCEPTED_CONSTANT_BODY",
+    "normalSessionBeforeVerification": "FORBIDDEN",
+    "newRegistrationVerificationRequired": true,
+    "legacyAccountDisposition": "EMAIL_VERIFICATION_REQUIRED_AT_NULL / LOGIN_PRESERVED_PENDING_EXPLICIT_ROLLOUT",
+    "verificationTokenUrlTransport": "FRAGMENT_ONLY",
+    "loginForNewUnverifiedAccount": "FORBIDDEN"
   },
   "delivery": {
-    "provider": "OPEN",
+    "provider": "RESEND_ADAPTER_IMPLEMENTED / PRODUCTION_CONFIGURATION_AND_DOMAIN_EVIDENCE_EXTERNAL",
     "serverSideOnly": true,
     "rawTokenMayAppearInProviderMessageBody": true,
     "rawTokenMayBePersisted": false,
-    "rawTokenMayBeLogged": false
+    "rawTokenMayBeLogged": false,
+    "verificationUrlEnv": "AUTH_EMAIL_VERIFICATION_URL",
+    "productionHttpsRequired": true
   },
   "runtime": {
     "durableTokenAuthorityImplemented": true,
-    "registrationFlowIntegrated": false,
-    "verificationRouteIntegrated": false,
-    "resendRouteIntegrated": false,
-    "deliveryProviderIntegrated": false
+    "registrationFlowIntegrated": true,
+    "verificationRouteIntegrated": true,
+    "resendRouteIntegrated": true,
+    "deliveryProviderIntegrated": true,
+    "newAccountLoginGateIntegrated": true,
+    "legacyAccountRolloutIntegrated": false
   }
 }

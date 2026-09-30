@@ -434,6 +434,14 @@ export const LoginSchema = z.object({
   password: z.string().min(1),
 });
 
+export const EmailVerificationConsumeSchema = z.object({
+  token: z.string().regex(/^emopet_ev_[A-Za-z0-9_-]{43}$/),
+}).strict();
+
+export const EmailVerificationResendSchema = z.object({
+  email: z.string().trim().email(),
+}).strict();
+
 // ── Presence / Vet Export ───────────────────────────────────────
 
 export const PresenceEventCreateSchema = z.object({
