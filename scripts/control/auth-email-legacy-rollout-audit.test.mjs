@@ -12,7 +12,9 @@ const authority = JSON.parse(authoritySource);
 
 test('#760 legacy rollout authority is census-only and cannot authorize mutation', () => {
   assert.equal(authority.issue, 760);
-  assert.equal(authority.authority.databaseMode, 'SELECT_ONLY');
+  assert.equal(authority.authority.repositoryOperationMode, 'SELECT_ONLY');
+  assert.equal(authority.authority.databasePrincipalReadOnlyEvidence, 'EXTERNAL_UNVERIFIED');
+  assert.equal(authority.authority.operatorShouldUseReadOnlyCredentialWhenAvailable, true);
   assert.equal(authority.authority.automaticBackfill, false);
   assert.equal(authority.authority.automaticReverification, false);
   assert.equal(authority.authority.legacyMeansVerified, false);
