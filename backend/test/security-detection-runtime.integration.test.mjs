@@ -215,6 +215,26 @@ test('explicit scan window controls source selection without hidden clock reads'
   assert.deepEqual(result.detections, []);
 });
 
+test('adjacent scan windows do not double-count an event exactly at windowEnd', {
+  skip: !enabled,
+}, async () => {
+  await cleanup();
+  await seedDenials(3);
+
+  const result = await runSecurityDetectionScan(request({
+    windowStart: '2026-09-30T10:00:00.000Z',
+    windowEnd: '2026-09-30T10:00:40.000Z',
+  }));
+
+  assert.equal(result.status, 'EVALUATED');
+  if (result.status !== 'EVALUATED') return;
+
+  // Events at :00 and :20 belong to this half-open window.
+  // The event exactly at :40 belongs to the next window.
+  assert.equal(result.eventCount, 2);
+  assert.deepEqual(result.detections, []);
+});
+
 test('audit source outage is visible and never becomes an empty successful evaluation', {
   skip: !enabled,
 }, async () => {
