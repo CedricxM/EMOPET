@@ -63,7 +63,11 @@ test('reviewed authority without deployment GO stays disabled', () => {
   assert.equal(configuredWorldSpike(env, blocks, reports, access, social, GO_AUTHORITY), null);
 });
 
-test('production enters release mode only when both gates are GO', () => {
+test('production enters release mode only when both gates are GO', t => {
+  const original = globalThis.WebSocket;
+  t.after(() => { globalThis.WebSocket = original; });
+  globalThis.WebSocket = class {};
+
   const env = {
     NODE_ENV: 'production',
     EMOPET_WORLD_RELEASE_GATE: 'GO',
