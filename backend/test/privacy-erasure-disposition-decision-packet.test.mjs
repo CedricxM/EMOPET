@@ -21,20 +21,23 @@ const approvedDetaches = new Set([
   'users.id|DIRECT_FK|communities|created_by',
   'users.id|DIRECT_FK|community_events|created_by',
   'users.id|DIRECT_FK|community_reports|reporter_user_id',
+  'users.id|DIRECT_FK|community_reports|subject_user_id',
 ]);
+// D1-D4 were approved in #446; D5 (reported person in World reports) on #594.
+const approvalRefs = { 'users.id|DIRECT_FK|community_reports|subject_user_id': '#594 (issuecomment-5857198114)' };
 
-test('decision packet records four approved detach rows while complete erasure remains fail closed', () => {
+test('decision packet records five approved detach rows while complete erasure remains fail closed', () => {
   assert.equal(
     packet.schemaVersion,
     'emopet-erasure-disposition-decision-packet-v1',
   );
   assert.equal(
     packet.status,
-    'FOUR_PRODUCT_PRIVACY_DISPOSITIONS_PROMOTED_REMAINDER_DECISION_SUPPORT',
+    'FIVE_PRODUCT_PRIVACY_DISPOSITIONS_PROMOTED_REMAINDER_DECISION_SUPPORT',
   );
   assert.equal(packet.claimsExecutableErasure, false);
   assert.equal(packet.claimsCompleteErasure, false);
-  assert.equal(packet.summary.matrixRowsPromoted, 4);
+  assert.equal(packet.summary.matrixRowsPromoted, 5);
 
   for (const row of packet.relations) {
     if (approvedDetaches.has(relationKey(row))) {
@@ -42,7 +45,7 @@ test('decision packet records four approved detach rows while complete erasure r
       assert.equal(row.disposition, 'DETACH');
       assert.equal(row.candidateDisposition, 'DETACH');
       assert.equal(row.executionStatus, 'IMPLEMENTED');
-      assert.equal(row.approvalRef, '#446');
+      assert.equal(row.approvalRef, approvalRefs[relationKey(row)] ?? '#446');
     } else {
       assert.equal(row.promotionAuthorized, false);
     }
@@ -77,11 +80,11 @@ test('packet covers every canonical matrix relation exactly once and mirrors pro
 
 test('decision grouping counts remain explicit and exhaustive', () => {
   assert.deepEqual(packet.summary, {
-    relationalTotal: 45,
-    policyAlignedDeleteCandidates: 24,
-    policyConditionalExecutionRequired: 18,
+    relationalTotal: 52,
+    policyAlignedDeleteCandidates: 30,
+    policyConditionalExecutionRequired: 19,
     legalAuthorityBlocked: 3,
-    matrixRowsPromoted: 4,
+    matrixRowsPromoted: 5,
   });
 
   const counts = Object.fromEntries(
@@ -96,8 +99,8 @@ test('decision grouping counts remain explicit and exhaustive', () => {
   );
 
   assert.deepEqual(counts, {
-    POLICY_ALIGNED_DELETE_CANDIDATE: 24,
-    POLICY_CONDITIONAL_EXECUTION_REQUIRED: 18,
+    POLICY_ALIGNED_DELETE_CANDIDATE: 30,
+    POLICY_CONDITIONAL_EXECUTION_REQUIRED: 19,
     LEGAL_AUTHORITY_BLOCKED: 3,
   });
 });
@@ -123,10 +126,20 @@ test('policy-aligned candidates are DELETE-only suggestions backed by current pr
     'dogs.id|DIRECT_FK|health_entries|dog_id',
     'dogs.id|DIRECT_FK|copresence_events|dog_a_id',
     'dogs.id|DIRECT_FK|copresence_events|dog_b_id',
+    'users.id|DIRECT_FK|user_blocks|blocker_user_id',
+    'users.id|DIRECT_FK|user_blocks|blocked_user_id',
   ]);
 
   const keys = new Set(aligned.map(relationKey));
   for (const key of required) assert.ok(keys.has(key), key);
+
+  // Founder decision #594: blocks are deleted on erasure of either account, never cascaded.
+  for (const row of aligned.filter((r) => r.table === 'user_blocks')) {
+    assert.deepEqual(row.policyRefs, ['account_auth']);
+    assert.equal(row.decisionRef, '#594 (issuecomment-5856975549)');
+    assert.equal(row.disposition, 'TO_CONFIRM');
+    assert.equal(row.executionStatus, 'NOT_IMPLEMENTED');
+  }
 });
 
 test('conditional rows distinguish approved D1-D4 detach from still-unresolved execution semantics', () => {

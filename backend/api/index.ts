@@ -11,6 +11,9 @@ import { featureProgress } from './routes/feature-progress.js';
 import { health } from './routes/health.js';
 import { directory } from './routes/directory.js';
 import { dataExport } from './routes/data-export.js';
+import { blocks } from './routes/blocks.js';
+import { connections } from './routes/connections.js';
+import { configuredWorldSpike } from './routes/world-spike.js';
 import { authMiddleware } from './middleware/auth.js';
 import { rateLimitMiddleware } from './middleware/rate-limit.js';
 import { assertRuntimeDatabaseAuthority } from '../db/index.js';
@@ -55,6 +58,10 @@ app.route('/api/feature-progress', featureProgress);
 app.route('/api/health', health);
 app.route('/api/directory', directory);
 app.route('/api/data-export', dataExport);
+app.route('/api/blocks', blocks);
+app.route('/api/connections', connections);
+const worldSpike = configuredWorldSpike();
+if (worldSpike) app.route('/api/world-spike', worldSpike);
 
 // ── Start Server ────────────────────────────────────────────────
 
