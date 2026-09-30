@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-const { evaluateSecurityAnomalies } = await import('../dist/api/security/security-anomaly-detection.js');
+const {
+  evaluateSecurityAnomalies,
+  securityDetectionContextWindowSeconds,
+} = await import('../dist/api/security/security-anomaly-detection.js');
 
 const ADMIN_ID = '11111111-1111-4111-8111-111111111111';
 const SUPPORT_ID = '22222222-2222-4222-8222-222222222222';
@@ -65,6 +68,25 @@ test('invalid or incomplete detection policy fails closed', () => {
     status: 'INVALID_POLICY',
     detections: [],
   });
+});
+
+test('late-event context radius is derived only from enabled explicit policy windows', () => {
+  const explicit = policy();
+  explicit.repeatedDenials.windowSeconds = 45;
+  explicit.rapidMultiTargetAccess.windowSeconds = 120;
+
+  assert.equal(securityDetectionContextWindowSeconds(explicit), 120);
+
+  explicit.rapidMultiTargetAccess.enabled = false;
+  assert.equal(securityDetectionContextWindowSeconds(explicit), 45);
+
+  explicit.repeatedDenials.enabled = false;
+  assert.equal(securityDetectionContextWindowSeconds(explicit), 0);
+
+  assert.equal(securityDetectionContextWindowSeconds({
+    ...explicit,
+    hiddenLateLookback: 300,
+  }), null);
 });
 
 test('repeated denied privileged attempts are detected only inside the supplied window', () => {

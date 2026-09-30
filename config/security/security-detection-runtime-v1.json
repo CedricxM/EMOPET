@@ -1,7 +1,7 @@
 {
   "schemaVersion": "emopet-security-detection-runtime-v1",
   "issue": 525,
-  "status": "DB_SOURCE + ONE_SHOT + CURSOR_BACKED_SCHEDULER_TICK_CANDIDATE / CONTINUOUS_DEPLOYMENT_OPEN",
+  "status": "DB_SOURCE + ONE_SHOT + CURSOR_BACKED_SCHEDULER + LATE_EVENT_RECEIPT_REPLAY_CANDIDATE / CONTINUOUS_DEPLOYMENT_OPEN",
   "eventSource": "security_audit_events",
   "detector": "backend/api/security/security-anomaly-detection.ts",
   "runtimeService": "backend/api/security/security-detection-runtime.ts",
@@ -28,7 +28,7 @@
     "providerMonitoring": "NOT_SELECTED",
     "alertDelivery": "OPEN_UNDER_526",
     "responseSla": "OPEN",
-    "lateAuditEventArrival": "OPEN / REQUIRES INGESTION-LATENESS OR COMMIT-WATERMARK AUTHORITY BEFORE ZERO-LOSS CLAIM"
+    "lateAuditEventArrival": "REPOSITORY_RECEIPT_REPLAY_IMPLEMENTED / PRODUCTION_DEPLOYMENT+ALERT_DEDUPE_OPEN"
   },
   "scheduler": {
     "issue": 769,
@@ -41,6 +41,20 @@
     "databaseClockWindowEnd": true,
     "initialCursorRequired": true,
     "httpRoute": null,
-    "lateArrivalBoundary": "OPEN / CURSOR COVERS SCHEDULER WINDOWS, NOT UNBOUNDED LATE-COMMIT OCCURRED_AT EVENTS"
+    "lateArrivalBoundary": "UNRECEIPTED_CANONICAL_EVENT_DISCOVERY / MONITORING_SCOPE_BOUNDED / POLICY_DERIVED_CONTEXT"
+  },
+  "lateEventReplay": {
+    "issue": 776,
+    "receiptTable": "security_detection_evaluated_events",
+    "receiptKey": "canonical security_audit_events.id only",
+    "monitoringScope": "security_detection_scheduler_state.monitoring_started_at",
+    "existingCursorBackfill": "monitoring_started_at = prior last_successful_window_end / NO RETROACTIVE COVERAGE CLAIM",
+    "discovery": "UNRECEIPTED_EVENTS_WITH_OCCURRED_AT_IN_MONITORED_SCOPE_BEFORE_CURRENT_WINDOW",
+    "context": "MAX_ENABLED_EXPLICIT_POLICY_WINDOW / NO HIDDEN_LOOKBACK_CONSTANT",
+    "markRule": "MARK_TARGET_EVENT_IDS_ONLY_AFTER_SUCCESSFUL_NORMAL+LATE_EVALUATION",
+    "failureRule": "NO_RECEIPT_AND_NO_CURSOR_ADVANCE",
+    "alertDeliveryAuthority": false,
+    "detectionHistoryAuthority": false,
+    "httpRoute": null
   }
 }

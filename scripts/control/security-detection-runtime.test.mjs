@@ -9,6 +9,8 @@ const [
   schedulerSource,
   schedulerWorkerSource,
   schedulerMigrationSource,
+  lateReplayMigrationSource,
+  detectorSource,
 ] = await Promise.all([
   readFile(new URL('../../config/security/security-detection-runtime-v1.json', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/api/security/security-detection-runtime.ts', import.meta.url), 'utf8'),
@@ -16,6 +18,8 @@ const [
   readFile(new URL('../../backend/api/security/security-detection-scheduler.ts', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/api/workers/security-detection-scheduler-tick.ts', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/db/migrations/0037_security_detection_scheduler_state.sql', import.meta.url), 'utf8'),
+  readFile(new URL('../../backend/db/migrations/0038_security_detection_evaluated_events.sql', import.meta.url), 'utf8'),
+  readFile(new URL('../../backend/api/security/security-anomaly-detection.ts', import.meta.url), 'utf8'),
 ]);
 
 const authority = JSON.parse(authoritySource);
@@ -35,11 +39,20 @@ test('#525 runtime has canonical DB source without claiming continuous productio
   assert.equal(authority.scheduler.cursorAdvance, 'EVALUATED_ONLY');
   assert.equal(authority.scheduler.databaseClockWindowEnd, true);
   assert.equal(authority.scheduler.httpRoute, null);
-  assert.match(authority.scheduler.lateArrivalBoundary, /OPEN/);
-  assert.match(authority.scheduler.lateArrivalBoundary, /NOT UNBOUNDED LATE-COMMIT/);
+  assert.match(authority.scheduler.lateArrivalBoundary, /UNRECEIPTED_CANONICAL_EVENT_DISCOVERY/);
+  assert.match(authority.scheduler.lateArrivalBoundary, /POLICY_DERIVED_CONTEXT/);
 
   assert.match(authority.operationalGaps.continuousScheduler, /DEPLOYMENT_CADENCE_OPEN/);
-  assert.match(authority.operationalGaps.lateAuditEventArrival, /ZERO-LOSS CLAIM/);
+  assert.match(authority.operationalGaps.lateAuditEventArrival, /REPOSITORY_RECEIPT_REPLAY_IMPLEMENTED/);
+  assert.match(authority.operationalGaps.lateAuditEventArrival, /ALERT_DEDUPE_OPEN/);
+
+  assert.equal(authority.lateEventReplay.issue, 776);
+  assert.equal(authority.lateEventReplay.receiptTable, 'security_detection_evaluated_events');
+  assert.match(authority.lateEventReplay.context, /EXPLICIT_POLICY_WINDOW/);
+  assert.match(authority.lateEventReplay.markRule, /AFTER_SUCCESSFUL_NORMAL\+LATE_EVALUATION/);
+  assert.equal(authority.lateEventReplay.alertDeliveryAuthority, false);
+  assert.equal(authority.lateEventReplay.detectionHistoryAuthority, false);
+  assert.equal(authority.lateEventReplay.httpRoute, null);
   assert.equal(authority.operationalGaps.durableDetectionHistory, 'NOT_IMPLEMENTED');
   assert.equal(authority.operationalGaps.productionPolicyApproval, 'OPEN');
   assert.equal(authority.operationalGaps.alertDelivery, 'OPEN_UNDER_526');
@@ -90,6 +103,34 @@ test('#769 scheduler serializes ticks and advances only a minimal durable cursor
 
   assert.doesNotMatch(schedulerSource, /app\.(get|post|put|patch|delete)\(/);
   assert.doesNotMatch(schedulerWorkerSource, /app\.(get|post|put|patch|delete)\(/);
+});
+
+test('#776 late-event replay uses receipts and policy-derived context without creating alert authority', () => {
+  assert.match(lateReplayMigrationSource, /ADD COLUMN monitoring_started_at timestamptz/);
+  assert.match(lateReplayMigrationSource, /CREATE TABLE security_detection_evaluated_events/);
+  assert.match(lateReplayMigrationSource, /audit_event_id uuid PRIMARY KEY/);
+  assert.match(lateReplayMigrationSource, /REFERENCES security_audit_events\(id\)/);
+  assert.doesNotMatch(
+    lateReplayMigrationSource,
+    /actor_subject|actor_role|target_ref|email|token|payload|policy_json|alert_body/i,
+  );
+
+  assert.match(detectorSource, /securityDetectionContextWindowSeconds/);
+  assert.match(schedulerSource, /securityDetectionContextWindowSeconds\(request\.policy\)/);
+  assert.match(schedulerSource, /isNull\(securityDetectionEvaluatedEvents\.auditEventId\)/);
+  assert.match(schedulerSource, /gte\(securityAuditEvents\.occurredAt, monitoringStartedAt\)/);
+  assert.match(schedulerSource, /lateRows\.map\(\(row\) => row\.id\)/);
+  assert.match(schedulerSource, /onConflictDoNothing/);
+
+  // Context rows may include already-evaluated neighbors, but only the late
+  // target ids themselves become newly receipted by the replay branch.
+  assert.doesNotMatch(schedulerSource, /lateScan\.evaluatedEventIds/);
+
+  // No hidden fixed lateness/lookback interval belongs in scheduler source.
+  assert.doesNotMatch(schedulerSource, /lateLookback|lookbackSeconds|lateTolerance/i);
+
+  assert.doesNotMatch(schedulerSource, /app\.(get|post|put|patch|delete)\(/);
+  assert.equal(authority.lateEventReplay.alertDeliveryAuthority, false);
 });
 
 test('#769 worker has no hidden schedule or production detector defaults', () => {

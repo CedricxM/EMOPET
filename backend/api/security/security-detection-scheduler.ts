@@ -1,7 +1,12 @@
-import { eq, sql } from 'drizzle-orm';
+import { and, asc, eq, gte, isNull, lt, sql } from 'drizzle-orm';
 
 import { db } from '../../db/index.js';
-import { securityDetectionSchedulerState } from '../../db/schema/index.js';
+import {
+  securityAuditEvents,
+  securityDetectionEvaluatedEvents,
+  securityDetectionSchedulerState,
+} from '../../db/schema/index.js';
+import { securityDetectionContextWindowSeconds } from './security-anomaly-detection.js';
 import {
   SECURITY_DETECTION_SCAN_HARD_CAP,
   runSecurityDetectionScan,
@@ -44,6 +49,20 @@ export type SecurityDetectionSchedulerTickResult =
       scan: SecurityDetectionRuntimeSummary;
     }
   | {
+      status: 'LATE_EVENT_LIMIT_EXCEEDED';
+      cursorAdvanced: false;
+      windowStart: string;
+      windowEnd: string;
+      maxEvents: number;
+    }
+  | {
+      status: 'LATE_SCAN_FAILED';
+      cursorAdvanced: false;
+      windowStart: string;
+      windowEnd: string;
+      scan: SecurityDetectionRuntimeSummary;
+    }
+  | {
       status: 'EVALUATED';
       cursorAdvanced: true;
       windowStart: string;
@@ -51,6 +70,8 @@ export type SecurityDetectionSchedulerTickResult =
       eventCount: number;
       detectionCount: number;
       detectionTypes: SecurityDetectionRuntimeSummary['detectionTypes'];
+      lateEventCount: number;
+      lateReevaluationDetectionCount: number;
       policyRevision: string;
     }
   | { status: 'SCHEDULER_UNAVAILABLE'; cursorAdvanced: false; retryable: true };
@@ -159,6 +180,8 @@ export async function runSecurityDetectionSchedulerTick(
 
       const [cursor] = await tx
         .select({
+          monitoringStartedAt:
+            securityDetectionSchedulerState.monitoringStartedAt,
           lastSuccessfulWindowEnd:
             securityDetectionSchedulerState.lastSuccessfulWindowEnd,
         })
@@ -174,6 +197,9 @@ export async function runSecurityDetectionSchedulerTick(
       if (!windowStart) {
         return { status: 'INITIAL_CURSOR_REQUIRED', cursorAdvanced: false };
       }
+
+      const monitoringStartedAt = cursor?.monitoringStartedAt
+        ?? new Date(windowStart);
 
       const windowEnd = databaseNow.toISOString();
       if (Date.parse(windowEnd) <= Date.parse(windowStart)) {
@@ -205,10 +231,129 @@ export async function runSecurityDetectionSchedulerTick(
         };
       }
 
+      const lateRows = await tx
+        .select({
+          id: securityAuditEvents.id,
+          occurredAt: securityAuditEvents.occurredAt,
+        })
+        .from(securityAuditEvents)
+        .leftJoin(
+          securityDetectionEvaluatedEvents,
+          eq(
+            securityDetectionEvaluatedEvents.auditEventId,
+            securityAuditEvents.id,
+          ),
+        )
+        .where(and(
+          isNull(securityDetectionEvaluatedEvents.auditEventId),
+          gte(securityAuditEvents.occurredAt, monitoringStartedAt),
+          lt(securityAuditEvents.occurredAt, new Date(windowStart)),
+        ))
+        .orderBy(
+          asc(securityAuditEvents.occurredAt),
+          asc(securityAuditEvents.id),
+        )
+        .limit(request.maxEvents + 1);
+
+      if (lateRows.length > request.maxEvents) {
+        return {
+          status: 'LATE_EVENT_LIMIT_EXCEEDED',
+          cursorAdvanced: false,
+          windowStart,
+          windowEnd,
+          maxEvents: request.maxEvents,
+        };
+      }
+
+      let lateReevaluationDetectionCount = 0;
+
+      if (lateRows.length > 0) {
+        const contextWindowSeconds =
+          securityDetectionContextWindowSeconds(request.policy);
+        if (contextWindowSeconds === null) {
+          return {
+            status: 'LATE_SCAN_FAILED',
+            cursorAdvanced: false,
+            windowStart,
+            windowEnd,
+            scan: {
+              status: 'INVALID_POLICY',
+              detectionCount: 0,
+              detectionTypes: {
+                repeated_privileged_denials: 0,
+                rapid_multi_target_access: 0,
+                machine_privileged_authority_attempt: 0,
+              },
+            },
+          };
+        }
+
+        const firstLate = lateRows[0];
+        const lastLate = lateRows[lateRows.length - 1];
+        if (!firstLate || !lastLate) {
+          return {
+            status: 'SCHEDULER_UNAVAILABLE',
+            cursorAdvanced: false,
+            retryable: true,
+          };
+        }
+
+        const contextWindowMs = contextWindowSeconds * 1000;
+        const contextStartMs = Math.max(
+          monitoringStartedAt.getTime(),
+          firstLate.occurredAt.getTime() - contextWindowMs,
+        );
+        const contextEndMs = Math.min(
+          databaseNow.getTime(),
+          lastLate.occurredAt.getTime() + contextWindowMs + 1,
+        );
+
+        const lateScan = await runSecurityDetectionScan({
+          schemaVersion: 'security-detection-runtime-v1',
+          policyRevision: request.policyRevision,
+          windowStart: new Date(contextStartMs).toISOString(),
+          windowEnd: new Date(contextEndMs).toISOString(),
+          maxEvents: request.maxEvents,
+          policy: request.policy,
+        });
+        const lateSummary = summarizeSecurityDetectionRuntimeResult(lateScan);
+
+        if (lateScan.status !== 'EVALUATED') {
+          return {
+            status: 'LATE_SCAN_FAILED',
+            cursorAdvanced: false,
+            windowStart,
+            windowEnd,
+            scan: lateSummary,
+          };
+        }
+
+        lateReevaluationDetectionCount = lateSummary.detectionCount;
+      }
+
+      const evaluatedIds = [
+        ...scan.evaluatedEventIds,
+        ...lateRows.map((row) => row.id),
+      ];
+      const uniqueEvaluatedIds = [...new Set(evaluatedIds)];
+
+      if (uniqueEvaluatedIds.length > 0) {
+        await tx
+          .insert(securityDetectionEvaluatedEvents)
+          .values(uniqueEvaluatedIds.map((auditEventId) => ({
+            auditEventId,
+            evaluatedAt: databaseNow,
+          })))
+          .onConflictDoNothing({
+            target: securityDetectionEvaluatedEvents.auditEventId,
+          });
+      }
+
       await tx
         .insert(securityDetectionSchedulerState)
         .values({
           streamId: SECURITY_DETECTION_STREAM_ID,
+          monitoringStartedAt,
           lastSuccessfulWindowEnd: databaseNow,
           updatedAt: databaseNow,
         })
@@ -228,6 +373,8 @@ export async function runSecurityDetectionSchedulerTick(
         eventCount: scan.eventCount,
         detectionCount: summary.detectionCount,
         detectionTypes: summary.detectionTypes,
+        lateEventCount: lateRows.length,
+        lateReevaluationDetectionCount,
         policyRevision: scan.policyRevision,
       };
     });

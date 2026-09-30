@@ -76,6 +76,7 @@ export type SecurityDetectionRuntimeResult =
       windowStart: string;
       windowEnd: string;
       eventCount: number;
+      evaluatedEventIds: readonly string[];
       detections: readonly SecurityDetection[];
     };
 
@@ -241,6 +242,7 @@ export async function runSecurityDetectionScan(
   }
 
   const events: SecurityAuditEvent[] = [];
+  const evaluatedEventIds: string[] = [];
   const detectorInputs: unknown[] = [];
 
   for (const row of rows) {
@@ -254,6 +256,7 @@ export async function runSecurityDetectionScan(
     }
 
     events.push(event);
+    evaluatedEventIds.push(row.id);
 
     // parseSecurityAuditEvent() returns the canonical stored/domain object with
     // schemaVersion attached. The existing anomaly evaluator deliberately owns
@@ -283,6 +286,7 @@ export async function runSecurityDetectionScan(
     windowStart: request.windowStart,
     windowEnd: request.windowEnd,
     eventCount: events.length,
+    evaluatedEventIds,
     detections: evaluated.detections,
   };
 }
