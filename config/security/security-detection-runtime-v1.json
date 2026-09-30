@@ -41,6 +41,8 @@
     "databaseClockWindowEnd": true,
     "initialCursorRequired": true,
     "httpRoute": null,
-    "lateArrivalBoundary": "OPEN / CURSOR COVERS SCHEDULER WINDOWS, NOT UNBOUNDED LATE-COMMIT OCCURRED_AT EVENTS"
+    "lateArrivalBoundary": "OPEN / CURSOR COVERS SCHEDULER WINDOWS, NOT UNBOUNDED LATE-COMMIT OCCURRED_AT EVENTS",
+    "monitoringStartPersisted": true,
+    "monitoringStartAuthority": "INITIAL_WINDOW_START_ON_FIRST_SUCCESS / IMMUTABLE_THEREAFTER"
   }
 }
