@@ -207,6 +207,8 @@ jobs:
         run: node --test scripts/control/auth-email-verification-authority.test.mjs
       - name: Enforce AUTH legacy verification census boundary (#760)
         run: node --test scripts/control/auth-email-legacy-rollout-audit.test.mjs
+      - name: Enforce shared AUTH rate-limit boundary (#767)
+        run: node --test scripts/control/auth-rate-limit-shared.test.mjs
       - name: Enforce Device Trust durable public credential boundary (#661)
         run: node --test scripts/control/device-credential-repository.test.mjs
       - name: Enforce Device Trust atomic credential activation gate (#720)

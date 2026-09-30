@@ -16,8 +16,10 @@ import { connections } from './routes/connections.js';
 import { configuredWorldSpike } from './routes/world-spike.js';
 import { authMiddleware } from './middleware/auth.js';
 import { rateLimitMiddleware } from './middleware/rate-limit.js';
+import { sharedAuthRateLimitMiddleware } from './middleware/shared-auth-rate-limit.js';
 import { assertRuntimeDatabaseAuthority } from '../db/index.js';
 import { assertEmailVerificationRuntimeConfiguration } from './services/auth-email-delivery.js';
+import { assertAuthRateLimitRuntimeConfiguration } from './security/auth-rate-limit-store.js';
 
 const app = new Hono();
 
@@ -37,7 +39,7 @@ app.use('*', cors({
   origin: resolveCorsOrigin(),
   allowMethods: ['GET', 'POST', 'PATCH', 'DELETE'],
 }));
-app.use('/api/auth/*', rateLimitMiddleware({ limit: 20, windowMs: 60_000, keyPrefix: 'auth' }));
+app.use('/api/auth/*', sharedAuthRateLimitMiddleware({ limit: 20, windowMs: 60_000, keyPrefix: 'auth' }));
 app.use('/api/*', rateLimitMiddleware({ limit: 240, windowMs: 60_000, keyPrefix: 'api' }));
 
 // ── Health Check ────────────────────────────────────────────────
@@ -67,6 +69,7 @@ if (worldSpike) app.route('/api/world-spike', worldSpike);
 
 if (process.env['NODE_ENV'] === 'production') {
   assertEmailVerificationRuntimeConfiguration();
+  assertAuthRateLimitRuntimeConfiguration();
   await assertRuntimeDatabaseAuthority();
 }
 

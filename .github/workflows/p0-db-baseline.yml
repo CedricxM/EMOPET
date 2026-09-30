@@ -277,6 +277,15 @@ jobs:
           NODE_ENV: test
         run: node --test test/security-detection-runtime.integration.test.mjs
 
+      - name: AUTH-RATE-LIMIT-01 shared auth limiter on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          AUTH_RATE_LIMIT_DB_INTEGRATION: '1'
+          AUTH_RATE_LIMIT_HMAC_SECRET: test-only-auth-rate-limit-hmac-secret-767-do-not-use-in-production
+          NODE_ENV: test
+        run: node --test test/auth-rate-limit-store.integration.test.mjs
+
       - name: AUTH-EMAIL-VERIFY-01 token authority on historical migrations
         working-directory: backend
         env:
@@ -462,6 +471,15 @@ jobs:
           SECURITY_DETECTION_RUNTIME_DB_INTEGRATION: '1'
           NODE_ENV: test
         run: node --test test/security-detection-runtime.integration.test.mjs
+
+      - name: AUTH-RATE-LIMIT-01 shared auth limiter on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          AUTH_RATE_LIMIT_DB_INTEGRATION: '1'
+          AUTH_RATE_LIMIT_HMAC_SECRET: test-only-auth-rate-limit-hmac-secret-767-do-not-use-in-production
+          NODE_ENV: test
+        run: node --test test/auth-rate-limit-store.integration.test.mjs
 
       - name: AUTH-EMAIL-VERIFY-01 token authority on generated baseline
         working-directory: backend
