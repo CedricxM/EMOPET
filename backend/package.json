@@ -12,7 +12,8 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "clean": "rm -rf dist",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "auth-email:dispatch": "node dist/api/workers/auth-email-verification-delivery.js"
   },
   "dependencies": {
     "@emopet/eli-engine": "workspace:*",
