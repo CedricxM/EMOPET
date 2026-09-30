@@ -1,9 +1,8 @@
 # EMOPET World Unity spike
 
-> **SPIKE / NOT PRODUCTION AUTHORITY / ISSUE #567**
+> **INTEGRATED ON `main` / EDITOR VALIDATION PENDING / ISSUE #567**
 >
-> This project exists to exercise the approved EMOPET World backend boundary.
-> It is not a production runtime, and it does not authorize World release or merge.
+> The World Unity client is now integrated in the repository. Production release remains gated by real Unity Editor/device evidence and the separate reviewed World production authority.
 
 ## Editor
 
@@ -46,13 +45,13 @@ There is deliberately no production scene yet.
 
 ## Validation
 
-When Unity 6000.3.25f1 is available, run EditMode tests from the Test Runner or batch mode.
-Until an Editor run exists, repository review is **static only**.
+Repository integration is complete, but Editor evidence is still required before any production client claim.
 
-Before any merge:
-1. open the project in the pinned Editor;
-2. let Unity generate/import required metadata;
-3. commit generated `.meta` files after review;
-4. run EditMode tests;
+Next validation steps:
+1. open the project in Unity 6000.3.25f1;
+2. let Unity generate/import required metadata and package lock files;
+3. review generated `.meta` files and package resolution output;
+4. run all EditMode tests;
 5. confirm zero Console compile errors;
-6. keep the PR draft until explicit approval.
+6. record the exact Editor version and test results;
+7. only then promote the Unity client beyond repository integration.
