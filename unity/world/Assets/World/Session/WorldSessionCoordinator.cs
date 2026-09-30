@@ -67,14 +67,29 @@ namespace Emopet.World
             try
             {
                 await backend.HidePresenceAsync(Handle, cancellationToken);
+                ClearDisconnected();
             }
-            finally
+            catch (WorldBackendException error) when (error.StatusCode > 0)
             {
-                // The backend closes the World session before persisting the canonical
-                // presence withdrawal. Even a later 503 therefore leaves this handle dead.
-                Handle = null;
-                ExpiresAtUnixMs = 0;
-                stateMachine.Disconnect();
+                // An HTTP response proves the backend handled the request. The server-side
+                // withdrawal path drops the World handle before persisting canonical consent,
+                // so even a later 503 leaves this handle dead.
+                ClearDisconnected();
+                throw;
+            }
+            catch (WorldBackendException)
+            {
+                // No HTTP response: we cannot know whether the DELETE reached the backend.
+                // Preserve the handle only as uncertain evidence and never claim invisibility.
+                stateMachine.MarkDegraded();
+                throw;
+            }
+            catch (OperationCanceledException)
+            {
+                // Cancellation may happen before or after transport dispatch. Do not tell the
+                // user they are invisible unless the backend outcome is known.
+                stateMachine.MarkDegraded();
+                throw;
             }
         }
 
@@ -116,6 +131,13 @@ namespace Emopet.World
             {
                 stateMachine.Disconnect();
             }
+        }
+
+        private void ClearDisconnected()
+        {
+            Handle = null;
+            ExpiresAtUnixMs = 0;
+            stateMachine.Disconnect();
         }
 
         public void MarkRevokedLocally()
