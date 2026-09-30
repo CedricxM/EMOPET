@@ -8,6 +8,23 @@ namespace Emopet.World.Tests
     public sealed class WorldSessionCoordinatorTests
     {
         private const string Handle = "11111111-1111-4111-8111-111111111111";
+        private const long FutureExpiry = 4102444800000;
+
+        [Test]
+        public void ExpiredBootstrapFailsClosedBeforeConnectedState()
+        {
+            var http = new QueueHttp(
+                new WorldHttpResponse(200,
+                    "{\"handle\":\"" + Handle + "\",\"expiresAt\":1,\"state\":\"connected\"}"));
+            var coordinator = Create(http);
+
+            var error = Assert.ThrowsAsync<WorldBackendException>(() =>
+                coordinator.ConnectAsync(CancellationToken.None));
+
+            Assert.That(error.Code, Is.EqualTo(WorldErrorCode.InvalidSession));
+            Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Revoked));
+            Assert.That(coordinator.Handle, Is.Null);
+        }
 
         [Test]
         public async Task MalformedSuccessfulEventsResponseFailsClosed()
@@ -125,7 +142,7 @@ namespace Emopet.World.Tests
             Assert.That(error.Code, Is.EqualTo(WorldErrorCode.Unavailable));
             Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Degraded));
             Assert.That(coordinator.Handle, Is.EqualTo(Handle));
-            Assert.That(coordinator.ExpiresAtUnixMs, Is.EqualTo(123));
+            Assert.That(coordinator.ExpiresAtUnixMs, Is.EqualTo(FutureExpiry));
         }
 
         [Test]
@@ -170,7 +187,7 @@ namespace Emopet.World.Tests
                 http));
 
         private static string BootstrapJson() =>
-            "{\"handle\":\"" + Handle + "\",\"expiresAt\":123,\"state\":\"connected\"}";
+            "{\"handle\":\"" + Handle + "\",\"expiresAt\":" + FutureExpiry + ",\"state\":\"connected\"}";
 
         private sealed class FakeToken : IWorldAccessTokenProvider
         {
