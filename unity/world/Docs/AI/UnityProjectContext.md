@@ -47,7 +47,7 @@ Errors are bounded to:
 
 ## Testing
 
-EditMode tests target deterministic state transitions and backend request/error contracts.
+EditMode tests target deterministic state transitions and backend request/error contracts, including terminal presence withdrawal.
 No PlayMode, scene, device or build validation has happened yet.
 
 ## Tooling
@@ -60,7 +60,7 @@ Repository files are being prepared through GitHub only.
 - presets only for the first World chat test;
 - no free-text UI;
 - no location;
-- presence is invisible by default and opt-in;
+- presence is invisible by default and opt-in; withdrawing consent closes the server-side World session, so Unity clears the handle and must bootstrap again;
 - blocked/offline targets remain deliberately indistinguishable as `unreachable`;
 - no per-frame network polling;
 - no automatic replay of uncertain writes;
