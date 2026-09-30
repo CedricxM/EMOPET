@@ -146,6 +146,43 @@ test('activation evidence contract is reference-only and server-resolved', () =>
   assert.match(validatorsSource, /ROTATION must retire predecessor as REVOKED_PENDING_ERASE/);
 });
 
+test('source-level M4/M5 resolver stays injected and non-activating', () => {
+  assert.equal(authority.runtime.m4M5EvidenceResolverSourceImplemented, true);
+  assert.equal(authority.runtime.m4M5EvidenceStoresImplemented, false);
+  assert.equal(authority.runtime.activationServiceImplemented, false);
+  assert.equal(authority.runtime.publicActivationRouteImplemented, false);
+
+  assert.match(
+    activationEvidenceResolverSource,
+    /resolveDeviceCredentialActivationEvidenceV1/,
+  );
+  assert.match(
+    activationEvidenceResolverSource,
+    /SERVER_SIDE_POP_VERIFICATION_AUTHORITY/,
+  );
+  assert.match(
+    activationEvidenceResolverSource,
+    /APPROTECT_PRODUCTION_POLICY_VERIFIED/,
+  );
+  assert.match(
+    activationEvidenceResolverSource,
+    /REPRESENTATIVE_MS88SF3_NRF52840_VERIFIED/,
+  );
+
+  assert.doesNotMatch(
+    activationEvidenceResolverSource,
+    /proofPassed\s*[:=]|approtectVerified\s*[:=]|hardwareVerified\s*[:=]/,
+  );
+  assert.doesNotMatch(
+    activationEvidenceResolverSource,
+    /app\.(get|post|put|patch|delete)\(/,
+  );
+  assert.doesNotMatch(
+    activationEvidenceResolverSource,
+    /commitVerifiedDeviceCredentialActivationReceipt\s*\(/,
+  );
+});
+
 test('internal cutover primitive is transactional but is not M4/M5 authority', () => {
   assert.match(
     activationTransactionSource,
