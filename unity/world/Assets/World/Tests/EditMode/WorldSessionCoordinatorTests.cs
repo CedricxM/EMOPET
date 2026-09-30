@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -74,7 +75,7 @@ namespace Emopet.World.Tests
             using var cancellation = new CancellationTokenSource();
             cancellation.Cancel();
 
-            Assert.ThrowsAsync<OperationCanceledException>(() =>
+            Assert.CatchAsync<OperationCanceledException>(() =>
                 coordinator.ConnectAsync(cancellation.Token));
 
             Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Degraded));
@@ -209,7 +210,7 @@ namespace Emopet.World.Tests
             var coordinator = Create(new CancelAfterFirstHttp());
 
             await coordinator.ConnectAsync(CancellationToken.None);
-            Assert.ThrowsAsync<OperationCanceledException>(() =>
+            Assert.CatchAsync<OperationCanceledException>(() =>
                 coordinator.ShowPresenceAsync(CancellationToken.None));
 
             Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Degraded));
@@ -350,7 +351,7 @@ namespace Emopet.World.Tests
             var coordinator = Create(new CancelAfterFirstHttp());
 
             await coordinator.ConnectAsync(CancellationToken.None);
-            Assert.ThrowsAsync<OperationCanceledException>(() =>
+            Assert.CatchAsync<OperationCanceledException>(() =>
                 coordinator.DisconnectAsync(CancellationToken.None));
 
             Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Degraded));
