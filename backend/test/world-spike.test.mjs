@@ -62,9 +62,12 @@ test('canonical mapping normalizes UUIDs and rejects arbitrary identities', () =
   assert.equal(customIdentity(uuid.toUpperCase()), customIdentity(uuid));
   assert.throws(() => customIdentity('client-owner'), /forbidden/);
 });
-test('default off, production refused, loopback configuration required', () => {
+test('default off, production requires the reviewed release gate, local requires loopback', () => {
   assert.equal(configuredWorldSpike({}), null);
-  assert.throws(() => configuredWorldSpike({ WORLD_NAKAMA_SPIKE_ENABLED: 'true', NODE_ENV: 'production' }), /local/);
+  assert.equal(configuredWorldSpike({ WORLD_NAKAMA_SPIKE_ENABLED: 'true', NODE_ENV: 'production' }), null,
+    'the local spike flag cannot activate production');
+  assert.throws(() => configuredWorldSpike({ NODE_ENV: 'production', EMOPET_WORLD_RELEASE_GATE: 'GO' }), /HOLD/,
+    'deployment GO alone cannot bypass repository release authority');
   assert.throws(() => configuredWorldSpike({ WORLD_NAKAMA_SPIKE_ENABLED: 'true', NODE_ENV: 'test',
     NAKAMA_URL: 'https://example.com', NAKAMA_HTTP_KEY: 'a'.repeat(64) }), /loopback/);
 });
