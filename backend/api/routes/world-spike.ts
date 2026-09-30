@@ -147,7 +147,10 @@ export function configuredWorldSpike(env: NodeJS.ProcessEnv = process.env,
     mode === 'RELEASE_GO' ? 'release' : 'local-spike');
   // Configuration is refused before runtime capability checks.
   if (typeof globalThis.WebSocket !== 'function') throw new Error('World runtime requires Node >=22 with WebSocket');
-  const freeText = env['WORLD_SPIKE_FREE_TEXT'] === 'true';
+  if (mode === 'RELEASE_GO' && env['WORLD_SPIKE_FREE_TEXT'] === 'true') {
+    throw new Error('World release does not authorize free-text chat');
+  }
+  const freeText = mode === 'SPIKE_LOCAL' && env['WORLD_SPIKE_FREE_TEXT'] === 'true';
   const adapter = new WorldRealtimeAdapter(transport, access, blocks, social, undefined, undefined, undefined, { freeText });
   // Logout, logout_all and pilot revocation close live World handles at once (#48 L7).
   onActorRevoked(async (userId, reason) => {
