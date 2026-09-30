@@ -55,6 +55,7 @@ test('AUTH-EMAIL-VERIFY-01 registration is generic and creates no session before
   const password = 'Attacker Known Registration Password 2026!';
   const verifiedPassword = 'Email Owner Selected Password 2026!';
 
+  await sql`DELETE FROM auth_email_verification_delivery_requests WHERE email IN (${email}, ${unknownEmail})`;
   await sql`DELETE FROM users WHERE email IN (${email}, ${unknownEmail})`;
 
   const registerResponse = await jsonRequest('/register', {
@@ -89,6 +90,23 @@ test('AUTH-EMAIL-VERIFY-01 registration is generic and creates no session before
   `;
   assert.equal(sessionCount.count, 0);
 
+  const [tokenCountBeforeWorker] = await sql`
+    SELECT count(*)::int AS count
+    FROM auth_email_verification_tokens
+    WHERE user_id = ${user.id}
+  `;
+  assert.equal(tokenCountBeforeWorker.count, 0);
+
+  const [deliveryIntent] = await sql`
+    SELECT email, attempt_count, completed_at
+    FROM auth_email_verification_delivery_requests
+    WHERE email = ${email}
+      AND completed_at IS NULL
+  `;
+  assert.equal(deliveryIntent.email, email);
+  assert.equal(deliveryIntent.attempt_count, 0);
+  assert.equal(deliveryIntent.completed_at, null);
+
   const blockedLogin = await jsonRequest('/login', { email, password });
   assert.equal(blockedLogin.status, 403);
   assert.deepEqual(await blockedLogin.json(), { error: 'Email verification required' });
@@ -108,15 +126,25 @@ test('AUTH-EMAIL-VERIFY-01 registration is generic and creates no session before
   assert.deepEqual(await resendKnown.json(), acknowledgement);
   assert.deepEqual(await resendUnknown.json(), acknowledgement);
 
-  // Replace the opaque registration token with a deterministic test token.
-  const rawVerificationToken = `emopet_ev_${Buffer.alloc(32, 0x42).toString('base64url')}`;
-  await sql`
-    UPDATE auth_email_verification_tokens
-    SET revoked_at = now(), revoke_reason = 'manual_revoke'
-    WHERE user_id = ${user.id}
-      AND consumed_at IS NULL
-      AND revoked_at IS NULL
+  const [knownIntentCount] = await sql`
+    SELECT count(*)::int AS count
+    FROM auth_email_verification_delivery_requests
+    WHERE email = ${email}
+      AND completed_at IS NULL
   `;
+  const [unknownIntentCount] = await sql`
+    SELECT count(*)::int AS count
+    FROM auth_email_verification_delivery_requests
+    WHERE email = ${unknownEmail}
+      AND completed_at IS NULL
+  `;
+  // Register + duplicate register + resend are coalesced into one active intent.
+  assert.equal(knownIntentCount.count, 1);
+  assert.equal(unknownIntentCount.count, 1);
+
+  // Route verification remains independently testable with a deterministic
+  // token; the public register/resend path itself no longer creates it.
+  const rawVerificationToken = `emopet_ev_${Buffer.alloc(32, 0x42).toString('base64url')}`;
   await sql`
     INSERT INTO auth_email_verification_tokens
       (user_id, email, token_hash, expires_at)
@@ -164,6 +192,7 @@ test('AUTH-EMAIL-VERIFY-01 registration is generic and creates no session before
   assert.match(authenticated.refreshToken, /^emopet_rt_/);
 
   await sql`DELETE FROM auth_refresh_sessions WHERE user_id = ${user.id}`;
+  await sql`DELETE FROM auth_email_verification_delivery_requests WHERE email IN (${email}, ${unknownEmail})`;
   await sql`DELETE FROM users WHERE id = ${user.id}`;
 });
 
@@ -191,6 +220,15 @@ test('legacy accounts are not silently enrolled into email-verification rollout'
   `;
   assert.equal(tokens.count, 0);
 
+  const [legacyIntent] = await sql`
+    SELECT count(*)::int AS count
+    FROM auth_email_verification_delivery_requests
+    WHERE email = ${email}
+      AND completed_at IS NULL
+  `;
+  assert.equal(legacyIntent.count, 1);
+
+  await sql`DELETE FROM auth_email_verification_delivery_requests WHERE email = ${email}`;
   await sql`DELETE FROM users WHERE id = ${legacy.id}`;
 });
 
