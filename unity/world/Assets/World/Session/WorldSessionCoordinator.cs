@@ -56,6 +56,13 @@ namespace Emopet.World
                 ApplyFailure(error);
                 throw;
             }
+            catch (OperationCanceledException)
+            {
+                // Cancellation can race with transport dispatch. The server outcome may be
+                // unknown, so leave the coordinator recoverable without claiming a session.
+                stateMachine.MarkDegraded();
+                throw;
+            }
         }
 
         public async Task ShowPresenceAsync(CancellationToken cancellationToken)
