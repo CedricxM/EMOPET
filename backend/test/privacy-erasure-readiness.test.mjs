@@ -98,7 +98,13 @@ test('account erasure preflight reflects approved detaches plus auth lifecycle r
     NO_FK_LIFECYCLE_NOT_ENFORCED: 0,
   });
   assert.equal(result.relational.rootDeleteBlockers.length, 11);
-  assert.deepEqual(result.relational.automaticCascadeRelations, []);
+  assert.deepEqual(result.relational.automaticCascadeRelations, [
+    {
+      table: 'auth_email_verification_tokens',
+      column: 'user_id',
+      relationType: 'DIRECT_FK',
+    },
+  ]);
 
   assert.deepEqual(result.nonSql, {
     total: 5,
