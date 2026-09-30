@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit",
     "auth-email:dispatch": "node dist/api/workers/auth-email-verification-delivery.js",
     "auth-email:legacy-audit": "node dist/api/workers/auth-email-legacy-rollout-audit.js",
-    "security:detection-scan": "node dist/api/workers/security-detection-scan.js"
+    "security:detection-scan": "node dist/api/workers/security-detection-scan.js",
+    "security:detection-tick": "node dist/api/workers/security-detection-scheduler-tick.js"
   },
   "dependencies": {
     "@emopet/eli-engine": "workspace:*",
