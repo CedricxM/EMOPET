@@ -10,7 +10,9 @@
         "password_hash",
         "gdpr_consent",
         "created_at",
-        "updated_at"
+        "updated_at",
+        "email_verified_at",
+        "email_verification_token_hash_and_state"
       ],
       "purpose": "account access, authentication and account administration",
       "legalBasis": "TO_CONFIRM_BEFORE_PRODUCTION",
