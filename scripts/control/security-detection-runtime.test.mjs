@@ -82,6 +82,7 @@ test('#769 scheduler serializes ticks and advances only a minimal durable cursor
 
   assert.match(schedulerMigrationSource, /CREATE TABLE security_detection_scheduler_state/);
   assert.match(schedulerMigrationSource, /stream_id varchar\(64\) PRIMARY KEY/);
+  assert.match(schedulerMigrationSource, /monitoring_started_at timestamptz NOT NULL/);
   assert.match(schedulerMigrationSource, /last_successful_window_end timestamptz NOT NULL/);
   assert.doesNotMatch(
     schedulerMigrationSource,
