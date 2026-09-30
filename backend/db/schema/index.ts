@@ -10,6 +10,7 @@ export * from './behavioral-assessments.js';
 export * from './instruments.js';
 export * from './instrument-administration.js';
 export * from './auth-sessions.js';
+export * from './auth-email-verification.js';
 export * from './professional-sharing.js';
 
 export * from './device-identity.js';

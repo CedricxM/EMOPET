@@ -10,6 +10,7 @@ export const users = pgTable('users', {
   pushToken: varchar('push_token', { length: 255 }),
   onboardingComplete: boolean('onboarding_complete').default(false),
   gdprConsentAt: timestamp('gdpr_consent_at', { withTimezone: true }),
+  emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });

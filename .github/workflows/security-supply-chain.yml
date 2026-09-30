@@ -199,6 +199,8 @@ jobs:
         run: node --test scripts/control/device-private-key-storage.test.mjs
       - name: Enforce Device Trust identity-key slot/enrollment boundary (#659)
         run: node --test scripts/control/device-identity-key-slots.test.mjs
+      - name: Enforce AUTH email-verification activation boundary (#738)
+        run: node --test scripts/control/auth-email-verification-authority.test.mjs
       - name: Enforce Device Trust durable public credential boundary (#661)
         run: node --test scripts/control/device-credential-repository.test.mjs
       - name: Enforce Device Trust atomic credential activation gate (#720)

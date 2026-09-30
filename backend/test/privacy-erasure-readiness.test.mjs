@@ -78,7 +78,7 @@ test('erasure readiness service remains pure and cannot mutate persistence', asy
   assert.equal(source.includes('destructiveActionAuthorized: false'), true);
 });
 
-test('account erasure preflight reflects four implemented SET NULL detach relations and remaining blockers', () => {
+test('account erasure preflight reflects approved detaches plus auth lifecycle relations and remaining blockers', () => {
   const result = buildErasureReadinessReport(matrix, 'users.id', accountRelations);
 
   assert.equal(result.ok, true);
@@ -86,19 +86,25 @@ test('account erasure preflight reflects four implemented SET NULL detach relati
   assert.equal(result.destructiveActionAuthorized, false);
   assert.equal(result.status, 'BLOCKED');
 
-  assert.equal(result.relational.total, 16);
-  assert.equal(result.relational.unresolvedDisposition, 12);
-  assert.equal(result.relational.notImplemented, 12);
+  assert.equal(result.relational.total, 17);
+  assert.equal(result.relational.unresolvedDisposition, 13);
+  assert.equal(result.relational.notImplemented, 13);
   assert.deepEqual(result.relational.databaseMechanics, {
     NO_ACTION: 11,
     RESTRICT: 0,
-    CASCADE: 0,
+    CASCADE: 1,
     SET_NULL: 5,
     SET_DEFAULT: 0,
     NO_FK_LIFECYCLE_NOT_ENFORCED: 0,
   });
   assert.equal(result.relational.rootDeleteBlockers.length, 11);
-  assert.deepEqual(result.relational.automaticCascadeRelations, []);
+  assert.deepEqual(result.relational.automaticCascadeRelations, [
+    {
+      table: 'auth_email_verification_tokens',
+      column: 'user_id',
+      relationType: 'DIRECT_FK',
+    },
+  ]);
 
   assert.deepEqual(result.nonSql, {
     total: 5,

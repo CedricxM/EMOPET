@@ -15,8 +15,8 @@
     "Database mechanics never substitute for privacy disposition authority on unresolved rows."
   ],
   "summary": {
-    "relationalTotal": 44,
-    "policyAlignedDeleteCandidates": 23,
+    "relationalTotal": 45,
+    "policyAlignedDeleteCandidates": 24,
     "policyConditionalExecutionRequired": 18,
     "legalAuthorityBlocked": 3,
     "matrixRowsPromoted": 4
@@ -52,6 +52,22 @@
         "ai_messages"
       ],
       "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "auth_email_verification_tokens",
+      "column": "user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "account_auth"
+      ],
+      "rationale": "Email-ownership verification state is account-authentication material with no independent product purpose after account erasure. The FK already cascades mechanically. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
       "promotionAuthorized": false
     },
     {

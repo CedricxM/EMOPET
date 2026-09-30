@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "emopet-auth-email-verification-v1",
+  "status": "CORE_AUTHORITY_SELECTED / RUNTIME_REGISTRATION_INTEGRATION_OPEN / PROVIDER_DELIVERY_OPEN",
+  "issue": 738,
+  "parentIssue": 214,
+  "decisions": {
+    "tokenEntropyBytes": 32,
+    "tokenPrefix": "emopet_ev_",
+    "tokenHash": "SHA256_HEX_ONLY_SERVER_SIDE",
+    "tokenTtlSeconds": 86400,
+    "resendCooldownSeconds": 60,
+    "newTokenSupersedesPriorLiveToken": true,
+    "verificationIssuesSession": false,
+    "postVerificationSessionPolicy": "REQUIRE_NORMAL_LOGIN",
+    "genericRegistrationAcknowledgement": "REQUIRED_BEFORE_RUNTIME_INTEGRATION",
+    "normalSessionBeforeVerification": "FORBIDDEN"
+  },
+  "delivery": {
+    "provider": "OPEN",
+    "serverSideOnly": true,
+    "rawTokenMayAppearInProviderMessageBody": true,
+    "rawTokenMayBePersisted": false,
+    "rawTokenMayBeLogged": false
+  },
+  "runtime": {
+    "durableTokenAuthorityImplemented": true,
+    "registrationFlowIntegrated": false,
+    "verificationRouteIntegrated": false,
+    "resendRouteIntegrated": false,
+    "deliveryProviderIntegrated": false
+  }
+}

@@ -31,6 +31,15 @@
     {
       "subjectRoot": "users.id",
       "relationType": "DIRECT_FK",
+      "table": "auth_email_verification_tokens",
+      "column": "user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
       "table": "auth_refresh_sessions",
       "column": "user_id",
       "disposition": "TO_CONFIRM",

@@ -29,6 +29,14 @@
       "mappingRationale": "Detected anticipation pattern derived from dog-linked sensor/ELI processing; technical privacy classification only."
     },
     {
+      "table": "auth_email_verification_tokens",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "account"
+      ],
+      "mappingRationale": "Short-lived email-ownership verification state linked directly to the account; raw verification tokens are not persisted."
+    },
+    {
       "table": "auth_refresh_sessions",
       "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
       "inventoryCategories": [

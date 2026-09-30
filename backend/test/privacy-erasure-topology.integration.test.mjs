@@ -175,6 +175,7 @@ test('PRIV-ERASURE-TOPOLOGY static controls remain fail closed', () => {
     ['walk_quality', 'eli_inferred'],
     ['eli_behavioral_priors', 'eli_inferred'],
     ['achievements', 'account'],
+    ['auth_email_verification_tokens', 'account'],
     ['auth_refresh_sessions', 'account'],
     ['copresence_events', 'location'],
     ['ai_messages', 'ai_messages'],
