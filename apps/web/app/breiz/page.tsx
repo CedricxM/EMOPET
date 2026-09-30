@@ -174,7 +174,7 @@ export default function BreizPage() {
               <Icon name="wave" size={18} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <H2 style={{ fontSize: 'var(--text-xl)' }}>Breiz</H2>
+              <H2 as="h1" style={{ fontSize: 'var(--text-xl)' }}>Breiz</H2>
               <span
                 style={{
                   fontFamily: 'var(--font-sans)',
