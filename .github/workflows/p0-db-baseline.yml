@@ -261,6 +261,14 @@ jobs:
           NODE_ENV: test
         run: node --test test/device-credential-activation.integration.test.mjs
 
+      - name: DEVICE-TRUST-ID-17 durable M4 PoP evidence on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          DEVICE_ACTIVATION_POP_EVIDENCE_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/device-credential-activation-pop-evidence.integration.test.mjs
+
       - name: PRIV-SEC-G4 durable security audit sink on historical migrations
         working-directory: backend
         env:
@@ -471,6 +479,14 @@ jobs:
           DEVICE_CREDENTIAL_ACTIVATION_DB_INTEGRATION: '1'
           NODE_ENV: test
         run: node --test test/device-credential-activation.integration.test.mjs
+
+      - name: DEVICE-TRUST-ID-17 durable M4 PoP evidence on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          DEVICE_ACTIVATION_POP_EVIDENCE_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/device-credential-activation-pop-evidence.integration.test.mjs
 
       - name: PRIV-SEC-G4 durable security audit sink on generated baseline
         working-directory: backend
