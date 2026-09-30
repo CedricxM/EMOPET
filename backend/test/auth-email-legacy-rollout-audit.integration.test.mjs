@@ -28,7 +28,11 @@ if (enabled) {
 
 async function cleanup() {
   if (!sql) return;
-  await sql`DELETE FROM auth_refresh_sessions WHERE user_id IN (${Object.values(IDS)})`;
+  await sql`
+    DELETE FROM auth_refresh_sessions
+    WHERE user_id IN (${Object.values(IDS)})
+       OR token_hash = ${'f'.repeat(64)}
+  `;
   await sql`DELETE FROM users WHERE id IN (${Object.values(IDS)})`;
 }
 
@@ -61,6 +65,18 @@ async function seed() {
       )
     `;
   }
+
+  await sql`
+    INSERT INTO auth_refresh_sessions
+      (user_id, family_id, token_hash, expires_at, created_at)
+    VALUES (
+      NULL,
+      'd7600000-0000-4000-8000-000000000199',
+      ${'f'.repeat(64)},
+      '2026-10-30T12:00:00Z',
+      '2026-09-30T10:00:00Z'
+    )
+  `;
 }
 
 async function snapshot() {
@@ -90,6 +106,11 @@ after(async () => {
 test('legacy rollout census classifies aggregate cohorts without mutation or identifiers', {
   skip: !enabled,
 }, async () => {
+  await cleanup();
+  const baseline = await service.collectAuthEmailLegacyRolloutCensus(
+    () => new Date('2026-09-30T12:00:00.000Z'),
+  );
+
   await seed();
   const before = await snapshot();
 
@@ -101,16 +122,44 @@ test('legacy rollout census classifies aggregate cohorts without mutation or ide
   assert.deepEqual(afterState, before, 'census must be read-only');
 
   assert.equal(report.schemaVersion, 'auth-email-legacy-rollout-census-v1');
-  assert.equal(report.users.legacyUnverified, 1);
-  assert.equal(report.users.legacyVerified, 1);
-  assert.equal(report.users.verificationRequiredUnverified, 1);
-  assert.equal(report.users.verificationRequiredVerified, 2);
-  assert.equal(report.users.inconsistentVerifiedBeforeRequirement, 1);
+  assert.equal(report.users.total - baseline.users.total, 5);
+  assert.equal(report.users.legacyUnverified - baseline.users.legacyUnverified, 1);
+  assert.equal(report.users.legacyVerified - baseline.users.legacyVerified, 1);
+  assert.equal(
+    report.users.verificationRequiredUnverified - baseline.users.verificationRequiredUnverified,
+    1,
+  );
+  assert.equal(
+    report.users.verificationRequiredVerified - baseline.users.verificationRequiredVerified,
+    2,
+  );
+  assert.equal(
+    report.users.inconsistentVerifiedBeforeRequirement
+      - baseline.users.inconsistentVerifiedBeforeRequirement,
+    1,
+  );
 
-  assert.equal(report.activeRefreshSessions.legacyUnverified, 1);
-  assert.equal(report.activeRefreshSessions.legacyVerified, 1);
-  assert.equal(report.activeRefreshSessions.verificationRequiredUnverified, 1);
-  assert.equal(report.activeRefreshSessions.verificationRequiredVerified, 2);
+  assert.equal(report.activeRefreshSessions.total - baseline.activeRefreshSessions.total, 6);
+  assert.equal(report.activeRefreshSessions.detached - baseline.activeRefreshSessions.detached, 1);
+  assert.equal(
+    report.activeRefreshSessions.legacyUnverified
+      - baseline.activeRefreshSessions.legacyUnverified,
+    1,
+  );
+  assert.equal(
+    report.activeRefreshSessions.legacyVerified - baseline.activeRefreshSessions.legacyVerified,
+    1,
+  );
+  assert.equal(
+    report.activeRefreshSessions.verificationRequiredUnverified
+      - baseline.activeRefreshSessions.verificationRequiredUnverified,
+    1,
+  );
+  assert.equal(
+    report.activeRefreshSessions.verificationRequiredVerified
+      - baseline.activeRefreshSessions.verificationRequiredVerified,
+    2,
+  );
 
   assert.deepEqual(report.authority, {
     mutationAuthorized: false,
