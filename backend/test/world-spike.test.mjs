@@ -236,17 +236,25 @@ test('runtime bootstrap rejects direct sessions, unmapped users, and malformed i
   let writes = 0;
   const nk = { authenticateCustom: () => { writes++; return { userId: B, username: 'synthetic' }; },
     authenticateTokenGenerate: () => ({ token: 'server-generated' }) };
-  const ctx = { env: { WORLD_SPIKE_TEST_USER_IDS: A } };
-  const spaced = { env: { WORLD_SPIKE_TEST_USER_IDS: ` ${B}, ${A.toUpperCase()} ` } };
+  const ctx = { env: { EMOPET_WORLD_RUNTIME_MODE: 'local-spike', WORLD_SPIKE_TEST_USER_IDS: A } };
+  const spaced = { env: { EMOPET_WORLD_RUNTIME_MODE: 'local-spike',
+    WORLD_SPIKE_TEST_USER_IDS: ` ${B}, ${A.toUpperCase()} ` } };
+  const release = { env: { EMOPET_WORLD_RUNTIME_MODE: 'release' } };
   assert.equal(JSON.parse(bootstrap(spaced, {}, nk, JSON.stringify({ customId: customIdentity(A) }))).userId, B);
   writes = 0;
   assert.throws(() => bootstrap({ ...ctx, userId: B }, {}, nk, JSON.stringify({ customId: customIdentity(A) })));
-  assert.throws(() => bootstrap(ctx, {}, nk, JSON.stringify({ customId: customIdentity(B) })));
+  assert.throws(() => bootstrap(ctx, {}, nk, JSON.stringify({ customId: customIdentity(B) })),
+    'local mode still requires the synthetic allowlist');
+  assert.throws(() => bootstrap({ env: { EMOPET_WORLD_RUNTIME_MODE: 'unknown' } }, {}, nk,
+    JSON.stringify({ customId: customIdentity(A) })));
   assert.throws(() => bootstrap(ctx, {}, nk, JSON.stringify({ customId: customIdentity(A), ownerId: B })));
   assert.equal(writes, 0);
   const result = JSON.parse(bootstrap(ctx, {}, nk, JSON.stringify({ customId: customIdentity(A) })));
   assert.equal(result.userId, B);
   assert.equal(writes, 1);
+  const releaseResult = JSON.parse(bootstrap(release, {}, nk, JSON.stringify({ customId: customIdentity(B) })));
+  assert.equal(releaseResult.userId, B);
+  assert.equal(writes, 2, 'release mode accepts canonical ids only through the server-to-server RPC');
   for (const [name, args] of Object.entries(registered)) if (name !== 'registerRpc') assert.throws(() => args[0]());
 });
 test('authority firewall: spike modules have no durable repositories or protected-state imports', () => {
