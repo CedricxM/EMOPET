@@ -143,7 +143,12 @@ export default function ProfilPage() {
                         </div>
                         <Pill state={s.state} />
                       </div>
-                      <Meter value={s.coverage} tone={s.state === 'valid' ? 'accent2' : 'degraded'} />
+                      <Meter
+                        value={s.coverage}
+                        tone={s.state === 'valid' ? 'accent2' : 'degraded'}
+                        label={`Couverture — ${s.label}`}
+                        valueText={`${s.coverage} % de couverture`}
+                      />
                       <P2 style={{ fontFeatureSettings: 'var(--ff-tabular)' }}>Couverture {s.coverage}% · firmware {s.firmware}</P2>
                     </div>
                   </Card>
