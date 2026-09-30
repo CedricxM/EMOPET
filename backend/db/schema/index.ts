@@ -21,3 +21,4 @@ export * from './social-connections.js';
 export * from './device-credential-activation.js';
 export * from './security-audit.js';
 export * from './auth-rate-limit.js';
+export * from './security-detection-scheduler.js';
