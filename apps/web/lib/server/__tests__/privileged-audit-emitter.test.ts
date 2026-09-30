@@ -138,14 +138,14 @@ test('verified denial preserves bounded actor while anonymous denial stays anony
     fetchImpl,
   });
 
-  assert.deepEqual((bodies[0] as any).decision, {
+  assert.deepEqual((bodies[0] as { decision?: unknown }).decision, {
     status: 'DENIED',
     reason: 'action_not_allowed',
     subject: SUPPORT_ID,
     role: 'support',
     action: 'admin.data.read',
   });
-  assert.deepEqual((bodies[1] as any).decision, {
+  assert.deepEqual((bodies[1] as { decision?: unknown }).decision, {
     status: 'DENIED',
     reason: 'invalid_token',
   });
