@@ -192,16 +192,20 @@ test('presence withdrawal never claims invisibility when no HTTP outcome is know
   );
 });
 
-test('presence withdrawal clears the dead handle and closes the Unity session', async () => {
+test('confirmed presence withdrawal clears the dead handle and closes the Unity session', async () => {
   const coordinator = await read('Assets/World/Session/WorldSessionCoordinator.cs');
 
   assert.match(
     coordinator,
-    /HidePresenceAsync[\s\S]*finally[\s\S]*Handle = null;[\s\S]*ExpiresAtUnixMs = 0;[\s\S]*stateMachine\.Disconnect\(\);/,
+    /HidePresenceAsync[\s\S]*await backend\.HidePresenceAsync\(Handle, cancellationToken\);[\s\S]*ClearDisconnected\(\);/,
+  );
+  assert.match(
+    coordinator,
+    /private void ClearDisconnected\(\)[\s\S]*Handle = null;[\s\S]*ExpiresAtUnixMs = 0;[\s\S]*stateMachine\.Disconnect\(\);/,
   );
   assert.doesNotMatch(
     coordinator,
-    /HidePresenceAsync[\s\S]{0,800}PresenceBecameInvisible\(\)/,
+    /HidePresenceAsync[\s\S]{0,1200}PresenceBecameInvisible\(\)/,
     'backend presence withdrawal closes the server session; Unity must not retain it as invisible',
   );
 });
