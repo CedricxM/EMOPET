@@ -34,6 +34,11 @@ test('#525 runtime has canonical DB source without claiming continuous productio
   assert.equal(authority.scheduler.serialization, 'POSTGRES_TRANSACTION_ADVISORY_LOCK');
   assert.equal(authority.scheduler.cursorAdvance, 'EVALUATED_ONLY');
   assert.equal(authority.scheduler.databaseClockWindowEnd, true);
+  assert.equal(authority.scheduler.monitoringStartPersisted, true);
+  assert.match(
+    authority.scheduler.monitoringStartAuthority,
+    /IMMUTABLE_THEREAFTER/,
+  );
   assert.equal(authority.scheduler.httpRoute, null);
   assert.match(authority.scheduler.lateArrivalBoundary, /OPEN/);
   assert.match(authority.scheduler.lateArrivalBoundary, /NOT UNBOUNDED LATE-COMMIT/);
