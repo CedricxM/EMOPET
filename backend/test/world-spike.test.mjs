@@ -532,7 +532,8 @@ test('the configured spike subscribes the adapter to canonical revocation', () =
   assert.match(route, /onActorRevoked\(async \(userId, reason\) => \{\s+adapter\.revokeActor\(userId\);/);
   assert.match(route, /access: WorldAccessPolicy = drizzleWorldPilotAccess\(\)/);
   assert.doesNotMatch(route, /env\['WORLD_SPIKE_TEST_USER_IDS'\]/);
-  assert.match(route, /const freeText = env\['WORLD_SPIKE_FREE_TEXT'\] === 'true';/);
+  assert.match(route, /const freeText = mode === 'SPIKE_LOCAL' && env\['WORLD_SPIKE_FREE_TEXT'\] === 'true';/);
+  assert.match(route, /mode === 'RELEASE_GO' && env\['WORLD_SPIKE_FREE_TEXT'\] === 'true'/);
   assert.match(route, /new WorldRealtimeAdapter\(transport, access, blocks, social, undefined, undefined, undefined, \{ freeText \}\)/);
 });
 
