@@ -1,4 +1,4 @@
-import { eq, gt, isNull, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 import { db } from '../../db/index.js';
 import { authRefreshSessions, users } from '../../db/schema/index.js';
