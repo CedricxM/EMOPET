@@ -137,6 +137,8 @@ jobs:
         run: node --test scripts/control/eli-surface-authority.test.mjs
       - name: Enforce ELI runtime conformance non-activation (#479)
         run: pnpm control:eli-runtime-conformance:test
+      - name: Enforce ELI public projection firewall (#118/#124)
+        run: node --test scripts/control/eli-publication-firewall.test.mjs
       - name: Enforce Device Trust fail-closed command/claim/OTA boundary (#66)
         run: node --test scripts/control/device-trust-boundary.test.mjs
       - name: Enforce Device Trust identity/PoP architecture gate (#648)
