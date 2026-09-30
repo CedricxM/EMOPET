@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8').replace(/\r\n/g, '\n');
-const migration = read('../db/migrations/0028_world_pilot_access.sql');
+const migration = read('../db/migrations/0029_world_pilot_access.sql');
 const schema = read('../db/schema/world-pilot-access.ts');
 
 test('WORLD-SOCIAL-03 (#596, L1): one pilot row per account, adulthood declared before any grant', () => {

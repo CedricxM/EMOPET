@@ -42,7 +42,7 @@ test('D1-D5 identity foreign keys detach rather than block account-root deletion
   assert.match(community, /reporterUserId: uuid\('reporter_user_id'\)\.references\(\(\) => users\.id, \{ onDelete: 'set null' \}\)/);
   // D5 (#594): the reported person in World reports detaches like the reporter.
   assert.match(community, /subjectUserId: uuid\('subject_user_id'\)\.references\(\(\) => users\.id, \{ onDelete: 'set null' \}\)/);
-  assert.match(await source('backend/db/migrations/0027_world_report_intake.sql'), /FOREIGN KEY \(subject_user_id\) REFERENCES users\(id\) ON DELETE SET NULL/);
+  assert.match(await source('backend/db/migrations/0028_world_report_intake.sql'), /FOREIGN KEY \(subject_user_id\) REFERENCES users\(id\) ON DELETE SET NULL/);
   assert.match(migration, /behavioral_assessments[\s\S]*ON DELETE SET NULL/);
   assert.match(migration, /communities[\s\S]*ON DELETE SET NULL/);
   assert.match(migration, /community_events[\s\S]*ON DELETE SET NULL/);
