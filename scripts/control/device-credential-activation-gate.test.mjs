@@ -13,6 +13,7 @@ const [
   validatorsSource,
   activationTransactionSource,
   activationReceiptMigrationSource,
+  activationEvidenceResolverSource,
 ] = await Promise.all([
     readFile(new URL('../../config/security/device-credential-activation-v1.json', import.meta.url), 'utf8'),
     readFile(new URL('../../config/security/psa-key-id-registry-v1.json', import.meta.url), 'utf8'),
@@ -24,6 +25,7 @@ const [
     readFile(new URL('../../packages/shared/src/validators/index.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../backend/api/security/device-credential-activation-transaction.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../backend/db/migrations/0034_device_credential_activation_receipts.sql', import.meta.url), 'utf8'),
+    readFile(new URL('../../backend/api/security/device-credential-activation-evidence-resolver.ts', import.meta.url), 'utf8'),
   ]);
 
 const authority = JSON.parse(authoritySource);
@@ -144,6 +146,43 @@ test('activation evidence contract is reference-only and server-resolved', () =>
   assert.match(validatorsSource, /DeviceCredentialActivationReceiptV1Schema/);
   assert.match(validatorsSource, /evidence credential version must match activated credential/);
   assert.match(validatorsSource, /ROTATION must retire predecessor as REVOKED_PENDING_ERASE/);
+});
+
+test('source-level M4/M5 resolver stays injected and non-activating', () => {
+  assert.equal(authority.runtime.m4M5EvidenceResolverSourceImplemented, true);
+  assert.equal(authority.runtime.m4M5EvidenceStoresImplemented, false);
+  assert.equal(authority.runtime.activationServiceImplemented, false);
+  assert.equal(authority.runtime.publicActivationRouteImplemented, false);
+
+  assert.match(
+    activationEvidenceResolverSource,
+    /resolveDeviceCredentialActivationEvidenceV1/,
+  );
+  assert.match(
+    activationEvidenceResolverSource,
+    /SERVER_SIDE_POP_VERIFICATION_AUTHORITY/,
+  );
+  assert.match(
+    activationEvidenceResolverSource,
+    /APPROTECT_PRODUCTION_POLICY_VERIFIED/,
+  );
+  assert.match(
+    activationEvidenceResolverSource,
+    /REPRESENTATIVE_MS88SF3_NRF52840_VERIFIED/,
+  );
+
+  assert.doesNotMatch(
+    activationEvidenceResolverSource,
+    /proofPassed\s*[:=]|approtectVerified\s*[:=]|hardwareVerified\s*[:=]/,
+  );
+  assert.doesNotMatch(
+    activationEvidenceResolverSource,
+    /app\.(get|post|put|patch|delete)\(/,
+  );
+  assert.doesNotMatch(
+    activationEvidenceResolverSource,
+    /commitVerifiedDeviceCredentialActivationReceipt\s*\(/,
+  );
 });
 
 test('internal cutover primitive is transactional but is not M4/M5 authority', () => {
