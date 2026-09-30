@@ -88,10 +88,13 @@ async function cleanup() {
 }
 
 async function seedDenials(count = 3) {
+  const ids = [];
   for (let index = 0; index < count; index += 1) {
     const result = await persistSecurityAuditEvent(denialEvent(index));
     assert.equal(result.ok, true);
+    if (result.ok) ids.push(result.id);
   }
+  return ids;
 }
 
 after(async () => {
@@ -106,7 +109,7 @@ test('runtime reads canonical durable audit events and evaluates the existing de
   skip: !enabled,
 }, async () => {
   await cleanup();
-  await seedDenials(3);
+  const persistedIds = await seedDenials(3);
 
   const before = await sql`
     SELECT count(*)::int AS count
@@ -119,6 +122,10 @@ test('runtime reads canonical durable audit events and evaluates the existing de
   if (result.status !== 'EVALUATED') return;
 
   assert.equal(result.eventCount, 3);
+  assert.deepEqual(
+    [...result.evaluatedEventIds].sort(),
+    [...persistedIds].sort(),
+  );
   assert.deepEqual(result.detections, [{
     type: 'repeated_privileged_denials',
     actorKey: `privileged_human:${ACTOR_ID}`,
@@ -139,7 +146,7 @@ test('worker-safe summary strips actor keys and target references', {
   skip: !enabled,
 }, async () => {
   await cleanup();
-  await seedDenials(3);
+  const persistedIds = await seedDenials(3);
 
   const result = await runSecurityDetectionScan(request());
   const summary = summarizeSecurityDetectionRuntimeResult(result);
@@ -156,6 +163,10 @@ test('worker-safe summary strips actor keys and target references', {
   assert.equal(serialized.includes(ACTOR_ID), false);
   assert.equal(serialized.includes('detect525:case-'), false);
   assert.equal(serialized.includes('actorKey'), false);
+  for (const id of persistedIds) {
+    assert.equal(serialized.includes(id), false);
+  }
+  assert.equal(Object.prototype.hasOwnProperty.call(summary, 'evaluatedEventIds'), false);
 });
 
 test('invalid detector policy fails before being reported as an empty successful scan', {
