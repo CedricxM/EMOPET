@@ -589,6 +589,8 @@ export function LocalSection() {
           background: 'var(--bg-sunk)',
           borderRadius: 'var(--radius-pill)',
           width: 'fit-content',
+          maxWidth: '100%',
+          overflowX: 'auto',
         }}
       >
         {FILTERS.map((f) => {
