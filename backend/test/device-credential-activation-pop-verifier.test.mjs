@@ -83,11 +83,8 @@ function fixture(overrides = {}) {
           if (id !== stored.challengeId) return null;
           return { challenge: stored, consumedAt };
         },
-        async consumeIfUnconsumed(id, at) {
-          consumeCalls++;
-          if (id !== stored.challengeId || consumedAt !== null) return false;
-          consumedAt = at;
-          return true;
+        async consumeIfUnconsumed() {
+          throw new Error('manufacturing verifier must use atomic M4 evidence store');
         },
       },
       pendingCredentials: {
@@ -98,6 +95,33 @@ function fixture(overrides = {}) {
             state: 'PENDING_PROOF',
             publicKeySec1: sec1PublicKey(),
           };
+        },
+      },
+      popEvidence: {
+        async consumeAndPersistVerifiedEvidence(input) {
+          consumeCalls++;
+          if (
+            input.challengeId !== stored.challengeId
+            || input.deviceId !== stored.deviceId
+            || input.credentialVersion !== stored.credentialVersion
+            || consumedAt !== null
+          ) {
+            return null;
+          }
+          consumedAt = input.consumedAt;
+          return {
+            receiptId: input.receiptId,
+            authority: 'SERVER_SIDE_POP_VERIFICATION_AUTHORITY',
+            deviceId: input.deviceId,
+            credentialVersion: input.credentialVersion,
+            challengeId: input.challengeId,
+            verificationResult: 'VERIFIED_AND_CONSUMED',
+            verifiedAt: input.verifiedAt,
+            consumedAt: input.consumedAt,
+          };
+        },
+        async findByReceiptId() {
+          return null;
         },
       },
       now: () => NOW,
@@ -197,14 +221,14 @@ test('invalid manufacturing signature authorizes nothing and does not consume', 
   assert.equal(f.consumeCalls, 0);
 });
 
-test('manufacturing verifier loses authority when atomic consume loses race', async () => {
+test('manufacturing verifier loses authority when atomic consume+receipt commit loses race', async () => {
   const f = fixture({
-    challenges: {
-      async findByChallengeId() {
-        return { challenge: challenge(), consumedAt: null };
+    popEvidence: {
+      async consumeAndPersistVerifiedEvidence() {
+        return null;
       },
-      async consumeIfUnconsumed() {
-        return false;
+      async findByReceiptId() {
+        return null;
       },
     },
   });
@@ -215,6 +239,27 @@ test('manufacturing verifier loses authority when atomic consume loses race', as
       f.deps,
     ),
     { ok: false, error: 'CHALLENGE_CONSUME_CONFLICT' },
+  );
+});
+
+test('manufacturing verifier cannot succeed when durable M4 persistence fails', async () => {
+  const f = fixture({
+    popEvidence: {
+      async consumeAndPersistVerifiedEvidence() {
+        throw new Error('database unavailable');
+      },
+      async findByReceiptId() {
+        return null;
+      },
+    },
+  });
+
+  assert.deepEqual(
+    await verifyDeviceCredentialActivationPopResponseV1(
+      signedResponse(f.stored),
+      f.deps,
+    ),
+    { ok: false, error: 'POP_EVIDENCE_STORE_FAILURE' },
   );
 });
 
