@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-auth-email-verification-v1",
-  "status": "RUNTIME_INTEGRATION_CANDIDATE / NEW_REGISTRATION_GATE_ACTIVE / LEGACY_ROLLOUT_OPEN",
+  "status": "RUNTIME_INTEGRATION_CANDIDATE / PREHIJACK_GUARD_IMPLEMENTED / NEW_REGISTRATION_GATE_ACTIVE / LEGACY_ROLLOUT_OPEN",
   "issue": 738,
   "parentIssue": 214,
   "decisions": {
@@ -17,7 +17,11 @@
     "newRegistrationVerificationRequired": true,
     "legacyAccountDisposition": "EMAIL_VERIFICATION_REQUIRED_AT_NULL / LOGIN_PRESERVED_PENDING_EXPLICIT_ROLLOUT",
     "verificationTokenUrlTransport": "FRAGMENT_ONLY",
-    "loginForNewUnverifiedAccount": "FORBIDDEN"
+    "loginForNewUnverifiedAccount": "FORBIDDEN",
+    "verificationRequiresPasswordSelection": true,
+    "preVerificationRegistrationPasswordBecomesPostVerificationAuthority": false,
+    "verificationPasswordUpdateAtomicWithTokenConsume": true,
+    "legacyAccountMayEnterVerificationFlowBeforeRollout": false
   },
   "delivery": {
     "provider": "RESEND_ADAPTER_IMPLEMENTED / PRODUCTION_CONFIGURATION_AND_DOMAIN_EVIDENCE_EXTERNAL",
@@ -35,6 +39,7 @@
     "resendRouteIntegrated": true,
     "deliveryProviderIntegrated": true,
     "newAccountLoginGateIntegrated": true,
-    "legacyAccountRolloutIntegrated": false
+    "legacyAccountRolloutIntegrated": false,
+    "preHijackGuardIntegrated": true
   }
 }
