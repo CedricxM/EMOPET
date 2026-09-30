@@ -128,6 +128,11 @@ namespace Emopet.World
 
         private static WorldBackendException ParseError(WorldHttpResponse response)
         {
+            // UnityWebRequest uses responseCode 0 when no HTTP response was obtained
+            // (for example connection/DNS/TLS transport failure). Keep client detail bounded.
+            if (response.StatusCode <= 0)
+                return new WorldBackendException(WorldErrorCode.Unavailable, response.StatusCode);
+
             var error = string.Empty;
             if (!string.IsNullOrEmpty(response.Body))
             {
