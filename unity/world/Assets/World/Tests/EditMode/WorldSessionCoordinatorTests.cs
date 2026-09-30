@@ -255,6 +255,26 @@ namespace Emopet.World.Tests
         }
 
         [Test]
+        public async Task HidePresenceGeneric503RemainsUncertain()
+        {
+            var http = new QueueHttp(
+                new WorldHttpResponse(200, BootstrapJson()),
+                new WorldHttpResponse(200, "{\"presence\":\"visible\",\"until\":123}"),
+                new WorldHttpResponse(503, "{\"error\":\"proxy unavailable\"}"));
+            var coordinator = Create(http);
+
+            await coordinator.ConnectAsync(CancellationToken.None);
+            await coordinator.ShowPresenceAsync(CancellationToken.None);
+            var error = Assert.ThrowsAsync<WorldBackendException>(() =>
+                coordinator.HidePresenceAsync(CancellationToken.None));
+
+            Assert.That(error.Code, Is.EqualTo(WorldErrorCode.Unavailable));
+            Assert.That(error.IsStructuredWorldError, Is.False);
+            Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Degraded));
+            Assert.That(coordinator.Handle, Is.EqualTo(Handle));
+        }
+
+        [Test]
         public async Task HidePresenceFailureStillClearsDeadServerHandle()
         {
             var http = new QueueHttp(
@@ -302,6 +322,24 @@ namespace Emopet.World.Tests
                 coordinator.DisconnectAsync(CancellationToken.None));
 
             Assert.That(error.Code, Is.EqualTo(WorldErrorCode.Unavailable));
+            Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Degraded));
+            Assert.That(coordinator.Handle, Is.EqualTo(Handle));
+        }
+
+        [Test]
+        public async Task DisconnectMiddleware401RemainsUncertain()
+        {
+            var http = new QueueHttp(
+                new WorldHttpResponse(200, BootstrapJson()),
+                new WorldHttpResponse(401, "{\"error\":\"Invalid or expired token\"}"));
+            var coordinator = Create(http);
+
+            await coordinator.ConnectAsync(CancellationToken.None);
+            var error = Assert.ThrowsAsync<WorldBackendException>(() =>
+                coordinator.DisconnectAsync(CancellationToken.None));
+
+            Assert.That(error.Code, Is.EqualTo(WorldErrorCode.InvalidSession));
+            Assert.That(error.IsStructuredWorldError, Is.False);
             Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Degraded));
             Assert.That(coordinator.Handle, Is.EqualTo(Handle));
         }
