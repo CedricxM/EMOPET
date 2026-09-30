@@ -15,7 +15,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "jose": "^6.0.0"
+    "jose": "^6.2.12"
   },
   "devDependencies": {
     "typescript": "^5.8.0"
