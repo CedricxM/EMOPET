@@ -65,20 +65,20 @@ export default function BreizConversation() {
       <div className="flex items-center gap-2 mb-6">
         <div className="w-8 h-8 rounded-full bg-[#E3EAE4] flex items-center justify-center">
           <span
-            className="text-[#1E9A90] text-xs font-bold"
+            className="text-[#4F6F53] text-xs font-bold"
             style={{ fontFamily: 'var(--font-body)' }}
           >
             B
           </span>
         </div>
         <span
-          className="text-[#1E9A90] text-sm font-semibold"
+          className="text-[#4F6F53] text-sm font-semibold"
           style={{ fontFamily: 'var(--font-body)' }}
         >
           Breiz
         </span>
         <span
-          className="text-[#6B7684] text-xs"
+          className="text-[#5A6570] text-xs"
           style={{ fontFamily: 'var(--font-body)' }}
         >
           · compagnon IA
@@ -118,7 +118,7 @@ export default function BreizConversation() {
 
       {/* Context note */}
       <p
-        className={`text-center text-[#6B7684] text-xs mt-8 italic transition-all duration-500 ${
+        className={`text-center text-[#5A6570] text-xs mt-8 italic transition-all duration-500 ${
           visibleMessages.length === conversation.length
             ? 'opacity-100'
             : 'opacity-0'
