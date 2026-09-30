@@ -6,6 +6,7 @@ const workflowPath = 'dynamic/github-code-scanning/codeql';
 const requiredJobs = [
   'Analyze (actions)',
   'Analyze (c-cpp)',
+  'Analyze (csharp)',
   'Analyze (javascript-typescript)',
   'Analyze (python)',
 ];
@@ -35,20 +36,52 @@ export function codeqlJobEvidenceState(jobs) {
   return 'ready';
 }
 
-export function requireCodeqlAnalysis(run, jobs, expectedSha) {
+export function requireCodeqlRunSuccess(run, jobs, expectedSha) {
   if (!run || run.path !== workflowPath || run.event !== 'dynamic' || run.head_sha !== expectedSha) {
     throw new Error('No GitHub-managed CodeQL run for the exact requested commit.');
   }
   if (run.status !== 'completed' || run.conclusion !== 'success') {
     throw new Error(`CodeQL run ${run.id} is ${run.status}/${run.conclusion}; successful analysis is required.`);
   }
-  if (jobs.some((job) => job.status !== 'completed' || job.conclusion !== 'success')) {
+  if (!Array.isArray(jobs) || jobs.some((job) => job.status !== 'completed' || job.conclusion !== 'success')) {
     throw new Error('Every CodeQL job must complete successfully.');
   }
   for (const name of requiredJobs) {
     const job = jobs.find((candidate) => candidate.name === name);
+    if (!job || job.status !== 'completed' || job.conclusion !== 'success') {
+      throw new Error(`Missing successful CodeQL job: ${name}.`);
+    }
+  }
+}
+
+export function requireCodeqlCheckRunEvidence(checkRuns) {
+  if (!Array.isArray(checkRuns)) throw new Error('CodeQL check-run inventory must be an array.');
+
+  for (const name of requiredJobs) {
+    const check = checkRuns.find((candidate) =>
+      candidate.name === name &&
+      candidate.app?.name === 'GitHub Actions'
+    );
+    if (!check || check.status !== 'completed' || check.conclusion !== 'success') {
+      throw new Error(`Missing successful exact-head CodeQL check-run: ${name}.`);
+    }
+  }
+
+  const aggregate = checkRuns.find((candidate) =>
+    candidate.name === 'CodeQL' &&
+    candidate.app?.name === 'GitHub Advanced Security'
+  );
+  if (!aggregate || aggregate.status !== 'completed' || aggregate.conclusion !== 'success') {
+    throw new Error('Missing successful GitHub Advanced Security CodeQL check.');
+  }
+}
+
+export function requireCodeqlAnalysis(run, jobs, expectedSha) {
+  requireCodeqlRunSuccess(run, jobs, expectedSha);
+  for (const name of requiredJobs) {
+    const job = jobs.find((candidate) => candidate.name === name);
     const analysis = job?.steps?.find((step) => step.name === 'Perform CodeQL Analysis');
-    if (!job || analysis?.status !== 'completed' || analysis.conclusion !== 'success') {
+    if (!analysis || analysis.status !== 'completed' || analysis.conclusion !== 'success') {
       throw new Error(`Missing successful analysis/upload step: ${name}.`);
     }
   }
@@ -159,13 +192,23 @@ async function main() {
         await delay(5_000);
         continue;
       }
-      if (jobState === 'failed') {
+
+      requireCodeqlRunSuccess(run, jobListing.jobs, expectedSha);
+      let evidenceSource = 'jobs-api-analysis-steps';
+      if (jobState === 'ready') {
         requireCodeqlAnalysis(run, jobListing.jobs, expectedSha);
+      } else {
+        // GitHub default setup can expose a completed successful job while its jobs API
+        // retains only post-steps (or no steps at all). In that case, fail closed unless
+        // the exact commit has successful language checks from GitHub Actions and the
+        // aggregate CodeQL check from GitHub Advanced Security.
+        const checkListing = await get(`commits/${expectedSha}/check-runs?per_page=100`);
+        requireCodeqlCheckRunEvidence(checkListing.check_runs);
+        evidenceSource = 'exact-head-check-runs';
       }
 
-      requireCodeqlAnalysis(run, jobListing.jobs, expectedSha);
       const confirmed = await get(`actions/runs/${run.id}`);
-      requireCodeqlAnalysis(confirmed, jobListing.jobs, expectedSha);
+      requireCodeqlRunSuccess(confirmed, jobListing.jobs, expectedSha);
       if (confirmed.run_attempt !== run.run_attempt) throw new Error('CodeQL attempt changed during verification.');
 
       const { alerts, target } = await listOpenCodeqlAlerts();
@@ -179,6 +222,7 @@ async function main() {
         runAttempt: run.run_attempt,
         url: `https://github.com/${repository}/actions/runs/${run.id}`,
         conclusion: run.conclusion,
+        evidenceSource,
         jobs: jobListing.jobs.map((job) => ({ id: job.id, name: job.name, conclusion: job.conclusion })),
         findings: {
           source: 'GitHub code-scanning alerts REST API',
