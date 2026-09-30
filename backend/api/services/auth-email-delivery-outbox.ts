@@ -155,7 +155,12 @@ async function claimNextDeliveryRequest(now: Date) {
         attemptCount: authEmailVerificationDeliveryRequests.attemptCount,
       });
 
-    return claimed?.email ? claimed : null;
+    if (!claimed?.email) return null;
+    return {
+      id: claimed.id,
+      email: claimed.email,
+      attemptCount: claimed.attemptCount,
+    };
   });
 }
 
@@ -220,10 +225,7 @@ async function recordDeliveryFailure(
   }
 
   const delaySeconds =
-    EMAIL_VERIFICATION_DELIVERY_RETRY_SECONDS[attemptCount - 1]
-    ?? EMAIL_VERIFICATION_DELIVERY_RETRY_SECONDS[
-      EMAIL_VERIFICATION_DELIVERY_RETRY_SECONDS.length - 1
-    ];
+    EMAIL_VERIFICATION_DELIVERY_RETRY_SECONDS[attemptCount - 1] ?? 1800;
 
   await db
     .update(authEmailVerificationDeliveryRequests)
