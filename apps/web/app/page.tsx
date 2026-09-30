@@ -472,7 +472,7 @@ export default function HomePage() {
             </div>
 
             <p
-              className={`text-center ${CLINICAL_BOUNDARY} text-xs mt-6`}
+              className="text-center text-[#6B7684] text-xs mt-6"
               style={{ fontFamily: 'var(--font-body)' }}
             >
               Pas de score de compatibilité. Pas de localisation précise.
