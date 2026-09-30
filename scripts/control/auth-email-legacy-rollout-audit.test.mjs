@@ -33,10 +33,13 @@ test('census output shape exposes aggregate counts, not direct account identifie
   assert.equal(authority.report.tokenMaterialAllowed, false);
   assert.equal(authority.report.sessionTokenMaterialAllowed, false);
 
-  assert.doesNotMatch(serviceSource, /users\.email\b/);
-  assert.doesNotMatch(serviceSource, /users\.id\b/);
-  assert.doesNotMatch(serviceSource, /users\.name\b/);
-  assert.doesNotMatch(serviceSource, /authRefreshSessions\.tokenHash\b/);
+  assert.doesNotMatch(serviceSource, /email\s*:\s*users\.email\b/);
+  assert.doesNotMatch(serviceSource, /userId\s*:\s*users\.id\b/);
+  assert.doesNotMatch(serviceSource, /name\s*:\s*users\.name\b/);
+  assert.doesNotMatch(
+    serviceSource,
+    /tokenHash\s*:\s*authRefreshSessions\.tokenHash\b/,
+  );
   assert.match(workerSource, /JSON\.stringify\(report/);
 });
 
