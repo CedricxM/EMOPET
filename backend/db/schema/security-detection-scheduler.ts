@@ -16,6 +16,9 @@ export const securityDetectionSchedulerState = pgTable(
   'security_detection_scheduler_state',
   {
     streamId: varchar('stream_id', { length: 64 }).primaryKey(),
+    monitoringStartedAt: timestamp('monitoring_started_at', {
+      withTimezone: true,
+    }).notNull(),
     lastSuccessfulWindowEnd: timestamp('last_successful_window_end', {
       withTimezone: true,
     }).notNull(),
@@ -30,7 +33,8 @@ export const securityDetectionSchedulerState = pgTable(
     ),
     check(
       'chk_security_detection_scheduler_state_time_order',
-      sql`${table.updatedAt} >= ${table.lastSuccessfulWindowEnd}`,
+      sql`${table.monitoringStartedAt} <= ${table.lastSuccessfulWindowEnd}
+        AND ${table.updatedAt} >= ${table.lastSuccessfulWindowEnd}`,
     ),
   ],
 );
