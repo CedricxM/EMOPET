@@ -13,6 +13,7 @@ const [
   validatorsSource,
   activationTransactionSource,
   activationReceiptMigrationSource,
+  activationEvidenceResolverSource,
 ] = await Promise.all([
     readFile(new URL('../../config/security/device-credential-activation-v1.json', import.meta.url), 'utf8'),
     readFile(new URL('../../config/security/psa-key-id-registry-v1.json', import.meta.url), 'utf8'),
