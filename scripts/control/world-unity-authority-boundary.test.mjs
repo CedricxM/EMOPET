@@ -101,6 +101,19 @@ test('Unity fails closed on malformed successful World payloads', async () => {
   );
 });
 
+test('Unity maps middleware auth/service status fallbacks to bounded World errors', async () => {
+  const client = await read('Assets/World/Transport/WorldBackendClient.cs');
+
+  assert.match(
+    client,
+    /401 => WorldErrorCode\.InvalidSession/,
+  );
+  assert.match(
+    client,
+    /503 => WorldErrorCode\.Unavailable/,
+  );
+});
+
 test('Unity maps no-response transport failures to bounded unavailable state', async () => {
   const client = await read('Assets/World/Transport/WorldBackendClient.cs');
   const coordinator = await read('Assets/World/Session/WorldSessionCoordinator.cs');
