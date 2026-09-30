@@ -58,6 +58,45 @@ export function formatDateLocale(iso: string, locale: Locale, opts?: Intl.DateTi
 }
 
 /** Détection initiale : préférence sauvegardée → langue navigateur → défaut. */
+/**
+ * Choix de la langue du point de vue du SERVEUR, à partir de ce dont il dispose :
+ * un cookie posé par un choix explicite, puis l'en-tête `Accept-Language`.
+ *
+ * Pure et sans dépendance à Next : c'est ce qui la rend testable, et c'est la même
+ * fonction qui décide côté serveur et côté client, pour qu'ils ne puissent pas
+ * diverger — la divergence étant précisément le défaut corrigé ici.
+ *
+ * `Accept-Language` est lu dans l'ordre de préférence déclaré, avec ses facteurs
+ * de qualité : `fr;q=0.9, en;q=1.0` doit donner `en`, pas `fr`.
+ */
+export function resolveLocale(
+  cookieValue: string | null | undefined,
+  acceptLanguage: string | null | undefined,
+): Locale {
+  if (isLocale(cookieValue)) return cookieValue;
+
+  if (acceptLanguage) {
+    const ranked = acceptLanguage
+      .split(',')
+      .map((part) => {
+        const [tag = '', ...params] = part.trim().split(';');
+        const qParam = params.find((p) => p.trim().startsWith('q='));
+        const q = qParam ? Number.parseFloat(qParam.trim().slice(2)) : 1;
+        return { tag: tag.trim().toLowerCase(), q: Number.isFinite(q) ? q : 0 };
+      })
+      .filter((entry) => entry.tag.length > 0 && entry.q > 0)
+      .sort((a, b) => b.q - a.q);
+
+    for (const { tag } of ranked) {
+      if (tag === '*') break; // « n'importe laquelle » : on retombe sur le défaut
+      const base = tag.slice(0, 2);
+      if (isLocale(base)) return base;
+    }
+  }
+
+  return DEFAULT_LOCALE;
+}
+
 export function detectLocale(saved: string | null | undefined, navLang: string | null | undefined): Locale {
   if (isLocale(saved)) return saved;
   if (navLang && navLang.slice(0, 2).toLowerCase() === 'en') return 'en';
