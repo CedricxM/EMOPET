@@ -92,10 +92,12 @@ Routes under `/api/world-spike` all require `Authorization: Bearer <EMOPET acces
 
 Reports (#594): `{kind: "world_user", targetUserId, reason, details?}` or
 `{kind: "world_message", senderId, messageId, reason, details?}` where `senderId`/`messageId`
-come from a received chat event. `reason` is one of `spam|harassment|illegal|unsafe|other`;
-`details` ≤ 500 characters. The server resolves the Nakama sender to the canonical person;
-an unknown sender or self-report is 400. Reporting works across blocks. Only the message
-id is stored, never its content. Mounting needs the canonical database (`community_reports`).
+come from a chat event actually delivered to that verified session. `reason` is one of
+`spam|harassment|illegal|unsafe|other`; `details` ≤ 500 characters. The server keeps only a
+bounded in-memory attribution receipt (max 100 message ids, no message content) and resolves the
+Nakama sender to the canonical person. Fabricated/unseen messages, unknown senders and
+self-reports are 400. Reporting remains possible across a later block. Mounting needs the
+canonical database (`community_reports`).
 
 Commands: `friends.list` (canonical connections, #595: people connect through
 `/api/connections`, never through World);
@@ -147,7 +149,8 @@ Decision #48 L6 B sets a minimal footprint. Real users stay blocked until #478 s
   runtime RPC `emopet_delete_account`, which is server-to-server only (runtime HTTP key), takes
   a strict payload and is not allowlist-gated, so a person already removed from the projection
   can still be erased. The RPC deletes the account without a tombstone. The adapter also forgets
-  the transport-id mapping, so the person can no longer be reported through an old transport id.
+  the transport-id mapping and clears live-session report-attribution receipts for that person,
+  so the erased account can no longer be reported through an old transport id/message receipt.
   Canonical account deletion does not exist yet; when built, it must call `revokeActor` with that
   reason.
 - **A failed purge is not retried.** It is logged without identifiers. Until the canonical

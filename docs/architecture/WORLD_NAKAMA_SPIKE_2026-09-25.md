@@ -79,7 +79,7 @@ groups. Since #595 the canonical block also dissolves the connection itself.
 ### Pilot access, revocation and presets (#596, decisions #48 L1, L7, L4)
 
 - **L1 pilot access.** The synthetic-UUID env allowlist is gone from the backend. Canonical
-  `world_pilot_access` (migration 0026, canonical PR for #596) holds invited adult testers: no
+  `world_pilot_access` (migration 0029, canonical PR for #596) holds invited adult testers: no
   grant without a prior self-declared adulthood timestamp, revocation keeps the row. Eligible =
   account exists + unrevoked grant + a live login (unrevoked, unexpired refresh session), read
   through the `WorldAccessPolicy` port at bootstrap and on every request, for the actor and for
@@ -101,7 +101,7 @@ real users stay blocked until #478 signs the World transport-metadata line (L6).
 
 Trust-ladder transitions were decided by the founder on #595 (issuecomment-5866924308).
 
-- **L3 connections.** Canonical `social_connections` (migration 0027, canonical PR for #595):
+- **L3 connections.** Canonical `social_connections` (migration 0030, canonical PR for #595):
   - request + acceptance;
   - silent decline that only the decliner can reopen;
   - one-action removal;
@@ -152,12 +152,16 @@ it is signed.
 ### World reports (#594)
 
 `POST /sessions/:handle/reports` files `world_user` or `world_message` reports into the
-canonical moderation queue (`community_reports`, migration 0025 in PR #636), so they share
+canonical moderation queue (`community_reports`, World intake migration 0028 in PR #636), so they share
 the moderation-evidence retention clock and the approved reporter DETACH (#446). The adapter
-resolves the reported person from the verified session: a participant met in World, or the
-**Nakama sender id of a received message translated to its canonical id** (unknown senders
-and self-reports are refused). Only the message id is stored, never its content (L6).
-Reporting deliberately works across blocks. Without a wired sink the route returns 503
+resolves the reported person from the verified session only after an encounter has actually
+been delivered to that session. For `world_user`, the canonical target must be in the session's
+delivered encounter set. For `world_message`, the exact `messageId + Nakama sender id` pair must
+match a bounded in-memory delivery receipt; the sender is then translated to its canonical id.
+The receipt ledger keeps at most 100 message ids, carries across handle renewal, stores no message
+content, and is scrubbed on session close/account erasure. Unknown/fabricated senders, unseen
+messages and self-reports are refused. Only the message id enters the moderation queue (L6).
+Reporting deliberately works across blocks after the encounter was delivered. Without a wired sink the route returns 503
 rather than pretending to file. On erasure of the reported person's account, their id is
 detached (`ON DELETE SET NULL`) and the report kept only within the moderation-evidence
 window (founder decision D5 on #594, mirroring reporter D4 #446).
@@ -208,7 +212,7 @@ sequenceDiagram
   H->>N: status_follow / status_update
   C->>H: Join group chat
   H->>N: channel_join, group type, persistence=false
-  C->>H: Send synthetic text to joined group
+  C->>H: Send preset-only synthetic message to joined group
   H->>N: channel_message_send
   N-->>H: Presence and chat events
   H->>H: Bound queue to 100; mark overflow
@@ -356,8 +360,8 @@ the canonical auth middleware is out of scope. After fixes: `pnpm --filter @emop
 test` 395 tests, 360 passed, 35 skipped, 0 failed; spike suites 22 passed; live harness
 (with outage) passed after `up -d --force-recreate --wait nakama` to reload the runtime.
 
-**Block enforcement (#594, same day).** The branch is stacked on PR #636 (canonical
-`user_blocks`). The live harness now blocks A→B on the real Nakama and checks that B's
+**Block enforcement (#594, same day).** The current branch is stacked on PR #695, transitively after
+#693 and #636 (canonical `user_blocks`). The live harness now blocks A→B on the real Nakama and checks that B's
 friend request returns `404 unreachable`, that B's group message is filtered from A's events
 while A's own marker message arrives, that B is hidden from A's friend list, and that
 unblocking restores visibility. The full live run (with outage/recovery) passed in ~12.6 s.

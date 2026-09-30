@@ -373,8 +373,8 @@ test('World wires the canonical block repository by default and maps unreachable
   assert.equal(BLOCK_ENFORCEMENT.community, 'ENFORCED');
 });
 
-test('World reports resolve the subject server-side and ignore client identity claims', async t => {
-  const { adapter, exp, block } = setup(t);
+test('World reports resolve only people and messages delivered to the verified session', async t => {
+  const { adapter, connections, exp, block } = setup(t);
   const filed = [];
   const sink = { async create(input) { filed.push(input); return { id: 'r1', kind: input.kind, status: 'open', createdAt: new Date(0) }; } };
   const app = createWorldSpikeRoutes(adapter, sink);
@@ -382,10 +382,17 @@ test('World reports resolve the subject server-side and ignore client identity c
   await adapter.bootstrap(B, exp);
   const post = async (body, actor = A, handle = a.handle) => app.request(`/sessions/${handle}/reports`, { method: 'POST',
     headers: { Authorization: `Bearer ${await signAccessToken(actor)}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-  block(A, B);
-  // Reporting stays possible across a block, for a user and for a received message.
-  assert.equal((await post({ kind: 'world_user', targetUserId: B, reason: 'harassment' })).status, 201);
   const MESSAGE = '44444444-4444-4444-8444-444444444444';
+  const OTHER_MESSAGE = '55555555-5555-4555-8555-555555555555';
+  // Merely existing in the same process is not enough.
+  assert.equal((await post({ kind: 'world_user', targetUserId: B, reason: 'harassment' })).status, 400);
+  assert.equal((await post({ kind: 'world_message', senderId: B, messageId: MESSAGE, reason: 'spam' })).status, 400);
+  // A receives this exact message; only then does server-side attribution become reportable.
+  connections[0].event({ type: 'chat', value: { channelId: 'g', senderId: B, messageId: MESSAGE, content: { preset: 'merci' } } });
+  assert.equal((await adapter.events(A, a.handle)).events.length, 1);
+  block(A, B);
+  // Reporting remains possible after a block because the encounter receipt predates it.
+  assert.equal((await post({ kind: 'world_user', targetUserId: B, reason: 'harassment' })).status, 201);
   assert.equal((await post({ kind: 'world_message', senderId: B, messageId: MESSAGE, reason: 'spam', details: 'x' })).status, 201);
   assert.deepEqual(filed, [
     { reporterUserId: A, subjectUserId: B, kind: 'world_user', reason: 'harassment' },
@@ -396,6 +403,7 @@ test('World reports resolve the subject server-side and ignore client identity c
     { kind: 'world_user', targetUserId: B, reason: 'spam', reporterUserId: B },
     { kind: 'world_user', targetUserId: B, reason: 'not-a-reason' },
     { kind: 'world_message', senderId: 'unknown-transport-id', messageId: MESSAGE, reason: 'spam' },
+    { kind: 'world_message', senderId: B, messageId: OTHER_MESSAGE, reason: 'spam' },
     { kind: 'world_message', senderId: B, messageId: 'nope', reason: 'spam' },
     { kind: 'post', contentId: MESSAGE, reason: 'spam' },
   ]) assert.equal((await post(bad)).status, 400, JSON.stringify(bad));
@@ -412,7 +420,7 @@ test('World reports resolve the subject server-side and ignore client identity c
 test('World wires the canonical moderation queue for reports by default', () => {
   const route = readFileSync(new URL('../api/routes/world-spike.ts', import.meta.url), 'utf8');
   assert.match(route, /reports: WorldReportSink = drizzleWorldReportSink\(\)/);
-  assert.match(route, /return createWorldSpikeRoutes\(adapter, reports, \{ freeText: env\['WORLD_SPIKE_FREE_TEXT'\] === 'true' \}\)/);
+  assert.match(route, /return createWorldSpikeRoutes\(adapter, reports, \{ freeText \}\)/);
 });
 
 // WORLD-SOCIAL-03 (#596): canonical pilot access, immediate revocation, presets only.
@@ -488,8 +496,8 @@ test('the preset list is the #46 Quiet Social Layer first slice, labels only for
   assert.deepEqual(Object.values(WORLD_PRESETS), ['Salut', 'Par ici', 'J’ai trouvé quelque chose', 'Prêt·e', 'Attends',
     'Bien joué', 'Merci', 'Je quitte', 'Pas maintenant']);
 });
-test('World reports name only people met in World', async t => {
-  const { adapter, exp } = setup(t);
+test('World user reports require an encounter actually delivered to this session', async t => {
+  const { adapter, connections, exp } = setup(t);
   const sink = { async create(input) { return { id: 'r1', kind: input.kind, status: 'open', createdAt: new Date(0) }; } };
   const app = createWorldSpikeRoutes(adapter, sink);
   const a = await adapter.bootstrap(A, exp);
@@ -498,8 +506,12 @@ test('World reports name only people met in World', async t => {
     body: JSON.stringify({ kind: 'world_user', targetUserId, reason: 'spam' }) });
   assert.equal((await report(B)).status, 400, 'never seen in World');
   const b = await adapter.bootstrap(B, exp);
+  assert.equal((await report(B)).status, 400, 'bootstrap alone is not an encounter');
+  connections[0].event({ type: 'chat', value: { channelId: 'g', senderId: B,
+    messageId: '66666666-6666-4666-8666-666666666666', content: { preset: 'salut' } } });
+  await adapter.events(A, a.handle);
   adapter.disconnect(B, b.handle);
-  assert.equal((await report(B)).status, 201, 'met, even after leaving');
+  assert.equal((await report(B)).status, 201, 'a delivered encounter remains reportable after leaving');
 });
 test('the configured spike subscribes the adapter to canonical revocation', () => {
   const route = readFileSync(new URL('../api/routes/world-spike.ts', import.meta.url), 'utf8');
@@ -624,20 +636,26 @@ test('the configured spike wires the canonical connections and consent', () => {
 });
 
 // #48 L6: account erasure deletes the Nakama account; nothing else of the person stays in Nakama.
-test('purging an account closes its sessions, deletes the Nakama account and forgets the mapping', async t => {
+test('purging an account closes sessions and deletes its report-attribution receipts', async t => {
   const { adapter, connections, transport, exp } = setup(t);
   const a = await adapter.bootstrap(A, exp);
   const b = await adapter.bootstrap(B, exp);
+  const MESSAGE = '44444444-4444-4444-8444-444444444444';
+  connections[0].event({ type: 'chat', value: { channelId: 'g', senderId: B, messageId: MESSAGE, content: { preset: 'merci' } } });
+  await adapter.events(A, a.handle);
+  const filed = [];
+  const sink = { async create(input) { filed.push(input); return { id: 'r1', kind: input.kind, status: 'open', createdAt: new Date(0) }; } };
+  const app = createWorldSpikeRoutes(adapter, sink);
+  const report = () => app.request(`/sessions/${a.handle}/reports`, { method: 'POST',
+    headers: { Authorization: `Bearer ${await signAccessToken(A)}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ kind: 'world_message', senderId: B, messageId: MESSAGE, reason: 'spam' }) });
+  assert.equal((await report()).status, 201, 'delivered message is reportable before erasure');
   assert.equal(await adapter.purgeTransportAccount(B.toUpperCase()), true);
   assert.deepEqual(transport.deleted, [customIdentity(B)]);
   assert.equal(connections[1].closed, true);
   await assert.rejects(adapter.events(B, b.handle), /invalid_session/);
-  const sink = { async create() { throw new Error('must not be filed'); } };
-  const app = createWorldSpikeRoutes(adapter, sink);
-  const response = await app.request(`/sessions/${a.handle}/reports`, { method: 'POST',
-    headers: { Authorization: `Bearer ${await signAccessToken(A)}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ kind: 'world_message', senderId: B, messageId: '44444444-4444-4444-8444-444444444444', reason: 'spam' }) });
-  assert.equal(response.status, 400, 'an erased person is no longer attributable from a transport id');
+  assert.equal((await report()).status, 400, 'erasure removes the in-memory attribution receipt');
+  assert.equal(filed.length, 1);
 });
 test('purging someone without a Nakama account reports false', async t => {
   const { adapter } = setup(t, { noAccount: true });

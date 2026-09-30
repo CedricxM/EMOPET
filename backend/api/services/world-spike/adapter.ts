@@ -9,10 +9,13 @@ export function customIdentity(userId: string): string {
   if (!isCanonicalUserId(userId)) throw new WorldError('forbidden');
   return `emopet:world-spike:v1:${userId.toLowerCase()}`;
 }
+type MessageReceipt = { senderId: string; subject: string };
 type Entry = {
   actor: string; connection?: WorldConnection; events: unknown[]; overflow: boolean;
   degraded: boolean; busy: boolean; expiresAt: number; timer?: ReturnType<typeof setTimeout>;
   restore: Map<string, WorldTransportCommand>; deactivate: () => void;
+  /** People/events actually delivered to this session, for server-side report attribution. */
+  seenActors: Set<string>; seenMessages: Map<string, MessageReceipt>;
   /** Presence opt-in for this World session (#48 L2); every new session starts invisible. */
   presence: boolean;
 };
@@ -90,6 +93,13 @@ export class WorldRealtimeAdapter {
     this.revokeActor(actor);
     const deleted = await this.deadline(signal => this.transport.deleteAccount(customIdentity(actor), signal));
     for (const [transportId, canonical] of this.transportActors) if (canonical === actor) this.transportActors.delete(transportId);
+    // Forget report-attribution receipts for the erased person in every remaining live session.
+    for (const entry of this.sessions.values()) {
+      entry.seenActors.delete(actor);
+      for (const [messageId, receipt] of entry.seenMessages) {
+        if (receipt.subject === actor) entry.seenMessages.delete(messageId);
+      }
+    }
     return deleted;
   }
   /** A session of a person who is still eligible; otherwise it is closed and refused. */
@@ -110,7 +120,10 @@ export class WorldRealtimeAdapter {
   private drop(handle: string) {
     const entry = this.sessions.get(handle);
     this.sessions.delete(handle);
-    if (entry) { entry.deactivate(); clearTimeout(entry.timer); entry.connection?.close(); entry.events.length = 0; }
+    if (entry) {
+      entry.deactivate(); clearTimeout(entry.timer); entry.connection?.close(); entry.events.length = 0;
+      entry.seenActors.clear(); entry.seenMessages.clear();
+    }
   }
   private async deadline<T>(run: (signal: AbortSignal) => Promise<T>): Promise<T> {
     const controller = new AbortController();
@@ -132,6 +145,8 @@ export class WorldRealtimeAdapter {
     if (previous?.busy) throw new WorldError('busy');
     this.opening.add(actor);
     const restore = new Map(previous?.restore);
+    const seenActors = new Set(previous?.seenActors);
+    const seenMessages = new Map(previous?.seenMessages);
     const generation = this.generations.get(actor) ?? 0;
     try {
       // Canonical pilot access and a live login, re-read now: an access JWT alone is not enough.
@@ -143,7 +158,8 @@ export class WorldRealtimeAdapter {
         const handle = randomUUID();
         let active = true;
         const entry: Entry = { actor, events: [], overflow: false, degraded: false, busy: false,
-          expiresAt: authExpiresAt, restore, deactivate: () => { active = false; }, presence: false };
+          expiresAt: authExpiresAt, restore, seenActors, seenMessages,
+          deactivate: () => { active = false; }, presence: false };
         try {
           entry.connection = await this.deadline(async signal => {
             const connection = await this.transport.connect(customIdentity(actor), signal, event => {
@@ -243,18 +259,33 @@ export class WorldRealtimeAdapter {
   private async visibleEvents(entry: Entry, events: unknown[]): Promise<unknown[]> {
     const visible = this.visibility(entry.actor, entry.connection?.userId ?? '');
     const presence = this.presenceVisibility(entry.actor, entry.connection?.userId ?? '');
+    // Stage report-attribution receipts and commit them only if the whole batch is safe to return.
+    const seenActors = new Set<string>();
+    const seenMessages: Array<[string, MessageReceipt]> = [];
     const people = async (list: unknown, arrival: boolean) => {
       const rows = Array.isArray(list) ? list as { user_id?: unknown; status?: unknown }[] : [];
       const keep = await Promise.all(rows.map(row => presence(row?.user_id, arrival)));
-      return rows.filter((_, index) => keep[index]).map(presenceRow);
+      return rows.filter((row, index) => {
+        if (!keep[index]) return false;
+        if (typeof row.user_id === 'string') {
+          const subject = this.transportActors.get(row.user_id);
+          if (subject) seenActors.add(subject);
+        }
+        return true;
+      }).map(presenceRow);
     };
     const out: unknown[] = [];
     for (const event of events as { type?: unknown; value?: Record<string, unknown> }[]) {
       if (event?.type === 'chat' && event.value) {
+        const senderId = event.value['senderId'];
+        const messageId = event.value['messageId'];
         const content = chatContent(event.value['content'], this.options.freeText === true);
-        if (content && await visible(event.value['senderId'])) {
-          out.push({ type: 'chat', value: { channelId: event.value['channelId'], senderId: event.value['senderId'],
-            messageId: event.value['messageId'], content } });
+        const subject = typeof senderId === 'string' ? this.transportActors.get(senderId) : undefined;
+        if (content && subject && typeof messageId === 'string' && isCanonicalUserId(messageId)
+          && await visible(senderId)) {
+          seenActors.add(subject);
+          seenMessages.push([messageId.toLowerCase(), { senderId, subject }]);
+          out.push({ type: 'chat', value: { channelId: event.value['channelId'], senderId, messageId, content } });
         }
       } else if ((event?.type === 'presence' || event?.type === 'channel-presence') && event.value) {
         const joins = await people(event.value['joins'], true);
@@ -263,6 +294,16 @@ export class WorldRealtimeAdapter {
         if (joins.length || leaves.length) out.push({ type: event.type, value: { joins, leaves } });
       }
       // Any other event shape is dropped: only known, checkable events reach the client.
+    }
+    for (const actor of seenActors) entry.seenActors.add(actor);
+    for (const [messageId, receipt] of seenMessages) {
+      entry.seenMessages.delete(messageId);
+      entry.seenMessages.set(messageId, receipt);
+      while (entry.seenMessages.size > 100) {
+        const oldest = entry.seenMessages.keys().next().value;
+        if (typeof oldest !== 'string') break;
+        entry.seenMessages.delete(oldest);
+      }
     }
     return out;
   }
@@ -329,13 +370,17 @@ export class WorldRealtimeAdapter {
    * blocked them), or who has just left.
    */
   async reportSubject(userId: string, handle: string, report: { kind: 'world_user'; targetUserId: string }
-    | { kind: 'world_message'; senderId: string }): Promise<{ reporter: string; subject: string }> {
+    | { kind: 'world_message'; senderId: string; messageId: string }): Promise<{ reporter: string; subject: string }> {
     const entry = await this.live(userId, handle);
-    const met = new Set(this.transportActors.values());
-    const subject = report.kind === 'world_user'
-      ? (met.has(this.actor(report.targetUserId)) ? this.actor(report.targetUserId) : undefined)
-      : this.transportActors.get(report.senderId);
-    // An unknown sender cannot be attributed to a canonical person: refuse rather than guess.
+    let subject: string | undefined;
+    if (report.kind === 'world_user') {
+      const target = this.actor(report.targetUserId);
+      subject = entry.seenActors.has(target) ? target : undefined;
+    } else {
+      const receipt = entry.seenMessages.get(report.messageId.toLowerCase());
+      subject = receipt?.senderId === report.senderId ? receipt.subject : undefined;
+    }
+    // Reports name only people/events actually delivered to this verified session.
     if (!subject || subject === entry.actor) throw new WorldError('invalid_request');
     return { reporter: entry.actor, subject };
   }
