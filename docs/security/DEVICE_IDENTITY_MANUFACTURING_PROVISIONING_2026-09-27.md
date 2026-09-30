@@ -112,6 +112,35 @@ Required:
 - complete fresh proof;
 - update binding only through server authority.
 
+## M4/M5 evidence handoff to M6
+
+The future activation service must **not** accept free-form proof/debug results from
+an API caller.
+
+The shared contract `DeviceCredentialActivationEvidenceRefsV1` carries only
+server-side references binding:
+- canonical device id;
+- pending credential version;
+- consumed/verified PoP receipt + challenge id;
+- final debug/APPROTECT-state receipt;
+- representative target-evidence receipt;
+- firmware/hardware/bootstrap provenance;
+- optional predecessor credential version for rotation.
+
+M6 must resolve and verify those referenced records from controlled stores before
+any mutation.
+
+After a successful initial activation or atomic rotation cutover, M6 will create
+a `DeviceCredentialActivationReceiptV1` server-side receipt binding the
+transaction result back to those evidence references.
+
+That receipt explicitly keeps:
+- `deviceDataTrustAuthorized = false`;
+- `networkTelemetryPersistenceAuthorized = false`.
+
+The data contracts do not implement M6 and do not satisfy the missing target
+evidence by themselves.
+
 ## Receipt fields required
 
 Every completed provisioning receipt must eventually include:

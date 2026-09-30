@@ -570,3 +570,120 @@ export const DevicePopResponseV1Schema = z.object({
   signatureFormat: z.literal('ECDSA_P256_SHA256_P1363_64'),
   signature: Base64UrlNoPaddingSchema.length(86),
 }).strict();
+
+
+// ── Device Trust activation evidence / receipt contract ─────────
+
+export const DeviceCredentialActivationEvidenceRefsV1Schema = z.object({
+  schemaVersion: z.literal('device-credential-activation-evidence-refs-v1'),
+  protocolVersion: z.literal(1),
+  deviceId: z.string().uuid(),
+  pendingCredentialVersion: z.number().int().positive().max(0xffffffff),
+  popVerificationReceiptId: z.string().uuid(),
+  popChallengeId: z.string().uuid(),
+  debugStateReceiptId: z.string().uuid(),
+  targetEvidenceReceiptId: z.string().uuid(),
+  firmwareVersion: z.string().trim().min(1).max(128),
+  hardwareRevision: z.string().trim().min(1).max(128),
+  bootstrapRevision: z.string().trim().min(1).max(128),
+  predecessorCredentialVersion: z.number().int().positive().max(0xffffffff).nullable(),
+  authority: z.literal('SERVER_SIDE_MANUFACTURING_EVIDENCE_AUTHORITY'),
+  recordedAt: z.string().datetime(),
+}).strict().superRefine((value, ctx) => {
+  if (value.predecessorCredentialVersion === value.pendingCredentialVersion) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['predecessorCredentialVersion'],
+      message: 'predecessor credential must differ from pending credential',
+    });
+  }
+});
+
+export const DeviceCredentialActivationReceiptV1Schema = z.object({
+  schemaVersion: z.literal('device-credential-activation-receipt-v1'),
+  protocolVersion: z.literal(1),
+  activationId: z.string().uuid(),
+  deviceId: z.string().uuid(),
+  credentialVersion: z.number().int().positive().max(0xffffffff),
+  predecessorCredentialVersion: z.number().int().positive().max(0xffffffff).nullable(),
+  cutoverType: z.enum(['INITIAL', 'ROTATION']),
+  evidenceRefs: DeviceCredentialActivationEvidenceRefsV1Schema,
+  resultingCredentialState: z.literal('ACTIVE'),
+  predecessorResultingState: z.enum(['NONE', 'REVOKED_PENDING_ERASE']),
+  activatedAt: z.string().datetime(),
+  deviceDataTrustAuthorized: z.literal(false),
+  networkTelemetryPersistenceAuthorized: z.literal(false),
+}).strict().superRefine((value, ctx) => {
+  if (value.evidenceRefs.deviceId !== value.deviceId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['evidenceRefs', 'deviceId'],
+      message: 'evidence deviceId must match activation deviceId',
+    });
+  }
+
+  if (value.evidenceRefs.pendingCredentialVersion !== value.credentialVersion) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['evidenceRefs', 'pendingCredentialVersion'],
+      message: 'evidence credential version must match activated credential',
+    });
+  }
+
+  if (
+    value.evidenceRefs.predecessorCredentialVersion
+    !== value.predecessorCredentialVersion
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['evidenceRefs', 'predecessorCredentialVersion'],
+      message: 'evidence predecessor must match activation predecessor',
+    });
+  }
+
+  if (value.cutoverType === 'INITIAL') {
+    if (value.predecessorCredentialVersion !== null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['predecessorCredentialVersion'],
+        message: 'INITIAL activation must not name a predecessor',
+      });
+    }
+    if (value.predecessorResultingState !== 'NONE') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['predecessorResultingState'],
+        message: 'INITIAL activation requires predecessor state NONE',
+      });
+    }
+  } else {
+    if (value.predecessorCredentialVersion === null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['predecessorCredentialVersion'],
+        message: 'ROTATION requires a predecessor credential',
+      });
+    }
+    if (value.predecessorResultingState !== 'REVOKED_PENDING_ERASE') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['predecessorResultingState'],
+        message: 'ROTATION must retire predecessor as REVOKED_PENDING_ERASE',
+      });
+    }
+  }
+
+  const recordedAt = Date.parse(value.evidenceRefs.recordedAt);
+  const activatedAt = Date.parse(value.activatedAt);
+  if (
+    Number.isFinite(recordedAt)
+    && Number.isFinite(activatedAt)
+    && activatedAt < recordedAt
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['activatedAt'],
+      message: 'activation cannot precede controlled evidence recording',
+    });
+  }
+});
