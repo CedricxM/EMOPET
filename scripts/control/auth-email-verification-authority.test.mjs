@@ -28,6 +28,13 @@ test('#738 core authority fixes TTL, cooldown and no-session verification policy
   assert.equal(authority.decisions.verificationIssuesSession, false);
   assert.equal(authority.decisions.postVerificationSessionPolicy, 'REQUIRE_NORMAL_LOGIN');
   assert.equal(authority.decisions.normalSessionBeforeVerification, 'FORBIDDEN');
+  assert.equal(authority.decisions.verificationRequiresPasswordSelection, true);
+  assert.equal(
+    authority.decisions.preVerificationRegistrationPasswordBecomesPostVerificationAuthority,
+    false,
+  );
+  assert.equal(authority.decisions.verificationPasswordUpdateAtomicWithTokenConsume, true);
+  assert.equal(authority.decisions.legacyAccountMayEnterVerificationFlowBeforeRollout, false);
 });
 
 test('raw verification material is not durable authority', () => {
@@ -46,6 +53,7 @@ test('registration runtime is integrated without issuing a pre-verification sess
   assert.equal(authority.runtime.resendRouteIntegrated, true);
   assert.equal(authority.runtime.deliveryProviderIntegrated, true);
   assert.equal(authority.runtime.newAccountLoginGateIntegrated, true);
+  assert.equal(authority.runtime.preHijackGuardIntegrated, true);
   assert.equal(authority.runtime.legacyAccountRolloutIntegrated, false);
 
   assert.equal(authority.decisions.genericRegistrationAcknowledgement, '202_ACCEPTED_CONSTANT_BODY');
@@ -64,10 +72,22 @@ test('registration runtime is integrated without issuing a pre-verification sess
   assert.doesNotMatch(registerBlock, /signAccessToken/);
 
   assert.match(authRouteSource, /'\/verify-email'/);
-  assert.match(authRouteSource, /consumeEmailVerificationToken/);
+  assert.match(authRouteSource, /const \{ token, password \} = c\.req\.valid\('json'\)/);
+  assert.match(authRouteSource, /consumeEmailVerificationToken\(token, password\)/);
   assert.match(authRouteSource, /'\/verify-email\/resend'/);
   assert.match(authRouteSource, /EmailVerificationResendSchema/);
   assert.match(authRouteSource, /requiresEmailVerification/);
+});
+
+test('verification cannot promote the pre-verification registration password', () => {
+  assert.match(serviceSource, /verificationPassword:\s*string/);
+  assert.match(serviceSource, /const passwordHash = await hashPassword\(verificationPassword\)/);
+  assert.match(serviceSource, /passwordHash,/);
+  assert.match(serviceSource, /isNotNull\(users\.emailVerificationRequiredAt\)/);
+  assert.match(serviceSource, /verification_not_required/);
+
+  assert.match(authRouteSource, /emailVerificationRequiredAt !== null/);
+  assert.match(authRouteSource, /consumeEmailVerificationToken\(token, password\)/);
 });
 
 test('legacy-account rollout remains explicit instead of silently backfilling ownership proof', () => {
