@@ -57,6 +57,7 @@ test('les couples de remplacement gardent au moins 4.5:1', () => {
   const pairs = [
     ['ardoise sur sable', '#5A6570', '#F4EFE6'],
     ['ardoise sur blanc', '#5A6570', '#FFFFFF'],
+    ['ardoise sur ocre pâle', '#5A6570', '#F7E5DA'],
     ['lichen sombre sur vert pâle', '#4F6F53', '#E3EAE4'],
     ['lichen sombre sur sable clair', '#4F6F53', '#FAF7F1'],
     ['pierre sur footer granit', '#D8D0C2', '#141C25'],
