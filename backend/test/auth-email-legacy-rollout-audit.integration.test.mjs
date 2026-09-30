@@ -30,10 +30,25 @@ async function cleanup() {
   if (!sql) return;
   await sql`
     DELETE FROM auth_refresh_sessions
-    WHERE user_id IN (${Object.values(IDS)})
+    WHERE user_id IN (
+      ${IDS.legacyUnverified},
+      ${IDS.legacyVerified},
+      ${IDS.requiredUnverified},
+      ${IDS.requiredVerified},
+      ${IDS.inconsistent}
+    )
        OR token_hash = ${'f'.repeat(64)}
   `;
-  await sql`DELETE FROM users WHERE id IN (${Object.values(IDS)})`;
+  await sql`
+    DELETE FROM users
+    WHERE id IN (
+      ${IDS.legacyUnverified},
+      ${IDS.legacyVerified},
+      ${IDS.requiredUnverified},
+      ${IDS.requiredVerified},
+      ${IDS.inconsistent}
+    )
+  `;
 }
 
 async function seed() {
@@ -83,14 +98,27 @@ async function snapshot() {
   const users = await sql`
     SELECT id, email, password_hash, name, email_verified_at, email_verification_required_at
     FROM users
-    WHERE id IN (${Object.values(IDS)})
+    WHERE id IN (
+      ${IDS.legacyUnverified},
+      ${IDS.legacyVerified},
+      ${IDS.requiredUnverified},
+      ${IDS.requiredVerified},
+      ${IDS.inconsistent}
+    )
     ORDER BY id
   `;
   const sessions = await sql`
     SELECT id, user_id, family_id, token_hash, expires_at, revoked_at, revoke_reason, last_used_at, created_at
     FROM auth_refresh_sessions
-    WHERE user_id IN (${Object.values(IDS)})
-    ORDER BY user_id
+    WHERE user_id IN (
+      ${IDS.legacyUnverified},
+      ${IDS.legacyVerified},
+      ${IDS.requiredUnverified},
+      ${IDS.requiredVerified},
+      ${IDS.inconsistent}
+    )
+       OR token_hash = ${'f'.repeat(64)}
+    ORDER BY user_id NULLS LAST
   `;
   return { users, sessions };
 }
