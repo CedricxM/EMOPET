@@ -29,8 +29,14 @@ Table:
 
 Columns only:
 - `stream_id`;
+- `monitoring_started_at`;
 - `last_successful_window_end`;
 - `updated_at`.
+
+The first successful tick persists the explicit `initialWindowStart` as
+`monitoring_started_at`. That boundary is immutable across later ticks and
+defines only the earliest event-time scope the scheduler promised to monitor.
+It does not select a detector threshold, cadence or retention duration.
 
 It contains no actor/subject, target reference, email, token, policy JSON, detection body or alert history.
 
