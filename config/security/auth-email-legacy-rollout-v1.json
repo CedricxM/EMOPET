@@ -21,11 +21,13 @@
     "sessionTokenMaterialAllowed": false
   },
   "authority": {
-    "databaseMode": "SELECT_ONLY",
     "automaticBackfill": false,
     "automaticReverification": false,
     "legacyMeansVerified": false,
-    "rolloutDecisionAuthorizedByCensus": false
+    "rolloutDecisionAuthorizedByCensus": false,
+    "repositoryOperationMode": "SELECT_ONLY",
+    "databasePrincipalReadOnlyEvidence": "EXTERNAL_UNVERIFIED",
+    "operatorShouldUseReadOnlyCredentialWhenAvailable": true
   },
   "nextDecision": "RUN_REAL_ENVIRONMENT_CENSUS_THEN_SELECT_LEGACY_POLICY_EXPLICITLY"
 }
