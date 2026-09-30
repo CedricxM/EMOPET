@@ -5,6 +5,7 @@ import {
   desc,
   eq,
   gt,
+  isNotNull,
   isNull,
 } from 'drizzle-orm';
 
@@ -13,7 +14,7 @@ import {
   authEmailVerificationTokens,
   users,
 } from '../../db/schema/index.js';
-import { normalizeEmail } from './auth-security.js';
+import { hashPassword, normalizeEmail } from './auth-security.js';
 
 export const EMAIL_VERIFICATION_TOKEN_TTL_SECONDS = 24 * 60 * 60;
 export const EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS = 60;
@@ -33,6 +34,7 @@ export type IssueEmailVerificationResult =
         | 'user_not_found'
         | 'email_mismatch'
         | 'already_verified'
+        | 'verification_not_required'
         | 'cooldown';
     };
 
@@ -75,6 +77,7 @@ export async function issueEmailVerificationToken(
         id: users.id,
         email: users.email,
         emailVerifiedAt: users.emailVerifiedAt,
+        emailVerificationRequiredAt: users.emailVerificationRequiredAt,
       })
       .from(users)
       .where(eq(users.id, userId))
@@ -84,6 +87,9 @@ export async function issueEmailVerificationToken(
     if (!user) return { ok: false, reason: 'user_not_found' };
     if (user.email !== email) return { ok: false, reason: 'email_mismatch' };
     if (user.emailVerifiedAt) return { ok: false, reason: 'already_verified' };
+    if (user.emailVerificationRequiredAt == null) {
+      return { ok: false, reason: 'verification_not_required' };
+    }
 
     const [current] = await tx
       .select({
@@ -136,18 +142,27 @@ export async function issueEmailVerificationToken(
 }
 
 /**
- * Consume a token exactly once and mark the same current user/email verified.
+ * Consume a token exactly once, prove ownership of the same current email and
+ * atomically replace the provisional registration password with the password
+ * supplied by the email owner.
+ *
+ * This prevents registration pre-hijacking: possession of the email token does
+ * not promote a password selected before email ownership was proven.
  *
  * The token UPDATE is conditional on unconsumed + unrevoked + unexpired state,
- * so concurrent callers get at most one winner. If the user's email changed,
- * the token is consumed but cannot verify the new address.
+ * so concurrent callers get at most one winner. If the user's email changed or
+ * the account is outside the explicit verification-required cohort, the token
+ * is consumed but cannot promote account authority.
  */
 export async function consumeEmailVerificationToken(
   rawToken: string,
+  verificationPassword: string,
   clock: () => Date = () => new Date(),
 ): Promise<boolean> {
   if (!isCanonicalEmailVerificationToken(rawToken)) return false;
 
+  // KDF stays outside the short database transaction.
+  const passwordHash = await hashPassword(verificationPassword);
   const now = clock();
   const tokenHash = hashEmailVerificationToken(rawToken);
 
@@ -172,12 +187,14 @@ export async function consumeEmailVerificationToken(
     const [verified] = await tx
       .update(users)
       .set({
+        passwordHash,
         emailVerifiedAt: now,
         updatedAt: now,
       })
       .where(and(
         eq(users.id, consumedToken.userId),
         eq(users.email, consumedToken.email),
+        isNotNull(users.emailVerificationRequiredAt),
         isNull(users.emailVerifiedAt),
       ))
       .returning({ id: users.id });
