@@ -77,4 +77,4 @@ CREATE INDEX idx_auth_email_verification_delivery_ready
   WHERE completed_at IS NULL;
 
 CREATE INDEX idx_auth_email_verification_delivery_cooldown
-  ON auth_email_verification_delivery_requests(email_hash, requested_at DESC);
+  ON auth_email_verification_delivery_requests(email_hash, requested_at);
