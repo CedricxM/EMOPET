@@ -140,7 +140,7 @@ namespace Emopet.World
                 catch (ArgumentException) { }
             }
 
-            return new WorldBackendException(error switch
+            var code = error switch
             {
                 "invalid_request" => WorldErrorCode.InvalidRequest,
                 "invalid_session" => WorldErrorCode.InvalidSession,
@@ -149,8 +149,15 @@ namespace Emopet.World
                 "busy" => WorldErrorCode.Busy,
                 "unavailable" => WorldErrorCode.Unavailable,
                 "timeout" => WorldErrorCode.Timeout,
-                _ => WorldErrorCode.Unknown,
-            }, response.StatusCode);
+                _ => response.StatusCode switch
+                {
+                    401 => WorldErrorCode.InvalidSession,
+                    503 => WorldErrorCode.Unavailable,
+                    _ => WorldErrorCode.Unknown,
+                },
+            };
+
+            return new WorldBackendException(code, response.StatusCode);
         }
 
         private static string RequireId(string value)
