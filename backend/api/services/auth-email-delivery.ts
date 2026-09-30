@@ -66,7 +66,8 @@ export function buildEmailVerificationUrl(
 ): string | null {
   const url = parseVerificationBaseUrl(env);
   if (!url) return null;
-  url.searchParams.set('token', rawToken);
+  const fragment = new URLSearchParams({ token: rawToken });
+  url.hash = fragment.toString();
   return url.toString();
 }
 
