@@ -3,14 +3,22 @@ import { Client, Session } from '@heroiclabs/nakama-js';
 import { WorldError, type WorldTransport, type WorldConnection, type WorldTransportCommand } from './contracts.js';
 import { NakamaSocket } from './socket.js';
 
+export type NakamaTransportProfile = 'local-spike' | 'release';
+
 export class NakamaTransport implements WorldTransport {
-  constructor(private url: string, private httpKey: string) {
+  constructor(private url: string, private httpKey: string,
+    profile: NakamaTransportProfile = 'local-spike') {
     const parsed = new URL(url);
-    if (parsed.protocol !== 'http:' || !['localhost', '127.0.0.1'].includes(parsed.hostname) ||
-      parsed.username || parsed.password || parsed.pathname !== '/' || parsed.search || parsed.hash) {
-      throw new Error('World spike requires a loopback HTTP Nakama URL');
+    const cleanOrigin = !parsed.username && !parsed.password && parsed.pathname === '/'
+      && !parsed.search && !parsed.hash;
+    if (profile === 'local-spike') {
+      if (parsed.protocol !== 'http:' || !['localhost', '127.0.0.1'].includes(parsed.hostname) || !cleanOrigin) {
+        throw new Error('World local spike requires a loopback HTTP Nakama URL');
+      }
+    } else if (parsed.protocol !== 'https:' || ['localhost', '127.0.0.1'].includes(parsed.hostname) || !cleanOrigin) {
+      throw new Error('World release requires a clean remote HTTPS Nakama URL');
     }
-    if (httpKey.length < 32 || httpKey.startsWith('REPLACE')) throw new Error('Configure a local runtime key');
+    if (httpKey.length < 32 || httpKey.startsWith('REPLACE')) throw new Error('Configure a real Nakama runtime key');
   }
   /** Server-to-server runtime RPC authenticated by the runtime HTTP key, never by a user session. */
   private async rpc(name: string, customId: string, signal: AbortSignal): Promise<Record<string, unknown>> {
@@ -37,7 +45,9 @@ export class NakamaTransport implements WorldTransport {
     const session = Session.restore(data.token, '');
     if (session.user_id !== data.userId || !session.expires_at) throw new WorldError('unavailable');
     const url = new URL(this.url);
-    const client = new Client('unused-server-side-bootstrap', url.hostname, url.port || '7350', false, 5000, false);
+    const secure = url.protocol === 'https:';
+    const client = new Client('unused-server-side-bootstrap', url.hostname, url.port || (secure ? '443' : '7350'),
+      secure, 5000, false);
     const socket = new NakamaSocket(event, () => { closed = true; disconnected(); });
     const channels = new Map<string, string>();
     let closed = false;
