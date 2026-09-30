@@ -78,6 +78,25 @@ test('production enters release mode only when both gates are GO', t => {
   assert.ok(configuredWorldSpike(env, blocks, reports, access, social, GO_AUTHORITY));
 });
 
+test('production release cannot enable free-text chat by environment flag', t => {
+  const original = globalThis.WebSocket;
+  t.after(() => { globalThis.WebSocket = original; });
+  globalThis.WebSocket = class {};
+
+  const env = {
+    NODE_ENV: 'production',
+    EMOPET_WORLD_RELEASE_GATE: 'GO',
+    WORLD_SPIKE_FREE_TEXT: 'true',
+    NAKAMA_URL: 'https://nakama.example.test',
+    NAKAMA_HTTP_KEY: 'a'.repeat(64),
+  };
+
+  assert.throws(
+    () => configuredWorldSpike(env, blocks, reports, access, social, GO_AUTHORITY),
+    /does not authorize free-text/,
+  );
+});
+
 test('local spike remains explicitly development/test only', () => {
   assert.equal(worldRuntimeMode({
     NODE_ENV: 'test',
