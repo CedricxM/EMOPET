@@ -31,6 +31,8 @@ Unity is a rendering/input client. It is **not** durable authority for:
 The client talks to the canonical EMOPET backend under `/api/world-spike`.
 It never authenticates directly with Nakama and never owns a Nakama token/socket.
 
+Presence withdrawal is terminal for the current World session: the backend closes the server-side handle before persisting the withdrawal. Unity therefore clears its local handle and a later return to World starts from a fresh invisible bootstrap.
+
 ## First slice
 
 Assemblies:
