@@ -130,7 +130,7 @@ test('replay and expiry remain server-owned and fail closed', () => {
   assert.equal(contract.runtime.verifierAuthorizesTelemetryPersistence, false);
   assert.match(contract.runtime.challengePersistence, /DURABLE_POSTGRES_IMPLEMENTED/);
   assert.match(contract.runtime.challengePersistence, /MIGRATION_0026/);
-  assert.match(contract.runtime.challengePersistence, /HISTORICAL\+GENERATED_DB_PROOF_GREEN/);
+  assert.match(contract.runtime.challengePersistence, /HISTORICAL\+GENERATED_DB_PROOF_REQUIRED/);
   assert.match(contract.runtime.challengePersistence, /NO_DEFAULT_TTL/);
   assert.match(contract.runtime.challengePersistence, /NO_CLEANUP_POLICY/);
   assert.equal(contract.runtime.issuerHasDefaultTtl, false);
