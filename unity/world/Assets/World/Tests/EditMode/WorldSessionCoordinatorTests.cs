@@ -27,6 +27,46 @@ namespace Emopet.World.Tests
         }
 
         [Test]
+        public async Task ValidPresetAndPresenceEventsRemainAccepted()
+        {
+            var body =
+                "{\"state\":\"connected\",\"resyncRequired\":false,\"events\":[" +
+                "{\"type\":\"chat\",\"value\":{\"channelId\":\"33333333-3333-4333-8333-333333333333\",\"senderId\":\"22222222-2222-4222-8222-222222222222\",\"messageId\":\"44444444-4444-4444-8444-444444444444\",\"content\":{\"preset\":\"merci\"},\"joins\":[],\"leaves\":[]}}," +
+                "{\"type\":\"presence\",\"value\":{\"joins\":[{\"user_id\":\"22222222-2222-4222-8222-222222222222\",\"status\":\"online\"}],\"leaves\":[]}}" +
+                "]}";
+            var http = new QueueHttp(
+                new WorldHttpResponse(200, BootstrapJson()),
+                new WorldHttpResponse(200, body));
+            var coordinator = Create(http);
+
+            await coordinator.ConnectAsync(CancellationToken.None);
+            var result = await coordinator.PollEventsAsync(CancellationToken.None);
+
+            Assert.That(result.events, Has.Length.EqualTo(2));
+            Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.ConnectedInvisible));
+        }
+
+        [Test]
+        public async Task UnknownOrMalformedDeliveredEventFailsClosed()
+        {
+            var body =
+                "{\"state\":\"connected\",\"resyncRequired\":false,\"events\":[" +
+                "{\"type\":\"chat\",\"value\":{\"channelId\":\"33333333-3333-4333-8333-333333333333\",\"senderId\":\"22222222-2222-4222-8222-222222222222\",\"messageId\":\"44444444-4444-4444-8444-444444444444\",\"content\":{\"preset\":\"not-approved\"},\"joins\":[],\"leaves\":[]}}" +
+                "]}";
+            var http = new QueueHttp(
+                new WorldHttpResponse(200, BootstrapJson()),
+                new WorldHttpResponse(200, body));
+            var coordinator = Create(http);
+
+            await coordinator.ConnectAsync(CancellationToken.None);
+            var error = Assert.ThrowsAsync<WorldBackendException>(() =>
+                coordinator.PollEventsAsync(CancellationToken.None));
+
+            Assert.That(error.Code, Is.EqualTo(WorldErrorCode.Unavailable));
+            Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Degraded));
+        }
+
+        [Test]
         public async Task MalformedSuccessfulEventsResponseFailsClosed()
         {
             var http = new QueueHttp(
