@@ -436,6 +436,10 @@ export const LoginSchema = z.object({
 
 export const EmailVerificationConsumeSchema = z.object({
   token: z.string().regex(/^emopet_ev_[A-Za-z0-9_-]{43}$/),
+  // The pre-verification registration password is not post-verification
+  // authority. The email owner selects/confirms the final password while
+  // consuming the one-time ownership token.
+  password: z.string().min(8).max(128),
 }).strict();
 
 export const EmailVerificationResendSchema = z.object({
