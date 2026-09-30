@@ -14,6 +14,8 @@ const [
   activationTransactionSource,
   activationReceiptMigrationSource,
   activationEvidenceResolverSource,
+  manufacturingPopEvidenceRepositorySource,
+  manufacturingPopEvidenceMigrationSource,
 ] = await Promise.all([
     readFile(new URL('../../config/security/device-credential-activation-v1.json', import.meta.url), 'utf8'),
     readFile(new URL('../../config/security/psa-key-id-registry-v1.json', import.meta.url), 'utf8'),
@@ -26,6 +28,8 @@ const [
     readFile(new URL('../../backend/api/security/device-credential-activation-transaction.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../backend/db/migrations/0034_device_credential_activation_receipts.sql', import.meta.url), 'utf8'),
     readFile(new URL('../../backend/api/security/device-credential-activation-evidence-resolver.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../backend/api/security/device-credential-activation-pop-evidence-repository.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../backend/db/migrations/0040_device_credential_activation_pop_receipts.sql', import.meta.url), 'utf8'),
   ]);
 
 const authority = JSON.parse(authoritySource);
@@ -53,7 +57,15 @@ test('#720 keeps credential activation blocked behind M4/M5 physical evidence', 
   assert.equal(authority.runtime.publicActivationRouteImplemented, false);
   assert.equal(authority.runtime.manufacturingPopIssuerSourceImplemented, true);
   assert.equal(authority.runtime.manufacturingPopVerifierSourceImplemented, true);
-  assert.equal(authority.runtime.manufacturingPopEvidencePersistenceImplemented, false);
+  assert.equal(authority.runtime.manufacturingPopEvidencePersistenceImplemented, true);
+  assert.equal(
+    authority.runtime.manufacturingPopEvidenceRepositorySource,
+    'backend/api/security/device-credential-activation-pop-evidence-repository.ts',
+  );
+  assert.equal(
+    authority.runtime.manufacturingPopEvidenceTable,
+    'device_credential_activation_pop_receipts',
+  );
   assert.equal(authority.runtime.manufacturingPopPublicRouteImplemented, false);
   assert.equal(authority.runtime.m4M5EvidenceStoresImplemented, false);
   assert.equal(authority.runtime.m4M5EvidenceAuthorityImplemented, false);
@@ -152,6 +164,48 @@ test('activation evidence contract is reference-only and server-resolved', () =>
   assert.match(validatorsSource, /DeviceCredentialActivationReceiptV1Schema/);
   assert.match(validatorsSource, /evidence credential version must match activated credential/);
   assert.match(validatorsSource, /ROTATION must retire predecessor as REVOKED_PENDING_ERASE/);
+});
+
+test('durable M4 evidence is atomic with challenge consumption while M5 remains open', () => {
+  assert.match(
+    manufacturingPopEvidenceRepositorySource,
+    /durableDeviceCredentialActivationPopEvidenceRepository/,
+  );
+  assert.match(manufacturingPopEvidenceRepositorySource, /db\.transaction/);
+  assert.match(manufacturingPopEvidenceRepositorySource, /PENDING_PROOF/);
+  assert.match(
+    manufacturingPopEvidenceRepositorySource,
+    /DEVICE_CREDENTIAL_ACTIVATION/,
+  );
+  assert.match(
+    manufacturingPopEvidenceRepositorySource,
+    /isNull\(devicePopChallenges\.consumedAt\)/,
+  );
+  assert.match(
+    manufacturingPopEvidenceRepositorySource,
+    /deviceCredentialActivationPopReceipts/,
+  );
+  assert.match(
+    manufacturingPopEvidenceMigrationSource,
+    /CREATE TABLE device_credential_activation_pop_receipts/,
+  );
+  assert.match(
+    manufacturingPopEvidenceMigrationSource,
+    /SERVER_SIDE_POP_VERIFICATION_AUTHORITY/,
+  );
+  assert.match(
+    manufacturingPopEvidenceMigrationSource,
+    /DEVICE_CREDENTIAL_ACTIVATION/,
+  );
+  assert.doesNotMatch(
+    manufacturingPopEvidenceMigrationSource,
+    /signature|private_key|public_key|nonce/i,
+  );
+
+  assert.equal(authority.runtime.m4M5EvidenceStoresImplemented, false);
+  assert.equal(authority.runtime.m4M5EvidenceAuthorityImplemented, false);
+  assert.equal(authority.runtime.activationServiceImplemented, false);
+  assert.equal(authority.runtime.publicActivationRouteImplemented, false);
 });
 
 test('source-level M4/M5 resolver stays injected and non-activating', () => {
