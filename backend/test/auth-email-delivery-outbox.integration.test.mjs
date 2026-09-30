@@ -28,13 +28,11 @@ const UNKNOWN_EMAIL = 'outbox-unknown@emopet.invalid';
 
 async function cleanup() {
   if (!sql || !outbox) return;
-  const hashes = [
-    outbox.hashEmailVerificationDeliveryAddress(EMAIL),
-    outbox.hashEmailVerificationDeliveryAddress(UNKNOWN_EMAIL),
-  ];
+  const eligibleHash = outbox.hashEmailVerificationDeliveryAddress(EMAIL);
+  const unknownHash = outbox.hashEmailVerificationDeliveryAddress(UNKNOWN_EMAIL);
   await sql`
     DELETE FROM auth_email_verification_delivery_requests
-    WHERE email_hash = ANY(${hashes})
+    WHERE email_hash IN (${eligibleHash}, ${unknownHash})
   `;
   await sql`DELETE FROM users WHERE id = ${USER}`;
 }
