@@ -42,6 +42,44 @@ namespace Emopet.World.Tests
         }
 
         [Test]
+        public async Task HidePresenceClosesSessionAndClearsHandle()
+        {
+            var http = new QueueHttp(
+                new WorldHttpResponse(200, BootstrapJson()),
+                new WorldHttpResponse(200, "{\"presence\":\"visible\",\"until\":123}"),
+                new WorldHttpResponse(204, string.Empty));
+            var coordinator = Create(http);
+
+            await coordinator.ConnectAsync(CancellationToken.None);
+            await coordinator.ShowPresenceAsync(CancellationToken.None);
+            await coordinator.HidePresenceAsync(CancellationToken.None);
+
+            Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Disconnected));
+            Assert.That(coordinator.Handle, Is.Null);
+            Assert.That(coordinator.ExpiresAtUnixMs, Is.EqualTo(0));
+        }
+
+        [Test]
+        public async Task HidePresenceFailureStillClearsDeadServerHandle()
+        {
+            var http = new QueueHttp(
+                new WorldHttpResponse(200, BootstrapJson()),
+                new WorldHttpResponse(200, "{\"presence\":\"visible\",\"until\":123}"),
+                new WorldHttpResponse(503, "{\"error\":\"unavailable\",\"state\":\"degraded\"}"));
+            var coordinator = Create(http);
+
+            await coordinator.ConnectAsync(CancellationToken.None);
+            await coordinator.ShowPresenceAsync(CancellationToken.None);
+            var error = Assert.ThrowsAsync<WorldBackendException>(() =>
+                coordinator.HidePresenceAsync(CancellationToken.None));
+
+            Assert.That(error.Code, Is.EqualTo(WorldErrorCode.Unavailable));
+            Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Disconnected));
+            Assert.That(coordinator.Handle, Is.Null);
+            Assert.That(coordinator.ExpiresAtUnixMs, Is.EqualTo(0));
+        }
+
+        [Test]
         public async Task DisconnectClosesLocalStateEvenWhenBackendIsUnavailable()
         {
             var http = new QueueHttp(
