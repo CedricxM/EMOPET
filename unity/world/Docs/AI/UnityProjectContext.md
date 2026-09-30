@@ -60,7 +60,7 @@ Repository files are being prepared through GitHub only.
 - presets only for the first World chat test;
 - no free-text UI;
 - no location;
-- presence is invisible by default and opt-in; a confirmed withdrawal closes the server-side World session and Unity clears the handle, while a no-response/cancelled withdrawal is represented as `Degraded` uncertainty rather than false invisibility;
+- presence is invisible by default and opt-in; confirmed withdrawal/disconnect clears the handle, while cancelled or unknown show/withdraw/disconnect outcomes are represented as `Degraded` uncertainty rather than false visible/invisible/offline claims;
 - blocked/offline targets remain deliberately indistinguishable as `unreachable`;
 - no per-frame network polling;
 - no automatic replay of uncertain writes;
