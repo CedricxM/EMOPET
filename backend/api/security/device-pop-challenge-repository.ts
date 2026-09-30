@@ -60,21 +60,20 @@ function parseChallengeForStorage(challenge: DevicePopChallengeV1): {
 function rowToStoredChallenge(
   row: typeof devicePopChallenges.$inferSelect,
 ): DevicePopStoredChallengeStateV1 {
-  const challenge: DevicePopChallengeV1 = {
+  const parsed = DevicePopChallengeV1Schema.safeParse({
     schemaVersion: 'device-pop-challenge-v1',
     protocolVersion: 1,
     deviceId: row.deviceId,
     credentialVersion: row.credentialVersion,
-    purpose: 'DEVICE_DATA_TELEMETRY_INGRESS',
+    purpose: row.purpose,
     challengeId: row.challengeId,
     nonce: row.nonce,
     issuedAt: row.issuedAt.toISOString(),
     expiresAt: row.expiresAt.toISOString(),
     signingContract: 'EMOPET_DEVICE_POP_FIXED_BINARY_V1',
-  };
+  });
 
-  const parsed = DevicePopChallengeV1Schema.safeParse(challenge);
-  if (!parsed.success || !isCanonicalNonce(challenge.nonce)) {
+  if (!parsed.success || !isCanonicalNonce(row.nonce)) {
     throw new Error('corrupt durable device PoP challenge');
   }
 

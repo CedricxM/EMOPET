@@ -168,6 +168,7 @@ static device_pop_preimage_input_v1_t valid_input(void)
 {
     device_pop_preimage_input_v1_t input;
     memset(&input, 0, sizeof(input));
+    input.purpose = DEVICE_POP_PURPOSE_TELEMETRY_INGRESS_V1;
 
     for (size_t i = 0; i < DEVICE_POP_UUID_BYTES; ++i) {
         input.device_id[i] = (uint8_t)(0x10u + i);

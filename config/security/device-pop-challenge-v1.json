@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-device-pop-challenge-contract-v1",
-  "status": "DATA_CONTRACT_SELECTED / ISSUER+VERIFIER+DEVICE_SIGNER+PENDING_CREDENTIAL_REPO+REPLAY_STORE_SOURCE_IMPLEMENTED / KEY_STORAGE_TARGET_PROOF+DEVICE_DATA_TRUST_RUNTIME_OPEN / TELEMETRY_PERSISTENCE_BLOCKED",
+  "status": "DATA_CONTRACT_SELECTED / TELEMETRY_ACTIVE_LANE+M4_PENDING_LANE_SOURCE_IMPLEMENTED / REPLAY_STORE_DURABLE / KEY_STORAGE_TARGET_PROOF+DEVICE_DATA_TRUST_RUNTIME_OPEN / TELEMETRY_PERSISTENCE_BLOCKED",
   "issue": 648,
   "parentIssue": 66,
   "architecture": {
@@ -14,6 +14,11 @@
     "purpose": {
       "initialAllowed": "DEVICE_DATA_TELEMETRY_INGRESS",
       "code": 1,
+      "credentialState": "ACTIVE",
+      "activationAllowed": "DEVICE_CREDENTIAL_ACTIVATION",
+      "activationCode": 2,
+      "activationCredentialState": "PENDING_PROOF",
+      "crossPurposeReuse": false,
       "reuseForClaimBindOrCommands": false
     },
     "challengeId": {
@@ -59,7 +64,7 @@
     "publicKeyIncludedInResponse": false
   },
   "backendVerification": {
-    "publicKeySource": "ACTIVE_ENROLLED_CREDENTIAL_FOR_CANONICAL_DEVICE_PRINCIPAL_AND_VERSION",
+    "publicKeySource": "PURPOSE_SCOPED / TELEMETRY_ACTIVE_CREDENTIAL / ACTIVATION_PENDING_PROOF_CREDENTIAL",
     "challengeStateSource": "SERVER_SIDE_BY_CHALLENGE_ID",
     "deviceClockTrustedForExpiry": false,
     "serverTimeOwnsExpiry": true,
@@ -89,7 +94,7 @@
     "deviceDataTrust": "NOT_IMPLEMENTED",
     "networkTelemetryPersistence": "BLOCKED",
     "credentialRepository": "DURABLE_POSTGRES_IMPLEMENTED / PENDING_PROOF_ENROLLMENT + ACTIVE_READ_ONLY_RESOLVER / MIGRATION_0020 / NO_ACTIVATION_MUTATION",
-    "challengePersistence": "DURABLE_POSTGRES_IMPLEMENTED / MIGRATION_0026 / HISTORICAL+GENERATED_DB_PROOF_GREEN / NO_DEFAULT_TTL / NO_CLEANUP_POLICY",
+    "challengePersistence": "DURABLE_POSTGRES_IMPLEMENTED / MIGRATION_0026+0039 / TELEMETRY+ACTIVATION_PURPOSES / HISTORICAL+GENERATED_DB_PROOF_GREEN / NO_DEFAULT_TTL / NO_CLEANUP_POLICY",
     "issuerSource": "backend/api/security/device-pop-challenge-issuer.ts",
     "issuerUnitTest": "backend/test/device-pop-challenge-issuer.test.mjs",
     "issuerHasDefaultTtl": false,
@@ -113,7 +118,17 @@
     "challengeRepositorySource": "backend/api/security/device-pop-challenge-repository.ts",
     "challengeRepositoryIntegrationTest": "backend/test/device-pop-challenge-repository.integration.test.mjs",
     "credentialRepositorySource": "backend/api/security/device-credential-repository.ts",
-    "credentialRepositoryIntegrationTest": "backend/test/device-credential-repository.integration.test.mjs"
+    "credentialRepositoryIntegrationTest": "backend/test/device-credential-repository.integration.test.mjs",
+    "manufacturingChallengeIssuer": "SOURCE_PRIMITIVE_IMPLEMENTED / PENDING_PROOF_EXACT_VERSION / NO_HTTP_ROUTE / NO_DEFAULT_TTL",
+    "manufacturingChallengeIssuerSource": "backend/api/security/device-credential-activation-pop-issuer.ts",
+    "manufacturingChallengeIssuerUnitTest": "backend/test/device-credential-activation-pop-issuer.test.mjs",
+    "manufacturingVerifier": "SOURCE_PRIMITIVE_IMPLEMENTED / PENDING_PROOF_ONLY / CRYPTOGRAPHIC_M4_PROOF_ONLY / NO_HTTP_ROUTE",
+    "manufacturingVerifierSource": "backend/api/security/device-credential-activation-pop-verifier.ts",
+    "manufacturingVerifierUnitTest": "backend/test/device-credential-activation-pop-verifier.test.mjs",
+    "manufacturingVerifierAuthorizesActivation": false,
+    "manufacturingVerifierAuthorizesDeviceDataTrust": false,
+    "manufacturingVerifierAuthorizesTelemetryPersistence": false,
+    "pendingCredentialResolver": "DURABLE_POSTGRES_IMPLEMENTED / EXACT_DEVICE+VERSION / PENDING_PROOF_ONLY"
   },
   "releaseRule": "NO_DEVICE_TRUST_SUCCESS_OR_DURABLE_NETWORK_TELEMETRY_WRITE_UNTIL_RUNTIME_AND_TARGET_HARDWARE_NEGATIVE_EVIDENCE_PASS"
 }

@@ -19,7 +19,13 @@ extern "C" {
 #define DEVICE_POP_UUID_BYTES 16u
 #define DEVICE_POP_NONCE_BYTES 32u
 
+typedef enum {
+    DEVICE_POP_PURPOSE_TELEMETRY_INGRESS_V1 = 1u,
+    DEVICE_POP_PURPOSE_CREDENTIAL_ACTIVATION_V1 = 2u,
+} device_pop_purpose_v1_t;
+
 typedef struct {
+    device_pop_purpose_v1_t purpose;
     uint8_t device_id[DEVICE_POP_UUID_BYTES];
     uint32_t credential_version;
     uint8_t challenge_id[DEVICE_POP_UUID_BYTES];
