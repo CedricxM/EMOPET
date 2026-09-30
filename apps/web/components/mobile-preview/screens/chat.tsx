@@ -122,7 +122,6 @@ function Composer({ placeholder }: { placeholder?: string }) {
           fontFamily: T.fontSans,
           fontSize: 13,
           color: T.fgStrong,
-          outline: 'none',
         }}
       />
       <button
