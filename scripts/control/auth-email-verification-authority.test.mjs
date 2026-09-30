@@ -8,6 +8,9 @@ const [
   requirementMigrationSource,
   serviceSource,
   deliverySource,
+  outboxSource,
+  outboxMigrationSource,
+  workerSource,
   authRouteSource,
 ] = await Promise.all([
     readFile(new URL('../../config/security/auth-email-verification-v1.json', import.meta.url), 'utf8'),
@@ -15,6 +18,9 @@ const [
     readFile(new URL('../../backend/db/migrations/0028_auth_email_verification_requirement.sql', import.meta.url), 'utf8'),
     readFile(new URL('../../backend/api/services/auth-email-verification.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../backend/api/services/auth-email-delivery.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../backend/api/services/auth-email-delivery-outbox.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../backend/db/migrations/0029_auth_email_verification_delivery_outbox.sql', import.meta.url), 'utf8'),
+    readFile(new URL('../../backend/api/workers/auth-email-verification-delivery.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../backend/api/routes/auth.ts', import.meta.url), 'utf8'),
   ]);
 
@@ -66,8 +72,10 @@ test('registration runtime is integrated without issuing a pre-verification sess
   )?.[0] ?? '';
   assert.ok(registerBlock.length > 0);
   assert.match(registerBlock, /emailVerificationRequiredAt:\s*now/);
-  assert.match(registerBlock, /issueAndDeliverEmailVerification/);
+  assert.match(registerBlock, /enqueueEmailVerificationDeliveryRequest/);
   assert.match(registerBlock, /genericEmailVerificationAcknowledgement/);
+  assert.doesNotMatch(registerBlock, /deliverEmailVerification/);
+  assert.doesNotMatch(registerBlock, /issueEmailVerificationToken/);
   assert.doesNotMatch(registerBlock, /issueRefreshCredential/);
   assert.doesNotMatch(registerBlock, /signAccessToken/);
 
@@ -98,6 +106,46 @@ test('legacy-account rollout remains explicit instead of silently backfilling ow
     authority.decisions.legacyAccountDisposition,
     'EMAIL_VERIFICATION_REQUIRED_AT_NULL / LOGIN_PRESERVED_PENDING_EXPLICIT_ROLLOUT',
   );
+});
+
+test('#747 durable outbox removes provider timing from public register/resend paths', () => {
+  assert.equal(authority.deliveryIssue, 747);
+  assert.equal(
+    authority.decisions.publicDeliveryRequestMode,
+    'DURABLE_OUTBOX / NO_ACCOUNT_ELIGIBILITY_LOOKUP / NO_PROVIDER_WAIT',
+  );
+  assert.equal(authority.delivery.publicRequestWaitsForProvider, false);
+  assert.equal(authority.delivery.publicRequestResolvesAccountEligibility, false);
+  assert.equal(authority.delivery.durableIntentOutbox, true);
+  assert.equal(authority.delivery.outboxStoresRawToken, false);
+  assert.equal(authority.delivery.outboxStoresVerificationUrl, false);
+  assert.equal(authority.delivery.rawEmailScrubbedAtTerminal, true);
+  assert.equal(authority.delivery.workerPublicHttpRoute, false);
+  assert.equal(authority.runtime.durableDeliveryOutboxImplemented, true);
+  assert.equal(authority.runtime.asyncDeliveryWorkerImplemented, true);
+  assert.equal(authority.runtime.providerTimingDecoupledFromPublicResponse, true);
+
+  assert.match(outboxMigrationSource, /CREATE TABLE auth_email_verification_delivery_requests/);
+  assert.doesNotMatch(outboxMigrationSource, /raw_token|verification_url/i);
+  assert.match(outboxSource, /enqueueEmailVerificationDeliveryRequest/);
+  assert.match(outboxSource, /processNextEmailVerificationDeliveryRequest/);
+  assert.match(outboxSource, /pg_advisory_xact_lock/);
+  assert.match(outboxSource, /skipLocked:\s*true/);
+  assert.match(outboxSource, /email:\s*null/);
+  assert.doesNotMatch(outboxSource, /console\.(?:log|error|warn)/);
+  assert.match(workerSource, /counts/);
+  assert.doesNotMatch(workerSource, /recipient|rawToken|verificationUrl|\.email\b/);
+  assert.doesNotMatch(workerSource, /console\.(?:log|error|warn)/);
+  assert.doesNotMatch(workerSource, /app\.(?:get|post|put|patch|delete)\(/);
+
+  const resendBlock = authRouteSource.match(
+    /'\/verify-email\/resend'[\s\S]*?auth\.post\('\/login'/,
+  )?.[0] ?? '';
+  assert.ok(resendBlock.length > 0);
+  assert.match(resendBlock, /enqueueEmailVerificationDeliveryRequest/);
+  assert.doesNotMatch(resendBlock, /users\./);
+  assert.doesNotMatch(resendBlock, /deliverEmailVerification/);
+  assert.doesNotMatch(resendBlock, /issueEmailVerificationToken/);
 });
 
 test('verification delivery keeps raw token out of query parameters and fails closed in production', () => {
