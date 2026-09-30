@@ -71,6 +71,20 @@ test('first-slice Unity chat remains preset-only', async () => {
   assert.match(client, /WorldPresets\.IsAllowed\(presetId\)/);
 });
 
+test('Unity maps no-response transport failures to bounded unavailable state', async () => {
+  const client = await read('Assets/World/Transport/WorldBackendClient.cs');
+  const coordinator = await read('Assets/World/Session/WorldSessionCoordinator.cs');
+
+  assert.match(
+    client,
+    /response\.StatusCode <= 0[\s\S]*WorldErrorCode\.Unavailable/,
+  );
+  assert.match(
+    coordinator,
+    /case WorldErrorCode\.Unavailable:[\s\S]*stateMachine\.MarkDegraded\(\);/,
+  );
+});
+
 test('presence withdrawal clears the dead handle and closes the Unity session', async () => {
   const coordinator = await read('Assets/World/Session/WorldSessionCoordinator.cs');
 
