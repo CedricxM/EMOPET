@@ -9,7 +9,7 @@ const limit = Number.isSafeInteger(parsedLimit) ? parsedLimit : 25;
 try {
   assertEmailVerificationRuntimeConfiguration();
   const counts = await dispatchEmailVerificationDeliveryBatch(limit);
-  // Counts only. Never log recipient email, raw token or verification URL.
+  // Counts only. Never log addresses or message payloads.
   process.stdout.write(JSON.stringify({
     worker: 'auth-email-verification-delivery',
     counts,
