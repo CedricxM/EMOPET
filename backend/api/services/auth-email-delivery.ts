@@ -45,6 +45,47 @@ function isHttpVerificationUrl(value: string): boolean {
   }
 }
 
+function parseVerificationBaseUrl(env: NodeJS.ProcessEnv): URL | null {
+  const raw = readNonEmpty(env, 'AUTH_EMAIL_VERIFICATION_URL');
+  if (!raw) return null;
+
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') return null;
+    if (url.username || url.password) return null;
+    if (env['NODE_ENV'] === 'production' && url.protocol !== 'https:') return null;
+    return url;
+  } catch {
+    return null;
+  }
+}
+
+export function buildEmailVerificationUrl(
+  rawToken: string,
+  env: NodeJS.ProcessEnv = process.env,
+): string | null {
+  const url = parseVerificationBaseUrl(env);
+  if (!url) return null;
+  const fragment = new URLSearchParams({ token: rawToken });
+  url.hash = fragment.toString();
+  return url.toString();
+}
+
+export function assertEmailVerificationRuntimeConfiguration(
+  env: NodeJS.ProcessEnv = process.env,
+): void {
+  if (env['NODE_ENV'] !== 'production') return;
+
+  const missing: string[] = [];
+  if (!readNonEmpty(env, 'RESEND_API_KEY')) missing.push('RESEND_API_KEY');
+  if (!readNonEmpty(env, 'RESEND_FROM')) missing.push('RESEND_FROM');
+  if (!parseVerificationBaseUrl(env)) missing.push('AUTH_EMAIL_VERIFICATION_URL_HTTPS');
+
+  if (missing.length > 0) {
+    throw new Error(`Email verification runtime configuration missing/invalid: ${missing.join(', ')}`);
+  }
+}
+
 /**
  * Server-side transport primitive for email ownership verification.
  *

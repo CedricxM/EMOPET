@@ -14,6 +14,7 @@ import { dataExport } from './routes/data-export.js';
 import { authMiddleware } from './middleware/auth.js';
 import { rateLimitMiddleware } from './middleware/rate-limit.js';
 import { assertRuntimeDatabaseAuthority } from '../db/index.js';
+import { assertEmailVerificationRuntimeConfiguration } from './services/auth-email-delivery.js';
 
 const app = new Hono();
 
@@ -58,6 +59,7 @@ app.route('/api/data-export', dataExport);
 // ── Start Server ────────────────────────────────────────────────
 
 if (process.env['NODE_ENV'] === 'production') {
+  assertEmailVerificationRuntimeConfiguration();
   await assertRuntimeDatabaseAuthority();
 }
 

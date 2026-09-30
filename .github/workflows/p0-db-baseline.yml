@@ -259,6 +259,15 @@ jobs:
           NODE_ENV: test
         run: node --test test/auth-email-verification.integration.test.mjs
 
+      - name: AUTH-EMAIL-VERIFY-01 route integration on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          AUTH_DB_INTEGRATION: '1'
+          EMOPET_DB_INTEGRATION_TEST: '0'
+          NODE_ENV: test
+        run: node --test test/auth-routes-postgres.test.mjs
+
       - name: Generate isolated Drizzle fresh baseline
         working-directory: backend
         run: |
