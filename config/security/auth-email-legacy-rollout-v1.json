@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "emopet-auth-email-legacy-rollout-v1",
+  "status": "READ_ONLY_CENSUS_IMPLEMENTED / NO_MUTATION_AUTHORITY / HUMAN_DECISION_REQUIRED",
+  "issue": 760,
+  "parentIssue": 738,
+  "securityParentIssue": 214,
+  "cohorts": [
+    "LEGACY_UNVERIFIED",
+    "LEGACY_VERIFIED",
+    "VERIFICATION_REQUIRED_UNVERIFIED",
+    "VERIFICATION_REQUIRED_VERIFIED"
+  ],
+  "report": {
+    "schemaVersion": "auth-email-legacy-rollout-census-v1",
+    "aggregateCountsOnly": true,
+    "directIdentifiersAllowed": false,
+    "emailsAllowed": false,
+    "userIdsAllowed": false,
+    "namesAllowed": false,
+    "tokenMaterialAllowed": false,
+    "sessionTokenMaterialAllowed": false
+  },
+  "authority": {
+    "automaticBackfill": false,
+    "automaticReverification": false,
+    "legacyMeansVerified": false,
+    "rolloutDecisionAuthorizedByCensus": false,
+    "repositoryOperationMode": "SELECT_ONLY",
+    "databasePrincipalReadOnlyEvidence": "EXTERNAL_UNVERIFIED",
+    "operatorShouldUseReadOnlyCredentialWhenAvailable": true
+  },
+  "nextDecision": "RUN_REAL_ENVIRONMENT_CENSUS_THEN_SELECT_LEGACY_POLICY_EXPLICITLY"
+}
