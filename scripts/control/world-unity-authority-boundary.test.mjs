@@ -71,6 +71,20 @@ test('first-slice Unity chat remains preset-only', async () => {
   assert.match(client, /WorldPresets\.IsAllowed\(presetId\)/);
 });
 
+test('presence withdrawal clears the dead handle and closes the Unity session', async () => {
+  const coordinator = await read('Assets/World/Session/WorldSessionCoordinator.cs');
+
+  assert.match(
+    coordinator,
+    /HidePresenceAsync[\s\S]*finally[\s\S]*Handle = null;[\s\S]*ExpiresAtUnixMs = 0;[\s\S]*stateMachine\.Disconnect\(\);/,
+  );
+  assert.doesNotMatch(
+    coordinator,
+    /HidePresenceAsync[\s\S]{0,800}PresenceBecameInvisible\(\)/,
+    'backend presence withdrawal closes the server session; Unity must not retain it as invisible',
+  );
+});
+
 test('Core stays engine-independent and session defaults to invisible presence', async () => {
   const coreAsm = JSON.parse(await read('Assets/World/Core/Emopet.World.Core.asmdef'));
   const state = await read('Assets/World/Core/WorldSessionStateMachine.cs');
