@@ -60,7 +60,7 @@ Repository files are being prepared through GitHub only.
 - presets only for the first World chat test;
 - no free-text UI;
 - no location;
-- presence is invisible by default and opt-in; withdrawing consent closes the server-side World session, so Unity clears the handle and must bootstrap again;
+- presence is invisible by default and opt-in; a confirmed withdrawal closes the server-side World session and Unity clears the handle, while a no-response/cancelled withdrawal is represented as `Degraded` uncertainty rather than false invisibility;
 - blocked/offline targets remain deliberately indistinguishable as `unreachable`;
 - no per-frame network polling;
 - no automatic replay of uncertain writes;
