@@ -20,11 +20,26 @@ namespace Emopet.World
 
         public async Task ConnectAsync(CancellationToken cancellationToken)
         {
+            var previousHandle = Handle;
             stateMachine.BeginBootstrap();
 
             try
             {
-                var result = await backend.BootstrapAsync(Handle, cancellationToken);
+                WorldBootstrapResult result;
+                try
+                {
+                    result = await backend.BootstrapAsync(previousHandle, cancellationToken);
+                }
+                catch (WorldBackendException error) when (
+                    error.Code == WorldErrorCode.InvalidSession && !string.IsNullOrEmpty(previousHandle))
+                {
+                    // The uncertain/previous server handle is gone. Retry once as a fresh
+                    // invisible session instead of turning a recoverable reconnect into revocation.
+                    Handle = null;
+                    ExpiresAtUnixMs = 0;
+                    result = await backend.BootstrapAsync(null, cancellationToken);
+                }
+
                 var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 if (result == null || !Guid.TryParse(result.handle, out _) || result.state != "connected"
                     || result.expiresAt <= now)
