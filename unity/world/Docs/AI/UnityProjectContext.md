@@ -1,9 +1,9 @@
 # EMOPET World — Unity project context
 
-**Status:** SPIKE / NOT PRODUCTION AUTHORITY  
+**Status:** INTEGRATED ON `main` / EDITOR VALIDATION PENDING  
 **Issue:** #567  
 **Analyzed/created:** 2026-09-28  
-**Base:** branch `spike/world-unity-567`
+**Integrated via:** #749 on 2026-09-30
 
 ## Confirmed environment
 
@@ -52,8 +52,7 @@ No PlayMode, scene, device or build validation has happened yet.
 
 ## Tooling
 
-Unity Editor/MCP connectivity: **unverified in this chat surface**.
-Repository files are being prepared through GitHub only.
+Unity Editor validation is still pending on a real workstation. Repository integration and CI are complete; Editor import/compile/EditMode/device evidence must be captured next.
 
 ## Important constraints
 
@@ -64,7 +63,7 @@ Repository files are being prepared through GitHub only.
 - blocked/offline targets remain deliberately indistinguishable as `unreachable`;
 - no per-frame network polling;
 - no automatic replay of uncertain writes;
-- #49 playtest evidence is still absent, so this remains a technical spike.
+- repository integration is complete, but #49 playtest/editor evidence is still absent, so production client authority remains gated.
 
 ## Unknowns before presentation work
 
