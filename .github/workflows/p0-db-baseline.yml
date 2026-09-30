@@ -640,6 +640,30 @@ jobs:
           EMOPET_DB_INTEGRATION_TEST: '1'
         run: node --test test/professional-share-*.test.mjs
 
+      - name: WORLD-SOCIAL-01 canonical user blocks
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          EMOPET_DB_INTEGRATION_TEST: '1'
+          NODE_ENV: test
+        run: node --test test/user-blocks.integration.test.mjs test/world-reports.integration.test.mjs test/community-blocks.integration.test.mjs
+
+      - name: WORLD-SOCIAL-03 canonical pilot access and actor revocation
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          EMOPET_DB_INTEGRATION_TEST: '1'
+          NODE_ENV: test
+        run: node --test test/world-pilot-access.integration.test.mjs
+
+      - name: WORLD-SOCIAL-02 canonical connections and presence consent
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          EMOPET_DB_INTEGRATION_TEST: '1'
+          NODE_ENV: test
+        run: node --test test/social-connections.integration.test.mjs
+
       - name: Verify generated snapshot is stable
         working-directory: backend
         run: |
@@ -665,5 +689,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, BEHAV-DATA-01 response/applicability semantics, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification, retention-readiness probes, INT-04A bounded export authority, and INT-05 recipient-bound professional sharing.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, BEHAV-DATA-01 response/applicability semantics, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification, retention-readiness probes, INT-04A bounded export authority, INT-05 recipient-bound professional sharing, and WORLD-SOCIAL-01 canonical user blocks and World report intake.'
           echo 'It does not authorize production migration, deployment, or release.'
