@@ -58,6 +58,11 @@
       "source": "backend/db/schema/community.ts"
     },
     {
+      "table": "community_reports",
+      "column": "subject_user_id",
+      "source": "backend/db/schema/community.ts"
+    },
+    {
       "table": "community_rules_acceptances",
       "column": "user_id",
       "source": "backend/db/schema/community.ts"
@@ -81,6 +86,36 @@
       "table": "subscriptions",
       "column": "user_id",
       "source": "backend/db/schema/users.ts"
+    },
+    {
+      "table": "user_blocks",
+      "column": "blocked_user_id",
+      "source": "backend/db/schema/user-blocks.ts"
+    },
+    {
+      "table": "user_blocks",
+      "column": "blocker_user_id",
+      "source": "backend/db/schema/user-blocks.ts"
+    },
+    {
+      "table": "world_pilot_access",
+      "column": "user_id",
+      "source": "backend/db/schema/world-pilot-access.ts"
+    },
+    {
+      "table": "social_connections",
+      "column": "user_high_id",
+      "source": "backend/db/schema/social-connections.ts"
+    },
+    {
+      "table": "social_connections",
+      "column": "user_low_id",
+      "source": "backend/db/schema/social-connections.ts"
+    },
+    {
+      "table": "world_presence_consents",
+      "column": "user_id",
+      "source": "backend/db/schema/social-connections.ts"
     },
     {
       "table": "user_config",

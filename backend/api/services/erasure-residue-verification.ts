@@ -5,6 +5,7 @@ import {
   achievements,
   aiMessages,
   anticipationEvents,
+  authEmailVerificationTokens,
   authRefreshSessions,
   baselines,
   baselineDriftMonitor,
@@ -32,10 +33,14 @@ import {
   routineStability,
   sensorFeatureObservations,
   sensorSummaries,
+  socialConnections,
   subscriptions,
+  userBlocks,
   userConfig,
   users,
   walkQuality,
+  worldPilotAccess,
+  worldPresenceConsents,
 } from '../../db/schema/index.js';
 import { isCanonicalSubjectUuid } from './subject-access.js';
 
@@ -321,6 +326,7 @@ export async function verifyErasureResidue(
         accountRelationProbes.push(
           probe('achievements.user_id', await countWhere(tx, achievements, eq(achievements.userId, snapshot.accountId))),
           probe('ai_messages.target_user_id', await countWhere(tx, aiMessages, eq(aiMessages.targetUserId, snapshot.accountId))),
+          probe('auth_email_verification_tokens.user_id', await countWhere(tx, authEmailVerificationTokens, eq(authEmailVerificationTokens.userId, snapshot.accountId))),
           probe('auth_refresh_sessions.user_id', await countWhere(tx, authRefreshSessions, eq(authRefreshSessions.userId, snapshot.accountId))),
           probe('behavioral_assessments.respondent_user_id', await countWhere(tx, behavioralAssessments, eq(behavioralAssessments.respondentUserId, snapshot.accountId))),
           probe('comments.author_id', await countWhere(tx, comments, eq(comments.authorId, snapshot.accountId))),
@@ -328,6 +334,7 @@ export async function verifyErasureResidue(
           probe('community_events.created_by', await countWhere(tx, communityEvents, eq(communityEvents.createdBy, snapshot.accountId))),
           probe('community_members.user_id', await countWhere(tx, communityMembers, eq(communityMembers.userId, snapshot.accountId))),
           probe('community_reports.reporter_user_id', await countWhere(tx, communityReports, eq(communityReports.reporterUserId, snapshot.accountId))),
+          probe('community_reports.subject_user_id', await countWhere(tx, communityReports, eq(communityReports.subjectUserId, snapshot.accountId))),
           probe('community_rules_acceptances.user_id', await countWhere(tx, communityRulesAcceptances, eq(communityRulesAcceptances.userId, snapshot.accountId))),
           probe('dogs.owner_id', await countWhere(tx, dogs, eq(dogs.ownerId, snapshot.accountId))),
           probe('posts.author_id', await countWhere(tx, posts, eq(posts.authorId, snapshot.accountId))),
@@ -336,9 +343,15 @@ export async function verifyErasureResidue(
             professionalShareGrants,
             eq(professionalShareGrants.ownerUserId, snapshot.accountId),
           )),
+          probe('social_connections.user_high_id', await countWhere(tx, socialConnections, eq(socialConnections.userHighId, snapshot.accountId))),
+          probe('social_connections.user_low_id', await countWhere(tx, socialConnections, eq(socialConnections.userLowId, snapshot.accountId))),
           probe('research_data_consents.user_id', await countWhere(tx, researchDataConsents, eq(researchDataConsents.userId, snapshot.accountId))),
           probe('subscriptions.user_id', await countWhere(tx, subscriptions, eq(subscriptions.userId, snapshot.accountId))),
+          probe('user_blocks.blocked_user_id', await countWhere(tx, userBlocks, eq(userBlocks.blockedUserId, snapshot.accountId))),
+          probe('user_blocks.blocker_user_id', await countWhere(tx, userBlocks, eq(userBlocks.blockerUserId, snapshot.accountId))),
           probe('user_config.user_id', await countWhere(tx, userConfig, eq(userConfig.userId, snapshot.accountId))),
+          probe('world_pilot_access.user_id', await countWhere(tx, worldPilotAccess, eq(worldPilotAccess.userId, snapshot.accountId))),
+          probe('world_presence_consents.user_id', await countWhere(tx, worldPresenceConsents, eq(worldPresenceConsents.userId, snapshot.accountId))),
         );
       }
 

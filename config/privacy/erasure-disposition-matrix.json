@@ -130,6 +130,60 @@
     {
       "subjectRoot": "users.id",
       "relationType": "DIRECT_FK",
+      "table": "user_blocks",
+      "column": "blocked_user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "user_blocks",
+      "column": "blocker_user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "world_pilot_access",
+      "column": "user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "social_connections",
+      "column": "user_high_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "social_connections",
+      "column": "user_low_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "world_presence_consents",
+      "column": "user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
       "table": "user_config",
       "column": "user_id",
       "disposition": "TO_CONFIRM",
@@ -141,6 +195,15 @@
       "relationType": "DIRECT_FK",
       "table": "community_reports",
       "column": "reporter_user_id",
+      "disposition": "DETACH",
+      "executionStatus": "IMPLEMENTED",
+      "testEvidence": "backend/test/privacy-approved-erasure-decisions.test.mjs"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "community_reports",
+      "column": "subject_user_id",
       "disposition": "DETACH",
       "executionStatus": "IMPLEMENTED",
       "testEvidence": "backend/test/privacy-approved-erasure-decisions.test.mjs"
@@ -452,7 +515,7 @@
   "promotionGate": "claimsExecutableErasure and claimsCompleteErasure MUST remain false while any relation/non-SQL surface is TO_CONFIRM or NOT_IMPLEMENTED",
   "scopeLimitations": [
     "This matrix records both explicitly approved and unresolved lifecycle authority; only authorized rows may be promoted from TO_CONFIRM.",
-    "Four D1-D4 account relations are approved DETACH operations implemented by PostgreSQL SET NULL foreign-key mechanics.",
+    "Five D1-D5 account relations (#446, #594) are approved DETACH operations implemented by PostgreSQL SET NULL foreign-key mechanics.",
     "Database mechanics do not authorize any still-TO_CONFIRM relation and do not establish complete account erasure.",
     "A technical lineage row and a privacy-category classification are separate controls."
   ]
