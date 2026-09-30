@@ -58,35 +58,24 @@ async function lockAuthUser(tx: AuthTransaction, userId: string) {
   return user;
 }
 
+type LockedAuthUser = NonNullable<Awaited<ReturnType<typeof lockAuthUser>>>;
+type LoginSessionResult =
+  | {
+      ok: false;
+      reason: 'invalid_credentials' | 'email_verification_required';
+    }
+  | {
+      ok: true;
+      user: LockedAuthUser;
+      credential: ReturnType<typeof issueRefreshCredential>;
+    };
+
 function readRefreshToken(body: unknown): string | null {
   if (!body || typeof body !== 'object') return null;
   const value = (body as { refreshToken?: unknown }).refreshToken;
   if (typeof value !== 'string') return null;
   const trimmed = value.trim();
   return trimmed.length >= 32 && trimmed.length <= 512 ? trimmed : null;
-}
-
-function hasDatabaseErrorCode(error: unknown, expectedCode: string): boolean {
-  let current: unknown = error;
-  const seen = new Set<object>();
-
-  for (let depth = 0; depth < 8; depth += 1) {
-    if (typeof current !== 'object' || current === null) return false;
-    if (seen.has(current)) return false;
-    seen.add(current);
-
-    if ('code' in current && (current as { code?: unknown }).code === expectedCode) {
-      return true;
-    }
-
-    current = 'cause' in current ? (current as { cause?: unknown }).cause : null;
-  }
-
-  return false;
-}
-
-function isUniqueViolation(error: unknown): boolean {
-  return hasDatabaseErrorCode(error, '23505');
 }
 
 function tokenResponse(accessToken: string, refreshToken: string, refreshTokenExpiresAt: Date) {
@@ -241,7 +230,7 @@ auth.post('/login', zValidator('json', LoginSchema), async (c) => {
   const passwordOk = await verifyPassword(body.password, user.passwordHash);
   if (!passwordOk) return c.json({ error: 'Invalid credentials' }, 401);
 
-  const result = await withAuthSessionTransaction(async (tx) => {
+  const result = await withAuthSessionTransaction<LoginSessionResult>(async (tx) => {
     const currentUser = await lockAuthUser(tx, user.id);
     // A credential change/deletion while the KDF ran invalidates the preflight.
     if (!currentUser || currentUser.passwordHash !== user.passwordHash) {
@@ -266,7 +255,7 @@ auth.post('/login', zValidator('json', LoginSchema), async (c) => {
   }
 
   const { credential } = result;
-  const accessToken = await signAccessToken(user.id);
+  const accessToken = await signAccessToken(result.user.id);
 
   c.header('Cache-Control', 'no-store');
   return c.json({
