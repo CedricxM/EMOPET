@@ -91,7 +91,7 @@ export function DonneesSection() {
         {/* Header */}
         <header style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <Eyebrow tone="accent">{t('donnees', 'eyebrow')}</Eyebrow>
-          <H1>{t('donnees', 'title')}</H1>
+          <H1 as="h2">{t('donnees', 'title')}</H1>
           <Lead>{t('donnees', 'lead')}</Lead>
         </header>
 
