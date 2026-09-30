@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import { db } from '../../db/index.js';
 import { securityAuditEvents } from '../../db/schema/index.js';
 import {
+  SECURITY_AUDIT_SCHEMA_VERSION,
   parseSecurityAuditEvent,
   type SecurityAuditEvent,
 } from './security-audit-event.js';
@@ -33,6 +34,54 @@ export type SecurityAuditPersistenceResult =
       retryable: true;
     };
 
+const CANONICAL_AUDIT_EVENT_KEYS = Object.freeze([
+  'schemaVersion',
+  'eventType',
+  'occurredAt',
+  'actor',
+  'action',
+  'target',
+  'outcome',
+  'reason',
+]);
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Accept either:
+ * - the canonical wire/input shape consumed by parseSecurityAuditEvent(); or
+ * - the exact canonical domain object returned by that parser/composer, whose
+ *   only additional field is the derived schemaVersion.
+ *
+ * Arbitrary extras remain rejected. This lets trusted internal composition feed
+ * the durable repository without weakening the public parser boundary.
+ */
+function parsePersistableSecurityAuditEvent(
+  input: unknown,
+): SecurityAuditEvent | null {
+  const wireEvent = parseSecurityAuditEvent(input);
+  if (wireEvent) return wireEvent;
+
+  if (!isRecord(input)) return null;
+  const keys = Object.keys(input);
+  if (
+    keys.length !== CANONICAL_AUDIT_EVENT_KEYS.length
+    || !keys.every((key) => CANONICAL_AUDIT_EVENT_KEYS.includes(key))
+    || input.schemaVersion !== SECURITY_AUDIT_SCHEMA_VERSION
+  ) {
+    return null;
+  }
+
+  const {
+    schemaVersion: _schemaVersion,
+    ...wireShape
+  } = input;
+
+  return parseSecurityAuditEvent(wireShape);
+}
+
 /**
  * Persist one canonical security-audit-v1 event.
  *
@@ -45,7 +94,7 @@ export type SecurityAuditPersistenceResult =
 export async function persistSecurityAuditEvent(
   input: unknown,
 ): Promise<SecurityAuditPersistenceResult> {
-  const event = parseSecurityAuditEvent(input);
+  const event = parsePersistableSecurityAuditEvent(input);
   if (!event) {
     return {
       ok: false,
@@ -156,7 +205,7 @@ export async function persistSecurityAuditEventIdempotent(
     };
   }
 
-  const event = parseSecurityAuditEvent(input);
+  const event = parsePersistableSecurityAuditEvent(input);
   if (!event) {
     return {
       ok: false,
