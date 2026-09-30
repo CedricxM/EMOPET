@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "emopet-auth-rate-limit-v1",
+  "issue": 767,
+  "parentIssue": 214,
+  "status": "SHARED_POSTGRES_AUTH_LIMIT_CANDIDATE / PRODUCTION_EDGE_EVIDENCE_OPEN",
+  "scope": "/api/auth/*",
+  "policy": {
+    "limit": 20,
+    "windowMs": 60000,
+    "algorithm": "FIXED_WINDOW",
+    "changedByThisGate": false
+  },
+  "store": {
+    "authority": "PostgreSQL",
+    "table": "auth_rate_limit_windows",
+    "atomicUpsert": true,
+    "processLocalFallback": false,
+    "databaseClock": true
+  },
+  "privacy": {
+    "rawClientIpPersisted": false,
+    "rawForwardingHeaderPersisted": false,
+    "bucketKey": "HMAC_SHA256_DOMAIN_SEPARATED",
+    "secretEnv": "AUTH_RATE_LIMIT_HMAC_SECRET",
+    "classification": "PSEUDONYMOUS_NOT_ANONYMOUS"
+  },
+  "retention": {
+    "expiredRowsPurgedOnAuthChecks": true,
+    "explicitCleanupPrimitive": true,
+    "scheduledCleanup": "NOT_SELECTED"
+  },
+  "proxyTrust": {
+    "authority": "EMOPET_TRUST_PROXY_HEADERS",
+    "productionEdgeConfigurationProven": false
+  },
+  "failure": {
+    "storeUnavailable": "HTTP_503_FAIL_CLOSED",
+    "fallbackToInMemory": false
+  },
+  "nonGoals": {
+    "generalApiDistributedLimiter": false,
+    "nextRoutesDistributedLimiter": false,
+    "redisProviderSelected": false,
+    "captcha": false,
+    "credentialStuffingPreventionClaim": false,
+    "productionReadinessClaim": false
+  }
+}
