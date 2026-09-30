@@ -1,4 +1,4 @@
-/** SPIKE / NOT PRODUCTION AUTHORITY. All Nakama SDK use lives here. */
+/** World Nakama transport boundary. Local spike and reviewed release profiles remain explicitly separated. */
 import { Client, Session } from '@heroiclabs/nakama-js';
 import { WorldError, type WorldTransport, type WorldConnection, type WorldTransportCommand } from './contracts.js';
 import { NakamaSocket } from './socket.js';
