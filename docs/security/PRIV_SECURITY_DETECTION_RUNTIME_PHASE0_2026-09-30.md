@@ -33,6 +33,10 @@ Every run must supply:
 - policy revision;
 - explicit UTC window start;
 - explicit UTC window end;
+
+Source selection uses the half-open interval `[windowStart, windowEnd)`. This
+prevents an event exactly on a scheduler boundary from being evaluated in two
+adjacent runs.
 - explicit event-count limit;
 - complete canonical anomaly-detection policy.
 
