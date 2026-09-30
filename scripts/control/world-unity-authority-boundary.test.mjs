@@ -84,6 +84,16 @@ test('Unity rejects expired bootstrap sessions before connected state', async ()
   );
 });
 
+test('Unity validates delivered World event shapes before exposing them', async () => {
+  const coordinator = await read('Assets/World/Session/WorldSessionCoordinator.cs');
+
+  assert.match(coordinator, /private static bool ValidEvents\(WorldEventsResult result\)/);
+  assert.match(coordinator, /item\.type == "chat"/);
+  assert.match(coordinator, /WorldPresets\.IsAllowed\(item\.value\.content\.preset\)/);
+  assert.match(coordinator, /item\.type == "presence" \|\| item\.type == "channel-presence"/);
+  assert.match(coordinator, /private static bool ValidPresenceRows\(WorldPresenceRowDto\[] rows\)/);
+});
+
 test('Unity fails closed on malformed successful World payloads', async () => {
   const coordinator = await read('Assets/World/Session/WorldSessionCoordinator.cs');
 
