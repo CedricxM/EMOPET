@@ -6,22 +6,28 @@ const enabled = process.env.AUTH_DB_INTEGRATION === '1' || process.env.EMOPET_DB
 let auth = null;
 let sql = null;
 let hashRefreshToken = null;
+let hashPassword = null;
+let hashEmailVerificationToken = null;
 let closeDatabase = null;
 
 if (enabled) {
   const [
     { auth: authRouter },
-    { hashRefreshToken: hashToken },
+    { hashRefreshToken: hashToken, hashPassword: hashPasswordValue },
+    { hashEmailVerificationToken: hashVerificationToken },
     { closeDatabase: closeSharedDatabase },
     { default: postgres },
   ] = await Promise.all([
     import('../dist/api/routes/auth.js'),
     import('../dist/api/services/auth-security.js'),
+    import('../dist/api/services/auth-email-verification.js'),
     import('../dist/db/index.js'),
     import('postgres'),
   ]);
   auth = authRouter;
   hashRefreshToken = hashToken;
+  hashPassword = hashPasswordValue;
+  hashEmailVerificationToken = hashVerificationToken;
   closeDatabase = closeSharedDatabase;
   sql = postgres(process.env.DATABASE_URL, { max: 1 });
 }
@@ -41,6 +47,113 @@ async function jsonRequest(path, body, authorization) {
   });
 }
 
+test('AUTH-EMAIL-VERIFY-01 registration is generic and creates no session before proof', {
+  skip: !enabled,
+}, async () => {
+  const email = 'verify-route@emopet.invalid';
+  const unknownEmail = 'verify-unknown@emopet.invalid';
+  const password = 'Correct Horse Battery Staple 2026!';
+
+  await sql`DELETE FROM users WHERE email IN (${email}, ${unknownEmail})`;
+
+  const registerResponse = await jsonRequest('/register', {
+    email: '  VERIFY-ROUTE@emopet.invalid ',
+    password,
+    name: ' Verify Route ',
+  });
+  assert.equal(registerResponse.status, 202);
+  assert.equal(registerResponse.headers.get('cache-control'), 'no-store');
+  const acknowledgement = await registerResponse.json();
+  assert.deepEqual(acknowledgement, {
+    status: 'accepted',
+    message: 'If this email is eligible, verification instructions will be sent.',
+  });
+  assert.equal('user' in acknowledgement, false);
+  assert.equal('accessToken' in acknowledgement, false);
+  assert.equal('refreshToken' in acknowledgement, false);
+
+  const [user] = await sql`
+    SELECT id, email, email_verified_at, email_verification_required_at
+    FROM users
+    WHERE email = ${email}
+  `;
+  assert.equal(user.email, email);
+  assert.equal(user.email_verified_at, null);
+  assert.ok(user.email_verification_required_at instanceof Date);
+
+  const [sessionCount] = await sql`
+    SELECT count(*)::int AS count
+    FROM auth_refresh_sessions
+    WHERE user_id = ${user.id}
+  `;
+  assert.equal(sessionCount.count, 0);
+
+  const blockedLogin = await jsonRequest('/login', { email, password });
+  assert.equal(blockedLogin.status, 403);
+  assert.deepEqual(await blockedLogin.json(), { error: 'Email verification required' });
+
+  const duplicateResponse = await jsonRequest('/register', {
+    email,
+    password,
+    name: 'Different public name must not change response',
+  });
+  assert.equal(duplicateResponse.status, 202);
+  assert.deepEqual(await duplicateResponse.json(), acknowledgement);
+
+  const resendKnown = await jsonRequest('/verify-email/resend', { email });
+  const resendUnknown = await jsonRequest('/verify-email/resend', { email: unknownEmail });
+  assert.equal(resendKnown.status, 202);
+  assert.equal(resendUnknown.status, 202);
+  assert.deepEqual(await resendKnown.json(), acknowledgement);
+  assert.deepEqual(await resendUnknown.json(), acknowledgement);
+
+  // Replace the opaque registration token with a deterministic test token.
+  const rawVerificationToken = `emopet_ev_${Buffer.alloc(32, 0x42).toString('base64url')}`;
+  await sql`
+    UPDATE auth_email_verification_tokens
+    SET revoked_at = now(), revoke_reason = 'manual_revoke'
+    WHERE user_id = ${user.id}
+      AND consumed_at IS NULL
+      AND revoked_at IS NULL
+  `;
+  await sql`
+    INSERT INTO auth_email_verification_tokens
+      (user_id, email, token_hash, expires_at)
+    VALUES (
+      ${user.id},
+      ${email},
+      ${hashEmailVerificationToken(rawVerificationToken)},
+      now() + interval '1 hour'
+    )
+  `;
+
+  const verifyResponse = await jsonRequest('/verify-email', {
+    token: rawVerificationToken,
+  });
+  assert.equal(verifyResponse.status, 200);
+  assert.equal(verifyResponse.headers.get('cache-control'), 'no-store');
+  assert.deepEqual(await verifyResponse.json(), { verified: true, next: 'login' });
+
+  const replayResponse = await jsonRequest('/verify-email', {
+    token: rawVerificationToken,
+  });
+  assert.equal(replayResponse.status, 400);
+
+  const [verifiedUser] = await sql`
+    SELECT email_verified_at
+    FROM users
+    WHERE id = ${user.id}
+  `;
+  assert.ok(verifiedUser.email_verified_at instanceof Date);
+
+  const loginAfterVerification = await jsonRequest('/login', { email, password });
+  assert.equal(loginAfterVerification.status, 200);
+  const authenticated = await loginAfterVerification.json();
+  assert.match(authenticated.refreshToken, /^emopet_rt_/);
+
+  await sql`DELETE FROM users WHERE id = ${user.id}`;
+});
+
 test('AUTH-01 routes persist credentials, rotate refresh sessions, and revoke server-side', {
   skip: !enabled,
 }, async () => {
@@ -59,53 +172,20 @@ test('AUTH-01 routes persist credentials, rotate refresh sessions, and revoke se
   await sql`DELETE FROM auth_refresh_sessions WHERE user_id IN (SELECT id FROM users WHERE email = ${email})`;
   await sql`DELETE FROM users WHERE email = ${email}`;
 
-  const blankNameResponse = await jsonRequest('/register', {
-    email: 'blank-name@emopet.invalid',
-    password,
-    name: '   ',
-  });
-  assert.equal(blankNameResponse.status, 400);
-
-  const registerResponse = await jsonRequest('/register', {
-    email: '  ROUTE-AUTH@emopet.invalid  ',
-    password,
-    name: ' Route Auth ',
-  });
-  assert.equal(registerResponse.status, 201);
-  assert.equal(registerResponse.headers.get('cache-control'), 'no-store');
-  const registered = await registerResponse.json();
-  assert.equal(registered.user.email, email);
-  assert.equal(registered.user.name, 'Route Auth');
-  assert.match(registered.user.id, /^[0-9a-f-]{36}$/i);
-  assert.equal(typeof registered.accessToken, 'string');
-  assert.match(registered.refreshToken, /^emopet_rt_/);
-
+  const passwordHash = await hashPassword(password);
   const [storedUser] = await sql`
-    SELECT id, email, password_hash, gdpr_consent_at
-    FROM users
-    WHERE email = ${email}
+    INSERT INTO users (email, password_hash, name)
+    VALUES (${email}, ${passwordHash}, 'Legacy Auth Route')
+    RETURNING id, email, password_hash, gdpr_consent_at,
+      email_verified_at, email_verification_required_at
   `;
+
   assert.equal(storedUser.email, email);
+  assert.equal(storedUser.email_verified_at, null);
+  assert.equal(storedUser.email_verification_required_at, null);
   assert.notEqual(storedUser.password_hash, password);
   assert.equal(storedUser.password_hash.includes(password), false);
   assert.equal(storedUser.gdpr_consent_at, null);
-
-  const initialRefreshHashRows = await sql`
-    SELECT token_hash, revoked_at, revoke_reason
-    FROM auth_refresh_sessions
-    WHERE user_id = ${storedUser.id}
-  `;
-  assert.equal(initialRefreshHashRows.length, 1);
-  assert.equal(initialRefreshHashRows[0].token_hash, hashRefreshToken(registered.refreshToken));
-  assert.notEqual(initialRefreshHashRows[0].token_hash, registered.refreshToken);
-  assert.equal(initialRefreshHashRows[0].revoked_at, null);
-
-  const duplicateResponse = await jsonRequest('/register', {
-    email,
-    password,
-    name: 'Duplicate',
-  });
-  assert.equal(duplicateResponse.status, 409);
 
   const wrongPasswordResponse = await jsonRequest('/login', {
     email,
@@ -117,8 +197,18 @@ test('AUTH-01 routes persist credentials, rotate refresh sessions, and revoke se
   const loginResponse = await jsonRequest('/login', { email, password });
   assert.equal(loginResponse.status, 200);
   assert.equal(loginResponse.headers.get('cache-control'), 'no-store');
-  const loggedIn = await loginResponse.json();
-  assert.match(loggedIn.refreshToken, /^emopet_rt_/);
+  const registered = await loginResponse.json();
+  assert.match(registered.refreshToken, /^emopet_rt_/);
+
+  const initialRefreshHashRows = await sql`
+    SELECT token_hash, revoked_at, revoke_reason
+    FROM auth_refresh_sessions
+    WHERE user_id = ${storedUser.id}
+  `;
+  assert.equal(initialRefreshHashRows.length, 1);
+  assert.equal(initialRefreshHashRows[0].token_hash, hashRefreshToken(registered.refreshToken));
+  assert.notEqual(initialRefreshHashRows[0].token_hash, registered.refreshToken);
+  assert.equal(initialRefreshHashRows[0].revoked_at, null);
 
   const refreshResponse = await jsonRequest('/refresh', {
     refreshToken: registered.refreshToken,
