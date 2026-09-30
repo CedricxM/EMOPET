@@ -1,4 +1,4 @@
-/* SPIKE / NOT PRODUCTION AUTHORITY. ES5 for Nakama's JavaScript VM. */
+/* World Nakama runtime. local-spike and reviewed release modes remain explicitly separated. ES5 for Nakama's JavaScript VM. */
 var uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 var identityPrefix = 'emopet:world-spike:v1:';
 function denyClientAuth() { throw { code: 7, message: 'EMOPET bootstrap required' }; }
@@ -10,11 +10,22 @@ function bootstrap(ctx, logger, nk, payload) {
     throw { code: 3, message: 'Invalid bootstrap' };
   }
   var canonicalId = body.customId.substring(identityPrefix.length);
-  // Normalize exactly like the Hono configuration (trim + lowercase).
-  var allowed = (ctx.env.WORLD_SPIKE_TEST_USER_IDS || '').split(',').map(function (id) { return id.trim().toLowerCase(); });
-  if (!uuidPattern.test(canonicalId) || allowed.indexOf(canonicalId) === -1) {
-    throw { code: 7, message: 'Synthetic account required' };
+  var mode = ctx.env.EMOPET_WORLD_RUNTIME_MODE || 'local-spike';
+  if (mode !== 'local-spike' && mode !== 'release') {
+    throw { code: 7, message: 'World runtime mode denied' };
   }
+  if (!uuidPattern.test(canonicalId)) {
+    throw { code: 7, message: 'Canonical EMOPET identity required' };
+  }
+  if (mode === 'local-spike') {
+    // Local acceptance remains limited to explicitly configured synthetic accounts.
+    var allowed = (ctx.env.WORLD_SPIKE_TEST_USER_IDS || '').split(',').map(function (id) { return id.trim().toLowerCase(); });
+    if (allowed.indexOf(canonicalId) === -1) {
+      throw { code: 7, message: 'Synthetic account required' };
+    }
+  }
+  // Release eligibility remains canonical backend authority. This RPC is server-to-server
+  // under Nakama's runtime HTTP key and never accepts a client session.
   var user = nk.authenticateCustom(body.customId, undefined, true);
   var generated = nk.authenticateTokenGenerate(user.userId, user.username, Math.floor(Date.now() / 1000) + 300);
   return JSON.stringify({ userId: user.userId, token: generated.token });
