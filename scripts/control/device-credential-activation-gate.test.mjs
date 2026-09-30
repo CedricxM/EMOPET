@@ -25,6 +25,7 @@ const [
     readFile(new URL('../../packages/shared/src/validators/index.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../backend/api/security/device-credential-activation-transaction.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../backend/db/migrations/0034_device_credential_activation_receipts.sql', import.meta.url), 'utf8'),
+    readFile(new URL('../../backend/api/security/device-credential-activation-evidence-resolver.ts', import.meta.url), 'utf8'),
   ]);
 
 const authority = JSON.parse(authoritySource);
