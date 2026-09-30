@@ -50,6 +50,19 @@ namespace Emopet.World.Tests
         }
 
         [Test]
+        public void NoHttpResponseMapsToUnavailableWithoutLeakingTransportDetail()
+        {
+            var http = new FakeHttp(0, string.Empty);
+            var client = new WorldBackendClient("http://127.0.0.1:3000", new FakeToken(), http);
+
+            var error = Assert.ThrowsAsync<WorldBackendException>(() =>
+                client.FriendsListAsync(Handle, CancellationToken.None));
+
+            Assert.That(error.Code, Is.EqualTo(WorldErrorCode.Unavailable));
+            Assert.That(error.StatusCode, Is.EqualTo(0));
+        }
+
+        [Test]
         public void UnreachableMapsBlockedAndOfflineToSameClientError()
         {
             var http = new FakeHttp(404, "{\"error\":\"unreachable\",\"state\":\"rejected\"}");
