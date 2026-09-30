@@ -1,4 +1,4 @@
-/** SPIKE / NOT PRODUCTION AUTHORITY. No product runtime client is connected. */
+/** World runtime boundary. Production release requires the reviewed WORLD production authority gate. */
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { decodeJwt } from 'jose';
