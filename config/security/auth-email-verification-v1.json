@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-auth-email-verification-v1",
-  "status": "RUNTIME_INTEGRATION_CANDIDATE / PREHIJACK_GUARD_IMPLEMENTED / NEW_REGISTRATION_GATE_ACTIVE / LEGACY_ROLLOUT_OPEN",
+  "status": "RUNTIME_INTEGRATION_CANDIDATE / PREHIJACK_GUARD_IMPLEMENTED / ASYNC_DELIVERY_OUTBOX_IMPLEMENTED / LEGACY_ROLLOUT_OPEN",
   "issue": 738,
   "parentIssue": 214,
   "decisions": {
@@ -21,7 +21,17 @@
     "verificationRequiresPasswordSelection": true,
     "preVerificationRegistrationPasswordBecomesPostVerificationAuthority": false,
     "verificationPasswordUpdateAtomicWithTokenConsume": true,
-    "legacyAccountMayEnterVerificationFlowBeforeRollout": false
+    "legacyAccountMayEnterVerificationFlowBeforeRollout": false,
+    "publicDeliveryRequestMode": "DURABLE_OUTBOX / NO_ACCOUNT_ELIGIBILITY_LOOKUP / NO_PROVIDER_WAIT",
+    "deliveryRequestCooldownSeconds": 60,
+    "deliveryClaimLeaseSeconds": 300,
+    "deliveryMaxAttempts": 5,
+    "deliveryRetrySeconds": [
+      60,
+      300,
+      900,
+      1800
+    ]
   },
   "delivery": {
     "provider": "RESEND_ADAPTER_IMPLEMENTED / PRODUCTION_CONFIGURATION_AND_DOMAIN_EVIDENCE_EXTERNAL",
@@ -30,7 +40,15 @@
     "rawTokenMayBePersisted": false,
     "rawTokenMayBeLogged": false,
     "verificationUrlEnv": "AUTH_EMAIL_VERIFICATION_URL",
-    "productionHttpsRequired": true
+    "productionHttpsRequired": true,
+    "publicRequestWaitsForProvider": false,
+    "publicRequestResolvesAccountEligibility": false,
+    "durableIntentOutbox": true,
+    "outboxStoresRawToken": false,
+    "outboxStoresVerificationUrl": false,
+    "rawEmailScrubbedAtTerminal": true,
+    "retainedEmailHashIsPseudonymous": true,
+    "workerPublicHttpRoute": false
   },
   "runtime": {
     "durableTokenAuthorityImplemented": true,
@@ -40,6 +58,10 @@
     "deliveryProviderIntegrated": true,
     "newAccountLoginGateIntegrated": true,
     "legacyAccountRolloutIntegrated": false,
-    "preHijackGuardIntegrated": true
-  }
+    "preHijackGuardIntegrated": true,
+    "durableDeliveryOutboxImplemented": true,
+    "asyncDeliveryWorkerImplemented": true,
+    "providerTimingDecoupledFromPublicResponse": true
+  },
+  "deliveryIssue": 747
 }
