@@ -147,12 +147,7 @@ export async function checkSharedAuthRateLimit(
               THEN CURRENT_TIMESTAMP + (${options.windowMs} * INTERVAL '1 millisecond')
             ELSE ${authRateLimitWindows.resetAt}
           END`,
-          // CURRENT_TIMESTAMP is transaction-scoped in PostgreSQL. A losing
-          // concurrent UPSERT may have started slightly before the transaction
-          // that inserted the current window, then resume after that winner
-          // commits. Never let its older transaction timestamp move updated_at
-          // behind the already-authoritative window_started_at.
-          updatedAt: sql`GREATEST(CURRENT_TIMESTAMP, ${authRateLimitWindows.windowStartedAt})`,
+          updatedAt: sql`CURRENT_TIMESTAMP`,
         },
       })
       .returning({
