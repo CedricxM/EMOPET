@@ -10,7 +10,6 @@ static const uint8_t DOMAIN_SEPARATOR[] = "EMOPET_DEVICE_POP_V1";
 
 enum {
     PROTOCOL_VERSION = 1u,
-    PURPOSE_DEVICE_DATA_TELEMETRY_INGRESS = 1u,
 };
 
 _Static_assert(sizeof(DOMAIN_SEPARATOR) - 1u == 20u, "domain separator drift");
@@ -55,7 +54,12 @@ device_pop_preimage_result_t device_pop_build_preimage_v1(
     }
 
     if (
-        input->credential_version == 0u
+        (
+            input->purpose_code != DEVICE_POP_PURPOSE_TELEMETRY_V1
+            && input->purpose_code
+                != DEVICE_POP_PURPOSE_CREDENTIAL_ACTIVATION_V1
+        )
+        || input->credential_version == 0u
         || input->expires_at_unix_ms <= input->issued_at_unix_ms
     ) {
         return DEVICE_POP_PREIMAGE_INVALID_SEMANTICS;
@@ -71,7 +75,7 @@ device_pop_preimage_result_t device_pop_build_preimage_v1(
     offset += sizeof(DOMAIN_SEPARATOR) - 1u;
 
     out[offset++] = PROTOCOL_VERSION;
-    out[offset++] = PURPOSE_DEVICE_DATA_TELEMETRY_INGRESS;
+    out[offset++] = input->purpose_code;
 
     memcpy(&out[offset], input->device_id, DEVICE_POP_UUID_BYTES);
     offset += DEVICE_POP_UUID_BYTES;

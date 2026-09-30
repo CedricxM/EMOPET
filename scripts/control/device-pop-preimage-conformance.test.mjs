@@ -55,12 +55,38 @@ test('TAG C PoP preimage is byte-for-byte identical to backend verifier authorit
       signingContract: 'EMOPET_DEVICE_POP_FIXED_BINARY_V1',
     };
 
-    const backend = buildDevicePopSigningPreimageV1(challenge);
-    assert.equal(backend.length, 106);
+    const telemetryBackend = buildDevicePopSigningPreimageV1(challenge);
+    assert.equal(telemetryBackend.length, 106);
 
-    const cHex = run.stdout.trim();
-    assert.equal(cHex.length, 212);
-    assert.equal(cHex, backend.toString('hex'));
+    const activationChallenge = {
+      ...challenge,
+      purpose: 'DEVICE_CREDENTIAL_ACTIVATION',
+    };
+    const activationBackend =
+      buildDevicePopSigningPreimageV1(activationChallenge);
+    assert.equal(activationBackend.length, 106);
+
+    const [telemetryCHex, activationCHex, ...extra] =
+      run.stdout.trim().split(/\r?\n/);
+    assert.equal(extra.length, 0);
+    assert.equal(telemetryCHex.length, 212);
+    assert.equal(activationCHex.length, 212);
+    assert.equal(telemetryCHex, telemetryBackend.toString('hex'));
+    assert.equal(activationCHex, activationBackend.toString('hex'));
+
+    // Purpose byte is the only field that changes for otherwise identical
+    // challenges: byte 21 (20-byte domain + 1-byte protocol) is 0x01 vs 0x02.
+    assert.equal(telemetryBackend[21], 0x01);
+    assert.equal(activationBackend[21], 0x02);
+    const telemetryWithoutPurpose = Buffer.concat([
+      telemetryBackend.subarray(0, 21),
+      telemetryBackend.subarray(22),
+    ]);
+    const activationWithoutPurpose = Buffer.concat([
+      activationBackend.subarray(0, 21),
+      activationBackend.subarray(22),
+    ]);
+    assert.deepEqual(telemetryWithoutPurpose, activationWithoutPurpose);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

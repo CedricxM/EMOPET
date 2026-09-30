@@ -97,6 +97,22 @@ test('ACTIVE resolver is read-only and cannot expose PENDING_PROOF', () => {
   assert.match(service, /if \(!row \|\| row\.state !== 'ACTIVE'\) return null/);
 });
 
+test('manufacturing resolver is exact-version PENDING_PROOF read-only authority', () => {
+  assert.match(service, /resolvePendingCredential/);
+  assert.match(
+    service,
+    /eq\(deviceIdentityCredentials\.credentialVersion, credentialVersion\)/,
+  );
+  assert.match(
+    service,
+    /eq\(deviceIdentityCredentials\.state, 'PENDING_PROOF'\)/,
+  );
+  assert.match(
+    service,
+    /if \(!row \|\| row\.state !== 'PENDING_PROOF'\) return null/,
+  );
+});
+
 test('no public backend route imports the enrollment repository', async () => {
   const routeDir = path.join(root, 'backend/api/routes');
   const routeFiles = (await collectFiles(routeDir))

@@ -16,6 +16,7 @@ static void print_hex(const uint8_t *bytes, size_t length)
 int main(void)
 {
     const device_pop_preimage_input_v1_t input = {
+        .purpose_code = DEVICE_POP_PURPOSE_TELEMETRY_V1,
         .device_id = {
             0x11, 0x11, 0x11, 0x11,
             0x11, 0x11,
@@ -49,7 +50,23 @@ int main(void)
     );
     print_hex(out, sizeof(out));
 
+    device_pop_preimage_input_v1_t activation = input;
+    activation.purpose_code =
+        DEVICE_POP_PURPOSE_CREDENTIAL_ACTIVATION_V1;
+    assert(
+        device_pop_build_preimage_v1(&activation, out, sizeof(out))
+        == DEVICE_POP_PREIMAGE_OK
+    );
+    print_hex(out, sizeof(out));
+
     device_pop_preimage_input_v1_t invalid = input;
+    invalid.purpose_code = 0x03u;
+    assert(
+        device_pop_build_preimage_v1(&invalid, out, sizeof(out))
+        == DEVICE_POP_PREIMAGE_INVALID_SEMANTICS
+    );
+
+    invalid = input;
     invalid.credential_version = 0u;
     assert(
         device_pop_build_preimage_v1(&invalid, out, sizeof(out))

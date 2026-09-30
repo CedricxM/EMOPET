@@ -31,13 +31,14 @@ function challenge({
   nonce = Buffer.alloc(32, 0x5a).toString('base64url'),
   issuedAt = '2026-09-29T10:00:00.000Z',
   expiresAt = '2026-09-29T10:05:00.000Z',
+  purpose = 'DEVICE_DATA_TELEMETRY_INGRESS',
 } = {}) {
   return {
     schemaVersion: 'device-pop-challenge-v1',
     protocolVersion: 1,
     deviceId,
     credentialVersion,
-    purpose: 'DEVICE_DATA_TELEMETRY_INGRESS',
+    purpose,
     challengeId,
     nonce,
     issuedAt,
@@ -197,4 +198,50 @@ test('consume rejects malformed, early and expired timestamps without mutation',
 
   const stored = await store.findByChallengeId(CHALLENGE_A);
   assert.equal(stored.consumedAt, null);
+});
+
+
+test('challenge store round-trips manufacturing activation purpose without widening replay semantics', {
+  skip: !enabled,
+}, async () => {
+  await seedDevice();
+
+  const activation = challenge({
+    challengeId: CHALLENGE_B,
+    credentialVersion: 7,
+    purpose: 'DEVICE_CREDENTIAL_ACTIVATION',
+  });
+
+  assert.equal(
+    await store.createIfAbsent({ challenge: activation, consumedAt: null }),
+    true,
+  );
+
+  const stored = await store.findByChallengeId(CHALLENGE_B);
+  assert.deepEqual(stored, {
+    challenge: activation,
+    consumedAt: null,
+  });
+
+  const [row] = await sql`
+    SELECT purpose
+    FROM device_pop_challenges
+    WHERE challenge_id = ${CHALLENGE_B}
+  `;
+  assert.equal(row.purpose, 'DEVICE_CREDENTIAL_ACTIVATION');
+
+  assert.equal(
+    await store.consumeIfUnconsumed(
+      CHALLENGE_B,
+      '2026-09-29T10:01:00.000Z',
+    ),
+    true,
+  );
+  assert.equal(
+    await store.consumeIfUnconsumed(
+      CHALLENGE_B,
+      '2026-09-29T10:01:01.000Z',
+    ),
+    false,
+  );
 });

@@ -65,7 +65,7 @@ function rowToStoredChallenge(
     protocolVersion: 1,
     deviceId: row.deviceId,
     credentialVersion: row.credentialVersion,
-    purpose: 'DEVICE_DATA_TELEMETRY_INGRESS',
+    purpose: row.purpose as DevicePopChallengeV1['purpose'],
     challengeId: row.challengeId,
     nonce: row.nonce,
     issuedAt: row.issuedAt.toISOString(),

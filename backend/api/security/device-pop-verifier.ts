@@ -4,6 +4,7 @@ import {
   DevicePopChallengeV1Schema,
   DevicePopResponseV1Schema,
   type DevicePopChallengeV1,
+  type DevicePopPurposeV1,
   type DevicePopResponseV1,
 } from '@emopet/shared';
 
@@ -13,7 +14,9 @@ export type DevicePopVerifyError =
   | 'CHALLENGE_ALREADY_CONSUMED'
   | 'CHALLENGE_EXPIRED'
   | 'CHALLENGE_MISMATCH'
+  | 'PURPOSE_MISMATCH'
   | 'ACTIVE_CREDENTIAL_NOT_FOUND'
+  | 'PENDING_CREDENTIAL_NOT_FOUND'
   | 'INVALID_PUBLIC_KEY'
   | 'INVALID_SIGNATURE'
   | 'CHALLENGE_CONSUME_CONFLICT'
@@ -59,9 +62,29 @@ export interface DevicePopVerificationCredentialResolver {
   ): Promise<DevicePopVerificationCredentialV1 | null>;
 }
 
+export interface DevicePopPendingVerificationCredentialV1 {
+  deviceId: string;
+  credentialVersion: number;
+  state: 'PENDING_PROOF';
+  publicKeySec1: Uint8Array;
+}
+
+export interface DevicePopPendingVerificationCredentialResolver {
+  resolvePendingCredential(
+    deviceId: string,
+    credentialVersion: number,
+  ): Promise<DevicePopPendingVerificationCredentialV1 | null>;
+}
+
 export interface DevicePopVerifierDependencies {
   challenges: DevicePopVerificationChallengeStore;
   credentials: DevicePopVerificationCredentialResolver;
+  now?: () => Date;
+}
+
+export interface DeviceCredentialActivationVerifierDependencies {
+  challenges: DevicePopVerificationChallengeStore;
+  credentials: DevicePopPendingVerificationCredentialResolver;
   now?: () => Date;
 }
 
@@ -72,7 +95,7 @@ export type VerifyDevicePopResult =
         schemaVersion: 'device-pop-proof-verification-v1';
         deviceId: string;
         credentialVersion: number;
-        purpose: 'DEVICE_DATA_TELEMETRY_INGRESS';
+        purpose: DevicePopPurposeV1;
         challengeId: string;
         verifiedAt: string;
         cryptographicProofVerified: true;
@@ -90,6 +113,11 @@ const P256_SPKI_PREFIX = Buffer.from(
   '3059301306072a8648ce3d020106082a8648ce3d030107034200',
   'hex',
 );
+
+const PURPOSE_CODE_V1: Readonly<Record<DevicePopPurposeV1, number>> = {
+  DEVICE_DATA_TELEMETRY_INGRESS: 0x01,
+  DEVICE_CREDENTIAL_ACTIVATION: 0x02,
+};
 
 function uuidToBytes(uuid: string): Buffer {
   const hex = uuid.replaceAll('-', '');
@@ -146,7 +174,7 @@ export function buildDevicePopSigningPreimageV1(
   return Buffer.concat([
     DOMAIN_SEPARATOR,
     Buffer.from([parsed.protocolVersion]),
-    Buffer.from([0x01]), // DEVICE_DATA_TELEMETRY_INGRESS
+    Buffer.from([PURPOSE_CODE_V1[parsed.purpose]]),
     uuidToBytes(parsed.deviceId),
     uint32be(parsed.credentialVersion),
     uuidToBytes(parsed.challengeId),
@@ -225,6 +253,13 @@ export async function verifyDevicePopResponseV1(
   }
   const challenge = challengeParsed.data;
 
+  if (
+    challenge.purpose !== 'DEVICE_DATA_TELEMETRY_INGRESS'
+    || response.purpose !== 'DEVICE_DATA_TELEMETRY_INGRESS'
+  ) {
+    return { ok: false, error: 'PURPOSE_MISMATCH' };
+  }
+
   if (!responseMatchesChallenge(response, challenge)) {
     return { ok: false, error: 'CHALLENGE_MISMATCH' };
   }
@@ -257,6 +292,146 @@ export async function verifyDevicePopResponseV1(
     || credential.credentialVersion !== challenge.credentialVersion
   ) {
     return { ok: false, error: 'ACTIVE_CREDENTIAL_NOT_FOUND' };
+  }
+
+  let key;
+  let preimage: Buffer;
+  let signature: Buffer;
+  try {
+    key = publicKeyFromSec1(credential.publicKeySec1);
+    preimage = buildDevicePopSigningPreimageV1(challenge);
+    signature = decodeBase64UrlExact(response.signature, 64);
+  } catch {
+    return { ok: false, error: 'INVALID_PUBLIC_KEY' };
+  }
+
+  let valid = false;
+  try {
+    valid = verify(
+      'sha256',
+      preimage,
+      {
+        key,
+        dsaEncoding: 'ieee-p1363',
+      },
+      signature,
+    );
+  } catch {
+    valid = false;
+  }
+
+  if (!valid) {
+    return { ok: false, error: 'INVALID_SIGNATURE' };
+  }
+
+  const verifiedAt = now.toISOString();
+  try {
+    const consumed = await dependencies.challenges.consumeIfUnconsumed(
+      challenge.challengeId,
+      verifiedAt,
+    );
+    if (!consumed) {
+      return { ok: false, error: 'CHALLENGE_CONSUME_CONFLICT' };
+    }
+  } catch {
+    return { ok: false, error: 'CHALLENGE_STORE_FAILURE' };
+  }
+
+  return {
+    ok: true,
+    proof: {
+      schemaVersion: 'device-pop-proof-verification-v1',
+      deviceId: challenge.deviceId,
+      credentialVersion: challenge.credentialVersion,
+      purpose: challenge.purpose,
+      challengeId: challenge.challengeId,
+      verifiedAt,
+      cryptographicProofVerified: true,
+      deviceDataTrustAuthorized: false,
+      telemetryPersistenceAuthorized: false,
+    },
+  };
+}
+
+
+/**
+ * Manufacturing M4 verifier for #791.
+ *
+ * A positive result proves only that the exact PENDING_PROOF credential signed
+ * the dedicated activation-purpose challenge. It does not activate M6, Device
+ * Data Trust or telemetry persistence.
+ */
+export async function verifyDeviceCredentialActivationResponseV1(
+  responseInput: unknown,
+  dependencies: DeviceCredentialActivationVerifierDependencies,
+): Promise<VerifyDevicePopResult> {
+  const responseParsed = DevicePopResponseV1Schema.safeParse(responseInput);
+  if (!responseParsed.success) {
+    return { ok: false, error: 'INVALID_RESPONSE_CONTRACT' };
+  }
+  const response = responseParsed.data;
+
+  let state: DevicePopStoredChallengeStateV1 | null;
+  try {
+    state = await dependencies.challenges.findByChallengeId(
+      response.challengeId,
+    );
+  } catch {
+    return { ok: false, error: 'CHALLENGE_STORE_FAILURE' };
+  }
+
+  if (state == null) {
+    return { ok: false, error: 'CHALLENGE_NOT_FOUND' };
+  }
+  if (state.consumedAt !== null) {
+    return { ok: false, error: 'CHALLENGE_ALREADY_CONSUMED' };
+  }
+
+  const challengeParsed = DevicePopChallengeV1Schema.safeParse(state.challenge);
+  if (!challengeParsed.success) {
+    return { ok: false, error: 'CHALLENGE_MISMATCH' };
+  }
+  const challenge = challengeParsed.data;
+
+  if (
+    challenge.purpose !== 'DEVICE_CREDENTIAL_ACTIVATION'
+    || response.purpose !== 'DEVICE_CREDENTIAL_ACTIVATION'
+  ) {
+    return { ok: false, error: 'PURPOSE_MISMATCH' };
+  }
+
+  if (!responseMatchesChallenge(response, challenge)) {
+    return { ok: false, error: 'CHALLENGE_MISMATCH' };
+  }
+
+  const now = (dependencies.now ?? (() => new Date()))();
+  const nowMs = now.getTime();
+  const expiresAtMs = Date.parse(challenge.expiresAt);
+  if (
+    !Number.isFinite(nowMs)
+    || !Number.isFinite(expiresAtMs)
+    || nowMs >= expiresAtMs
+  ) {
+    return { ok: false, error: 'CHALLENGE_EXPIRED' };
+  }
+
+  let credential: DevicePopPendingVerificationCredentialV1 | null;
+  try {
+    credential = await dependencies.credentials.resolvePendingCredential(
+      challenge.deviceId,
+      challenge.credentialVersion,
+    );
+  } catch {
+    return { ok: false, error: 'CREDENTIAL_RESOLVER_FAILURE' };
+  }
+
+  if (
+    credential == null
+    || credential.state !== 'PENDING_PROOF'
+    || credential.deviceId !== challenge.deviceId
+    || credential.credentialVersion !== challenge.credentialVersion
+  ) {
+    return { ok: false, error: 'PENDING_CREDENTIAL_NOT_FOUND' };
   }
 
   let key;

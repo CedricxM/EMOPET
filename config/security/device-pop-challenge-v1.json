@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-device-pop-challenge-contract-v1",
-  "status": "DATA_CONTRACT_SELECTED / ISSUER+VERIFIER+DEVICE_SIGNER+PENDING_CREDENTIAL_REPO+REPLAY_STORE_SOURCE_IMPLEMENTED / KEY_STORAGE_TARGET_PROOF+DEVICE_DATA_TRUST_RUNTIME_OPEN / TELEMETRY_PERSISTENCE_BLOCKED",
+  "status": "DATA_CONTRACT_SELECTED / TELEMETRY_ACTIVE_LANE + ACTIVATION_PENDING_PROOF_LANE_SOURCE_IMPLEMENTED / REPLAY_STORE_DURABLE / TARGET_PROOF+DEVICE_DATA_TRUST_RUNTIME_OPEN / TELEMETRY_PERSISTENCE_BLOCKED",
   "issue": 648,
   "parentIssue": 66,
   "architecture": {
@@ -12,8 +12,16 @@
     "schemaVersion": "device-pop-challenge-v1",
     "protocolVersion": 1,
     "purpose": {
-      "initialAllowed": "DEVICE_DATA_TELEMETRY_INGRESS",
-      "code": 1,
+      "telemetry": {
+        "name": "DEVICE_DATA_TELEMETRY_INGRESS",
+        "code": 1,
+        "credentialState": "ACTIVE"
+      },
+      "credentialActivation": {
+        "name": "DEVICE_CREDENTIAL_ACTIVATION",
+        "code": 2,
+        "credentialState": "PENDING_PROOF"
+      },
       "reuseForClaimBindOrCommands": false
     },
     "challengeId": {
@@ -59,7 +67,7 @@
     "publicKeyIncludedInResponse": false
   },
   "backendVerification": {
-    "publicKeySource": "ACTIVE_ENROLLED_CREDENTIAL_FOR_CANONICAL_DEVICE_PRINCIPAL_AND_VERSION",
+    "publicKeySource": "LANE_SPECIFIC: TELEMETRY=ACTIVE / CREDENTIAL_ACTIVATION=PENDING_PROOF",
     "challengeStateSource": "SERVER_SIDE_BY_CHALLENGE_ID",
     "deviceClockTrustedForExpiry": false,
     "serverTimeOwnsExpiry": true,
@@ -69,7 +77,8 @@
     "expiredChallengeRejected": true,
     "revokedOrReplacedCredentialRejected": true,
     "invalidSignatureAuthorizesNothing": true,
-    "failedAttemptConsumptionPolicy": "OPEN_IMPLEMENTATION_POLICY"
+    "failedAttemptConsumptionPolicy": "OPEN_IMPLEMENTATION_POLICY",
+    "wrongPurposeCrossUseRejected": true
   },
   "nonAuthorities": [
     "BLE_RUNTIME_DEVICE_ID",
@@ -82,14 +91,14 @@
     "MOBILE_CLIENT_ASSERTION"
   ],
   "runtime": {
-    "challengeIssuer": "SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_AUTHORITIES_REQUIRED / NO_HTTP_ROUTE",
+    "challengeIssuer": "SOURCE_PRIMITIVES_IMPLEMENTED / TELEMETRY_ACTIVE_ONLY + ACTIVATION_PENDING_PROOF_ONLY / INJECTED_AUTHORITIES_REQUIRED / NO_HTTP_ROUTE",
     "deviceSigner": "SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_OPAQUE_PSA_KEY_ID / NO_KEY_GENERATION_OR_STORAGE",
-    "backendVerifier": "SOURCE_PRIMITIVE_IMPLEMENTED / INJECTED_AUTHORITIES_REQUIRED / NO_HTTP_ROUTE",
+    "backendVerifier": "SOURCE_PRIMITIVES_IMPLEMENTED / TELEMETRY_ACTIVE_ONLY + ACTIVATION_PENDING_PROOF_ONLY / INJECTED_AUTHORITIES_REQUIRED / NO_HTTP_ROUTE",
     "replayStore": "DURABLE_POSTGRES_IMPLEMENTED / EXPLICIT_DEPENDENCY / NO_HTTP_ROUTE",
     "deviceDataTrust": "NOT_IMPLEMENTED",
     "networkTelemetryPersistence": "BLOCKED",
-    "credentialRepository": "DURABLE_POSTGRES_IMPLEMENTED / PENDING_PROOF_ENROLLMENT + ACTIVE_READ_ONLY_RESOLVER / MIGRATION_0020 / NO_ACTIVATION_MUTATION",
-    "challengePersistence": "DURABLE_POSTGRES_IMPLEMENTED / MIGRATION_0026 / HISTORICAL+GENERATED_DB_PROOF_GREEN / NO_DEFAULT_TTL / NO_CLEANUP_POLICY",
+    "credentialRepository": "DURABLE_POSTGRES_IMPLEMENTED / PENDING_PROOF_ENROLLMENT + ACTIVE_READ_ONLY_RESOLVER + EXACT_PENDING_READ_ONLY_RESOLVER / MIGRATION_0020 / NO_ACTIVATION_MUTATION",
+    "challengePersistence": "DURABLE_POSTGRES_IMPLEMENTED / MIGRATION_0026 + PURPOSE_EXTENSION_0039 / HISTORICAL+GENERATED_DB_PROOF_REQUIRED / NO_DEFAULT_TTL / NO_CLEANUP_POLICY",
     "issuerSource": "backend/api/security/device-pop-challenge-issuer.ts",
     "issuerUnitTest": "backend/test/device-pop-challenge-issuer.test.mjs",
     "issuerHasDefaultTtl": false,
@@ -113,7 +122,12 @@
     "challengeRepositorySource": "backend/api/security/device-pop-challenge-repository.ts",
     "challengeRepositoryIntegrationTest": "backend/test/device-pop-challenge-repository.integration.test.mjs",
     "credentialRepositorySource": "backend/api/security/device-credential-repository.ts",
-    "credentialRepositoryIntegrationTest": "backend/test/device-credential-repository.integration.test.mjs"
+    "credentialRepositoryIntegrationTest": "backend/test/device-credential-repository.integration.test.mjs",
+    "activationIssuerFunction": "issueDeviceCredentialActivationChallengeV1",
+    "activationVerifierFunction": "verifyDeviceCredentialActivationResponseV1",
+    "activationPurposeAuthorizesM6": false,
+    "activationPurposeCreatesDebugEvidence": false,
+    "activationPurposeCreatesTargetEvidence": false
   },
   "releaseRule": "NO_DEVICE_TRUST_SUCCESS_OR_DURABLE_NETWORK_TELEMETRY_WRITE_UNTIL_RUNTIME_AND_TARGET_HARDWARE_NEGATIVE_EVIDENCE_PASS"
 }

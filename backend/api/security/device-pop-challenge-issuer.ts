@@ -8,8 +8,12 @@ import {
 export const DEVICE_POP_PURPOSE_TELEMETRY_V1 =
   'DEVICE_DATA_TELEMETRY_INGRESS' as const;
 
+export const DEVICE_POP_PURPOSE_CREDENTIAL_ACTIVATION_V1 =
+  'DEVICE_CREDENTIAL_ACTIVATION' as const;
+
 export type DevicePopChallengeIssueError =
   | 'ACTIVE_CREDENTIAL_NOT_FOUND'
+  | 'PENDING_CREDENTIAL_NOT_FOUND'
   | 'INVALID_EXPIRY'
   | 'CHALLENGE_ID_CONFLICT'
   | 'CHALLENGE_STORE_FAILURE'
@@ -25,6 +29,19 @@ export interface DevicePopCredentialResolver {
   resolveActiveCredential(
     deviceId: string,
   ): Promise<DevicePopActiveCredentialV1 | null>;
+}
+
+export interface DevicePopPendingCredentialV1 {
+  deviceId: string;
+  credentialVersion: number;
+  state: 'PENDING_PROOF';
+}
+
+export interface DevicePopPendingCredentialResolver {
+  resolvePendingCredential(
+    deviceId: string,
+    credentialVersion: number,
+  ): Promise<DevicePopPendingCredentialV1 | null>;
 }
 
 export interface DevicePopChallengeStateV1 {
@@ -53,11 +70,28 @@ export interface DevicePopChallengeIssuerDependencies {
   entropy?: DevicePopChallengeEntropy;
 }
 
+export interface DeviceCredentialActivationChallengeIssuerDependencies {
+  credentials: DevicePopPendingCredentialResolver;
+  store: DevicePopChallengeStore;
+  now?: () => Date;
+  entropy?: DevicePopChallengeEntropy;
+}
+
 export interface IssueDevicePopChallengeInput {
   deviceId: string;
   /**
    * Expiry is supplied by a separate policy authority. This primitive has no
    * default TTL and therefore cannot silently select a product security policy.
+   */
+  expiresAt: Date;
+}
+
+export interface IssueDeviceCredentialActivationChallengeInput {
+  deviceId: string;
+  credentialVersion: number;
+  /**
+   * Expiry remains supplied by a separate manufacturing security policy.
+   * This primitive deliberately selects no TTL.
    */
   expiresAt: Date;
 }
@@ -126,6 +160,89 @@ export async function issueDevicePopChallengeV1(
     deviceId: input.deviceId,
     credentialVersion: credential.credentialVersion,
     purpose: DEVICE_POP_PURPOSE_TELEMETRY_V1,
+    challengeId: entropy.randomUuid(),
+    nonce: toBase64Url(entropy.randomBytes(32)),
+    issuedAt: now.toISOString(),
+    expiresAt: input.expiresAt.toISOString(),
+    signingContract: 'EMOPET_DEVICE_POP_FIXED_BINARY_V1',
+  };
+
+  const parsed = DevicePopChallengeV1Schema.safeParse(challenge);
+  if (!parsed.success) {
+    return { ok: false, error: 'CONTRACT_VALIDATION_FAILURE' };
+  }
+
+  try {
+    const created = await dependencies.store.createIfAbsent({
+      challenge: parsed.data,
+      consumedAt: null,
+    });
+    if (!created) {
+      return { ok: false, error: 'CHALLENGE_ID_CONFLICT' };
+    }
+  } catch {
+    return { ok: false, error: 'CHALLENGE_STORE_FAILURE' };
+  }
+
+  return {
+    ok: true,
+    challenge: parsed.data,
+  };
+}
+
+
+/**
+ * Manufacturing M4 issuer for #791.
+ *
+ * This lane is deliberately separate from telemetry issuance:
+ * - purpose is DEVICE_CREDENTIAL_ACTIVATION;
+ * - the exact credential version must still be PENDING_PROOF;
+ * - no HTTP route, default TTL or activation mutation is created here.
+ */
+export async function issueDeviceCredentialActivationChallengeV1(
+  input: IssueDeviceCredentialActivationChallengeInput,
+  dependencies: DeviceCredentialActivationChallengeIssuerDependencies,
+): Promise<IssueDevicePopChallengeResult> {
+  const now = (dependencies.now ?? (() => new Date()))();
+  const expiresAtMs = input.expiresAt.getTime();
+  const issuedAtMs = now.getTime();
+
+  if (
+    !Number.isFinite(issuedAtMs)
+    || !Number.isFinite(expiresAtMs)
+    || expiresAtMs <= issuedAtMs
+  ) {
+    return { ok: false, error: 'INVALID_EXPIRY' };
+  }
+
+  if (
+    !Number.isSafeInteger(input.credentialVersion)
+    || input.credentialVersion <= 0
+    || input.credentialVersion > 0xffffffff
+  ) {
+    return { ok: false, error: 'PENDING_CREDENTIAL_NOT_FOUND' };
+  }
+
+  const credential = await dependencies.credentials.resolvePendingCredential(
+    input.deviceId,
+    input.credentialVersion,
+  );
+  if (
+    credential == null
+    || credential.state !== 'PENDING_PROOF'
+    || credential.deviceId !== input.deviceId
+    || credential.credentialVersion !== input.credentialVersion
+  ) {
+    return { ok: false, error: 'PENDING_CREDENTIAL_NOT_FOUND' };
+  }
+
+  const entropy = dependencies.entropy ?? nodeEntropy;
+  const challenge: DevicePopChallengeV1 = {
+    schemaVersion: 'device-pop-challenge-v1',
+    protocolVersion: 1,
+    deviceId: input.deviceId,
+    credentialVersion: credential.credentialVersion,
+    purpose: DEVICE_POP_PURPOSE_CREDENTIAL_ACTIVATION_V1,
     challengeId: entropy.randomUuid(),
     nonce: toBase64Url(entropy.randomBytes(32)),
     issuedAt: now.toISOString(),

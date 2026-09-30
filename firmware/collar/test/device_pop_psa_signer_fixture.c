@@ -168,6 +168,7 @@ static device_pop_preimage_input_v1_t valid_input(void)
 {
     device_pop_preimage_input_v1_t input;
     memset(&input, 0, sizeof(input));
+    input.purpose_code = DEVICE_POP_PURPOSE_TELEMETRY_V1;
 
     for (size_t i = 0; i < DEVICE_POP_UUID_BYTES; ++i) {
         input.device_id[i] = (uint8_t)(0x10u + i);
@@ -215,6 +216,19 @@ int main(void)
     }
 
     reset_fixture();
+    input.purpose_code = DEVICE_POP_PURPOSE_CREDENTIAL_ACTIVATION_V1;
+    assert(
+        device_pop_sign_challenge_v1(
+            TEST_KEY_ID,
+            &input,
+            signature
+        ) == DEVICE_POP_SIGN_OK
+    );
+    assert(hash_calls == 1);
+    assert(sign_calls == 1);
+
+    input = valid_input();
+    reset_fixture();
     active_attributes.bits = 384u;
     assert(
         device_pop_sign_challenge_v1(
@@ -236,6 +250,17 @@ int main(void)
         ) == DEVICE_POP_SIGN_KEY_POLICY_MISMATCH
     );
 
+    reset_fixture();
+    input.purpose_code = 0x03u;
+    assert(
+        device_pop_sign_challenge_v1(
+            TEST_KEY_ID,
+            &input,
+            signature
+        ) == DEVICE_POP_SIGN_PREIMAGE_ERROR
+    );
+
+    input = valid_input();
     reset_fixture();
     input.credential_version = 0u;
     assert(

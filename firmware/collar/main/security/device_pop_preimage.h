@@ -19,7 +19,11 @@ extern "C" {
 #define DEVICE_POP_UUID_BYTES 16u
 #define DEVICE_POP_NONCE_BYTES 32u
 
+#define DEVICE_POP_PURPOSE_TELEMETRY_V1 0x01u
+#define DEVICE_POP_PURPOSE_CREDENTIAL_ACTIVATION_V1 0x02u
+
 typedef struct {
+    uint8_t purpose_code;
     uint8_t device_id[DEVICE_POP_UUID_BYTES];
     uint32_t credential_version;
     uint8_t challenge_id[DEVICE_POP_UUID_BYTES];

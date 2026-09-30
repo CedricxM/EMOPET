@@ -4,6 +4,7 @@ import { generateKeyPairSync, sign } from 'node:crypto';
 
 import {
   buildDevicePopSigningPreimageV1,
+  verifyDeviceCredentialActivationResponseV1,
   verifyDevicePopResponseV1,
 } from '../dist/api/security/device-pop-verifier.js';
 
@@ -352,4 +353,166 @@ test('challenge-store and credential-resolver failures stay fail closed', async 
     ok: false,
     error: 'CREDENTIAL_RESOLVER_FAILURE',
   });
+});
+
+
+function activationFixture(overrides = {}) {
+  const stored = challenge({
+    credentialVersion: 7,
+    purpose: 'DEVICE_CREDENTIAL_ACTIVATION',
+  });
+  let consumedAt = null;
+  let consumeCalls = 0;
+
+  const base = {
+    challenges: {
+      async findByChallengeId(challengeId) {
+        if (challengeId !== stored.challengeId) return null;
+        return { challenge: stored, consumedAt };
+      },
+      async consumeIfUnconsumed(challengeId, at) {
+        consumeCalls++;
+        if (challengeId !== stored.challengeId || consumedAt !== null) {
+          return false;
+        }
+        consumedAt = at;
+        return true;
+      },
+    },
+    credentials: {
+      async resolvePendingCredential(deviceId, credentialVersion) {
+        return {
+          deviceId,
+          credentialVersion,
+          state: 'PENDING_PROOF',
+          publicKeySec1: sec1PublicKey(),
+        };
+      },
+    },
+    now: () => NOW,
+  };
+
+  return {
+    stored,
+    get consumedAt() {
+      return consumedAt;
+    },
+    get consumeCalls() {
+      return consumeCalls;
+    },
+    deps: {
+      ...base,
+      ...overrides,
+    },
+  };
+}
+
+test('activation verifier accepts exact PENDING_PROOF credential and consumes challenge', async () => {
+  const f = activationFixture();
+  const response = signedResponse(f.stored);
+
+  const result = await verifyDeviceCredentialActivationResponseV1(
+    response,
+    f.deps,
+  );
+
+  assert.equal(result.ok, true, JSON.stringify(result));
+  assert.deepEqual(result.proof, {
+    schemaVersion: 'device-pop-proof-verification-v1',
+    deviceId: DEVICE_ID,
+    credentialVersion: 7,
+    purpose: 'DEVICE_CREDENTIAL_ACTIVATION',
+    challengeId: CHALLENGE_ID,
+    verifiedAt: NOW.toISOString(),
+    cryptographicProofVerified: true,
+    deviceDataTrustAuthorized: false,
+    telemetryPersistenceAuthorized: false,
+  });
+  assert.equal(f.consumeCalls, 1);
+  assert.equal(f.consumedAt, NOW.toISOString());
+});
+
+test('activation verifier rejects ACTIVE credential authority', async () => {
+  const f = activationFixture({
+    credentials: {
+      async resolvePendingCredential(deviceId, credentialVersion) {
+        return {
+          deviceId,
+          credentialVersion,
+          state: 'ACTIVE',
+          publicKeySec1: sec1PublicKey(),
+        };
+      },
+    },
+  });
+
+  const result = await verifyDeviceCredentialActivationResponseV1(
+    signedResponse(f.stored),
+    f.deps,
+  );
+
+  assert.deepEqual(result, {
+    ok: false,
+    error: 'PENDING_CREDENTIAL_NOT_FOUND',
+  });
+  assert.equal(f.consumeCalls, 0);
+});
+
+test('telemetry verifier refuses activation-purpose challenge before credential authority', async () => {
+  const activation = challenge({
+    credentialVersion: 7,
+    purpose: 'DEVICE_CREDENTIAL_ACTIVATION',
+  });
+  let credentialCalls = 0;
+  const result = await verifyDevicePopResponseV1(
+    signedResponse(activation),
+    {
+      challenges: {
+        async findByChallengeId() {
+          return { challenge: activation, consumedAt: null };
+        },
+        async consumeIfUnconsumed() {
+          throw new Error('must not consume wrong purpose');
+        },
+      },
+      credentials: {
+        async resolveActiveCredential() {
+          credentialCalls++;
+          throw new Error('must not resolve wrong purpose');
+        },
+      },
+      now: () => NOW,
+    },
+  );
+
+  assert.deepEqual(result, { ok: false, error: 'PURPOSE_MISMATCH' });
+  assert.equal(credentialCalls, 0);
+});
+
+test('activation verifier refuses telemetry-purpose challenge before pending credential authority', async () => {
+  const telemetry = challenge();
+  let credentialCalls = 0;
+  const result = await verifyDeviceCredentialActivationResponseV1(
+    signedResponse(telemetry),
+    {
+      challenges: {
+        async findByChallengeId() {
+          return { challenge: telemetry, consumedAt: null };
+        },
+        async consumeIfUnconsumed() {
+          throw new Error('must not consume wrong purpose');
+        },
+      },
+      credentials: {
+        async resolvePendingCredential() {
+          credentialCalls++;
+          throw new Error('must not resolve wrong purpose');
+        },
+      },
+      now: () => NOW,
+    },
+  );
+
+  assert.deepEqual(result, { ok: false, error: 'PURPOSE_MISMATCH' });
+  assert.equal(credentialCalls, 0);
 });

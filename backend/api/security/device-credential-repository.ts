@@ -37,6 +37,13 @@ export interface DurableDevicePopCredential {
   publicKeySec1: Uint8Array;
 }
 
+export interface DurableDevicePopPendingCredential {
+  deviceId: string;
+  credentialVersion: number;
+  state: 'PENDING_PROOF';
+  publicKeySec1: Uint8Array;
+}
+
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -232,6 +239,52 @@ export const durableDevicePopCredentialRepository = {
         deviceId: row.deviceId,
         credentialVersion: row.credentialVersion,
         state: 'ACTIVE',
+        publicKeySec1,
+      };
+    } catch {
+      return null;
+    }
+  },
+
+  async resolvePendingCredential(
+    deviceId: string,
+    credentialVersion: number,
+  ): Promise<DurableDevicePopPendingCredential | null> {
+    if (
+      !UUID_RE.test(deviceId)
+      || !Number.isSafeInteger(credentialVersion)
+      || credentialVersion <= 0
+      || credentialVersion > 0xffffffff
+    ) {
+      return null;
+    }
+
+    try {
+      const [row] = await db
+        .select({
+          deviceId: deviceIdentityCredentials.deviceId,
+          credentialVersion: deviceIdentityCredentials.credentialVersion,
+          state: deviceIdentityCredentials.state,
+          publicKeyBase64Url: deviceIdentityCredentials.publicKeyBase64Url,
+        })
+        .from(deviceIdentityCredentials)
+        .where(and(
+          eq(deviceIdentityCredentials.deviceId, deviceId),
+          eq(deviceIdentityCredentials.credentialVersion, credentialVersion),
+          eq(deviceIdentityCredentials.state, 'PENDING_PROOF'),
+        ))
+        .limit(1);
+
+      if (!row || row.state !== 'PENDING_PROOF') return null;
+      const publicKeySec1 = decodeCanonicalSec1PublicKey(
+        row.publicKeyBase64Url,
+      );
+      if (publicKeySec1 == null) return null;
+
+      return {
+        deviceId: row.deviceId,
+        credentialVersion: row.credentialVersion,
+        state: 'PENDING_PROOF',
         publicKeySec1,
       };
     } catch {

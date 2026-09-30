@@ -122,6 +122,16 @@ test('durable enrollment stores public PENDING_PROOF credentials and refuses imp
   const active = await resolver.resolveActiveCredential(TAG_A, 1);
   assert.equal(active, null);
 
+  const pending = await resolver.resolvePendingCredential(TAG_A, 1);
+  assert.equal(pending?.deviceId, TAG_A);
+  assert.equal(pending?.credentialVersion, 1);
+  assert.equal(pending?.state, 'PENDING_PROOF');
+  assert.equal(
+    Buffer.from(pending.publicKeySec1).toString('base64url'),
+    firstReceipt.publicKey,
+  );
+  assert.equal(await resolver.resolvePendingCredential(TAG_A, 2), null);
+
   const duplicateVersion = await enroll(TAG_A, receipt({
     version: 1,
     slot: 'B',
