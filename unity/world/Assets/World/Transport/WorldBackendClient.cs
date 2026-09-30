@@ -140,6 +140,15 @@ namespace Emopet.World
                 catch (ArgumentException) { }
             }
 
+            var isStructuredWorldError =
+                error == "invalid_request"
+                || error == "invalid_session"
+                || error == "forbidden"
+                || error == "unreachable"
+                || error == "busy"
+                || error == "unavailable"
+                || error == "timeout";
+
             var code = error switch
             {
                 "invalid_request" => WorldErrorCode.InvalidRequest,
@@ -157,7 +166,7 @@ namespace Emopet.World
                 },
             };
 
-            return new WorldBackendException(code, response.StatusCode);
+            return new WorldBackendException(code, response.StatusCode, isStructuredWorldError);
         }
 
         private static string RequireId(string value)
