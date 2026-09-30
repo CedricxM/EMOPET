@@ -167,7 +167,7 @@ test('G9 — the engine reaches only a short, reviewable set of dependencies', (
   ]);
 
   const local = [...graph.visited.keys()]
-    .map((file) => file.slice(backendRoot.length + 1))
+    .map((file) => file.slice(backendRoot.length + 1).replaceAll('\\', '/'))
     .sort();
   for (const module of local) {
     assert.match(
