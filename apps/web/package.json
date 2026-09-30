@@ -24,7 +24,7 @@
     "mapbox-gl": "^3.24.0",
     "next": "^15.5.21",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react-dom": "^19.3.0",
     "tailwindcss": "^4.0.0"
   },
   "devDependencies": {
@@ -34,7 +34,7 @@
     "@types/mapbox-gl": "^3.5.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
+    "@types/react-dom": "^19.3.0",
     "eslint": "^9.39.4",
     "eslint-config-next": "^15.5.21",
     "tsx": "^4.21.0",
