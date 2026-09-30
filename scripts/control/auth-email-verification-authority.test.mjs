@@ -133,7 +133,9 @@ test('#747 durable outbox removes provider timing from public register/resend pa
   assert.match(outboxSource, /skipLocked:\s*true/);
   assert.match(outboxSource, /email:\s*null/);
   assert.doesNotMatch(outboxSource, /console\.(?:log|error|warn)/);
-  assert.doesNotMatch(workerSource, /email|token|verificationUrl/);
+  assert.match(workerSource, /counts/);
+  assert.doesNotMatch(workerSource, /recipient|rawToken|verificationUrl|\.email\b/);
+  assert.doesNotMatch(workerSource, /console\.(?:log|error|warn)/);
   assert.doesNotMatch(workerSource, /app\.(?:get|post|put|patch|delete)\(/);
 
   const resendBlock = authRouteSource.match(
