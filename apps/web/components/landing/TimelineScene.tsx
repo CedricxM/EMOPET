@@ -71,7 +71,7 @@ export default function TimelineScene() {
             }`}
           >
             <span
-              className="text-[#6B7684] font-mono text-sm tabular-nums shrink-0"
+              className="text-[#5A6570] font-mono text-sm tabular-nums shrink-0"
               style={{ fontFamily: 'var(--font-body)' }}
             >
               {entry.time}
