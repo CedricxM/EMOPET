@@ -1,6 +1,6 @@
 /** Narrow Nakama JSON socket protocol, matching the official JS client's envelopes.
  * Node lifecycle implementation avoids browser-only SDK heartbeat/window handling.
- * SPIKE / NOT PRODUCTION AUTHORITY.
+ * Release use is permitted only through the reviewed World production authority gate.
  */
 import { WorldError } from './contracts.js';
 type Pending = { resolve: (value: Record<string, unknown>) => void; reject: (error: Error) => void;
