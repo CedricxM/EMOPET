@@ -204,6 +204,19 @@ namespace Emopet.World.Tests
         }
 
         [Test]
+        public async Task CancelledShowPresenceMovesSessionToDegradedUncertainty()
+        {
+            var coordinator = Create(new CancelAfterFirstHttp());
+
+            await coordinator.ConnectAsync(CancellationToken.None);
+            Assert.ThrowsAsync<OperationCanceledException>(() =>
+                coordinator.ShowPresenceAsync(CancellationToken.None));
+
+            Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Degraded));
+            Assert.That(coordinator.Handle, Is.EqualTo(Handle));
+        }
+
+        [Test]
         public async Task HidePresenceClosesSessionAndClearsHandle()
         {
             var http = new QueueHttp(
@@ -262,11 +275,11 @@ namespace Emopet.World.Tests
         }
 
         [Test]
-        public async Task DisconnectClosesLocalStateEvenWhenBackendIsUnavailable()
+        public async Task ConfirmedDisconnectClosesLocalState()
         {
             var http = new QueueHttp(
                 new WorldHttpResponse(200, BootstrapJson()),
-                new WorldHttpResponse(503, "{\"error\":\"unavailable\",\"state\":\"degraded\"}"));
+                new WorldHttpResponse(204, string.Empty));
             var coordinator = Create(http);
 
             await coordinator.ConnectAsync(CancellationToken.None);
@@ -274,6 +287,36 @@ namespace Emopet.World.Tests
 
             Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Disconnected));
             Assert.That(coordinator.Handle, Is.Null);
+        }
+
+        [Test]
+        public async Task UncertainDisconnectKeepsHandleAndDegrades()
+        {
+            var http = new QueueHttp(
+                new WorldHttpResponse(200, BootstrapJson()),
+                new WorldHttpResponse(503, "{\"error\":\"unavailable\",\"state\":\"degraded\"}"));
+            var coordinator = Create(http);
+
+            await coordinator.ConnectAsync(CancellationToken.None);
+            var error = Assert.ThrowsAsync<WorldBackendException>(() =>
+                coordinator.DisconnectAsync(CancellationToken.None));
+
+            Assert.That(error.Code, Is.EqualTo(WorldErrorCode.Unavailable));
+            Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Degraded));
+            Assert.That(coordinator.Handle, Is.EqualTo(Handle));
+        }
+
+        [Test]
+        public async Task CancelledDisconnectKeepsHandleAndDegrades()
+        {
+            var coordinator = Create(new CancelAfterFirstHttp());
+
+            await coordinator.ConnectAsync(CancellationToken.None);
+            Assert.ThrowsAsync<OperationCanceledException>(() =>
+                coordinator.DisconnectAsync(CancellationToken.None));
+
+            Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Degraded));
+            Assert.That(coordinator.Handle, Is.EqualTo(Handle));
         }
 
         private static WorldSessionCoordinator Create(IWorldHttpTransport http) =>
@@ -301,6 +344,25 @@ namespace Emopet.World.Tests
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                throw new OperationCanceledException(cancellationToken);
+            }
+        }
+
+        private sealed class CancelAfterFirstHttp : IWorldHttpTransport
+        {
+            private int calls;
+
+            public Task<WorldHttpResponse> SendAsync(
+                string method,
+                string absoluteUrl,
+                string bearerToken,
+                string jsonBody,
+                CancellationToken cancellationToken)
+            {
+                calls++;
+                if (calls == 1)
+                    return Task.FromResult(new WorldHttpResponse(200, BootstrapJson()));
+
                 throw new OperationCanceledException(cancellationToken);
             }
         }
