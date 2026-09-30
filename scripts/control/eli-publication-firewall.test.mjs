@@ -119,7 +119,7 @@ test('generic ELI routes remain fail-honest 501 boundaries', () => {
   }
 });
 
-test('public route modules do not import or serialize internal ELI state contracts directly', async () => {
+test('product routes cannot serialize internal ELI state directly; Owner export must use its projector', async () => {
   const routesDir = path.join(root, 'backend/api/routes');
   const files = (await readdir(routesDir)).filter((name) => name.endsWith('.ts'));
 
@@ -128,12 +128,22 @@ test('public route modules do not import or serialize internal ELI state contrac
     assert.doesNotMatch(
       source,
       /import[^;]*(?:InferenceResult|ELIState)[^;]*from/,
-      `${file}: public route imports internal ELI contract`,
+      `${file}: route imports internal ELI contract directly`,
     );
+
+    if (!/\beliStates\b/.test(source)) continue;
+
+    assert.equal(
+      file,
+      'data-export.ts',
+      `${file}: only the bounded Owner export may read persisted eli_states`,
+    );
+    assert.match(source, /toOwnerAuthorizedEliExport/);
+    assert.match(source, /eliRows\.map\(toOwnerAuthorizedEliExport\)/);
     assert.doesNotMatch(
       source,
-      /\beliStates\b/,
-      `${file}: public route accesses latent eli_states directly`,
+      /inferred:\s*eliRows(?:\s*[,}])/,
+      'data-export.ts: persisted ELI rows must not be serialized directly',
     );
   }
 });
