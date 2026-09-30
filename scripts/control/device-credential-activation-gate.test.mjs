@@ -2,14 +2,24 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const [authoritySource, registrySource, migrationSource, manufacturingSource, slotsSource, trustSource] =
-  await Promise.all([
+const [
+  authoritySource,
+  registrySource,
+  migrationSource,
+  manufacturingSource,
+  slotsSource,
+  trustSource,
+  activationTypesSource,
+  validatorsSource,
+] = await Promise.all([
     readFile(new URL('../../config/security/device-credential-activation-v1.json', import.meta.url), 'utf8'),
     readFile(new URL('../../config/security/psa-key-id-registry-v1.json', import.meta.url), 'utf8'),
     readFile(new URL('../../backend/db/migrations/0020_device_identity_credentials.sql', import.meta.url), 'utf8'),
     readFile(new URL('../../docs/security/DEVICE_IDENTITY_MANUFACTURING_PROVISIONING_2026-09-27.md', import.meta.url), 'utf8'),
     readFile(new URL('../../docs/security/DEVICE_IDENTITY_KEY_SLOTS_2026-09-27.md', import.meta.url), 'utf8'),
     readFile(new URL('../../backend/api/security/device-data-trust.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../packages/shared/src/types/device-credential-activation.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../packages/shared/src/validators/index.ts', import.meta.url), 'utf8'),
   ]);
 
 const authority = JSON.parse(authoritySource);
@@ -93,5 +103,49 @@ test('credential activation contract does not activate Device Data Trust or tele
   assert.doesNotMatch(
     trustSource.match(/export const currentDeviceDataTrustVerifier[\s\S]*?\n\};/)?.[0] ?? '',
     /ok:\s*true/,
+  );
+});
+
+test('activation evidence contract is reference-only and server-resolved', () => {
+  assert.equal(
+    authority.activationGate.evidenceInputPolicy,
+    'SERVER_SIDE_RECEIPT_REFERENCES_ONLY / NO_PROOF_OR_APPROTECT_BOOLEAN_AUTHORITY',
+  );
+  assert.equal(
+    authority.contracts.activationEvidenceRefs.schemaVersion,
+    'device-credential-activation-evidence-refs-v1',
+  );
+  assert.equal(
+    authority.contracts.activationReceipt.schemaVersion,
+    'device-credential-activation-receipt-v1',
+  );
+
+  assert.match(activationTypesSource, /popVerificationReceiptId/);
+  assert.match(activationTypesSource, /popChallengeId/);
+  assert.match(activationTypesSource, /debugStateReceiptId/);
+  assert.match(activationTypesSource, /targetEvidenceReceiptId/);
+  assert.match(
+    activationTypesSource,
+    /authority: 'SERVER_SIDE_MANUFACTURING_EVIDENCE_AUTHORITY'/,
+  );
+
+  assert.doesNotMatch(activationTypesSource, /proofPassed\s*:/);
+  assert.doesNotMatch(activationTypesSource, /approtectVerified\s*:/);
+  assert.doesNotMatch(activationTypesSource, /hardwareVerified\s*:/);
+
+  assert.match(validatorsSource, /DeviceCredentialActivationEvidenceRefsV1Schema/);
+  assert.match(validatorsSource, /DeviceCredentialActivationReceiptV1Schema/);
+  assert.match(validatorsSource, /evidence credential version must match activated credential/);
+  assert.match(validatorsSource, /ROTATION must retire predecessor as REVOKED_PENDING_ERASE/);
+});
+
+test('future activation receipt remains non-authoritative for Device Data Trust', () => {
+  assert.match(activationTypesSource, /deviceDataTrustAuthorized:\s*false/);
+  assert.match(activationTypesSource, /networkTelemetryPersistenceAuthorized:\s*false/);
+  assert.match(validatorsSource, /deviceDataTrustAuthorized:\s*z\.literal\(false\)/);
+  assert.match(validatorsSource, /networkTelemetryPersistenceAuthorized:\s*z\.literal\(false\)/);
+  assert.equal(
+    authority.contracts.activationReceipt.policy,
+    'FUTURE_M6_SERVER_OUTPUT_ONLY / DOES_NOT_AUTHORIZE_DEVICE_DATA_TRUST',
   );
 });
