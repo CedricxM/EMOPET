@@ -5,6 +5,8 @@ import {
   normalizePullRequestNumber,
   requireCodeqlAlertInventory,
   requireCodeqlAnalysis,
+  requireCodeqlCheckRunEvidence,
+  requireCodeqlRunSuccess,
   selectCodeqlRun,
 } from './verify-codeql-default-setup.mjs';
 
@@ -13,7 +15,7 @@ const run = {
   id: 10, path: 'dynamic/github-code-scanning/codeql', event: 'dynamic',
   head_sha: sha, status: 'completed', conclusion: 'success',
 };
-const jobs = ['actions', 'c-cpp', 'javascript-typescript', 'python'].map((language) => ({
+const jobs = ['actions', 'c-cpp', 'csharp', 'javascript-typescript', 'python'].map((language) => ({
   name: `Analyze (${language})`, status: 'completed', conclusion: 'success',
   steps: [{ name: 'Perform CodeQL Analysis', status: 'completed', conclusion: 'success' }],
 }));
@@ -22,6 +24,48 @@ test('accepts complete default setup evidence for the exact commit', () => {
   assert.equal(selectCodeqlRun([run], sha), run);
   assert.equal(codeqlJobEvidenceState(jobs), 'ready');
   assert.doesNotThrow(() => requireCodeqlAnalysis(run, jobs, sha));
+});
+
+test('completed successful jobs remain valid run evidence when GitHub truncates step details', () => {
+  const truncated = jobs.map((job, index) => index % 2 === 0 ? { ...job, steps: [] } : job);
+  assert.equal(codeqlJobEvidenceState(truncated), 'failed');
+  assert.doesNotThrow(() => requireCodeqlRunSuccess(run, truncated, sha));
+  assert.throws(() => requireCodeqlAnalysis(run, truncated, sha), /Missing successful analysis\/upload step/);
+});
+
+test('exact-head check-run fallback requires every configured language and GitHub Advanced Security aggregate', () => {
+  const checks = [
+    ...jobs.map((job) => ({
+      name: job.name,
+      status: 'completed',
+      conclusion: 'success',
+      app: { name: 'GitHub Actions' },
+    })),
+    {
+      name: 'CodeQL',
+      status: 'completed',
+      conclusion: 'success',
+      app: { name: 'GitHub Advanced Security' },
+    },
+  ];
+
+  assert.doesNotThrow(() => requireCodeqlCheckRunEvidence(checks));
+  assert.throws(
+    () => requireCodeqlCheckRunEvidence(checks.filter((check) => check.name !== 'Analyze (csharp)')),
+    /Analyze \(csharp\)/,
+  );
+  assert.throws(
+    () => requireCodeqlCheckRunEvidence(checks.map((check) =>
+      check.name === 'Analyze (actions)' ? { ...check, conclusion: 'failure' } : check
+    )),
+    /Analyze \(actions\)/,
+  );
+  assert.throws(
+    () => requireCodeqlCheckRunEvidence(checks.map((check) =>
+      check.name === 'CodeQL' ? { ...check, app: { name: 'GitHub Actions' } } : check
+    )),
+    /GitHub Advanced Security/,
+  );
 });
 
 test('other commits and similarly named custom workflows are not CodeQL analysis evidence', () => {
