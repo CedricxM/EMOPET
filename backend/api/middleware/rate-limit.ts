@@ -1,3 +1,4 @@
+import type { Context } from 'hono';
 import { createMiddleware } from 'hono/factory';
 
 export interface FixedWindowRateLimitOptions {
@@ -46,16 +47,26 @@ function safeKeySegment(value: string): string {
     .trim() || 'local';
 }
 
+/**
+ * Canonical backend request key for abuse-control buckets.
+ *
+ * Forwarding headers are ignored unless EMOPET_TRUST_PROXY_HEADERS=true.
+ */
+export function backendRateLimitClientKey(c: Context, prefix: string): string {
+  const forwarded = c.req.header('x-forwarded-for')?.split(',')[0]?.trim();
+  const ip = trustedProxyHeadersEnabled()
+    ? c.req.header('cf-connecting-ip') || c.req.header('x-real-ip') || forwarded || 'local'
+    : 'local';
+
+  return `${prefix}:${safeKeySegment(ip)}`;
+}
+
 export function rateLimitMiddleware(options: FixedWindowRateLimitOptions) {
   const limiter = createFixedWindowLimiter(options);
   const prefix = options.keyPrefix ?? 'api';
 
   return createMiddleware(async (c, next) => {
-    const forwarded = c.req.header('x-forwarded-for')?.split(',')[0]?.trim();
-    const ip = trustedProxyHeadersEnabled()
-      ? c.req.header('cf-connecting-ip') || c.req.header('x-real-ip') || forwarded || 'local'
-      : 'local';
-    const rate = limiter.check(`${prefix}:${safeKeySegment(ip)}`);
+    const rate = limiter.check(backendRateLimitClientKey(c, prefix));
     if (!rate.ok) {
       return c.json(
         { error: 'rate_limited' },
