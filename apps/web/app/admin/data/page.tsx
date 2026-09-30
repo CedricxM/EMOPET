@@ -5,6 +5,7 @@ import { Button, Card, Eyebrow, H1, H2, Lead, P2 } from '../../../components/ui'
 import { MOCK_SCORED_BRITTANY_TERRITORIES } from '../../../lib/data/territory/mockTerritories';
 import { DEFAULT_TERRITORY_SCORING_WEIGHTS } from '../../../lib/data/territory/territoryScoring';
 import { canonicalPrivilegedAuthorizationVerifier } from '../../../lib/server/canonical-privileged-verifier';
+import { emitPrivilegedAuditDecision } from '../../../lib/server/privileged-audit-emitter';
 import { authorizePrivilegedSessionToken } from '../../../lib/server/privileged-request';
 import { PRIVILEGED_SESSION_COOKIE } from '../../../lib/server/privileged-session';
 
@@ -61,8 +62,18 @@ export default async function AdminDataPage() {
     canonicalPrivilegedAuthorizationVerifier,
   );
 
-  if (decision.status !== 'AUTHORIZED') {
-    const unavailable = decision.status === 'UNAVAILABLE';
+  const audit = decision.status === 'UNAVAILABLE'
+    ? null
+    : await emitPrivilegedAuditDecision({
+        decision,
+        action: 'admin.data.read',
+        target: { scope: 'system', ref: null },
+        occurredAt: new Date().toISOString(),
+      });
+
+  const auditUnavailable = audit?.status === 'FAILED';
+  if (decision.status !== 'AUTHORIZED' || auditUnavailable) {
+    const unavailable = decision.status === 'UNAVAILABLE' || auditUnavailable;
     return (
       <ContentShell>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 720 }}>

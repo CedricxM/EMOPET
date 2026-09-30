@@ -13,6 +13,7 @@ import { directory } from './routes/directory.js';
 import { dataExport } from './routes/data-export.js';
 import { blocks } from './routes/blocks.js';
 import { connections } from './routes/connections.js';
+import { internalSecurityAudit } from './routes/internal-security-audit.js';
 import { configuredWorldSpike } from './routes/world-spike.js';
 import { authMiddleware } from './middleware/auth.js';
 import { rateLimitMiddleware } from './middleware/rate-limit.js';
@@ -45,6 +46,12 @@ app.use('/api/*', rateLimitMiddleware({ limit: 240, windowMs: 60_000, keyPrefix:
 // ── Health Check ────────────────────────────────────────────────
 
 app.get('/health', (c) => c.json({ status: 'ok', version: '1.0.0' }));
+
+// ── Internal service routes ─────────────────────────────────────
+
+// Service-authenticated, not user-authenticated. Must be mounted before the
+// ordinary /api/* user JWT middleware and never reuse user access tokens.
+app.route('/internal/security-audit', internalSecurityAudit);
 
 // ── Public Routes ───────────────────────────────────────────────
 

@@ -5,16 +5,19 @@ const enabled = process.env.SECURITY_AUDIT_DB_INTEGRATION === '1';
 
 let sql = null;
 let persistSecurityAuditEvent = null;
+let composePrivilegedAuditEvent = null;
 let closeDatabase = null;
 
 if (enabled) {
-  const [{ default: postgres }, repoModule, dbModule] = await Promise.all([
+  const [{ default: postgres }, repoModule, compositionModule, dbModule] = await Promise.all([
     import('postgres'),
     import('../dist/api/security/security-audit-repository.js'),
+    import('../dist/api/security/security-audit-composition.js'),
     import('../dist/db/index.js'),
   ]);
   sql = postgres(process.env.DATABASE_URL, { max: 2 });
   persistSecurityAuditEvent = repoModule.persistSecurityAuditEvent;
+  composePrivilegedAuditEvent = compositionModule.composePrivilegedAuditEvent;
   closeDatabase = dbModule.closeDatabase;
 }
 
@@ -95,6 +98,50 @@ test('canonical event persists exactly in the dedicated audit table', {
   assert.equal(row.outcome, 'allowed');
   assert.equal(row.reason, 'allowed');
   assert.equal(row.stored_at.toISOString(), result.storedAt);
+});
+
+test('repository accepts the exact canonical domain event returned by the composer', {
+  skip: !enabled,
+}, async () => {
+  await cleanup();
+
+  const composed = composePrivilegedAuditEvent(
+    {
+      status: 'AUTHORIZED',
+      subject: SUBJECT,
+      role: 'admin',
+      action: 'moderation.queue.read',
+    },
+    'moderation.queue.read',
+    {
+      scope: 'support_case',
+      ref: 'audit198:canonical-domain',
+    },
+    '2026-09-30T10:00:00.000Z',
+  );
+
+  assert.equal(composed.status, 'COMPOSED');
+  if (composed.status !== 'COMPOSED') return;
+
+  const result = await persistSecurityAuditEvent(composed.event);
+  assert.equal(result.ok, true);
+
+  const [{ count }] = await sql`
+    SELECT count(*)::int AS count
+    FROM security_audit_events
+    WHERE target_ref = 'audit198:canonical-domain'
+  `;
+  assert.equal(count, 1);
+
+  const rejected = await persistSecurityAuditEvent({
+    ...composed.event,
+    token: 'must-never-broaden-canonical-audit',
+  });
+  assert.deepEqual(rejected, {
+    ok: false,
+    error: 'INVALID_AUDIT_EVENT',
+    retryable: false,
+  });
 });
 
 test('repository rejects extra or malformed audit data before persistence', {

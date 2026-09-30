@@ -269,6 +269,14 @@ jobs:
           NODE_ENV: test
         run: node --test test/security-audit-repository.integration.test.mjs
 
+      - name: PRIV-SEC-AUDIT-EMIT-01 emitted audit reaches detector on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          SECURITY_AUDIT_EMISSION_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/internal-security-audit-emission.integration.test.mjs
+
       - name: PRIV-SEC-G5 bounded detection runtime on historical migrations
         working-directory: backend
         env:
@@ -471,6 +479,14 @@ jobs:
           SECURITY_AUDIT_DB_INTEGRATION: '1'
           NODE_ENV: test
         run: node --test test/security-audit-repository.integration.test.mjs
+
+      - name: PRIV-SEC-AUDIT-EMIT-01 emitted audit reaches detector on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          SECURITY_AUDIT_EMISSION_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/internal-security-audit-emission.integration.test.mjs
 
       - name: PRIV-SEC-G5 bounded detection runtime on generated baseline
         working-directory: backend
