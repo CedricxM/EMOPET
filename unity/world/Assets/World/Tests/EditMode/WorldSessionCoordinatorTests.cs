@@ -8,6 +8,7 @@ namespace Emopet.World.Tests
     public sealed class WorldSessionCoordinatorTests
     {
         private const string Handle = "11111111-1111-4111-8111-111111111111";
+        private const string FreshHandle = "55555555-5555-4555-8555-555555555555";
         private const long FutureExpiry = 4102444800000;
 
         [Test]
@@ -64,6 +65,29 @@ namespace Emopet.World.Tests
 
             Assert.That(error.Code, Is.EqualTo(WorldErrorCode.Unavailable));
             Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Degraded));
+        }
+
+        [Test]
+        public async Task StaleRenewalHandleFallsBackToFreshInvisibleBootstrap()
+        {
+            var http = new QueueHttp(
+                new WorldHttpResponse(200, BootstrapJson()),
+                new WorldHttpResponse(0, string.Empty),
+                new WorldHttpResponse(401, "{\"error\":\"invalid_session\"}"),
+                new WorldHttpResponse(200, BootstrapJson(FreshHandle)));
+            var coordinator = Create(http);
+
+            await coordinator.ConnectAsync(CancellationToken.None);
+            Assert.ThrowsAsync<WorldBackendException>(() =>
+                coordinator.PollEventsAsync(CancellationToken.None));
+            Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.Degraded));
+
+            await coordinator.ConnectAsync(CancellationToken.None);
+
+            Assert.That(coordinator.State, Is.EqualTo(WorldSessionState.ConnectedInvisible));
+            Assert.That(coordinator.Handle, Is.EqualTo(FreshHandle));
+            Assert.That(http.Bodies[2], Does.Contain(Handle), "renewal first carries the stale handle");
+            Assert.That(http.Bodies[3], Is.EqualTo("{}"), "fallback is one fresh bootstrap without replay state");
         }
 
         [Test]
@@ -244,8 +268,8 @@ namespace Emopet.World.Tests
                 new FakeToken(),
                 http));
 
-        private static string BootstrapJson() =>
-            "{\"handle\":\"" + Handle + "\",\"expiresAt\":" + FutureExpiry + ",\"state\":\"connected\"}";
+        private static string BootstrapJson(string handle = Handle) =>
+            "{\"handle\":\"" + handle + "\",\"expiresAt\":" + FutureExpiry + ",\"state\":\"connected\"}";
 
         private sealed class FakeToken : IWorldAccessTokenProvider
         {
@@ -260,13 +284,18 @@ namespace Emopet.World.Tests
             public QueueHttp(params WorldHttpResponse[] responses) =>
                 this.responses = new Queue<WorldHttpResponse>(responses);
 
+            public List<string> Bodies { get; } = new List<string>();
+
             public Task<WorldHttpResponse> SendAsync(
                 string method,
                 string absoluteUrl,
                 string bearerToken,
                 string jsonBody,
-                CancellationToken cancellationToken) =>
-                Task.FromResult(responses.Dequeue());
+                CancellationToken cancellationToken)
+            {
+                Bodies.Add(jsonBody);
+                return Task.FromResult(responses.Dequeue());
+            }
         }
     }
 }
