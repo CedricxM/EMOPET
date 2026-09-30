@@ -169,19 +169,23 @@ async function completeDeliveryRequest(
     providerMessageId?: string | null;
   } = {},
 ): Promise<void> {
+  const update = {
+    email: null,
+    claimedAt: null,
+    claimExpiresAt: null,
+    completedAt: now,
+    outcome,
+    lastError: options.lastError ?? null,
+    providerMessageId: options.providerMessageId ?? null,
+    updatedAt: now,
+    ...(options.attemptCount === undefined
+      ? {}
+      : { attemptCount: options.attemptCount }),
+  };
+
   await db
     .update(authEmailVerificationDeliveryRequests)
-    .set({
-      email: null,
-      claimedAt: null,
-      claimExpiresAt: null,
-      completedAt: now,
-      outcome,
-      attemptCount: options.attemptCount,
-      lastError: options.lastError ?? null,
-      providerMessageId: options.providerMessageId ?? null,
-      updatedAt: now,
-    })
+    .set(update)
     .where(eq(authEmailVerificationDeliveryRequests.id, id));
 }
 
