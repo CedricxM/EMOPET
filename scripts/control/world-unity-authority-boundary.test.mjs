@@ -71,6 +71,15 @@ test('first-slice Unity chat remains preset-only', async () => {
   assert.match(client, /WorldPresets\.IsAllowed\(presetId\)/);
 });
 
+test('Unity leaves cancelled bootstrap recoverable instead of stuck bootstrapping', async () => {
+  const coordinator = await read('Assets/World/Session/WorldSessionCoordinator.cs');
+
+  assert.match(
+    coordinator,
+    /catch \(OperationCanceledException\)[\s\S]*stateMachine\.MarkDegraded\(\);/,
+  );
+});
+
 test('Unity retries one fresh invisible bootstrap after a stale renewal handle', async () => {
   const coordinator = await read('Assets/World/Session/WorldSessionCoordinator.cs');
 
