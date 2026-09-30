@@ -38,7 +38,8 @@ Les Route Handlers sous `apps/web/app/api` utilisent des chemins prototype disti
 Variables à configurer dans l'environnement local, sans les committer :
 
 - `JWT_SECRET` — obligatoire hors `NODE_ENV=test` ;
-- `DATABASE_URL` — connexion PostgreSQL utilisée par Drizzle/Postgres.js ;
+- `DATABASE_URL` — connexion PostgreSQL du **runtime applicatif** ; en production elle doit utiliser un rôle DML limité, sans privilèges d'administration/DDL ;
+- `MIGRATION_DATABASE_URL` — connexion réservée aux migrations/DDL ; elle ne doit pas être injectée dans le processus API longue durée ;
 - `CORS_ORIGIN` — obligatoire en production, optionnelle en développement ;
 - `PORT` — optionnelle, port `3000` par défaut.
 
@@ -100,11 +101,18 @@ pnpm --filter @emopet/api test
 
 Le mobile ne déclare actuellement qu'un script `typecheck`, pas de script de test.
 
-## 7. Base de données : blocage connu
+## 7. Base de données : autorité runtime vs migrations
 
-Ne pas utiliser `pnpm --filter @emopet/api db:migrate` comme preuve d'installation propre. La suite de migrations committée ne crée pas toutes les tables de base qu'elle modifie et la métadonnée Drizzle attendue est absente.
+Le dépôt valide désormais sa baseline PostgreSQL sur des bases jetables par deux chemins : migrations historiques et baseline Drizzle générée. Cette CI reste une preuve de cohérence de dépôt, **pas** une autorisation de migration d'une base de production existante.
 
-La réparation de la baseline et la compatibilité avec d'éventuelles bases existantes nécessitent un changement séparé, une stratégie d'upgrade/rollback et une validation sur base vide.
+Séparer les autorités :
+
+- le serveur Hono lit `DATABASE_URL` et, en production, refuse de démarrer sans cette variable ;
+- le runtime production vérifie que son rôle PostgreSQL n'est ni `SUPERUSER`, ni `CREATEDB`, ni `CREATEROLE`, ni `REPLICATION`, ni `BYPASSRLS`, et qu'il ne peut pas créer d'objets dans le schéma `public` ;
+- `drizzle-kit` utilise `MIGRATION_DATABASE_URL` pour les migrations de production ;
+- les environnements de développement/test peuvent conserver le fallback local pour ne pas alourdir le bootstrap.
+
+Une vraie migration de production exige encore une stratégie d'upgrade/rollback, un backup/restore prouvé et les credentials/opérations du fournisseur.
 
 ## 8. Références
 
