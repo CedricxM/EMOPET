@@ -12,6 +12,7 @@
         "created_at",
         "updated_at",
         "email_verified_at",
+        "email_verification_required_at",
         "email_verification_token_hash_and_state"
       ],
       "purpose": "account access, authentication and account administration",
