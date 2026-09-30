@@ -18,6 +18,11 @@
       "source": "backend/db/schema/ai.ts"
     },
     {
+      "table": "auth_email_verification_tokens",
+      "column": "user_id",
+      "source": "backend/db/schema/auth-email-verification.ts"
+    },
+    {
       "table": "auth_refresh_sessions",
       "column": "user_id",
       "source": "backend/db/schema/auth-sessions.ts"
