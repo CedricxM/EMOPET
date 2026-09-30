@@ -253,6 +253,14 @@ jobs:
           NODE_ENV: test
         run: node --test test/device-pop-challenge-repository.integration.test.mjs
 
+      - name: DEVICE-TRUST-ID-14 atomic activation cutover on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          DEVICE_CREDENTIAL_ACTIVATION_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/device-credential-activation.integration.test.mjs
+
       - name: AUTH-EMAIL-VERIFY-01 token authority on historical migrations
         working-directory: backend
         env:
@@ -406,6 +414,14 @@ jobs:
           DEVICE_POP_CHALLENGE_DB_INTEGRATION: '1'
           NODE_ENV: test
         run: node --test test/device-pop-challenge-repository.integration.test.mjs
+
+      - name: DEVICE-TRUST-ID-14 atomic activation cutover on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          DEVICE_CREDENTIAL_ACTIVATION_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/device-credential-activation.integration.test.mjs
 
       - name: AUTH-EMAIL-VERIFY-01 token authority on generated baseline
         working-directory: backend
