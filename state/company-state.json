@@ -1,0 +1,237 @@
+{
+  "schema_version": "0.1.0",
+  "snapshot": {
+    "date": "2026-10-01",
+    "base_ref": "main",
+    "base_sha": "d88baa5ed27964fafe012ce44891cdde2c199ce4"
+  },
+  "authority_mode": "INDEX_PROJECTION_NOT_DOMAIN_AUTHORITY",
+  "company_phase": {
+    "id": "EMO-COMPANY-PHASE",
+    "domain": "company",
+    "label": "Company phase",
+    "status": "PROJECT_DECISION",
+    "statement": "2026 is the foundation/preparation period. 2027 is the beginning of the launch phase and operational integration into the Brittany ecosystem. Exact launch month, production volume, revenue target and final pricing remain unfixed.",
+    "authority_refs": [
+      {
+        "kind": "path",
+        "value": "docs/strategy/PROJECT_TIMELINE_2026_2027.md"
+      }
+    ],
+    "evidence_refs": [],
+    "next_gate": "Preserve evidence-gated preparation through 2026 and create separate controlled decisions for launch details when evidence is sufficient."
+  },
+  "workstreams": [
+    {
+      "id": "EMO-WS-MAT",
+      "domain": "hardware",
+      "label": "MAT",
+      "status": "OPEN / EVIDENCE-GATED",
+      "statement": "MAT remains a Phase 0 evidence problem before production freeze. Current controlled context does not authorize treating PCB, Gerbers, thresholds, fusion or the final stack as frozen until feasibility is demonstrated.",
+      "authority_refs": [
+        {
+          "kind": "path",
+          "value": "AGENTS.md"
+        },
+        {
+          "kind": "issue",
+          "value": "#230"
+        }
+      ],
+      "evidence_refs": [],
+      "next_gate": "Demonstrate physical feasibility and incremental value over TAG-only before locking the two-device commercial architecture."
+    },
+    {
+      "id": "EMO-WS-TAG",
+      "domain": "hardware",
+      "label": "TAG",
+      "status": "OBSERVED_PARTIAL / VALIDATION OPEN",
+      "statement": "The repository contains partial TAG firmware and engineering work. Repository presence is not physical or production validation.",
+      "authority_refs": [
+        {
+          "kind": "path",
+          "value": "README.md"
+        },
+        {
+          "kind": "path",
+          "value": "AGENTS.md"
+        }
+      ],
+      "evidence_refs": [],
+      "next_gate": "Attach controlled physical bring-up, trust, RF/power/mechanical and end-to-end evidence before production claims."
+    },
+    {
+      "id": "EMO-WS-SOFTWARE",
+      "domain": "software",
+      "label": "Core software",
+      "status": "OBSERVED / PRODUCTION GATES OPEN",
+      "statement": "Web, mobile, Hono API, PostgreSQL/Drizzle paths and shared packages exist on main. Authentication register/login/refresh remains gated, data paths are not yet fully unified, and disposable database QA is not production migration authority.",
+      "authority_refs": [
+        {
+          "kind": "path",
+          "value": "README.md"
+        },
+        {
+          "kind": "path",
+          "value": "CLAUDE.md"
+        }
+      ],
+      "evidence_refs": [],
+      "next_gate": "Close the narrow production-critical identity, durable backend-contract and release-authority gaps without expanding unrelated scope."
+    },
+    {
+      "id": "EMO-WS-ELI",
+      "domain": "science",
+      "label": "ELI",
+      "status": "GATED",
+      "statement": "ELI is governed as bounded interpretation under uncertainty with provenance, quality and abstention. Code or prototypes do not establish scientific validation, and unsupported discrete emotional or diagnostic claims remain forbidden.",
+      "authority_refs": [
+        {
+          "kind": "path",
+          "value": "docs/product/EMOPET_CARE_PRODUCT_MASTER_v0.1.md"
+        },
+        {
+          "kind": "path",
+          "value": "docs/control/EMOPET_PRODUCT_AUTHORITY_MAP_v0.1.md"
+        },
+        {
+          "kind": "path",
+          "value": "AI_READ_FIRST.md"
+        }
+      ],
+      "evidence_refs": [],
+      "next_gate": "Advance only through controlled scientific/product gates with explicit provenance and abstention behavior."
+    },
+    {
+      "id": "EMO-WS-WORLD",
+      "domain": "product",
+      "label": "World / Unity",
+      "status": "GATED / NOT PRODUCTION AUTHORITY",
+      "statement": "Unity is absent from main and World/Nakama experimentation is not canonical production authority. It must not become a launch dependency without a later gate decision.",
+      "authority_refs": [
+        {
+          "kind": "path",
+          "value": "README.md"
+        },
+        {
+          "kind": "path",
+          "value": "docs/control/EMOPET_PRODUCT_AUTHORITY_MAP_v0.1.md"
+        }
+      ],
+      "evidence_refs": [],
+      "next_gate": "Keep experimental work isolated until explicit value, retention and production-readiness gates justify promotion."
+    },
+    {
+      "id": "EMO-WS-FUNDING",
+      "domain": "funding",
+      "label": "Funding",
+      "status": "PROJECT_DECISION / EVIDENCE-GATED",
+      "statement": "Funding should buy proof and de-risking. Eligibility, awards and investor commitment must never be inferred from discussions. Major irreversible spend should follow evidence and financing sequence.",
+      "authority_refs": [
+        {
+          "kind": "path",
+          "value": "docs/strategy/INDUSTRIAL_AND_FUNDING_GOVERNANCE_2026-09-07.md"
+        },
+        {
+          "kind": "path",
+          "value": "docs/strategy/STRATEGY_MEMORY_INDEX.md"
+        }
+      ],
+      "evidence_refs": [],
+      "next_gate": "Build the finance/fundraising state from sourced costs, milestones, runway assumptions and verified funding evidence."
+    },
+    {
+      "id": "EMO-WS-CORPORATE",
+      "domain": "corporate",
+      "label": "Corporate / IP",
+      "status": "OPEN",
+      "statement": "Company formation details, final founder/equity structure and public-repository contribution/IP policy are not fixed by the current planning authority. Restricted investor/founder guardrails exist and must not be copied into public detail.",
+      "authority_refs": [
+        {
+          "kind": "path",
+          "value": "docs/strategy/PROJECT_TIMELINE_2026_2027.md"
+        },
+        {
+          "kind": "issue",
+          "value": "#680"
+        }
+      ],
+      "evidence_refs": [],
+      "next_gate": "Create a safe corporate-state index covering entity, founders, contribution/IP chain and decision status without exposing restricted terms or personal data."
+    }
+  ],
+  "critical_gates": [
+    {
+      "id": "EMO-GATE-MAT-VALUE",
+      "domain": "hardware/product",
+      "question": "Does MAT create sufficient incremental value over TAG-only to justify a two-device commercial architecture?",
+      "status": "OPEN",
+      "refs": [
+        {
+          "kind": "issue",
+          "value": "#230"
+        }
+      ]
+    },
+    {
+      "id": "EMO-GATE-PHYSICAL-PROOF",
+      "domain": "hardware",
+      "question": "Do controlled physical tests support the intended MAT/TAG evidence paths with repeatability and trustworthy provenance?",
+      "status": "OPEN",
+      "refs": [
+        {
+          "kind": "path",
+          "value": "AGENTS.md"
+        }
+      ]
+    },
+    {
+      "id": "EMO-GATE-PRODUCT-VALUE",
+      "domain": "product/market",
+      "question": "Does a narrow end-to-end product create recurring owner value before broader Community/World/platform expansion?",
+      "status": "OPEN",
+      "refs": [
+        {
+          "kind": "path",
+          "value": "docs/strategy/CORE_CAPABILITY_AND_ACTIVATION_DOCTRINE_2026-09-07.md"
+        }
+      ]
+    },
+    {
+      "id": "EMO-GATE-ECONOMICS",
+      "domain": "finance",
+      "question": "Are hardware COGS, support cost, pricing logic and financing need evidenced well enough to support a launch decision?",
+      "status": "OPEN",
+      "refs": [
+        {
+          "kind": "path",
+          "value": "docs/strategy/PROJECT_TIMELINE_2026_2027.md"
+        }
+      ]
+    },
+    {
+      "id": "EMO-GATE-IP-RIGHTS",
+      "domain": "legal",
+      "question": "Are contribution ownership, third-party rights and public-repository policy controlled before scale?",
+      "status": "OPEN",
+      "refs": [
+        {
+          "kind": "issue",
+          "value": "#114"
+        },
+        {
+          "kind": "issue",
+          "value": "#116"
+        },
+        {
+          "kind": "issue",
+          "value": "#680"
+        }
+      ]
+    }
+  ],
+  "confidentiality": {
+    "repository_visibility": "PUBLIC",
+    "rule": "Store public-safe state, status, hashes and references only. Keep secrets, PII, signatures, bank data, confidential supplier material, executed legal originals and restricted investor terms outside the public repository."
+  }
+}
