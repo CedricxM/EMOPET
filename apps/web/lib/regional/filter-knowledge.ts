@@ -4,7 +4,7 @@
  * PAS d'embeddings, PAS de TF-IDF : correspondance lexicale simple et lisible.
  * Score : +3 si un token du message est dans le nom/titre, +1 par token dans la
  * description, +2 si l'entrée géo correspond au département de l'utilisateur.
- * Une entrée PENDING_VERIFIED_CONTENT n'est JAMAIS injectée (score forcé < 0).
+ * Seule une entrée VERIFIED avec preuve de provenance/revue structurée peut être injectée.
  *
  * PATCH 2 — la portion connaissance ne dépasse jamais MAX_KNOWLEDGE_TOKENS.
  */
@@ -31,6 +31,29 @@ export function normalizeText(text: string): string {
 
 type AnyEntry = GeographyEntry | CultureEntry;
 
+export function isRegionalKnowledgeEntryReleaseReady(
+  entry: AnyEntry,
+  nowMs: number = Date.now(),
+): boolean {
+  if (entry._status !== 'VERIFIED' || entry.sourceVerified !== true) return false;
+
+  const evidence = entry.evidence;
+  if (!evidence) return false;
+  if (
+    evidence.sourceId.trim().length === 0 ||
+    evidence.sourceRef.trim().length === 0 ||
+    evidence.reviewerRole.trim().length === 0 ||
+    evidence.provenanceNote.trim().length === 0
+  ) {
+    return false;
+  }
+
+  const reviewedAt = Date.parse(evidence.reviewedAt);
+  if (!Number.isFinite(reviewedAt) || reviewedAt > nowMs) return false;
+
+  return true;
+}
+
 function entryName(entry: AnyEntry): string {
   return 'name' in entry ? entry.name : entry.title;
 }
@@ -43,8 +66,8 @@ function entryHaystack(entry: AnyEntry): string {
 }
 
 function scoreEntry(entry: AnyEntry, tokens: Set<string>, userDepartment?: string): number {
-  // Règle dure : jamais d'entrée non vérifiée dans une réponse réelle.
-  if (entry._status === 'PENDING_VERIFIED_CONTENT') return -1;
+  // Règle dure : ni placeholder ni exemple démo ne deviennent du contenu réel.
+  if (!isRegionalKnowledgeEntryReleaseReady(entry)) return -1;
 
   let score = 0;
   const nameNorm = normalizeText(entryName(entry));
