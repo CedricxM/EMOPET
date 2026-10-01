@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { getMotsPetEntry } from '../motspet';
+import { MOTSPET_ENTRIES, getMotsPetEntry } from '../motspet';
 import {
   MOTSPET_CANDIDATE_INVENTORY,
   MOTSPET_CANDIDATE_INVENTORY_REVISION,
@@ -107,5 +107,23 @@ test('relationship/community candidates do not become sensor-derived authority',
     assert.ok(candidate, id);
     assert.equal(candidate.status, 'CANDIDATE_REVIEW');
     assert.equal(candidate.existingMotsPetId, null);
+  }
+});
+
+
+test('candidate inventory mirrors every runtime MotsPet authority exactly once', () => {
+  for (const runtime of MOTSPET_ENTRIES) {
+    const mirrors = MOTSPET_CANDIDATE_INVENTORY.filter(
+      (candidate) => candidate.existingMotsPetId === runtime.id,
+    );
+
+    assert.equal(mirrors.length, 1, runtime.id);
+
+    const expectedStatus =
+      runtime.status === 'CONTROLLED_SEED'
+        ? 'EXISTING_CONTROLLED'
+        : 'AUTHORITY_HOLD';
+
+    assert.equal(mirrors[0]!.status, expectedStatus, runtime.id);
   }
 });
