@@ -117,6 +117,14 @@ jobs:
           node-version: '20'
           cache: pnpm
 
+      - name: Restore Turbo build cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .turbo
+          key: emopet-p0-build-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            emopet-p0-build-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
 
@@ -230,7 +238,8 @@ jobs:
         run: node --test test/privacy-identity-column-type-divergence.integration.test.mjs
 
       - name: Build backend dependency closure
-        run: pnpm --filter @emopet/api... build
+        # Turbo executes the same workspace build scripts/topology and can replay deterministic outputs.
+        run: pnpm turbo run build --filter=@emopet/api...
 
       - name: Instrument repository-only guards
         working-directory: backend
