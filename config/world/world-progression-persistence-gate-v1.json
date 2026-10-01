@@ -78,7 +78,12 @@
   ],
   "migrationGate": {
     "migrationNumberMustBeRecheckedAtImplementationTime": true,
-    "reason": "main migration sequence is active and parallel privacy work overlaps the required topology files"
+    "reason": "main migration sequence is active and parallel privacy work overlaps the required topology files",
+    "currentReservation": {
+      "migration": "0045_world_gamification_persistence.sql",
+      "recheckedAgainstMain": true,
+      "schemaFoundationPresent": true
+    }
   },
   "durableStoreContract": {
     "isolationRequirement": "SERIALIZABLE_OR_EQUIVALENT_CONFLICT_SAFE",
@@ -112,5 +117,14 @@
     "path": "config/world/world-progression-privacy-candidate-v1.json",
     "status": "CANDIDATE_NOT_PROMOTED",
     "blocksProductionPersistence": true
+  },
+  "durableImplementation": {
+    "status": "SCHEMA_AND_STORE_PRESENT_NOT_ACTIVATED",
+    "productionAuthority": false,
+    "schema": "backend/db/schema/world-gamification.ts",
+    "ledgerStore": "backend/api/services/world-progression-postgres.ts",
+    "buildService": "backend/api/services/world-build-postgres.ts",
+    "activeHttpRoute": false,
+    "privacyLifecyclePromoted": false
   }
 }
