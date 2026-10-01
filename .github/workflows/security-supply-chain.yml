@@ -126,7 +126,7 @@ jobs:
         run: node scripts/control/propose-company-transitions.mjs --github-pr --output company-transition-proposals.json
       - name: Preserve Company OS transition proposals
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e3c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: company-transition-proposals-${{ github.event.pull_request.head.sha || github.sha }}
           path: company-transition-proposals.json
