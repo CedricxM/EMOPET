@@ -8,7 +8,8 @@
     "careSignalRewards": false,
     "publicRanking": false,
     "paidHumanConnection": false,
-    "callerSuppliedRewardAmounts": false
+    "callerSuppliedRewardAmounts": false,
+    "sourceRefsMustBeServerAuthorized": true
   },
   "resources": [
     "knowledgeFragments",
@@ -53,6 +54,7 @@
   ],
   "notes": [
     "Rewards are derived server-side from event kind only.",
+    "A syntactically valid sourceRef is never reward evidence by itself; a server authority must verify canonical source ownership/kind.",
     "Route rewards are for an explicit owner-authored saved route, never measured distance or dog activity.",
     "No MAT, TAG, ELI, health, wellbeing, inferred emotion, rest, sleep, activity, steps, distance or relationship score may produce World progression."
   ]
