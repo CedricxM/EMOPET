@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   codeqlJobEvidenceState,
   isDocumentationOnlyPullRequestFiles,
+  isRetryableGitHubEvidenceStatus,
   normalizePullRequestNumber,
   requireCodeqlAlertInventory,
   requireCodeqlAnalysis,
@@ -190,5 +191,16 @@ test('documentation-only scope fails closed for code, operational data or code-t
     [{ filename: '', status: 'modified' }],
   ]) {
     assert.equal(isDocumentationOnlyPullRequestFiles(files), false);
+  }
+});
+
+
+test('GitHub evidence API retry classifier is narrow and fail-closed', () => {
+  for (const status of [408, 425, 429, 500, 502, 503, 504, 599]) {
+    assert.equal(isRetryableGitHubEvidenceStatus(status), true, String(status));
+  }
+
+  for (const status of [200, 201, 400, 401, 403, 404, 409, 422, 600, NaN]) {
+    assert.equal(isRetryableGitHubEvidenceStatus(status), false, String(status));
   }
 });
