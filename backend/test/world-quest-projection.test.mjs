@@ -118,3 +118,29 @@ test('checked-in quest config and server quest catalogue stay aligned', async ()
 
   assert.deepEqual(mod.WORLD_QUEST_CATALOG, fromConfig);
 });
+
+
+test('every quest event kind is already authorised by the World progression authority', async () => {
+  const questCfg = JSON.parse(
+    await readFile(
+      new URL('../../config/world/world-quest-catalog-v1.json', import.meta.url),
+      'utf8',
+    ),
+  );
+  const progressionCfg = JSON.parse(
+    await readFile(
+      new URL('../../config/world/world-progression-authority-v1.json', import.meta.url),
+      'utf8',
+    ),
+  );
+
+  const allowed = new Set(Object.keys(progressionCfg.rewards));
+  for (const quest of questCfg.quests) {
+    assert.equal(allowed.has(quest.eventKind), true, `quest ${quest.id} uses unauthorised event ${quest.eventKind}`);
+    assert.equal(
+      progressionCfg.forbiddenEventPrefixes.some((prefix) => quest.eventKind.startsWith(prefix)),
+      false,
+      `quest ${quest.id} overlaps forbidden progression prefix`,
+    );
+  }
+});
