@@ -23,6 +23,8 @@ const paths = {
   metrics: 'state/metrics/metrics.json',
   risks: 'state/risks/risk-register.json',
   unknowns: 'state/unknowns/critical-unknowns.json',
+  corporate: 'state/corporate/corporate-state.json',
+  corporateSchema: 'state/corporate/corporate-state.schema.json',
 };
 
 const company = readJson(paths.company);
@@ -34,6 +36,8 @@ const preseed = readJson(paths.preseed);
 const metricsState = readJson(paths.metrics);
 const riskState = readJson(paths.risks);
 const unknownState = readJson(paths.unknowns);
+const corporateState = readJson(paths.corporate);
+const corporateSchema = readJson(paths.corporateSchema);
 
 const allObjects = [
   company.company_phase,
@@ -46,6 +50,9 @@ const allObjects = [
   ...metricsState.metrics,
   ...riskState.risks,
   ...unknownState.unknowns,
+  corporateState.entity,
+  corporateState.governance,
+  ...corporateState.rights_gates,
 ];
 
 function refsFrom(object) {
@@ -90,6 +97,10 @@ test('Company OS machine-readable files parse and keep stable unique IDs', () =>
   assert.equal(company.schema_version, '0.1.0');
   assert.match(company.snapshot.base_sha, /^[0-9a-f]{40}$/);
   assert.equal(company.snapshot.base_ref, 'main');
+  assert.equal(corporateState.schema_version, '0.1.0');
+  assert.match(corporateState.snapshot.base_sha, /^[0-9a-f]{40}$/);
+  assert.equal(corporateState.snapshot.base_ref, 'main');
+  assert.equal(corporateSchema.title, 'EMOPET Corporate/IP State');
 
   const ids = allObjects.map((object) => object?.id).filter(Boolean);
   assert.equal(ids.length, new Set(ids).size, 'Company OS object IDs must be unique');
@@ -300,6 +311,66 @@ test('critical unknowns remain explicit until evidence resolves them', () => {
   }
 });
 
+
+test('corporate/IP projection stays public-safe, issue-backed and non-conclusive', () => {
+  assert.equal(
+    corporateState.authority_mode,
+    'PUBLIC_SAFE_INDEX_PROJECTION_NOT_LEGAL_SIGN_OFF',
+  );
+  assert.equal(corporateState.confidentiality.repository_visibility, 'PUBLIC');
+
+  const expectedIssueRefs = new Set(['#114', '#116', '#680']);
+  const actualIssueRefs = new Set(
+    corporateState.rights_gates
+      .flatMap((gate) => gate.authority_refs ?? [])
+      .filter((ref) => ref.kind === 'issue')
+      .map((ref) => ref.value),
+  );
+  for (const issue of expectedIssueRefs) {
+    assert.ok(actualIssueRefs.has(issue), `Corporate/IP state must retain controlling issue ${issue}`);
+  }
+
+  for (const gate of corporateState.rights_gates) {
+    if ((gate.evidence_refs ?? []).length === 0) {
+      assert.match(
+        gate.status,
+        /OPEN|HOLD|REQUIRED/,
+        `${gate.id} cannot imply closure without evidence`,
+      );
+    }
+  }
+
+  const forbiddenKeys = new Set([
+    'secret',
+    'credential',
+    'bank_details',
+    'private_address',
+    'identity_document',
+    'signature',
+    'raw_personal_data',
+    'private_contract_text',
+  ]);
+
+  function walk(value, path = 'corporateState') {
+    if (Array.isArray(value)) {
+      value.forEach((entry, index) => walk(entry, `${path}[${index}]`));
+      return;
+    }
+    if (!value || typeof value !== 'object') return;
+
+    for (const [key, nested] of Object.entries(value)) {
+      const normalized = key.toLowerCase();
+      assert.ok(
+        !forbiddenKeys.has(normalized),
+        `${path} exposes forbidden public field key: ${key}`,
+      );
+      walk(nested, `${path}.${key}`);
+    }
+  }
+
+  walk(corporateState);
+});
+
 test('Company OS human views disclose projection/non-authority status', () => {
   const disclosures = {
     'STATE.md': /NOT DOMAIN AUTHORITY/,
@@ -309,6 +380,7 @@ test('Company OS human views disclose projection/non-authority status', () => {
     'METRICS.md': /NOT DOMAIN AUTHORITY/,
     'RISKS.md': /NOT DOMAIN AUTHORITY/,
     'UNKNOWNS.md': /NOT DECISION AUTHORITY/,
+    'CORPORATE.md': /NOT LEGAL SIGN-OFF/,
   };
 
   for (const [path, pattern] of Object.entries(disclosures)) {
