@@ -67,3 +67,47 @@ test('privacy gates cover erasure, discovery, residue, export and retention befo
     assert.match(text, new RegExp(required));
   }
 });
+
+test('durable store contract makes atomicity, replay and concurrency requirements machine-readable', () => {
+  assert.deepEqual(gate.durableStoreContract, {
+    isolationRequirement: 'SERIALIZABLE_OR_EQUIVALENT_CONFLICT_SAFE',
+    appendAndBalanceAtomic: true,
+    buildSpendAndOwnershipAtomic: true,
+    replayReturnsCommittedEntry: true,
+    idempotencyConflictFailsClosed: true,
+    canonicalSourceUniquenessDatabaseEnforced: true,
+    ownerBoundaryDatabaseEnforced: true,
+    negativeBalanceForbidden: true,
+  });
+});
+
+
+test('dry-run proof is explicit, disposable-only and non-authoritative', () => {
+  assert.deepEqual(gate.dryRunProof, {
+    status: 'DISPOSABLE_POSTGRES_ONLY',
+    productionAuthority: false,
+    testPath: 'backend/test/world-progression-postgres-dry-run.integration.test.mjs',
+    requiresDatabaseUrl: true,
+    createsPermanentTables: false,
+    reservesMigrationNumber: false,
+    proves: [
+      'owner foreign-key boundary',
+      'same logical replay returns committed entry',
+      'idempotency-key reuse for another logical event fails closed',
+      'canonical source uniqueness per Owner and event kind',
+      'same canonical source remains independent across Owners',
+      'conflict-safe concurrent build spending',
+      'negative resource balance is prevented',
+      'duplicate ownership is prevented',
+    ],
+  });
+});
+
+
+test('privacy candidate remains a hard production block', () => {
+  assert.deepEqual(gate.privacyCandidateContract, {
+    path: 'config/world/world-progression-privacy-candidate-v1.json',
+    status: 'CANDIDATE_NOT_PROMOTED',
+    blocksProductionPersistence: true,
+  });
+});
