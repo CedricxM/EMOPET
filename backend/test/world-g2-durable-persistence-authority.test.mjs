@@ -28,6 +28,16 @@ test('WORLD-G2 migration locks Owner, idempotency, canonical-source and ownershi
   assert.match(sql, /chk_world_progression_events_grants_exact/);
   assert.match(sql, /chk_world_resource_spends_cost_keys/);
   assert.match(sql, /chk_world_resource_spends_cost_positive_integers/);
+  assert.equal(
+    (sql.match(/chk_world_resource_spends_cost_positive_integers/g) ?? []).length,
+    1,
+    'spend cost constraint must exist exactly once',
+  );
+  assert.equal(
+    (sql.match(/CREATE INDEX idx_world_resource_spends_owner_recorded/g) ?? []).length,
+    1,
+    'spend owner/recorded index must exist exactly once',
+  );
   const spendCostConstraint = sql.match(
     /CONSTRAINT chk_world_resource_spends_cost_positive_integers([\s\S]*?)\n\);/,
   );
