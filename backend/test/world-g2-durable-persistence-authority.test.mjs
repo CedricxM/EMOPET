@@ -22,6 +22,9 @@ test('WORLD-G2 migration locks Owner, idempotency, canonical-source and ownershi
   assert.match(sql, /UNIQUE \(owner_id, idempotency_key\)/);
   assert.match(sql, /UNIQUE \(owner_id, event_kind, source_ref\)/);
   assert.match(sql, /UNIQUE \(owner_id, item_id\)/);
+  assert.match(sql, /chk_world_progression_events_idempotency_format/);
+  assert.match(sql, /chk_world_progression_events_source_format/);
+  assert.match(sql, /chk_world_resource_spends_idempotency_format/);
   assert.match(sql, /chk_world_progression_events_grants_exact/);
   assert.match(sql, /chk_world_resource_spends_cost_keys/);
   assert.match(sql, /chk_world_resource_spends_cost_positive_integers/);
