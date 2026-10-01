@@ -12,6 +12,18 @@ export const BRETAGNE_REGIONAL_PACK: RegionalPack = {
   id: 'regional-pack-bretagne-v1',
   regionId: 'bretagne',
   profile: BRETAGNE_PROFILE,
+  identityEvidence: {
+    status: 'PENDING_REVIEW',
+    exactAssistantName: BRETAGNE_PROFILE.assistantName,
+    exactAssistantNameOrigin: BRETAGNE_PROFILE.assistantNameOrigin,
+    exactNamingRule: BRETAGNE_PROFILE.namingRule,
+    reviewerRole: null,
+    reviewerRef: null,
+    reviewedAt: null,
+    reviewReceipt: null,
+    note:
+      'Breiz is the current controlled working identity, but its public cultural/linguistic identity has not yet received a named review receipt.',
+  },
   knowledgeBase: BRETAGNE_KNOWLEDGE,
   defaultLocale: 'fr-FR',
   supportedLocales: ['fr-FR'],
@@ -80,6 +92,7 @@ export const BRETAGNE_REGIONAL_PACK: RegionalPack = {
   notes: [
     'Bretagne is the first regionalisation laboratory, not the universal cultural template.',
     'No source binding is a partnership or reuse-right claim.',
+    'The Breiz identity remains PENDING_REVIEW until exact naming/origin claims receive a named review receipt.',
     'The canine_network domain intentionally has no source binding yet and therefore remains a hard release blocker.',
     'Breton and Gallo are not declared supported product locales until review and cross-locale QA exist.',
   ],
