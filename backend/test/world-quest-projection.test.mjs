@@ -17,10 +17,13 @@ async function loadQuestModule() {
   return import(`data:text/javascript;base64,${Buffer.from(transpiled).toString('base64')}`);
 }
 
+const OWNER_ID = '11111111-1111-4111-8111-111111111111';
+const OTHER_OWNER_ID = '22222222-2222-4222-8222-222222222222';
+
 function entry(overrides) {
   return {
     id: 'entry',
-    ownerId: '11111111-1111-4111-8111-111111111111',
+    ownerId: OWNER_ID,
     idempotencyKey: 'idempotency:001',
     kind: 'knowledge.card_read',
     sourceRef: 'knowledge:one',
@@ -32,7 +35,7 @@ function entry(overrides) {
 
 test('quest projection counts distinct authorised sources instead of ledger row volume', async () => {
   const mod = await loadQuestModule();
-  const progress = mod.projectWorldQuestProgress([
+  const progress = mod.projectWorldQuestProgress(OWNER_ID, [
     entry({ id: '1', sourceRef: 'knowledge:one' }),
     entry({ id: '2', sourceRef: 'knowledge:one', idempotencyKey: 'idempotency:002' }),
     entry({ id: '3', sourceRef: 'knowledge:two', idempotencyKey: 'idempotency:003' }),
@@ -48,7 +51,7 @@ test('quest projection counts distinct authorised sources instead of ledger row 
 
 test('quest projection keeps unrelated event kinds isolated', async () => {
   const mod = await loadQuestModule();
-  const progress = mod.projectWorldQuestProgress([
+  const progress = mod.projectWorldQuestProgress(OWNER_ID, [
     entry({
       id: '1',
       kind: 'local.place_saved',
@@ -81,7 +84,7 @@ test('quest progress caps at target and never creates bonus rewards in G1C', asy
       sourceRef: `knowledge:card:${index}`,
     }),
   );
-  const progress = mod.projectWorldQuestProgress(entries);
+  const progress = mod.projectWorldQuestProgress(OWNER_ID, entries);
   const quest = progress.find((item) => item.id === 'learn-three');
 
   assert.equal(quest.current, 3);
@@ -89,6 +92,31 @@ test('quest progress caps at target and never creates bonus rewards in G1C', asy
   assert.equal('reward' in quest, false);
   assert.equal('grants' in quest, false);
   assert.equal('xp' in quest, false);
+});
+
+test('quest projection fails closed on mixed-owner ledger rows', async () => {
+  const mod = await loadQuestModule();
+
+  assert.throws(
+    () => mod.projectWorldQuestProgress(OWNER_ID, [
+      entry({ id: '1', sourceRef: 'knowledge:one' }),
+      entry({
+        id: '2',
+        ownerId: OTHER_OWNER_ID,
+        idempotencyKey: 'idempotency:002',
+        sourceRef: 'knowledge:two',
+      }),
+    ]),
+    /WORLD_QUEST_OWNER_SCOPE_MISMATCH/,
+  );
+});
+
+test('quest projection requires an explicit owner scope even for an empty ledger', async () => {
+  const mod = await loadQuestModule();
+  assert.throws(
+    () => mod.projectWorldQuestProgress('', []),
+    /WORLD_QUEST_OWNER_SCOPE_REQUIRED/,
+  );
 });
 
 test('checked-in quest config and server quest catalogue stay aligned', async () => {
@@ -107,6 +135,8 @@ test('checked-in quest config and server quest catalogue stay aligned', async ()
   assert.equal(cfg.antiFarming.countLedgerDuplicates, false);
   assert.equal(cfg.antiFarming.dogActivity, false);
   assert.equal(cfg.antiFarming.careOrEliSignals, false);
+  assert.equal(cfg.antiFarming.ownerScopedProjection, true);
+  assert.equal(cfg.antiFarming.sourceRefsServerAuthorized, true);
 
   const fromConfig = cfg.quests.map((quest) => ({
     id: quest.id,
