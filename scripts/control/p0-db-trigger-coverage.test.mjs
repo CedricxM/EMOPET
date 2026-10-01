@@ -114,15 +114,17 @@ test('database schema and gated integration tests remain covered', () => {
   }
 });
 
-test('no negative path pattern excludes a protected PostgreSQL surface', () => {
+test('PostgreSQL trigger coverage cannot be narrowed with negative path filters', () => {
   const exclusions = triggerPaths.filter((pattern) => pattern.startsWith('!'));
-  const shadowed = [];
-  for (const fileName of protectedExamples) {
-    for (const pattern of exclusions) {
-      if (globToRegExp(pattern.slice(1)).test(fileName)) shadowed.push(`${pattern} excludes ${fileName}`);
-    }
-  }
-  assert.deepEqual(shadowed, []);
+  assert.deepEqual(
+    exclusions,
+    [],
+    'p0-db-baseline.yml must not re-exclude files after the broad backend/packages/config coverage',
+  );
+});
+
+test('P0 DB workflow definition changes trigger PostgreSQL validation', () => {
+  assert.ok(isCovered('.github/workflows/p0-db-baseline.yml'));
 });
 
 test('the trigger guard is itself enforced by the required security regression job', () => {
