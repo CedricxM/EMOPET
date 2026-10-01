@@ -82,3 +82,116 @@ export function detectRegion(input: DetectRegionInput = {}): DetectRegionResult 
     invitation: 'Pour des réponses plus proches de chez vous, indiquez votre région dans votre profil.',
   };
 }
+
+
+export type RegionalCompanionContextMode =
+  | 'CURRENT_REGION'
+  | 'HOME_REGION'
+  | 'CURRENT_REGION_UNSUPPORTED_NEUTRAL'
+  | 'NEUTRAL';
+
+export interface ResolveRegionalCompanionContextInput {
+  /** Stable/home region declared by the user. */
+  homeRegionId?: string;
+  /** Current region, if explicitly known from user input or consented location context. */
+  currentRegionId?: string;
+  /** Current department, only when the caller is allowed to use that context. */
+  currentDepartment?: string;
+}
+
+export interface RegionalCompanionContext {
+  active: DetectRegionResult;
+  mode: RegionalCompanionContextMode;
+  homeRegionId: string | null;
+  currentRegionId: string | null;
+  currentContextProvided: boolean;
+  isAwayFromHome: boolean;
+}
+
+function getTerritorialRegionById(regionId?: string): RegionBundle | null {
+  if (!regionId) return null;
+  if (regionId === 'neutral_france' || regionId === 'test_region') return null;
+  return REGION_REGISTRY[regionId] ?? null;
+}
+
+function getTerritorialRegionByDepartment(department?: string): RegionBundle | null {
+  if (!department) return null;
+  const regionId = DEPARTMENT_TO_REGION[department];
+  return regionId ? getTerritorialRegionById(regionId) : null;
+}
+
+/**
+ * Resolve the active regional companion while keeping home and current
+ * territory semantics distinct.
+ *
+ * Privacy boundary: this function does not acquire location. Callers may pass
+ * currentRegionId/currentDepartment only when that context is already allowed.
+ *
+ * Policy:
+ * - supported current territory wins and may change companion identity;
+ * - explicitly supplied but unsupported current territory falls neutral rather
+ *   than reusing the home companion in the wrong place;
+ * - when no current context exists, a supported home region is used;
+ * - otherwise EMOPET stays neutral.
+ */
+export function resolveRegionalCompanionContext(
+  input: ResolveRegionalCompanionContextInput = {},
+): RegionalCompanionContext {
+  const home = getTerritorialRegionById(input.homeRegionId);
+  const currentContextProvided =
+    (typeof input.currentRegionId === 'string' && input.currentRegionId.trim() !== '') ||
+    (typeof input.currentDepartment === 'string' && input.currentDepartment.trim() !== '');
+
+  const current =
+    getTerritorialRegionById(input.currentRegionId) ??
+    getTerritorialRegionByDepartment(input.currentDepartment);
+
+  if (currentContextProvided) {
+    if (current) {
+      return {
+        active: { ...current, isDefault: false },
+        mode: 'CURRENT_REGION',
+        homeRegionId: home?.profile.regionId ?? null,
+        currentRegionId: current.profile.regionId,
+        currentContextProvided: true,
+        isAwayFromHome: home ? home.profile.regionId !== current.profile.regionId : false,
+      };
+    }
+
+    const neutral = REGION_REGISTRY[DEFAULT_REGION_ID]!;
+    return {
+      active: {
+        ...neutral,
+        isDefault: true,
+        invitation:
+          'Ce territoire n’a pas encore de compagnon régional contrôlé. EMOPET reste neutre pour le moment.',
+      },
+      mode: 'CURRENT_REGION_UNSUPPORTED_NEUTRAL',
+      homeRegionId: home?.profile.regionId ?? null,
+      currentRegionId: null,
+      currentContextProvided: true,
+      isAwayFromHome: home !== null,
+    };
+  }
+
+  if (home) {
+    return {
+      active: { ...home, isDefault: false },
+      mode: 'HOME_REGION',
+      homeRegionId: home.profile.regionId,
+      currentRegionId: null,
+      currentContextProvided: false,
+      isAwayFromHome: false,
+    };
+  }
+
+  const neutral = detectRegion({});
+  return {
+    active: neutral,
+    mode: 'NEUTRAL',
+    homeRegionId: null,
+    currentRegionId: null,
+    currentContextProvided: false,
+    isAwayFromHome: false,
+  };
+}
