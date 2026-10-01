@@ -35,6 +35,13 @@ async function loadTransitionModule() {
   };
 }
 
+const OWNER_ID = '11111111-1111-4111-8111-111111111111';
+const OTHER_OWNER_ID = '22222222-2222-4222-8222-222222222222';
+
+function ownedItem(itemId, ownerId = OWNER_ID) {
+  return { ownerId, itemId };
+}
+
 async function loadCatalog() {
   return JSON.parse(
     await readFile(
@@ -49,10 +56,14 @@ test('switching from Breiz to GLOBAL retains regional ownership without auto-pla
   const catalog = await loadCatalog();
 
   const plan = mod.planWorldRegionTransition({
+    ownerId: OWNER_ID,
     catalog,
     currentRegionCode: 'FR-BRE',
     nextRegionCode: 'GLOBAL',
-    ownedItemIds: ['breiz-mini-lighthouse', 'memory-lantern'],
+    ownedItems: [
+      ownedItem('breiz-mini-lighthouse'),
+      ownedItem('memory-lantern'),
+    ],
   });
 
   assert.equal(plan.fromRegionCode, 'FR-BRE');
@@ -72,10 +83,11 @@ test('switching region never creates resources or reward fields', async () => {
   const catalog = await loadCatalog();
 
   const plan = mod.planWorldRegionTransition({
+    ownerId: OWNER_ID,
     catalog,
     currentRegionCode: 'GLOBAL',
     nextRegionCode: 'FR-BRE',
-    ownedItemIds: [],
+    ownedItems: [],
   });
   const json = JSON.stringify(plan).toLowerCase();
 
@@ -93,10 +105,42 @@ test('precise-looking or unknown next-region input falls back to GLOBAL', async 
       catalog,
       currentRegionCode: 'FR-BRE',
       nextRegionCode,
-      ownedItemIds: [],
+      ownedItems: [],
     });
     assert.equal(plan.toRegionCode, 'GLOBAL');
   }
+});
+
+test('transition rejects inventory rows belonging to another Owner', async () => {
+  const { module: mod } = await loadTransitionModule();
+  const catalog = await loadCatalog();
+
+  assert.throws(
+    () => mod.planWorldRegionTransition({
+      ownerId: OWNER_ID,
+      catalog,
+      currentRegionCode: 'FR-BRE',
+      nextRegionCode: 'GLOBAL',
+      ownedItems: [ownedItem('memory-lantern', OTHER_OWNER_ID)],
+    }),
+    /WORLD_REGION_TRANSITION_OWNED_ITEM_OWNER_SCOPE_MISMATCH/,
+  );
+});
+
+test('transition requires explicit Owner scope', async () => {
+  const { module: mod } = await loadTransitionModule();
+  const catalog = await loadCatalog();
+
+  assert.throws(
+    () => mod.planWorldRegionTransition({
+      ownerId: '',
+      catalog,
+      currentRegionCode: 'FR-BRE',
+      nextRegionCode: 'GLOBAL',
+      ownedItems: [],
+    }),
+    /WORLD_REGION_TRANSITION_OWNER_REQUIRED/,
+  );
 });
 
 test('duplicate owned items fail closed instead of being silently normalized', async () => {
@@ -108,7 +152,10 @@ test('duplicate owned items fail closed instead of being silently normalized', a
       catalog,
       currentRegionCode: 'FR-BRE',
       nextRegionCode: 'GLOBAL',
-      ownedItemIds: ['breiz-mini-lighthouse', 'breiz-mini-lighthouse'],
+      ownedItems: [
+      ownedItem('breiz-mini-lighthouse'),
+      ownedItem('breiz-mini-lighthouse'),
+    ],
     }),
     /DUPLICATE_OWNED_ITEM/,
   );
@@ -119,10 +166,11 @@ test('unknown or retired owned item ids remain retained across transition', asyn
   const catalog = await loadCatalog();
 
   const plan = mod.planWorldRegionTransition({
+    ownerId: OWNER_ID,
     catalog,
     currentRegionCode: 'FR-BRE',
     nextRegionCode: 'GLOBAL',
-    ownedItemIds: ['retired-item-v0'],
+    ownedItems: [ownedItem('retired-item-v0')],
   });
 
   assert.deepEqual(plan.retainedOwnedItemIds, ['retired-item-v0']);
@@ -145,7 +193,9 @@ test('machine-readable transition contract forbids automatic location/FOMO mecha
   assert.equal(cfg.earnedResourceReset, false);
   assert.equal(cfg.ownedItemExpiry, false);
   assert.equal(cfg.outsideActiveCollectionPolicy, 'RETAIN_IN_INVENTORY_NOT_AUTO_PLACED');
+  assert.equal(cfg.ownerScopeRequired, true);
   assert.match(rules, /never grants world resources/);
+  assert.match(rules, /exact owner requesting the transition/);
   assert.match(rules, /never removes or expires/);
   assert.match(rules, /exact location, geofencing and passive movement/);
 });
