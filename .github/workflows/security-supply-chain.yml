@@ -147,6 +147,7 @@ jobs:
           node --test
           scripts/control/activity-variability-authority.test.mjs
           scripts/control/breiz-territorial-rights-authority.test.mjs
+          scripts/control/bretagne-canine-pilot-evidence.test.mjs
           scripts/control/eli-api-projection.test.mjs
           scripts/control/eli-dynamics-parameter-authority.test.mjs
           scripts/control/eli-proxy-evidence.test.mjs
