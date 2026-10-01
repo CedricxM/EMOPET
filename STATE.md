@@ -2,79 +2,51 @@
 
 **Snapshot date:** 2026-10-01  
 **Snapshot base:** `main@f12e39d1c8d453aac1189b484d5a1c7cbb21ae74`  
-**Status:** `COMPANY STATE PROJECTION / NOT DOMAIN AUTHORITY`  
-**Machine-readable source:** `state/company-state.json`
+**Status:** `GENERATED COMPANY STATE PROJECTION / NOT DOMAIN AUTHORITY`  
+**Machine-readable sources:** `state/company-state.json` + `state/freshness/freshness-state.json`
 
-This page is a compact projection for navigation. Follow the cited authority before making a substantive product, scientific, legal, industrial or funding decision.
+> **Generated file. Do not hand-edit.** Regenerate with `node scripts/control/generate-company-os-views.mjs`.
 
-## Phase
+This page is a generated navigation projection. The cited controlled domain authority always wins.
 
-**2026 = foundation/preparation. 2027 = beginning of launch phase + operational integration into Brittany.**
+## Company phase
 
-Exact launch month, production volume, revenue target and final pricing/subscription are not fixed by the current planning authority.
+**PROJECT_DECISION** · freshness `UNREVIEWED`
+
+2026 is the foundation/preparation period. 2027 is the beginning of the launch phase and operational integration into the Brittany ecosystem. Exact launch month, production volume, revenue target and final pricing remain unfixed.
 
 Authority: `docs/strategy/PROJECT_TIMELINE_2026_2027.md`.
 
+Next gate: Preserve evidence-gated preparation through 2026 and create separate controlled decisions for launch details when evidence is sufficient.
+
 ## Workstream snapshot
 
-| Workstream | Current projection | Next proof/gate |
-|---|---|---|
-| MAT | `OPEN / EVIDENCE-GATED` | Physical feasibility + incremental value over TAG-only before two-device commercial lock |
-| TAG | `OBSERVED_PARTIAL / VALIDATION OPEN` | Controlled physical/end-to-end evidence before production claims |
-| Core software | `OBSERVED / PRODUCTION GATES OPEN` | Close narrow identity, durable backend-contract and release-authority gaps |
-| ELI | `GATED` | Advance only through controlled scientific/product gates with provenance + abstention |
-| World / Unity | `GATED / NOT PRODUCTION AUTHORITY` | Live loopback Unity → Hono → Nakama spike evidenced; keep gated until explicit product-value and production-readiness authority |
-| Funding | `PROJECT_DECISION / EVIDENCE-GATED` | Build sourced cost, milestone, runway and verified funding state |
-| Corporate / IP | `OPEN / INDEXED / EVIDENCE-GATED` | Advance entity, provenance, third-party-rights and repository-policy gates through controlled evidence; see `CORPORATE.md` |
-
-## Freshness / STALE overlay
-
-Freshness is tracked separately in `FRESHNESS.md` and `state/freshness/freshness-state.json`.
-
-The initial V2 overlay is conservative: if a controlled domain review date or review cadence is not recorded, the item is `UNREVIEWED`, not `CURRENT`. `UNREVIEWED`, `REVIEW_DUE`, and `STALE` items cannot support freshness-dependent promotion into strong Company OS states.
-
-Repository recency does not reset domain freshness.
+| Workstream | Projection | Freshness | Next gate |
+|---|---|---|---|
+| MAT | `OPEN / EVIDENCE-GATED` | `UNREVIEWED` | Demonstrate physical feasibility and incremental value over TAG-only before locking the two-device commercial architecture. |
+| TAG | `OBSERVED_PARTIAL / VALIDATION OPEN` | `UNREVIEWED` | Attach controlled physical bring-up, trust, RF/power/mechanical and end-to-end evidence before production claims. |
+| Core software | `OBSERVED / PRODUCTION GATES OPEN` | `UNREVIEWED` | Close the narrow production-critical identity, durable backend-contract and release-authority gaps without expanding unrelated scope. |
+| ELI | `GATED` | `UNREVIEWED` | Advance only through controlled scientific/product gates with explicit provenance and abstention behavior. |
+| World / Unity | `GATED / NOT PRODUCTION AUTHORITY` | `UNREVIEWED` | Keep World outside production authority until explicit product-value, retention, security/deployment, and production-readiness gates justify promotion. |
+| Funding | `PROJECT_DECISION / EVIDENCE-GATED` | `UNREVIEWED` | Build the finance/fundraising state from sourced costs, milestones, runway assumptions and verified funding evidence. |
+| Corporate / IP | `OPEN / INDEXED / EVIDENCE-GATED` | `UNREVIEWED` | Advance the source gates in #114, #116 and #680 with controlled evidence and reviewed dispositions while keeping restricted instruments and personal data outside the public repository. |
 
 ## Critical company gates
 
-### 1. MAT value
+| Gate | Domain | Status | Freshness | Question | References |
+|---|---|---|---|---|---|
+| `EMO-GATE-MAT-VALUE` | hardware/product | `OPEN` | `UNREVIEWED` | Does MAT create sufficient incremental value over TAG-only to justify a two-device commercial architecture? | issue `#230` |
+| `EMO-GATE-PHYSICAL-PROOF` | hardware | `OPEN` | `UNREVIEWED` | Do controlled physical tests support the intended MAT/TAG evidence paths with repeatability and trustworthy provenance? | `AGENTS.md` |
+| `EMO-GATE-PRODUCT-VALUE` | product/market | `OPEN` | `UNREVIEWED` | Does a narrow end-to-end product create recurring owner value before broader Community/World/platform expansion? | `docs/strategy/CORE_CAPABILITY_AND_ACTIVATION_DOCTRINE_2026-09-07.md` |
+| `EMO-GATE-ECONOMICS` | finance | `OPEN` | `UNREVIEWED` | Are hardware COGS, support cost, pricing logic and financing need evidenced well enough to support a launch decision? | `docs/strategy/PROJECT_TIMELINE_2026_2027.md` |
+| `EMO-GATE-IP-RIGHTS` | legal | `OPEN` | `UNREVIEWED` | Are contribution ownership, third-party rights and public-repository policy controlled before scale? | issue `#114`, issue `#116`, issue `#680` |
 
-**Question:** does MAT create enough incremental value over TAG-only to justify a two-device commercial architecture?
+## Freshness boundary
 
-Owner gate: issue `#230`.
-
-### 2. Physical proof
-
-**Question:** do controlled physical tests support the intended MAT/TAG evidence paths with repeatability and trustworthy provenance?
-
-Until this is evidenced, repository detail must not be described as physical validation.
-
-### 3. Narrow product value
-
-**Question:** does the smallest end-to-end product create recurring owner value before broader Community, World or platform expansion?
-
-The Company OS should bias resource allocation toward retiring this uncertainty rather than adding horizontal scope.
-
-### 4. Economics
-
-**Question:** are hardware COGS, support cost, pricing logic and financing need evidenced well enough to support a launch decision?
-
-No invented pricing, sales volume, grant award or data-revenue assumption should be used to make the economics look complete.
-
-### 5. IP and rights
-
-**Question:** are contribution ownership, third-party rights and public-repository policy controlled before scale?
-
-Related gates include `#114`, `#116` and `#680`. The public-safe projection is indexed in `CORPORATE.md` and `state/corporate/corporate-state.json`.
-
-## Resource-allocation principle
-
-The company should optimize for **high-impact uncertainty retired per unit of time and capital**, not for feature count.
-
-Until the core proof gates move, platform-scale surfaces remain subordinate to physics, product value, economics, rights and launch readiness.
+Freshness is a separate overlay. `UNREVIEWED`, `REVIEW_DUE`, and `STALE` cannot support freshness-dependent promotion into strong Company OS states. Repository recency does not reset domain freshness.
 
 ## Confidentiality
 
-This repository is public. Company state may contain public-safe status, source identifiers and hashes, but not secrets, PII, signatures, bank details, confidential supplier material, executed legal originals or restricted investor terms.
+Store public-safe state, status, hashes and references only. Keep secrets, PII, signatures, bank data, confidential supplier material, executed legal originals and restricted investor terms outside the public repository.
 
-See `docs/records/README.md` and `docs/company/EMOPET_COMPANY_OS_ARCHITECTURE_2026-10-01.md`.
+See `FRESHNESS.md`, `CORPORATE.md`, and `docs/company/EMOPET_COMPANY_OS_ARCHITECTURE_2026-10-01.md`.
