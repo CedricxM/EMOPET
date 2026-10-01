@@ -235,3 +235,26 @@ Production activation remains blocked until Owner-linked privacy topology is rec
 - retention/disposition.
 
 The migration number is intentionally not reserved in this draft because the active migration sequence must be rechecked at implementation time.
+
+
+## 11. G1F source authority
+
+World progression does not trust caller-supplied source identifiers as evidence.
+
+The routing contract is defined in:
+
+- `config/world/world-progression-source-authority-v1.json`
+- `backend/api/services/world-progression-source-authority.ts`
+
+Each authorized progression event is mapped to one canonical product domain and one source namespace. The namespace is only a routing guard. It never proves existence, ownership or eligibility.
+
+Required behavior:
+
+- default decision is deny;
+- a missing verifier denies progression;
+- the canonical domain must verify source existence and Owner scope;
+- a source namespace mismatch is rejected before verifier invocation;
+- a verifier outage propagates so the ledger returns source-authority unavailable and fails closed;
+- Care, ELI, sensor and dog-performance systems are not progression source authorities.
+
+This slice still does not wire the domain verifiers to active runtime routes. That integration remains gated behind the existing product authorities for Knowledge, Local, Community, World and Memories.
