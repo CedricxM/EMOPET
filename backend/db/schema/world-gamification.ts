@@ -113,4 +113,49 @@ export const worldResourceSpends = pgTable('world_resource_spends', {
     'chk_world_resource_spends_cost_object',
     sql`jsonb_typeof(${table.costJson}) = 'object' AND ${table.costJson} <> '{}'::jsonb`,
   ),
+  check(
+    'chk_world_resource_spends_cost_keys',
+    sql`${table.costJson} - ARRAY[
+      'knowledgeFragments',
+      'localDiscoveries',
+      'walkTraces',
+      'communitySeeds',
+      'memoryThreads'
+    ] = '{}'::jsonb`,
+  ),
+  check(
+    'chk_world_resource_spends_cost_positive_integers',
+    sql`(
+      (NOT (${table.costJson} ? 'knowledgeFragments')
+        OR (
+          jsonb_typeof(${table.costJson} -> 'knowledgeFragments') = 'number'
+          AND (${table.costJson} ->> 'knowledgeFragments') ~ '^[1-9][0-9]*
+
+        ))
+      AND (NOT (${table.costJson} ? 'localDiscoveries')
+        OR (
+          jsonb_typeof(${table.costJson} -> 'localDiscoveries') = 'number'
+          AND (${table.costJson} ->> 'localDiscoveries') ~ '^[1-9][0-9]*
+
+        ))
+      AND (NOT (${table.costJson} ? 'walkTraces')
+        OR (
+          jsonb_typeof(${table.costJson} -> 'walkTraces') = 'number'
+          AND (${table.costJson} ->> 'walkTraces') ~ '^[1-9][0-9]*
+
+        ))
+      AND (NOT (${table.costJson} ? 'communitySeeds')
+        OR (
+          jsonb_typeof(${table.costJson} -> 'communitySeeds') = 'number'
+          AND (${table.costJson} ->> 'communitySeeds') ~ '^[1-9][0-9]*
+
+        ))
+      AND (NOT (${table.costJson} ? 'memoryThreads')
+        OR (
+          jsonb_typeof(${table.costJson} -> 'memoryThreads') = 'number'
+          AND (${table.costJson} ->> 'memoryThreads') ~ '^[1-9][0-9]*
+
+        ))
+    )`,
+  ),
 ]);
