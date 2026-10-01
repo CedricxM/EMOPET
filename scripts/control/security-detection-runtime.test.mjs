@@ -11,6 +11,8 @@ const [
   schedulerMigrationSource,
   lateReplayMigrationSource,
   detectorSource,
+  detectionHistoryMigrationSource,
+  detectionHistorySource,
 ] = await Promise.all([
   readFile(new URL('../../config/security/security-detection-runtime-v1.json', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/api/security/security-detection-runtime.ts', import.meta.url), 'utf8'),
@@ -20,6 +22,8 @@ const [
   readFile(new URL('../../backend/db/migrations/0037_security_detection_scheduler_state.sql', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/db/migrations/0038_security_detection_evaluated_events.sql', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/api/security/security-anomaly-detection.ts', import.meta.url), 'utf8'),
+  readFile(new URL('../../backend/db/migrations/0041_security_detection_history.sql', import.meta.url), 'utf8'),
+  readFile(new URL('../../backend/api/security/security-detection-history.ts', import.meta.url), 'utf8'),
 ]);
 
 const authority = JSON.parse(authoritySource);
@@ -51,9 +55,16 @@ test('#525 runtime has canonical DB source without claiming continuous productio
   assert.match(authority.lateEventReplay.context, /EXPLICIT_POLICY_WINDOW/);
   assert.match(authority.lateEventReplay.markRule, /AFTER_SUCCESSFUL_NORMAL\+LATE_EVALUATION/);
   assert.equal(authority.lateEventReplay.alertDeliveryAuthority, false);
-  assert.equal(authority.lateEventReplay.detectionHistoryAuthority, false);
+  assert.equal(authority.lateEventReplay.detectionHistoryAuthority, true);
   assert.equal(authority.lateEventReplay.httpRoute, null);
-  assert.equal(authority.operationalGaps.durableDetectionHistory, 'NOT_IMPLEMENTED');
+  assert.match(
+    authority.operationalGaps.durableDetectionHistory,
+    /BOUNDED_DURABLE_HISTORY_CANDIDATE/,
+  );
+  assert.match(
+    authority.operationalGaps.durableDetectionHistory,
+    /RETENTION_POLICY_OPEN/,
+  );
   assert.equal(authority.operationalGaps.productionPolicyApproval, 'OPEN');
   assert.equal(authority.operationalGaps.alertDelivery, 'OPEN_UNDER_526');
 });
@@ -131,6 +142,71 @@ test('#776 late-event replay uses receipts and policy-derived context without cr
 
   assert.doesNotMatch(schedulerSource, /app\.(get|post|put|patch|delete)\(/);
   assert.equal(authority.lateEventReplay.alertDeliveryAuthority, false);
+});
+
+test('#805 persists bounded detector evidence without durable actor fingerprints', () => {
+  assert.equal(authority.detectionHistory.issue, 805);
+  assert.equal(
+    authority.detectionHistory.historyTable,
+    'security_detection_history',
+  );
+  assert.equal(
+    authority.detectionHistory.evidenceTable,
+    'security_detection_history_events',
+  );
+  assert.equal(
+    authority.detectionHistory.sourceAuthority,
+    'CANONICAL_SECURITY_AUDIT_EVENT_IDS_ONLY',
+  );
+  assert.equal(authority.detectionHistory.actorKeyPersisted, false);
+  assert.equal(authority.detectionHistory.targetPayloadCopied, false);
+  assert.equal(authority.detectionHistory.alertDeliveryAuthority, false);
+  assert.equal(authority.detectionHistory.httpRoute, null);
+  assert.match(authority.detectionHistory.retention, /POLICY_REQUIRED/);
+  assert.match(authority.detectionHistory.retention, /NO_DURATION_SELECTED/);
+
+  assert.match(
+    detectionHistoryMigrationSource,
+    /CREATE TABLE security_detection_history/,
+  );
+  assert.match(
+    detectionHistoryMigrationSource,
+    /CREATE TABLE security_detection_history_events/,
+  );
+  assert.match(
+    detectionHistoryMigrationSource,
+    /REFERENCES security_audit_events\(id\)/,
+  );
+  assert.match(
+    detectionHistoryMigrationSource,
+    /uq_security_detection_history_dedupe_key/,
+  );
+  const detectionHistoryMigrationExecutableSource =
+    detectionHistoryMigrationSource.replace(/--.*$/gm, '');
+  assert.doesNotMatch(
+    detectionHistoryMigrationExecutableSource,
+    /actor_key|actor_subject|target_ref|email|ip_address|user_agent|token|payload|request_body|response_body|free_form/i,
+  );
+
+  assert.match(detectionHistorySource, /createHash\('sha256'\)/);
+  assert.match(detectionHistorySource, /sourceEventIds/);
+  assert.match(detectionHistorySource, /sortedIds/);
+
+  const historyInsert = schedulerSource.indexOf(
+    '.insert(securityDetectionHistory)',
+  );
+  const evaluatedInsert = schedulerSource.indexOf(
+    '.insert(securityDetectionEvaluatedEvents)',
+  );
+  const cursorWrite = schedulerSource.indexOf(
+    '.insert(securityDetectionSchedulerState)',
+  );
+
+  assert.ok(historyInsert >= 0);
+  assert.ok(evaluatedInsert > historyInsert);
+  assert.ok(cursorWrite > evaluatedInsert);
+  assert.match(schedulerSource, /security detection history evidence conflict/);
+  assert.doesNotMatch(schedulerSource, /app\.(get|post|put|patch|delete)\(/);
 });
 
 test('#769 worker has no hidden schedule or production detector defaults', () => {

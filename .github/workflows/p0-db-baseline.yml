@@ -308,6 +308,14 @@ jobs:
           NODE_ENV: test
         run: node --test test/security-detection-scheduler.integration.test.mjs
 
+      - name: PRIV-SEC-DETECT-HISTORY-01 durable detection history on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          SECURITY_DETECTION_HISTORY_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/security-detection-history.integration.test.mjs
+
       - name: AUTH-RATE-LIMIT-01 shared auth limiter on historical migrations
         working-directory: backend
         env:
@@ -526,6 +534,14 @@ jobs:
           SECURITY_DETECTION_SCHEDULER_DB_INTEGRATION: '1'
           NODE_ENV: test
         run: node --test test/security-detection-scheduler.integration.test.mjs
+
+      - name: PRIV-SEC-DETECT-HISTORY-01 durable detection history on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          SECURITY_DETECTION_HISTORY_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/security-detection-history.integration.test.mjs
 
       - name: AUTH-RATE-LIMIT-01 shared auth limiter on generated baseline
         working-directory: backend

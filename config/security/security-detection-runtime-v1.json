@@ -1,7 +1,7 @@
 {
   "schemaVersion": "emopet-security-detection-runtime-v1",
   "issue": 525,
-  "status": "DB_SOURCE + ONE_SHOT + CURSOR_BACKED_SCHEDULER + LATE_EVENT_RECEIPT_REPLAY_CANDIDATE / CONTINUOUS_DEPLOYMENT_OPEN",
+  "status": "DB_SOURCE + ONE_SHOT + CURSOR_BACKED_SCHEDULER + LATE_EVENT_RECEIPT_REPLAY + BOUNDED_DETECTION_HISTORY_CANDIDATE / CONTINUOUS_DEPLOYMENT_OPEN",
   "eventSource": "security_audit_events",
   "detector": "backend/api/security/security-anomaly-detection.ts",
   "runtimeService": "backend/api/security/security-detection-runtime.ts",
@@ -23,7 +23,7 @@
   },
   "operationalGaps": {
     "continuousScheduler": "CURSOR_BACKED_TICK_IMPLEMENTED / DEPLOYMENT_CADENCE_OPEN",
-    "durableDetectionHistory": "NOT_IMPLEMENTED",
+    "durableDetectionHistory": "BOUNDED_DURABLE_HISTORY_CANDIDATE / RETENTION_POLICY_OPEN / ALERT_DELIVERY_SEPARATE",
     "productionPolicyApproval": "OPEN",
     "providerMonitoring": "NOT_SELECTED",
     "alertDelivery": "OPEN_UNDER_526",
@@ -54,7 +54,21 @@
     "markRule": "MARK_TARGET_EVENT_IDS_ONLY_AFTER_SUCCESSFUL_NORMAL+LATE_EVALUATION",
     "failureRule": "NO_RECEIPT_AND_NO_CURSOR_ADVANCE",
     "alertDeliveryAuthority": false,
-    "detectionHistoryAuthority": false,
+    "detectionHistoryAuthority": true,
     "httpRoute": null
+  },
+  "detectionHistory": {
+    "issue": 805,
+    "status": "BOUNDED_DURABLE_HISTORY_CANDIDATE",
+    "historyTable": "security_detection_history",
+    "evidenceTable": "security_detection_history_events",
+    "sourceAuthority": "CANONICAL_SECURITY_AUDIT_EVENT_IDS_ONLY",
+    "actorKeyPersisted": false,
+    "targetPayloadCopied": false,
+    "idempotency": "SHA256_POLICY_REVISION+DETECTOR_TYPE+CONTROLLED_METRIC+SORTED_SOURCE_EVENT_IDS",
+    "schedulerAtomicity": "HISTORY+EVALUATED_EVENT_RECEIPTS+CURSOR_IN_ONE_POSTGRES_TRANSACTION",
+    "alertDeliveryAuthority": false,
+    "httpRoute": null,
+    "retention": "POLICY_REQUIRED / ALIGN_WITH_#478_#198 / NO_DURATION_SELECTED"
   }
 }
