@@ -58,6 +58,7 @@ Authority: `docs/strategy/PROJECT_TIMELINE_2026_2027.md`.
 | Corporate/IP state | Added in V2 |
 | Freshness + STALE semantics | Added in V2 |
 | Per-registry schemas + dependency validation | Added in V2 |
+| Generated human views | Added in V2 |
 | Founder cockpit | Later, generated from controlled state |
 
 ## Non-negotiable rule
