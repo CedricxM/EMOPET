@@ -60,9 +60,16 @@ CREATE INDEX idx_security_detection_history_recorded_at
   ON security_detection_history(recorded_at);
 
 CREATE TABLE security_detection_history_events (
-  detection_id uuid NOT NULL
-    REFERENCES security_detection_history(detection_id) ON DELETE CASCADE,
-  audit_event_id uuid NOT NULL
+  detection_id uuid NOT NULL,
+  audit_event_id uuid NOT NULL,
+
+  CONSTRAINT security_detection_history_events_detection_id_security_detection_history_detection_id_fk
+    FOREIGN KEY (detection_id)
+    REFERENCES security_detection_history(detection_id)
+    ON DELETE CASCADE,
+
+  CONSTRAINT security_detection_history_events_audit_event_id_security_audit_events_id_fk
+    FOREIGN KEY (audit_event_id)
     REFERENCES security_audit_events(id),
 
   CONSTRAINT pk_security_detection_history_events
