@@ -18,11 +18,23 @@ export { shouldInitiate, INITIATE_IDLE_MINUTES, DEFAULT_INITIATIVE_ENABLED } fro
 export type { InitiateContext } from './initiate';
 export {
   detectRegion,
+  resolveRegionalCompanionContext,
   REGION_REGISTRY,
   DEFAULT_REGION_ID,
 } from './detect-region';
-export type { RegionBundle, DetectRegionResult, DetectRegionInput } from './detect-region';
+export type {
+  RegionBundle,
+  DetectRegionResult,
+  DetectRegionInput,
+  RegionalCompanionContext,
+  RegionalCompanionContextMode,
+  ResolveRegionalCompanionContextInput,
+} from './detect-region';
 export { BRETAGNE_PROFILE, BRETAGNE_KNOWLEDGE } from './profiles/bretagne';
+export {
+  NEUTRAL_FRANCE_PROFILE,
+  NEUTRAL_FRANCE_KNOWLEDGE,
+} from './profiles/neutral-france';
 
 export type {
   RegionalPack,
