@@ -73,9 +73,23 @@
   ],
   "nonSqlSurface": {
     "path": "config/privacy/non-sql-erasure-surface-inventory.json",
-    "currentWorldProgressionDecision": "ABSENT",
+    "currentWorldProgressionDecision": "ACTIVE_INVENTORY_DECISION_ABSENT_LEGACY_RUNTIME_PRESENT",
     "requiredBeforePromotion": true,
-    "note": "Absence of a non-SQL copy is not assumed from silence; promotion requires explicit negative evidence or an explicit governed surface entry."
+    "note": "Absence of a non-SQL copy is not assumed from silence; promotion requires explicit negative evidence or an explicit governed surface entry.",
+    "observedLegacyRuntimeSurfaces": [
+      {
+        "path": "apps/web/lib/gamification.ts",
+        "mechanism": "localStorage",
+        "status": "LEGACY_NON_SQL_GAMIFICATION_PRESENT",
+        "observedKeys": [
+          "breiz-gamification-read",
+          "breiz-journal-user-entries",
+          "breiz-map-user-spots"
+        ],
+        "promotionTreatment": "RETIRE_MIGRATE_OR_EXPLICITLY_EXCLUDE_FROM_G1B2_AUTHORITY",
+        "note": "Legacy Owner gamification counters/read state still read/write browser localStorage. This is not the new G1B.2 ledger, but it prevents a blanket negative claim that no non-SQL gamification state exists."
+      }
+    ]
   },
   "unresolvedDecisions": [
     "erasure disposition for each planned World table",
@@ -84,7 +98,7 @@
     "subject-discovery inclusion",
     "erasure-residue verification inclusion",
     "foreign-key-safe erasure ordering",
-    "explicit non-SQL copy evidence"
+    "legacy localStorage gamification retirement/migration/exclusion plus explicit non-SQL copy evidence"
   ],
   "claims": {
     "privacyReconciled": false,
