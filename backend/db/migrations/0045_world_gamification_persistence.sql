@@ -124,47 +124,27 @@ CREATE TABLE world_resource_spends (
       (NOT (cost_json ? 'knowledgeFragments')
         OR (
           jsonb_typeof(cost_json -> 'knowledgeFragments') = 'number'
-          AND (cost_json ->> 'knowledgeFragments') ~ '^[1-9][0-9]*
-
-CREATE INDEX idx_world_resource_spends_owner_recorded
-  ON world_resource_spends(owner_id, recorded_at);
-
+          AND (cost_json ->> 'knowledgeFragments') ~ '^[1-9][0-9]*$'
         ))
       AND (NOT (cost_json ? 'localDiscoveries')
         OR (
           jsonb_typeof(cost_json -> 'localDiscoveries') = 'number'
-          AND (cost_json ->> 'localDiscoveries') ~ '^[1-9][0-9]*
-
-CREATE INDEX idx_world_resource_spends_owner_recorded
-  ON world_resource_spends(owner_id, recorded_at);
-
+          AND (cost_json ->> 'localDiscoveries') ~ '^[1-9][0-9]*$'
         ))
       AND (NOT (cost_json ? 'walkTraces')
         OR (
           jsonb_typeof(cost_json -> 'walkTraces') = 'number'
-          AND (cost_json ->> 'walkTraces') ~ '^[1-9][0-9]*
-
-CREATE INDEX idx_world_resource_spends_owner_recorded
-  ON world_resource_spends(owner_id, recorded_at);
-
+          AND (cost_json ->> 'walkTraces') ~ '^[1-9][0-9]*$'
         ))
       AND (NOT (cost_json ? 'communitySeeds')
         OR (
           jsonb_typeof(cost_json -> 'communitySeeds') = 'number'
-          AND (cost_json ->> 'communitySeeds') ~ '^[1-9][0-9]*
-
-CREATE INDEX idx_world_resource_spends_owner_recorded
-  ON world_resource_spends(owner_id, recorded_at);
-
+          AND (cost_json ->> 'communitySeeds') ~ '^[1-9][0-9]*$'
         ))
       AND (NOT (cost_json ? 'memoryThreads')
         OR (
           jsonb_typeof(cost_json -> 'memoryThreads') = 'number'
-          AND (cost_json ->> 'memoryThreads') ~ '^[1-9][0-9]*
-
-CREATE INDEX idx_world_resource_spends_owner_recorded
-  ON world_resource_spends(owner_id, recorded_at);
-
+          AND (cost_json ->> 'memoryThreads') ~ '^[1-9][0-9]*$'
         ))
     )
 );
