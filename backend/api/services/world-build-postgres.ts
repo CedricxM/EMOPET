@@ -12,7 +12,6 @@ import {
 } from './world-build-economy.js';
 import type {
   WorldRegionalCollection,
-  WorldRegionalCollectionItem,
 } from './world-regional-collections.js';
 import type {
   WorldProgressionBalance,
@@ -196,7 +195,7 @@ export class PostgresWorldBuildService {
       applyPersistedWorldResourceMap(balance, row.costJson, -1, 'cost');
     }
 
-    const ownedItemIds = ownedRows.map((row) => row.itemId);
+    const ownedItemIds = ownedRows.map((row: { itemId: string }) => row.itemId);
     if (new Set(ownedItemIds).size !== ownedItemIds.length) {
       throw new WorldBuildPersistenceError(
         'WORLD_BUILD_PERSISTENCE_INVARIANT',
