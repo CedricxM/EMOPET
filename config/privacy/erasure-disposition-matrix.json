@@ -11,6 +11,264 @@
   ],
   "entries": [
     {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "ai_messages",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "anticipation_events",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "baseline_drift_monitor",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "baselines",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "behavioral_assessments",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "copresence_events",
+      "column": "dog_a_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "copresence_events",
+      "column": "dog_b_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "devices",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "dog_sub_baselines",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "eli_behavioral_priors",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "eli_states",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "health_entries",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "professional_share_grants",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "recovery_events",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "research_data_consents",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "routine_stability",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "sensor_feature_observations",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "sensor_summaries",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "user_config",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "walk_quality",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "TRANSITIVE_FK",
+      "table": "administration_sessions",
+      "column": "assessment_id",
+      "references": "behavioral_assessments.id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "TRANSITIVE_FK",
+      "table": "behavioral_factor_scores",
+      "column": "assessment_id",
+      "references": "behavioral_assessments.id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "TRANSITIVE_FK",
+      "table": "behavioral_responses",
+      "column": "assessment_id",
+      "references": "behavioral_assessments.id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "TRANSITIVE_FK",
+      "table": "eli_behavioral_priors",
+      "column": "assessment_id",
+      "references": "behavioral_assessments.id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "TRANSITIVE_FK",
+      "table": "eli_behavioral_priors",
+      "column": "factor_score_id",
+      "references": "behavioral_factor_scores.id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "TRANSITIVE_FK",
+      "table": "instrument_administration_events",
+      "column": "assessment_id",
+      "references": "behavioral_assessments.id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "UNCONSTRAINED_IDENTIFIER",
+      "table": "professional_share_access_audits",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "professional_share_grants.id",
+      "relationType": "UNCONSTRAINED_IDENTIFIER",
+      "table": "professional_share_access_audits",
+      "column": "grant_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
       "subjectRoot": "users.id",
       "relationType": "DIRECT_FK",
       "table": "achievements",
@@ -94,6 +352,33 @@
     {
       "subjectRoot": "users.id",
       "relationType": "DIRECT_FK",
+      "table": "community_reports",
+      "column": "reporter_user_id",
+      "disposition": "DETACH",
+      "executionStatus": "IMPLEMENTED",
+      "testEvidence": "backend/test/privacy-approved-erasure-decisions.test.mjs"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "community_reports",
+      "column": "subject_user_id",
+      "disposition": "DETACH",
+      "executionStatus": "IMPLEMENTED",
+      "testEvidence": "backend/test/privacy-approved-erasure-decisions.test.mjs"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "community_rules_acceptances",
+      "column": "user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
       "table": "dogs",
       "column": "owner_id",
       "disposition": "TO_CONFIRM",
@@ -112,8 +397,35 @@
     {
       "subjectRoot": "users.id",
       "relationType": "DIRECT_FK",
+      "table": "professional_share_grants",
+      "column": "owner_user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
       "table": "research_data_consents",
       "column": "user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "social_connections",
+      "column": "user_high_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "social_connections",
+      "column": "user_low_id",
       "disposition": "TO_CONFIRM",
       "executionStatus": "NOT_IMPLEMENTED",
       "testEvidence": "NONE"
@@ -148,7 +460,7 @@
     {
       "subjectRoot": "users.id",
       "relationType": "DIRECT_FK",
-      "table": "world_pilot_access",
+      "table": "user_config",
       "column": "user_id",
       "disposition": "TO_CONFIRM",
       "executionStatus": "NOT_IMPLEMENTED",
@@ -157,8 +469,8 @@
     {
       "subjectRoot": "users.id",
       "relationType": "DIRECT_FK",
-      "table": "social_connections",
-      "column": "user_high_id",
+      "table": "world_owned_items",
+      "column": "owner_id",
       "disposition": "TO_CONFIRM",
       "executionStatus": "NOT_IMPLEMENTED",
       "testEvidence": "NONE"
@@ -166,8 +478,8 @@
     {
       "subjectRoot": "users.id",
       "relationType": "DIRECT_FK",
-      "table": "social_connections",
-      "column": "user_low_id",
+      "table": "world_pilot_access",
+      "column": "user_id",
       "disposition": "TO_CONFIRM",
       "executionStatus": "NOT_IMPLEMENTED",
       "testEvidence": "NONE"
@@ -184,8 +496,8 @@
     {
       "subjectRoot": "users.id",
       "relationType": "DIRECT_FK",
-      "table": "user_config",
-      "column": "user_id",
+      "table": "world_progression_events",
+      "column": "owner_id",
       "disposition": "TO_CONFIRM",
       "executionStatus": "NOT_IMPLEMENTED",
       "testEvidence": "NONE"
@@ -193,293 +505,8 @@
     {
       "subjectRoot": "users.id",
       "relationType": "DIRECT_FK",
-      "table": "community_reports",
-      "column": "reporter_user_id",
-      "disposition": "DETACH",
-      "executionStatus": "IMPLEMENTED",
-      "testEvidence": "backend/test/privacy-approved-erasure-decisions.test.mjs"
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "community_reports",
-      "column": "subject_user_id",
-      "disposition": "DETACH",
-      "executionStatus": "IMPLEMENTED",
-      "testEvidence": "backend/test/privacy-approved-erasure-decisions.test.mjs"
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "community_rules_acceptances",
-      "column": "user_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "ai_messages",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "anticipation_events",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "baseline_drift_monitor",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "baselines",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "behavioral_assessments",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "devices",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "dog_sub_baselines",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "eli_behavioral_priors",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "eli_states",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "health_entries",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "recovery_events",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "research_data_consents",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "routine_stability",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "sensor_feature_observations",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "sensor_summaries",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "user_config",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "walk_quality",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "copresence_events",
-      "column": "dog_a_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "copresence_events",
-      "column": "dog_b_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "TRANSITIVE_FK",
-      "table": "behavioral_responses",
-      "column": "assessment_id",
-      "references": "behavioral_assessments.id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "TRANSITIVE_FK",
-      "table": "behavioral_factor_scores",
-      "column": "assessment_id",
-      "references": "behavioral_assessments.id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "TRANSITIVE_FK",
-      "table": "eli_behavioral_priors",
-      "column": "assessment_id",
-      "references": "behavioral_assessments.id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "TRANSITIVE_FK",
-      "table": "eli_behavioral_priors",
-      "column": "factor_score_id",
-      "references": "behavioral_factor_scores.id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "professional_share_grants",
-      "column": "owner_user_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "professional_share_grants",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "UNCONSTRAINED_IDENTIFIER",
-      "table": "professional_share_access_audits",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "professional_share_grants.id",
-      "relationType": "UNCONSTRAINED_IDENTIFIER",
-      "table": "professional_share_access_audits",
-      "column": "grant_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "TRANSITIVE_FK",
-      "table": "administration_sessions",
-      "column": "assessment_id",
-      "references": "behavioral_assessments.id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE"
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "TRANSITIVE_FK",
-      "table": "instrument_administration_events",
-      "column": "assessment_id",
-      "references": "behavioral_assessments.id",
+      "table": "world_resource_spends",
+      "column": "owner_id",
       "disposition": "TO_CONFIRM",
       "executionStatus": "NOT_IMPLEMENTED",
       "testEvidence": "NONE"
