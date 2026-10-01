@@ -79,5 +79,15 @@
   "migrationGate": {
     "migrationNumberMustBeRecheckedAtImplementationTime": true,
     "reason": "main migration sequence is active and parallel privacy work overlaps the required topology files"
+  },
+  "durableStoreContract": {
+    "isolationRequirement": "SERIALIZABLE_OR_EQUIVALENT_CONFLICT_SAFE",
+    "appendAndBalanceAtomic": true,
+    "buildSpendAndOwnershipAtomic": true,
+    "replayReturnsCommittedEntry": true,
+    "idempotencyConflictFailsClosed": true,
+    "canonicalSourceUniquenessDatabaseEnforced": true,
+    "ownerBoundaryDatabaseEnforced": true,
+    "negativeBalanceForbidden": true
   }
 }
