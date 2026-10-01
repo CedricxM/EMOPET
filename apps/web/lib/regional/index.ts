@@ -80,3 +80,20 @@ export {
   buildBretagneLanguageReviewPacket,
   auditBretagneLanguageReviewPacket,
 } from './bretagne-language-review-packet';
+
+
+export type {
+  BretagneLanguageReviewResponseKind,
+  BretagneLanguageReviewResponse,
+  BretagneLanguageReviewResponseErrorCode,
+  BretagneLanguageReviewResponseError,
+  BretagneIdentityReviewProposal,
+  BretagneLexiconReviewProposal,
+  BretagneLanguageReviewProposal,
+  BretagneLanguageReviewResponseResult,
+  BretagneLanguageReviewBatchResult,
+} from './bretagne-language-review-response';
+export {
+  evaluateBretagneLanguageReviewResponse,
+  evaluateBretagneLanguageReviewResponses,
+} from './bretagne-language-review-response';
