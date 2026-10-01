@@ -1,0 +1,83 @@
+{
+  "schema_version": "0.1.0",
+  "as_of": "2026-10-01",
+  "currency": "EUR",
+  "authority_mode": "PUBLIC_SAFE_PROJECTION_NOT_ACCOUNTING_AUTHORITY",
+  "funding_doctrine": {
+    "status": "PROJECT_DECISION_EVIDENCE_GATED",
+    "statement": "Funding should buy proof and de-risking. Eligibility, awards, investor interest and commitments must never be inferred.",
+    "authority_refs": [
+      {
+        "kind": "path",
+        "value": "docs/strategy/INDUSTRIAL_AND_FUNDING_GOVERNANCE_2026-09-07.md"
+      },
+      {
+        "kind": "path",
+        "value": "docs/strategy/STRATEGY_MEMORY_INDEX.md"
+      }
+    ]
+  },
+  "actuals": {
+    "cash_available": {
+      "value": null,
+      "status": "UNKNOWN_PUBLIC_SAFE_STATE"
+    },
+    "monthly_net_burn": {
+      "value": null,
+      "status": "UNKNOWN_PUBLIC_SAFE_STATE"
+    },
+    "runway_months": {
+      "value": null,
+      "status": "UNKNOWN_PUBLIC_SAFE_STATE"
+    },
+    "committed_external_capital": {
+      "value": 0,
+      "status": "NO_COMMITMENT_RECORDED_IN_THIS_PUBLIC_PROJECTION"
+    }
+  },
+  "unit_economics": {
+    "mat_cogs": {
+      "value": null,
+      "status": "OPEN"
+    },
+    "tag_cogs": {
+      "value": null,
+      "status": "OPEN"
+    },
+    "landed_bundle_cogs": {
+      "value": null,
+      "status": "OPEN"
+    },
+    "support_cost_per_active_household": {
+      "value": null,
+      "status": "OPEN"
+    },
+    "gross_margin": {
+      "value": null,
+      "status": "OPEN"
+    },
+    "pricing": {
+      "value": null,
+      "status": "OPEN"
+    }
+  },
+  "planning_scenarios": [
+    {
+      "id": "PRESEED_CONDITIONAL_2027",
+      "classification": "RESEARCH_DERIVED_PLANNING_ASSUMPTION_NOT_PROJECT_DECISION",
+      "target_eur": {
+        "min": 500000,
+        "base": 650000,
+        "max": 800000
+      },
+      "intended_runway_months": {
+        "min": 12,
+        "max": 18
+      },
+      "commitment_status": "NONE",
+      "readiness_status": "NOT_READY_UNTIL_GATES_REVIEWED",
+      "object_ref": "state/finance/fundraising/PRESEED-CONDITIONAL-2027.json"
+    }
+  ],
+  "invariant": "UNKNOWN is not zero. A quote is not actual COGS. Interest is not commitment. A term sheet is not cash in bank."
+}
