@@ -32,8 +32,9 @@ The receipt must carry reviewed evidence for:
 3. target environment authority;
 4. accountable release-owner review;
 5. production database migration disposition;
-6. production transport/TLS disposition;
-7. backup/restore disposition.
+6. production runtime configuration / secret-custody disposition;
+7. production transport/TLS disposition;
+8. backup/restore disposition.
 
 The machine-readable contract records the required fields and the fail-closed template.
 
@@ -60,6 +61,12 @@ The receipt is retained as historical evidence but is no longer the active candi
 `P0 DB baseline validation` remains disposable QA. It proves repository database behavior for the tested commit; it does not authorize a production migration.
 
 A future production receipt needs a separate migration disposition with operator/review authority and an evidence reference for the reviewed migration/rollback or forward-fix plan.
+
+## Runtime configuration boundary
+
+A future production receipt also requires a reviewed runtime-configuration disposition linked to the environment receipt defined by `config/release/production-runtime-config-authority-v1.json`.
+
+That evidence must remain fail-closed until secret custody/injection, rotation ownership, runtime-vs-migration database role separation, public client configuration review and backend HTTPS evidence are attached. The release receipt stores only a disposition and evidence reference, never secret values.
 
 ## Supply-chain boundary
 
