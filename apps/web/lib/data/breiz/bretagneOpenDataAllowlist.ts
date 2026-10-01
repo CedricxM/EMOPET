@@ -23,7 +23,17 @@ export type BretagneDatasetReviewStatus =
   | 'METADATA_REVIEWED_FIELDS_OPEN'
   | 'RELEASE_READY';
 
+export type BretagneDatasetSchemaEvidenceAuthority =
+  | 'PRIMARY_API_SCHEMA'
+  | 'SECONDARY_OBSERVATION';
+
 export interface BretagneDatasetSchemaEvidence {
+  /** Only PRIMARY_API_SCHEMA may contribute to release readiness. */
+  evidenceAuthority: BretagneDatasetSchemaEvidenceAuthority;
+  /** Controlled pointer to the exact captured schema evidence. */
+  evidenceRef: string;
+  /** Role responsible for reviewing this evidence. */
+  reviewerRole: string;
   /** Time when the exact live API schema snapshot was observed. */
   observedAt: string;
   /** Immutable/version-like identifier covering the exact reviewed dataset snapshot. */
@@ -93,6 +103,9 @@ export type BretagneDatasetRightsBlocker =
   | 'NO_APPROVED_FIELDS'
   | 'NO_DATASET_LICENCE'
   | 'NO_SCHEMA_EVIDENCE'
+  | 'SCHEMA_EVIDENCE_NOT_PRIMARY'
+  | 'SCHEMA_SOURCE_URL_INVALID'
+  | 'SCHEMA_EVIDENCE_RECEIPT_INVALID'
   | 'SCHEMA_EVIDENCE_INVALID_OR_STALE'
   | 'APPROVED_FIELDS_NOT_IN_SCHEMA'
   | 'NO_DATASET_RIGHTS_EVIDENCE'
@@ -109,6 +122,25 @@ export interface BretagneDatasetRightsVerdict {
 function parseEvidenceTime(value: string): number | null {
   const parsed = Date.parse(value);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function isExactBretagneDatasetMetadataUrl(
+  value: string,
+  datasetId: string,
+): boolean {
+  try {
+    const url = new URL(value);
+    return (
+      url.protocol === 'https:' &&
+      url.hostname === 'data.bretagne.bzh' &&
+      url.pathname ===
+        `/api/explore/v2.1/catalog/datasets/${encodeURIComponent(datasetId)}` &&
+      url.search === '' &&
+      url.hash === ''
+    );
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -149,6 +181,19 @@ export function evaluateBretagneOpenDataDatasetRights(
   if (!schema) {
     blockers.push('NO_SCHEMA_EVIDENCE');
   } else {
+    if (schema.evidenceAuthority !== 'PRIMARY_API_SCHEMA') {
+      blockers.push('SCHEMA_EVIDENCE_NOT_PRIMARY');
+    }
+    if (!isExactBretagneDatasetMetadataUrl(schema.sourceUrl, dataset.datasetId)) {
+      blockers.push('SCHEMA_SOURCE_URL_INVALID');
+    }
+    if (
+      schema.evidenceRef.trim().length === 0 ||
+      schema.reviewerRole.trim().length === 0
+    ) {
+      blockers.push('SCHEMA_EVIDENCE_RECEIPT_INVALID');
+    }
+
     const observedAt = parseEvidenceTime(schema.observedAt);
     const fieldsAreValid =
       schema.fields.length > 0 &&

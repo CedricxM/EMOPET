@@ -89,6 +89,9 @@ test('release-ready fixture requires fresh schema and rights bound to the same v
     allowedRecordFields: ['nom', 'geometry'],
     status: 'RELEASE_READY' as const,
     schemaEvidence: {
+      evidenceAuthority: 'PRIMARY_API_SCHEMA' as const,
+      evidenceRef: 'docs/control/FIXTURE_ONLY.md',
+      reviewerRole: 'test reviewer',
       observedAt: '2026-10-01T12:00:00Z',
       sourceVersion: 'dataset-version-2026-10-01T12:00:00Z',
       schemaFingerprint: 'sha256:fixture-schema',
@@ -167,6 +170,9 @@ test('schema evidence must be fresh and contain every approved field', () => {
     allowedRecordFields: ['nom', 'geometry'],
     status: 'RELEASE_READY' as const,
     schemaEvidence: {
+      evidenceAuthority: 'PRIMARY_API_SCHEMA' as const,
+      evidenceRef: 'docs/control/FIXTURE_ONLY.md',
+      reviewerRole: 'test reviewer',
       observedAt: '2026-09-29T10:00:00Z',
       sourceVersion: 'dataset-v1',
       schemaFingerprint: 'sha256:fixture-schema',
@@ -210,6 +216,9 @@ test('rights receipt cannot authorize a different schema/source version', () => 
     allowedRecordFields: ['nom'],
     status: 'RELEASE_READY' as const,
     schemaEvidence: {
+      evidenceAuthority: 'PRIMARY_API_SCHEMA' as const,
+      evidenceRef: 'docs/control/FIXTURE_ONLY.md',
+      reviewerRole: 'test reviewer',
       observedAt: '2026-10-01T12:00:00Z',
       sourceVersion: 'dataset-v2',
       schemaFingerprint: 'sha256:fixture-schema',
@@ -239,6 +248,97 @@ test('rights receipt cannot authorize a different schema/source version', () => 
 
   assert.equal(verdict.ingestionPermitted, false);
   assert.ok(verdict.blockers.includes('RIGHTS_VERSION_SCHEMA_MISMATCH'));
+});
+
+test('secondary or off-origin schema observations cannot authorize release', () => {
+  const current = getBretagneOpenDataDataset(
+    'reserves-naturelles-regionales-de-bretagne',
+  );
+  assert.ok(current);
+
+  const secondary = {
+    ...current,
+    allowedRecordFields: ['nom'],
+    status: 'RELEASE_READY' as const,
+    schemaEvidence: {
+      evidenceAuthority: 'SECONDARY_OBSERVATION' as const,
+      evidenceRef: 'docs/control/SECONDARY_FIXTURE_ONLY.md',
+      reviewerRole: 'test reviewer',
+      observedAt: '2026-10-01T12:00:00Z',
+      sourceVersion: 'dataset-v1',
+      schemaFingerprint: 'sha256:fixture-schema',
+      recordCount: 11,
+      fields: ['nom'],
+      sourceUrl:
+        'https://www.data.gouv.fr/fr/datasets/reserves-naturelles-regionales-de-bretagne/',
+    },
+    rightsEvidence: {
+      authorityRevision: 'fixture-v2',
+      immutableSourceVersion: 'dataset-v1',
+      receiptPath: 'data/registry/receipts/FIXTURE_ONLY.json',
+      attributionText: 'Région Bretagne',
+      permittedUseSummary: 'Synthetic test fixture only.',
+      reviewedAt: '2026-10-01T12:05:00Z',
+      reviewerRole: 'test reviewer',
+      recheckAt: '2026-10-02T12:00:00Z',
+      evidenceState: 'SOURCE_CONFIRMED' as const,
+      disposition: 'GO' as const,
+    },
+  };
+
+  const verdict = evaluateBretagneOpenDataDatasetRights(
+    secondary,
+    Date.parse('2026-10-01T13:00:00Z'),
+  );
+
+  assert.equal(verdict.ingestionPermitted, false);
+  assert.ok(verdict.blockers.includes('SCHEMA_EVIDENCE_NOT_PRIMARY'));
+  assert.ok(verdict.blockers.includes('SCHEMA_SOURCE_URL_INVALID'));
+});
+
+test('schema evidence requires a controlled pointer and reviewer role', () => {
+  const current = getBretagneOpenDataDataset(
+    'reserves-naturelles-regionales-de-bretagne',
+  );
+  assert.ok(current);
+
+  const noReceipt = {
+    ...current,
+    allowedRecordFields: ['nom'],
+    status: 'RELEASE_READY' as const,
+    schemaEvidence: {
+      evidenceAuthority: 'PRIMARY_API_SCHEMA' as const,
+      evidenceRef: '',
+      reviewerRole: '',
+      observedAt: '2026-10-01T12:00:00Z',
+      sourceVersion: 'dataset-v1',
+      schemaFingerprint: 'sha256:fixture-schema',
+      recordCount: 11,
+      fields: ['nom'],
+      sourceUrl:
+        'https://data.bretagne.bzh/api/explore/v2.1/catalog/datasets/reserves-naturelles-regionales-de-bretagne',
+    },
+    rightsEvidence: {
+      authorityRevision: 'fixture-v2',
+      immutableSourceVersion: 'dataset-v1',
+      receiptPath: 'data/registry/receipts/FIXTURE_ONLY.json',
+      attributionText: 'Région Bretagne',
+      permittedUseSummary: 'Synthetic test fixture only.',
+      reviewedAt: '2026-10-01T12:05:00Z',
+      reviewerRole: 'test reviewer',
+      recheckAt: '2026-10-02T12:00:00Z',
+      evidenceState: 'SOURCE_CONFIRMED' as const,
+      disposition: 'GO' as const,
+    },
+  };
+
+  const verdict = evaluateBretagneOpenDataDatasetRights(
+    noReceipt,
+    Date.parse('2026-10-01T13:00:00Z'),
+  );
+
+  assert.equal(verdict.ingestionPermitted, false);
+  assert.ok(verdict.blockers.includes('SCHEMA_EVIDENCE_RECEIPT_INVALID'));
 });
 
 test('current first dataset remains blocked at metadata-review state', () => {
