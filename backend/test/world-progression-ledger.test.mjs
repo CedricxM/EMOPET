@@ -21,6 +21,14 @@ async function loadLedgerModule() {
 
 const OWNER_ID = '11111111-1111-4111-8111-111111111111';
 
+function allowAllSources() {
+  return {
+    async isAuthorizedSource() {
+      return true;
+    },
+  };
+}
+
 test('ledger records an authorised owner action and derives rewards server-side', async () => {
   const mod = await loadLedgerModule();
   const previousNodeEnv = process.env.NODE_ENV;
@@ -30,6 +38,7 @@ test('ledger records an authorised owner action and derives rewards server-side'
     const store = new mod.InMemoryWorldProgressionLedgerStore();
     const service = new mod.WorldProgressionLedgerService(
       store,
+      allowAllSources(),
       () => new Date('2026-10-01T14:00:00.000Z'),
       () => 'entry-1',
     );
@@ -61,6 +70,7 @@ test('same idempotency key and same logical event is a no-op', async () => {
     let id = 0;
     const service = new mod.WorldProgressionLedgerService(
       store,
+      allowAllSources(),
       () => new Date('2026-10-01T14:00:00.000Z'),
       () => `entry-${++id}`,
     );
@@ -91,7 +101,7 @@ test('idempotency key reuse for a different event fails closed', async () => {
 
   try {
     const store = new mod.InMemoryWorldProgressionLedgerStore();
-    const service = new mod.WorldProgressionLedgerService(store);
+    const service = new mod.WorldProgressionLedgerService(store, allowAllSources());
 
     await service.record({
       ownerId: OWNER_ID,
@@ -125,7 +135,7 @@ test('dog, sensor and ELI-derived events cannot produce progression', async () =
 
   try {
     const store = new mod.InMemoryWorldProgressionLedgerStore();
-    const service = new mod.WorldProgressionLedgerService(store);
+    const service = new mod.WorldProgressionLedgerService(store, allowAllSources());
 
     for (const kind of ['eli.score_changed', 'sensor.window_ready', 'dog.activity.completed']) {
       await assert.rejects(
@@ -154,7 +164,7 @@ test('unknown non-forbidden events receive no reward', async () => {
 
   try {
     const store = new mod.InMemoryWorldProgressionLedgerStore();
-    const service = new mod.WorldProgressionLedgerService(store);
+    const service = new mod.WorldProgressionLedgerService(store, allowAllSources());
 
     await assert.rejects(
       () => service.record({
@@ -168,6 +178,79 @@ test('unknown non-forbidden events receive no reward', async () => {
         return true;
       },
     );
+  } finally {
+    if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = previousNodeEnv;
+  }
+});
+
+test('syntactically valid source refs still require server authority', async () => {
+  const mod = await loadLedgerModule();
+  const previousNodeEnv = process.env.NODE_ENV;
+  process.env.NODE_ENV = 'test';
+
+  try {
+    const store = new mod.InMemoryWorldProgressionLedgerStore();
+    const seen = [];
+    const service = new mod.WorldProgressionLedgerService(store, {
+      async isAuthorizedSource(claim) {
+        seen.push(claim);
+        return false;
+      },
+    });
+
+    await assert.rejects(
+      () => service.record({
+        ownerId: OWNER_ID,
+        idempotencyKey: 'knowledge:source:001',
+        kind: 'knowledge.card_read',
+        sourceRef: 'knowledge:invented-but-valid',
+      }),
+      (error) => {
+        assert.equal(error.code, 'WORLD_PROGRESSION_SOURCE_NOT_AUTHORIZED');
+        return true;
+      },
+    );
+
+    assert.deepEqual(seen, [{
+      ownerId: OWNER_ID,
+      kind: 'knowledge.card_read',
+      sourceRef: 'knowledge:invented-but-valid',
+    }]);
+    assert.equal((await store.getBalance(OWNER_ID)).knowledgeFragments, 0);
+  } finally {
+    if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = previousNodeEnv;
+  }
+});
+
+test('source-authority failures fail closed before ledger insertion', async () => {
+  const mod = await loadLedgerModule();
+  const previousNodeEnv = process.env.NODE_ENV;
+  process.env.NODE_ENV = 'test';
+
+  try {
+    const store = new mod.InMemoryWorldProgressionLedgerStore();
+    const service = new mod.WorldProgressionLedgerService(store, {
+      async isAuthorizedSource() {
+        throw new Error('source store unavailable');
+      },
+    });
+
+    await assert.rejects(
+      () => service.record({
+        ownerId: OWNER_ID,
+        idempotencyKey: 'knowledge:source:002',
+        kind: 'knowledge.card_read',
+        sourceRef: 'knowledge:canonical',
+      }),
+      (error) => {
+        assert.equal(error.code, 'WORLD_PROGRESSION_SOURCE_AUTHORITY_UNAVAILABLE');
+        return true;
+      },
+    );
+
+    assert.equal((await store.getBalance(OWNER_ID)).knowledgeFragments, 0);
   } finally {
     if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
     else process.env.NODE_ENV = previousNodeEnv;
@@ -198,7 +281,7 @@ test('source references are opaque identifiers, not arbitrary user text', async 
 
   try {
     const store = new mod.InMemoryWorldProgressionLedgerStore();
-    const service = new mod.WorldProgressionLedgerService(store);
+    const service = new mod.WorldProgressionLedgerService(store, allowAllSources());
 
     await assert.rejects(
       () => service.record({
