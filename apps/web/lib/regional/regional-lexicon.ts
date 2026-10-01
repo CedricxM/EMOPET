@@ -7,6 +7,8 @@
  * - unreviewed entries fail closed and are never injected in live prompts.
  */
 
+import { hasApprovedRegionalReviewReceipt } from './regional-review-receipts';
+
 export type RegionalLexiconStatus = 'PENDING_REVIEW' | 'VERIFIED';
 
 export interface RegionalLexiconEntry {
@@ -53,8 +55,15 @@ export function getRegionalLexicon(regionId: string): readonly RegionalLexiconEn
   return REGIONAL_LEXICON.filter((entry) => entry.regionId === regionId);
 }
 
+export function isRegionalLexiconEntryReleaseReady(entry: RegionalLexiconEntry): boolean {
+  return (
+    entry.status === 'VERIFIED' &&
+    hasApprovedRegionalReviewReceipt(entry.regionId, entry.id, entry.term)
+  );
+}
+
 export function getVerifiedRegionalLexicon(regionId: string): readonly RegionalLexiconEntry[] {
-  return getRegionalLexicon(regionId).filter((entry) => entry.status === 'VERIFIED');
+  return getRegionalLexicon(regionId).filter(isRegionalLexiconEntryReleaseReady);
 }
 
 export function buildRegionalLexiconPromptBlock(regionId: string): string {
