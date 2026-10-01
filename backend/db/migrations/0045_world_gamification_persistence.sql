@@ -18,11 +18,11 @@ CREATE TABLE world_progression_events (
   CONSTRAINT uq_world_progression_events_owner_kind_source
     UNIQUE (owner_id, event_kind, source_ref),
 
-  CONSTRAINT chk_world_progression_events_idempotency_nonempty
-    CHECK (length(idempotency_key) >= 8),
+  CONSTRAINT chk_world_progression_events_idempotency_format
+    CHECK (idempotency_key ~ '^[A-Za-z0-9:_-]{8,128}$'),
 
-  CONSTRAINT chk_world_progression_events_source_nonempty
-    CHECK (length(source_ref) >= 1),
+  CONSTRAINT chk_world_progression_events_source_format
+    CHECK (source_ref ~ '^[A-Za-z0-9:._/-]{1,160}$'),
 
   CONSTRAINT chk_world_progression_events_kind
     CHECK (
@@ -96,8 +96,8 @@ CREATE TABLE world_resource_spends (
   CONSTRAINT uq_world_resource_spends_owner_idempotency
     UNIQUE (owner_id, idempotency_key),
 
-  CONSTRAINT chk_world_resource_spends_idempotency_nonempty
-    CHECK (length(idempotency_key) >= 8),
+  CONSTRAINT chk_world_resource_spends_idempotency_format
+    CHECK (idempotency_key ~ '^[A-Za-z0-9:_-]{8,128}$'),
 
   CONSTRAINT chk_world_resource_spends_item_nonempty
     CHECK (length(item_id) >= 1),
