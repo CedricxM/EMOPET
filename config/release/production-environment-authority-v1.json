@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "emopet-production-environment-authority-v1",
+  "status": "CONTRACT_ONLY / NO_ENVIRONMENT_CONFIGURED / RELEASE_ROLES_UNASSIGNED",
+  "issue": 831,
+  "claimsEnvironmentConfigured": false,
+  "claimsProductionPromotionAuthority": false,
+  "claimsNamedReleaseOwner": false,
+  "canonicalEnvironments": [
+    {
+      "name": "development",
+      "class": "NON_PRODUCTION",
+      "authorityState": "REPOSITORY_CONVENTION_ONLY",
+      "productionMeaning": "NONE"
+    },
+    {
+      "name": "staging",
+      "class": "PRE_PRODUCTION",
+      "authorityState": "EXTERNAL_UNVERIFIED",
+      "productionMeaning": "NONE"
+    },
+    {
+      "name": "production",
+      "class": "PRODUCTION",
+      "authorityState": "EXTERNAL_UNVERIFIED",
+      "githubActionsRequirement": "IF_GITHUB_ACTIONS_PROMOTES_PRODUCTION_USE_A_NAMED_PROTECTED_GITHUB_ENVIRONMENT"
+    }
+  ],
+  "releaseRoles": {
+    "releaseOwner": {
+      "symbolicRole": "release_owner",
+      "assignment": null,
+      "meaning": "ACCOUNTABLE_RELEASE_OWNER / ACTUAL_PERSON_OR_SYSTEM_AUTHORITY_UNASSIGNED"
+    },
+    "independentApprover": {
+      "symbolicRole": "independent_approver",
+      "assignment": null,
+      "requiredForProduction": true,
+      "meaning": "SEPARATE_REVIEW_AUTHORITY / ACTUAL_PERSON_OR_SYSTEM_AUTHORITY_UNASSIGNED"
+    }
+  },
+  "productionPromotion": {
+    "allowedReleaseState": "REVIEWED_GO",
+    "requiresEnvironmentAuthorityRef": true,
+    "requiresReleaseOwnerReviewRef": true,
+    "requiresIndependentApproval": true,
+    "requiresIndependentApproverRef": true
+  },
+  "requiredAuthorityReceiptFields": [
+    "schemaVersion",
+    "environment.name",
+    "environment.authorityRef",
+    "releaseOwner.role",
+    "releaseOwner.reviewRef",
+    "approval.independentRequired",
+    "approval.approverRole",
+    "approval.approverRef",
+    "reviewedAt"
+  ],
+  "authorityReceiptTemplate": {
+    "schemaVersion": "emopet-production-environment-authority-receipt-v1",
+    "environment": {
+      "name": null,
+      "authorityRef": null
+    },
+    "releaseOwner": {
+      "role": "release_owner",
+      "reviewRef": null
+    },
+    "approval": {
+      "independentRequired": true,
+      "approverRole": "independent_approver",
+      "approverRef": null
+    },
+    "reviewedAt": null,
+    "state": "DRAFT_UNVERIFIED"
+  },
+  "failClosedRules": [
+    "No environment is configured or production-authorized by this contract.",
+    "A production release remains HOLD until an external environment authority reference exists.",
+    "A production release remains HOLD until the release_owner review reference exists.",
+    "Independent approval is required before a production receipt may reach REVIEWED_GO.",
+    "The independent approver reference must be distinct evidence from the release-owner review reference.",
+    "If GitHub Actions performs production promotion, the job must target a named protected GitHub Environment rather than an unscoped job.",
+    "Repository authorship, commit history, CODEOWNERS status or PR authorship does not assign the release_owner or independent_approver roles.",
+    "This contract selects no hosting provider, deployment platform, person, team, credential or production environment object."
+  ]
+}
