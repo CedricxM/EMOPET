@@ -154,6 +154,7 @@ runtimeTest('G1B.2 disposable PostgreSQL contract proves Owner boundary, idempot
     itemId,
     regionCode,
     cost,
+    failAfterSpend = false,
   }) {
     return sql.begin(async (tx) => {
       // Per-Owner transaction lock is the conflict-safe equivalent required by
@@ -180,6 +181,10 @@ runtimeTest('G1B.2 disposable PostgreSQL contract proves Owner boundary, idempot
         VALUES
           (${randomUUID()}, ${ownerId}, ${idempotencyKey}, ${itemId}, ${tx.json(cost)})
       `;
+
+      if (failAfterSpend) {
+        throw new Error('WORLD_G1B2_INJECTED_BUILD_FAILURE');
+      }
 
       await tx`
         INSERT INTO ${sql(schemaName)}.${sql(ownedTable)}
@@ -298,4 +303,66 @@ runtimeTest('G1B.2 disposable PostgreSQL contract proves Owner boundary, idempot
   `;
   assert.equal(counts.spends, 1);
   assert.equal(counts.owned, 1);
+
+  for (let index = 0; index < 3; index += 1) {
+    await appendEvent({
+      ownerId: ownerB,
+      idempotencyKey: `place:owner-b:${index}`,
+      eventKind: 'local.place_saved',
+      sourceRef: `place:owner-b:${index}`,
+      grants: { localDiscoveries: 2 },
+    });
+  }
+
+  await assert.rejects(
+    () => buildItem({
+      ownerId: ownerB,
+      idempotencyKey: 'build:rollback:001',
+      itemId: 'rollback-only-item',
+      regionCode: 'GLOBAL',
+      cost: { localDiscoveries: 1 },
+      failAfterSpend: true,
+    }),
+    /WORLD_G1B2_INJECTED_BUILD_FAILURE/,
+  );
+
+  const [rollbackCounts] = await sql`
+    SELECT
+      (SELECT count(*)::int FROM ${sql(schemaName)}.${sql(spendsTable)}
+        WHERE owner_id = ${ownerB} AND item_id = 'rollback-only-item') AS spends,
+      (SELECT count(*)::int FROM ${sql(schemaName)}.${sql(ownedTable)}
+        WHERE owner_id = ${ownerB} AND item_id = 'rollback-only-item') AS owned
+  `;
+  assert.deepEqual(rollbackCounts, { spends: 0, owned: 0 });
+
+  const sameItemResults = await Promise.all([
+    buildItem({
+      ownerId: ownerB,
+      idempotencyKey: 'build:same-item:001',
+      itemId: 'global-community-bench',
+      regionCode: 'GLOBAL',
+      cost: { localDiscoveries: 5 },
+    }),
+    buildItem({
+      ownerId: ownerB,
+      idempotencyKey: 'build:same-item:002',
+      itemId: 'global-community-bench',
+      regionCode: 'GLOBAL',
+      cost: { localDiscoveries: 5 },
+    }),
+  ]);
+
+  assert.deepEqual(
+    sameItemResults.map((result) => result.decision).sort(),
+    ['already_owned', 'built'],
+  );
+
+  const [sameItemCounts] = await sql`
+    SELECT
+      (SELECT count(*)::int FROM ${sql(schemaName)}.${sql(spendsTable)}
+        WHERE owner_id = ${ownerB} AND item_id = 'global-community-bench') AS spends,
+      (SELECT count(*)::int FROM ${sql(schemaName)}.${sql(ownedTable)}
+        WHERE owner_id = ${ownerB} AND item_id = 'global-community-bench') AS owned
+  `;
+  assert.deepEqual(sameItemCounts, { spends: 1, owned: 1 });
 });
