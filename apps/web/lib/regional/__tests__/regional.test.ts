@@ -28,9 +28,43 @@ test('le filtrage exclut les entrées PENDING_VERIFIED_CONTENT', () => {
   assert.ok(all.every((e) => e._status !== 'PENDING_VERIFIED_CONTENT'), 'aucune entrée PENDING injectée');
 });
 
-test('le filtrage trouve une entrée pertinente (Festival Interceltique)', () => {
-  const filtered = filterRelevantKnowledge('le festival interceltique de Lorient', BRETAGNE_KNOWLEDGE, { maxEntries: 6 });
-  assert.ok(filtered.culture.some((c) => c.id === 'cult_fil'));
+test('les entrées EXEMPLE_DEMO ne sont jamais injectées comme connaissance réelle', () => {
+  const filtered = filterRelevantKnowledge(
+    'le festival interceltique de Lorient',
+    BRETAGNE_KNOWLEDGE,
+    { maxEntries: 6 },
+  );
+  assert.equal(filtered.culture.length, 0);
+});
+
+test('une entrée VERIFIED avec preuve structurée peut être injectée', () => {
+  const verified: RegionalKnowledgeBase = {
+    regionId: 'bretagne',
+    geographyEntries: [],
+    cultureEntries: [
+      {
+        id: 'cult_verified_fixture',
+        theme: 'autre',
+        title: 'Repère culturel vérifié',
+        description: 'Contenu synthétique de test sur un repère régional.',
+        sourceVerified: true,
+        evidence: {
+          sourceId: 'fixture-source',
+          sourceRef: 'fixture-record-001',
+          reviewerRole: 'test reviewer',
+          reviewedAt: '2026-09-30T10:00:00Z',
+          provenanceNote: 'Synthetic test evidence only.',
+        },
+        _status: 'VERIFIED',
+      },
+    ],
+    rhythmSources: [],
+  };
+
+  const filtered = filterRelevantKnowledge('repère culturel vérifié', verified, {
+    maxEntries: 6,
+  });
+  assert.deepEqual(filtered.culture.map((entry) => entry.id), ['cult_verified_fixture']);
 });
 
 test('détection région : département → profil', () => {
@@ -78,7 +112,15 @@ test('plafond de tokens : la connaissance reste sous MAX_KNOWLEDGE_TOKENS', () =
     geographyEntries: Array.from({ length: 40 }, (_, i) => ({
       id: `g${i}`, name: `Plage numéro ${i}`, type: 'plage' as const, department: '29',
       description: 'Plage de Bretagne avec une longue description '.repeat(8),
-      sourceVerified: true, _status: 'VERIFIED' as const,
+      sourceVerified: true,
+      evidence: {
+        sourceId: 'synthetic-test-source',
+        sourceRef: `synthetic-geo-${i}`,
+        reviewerRole: 'test reviewer',
+        reviewedAt: '2026-09-30T10:00:00Z',
+        provenanceNote: 'Synthetic test evidence only.',
+      },
+      _status: 'VERIFIED' as const,
     })),
     cultureEntries: [],
     rhythmSources: [],
@@ -98,7 +140,22 @@ test('shouldInitiate : conservateur (toutes conditions requises)', () => {
 });
 
 test('duplication : le moteur fonctionne sur une région fictive sans modification', () => {
-  const built = buildAssistantSystemPrompt(TEST_REGION_PROFILE, TEST_REGION_KNOWLEDGE, {
+  const verifiedTestKnowledge: RegionalKnowledgeBase = {
+    ...TEST_REGION_KNOWLEDGE,
+    geographyEntries: TEST_REGION_KNOWLEDGE.geographyEntries.map((entry) => ({
+      ...entry,
+      sourceVerified: true,
+      _status: 'VERIFIED' as const,
+      evidence: {
+        sourceId: 'synthetic-test-source',
+        sourceRef: 'synthetic-test-record',
+        reviewerRole: 'test reviewer',
+        reviewedAt: '2026-09-30T10:00:00Z',
+        provenanceNote: 'Synthetic test evidence only.',
+      },
+    })),
+  };
+  const built = buildAssistantSystemPrompt(TEST_REGION_PROFILE, verifiedTestKnowledge, {
     userMessage: 'Testville', touchesEliData: false,
   });
   assert.match(built.prompt, /Testig/);
