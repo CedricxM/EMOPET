@@ -11,7 +11,8 @@
     "launchSecurityIssue": 214,
     "privacyRetentionIssue": 69,
     "repositoryGovernanceIssue": 831,
-    "ipContributionIssue": 680
+    "ipContributionIssue": 680,
+    "environmentAuthority": "config/release/production-environment-authority-v1.json"
   },
   "receiptState": {
     "allowed": [
@@ -39,6 +40,9 @@
     "environment.authorityRef",
     "releaseOwner.role",
     "releaseOwner.reviewRef",
+    "approval.approverRef",
+    "approval.approverRole",
+    "approval.independentRequired",
     "databaseMigration.disposition",
     "databaseMigration.evidenceRef",
     "runtimeConfig.disposition",
@@ -101,13 +105,19 @@
       "disposition": "UNVERIFIED",
       "evidenceRef": null
     },
-    "releasedAt": null
+    "releasedAt": null,
+    "approval": {
+      "independentRequired": true,
+      "approverRole": "independent_approver",
+      "approverRef": null
+    }
   },
   "failClosedRules": [
     "DRAFT_UNVERIFIED and REVIEWED_HOLD never authorize production promotion.",
     "A green P0 DB baseline validation run is disposable QA evidence and never production migration authority.",
     "A CI job named Release provenance gate is not by itself a production release receipt.",
     "Missing artifact digest, commit SHA, SBOM, release-owner review, environment authority or required evidence keeps the receipt HOLD.",
+    "Missing environment authority, release-owner review or independent approval evidence keeps production promotion HOLD.",
     "UNVERIFIED runtime configuration or secret-custody evidence keeps production authority OPEN.",
     "UNVERIFIED transport-security or backup/restore disposition keeps production authority OPEN.",
     "Receipt evidence must not contain credentials, tokens, private keys, personal data dumps or secret values.",
