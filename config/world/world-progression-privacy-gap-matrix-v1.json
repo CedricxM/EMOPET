@@ -1,0 +1,97 @@
+{
+  "version": "1",
+  "status": "BLOCKED_GAPS_OBSERVED_NOT_PROMOTED",
+  "productionAuthority": false,
+  "auditedMainSha": "2eda8c2cf30c403ec130ff40db10c83331b27169",
+  "plannedTables": [
+    "world_progression_events",
+    "world_owned_items",
+    "world_resource_spends"
+  ],
+  "sourceCandidate": "config/world/world-progression-privacy-candidate-v1.json",
+  "activeSurfaces": [
+    {
+      "id": "user-subject-lineage",
+      "path": "config/privacy/user-subject-lineage.json",
+      "purpose": "Owner subject lineage",
+      "currentTableMentions": []
+    },
+    {
+      "id": "account-erasure-topology",
+      "path": "config/privacy/account-erasure-topology.json",
+      "purpose": "account erasure topology/order",
+      "currentTableMentions": []
+    },
+    {
+      "id": "subject-persistence-coverage",
+      "path": "config/privacy/subject-persistence-privacy-coverage.json",
+      "purpose": "privacy coverage for persisted subject relations",
+      "currentTableMentions": []
+    },
+    {
+      "id": "erasure-disposition",
+      "path": "config/privacy/erasure-disposition-matrix.json",
+      "purpose": "explicit erasure disposition",
+      "currentTableMentions": []
+    },
+    {
+      "id": "retention-schedule",
+      "path": "config/privacy/retention-schedule.json",
+      "purpose": "explicit retention/disposition",
+      "currentTableMentions": []
+    },
+    {
+      "id": "data-inventory",
+      "path": "config/privacy/data-inventory.json",
+      "purpose": "personal-data inventory classification",
+      "currentTableMentions": []
+    },
+    {
+      "id": "data-export-policy",
+      "path": "backend/api/services/data-export-policy.ts",
+      "purpose": "Owner export treatment",
+      "currentTableMentions": []
+    },
+    {
+      "id": "subject-discovery-runtime",
+      "path": "backend/api/services/subject-discovery.ts",
+      "purpose": "runtime subject discovery",
+      "currentTableMentions": []
+    },
+    {
+      "id": "residue-verification-contract",
+      "path": "config/privacy/erasure-residue-verification-contract.json",
+      "purpose": "post-erasure residue verification contract",
+      "currentTableMentions": []
+    },
+    {
+      "id": "residue-verification-runtime",
+      "path": "backend/api/services/erasure-residue-verification.ts",
+      "purpose": "runtime post-erasure negative verification",
+      "currentTableMentions": []
+    }
+  ],
+  "nonSqlSurface": {
+    "path": "config/privacy/non-sql-erasure-surface-inventory.json",
+    "currentWorldProgressionDecision": "ABSENT",
+    "requiredBeforePromotion": true,
+    "note": "Absence of a non-SQL copy is not assumed from silence; promotion requires explicit negative evidence or an explicit governed surface entry."
+  },
+  "unresolvedDecisions": [
+    "erasure disposition for each planned World table",
+    "Owner export treatment for progression events, ownership and resource spends",
+    "retention/disposition for each planned World table",
+    "subject-discovery inclusion",
+    "erasure-residue verification inclusion",
+    "foreign-key-safe erasure ordering",
+    "explicit non-SQL copy evidence"
+  ],
+  "claims": {
+    "privacyReconciled": false,
+    "migrationAuthorized": false,
+    "durableProductionPersistence": false,
+    "accountErasureComplete": false,
+    "accountExportComplete": false,
+    "retentionApproved": false
+  }
+}
