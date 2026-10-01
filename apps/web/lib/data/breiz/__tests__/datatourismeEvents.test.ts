@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { parseDatatourismeBretagneEventsResponse } from '../datatourismeEvents';
+import {
+  parseDatatourismeBretagneEventsResponse,
+  sanitizeDatatourismePaginationLink,
+} from '../datatourismeEvents';
 
 function fixture(overrides: Record<string, unknown> = {}) {
   return {
@@ -146,4 +149,46 @@ test('DATAtourisme event normalizer rejects malformed envelopes', () => {
       { index: -1, reason: 'invalid_catalog_envelope' },
     ]);
   }
+});
+
+
+test('DATAtourisme pagination links never retain API credentials', () => {
+  const sanitized = sanitizeDatatourismePaginationLink(
+    'https://api.datatourisme.fr/v1/catalog?page=2&api_key=super-secret&token=other-secret',
+  );
+  assert.ok(sanitized);
+  const url = new URL(sanitized);
+  assert.equal(url.origin, 'https://api.datatourisme.fr');
+  assert.equal(url.searchParams.get('page'), '2');
+  assert.equal(url.searchParams.has('api_key'), false);
+  assert.equal(url.searchParams.has('token'), false);
+  assert.doesNotMatch(sanitized, /super-secret|other-secret/);
+});
+
+test('DATAtourisme pagination links reject foreign or downgraded origins', () => {
+  assert.equal(
+    sanitizeDatatourismePaginationLink('https://evil.example/v1/catalog?page=2'),
+    null,
+  );
+  assert.equal(
+    sanitizeDatatourismePaginationLink('http://api.datatourisme.fr/v1/catalog?page=2'),
+    null,
+  );
+});
+
+test('DATAtourisme catalog meta sanitizes pagination links before retention', () => {
+  const parsed = parseDatatourismeBretagneEventsResponse({
+    objects: [fixture()],
+    meta: {
+      total: 2,
+      page: 1,
+      page_size: 1,
+      total_pages: 2,
+      next: 'https://api.datatourisme.fr/v1/catalog?page=2&api_key=do-not-store',
+      previous: null,
+    },
+  });
+
+  assert.ok(parsed.meta.next);
+  assert.doesNotMatch(parsed.meta.next!, /api_key|do-not-store/);
 });
