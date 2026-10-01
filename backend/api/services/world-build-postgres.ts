@@ -15,8 +15,6 @@ import type {
 } from './world-regional-collections.js';
 import type {
   WorldProgressionBalance,
-  WorldProgressionGrant,
-  WorldProgressionResource,
 } from './world-progression-ledger.js';
 import {
   applyPersistedWorldResourceMap,
@@ -51,20 +49,6 @@ export class WorldBuildPersistenceError extends Error {
   }
 }
 
-function sameCost(a: unknown, b: WorldProgressionGrant): boolean {
-  if (!a || typeof a !== 'object' || Array.isArray(a)) return false;
-  const left = a as Record<string, unknown>;
-  const keys: WorldProgressionResource[] = [
-    'knowledgeFragments',
-    'localDiscoveries',
-    'walkTraces',
-    'communitySeeds',
-    'memoryThreads',
-  ];
-  return keys.every((key) => Number(left[key] ?? 0) === Number(b[key] ?? 0))
-    && Object.keys(left).every((key) => keys.includes(key as WorldProgressionResource));
-}
-
 function validateBuildInput(ownerId: string, idempotencyKey: string): void {
   if (!isCanonicalSubjectUuid(ownerId)) {
     throw new WorldBuildPersistenceError(
@@ -97,8 +81,6 @@ export class PostgresWorldBuildService {
         sql`SELECT pg_advisory_xact_lock(hashtextextended(${input.ownerId}::text, 1))`,
       );
 
-      const item = input.collection.items.find((candidate) => candidate.id === input.itemId);
-
       const [existingSpend] = await tx
         .select()
         .from(worldResourceSpends)
@@ -109,14 +91,14 @@ export class PostgresWorldBuildService {
         .limit(1);
 
       if (existingSpend) {
-        if (!item || existingSpend.itemId !== item.id || !sameCost(existingSpend.costJson, item.cost)) {
+        if (existingSpend.itemId !== input.itemId) {
           throw new WorldBuildPersistenceError(
             'WORLD_BUILD_IDEMPOTENCY_CONFLICT',
             'The build idempotency key is already bound to a different World build.',
           );
         }
         const state = await this.readState(tx, input.ownerId);
-        if (!state.ownedItemIds.includes(item.id)) {
+        if (!state.ownedItemIds.includes(existingSpend.itemId)) {
           throw new WorldBuildPersistenceError(
             'WORLD_BUILD_PERSISTENCE_INVARIANT',
             'Committed World build spend is missing its ownership row.',
@@ -124,12 +106,13 @@ export class PostgresWorldBuildService {
         }
         return {
           decision: 'duplicate',
-          itemId: item.id,
+          itemId: existingSpend.itemId,
           balance: state.balance,
           ownedItemIds: state.ownedItemIds,
         };
       }
 
+      const item = input.collection.items.find((candidate) => candidate.id === input.itemId);
       const state = await this.readState(tx, input.ownerId);
       const plan = planWorldBuild({
         ownerId: input.ownerId,
