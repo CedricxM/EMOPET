@@ -314,7 +314,9 @@ jobs:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
           SECURITY_DETECTION_SCHEDULER_DB_INTEGRATION: '1'
           NODE_ENV: test
-        run: node --test test/security-detection-scheduler.integration.test.mjs test/security-detection-health.integration.test.mjs
+        run: |
+          node --test test/security-detection-scheduler.integration.test.mjs
+          node --test test/security-detection-health.integration.test.mjs
 
       - name: PRIV-SEC-DETECT-HISTORY-01 durable detection history on historical migrations
         working-directory: backend
@@ -549,7 +551,9 @@ jobs:
           DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
           SECURITY_DETECTION_SCHEDULER_DB_INTEGRATION: '1'
           NODE_ENV: test
-        run: node --test test/security-detection-scheduler.integration.test.mjs test/security-detection-health.integration.test.mjs
+        run: |
+          node --test test/security-detection-scheduler.integration.test.mjs
+          node --test test/security-detection-health.integration.test.mjs
 
       - name: PRIV-SEC-DETECT-HISTORY-01 durable detection history on generated baseline
         working-directory: backend
