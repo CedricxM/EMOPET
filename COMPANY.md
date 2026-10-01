@@ -12,8 +12,10 @@ Start here when the question is: **what is true now, what controls that truth, w
 1. `AI_READ_FIRST.md` — mandatory context gate.
 2. `STATE.md` — compact current company snapshot.
 3. `state/company-state.json` — machine-readable state projection.
-4. `docs/company/EMOPET_COMPANY_OS_ARCHITECTURE_2026-10-01.md` — operating model and source-of-truth hierarchy.
-5. Relevant controlled domain authority before making a substantive decision.
+4. `CORPORATE.md` — public-safe corporate/IP projection.
+5. `state/corporate/corporate-state.json` — machine-readable corporate/IP state.
+6. `docs/company/EMOPET_COMPANY_OS_ARCHITECTURE_2026-10-01.md` — operating model and source-of-truth hierarchy.
+7. Relevant controlled domain authority before making a substantive decision.
 
 ## Truth model
 
@@ -51,7 +53,7 @@ Authority: `docs/strategy/PROJECT_TIMELINE_2026_2027.md`.
 | Finance/fundraising state | Added in V1 |
 | Risk + critical-unknowns registers | Added in V1 |
 | CI evidence-state guard | Added in V1 |
-| Corporate/IP state | Next |
+| Corporate/IP state | Added in V2 |
 | Founder cockpit | Later, generated from controlled state |
 
 ## Non-negotiable rule
