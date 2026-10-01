@@ -1,58 +1,41 @@
 # EMOPET — Corporate / IP State
 
-> **Status:** `PUBLIC-SAFE COMPANY OS PROJECTION / NOT LEGAL SIGN-OFF / NOT DOMAIN AUTHORITY`  
-> **Machine-readable source:** `state/corporate/corporate-state.json`
+**Snapshot date:** 2026-10-01  
+**Snapshot base:** `main@f8918182db7121f7fbb710ad0bfa6b8c1b492da0`  
+**Status:** `GENERATED PUBLIC-SAFE COMPANY OS PROJECTION / NOT LEGAL SIGN-OFF / NOT DOMAIN AUTHORITY`  
+**Machine-readable sources:** `state/corporate/corporate-state.json` + `state/freshness/freshness-state.json`
 
-This view is an index. It does not decide ownership, licensing, entity structure, equity, legal compliance or release authority. The cited controlled source wins if this projection drifts.
+> **Generated file. Do not hand-edit.** Regenerate with `node scripts/control/generate-company-os-views.mjs`.
+
+This view indexes public-safe corporate/IP state. It does not decide ownership, licensing, entity structure, equity, legal compliance or release authority.
 
 ## Current public-safe projection
 
-| Area | Projection | Controlling gate |
-|---|---|---|
-| Legal entity / governance structure | `OPEN / NOT FIXED BY CURRENT AUTHORITY` | `docs/strategy/PROJECT_TIMELINE_2026_2027.md` |
-| Code, contributor and brand-asset provenance | `OPEN` | issue `#114` / `G-IP-PROVENANCE-01` |
-| Third-party data and service rights | `OPEN / PARTIAL HOLD` | issue `#116` / `G-THIRD-PARTY-DATA-RIGHTS-01` |
-| Public-repository IP/licence/contribution policy | `OPEN / FOUNDER-LEGAL DECISION REQUIRED` | issue `#680` / `G-REPO-IP-POLICY` |
-
-## What this means
-
-Repository history, a file being present on GitHub, a supplier discussion, a licence label, a public data source or a contributor role declaration does not by itself establish ownership, assignment, permitted product use or release authority.
-
-The Corporate/IP layer therefore records only:
-
-- current gate state;
-- the controlling repository path or issue;
-- the next evidence or decision required;
-- public-safe owner roles;
-- public-safe status metadata.
-
-It does not copy the underlying restricted instruments.
+| Area | Projection | Freshness | Owner role | Authority | Next gate |
+|---|---|---|---|---|---|
+| Legal entity and governance structure | `OPEN / NOT FIXED BY CURRENT AUTHORITY` | `UNREVIEWED` | FOUNDER / QUALIFIED LEGAL REVIEW | `docs/strategy/PROJECT_TIMELINE_2026_2027.md` | Record a separate controlled founder/legal decision for entity, governance and equity details when ready; keep restricted instruments outside the public repository. |
+| Public repository governance posture | `OPEN / FOUNDER-LEGAL DECISION REQUIRED` | `UNREVIEWED` | FOUNDER / QUALIFIED LEGAL-IP REVIEW | issue `#680` | Resolve G-REPO-IP-POLICY with an explicit reviewed repository visibility, licensing, contribution and ownership policy. |
+| Code, contributor and brand-asset provenance | `OPEN` | `UNREVIEWED` | FOUNDER / QUALIFIED LEGAL-IP REVIEW | issue `#114` | Complete the controlled provenance register and reviewed disposition without committing sensitive agreements, signatures, identity records or private prompt transcripts. |
+| Third-party data and service rights | `OPEN / PARTIAL HOLD` | `UNREVIEWED` | PRODUCT/ENGINEERING + QUALIFIED LEGAL-LICENSING REVIEW | issue `#116` | Advance DATA-LIC-G1 through G8 with exact receipts, runtime-use classification, attribution evidence and a dated reviewed disposition. |
+| Repository IP, licence and contribution policy | `OPEN / FOUNDER-LEGAL DECISION REQUIRED` | `UNREVIEWED` | FOUNDER / QUALIFIED LEGAL-IP REVIEW | issue `#680` | Record and implement the reviewed repository licensing, contribution provenance and reviewer-ownership decision without granting rights to externally controlled material. |
 
 ## Confidentiality boundary
 
-This repository is public. Do **not** commit or reproduce here:
+Store only public-safe state, gate status and controlled references. Restricted evidence remains in its controlled source system.
 
-- secrets or credentials;
-- bank details;
-- private addresses;
-- identity documents;
-- signatures;
-- raw personal data;
-- confidential supplier material;
-- executed legal originals;
-- restricted investor terms;
-- private contract text.
+Forbidden public fields from the machine-readable policy:
 
-For restricted evidence, keep only the minimum safe pointer/status metadata needed to show that the gate exists and what still has to be reviewed.
+- `secrets_or_credentials`
+- `bank_details`
+- `private_addresses`
+- `identity_documents`
+- `signatures`
+- `raw_personal_data`
+- `confidential_supplier_material`
+- `executed_legal_originals`
+- `restricted_investor_terms`
+- `private_contract_text`
 
 ## Decision discipline
 
-A gate may move from `OPEN` or `HOLD` only when the controlling authority records the underlying evidence and reviewed disposition.
-
-This projection must never convert:
-
-- a declaration into verified chain of title;
-- source confirmation into product-use authorization;
-- repository visibility into an open-source licence;
-- a missing contributor record into proof of non-contribution;
-- an implementation into legal clearance.
+A generated view cannot promote a declaration into chain of title, source confirmation into product-use authorization, public repository visibility into an open-source licence, or implementation into legal clearance.
