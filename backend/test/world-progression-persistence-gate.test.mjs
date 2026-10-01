@@ -67,3 +67,16 @@ test('privacy gates cover erasure, discovery, residue, export and retention befo
     assert.match(text, new RegExp(required));
   }
 });
+
+test('durable store contract makes atomicity, replay and concurrency requirements machine-readable', () => {
+  assert.deepEqual(gate.durableStoreContract, {
+    isolationRequirement: 'SERIALIZABLE_OR_EQUIVALENT_CONFLICT_SAFE',
+    appendAndBalanceAtomic: true,
+    buildSpendAndOwnershipAtomic: true,
+    replayReturnsCommittedEntry: true,
+    idempotencyConflictFailsClosed: true,
+    canonicalSourceUniquenessDatabaseEnforced: true,
+    ownerBoundaryDatabaseEnforced: true,
+    negativeBalanceForbidden: true,
+  });
+});
