@@ -55,7 +55,9 @@ test('#720 keeps credential activation blocked behind M4/M5 physical evidence', 
   assert.equal(authority.runtime.publicActivationRouteImplemented, false);
   assert.equal(authority.runtime.manufacturingPopIssuerSourceImplemented, true);
   assert.equal(authority.runtime.manufacturingPopVerifierSourceImplemented, true);
-  assert.equal(authority.runtime.manufacturingPopEvidencePersistenceImplemented, false);
+  assert.equal(authority.runtime.manufacturingPopEvidencePersistenceImplemented, true);
+  assert.equal(authority.runtime.m5DebugEvidencePersistenceImplemented, false);
+  assert.equal(authority.runtime.targetEvidencePersistenceImplemented, false);
   assert.equal(authority.runtime.manufacturingPopPublicRouteImplemented, false);
   assert.equal(authority.runtime.m4M5EvidenceStoresImplemented, false);
   assert.equal(authority.runtime.m4M5EvidenceAuthorityImplemented, false);
