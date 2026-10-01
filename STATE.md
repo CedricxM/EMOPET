@@ -1,7 +1,7 @@
 # EMOPET — Current Company State
 
 **Snapshot date:** 2026-10-01  
-**Snapshot base:** `main@0c8da12a4dca85d608c4d1aebf3b2e65b654f1d0`  
+**Snapshot base:** `main@f769168be4f5cf16fd1a9ca221ac400f20f8a312`  
 **Status:** `COMPANY STATE PROJECTION / NOT DOMAIN AUTHORITY`  
 **Machine-readable source:** `state/company-state.json`
 

@@ -3,7 +3,7 @@
   "snapshot": {
     "date": "2026-10-01",
     "base_ref": "main",
-    "base_sha": "0c8da12a4dca85d608c4d1aebf3b2e65b654f1d0"
+    "base_sha": "f769168be4f5cf16fd1a9ca221ac400f20f8a312"
   },
   "authority_mode": "INDEX_PROJECTION_NOT_DOMAIN_AUTHORITY",
   "company_phase": {
