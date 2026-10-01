@@ -228,6 +228,14 @@
       ]
     },
     {
+      "table": "social_connections",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "community"
+      ],
+      "mappingRationale": "Canonical World trust-ladder state between two accounts (pending, connected, declined, directional trust flags); no score, message, dog or location data."
+    },
+    {
       "table": "subscriptions",
       "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
       "inventoryCategories": [],
@@ -241,30 +249,6 @@
       "inventoryCategories": [
         "community"
       ]
-    },
-    {
-      "table": "world_pilot_access",
-      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
-      "inventoryCategories": [
-        "account"
-      ],
-      "mappingRationale": "Account-scoped World pilot entitlement (invited adult tester flag and self-declared adulthood timestamp); no social, dog or location data."
-    },
-    {
-      "table": "social_connections",
-      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
-      "inventoryCategories": [
-        "community"
-      ],
-      "mappingRationale": "Canonical World trust-ladder state between two accounts (pending, connected, declined, directional trust flags); no score, message, dog or location data."
-    },
-    {
-      "table": "world_presence_consents",
-      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
-      "inventoryCategories": [
-        "community"
-      ],
-      "mappingRationale": "Per-session opt-in record for World presence visibility (grant, expiry, withdrawal timestamps only)."
     },
     {
       "table": "user_config",
@@ -289,6 +273,46 @@
         "eli_inferred"
       ],
       "mappingRationale": "Derived walk-quality scores and WQI from dog-linked observations."
+    },
+    {
+      "table": "world_owned_items",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "account"
+      ],
+      "mappingRationale": "Account-scoped World cosmetic/inventory ownership state; technical classification only. Erasure, export and retention remain TO_CONFIRM."
+    },
+    {
+      "table": "world_pilot_access",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "account"
+      ],
+      "mappingRationale": "Account-scoped World pilot entitlement (invited adult tester flag and self-declared adulthood timestamp); no social, dog or location data."
+    },
+    {
+      "table": "world_presence_consents",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "community"
+      ],
+      "mappingRationale": "Per-session opt-in record for World presence visibility (grant, expiry, withdrawal timestamps only)."
+    },
+    {
+      "table": "world_progression_events",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "account"
+      ],
+      "mappingRationale": "Account-scoped World progression event ledger; technical classification only. Erasure, export and retention remain TO_CONFIRM."
+    },
+    {
+      "table": "world_resource_spends",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "account"
+      ],
+      "mappingRationale": "Account-scoped World resource-spend ledger; technical classification only. Erasure, export and retention remain TO_CONFIRM."
     }
   ],
   "scopeLimitations": [
