@@ -43,11 +43,25 @@ test('détection région : 44 rattaché à la Bretagne (PATCH 6)', () => {
   assert.equal(r.isDefault, false);
 });
 
-test('détection région : défaut Bretagne si rien', () => {
+test('détection région : fallback national neutre si rien', () => {
   const r = detectRegion({});
-  assert.equal(r.profile.regionId, 'bretagne');
+  assert.equal(r.profile.regionId, 'neutral_france');
+  assert.equal(r.profile.assistantName, 'EMOPET');
   assert.equal(r.isDefault, true);
   assert.ok(r.invitation);
+});
+
+test('détection région : département non couvert ne devient jamais Bretagne par défaut', () => {
+  const r = detectRegion({ department: '75' });
+  assert.equal(r.profile.regionId, 'neutral_france');
+  assert.equal(r.profile.assistantName, 'EMOPET');
+  assert.equal(r.isDefault, true);
+});
+
+test('détection région : région déclarée inconnue reste neutre', () => {
+  const r = detectRegion({ declaredRegionId: 'normandie' });
+  assert.equal(r.profile.regionId, 'neutral_france');
+  assert.equal(r.profile.assistantName, 'EMOPET');
 });
 
 test('garde-fou médical : touchesEliData → chemin verrouillé', () => {
