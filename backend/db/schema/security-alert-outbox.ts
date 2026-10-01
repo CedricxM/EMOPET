@@ -64,8 +64,7 @@ export const securityAlertOutbox = pgTable(
     check(
       'chk_security_alert_outbox_chronology',
       sql`${table.acknowledgeBy} >= ${table.detectedAt}
-        AND ${table.escalateAt} >= ${table.acknowledgeBy}
-        AND ${table.createdAt} >= ${table.detectedAt}`,
+        AND ${table.escalateAt} >= ${table.acknowledgeBy}`,
     ),
   ],
 );
