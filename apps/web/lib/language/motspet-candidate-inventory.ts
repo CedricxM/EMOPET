@@ -1,5 +1,5 @@
 /**
- * MotsPet candidate inventory v1.
+ * MotsPet candidate inventory v2.
  *
  * This inventory is deliberately upstream of public wording. It records the
  * next concepts that need language review without promoting them into the
@@ -9,7 +9,7 @@
 import { getMotsPetEntry } from './motspet';
 
 export const MOTSPET_CANDIDATE_INVENTORY_REVISION =
-  'motspet-candidate-inventory-v1-2026-10-01' as const;
+  'motspet-candidate-inventory-v2-2026-10-01' as const;
 
 export type MotsPetCandidateStatus =
   | 'EXISTING_CONTROLLED'
@@ -135,8 +135,8 @@ export const MOTSPET_CANDIDATE_INVENTORY: readonly MotsPetCandidateInventoryEntr
     sourceSurfaces: ['Care', 'Breiz'],
     reviewQuestionFr: 'Définir comment expliquer le contexte concret auquel une observation s’applique.',
     authorityPaths: [CARE, CARE_MIGRATION],
-    status: 'CANDIDATE_REVIEW',
-    existingMotsPetId: null,
+    status: 'EXISTING_CONTROLLED',
+    existingMotsPetId: 'context',
   }),
   entry({
     id: 'time_window',
@@ -145,18 +145,18 @@ export const MOTSPET_CANDIDATE_INVENTORY: readonly MotsPetCandidateInventoryEntr
     sourceSurfaces: ['Care', 'History'],
     reviewQuestionFr: 'Nommer une période d’observation sans laisser croire à une mesure continue exhaustive.',
     authorityPaths: [CARE, CARE_MIGRATION],
-    status: 'CANDIDATE_REVIEW',
-    existingMotsPetId: null,
+    status: 'EXISTING_CONTROLLED',
+    existingMotsPetId: 'time_window',
   }),
   entry({
-    id: 'reference',
+    id: 'individual_reference',
     domain: 'science',
-    internalTerms: ['reference', 'individual_reference'],
+    internalTerms: ['individual_reference', 'contextual_reference', 'baseline_reference'],
     sourceSurfaces: ['Care', 'History'],
-    reviewQuestionFr: 'Expliquer une référence individuelle/contextuelle sans la présenter comme norme médicale.',
+    reviewQuestionFr: 'Maintenir la référence comme repère propre au chien, sans norme universelle, percentile de race ni classement.',
     authorityPaths: [CARE, CARE_MIGRATION],
-    status: 'CANDIDATE_REVIEW',
-    existingMotsPetId: null,
+    status: 'EXISTING_CONTROLLED',
+    existingMotsPetId: 'individual_reference',
   }),
   entry({
     id: 'limits',
@@ -165,8 +165,18 @@ export const MOTSPET_CANDIDATE_INVENTORY: readonly MotsPetCandidateInventoryEntr
     sourceSurfaces: ['Care', 'Professional share'],
     reviewQuestionFr: 'Rendre visibles les limites de mesure/interprétation sans jargon inutile.',
     authorityPaths: [CARE, CARE_MIGRATION],
-    status: 'CANDIDATE_REVIEW',
-    existingMotsPetId: null,
+    status: 'EXISTING_CONTROLLED',
+    existingMotsPetId: 'limits',
+  }),
+  entry({
+    id: 'publication_state',
+    domain: 'science',
+    internalTerms: ['publication_state', 'publication_decision', 'eligibility_state'],
+    sourceSurfaces: ['Care', 'History'],
+    reviewQuestionFr: 'Conserver un état de publication distinct d’une validation scientifique, clinique ou médicale.',
+    authorityPaths: [CARE, CARE_MIGRATION],
+    status: 'EXISTING_CONTROLLED',
+    existingMotsPetId: 'publication_state',
   }),
   entry({
     id: 'signal_quality',
@@ -175,8 +185,8 @@ export const MOTSPET_CANDIDATE_INVENTORY: readonly MotsPetCandidateInventoryEntr
     sourceSurfaces: ['Care', 'Device state'],
     reviewQuestionFr: 'Distinguer qualité du signal et confiance dans une observation.',
     authorityPaths: [CARE],
-    status: 'CANDIDATE_REVIEW',
-    existingMotsPetId: null,
+    status: 'EXISTING_CONTROLLED',
+    existingMotsPetId: 'signal_quality',
   }),
   entry({
     id: 'device_state',
@@ -185,8 +195,18 @@ export const MOTSPET_CANDIDATE_INVENTORY: readonly MotsPetCandidateInventoryEntr
     sourceSurfaces: ['Care', 'Devices'],
     reviewQuestionFr: 'Nommer l’état technique du dispositif sans l’interpréter comme état du chien.',
     authorityPaths: [CARE, AUTHORITY_MAP],
-    status: 'CANDIDATE_REVIEW',
-    existingMotsPetId: null,
+    status: 'EXISTING_CONTROLLED',
+    existingMotsPetId: 'device_state',
+  }),
+  entry({
+    id: 'model_version',
+    domain: 'science',
+    internalTerms: ['model_version', 'inference_version', 'pipeline_version'],
+    sourceSurfaces: ['Care', 'Professional share'],
+    reviewQuestionFr: 'Exposer la version du modèle comme provenance technique, sans en faire une garantie de performance.',
+    authorityPaths: [CARE, AUTHORITY_MAP],
+    status: 'EXISTING_CONTROLLED',
+    existingMotsPetId: 'model_version',
   }),
   entry({
     id: 'uncertainty',
