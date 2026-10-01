@@ -127,7 +127,7 @@ test('G9 — the administration engine has no path to sensor or inference code',
   const offences = [];
 
   for (const [file, trail] of graph.visited) {
-    const relative = file.slice(backendRoot.length + 1);
+    const relative = file.slice(backendRoot.length + 1).replaceAll('\\', '/');
     // The engine's own modules are named instrument-*; skip those, and judge
     // everything else they pull in.
     if (/^api\/services\/instrument-/.test(relative)) continue;
