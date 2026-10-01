@@ -14,19 +14,19 @@ test('gamification snapshot requires explicit Owner scope for every progression 
   );
   assert.match(
     snapshotSource,
-    /resourceState:\s*WorldOwnerScopedResourceState/,
+    /ownerBalance:\s*WorldGamificationOwnerBalance/,
   );
   assert.match(
     snapshotSource,
-    /ownershipState:\s*WorldOwnerScopedOwnershipState/,
+    /ownedItems:\s*readonly WorldGamificationOwnedItem\[\]/,
   );
   assert.match(
     snapshotSource,
-    /WORLD_GAMIFICATION_RESOURCE_OWNER_SCOPE_MISMATCH/,
+    /WORLD_GAMIFICATION_BALANCE_OWNER_SCOPE_MISMATCH/,
   );
   assert.match(
     snapshotSource,
-    /WORLD_GAMIFICATION_OWNERSHIP_OWNER_SCOPE_MISMATCH/,
+    /WORLD_GAMIFICATION_OWNED_ITEM_OWNER_SCOPE_MISMATCH/,
   );
   assert.match(
     snapshotSource,
