@@ -1,0 +1,150 @@
+{
+  "schema_version": "0.1.0",
+  "as_of": "2026-10-01",
+  "authority_mode": "COMPANY_RISK_PROJECTION_NOT_DOMAIN_AUTHORITY",
+  "scoring_policy": "No numerical probability or expected-value score is assigned without evidence. Risks are classified by which decision or stage gate they can block.",
+  "risks": [
+    {
+      "id": "RISK-MAT-INCREMENTAL-VALUE",
+      "status": "OPEN",
+      "impact_class": "BLOCKS_S1_AND_TWO_DEVICE_ARCHITECTURE",
+      "statement": "MAT may fail to add enough incremental value over TAG-only to justify a second device, BOM, placement, cleaning and support burden.",
+      "probability": null,
+      "owner_role": "Hardware/Product Validation",
+      "authority_refs": [
+        {
+          "kind": "issue",
+          "value": "#230"
+        }
+      ],
+      "mitigation_refs": [
+        {
+          "kind": "path",
+          "value": "state/experiments/EXP-MAT-INCREMENTAL-001.json"
+        }
+      ],
+      "evidence_refs": [],
+      "next_review_trigger": "Controlled experiment result or material protocol change."
+    },
+    {
+      "id": "RISK-TAG-PHYSICAL-INTEGRATION",
+      "status": "OPEN",
+      "impact_class": "BLOCKS_S1_AND_HARDWARE_FREEZE",
+      "statement": "TAG physical feasibility may fail when battery, RF, GNSS, thermal, sealing, acoustics, charging, packing and wearability are evaluated as a coupled system.",
+      "probability": null,
+      "owner_role": "Hardware / Mechanical / RF / Safety",
+      "authority_refs": [
+        {
+          "kind": "issue",
+          "value": "#480"
+        }
+      ],
+      "mitigation_refs": [
+        {
+          "kind": "path",
+          "value": "state/experiments/EXP-TAG-PHYSICAL-001.json"
+        }
+      ],
+      "evidence_refs": [],
+      "next_review_trigger": "New controlled physical evidence."
+    },
+    {
+      "id": "RISK-UNIT-ECONOMICS-UNKNOWN",
+      "status": "OPEN",
+      "impact_class": "BLOCKS_S3_AND_FINANCING_MODEL",
+      "statement": "MAT, TAG, landed bundle, support cost, gross margin and pricing remain insufficiently evidenced for an economics gate.",
+      "probability": null,
+      "owner_role": "Founder / Finance / Industrial",
+      "authority_refs": [
+        {
+          "kind": "path",
+          "value": "state/finance/finance-state.json"
+        },
+        {
+          "kind": "path",
+          "value": "docs/strategy/INDUSTRIAL_AND_FUNDING_GOVERNANCE_2026-09-07.md"
+        }
+      ],
+      "mitigation_refs": [],
+      "evidence_refs": [],
+      "next_review_trigger": "Controlled supplier quote, BOM/landed-cost update or approved pricing study."
+    },
+    {
+      "id": "RISK-IP-RIGHTS-DUE-DILIGENCE",
+      "status": "OPEN",
+      "impact_class": "BLOCKS_DUE_DILIGENCE_AND_SCALE",
+      "statement": "Contribution provenance, chain-of-title and third-party data/service rights contain open gates that must remain visible before financing or scale.",
+      "probability": null,
+      "owner_role": "Founder / Legal / IP",
+      "authority_refs": [
+        {
+          "kind": "issue",
+          "value": "#114"
+        },
+        {
+          "kind": "issue",
+          "value": "#116"
+        },
+        {
+          "kind": "issue",
+          "value": "#680"
+        }
+      ],
+      "mitigation_refs": [],
+      "evidence_refs": [],
+      "next_review_trigger": "Controlled disposition of the relevant IP/rights gate."
+    },
+    {
+      "id": "RISK-SCOPE-OUTRUNS-PROOF",
+      "status": "OPEN",
+      "impact_class": "RESOURCE_ALLOCATION",
+      "statement": "Software/platform breadth can consume resources faster than the company retires physical, product and economics uncertainty.",
+      "probability": null,
+      "owner_role": "Founder / Company OS",
+      "authority_refs": [
+        {
+          "kind": "path",
+          "value": "docs/company/EMOPET_COMPANY_OS_ARCHITECTURE_2026-10-01.md"
+        },
+        {
+          "kind": "path",
+          "value": "state/milestones/MS-S1-PHYSICS.json"
+        }
+      ],
+      "mitigation_refs": [
+        {
+          "kind": "path",
+          "value": "state/metrics/metrics.json"
+        }
+      ],
+      "evidence_refs": [],
+      "next_review_trigger": "Quarterly/company-stage review or material scope expansion."
+    },
+    {
+      "id": "RISK-FUNDRAISING-CERTAINTY-INFLATION",
+      "status": "OPEN",
+      "impact_class": "GOVERNANCE_AND_CAPITAL",
+      "statement": "Research-derived planning ranges could be misread as approved raise targets, valuation, eligibility or investor commitment.",
+      "probability": null,
+      "owner_role": "Founder / Finance",
+      "authority_refs": [
+        {
+          "kind": "path",
+          "value": "state/finance/finance-state.json"
+        },
+        {
+          "kind": "path",
+          "value": "state/finance/fundraising/PRESEED-CONDITIONAL-2027.json"
+        }
+      ],
+      "mitigation_refs": [
+        {
+          "kind": "path",
+          "value": "scripts/control/company-os-state.test.mjs"
+        }
+      ],
+      "evidence_refs": [],
+      "next_review_trigger": "Any financing communication or change in fundraising state."
+    }
+  ]
+}
