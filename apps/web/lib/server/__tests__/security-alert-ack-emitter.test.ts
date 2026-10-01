@@ -76,7 +76,7 @@ test('ACK emitter sends only verified actor identity and bounded acknowledgement
 });
 
 test('transport retry reuses one request id, service token and exact body', async () => {
-  const calls = [];
+  const calls: Array<{ auth: string; body: string }> = [];
   let attempt = 0;
 
   const result = await emitSecurityAlertAcknowledgement(input(), {
