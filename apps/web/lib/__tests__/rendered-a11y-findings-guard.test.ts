@@ -26,6 +26,8 @@ test('landing CTAs keep the deeper rendered-safe terracotta background', () => {
   assert.doesNotMatch(page, /bg-\[#A65E3F\]\s+text-white/);
   assert.match(nav, /bg-\[#814931\]\s+text-white/);
   assert.match(page, /bg-\[#814931\]\s+text-white/);
+  assert.equal((nav.match(/color:\s*'#FFFFFF'/g) ?? []).length, 2);
+  assert.match(page, /color:\s*'#FFFFFF'/);
 });
 
 test('World copy measured on gradients is not alpha-dimmed', () => {
