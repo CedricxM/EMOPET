@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const root = process.cwd();
 
@@ -59,6 +60,12 @@ function collectObjects(value, sourcePath, out = new Map()) {
   if (!value || typeof value !== 'object') return out;
 
   if (typeof value.id === 'string' && value.id.length > 0) {
+    const existing = out.get(value.id);
+    if (existing) {
+      throw new Error(
+        `Duplicate controlled Company OS id ${value.id}: ${existing.source_path} and ${sourcePath}`,
+      );
+    }
     out.set(value.id, { source_path: sourcePath, object: value });
   }
 
@@ -282,6 +289,6 @@ async function main() {
 }
 
 const invokedPath = process.argv[1] ? resolve(process.argv[1]) : null;
-if (invokedPath && import.meta.url === new URL(`file://${invokedPath}`).href) {
+if (invokedPath && fileURLToPath(import.meta.url) === invokedPath) {
   await main();
 }
