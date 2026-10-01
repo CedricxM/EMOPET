@@ -49,17 +49,21 @@ A future `RELEASE_READY` dataset must now satisfy all of the following together:
 4. exact selected record fields are non-empty;
 5. exact dataset licence + licence URL exist;
 6. a fresh live API schema snapshot exists;
-7. that snapshot records:
+7. that snapshot is explicitly classified as `PRIMARY_API_SCHEMA` and records:
    - observation time,
    - immutable/version-like source identifier,
    - schema fingerprint,
    - record count,
    - exact field names,
-   - source URL;
+   - the exact official Région Bretagne Explore API metadata URL,
+   - a controlled evidence pointer,
+   - reviewer role;
 8. every approved field exists in that observed schema;
 9. dataset-scoped rights receipt exists and is `SOURCE_CONFIRMED + GO`;
 10. rights receipt is still within its review window;
 11. rights receipt and schema snapshot name the **same source version**.
+
+Secondary mirrors, search indexes and catalogue observations may guide investigation, but they cannot satisfy the primary-schema authority gate. The schema source URL must resolve exactly to the official `data.bretagne.bzh/api/explore/v2.1/catalog/datasets/<datasetId>` endpoint with no alternate host, query or fragment.
 
 Any failure keeps record ingestion blocked.
 
@@ -110,12 +114,14 @@ Those claims require a separate, current rules/access authority.
 
 When a live API capture is available:
 
-1. record the exact schema fields;
-2. choose the minimum territorial fields;
-3. compute/store the schema fingerprint;
-4. bind source version + record count + processing timestamps;
-5. create the dataset rights receipt under the controlled receipt path;
-6. ensure the receipt and schema evidence use the same source version;
-7. only then promote the dataset to `RELEASE_READY`.
+1. capture the exact official Explore API metadata endpoint;
+2. record the exact schema fields;
+3. choose the minimum territorial fields;
+4. compute/store the schema fingerprint;
+5. bind source version + record count + processing timestamps;
+6. preserve a controlled schema-evidence pointer and reviewer role;
+7. create the dataset rights receipt under the controlled receipt path;
+8. ensure the rights receipt and schema evidence use the same source version;
+9. only then promote the dataset to `RELEASE_READY`.
 
 Related: #116, #836, #901, supersedes the stale #919 implementation path.
