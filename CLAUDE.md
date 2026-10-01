@@ -35,9 +35,9 @@ Le brief `PROMPT_PROTOTYPE_BRETAGNE.md` décrit une proposition historique. Les 
 - Navigation sidebar observée : `/dashboard`, `/journal`, `/quartier`, `/world`, `/breiz`, `/profil`. Des routes hors sidebar existent, notamment `/rapport`, `/contact` et `/admin`.
 - Design system maison : `apps/web/styles/tokens.css` et primitives `apps/web/components/ui/*`. HeroUI 3 et Tailwind 4 sont également installés.
 - Le moteur canonique `packages/eli-engine` (EKF, vetoes, confidence, RSM) n'est importé par **aucun module runtime**. `apps/web/lib/eli/catalog.ts` duplique ses valeurs localement « pour éviter tout import cross-package » et le dashboard consomme `lib/eli/mock`. Ce qui est affiché à l'utilisateur ne vient donc pas du moteur scientifique. Gate ouverte : #118. Constat daté : `docs/records/memory/CURRENT_REPO_AUTHORITY_CONFLICT_AUDIT_2026-09-17.md`.
-- Aucun projet Unity et aucune intégration Nakama ne sont présents sur les branches distantes observées. Ces workstreams restent `GATED / NOT PRODUCTION AUTHORITY`.
+- Le World expérimental est désormais présent sur `main` : projet Unity 6.3 LTS sous `unity/world`, transport Hono/Nakama et runtime local isolé sous `infra/nakama`. Le scénario live Unity → Hono → Nakama du 01/10/2026 est `PASS`, mais l'ensemble reste `SPIKE / NOT PRODUCTION AUTHORITY` ; Unity demeure un client non autoritatif et ne s'authentifie jamais directement auprès de Nakama.
 - Les commandes documentées dans les manifests sont des surfaces disponibles, pas une preuve de build, de CI ou de production.
-- Le code contient encore des surfaces historiques de gamification et de score global. Ne pas les étendre ni les traiter comme décisions produit sans revue contre les autorités actuelles.
+- Les surfaces historiques de gamification et de score global restent non autoritatives. La seule économie de progression actuellement contrôlée est World, centrée Owner (jamais chien, capteurs ou ELI), sous `docs/control/EMOPET_WORLD_GAMIFICATION_AUTHORITY_v0.1.md`, statut `CONTROLLED DRAFT / NOT PRODUCTION AUTHORITY` ; persistance durable de production, activation runtime/UI et release restent gated.
 
 ---
 
