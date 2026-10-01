@@ -160,7 +160,7 @@ test('finance state preserves unknown != zero and planning != commitment', () =>
       /PLANNING_ASSUMPTION/,
       `${scenario.id} must remain classified as a planning assumption`,
     );
-    assert.notMatch(
+    assert.doesNotMatch(
       scenario.readiness_status ?? '',
       /APPROVED|READY$/,
       `${scenario.id} must not imply fundraising approval`,
