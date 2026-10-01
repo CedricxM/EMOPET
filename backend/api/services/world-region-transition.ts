@@ -3,6 +3,11 @@ import {
   type WorldRegionalCollectionCatalog,
 } from './world-regional-collections';
 
+export interface WorldRegionOwnedItem {
+  ownerId: string;
+  itemId: string;
+}
+
 export interface WorldRegionTransitionPlan {
   fromRegionCode: string;
   toRegionCode: string;
@@ -21,17 +26,30 @@ export interface WorldRegionTransitionPlan {
  * resources, deletes ownership, expires items or reads exact location.
  */
 export function planWorldRegionTransition(input: {
+  ownerId: string;
   catalog: WorldRegionalCollectionCatalog;
   currentRegionCode: string | null | undefined;
   nextRegionCode: string | null | undefined;
-  ownedItemIds: readonly string[];
+  ownedItems: readonly WorldRegionOwnedItem[];
 }): WorldRegionTransitionPlan {
+  if (!input.ownerId) {
+    throw new Error('WORLD_REGION_TRANSITION_OWNER_REQUIRED');
+  }
+
   const from = resolveWorldRegionalCollection(input.catalog, input.currentRegionCode);
   const to = resolveWorldRegionalCollection(input.catalog, input.nextRegionCode);
 
-  const owned = [...input.ownedItemIds];
-  if (new Set(owned).size !== owned.length) {
-    throw new Error('WORLD_REGION_TRANSITION_DUPLICATE_OWNED_ITEM');
+  const owned: string[] = [];
+  const seenOwned = new Set<string>();
+  for (const row of input.ownedItems) {
+    if (row.ownerId !== input.ownerId) {
+      throw new Error('WORLD_REGION_TRANSITION_OWNED_ITEM_OWNER_SCOPE_MISMATCH');
+    }
+    if (seenOwned.has(row.itemId)) {
+      throw new Error('WORLD_REGION_TRANSITION_DUPLICATE_OWNED_ITEM');
+    }
+    seenOwned.add(row.itemId);
+    owned.push(row.itemId);
   }
 
   const activeIds = to.items.map((item) => item.id);
