@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "emopet-bretagne-canine-pilot-candidates-v1",
+  "controlledAt": "2026-10-01",
+  "purpose": "Public-capability shortlist for future EMOPET regional pilot/outreach. This file is not a partnership register and creates no endorsement, pilot commitment, data right or recruitment authority.",
+  "allowedStatuses": [
+    "CANDIDATE_NOT_CONTACTED",
+    "OUTREACH_SENT",
+    "RESPONSE_RECEIVED",
+    "PILOT_SCOPE_DISCUSSION",
+    "LETTER_OF_INTEREST_RECEIVED",
+    "DECLINED",
+    "DEFERRED"
+  ],
+  "candidates": [
+    {
+      "candidateId": "act-bretagne",
+      "organisationName": "Association Canine Territoriale Bretonne",
+      "territory": "Bretagne",
+      "relationshipStatus": "CANDIDATE_NOT_CONTACTED",
+      "publicActivityEvidence": {
+        "reviewedAt": "2026-10-01",
+        "summary": "Territorial canine association whose stated object includes promotion of canine breeds and activities recognized by the Société Centrale Canine; its composition includes canine education/use clubs in its territory."
+      },
+      "potentialRoles": [
+        "network_introduction",
+        "club_directory_rights_discussion",
+        "regional_activity_terminology_review",
+        "pilot_club_referrals"
+      ],
+      "publicSources": [
+        "https://www.centrale-canine.fr/association-canine-territoriale-bretonne/club-page",
+        "https://www.centrale-canine.fr/sites/default/files/2017-12/Bretagne%20statuts%20%20sign%C3%A9%20pdf.pdf"
+      ],
+      "partnershipClaimAllowed": false,
+      "contactDataStored": false,
+      "notes": "Network-level candidate only. No affiliation, access right, endorsement or collaboration is inferred."
+    },
+    {
+      "candidateId": "club-lorient-queven-sport-canin",
+      "organisationName": "Club Lorient – Quéven Sport Canin",
+      "territory": "Quéven / Lorient, Morbihan",
+      "relationshipStatus": "CANDIDATE_NOT_CONTACTED",
+      "publicActivityEvidence": {
+        "reviewedAt": "2026-10-01",
+        "summary": "Official club site shows active 2026 education and canine-sport programming, including puppy school, obedience, agility, tracking/research and water rescue."
+      },
+      "potentialRoles": [
+        "prototype_user_pilot",
+        "activity_vocabulary_review",
+        "local_community_pilot",
+        "structured_feedback_sessions"
+      ],
+      "publicSources": [
+        "https://www.club-lorient-queven-sport-canin.fr/",
+        "https://www.club-lorient-queven-sport-canin.fr/?page_id=92",
+        "https://www.queven.com/associations/club-lorient-queven-sport-canin/"
+      ],
+      "partnershipClaimAllowed": false,
+      "contactDataStored": false,
+      "notes": "Strong local candidate because activity is current in 2026 and geographically close to the Bretagne pilot area. No outreach or pilot commitment is proven."
+    },
+    {
+      "candidateId": "club-canin-vannetais",
+      "organisationName": "Club Canin Vannetais",
+      "territory": "Vannes, Morbihan",
+      "relationshipStatus": "CANDIDATE_NOT_CONTACTED",
+      "publicActivityEvidence": {
+        "reviewedAt": "2026-10-01",
+        "summary": "Official club site shows active 2026 education/puppy-school activity and multiple canine sports including agility, dog dancing, hoopers, obedience and water rescue."
+      },
+      "potentialRoles": [
+        "prototype_user_pilot",
+        "activity_vocabulary_review",
+        "local_community_pilot",
+        "structured_feedback_sessions"
+      ],
+      "publicSources": [
+        "https://club-canin-vannetais.fr/",
+        "https://club-canin-vannetais.fr/actualites/"
+      ],
+      "partnershipClaimAllowed": false,
+      "contactDataStored": false,
+      "notes": "Second Morbihan candidate with active 2026 public evidence. No outreach or pilot commitment is proven."
+    }
+  ],
+  "promotionRules": {
+    "outreachSentRequires": "repository communication evidence for the exact organisation and date",
+    "responseReceivedRequires": "inbound written evidence",
+    "pilotScopeDiscussionRequires": "written response showing willingness to discuss a bounded EMOPET pilot",
+    "letterOfInterestReceivedRequires": "preserved written letter/email explicitly expressing interest, with scope and no inflation into partnership",
+    "partnershipTerminology": "FORBIDDEN_IN_THIS_REGISTER"
+  }
+}
