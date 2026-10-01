@@ -39,6 +39,9 @@ async function loadCatalog() {
   );
 }
 
+const OWNER_ID = '11111111-1111-4111-8111-111111111111';
+const OTHER_OWNER_ID = '22222222-2222-4222-8222-222222222222';
+
 function balance(overrides = {}) {
   return {
     knowledgeFragments: 0,
@@ -50,14 +53,23 @@ function balance(overrides = {}) {
   };
 }
 
+function ownerBalance(overrides = {}, ownerId = OWNER_ID) {
+  return { ownerId, balance: balance(overrides) };
+}
+
+function ownedItem(itemId, ownerId = OWNER_ID) {
+  return { ownerId, itemId };
+}
+
 test('build projection spends resources and owns the regional item once', async () => {
   const mod = await loadBuildModule();
   const cfg = await loadCatalog();
   const breiz = cfg.collections.find((collection) => collection.regionCode === 'FR-BRE');
 
   const result = mod.planWorldBuild({
-    balance: balance({ localDiscoveries: 5, communitySeeds: 3 }),
-    ownedItemIds: [],
+    ownerId: OWNER_ID,
+    ownerBalance: ownerBalance({ localDiscoveries: 5, communitySeeds: 3 }),
+    ownedItems: [],
     collection: breiz,
     itemId: 'breiz-mini-lighthouse',
   });
@@ -74,8 +86,9 @@ test('already-owned build is idempotent and spends nothing', async () => {
   const before = balance({ localDiscoveries: 9, communitySeeds: 7 });
 
   const result = mod.planWorldBuild({
-    balance: before,
-    ownedItemIds: ['breiz-mini-lighthouse', 'breiz-mini-lighthouse'],
+    ownerId: OWNER_ID,
+    ownerBalance: { ownerId: OWNER_ID, balance: before },
+    ownedItems: [ownedItem('breiz-mini-lighthouse')],
     collection: breiz,
     itemId: 'breiz-mini-lighthouse',
   });
@@ -85,6 +98,60 @@ test('already-owned build is idempotent and spends nothing', async () => {
   assert.deepEqual(result.ownedItemIds, ['breiz-mini-lighthouse']);
 });
 
+test('build rejects resource state belonging to another Owner', async () => {
+  const mod = await loadBuildModule();
+  const cfg = await loadCatalog();
+  const breiz = cfg.collections.find((collection) => collection.regionCode === 'FR-BRE');
+
+  assert.throws(
+    () => mod.planWorldBuild({
+      ownerId: OWNER_ID,
+      ownerBalance: ownerBalance({ localDiscoveries: 99 }, OTHER_OWNER_ID),
+      ownedItems: [],
+      collection: breiz,
+      itemId: 'breiz-mini-lighthouse',
+    }),
+    /WORLD_BUILD_BALANCE_OWNER_SCOPE_MISMATCH/,
+  );
+});
+
+test('build rejects ownership rows belonging to another Owner', async () => {
+  const mod = await loadBuildModule();
+  const cfg = await loadCatalog();
+  const breiz = cfg.collections.find((collection) => collection.regionCode === 'FR-BRE');
+
+  assert.throws(
+    () => mod.planWorldBuild({
+      ownerId: OWNER_ID,
+      ownerBalance: ownerBalance({ localDiscoveries: 99, communitySeeds: 99 }),
+      ownedItems: [ownedItem('memory-lantern', OTHER_OWNER_ID)],
+      collection: breiz,
+      itemId: 'breiz-mini-lighthouse',
+    }),
+    /WORLD_BUILD_OWNED_ITEM_OWNER_SCOPE_MISMATCH/,
+  );
+});
+
+test('build rejects duplicate ownership rows instead of normalizing corruption', async () => {
+  const mod = await loadBuildModule();
+  const cfg = await loadCatalog();
+  const breiz = cfg.collections.find((collection) => collection.regionCode === 'FR-BRE');
+
+  assert.throws(
+    () => mod.planWorldBuild({
+      ownerId: OWNER_ID,
+      ownerBalance: ownerBalance({ localDiscoveries: 99, communitySeeds: 99 }),
+      ownedItems: [
+        ownedItem('breiz-mini-lighthouse'),
+        ownedItem('breiz-mini-lighthouse'),
+      ],
+      collection: breiz,
+      itemId: 'breiz-mini-lighthouse',
+    }),
+    /WORLD_BUILD_DUPLICATE_OWNED_ITEM/,
+  );
+});
+
 test('insufficient resources fail closed without partial spend', async () => {
   const mod = await loadBuildModule();
   const cfg = await loadCatalog();
@@ -92,8 +159,9 @@ test('insufficient resources fail closed without partial spend', async () => {
   const before = balance({ localDiscoveries: 5, communitySeeds: 2 });
 
   const result = mod.planWorldBuild({
-    balance: before,
-    ownedItemIds: [],
+    ownerId: OWNER_ID,
+    ownerBalance: { ownerId: OWNER_ID, balance: before },
+    ownedItems: [],
     collection: breiz,
     itemId: 'breiz-mini-lighthouse',
   });
@@ -109,14 +177,15 @@ test('item from another collection cannot be built through the selected collecti
   const global = cfg.collections.find((collection) => collection.regionCode === 'GLOBAL');
 
   const result = mod.planWorldBuild({
-    balance: balance({
+    ownerId: OWNER_ID,
+    ownerBalance: ownerBalance({
       knowledgeFragments: 99,
       localDiscoveries: 99,
       walkTraces: 99,
       communitySeeds: 99,
       memoryThreads: 99,
     }),
-    ownedItemIds: [],
+    ownedItems: [],
     collection: global,
     itemId: 'breiz-mini-lighthouse',
   });
@@ -133,8 +202,9 @@ test('build projection never mutates caller-owned state', async () => {
   const beforeOwned = [];
 
   mod.planWorldBuild({
-    balance: beforeBalance,
-    ownedItemIds: beforeOwned,
+    ownerId: OWNER_ID,
+    ownerBalance: { ownerId: OWNER_ID, balance: beforeBalance },
+    ownedItems: beforeOwned,
     collection: breiz,
     itemId: 'breiz-mini-lighthouse',
   });
