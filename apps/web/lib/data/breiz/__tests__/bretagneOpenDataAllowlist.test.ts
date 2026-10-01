@@ -147,6 +147,7 @@ test('release-ready fixture stays blocked without exact live schema evidence', (
     ...current,
     allowedRecordFields: ['nom'],
     status: 'RELEASE_READY' as const,
+    schemaEvidence: undefined,
     rightsEvidence: {
       authorityRevision: 'fixture-v2',
       immutableSourceVersion: 'dataset-version',
