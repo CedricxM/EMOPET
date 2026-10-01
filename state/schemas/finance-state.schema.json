@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EMOPET Company OS Finance State Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "as_of",
+    "currency",
+    "authority_mode",
+    "funding_doctrine",
+    "actuals",
+    "unit_economics",
+    "planning_scenarios",
+    "invariant"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "as_of": {
+      "type": "string",
+      "format": "date"
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authority_mode": {
+      "type": "string",
+      "minLength": 1
+    },
+    "funding_doctrine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "statement",
+        "authority_refs"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "authority_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
+        }
+      }
+    },
+    "actuals": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/valueState"
+      }
+    },
+    "unit_economics": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/valueState"
+      }
+    },
+    "planning_scenarios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "classification",
+          "target_eur",
+          "intended_runway_months",
+          "commitment_status",
+          "readiness_status",
+          "object_ref"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "classification": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target_eur": {
+            "$ref": "#/$defs/rangeWithBase"
+          },
+          "intended_runway_months": {
+            "$ref": "#/$defs/range"
+          },
+          "commitment_status": {
+            "type": "string",
+            "minLength": 1
+          },
+          "readiness_status": {
+            "type": "string",
+            "minLength": 1
+          },
+          "object_ref": {
+            "type": "string",
+            "pattern": "^state/"
+          }
+        }
+      }
+    },
+    "invariant": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "$defs": {
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "value"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "path",
+            "issue",
+            "pr",
+            "commit",
+            "external"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "valueState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "status"
+      ],
+      "properties": {
+        "value": {
+          "type": [
+            "number",
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "min",
+        "max"
+      ],
+      "properties": {
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        }
+      }
+    },
+    "rangeWithBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "min",
+        "base",
+        "max"
+      ],
+      "properties": {
+        "min": {
+          "type": "number"
+        },
+        "base": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}
