@@ -88,6 +88,21 @@ test('dataset-scoped rights do not treat the whole portal as one blanket licence
     ...current,
     allowedRecordFields: ['nom', 'geometry'],
     status: 'RELEASE_READY' as const,
+    schemaEvidence: {
+      receiptId: 'schema-fixture-001',
+      datasetId: current.datasetId,
+      metadataUrl:
+        'https://data.bretagne.bzh/api/explore/v2.1/catalog/datasets/' +
+        current.datasetId,
+      observedAt: '2026-09-30T09:00:00Z',
+      recheckAt: '2026-10-15T00:00:00Z',
+      immutableSourceVersion: current.datasetId + '@fixture-version',
+      observedFields: ['nom', 'geometry'],
+      approvedFields: ['nom', 'geometry'],
+      evidenceRef: 'docs/control/FIXTURE_ONLY.md',
+      reviewerRole: 'test reviewer',
+      evidenceState: 'PRIMARY_API_SCHEMA_CONFIRMED' as const,
+    },
     rightsEvidence: {
       authorityRevision: 'bretagne-open-data-dataset-rights-fixture-v1',
       immutableSourceVersion:
@@ -132,6 +147,40 @@ test('dataset-scoped rights stay blocked without exact dataset evidence', () => 
 
   assert.equal(verdict.ingestionPermitted, false);
   assert.ok(verdict.blockers.includes('NO_DATASET_RIGHTS_EVIDENCE'));
+  assert.ok(verdict.blockers.includes('NO_PRIMARY_SCHEMA_EVIDENCE'));
+});
+
+test('dataset rights reject a release-ready descriptor without primary schema evidence', () => {
+  const current = getBretagneOpenDataDataset(
+    'reserves-naturelles-regionales-de-bretagne',
+  );
+  assert.ok(current);
+
+  const rightsOnly = {
+    ...current,
+    allowedRecordFields: ['nom'],
+    status: 'RELEASE_READY' as const,
+    rightsEvidence: {
+      authorityRevision: 'fixture-v1',
+      immutableSourceVersion: 'fixture-source-version',
+      receiptPath: 'docs/control/FIXTURE_ONLY.md',
+      attributionText: 'Région Bretagne',
+      permittedUseSummary: 'Synthetic test fixture only.',
+      reviewedAt: '2026-09-30T10:00:00Z',
+      reviewerRole: 'test reviewer',
+      recheckAt: '2026-10-15T00:00:00Z',
+      evidenceState: 'SOURCE_CONFIRMED' as const,
+      disposition: 'GO' as const,
+    },
+  };
+
+  const verdict = evaluateBretagneOpenDataDatasetRights(
+    rightsOnly,
+    Date.parse('2026-10-01T12:00:00Z'),
+  );
+
+  assert.equal(verdict.ingestionPermitted, false);
+  assert.ok(verdict.blockers.includes('NO_PRIMARY_SCHEMA_EVIDENCE'));
 });
 
 test('dataset rights reject expired receipts and missing dataset licence', () => {
