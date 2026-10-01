@@ -133,6 +133,18 @@ test('runtime reads canonical durable audit events and evaluates the existing de
     windowEnd: '2026-09-30T10:00:40.000Z',
     count: 3,
   }]);
+  assert.equal(result.detectionEvidence.length, 1);
+  assert.deepEqual(
+    [...result.detectionEvidence[0].sourceEventIds].sort(),
+    [...persistedIds].sort(),
+  );
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(
+      result.detectionEvidence[0],
+      'actorKey',
+    ),
+    false,
+  );
 
   const afterRows = await sql`
     SELECT count(*)::int AS count
