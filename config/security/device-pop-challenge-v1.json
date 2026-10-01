@@ -122,13 +122,16 @@
     "manufacturingChallengeIssuer": "SOURCE_PRIMITIVE_IMPLEMENTED / PENDING_PROOF_EXACT_VERSION / NO_HTTP_ROUTE / NO_DEFAULT_TTL",
     "manufacturingChallengeIssuerSource": "backend/api/security/device-credential-activation-pop-issuer.ts",
     "manufacturingChallengeIssuerUnitTest": "backend/test/device-credential-activation-pop-issuer.test.mjs",
-    "manufacturingVerifier": "SOURCE_PRIMITIVE_IMPLEMENTED / PENDING_PROOF_ONLY / CRYPTOGRAPHIC_M4_PROOF_ONLY / NO_HTTP_ROUTE",
+    "manufacturingVerifier": "SOURCE_PRIMITIVE_IMPLEMENTED / PENDING_PROOF_ONLY / CRYPTOGRAPHIC_M4_PROOF + DURABLE_ATOMIC_RECEIPT / NO_HTTP_ROUTE",
     "manufacturingVerifierSource": "backend/api/security/device-credential-activation-pop-verifier.ts",
     "manufacturingVerifierUnitTest": "backend/test/device-credential-activation-pop-verifier.test.mjs",
     "manufacturingVerifierAuthorizesActivation": false,
     "manufacturingVerifierAuthorizesDeviceDataTrust": false,
     "manufacturingVerifierAuthorizesTelemetryPersistence": false,
-    "pendingCredentialResolver": "DURABLE_POSTGRES_IMPLEMENTED / EXACT_DEVICE+VERSION / PENDING_PROOF_ONLY"
+    "pendingCredentialResolver": "DURABLE_POSTGRES_IMPLEMENTED / EXACT_DEVICE+VERSION / PENDING_PROOF_ONLY",
+    "manufacturingPopEvidencePersistence": "DURABLE_POSTGRES_IMPLEMENTED / MIGRATION_0040 / ATOMIC_CHALLENGE_CONSUME + RECEIPT_INSERT",
+    "manufacturingPopEvidenceRepositorySource": "backend/api/security/device-credential-activation-pop-evidence-repository.ts",
+    "manufacturingPopEvidenceIntegrationTest": "backend/test/device-credential-activation-pop-evidence.integration.test.mjs"
   },
   "releaseRule": "NO_DEVICE_TRUST_SUCCESS_OR_DURABLE_NETWORK_TELEMETRY_WRITE_UNTIL_RUNTIME_AND_TARGET_HARDWARE_NEGATIVE_EVIDENCE_PASS"
 }
