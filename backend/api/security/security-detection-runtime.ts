@@ -10,6 +10,10 @@ import {
   parseSecurityAuditEvent,
   type SecurityAuditEvent,
 } from './security-audit-event.js';
+import {
+  mapSecurityDetectionEvidence,
+  type SecurityDetectionEvidence,
+} from './security-detection-history.js';
 
 export const SECURITY_DETECTION_RUNTIME_SCHEMA_VERSION =
   'security-detection-runtime-v1' as const;
@@ -78,6 +82,7 @@ export type SecurityDetectionRuntimeResult =
       eventCount: number;
       evaluatedEventIds: readonly string[];
       detections: readonly SecurityDetection[];
+      detectionEvidence: readonly SecurityDetectionEvidence[];
     };
 
 export interface SecurityDetectionRuntimeSummary {
@@ -280,6 +285,22 @@ export async function runSecurityDetectionScan(
     };
   }
 
+  const detectionEvidence = mapSecurityDetectionEvidence(
+    rows.map((row, index) => ({
+      id: row.id,
+      event: events[index]!,
+    })),
+    evaluated.detections,
+  );
+
+  if (detectionEvidence === null) {
+    return {
+      status: 'SOURCE_INVALID',
+      retryable: false,
+      detections: [],
+    };
+  }
+
   return {
     status: 'EVALUATED',
     policyRevision: request.policyRevision,
@@ -288,6 +309,7 @@ export async function runSecurityDetectionScan(
     eventCount: events.length,
     evaluatedEventIds,
     detections: evaluated.detections,
+    detectionEvidence,
   };
 }
 
