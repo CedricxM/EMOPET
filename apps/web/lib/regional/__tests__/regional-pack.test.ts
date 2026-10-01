@@ -35,7 +35,7 @@ test('Bretagne pack stays fail-closed until profile, language and source evidenc
   );
   assert.deepEqual(
     [...verdict.missingDomains].sort(),
-    ['culture', 'events', 'territorial_context'].sort(),
+    ['canine_network', 'culture', 'events', 'territorial_context'].sort(),
   );
   assert.deepEqual(verdict.unknownSourceIds, []);
 });
