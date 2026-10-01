@@ -71,7 +71,7 @@ async function seedAlert(policyRevision = 'routing-925-v1') {
       ${'9'.repeat(64)},
       'repeated_privileged_denials',
       'detector-v925',
-      '2026-10-01T15:10:00.000Z',
+      '2026-10-01T15:00:00.000Z',
       '2026-10-01T15:05:00.000Z',
       '2026-10-01T15:06:00.000Z',
       3,
