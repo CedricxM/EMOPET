@@ -683,6 +683,41 @@ test('generated Company OS human views stay byte-identical to machine-readable s
   }
 });
 
+test('redacted external Company OS views do not leak planning ranges or manufacture authority', () => {
+  const investorView = readText('INVESTOR_VIEW.md');
+  const supplierView = readText('SUPPLIER_VIEW.md');
+
+  assert.match(investorView, /NOT FUNDRAISING AUTHORITY/);
+  assert.match(investorView, /NOT DECISION AUTHORITY/);
+  assert.match(supplierView, /NOT PROCUREMENT AUTHORITY/);
+  assert.match(supplierView, /NOT RELEASE AUTHORITY/);
+
+  for (const value of Object.values(preseed.target)) {
+    assert.ok(
+      !investorView.includes(String(value)),
+      'redacted investor view must not expose the planning raise range',
+    );
+  }
+
+  for (const value of Object.values(preseed.target)) {
+    assert.ok(
+      !supplierView.includes(String(value)),
+      'redacted supplier view must not expose the planning raise range',
+    );
+  }
+
+  assert.match(
+    investorView,
+    /This public view intentionally excludes:/,
+    'redacted investor view must disclose its redaction boundary',
+  );
+  assert.match(
+    supplierView,
+    /This public view intentionally excludes:/,
+    'redacted supplier view must disclose its redaction boundary',
+  );
+});
+
 test('Company OS human views disclose projection/non-authority status', () => {
   const disclosures = {
     'STATE.md': /NOT DOMAIN AUTHORITY/,
@@ -695,6 +730,8 @@ test('Company OS human views disclose projection/non-authority status', () => {
     'CORPORATE.md': /NOT LEGAL SIGN-OFF/,
     'FRESHNESS.md': /NOT DOMAIN AUTHORITY/,
     'FOUNDER_COCKPIT.md': /NOT DECISION AUTHORITY/,
+    'INVESTOR_VIEW.md': /NOT FUNDRAISING AUTHORITY/,
+    'SUPPLIER_VIEW.md': /NOT RELEASE AUTHORITY/,
   };
 
   for (const [path, pattern] of Object.entries(disclosures)) {

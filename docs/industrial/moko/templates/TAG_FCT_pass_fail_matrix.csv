@@ -1,0 +1,15 @@
+test_id,measurement,lower_limit,upper_limit,unit,method,timeout_ms,on_fail,authority_revision
+FCT-00,revision_identity_match,TRUE,TRUE,boolean,manifest_match,TBD,STOP,v1-draft
+FCT-01,unpowered_safety,TBD,TBD,TBD,controlled_fixture_check,TBD,STOP,v1-draft
+FCT-02,nrf9151_vdd_min,3.0,TBD,V,transient_capture,TBD,FAIL,v1-draft
+FCT-02,modem_reset_or_brownout,FALSE,FALSE,boolean,event_observation,TBD,FAIL,v1-draft
+FCT-02,protection_or_switch_trip,FALSE,FALSE,boolean,event_observation,TBD,FAIL,v1-draft
+FCT-03,firmware_identity_match,TRUE,TRUE,boolean,program_verify_and_manifest,TBD,FAIL,v1-draft
+FCT-04,host_modem_uart,TBD,TBD,TBD,deterministic_command_response,TBD,INCONCLUSIVE_PENDING_SCRIPT,v1-draft
+FCT-05,vdd_to_vdd_gpio_delay,10,TBD,ms,sequence_capture,TBD,FAIL,v1-draft
+FCT-05,nrf9151_vdd_min,3.0,TBD,V,sequence_transient_capture,TBD,FAIL,v1-draft
+FCT-06,bmi270_identity,TBD,TBD,TBD,i2c_identity_transaction,TBD,INCONCLUSIVE_PENDING_SCRIPT,v1-draft
+FCT-07,microphone_digital_sanity,TBD,TBD,TBD,i2s_capture,TBD,INCONCLUSIVE_PENDING_SCRIPT,v1-draft
+FCT-08,ntc_path_sanity,TBD,TBD,TBD,excite_and_adc_sample,TBD,INCONCLUSIVE_PENDING_BOM_REFERENCE,v1-draft
+FCT-09,charging_path_sanity,TBD,TBD,TBD,controlled_charge_path_check,TBD,INCONCLUSIVE_PENDING_MECHANICS,v1-draft
+FCT-10,result_record_complete,TRUE,TRUE,boolean,schema_validation,TBD,FAIL,v1-draft

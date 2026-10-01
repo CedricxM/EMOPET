@@ -61,6 +61,19 @@ Authority: `docs/strategy/PROJECT_TIMELINE_2026_2027.md`.
 | Per-registry schemas + dependency validation | Added in V2 |
 | Generated human views | Added in V2 |
 | Founder cockpit | Added in V2 |
+| Redacted investor/supplier views | Added in V2 |
+
+## Public-safe external views
+
+`INVESTOR_VIEW.md` and `SUPPLIER_VIEW.md` are generated audience-specific projections from the same controlled Company OS state.
+
+They are deliberately narrower than the founder cockpit:
+
+- the investor view exposes public-safe readiness/status context without private financing terms, cash detail or investor correspondence;
+- the supplier view exposes public-safe proof/economics/right-status context without private quotes, supplier identities, manufacturing packages or commercial terms;
+- neither view creates authority, commitment, approval, validation or release rights.
+
+The controlling state and domain authority always win.
 
 ## Non-negotiable rule
 

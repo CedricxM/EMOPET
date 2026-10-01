@@ -6,6 +6,7 @@ export type {
   GeographyEntry,
   CultureEntry,
   RhythmSourcePlaceholder,
+  RegionalKnowledgeEvidence,
   ContentStatus,
 } from './knowledge-types';
 export {
@@ -13,7 +14,12 @@ export {
   MAX_KNOWLEDGE_TOKENS,
 } from './build-system-prompt';
 export type { BuiltPrompt } from './build-system-prompt';
-export { filterRelevantKnowledge, estimateTokens, normalizeText } from './filter-knowledge';
+export {
+  filterRelevantKnowledge,
+  isRegionalKnowledgeEntryReleaseReady,
+  estimateTokens,
+  normalizeText,
+} from './filter-knowledge';
 export { shouldInitiate, INITIATE_IDLE_MINUTES, DEFAULT_INITIATIVE_ENABLED } from './initiate';
 export type { InitiateContext } from './initiate';
 export {
@@ -50,3 +56,12 @@ export {
   isRegionalIdentityEvidenceReleaseReady,
 } from './regional-pack';
 export { BRETAGNE_REGIONAL_PACK } from './profiles/bretagne-pack';
+
+export type {
+  RegionalDomainEvidenceStatus,
+  RegionalPackSourceEvidence,
+  RegionalPackDomainEvidence,
+  RegionalPackIdentityEvidence,
+  RegionalPackEvidenceReport,
+} from './regional-pack-evidence';
+export { buildRegionalPackEvidenceReport } from './regional-pack-evidence';
