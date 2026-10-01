@@ -5,6 +5,7 @@ import {
   parseDatatourismeBretagneEventsResponse,
   sanitizeDatatourismePaginationLink,
 } from '../datatourismeEvents';
+import { evaluateBreizSourceRights, getBreizSource } from '../sourceRegistry';
 
 function fixture(overrides: Record<string, unknown> = {}) {
   return {
@@ -191,4 +192,16 @@ test('DATAtourisme catalog meta sanitizes pagination links before retention', ()
 
   assert.ok(parsed.meta.next);
   assert.doesNotMatch(parsed.meta.next!, /api_key|do-not-store/);
+});
+
+
+test('DATAtourisme remains source-rights blocked while technical contract is built', () => {
+  const source = getBreizSource('datatourisme');
+  assert.ok(source);
+  assert.equal(source.enabled, false);
+
+  const rights = evaluateBreizSourceRights(source);
+  assert.equal(rights.ingestionPermitted, false);
+  assert.ok(rights.blockers.includes('SOURCE_DISABLED'));
+  assert.ok(rights.blockers.includes('NO_LICENCE_RECEIPT'));
 });
