@@ -7,6 +7,20 @@ const root = resolve(process.cwd(), '..');
 
 const read = (...parts) => readFile(resolve(root, ...parts), 'utf8');
 
+async function collectTypeScriptFiles(dir) {
+  const entries = await readdir(dir, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const absolute = resolve(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...await collectTypeScriptFiles(absolute));
+    } else if (entry.isFile() && entry.name.endsWith('.ts')) {
+      files.push(absolute);
+    }
+  }
+  return files;
+}
+
 test('WORLD-G2 migration locks Owner, idempotency, canonical-source and ownership uniqueness', async () => {
   const [sql, schema] = await Promise.all([
     read('backend', 'db', 'migrations', '0045_world_gamification_persistence.sql'),
@@ -100,16 +114,26 @@ test('WORLD-G2 runtime store derives balance from journals and uses conflict-saf
   assert.doesNotMatch(build, /sameCost/);
 });
 
-test('WORLD-G2 durable store is not activated by any HTTP route', async () => {
-  const routesDir = resolve(root, 'backend', 'api', 'routes');
-  const names = (await readdir(routesDir)).filter((name) => name.endsWith('.ts'));
+test('WORLD-G2 durable store is not activated anywhere in the API runtime graph', async () => {
+  const apiDir = resolve(root, 'backend', 'api');
+  const allowedImplementationFiles = new Set([
+    resolve(apiDir, 'services', 'world-progression-postgres.ts'),
+    resolve(apiDir, 'services', 'world-build-postgres.ts'),
+  ]);
 
-  for (const name of names) {
-    const source = await readFile(resolve(routesDir, name), 'utf8');
-    assert.doesNotMatch(source, /world-progression-postgres/);
-    assert.doesNotMatch(source, /world-build-postgres/);
-    assert.doesNotMatch(source, /postgresWorldProgressionLedgerStore/);
-    assert.doesNotMatch(source, /postgresWorldBuildService/);
+  for (const file of await collectTypeScriptFiles(apiDir)) {
+    if (allowedImplementationFiles.has(file)) continue;
+    const source = await readFile(file, 'utf8');
+    assert.doesNotMatch(
+      source,
+      /world-progression-postgres|world-build-postgres/,
+      `${file} must not import the durable World G2 implementation before activation`,
+    );
+    assert.doesNotMatch(
+      source,
+      /postgresWorldProgressionLedgerStore|PostgresWorldProgressionLedgerStore|postgresWorldBuildService|PostgresWorldBuildService/,
+      `${file} must not instantiate or reference a durable World G2 store before activation`,
+    );
   }
 });
 
