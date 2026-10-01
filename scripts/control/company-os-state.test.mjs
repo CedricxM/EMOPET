@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { renderCompanyOsViews } from './generate-company-os-views.mjs';
 
 const root = process.cwd();
 
@@ -668,6 +669,30 @@ test('freshness statuses are date-consistent and fail closed for strong claims',
       'CURRENT',
       `${object.id} cannot carry strong state ${object.status} unless freshness is CURRENT`,
     );
+  }
+});
+
+
+test('generated Company OS human views match machine-readable state byte-for-byte', () => {
+  const expectedViews = renderCompanyOsViews({
+    companyState: company,
+    corporateState,
+    freshnessState,
+  });
+
+  assert.deepEqual(
+    Object.keys(expectedViews).sort(),
+    ['CORPORATE.md', 'FRESHNESS.md', 'STATE.md'],
+    'generated-view scope must remain explicit',
+  );
+
+  for (const [path, expected] of Object.entries(expectedViews)) {
+    assert.equal(
+      readText(path),
+      expected,
+      `${path} drifted from machine-readable Company OS state; regenerate with node scripts/control/generate-company-os-views.mjs`,
+    );
+    assert.match(expected, /Generated file\. Do not hand-edit\./);
   }
 });
 
