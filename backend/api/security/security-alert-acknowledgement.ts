@@ -106,6 +106,7 @@ export async function acknowledgeSecurityAlert(input: {
   const requestId = input.requestId.toLowerCase();
   const alertId = input.alertId.toLowerCase();
   const subject = input.subject.toLowerCase();
+  const role = input.role;
   const acknowledgedAt = canonicalUtcTimestamp(input.acknowledgedAt);
   if (!acknowledgedAt) return failure('INVALID_TIMESTAMP');
 
@@ -142,7 +143,7 @@ export async function acknowledgeSecurityAlert(input: {
         const same =
           existing.acknowledgedAt.toISOString() === acknowledgedAt
           && existing.acknowledgedBySubject === subject
-          && existing.acknowledgedByRole === input.role;
+          && existing.acknowledgedByRole === role;
         if (!same) return failure('CONFLICT');
 
         return {
@@ -150,7 +151,7 @@ export async function acknowledgeSecurityAlert(input: {
           alertId,
           acknowledgedAt,
           acknowledgedBySubject: subject,
-          acknowledgedByRole: input.role,
+          acknowledgedByRole: role,
           auditEventId: existing.auditEventId,
         };
       }
@@ -161,7 +162,7 @@ export async function acknowledgeSecurityAlert(input: {
         actor: {
           kind: 'privileged_human',
           subject,
-          role: input.role,
+          role,
         },
         action: 'security.incident.coordinate',
         target: {
@@ -187,7 +188,7 @@ export async function acknowledgeSecurityAlert(input: {
           alertId,
           acknowledgedAt: new Date(acknowledgedAt),
           acknowledgedBySubject: subject,
-          acknowledgedByRole: input.role,
+          acknowledgedByRole: role,
           auditEventId: requestId,
         });
 
@@ -196,7 +197,7 @@ export async function acknowledgeSecurityAlert(input: {
         alertId,
         acknowledgedAt,
         acknowledgedBySubject: subject,
-        acknowledgedByRole: input.role,
+        acknowledgedByRole: role,
         auditEventId: requestId,
       };
     });
