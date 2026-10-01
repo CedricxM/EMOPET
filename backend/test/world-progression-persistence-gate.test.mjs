@@ -104,6 +104,23 @@ test('dry-run proof is explicit, disposable-only and non-authoritative', () => {
 });
 
 
+test('G2 durable foundation is explicit without production activation', () => {
+  assert.deepEqual(gate.migrationGate.currentReservation, {
+    migration: '0045_world_gamification_persistence.sql',
+    recheckedAgainstMain: true,
+    schemaFoundationPresent: true,
+  });
+  assert.deepEqual(gate.durableImplementation, {
+    status: 'SCHEMA_AND_STORE_PRESENT_NOT_ACTIVATED',
+    productionAuthority: false,
+    schema: 'backend/db/schema/world-gamification.ts',
+    ledgerStore: 'backend/api/services/world-progression-postgres.ts',
+    buildService: 'backend/api/services/world-build-postgres.ts',
+    activeHttpRoute: false,
+    privacyLifecyclePromoted: false,
+  });
+});
+
 test('privacy candidate remains a hard production block', () => {
   assert.deepEqual(gate.privacyCandidateContract, {
     path: 'config/world/world-progression-privacy-candidate-v1.json',
