@@ -1,0 +1,109 @@
+{
+  "schemaVersion": "emopet-production-release-evidence-contract-v1",
+  "status": "CONTRACT_ONLY / NO_PRODUCTION_RELEASE_AUTHORITY",
+  "issue": 831,
+  "claimsProductionReleaseAuthority": false,
+  "claimsDeploymentExecuted": false,
+  "claimsEnvironmentConfigured": false,
+  "purpose": "Define the minimum immutable evidence receipt required before a future EMOPET production release can be represented as reviewed.",
+  "authorities": {
+    "supplyChain": "docs/security/SUPPLY_CHAIN_SECURITY.md",
+    "launchSecurityIssue": 214,
+    "privacyRetentionIssue": 69,
+    "repositoryGovernanceIssue": 831,
+    "ipContributionIssue": 680
+  },
+  "receiptState": {
+    "allowed": [
+      "DRAFT_UNVERIFIED",
+      "REVIEWED_HOLD",
+      "REVIEWED_GO",
+      "SUPERSEDED"
+    ],
+    "templateDefault": "DRAFT_UNVERIFIED",
+    "productionPromotionAllowedOnlyWhen": "REVIEWED_GO"
+  },
+  "requiredReceiptFields": [
+    "releaseId",
+    "releaseState",
+    "commitSha",
+    "artifact.identity",
+    "artifact.sha256",
+    "sbom.cycloneDxRef",
+    "sbom.spdxRef",
+    "dependencyDisposition.status",
+    "dependencyDisposition.evidenceRef",
+    "attestation.status",
+    "attestation.evidenceRef",
+    "environment.name",
+    "environment.authorityRef",
+    "releaseOwner.role",
+    "releaseOwner.reviewRef",
+    "databaseMigration.disposition",
+    "databaseMigration.evidenceRef",
+    "transportSecurity.disposition",
+    "transportSecurity.evidenceRef",
+    "backupRestore.disposition",
+    "backupRestore.evidenceRef",
+    "releasedAt"
+  ],
+  "formats": {
+    "commitSha": "LOWERCASE_GIT_SHA40",
+    "artifactSha256": "LOWERCASE_HEX_64",
+    "releasedAt": "RFC3339_UTC",
+    "evidenceRef": "NON_SECRET_REPOSITORY_OR_PROVIDER_RECEIPT_REFERENCE"
+  },
+  "releaseReceiptTemplate": {
+    "schemaVersion": "emopet-production-release-receipt-v1",
+    "releaseId": null,
+    "releaseState": "DRAFT_UNVERIFIED",
+    "commitSha": null,
+    "artifact": {
+      "identity": null,
+      "sha256": null
+    },
+    "sbom": {
+      "cycloneDxRef": null,
+      "spdxRef": null
+    },
+    "dependencyDisposition": {
+      "status": "UNVERIFIED",
+      "evidenceRef": null
+    },
+    "attestation": {
+      "status": "UNVERIFIED",
+      "mechanism": null,
+      "evidenceRef": null
+    },
+    "environment": {
+      "name": null,
+      "authorityRef": null
+    },
+    "releaseOwner": {
+      "role": null,
+      "reviewRef": null
+    },
+    "databaseMigration": {
+      "disposition": "UNVERIFIED",
+      "evidenceRef": null
+    },
+    "transportSecurity": {
+      "disposition": "UNVERIFIED",
+      "evidenceRef": null
+    },
+    "backupRestore": {
+      "disposition": "UNVERIFIED",
+      "evidenceRef": null
+    },
+    "releasedAt": null
+  },
+  "failClosedRules": [
+    "DRAFT_UNVERIFIED and REVIEWED_HOLD never authorize production promotion.",
+    "A green P0 DB baseline validation run is disposable QA evidence and never production migration authority.",
+    "A CI job named Release provenance gate is not by itself a production release receipt.",
+    "Missing artifact digest, commit SHA, SBOM, release-owner review, environment authority or required evidence keeps the receipt HOLD.",
+    "UNVERIFIED transport-security or backup/restore disposition keeps production authority OPEN.",
+    "Receipt evidence must not contain credentials, tokens, private keys, personal data dumps or secret values.",
+    "Provider, signing mechanism, deployment platform and production environment are not selected by this contract."
+  ]
+}
