@@ -694,6 +694,7 @@ test('Company OS human views disclose projection/non-authority status', () => {
     'UNKNOWNS.md': /NOT DECISION AUTHORITY/,
     'CORPORATE.md': /NOT LEGAL SIGN-OFF/,
     'FRESHNESS.md': /NOT DOMAIN AUTHORITY/,
+    'FOUNDER_COCKPIT.md': /NOT DECISION AUTHORITY/,
   };
 
   for (const [path, pattern] of Object.entries(disclosures)) {
