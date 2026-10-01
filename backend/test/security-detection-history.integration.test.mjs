@@ -255,11 +255,13 @@ test('persistence failure rolls back history, evaluated receipts and cursor toge
     CREATE OR REPLACE FUNCTION fail_detection_history_insert_805()
     RETURNS trigger
     LANGUAGE plpgsql
-    AS $$
+    AS $
     BEGIN
       RAISE EXCEPTION 'test-only detection history persistence failure';
     END;
-    $$;
+    $;
+  `);
+  await sql.unsafe(`
     CREATE TRIGGER fail_detection_history_insert_805
     BEFORE INSERT ON security_detection_history
     FOR EACH ROW
@@ -279,6 +281,8 @@ test('persistence failure rolls back history, evaluated receipts and cursor toge
     await sql.unsafe(`
       DROP TRIGGER IF EXISTS fail_detection_history_insert_805
         ON security_detection_history;
+    `);
+    await sql.unsafe(`
       DROP FUNCTION IF EXISTS fail_detection_history_insert_805();
     `);
   }
