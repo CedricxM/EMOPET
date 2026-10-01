@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-01  
 **Status:** `PROPOSED COMPANY CONTROL PLANE / DOES NOT REPLACE DOMAIN AUTHORITIES`  
-**Branch base:** `main@769987f9b0de6f0e1cb45d38c283a7308075044a`
+**Branch base:** `main@c5d920856a8460adf050cbd2bc71e8ed966a81b6`
 
 ## 1. Purpose
 
@@ -127,11 +127,24 @@ Schema conformance does not make a claim true. It only prevents malformed or dan
 
 ### Generated human views
 
-`STATE.md`, `CORPORATE.md`, and `FRESHNESS.md` are deterministic renderings of machine-readable Company OS state through `scripts/control/generate-company-os-views.mjs`.
+`STATE.md`, `CORPORATE.md`, `FRESHNESS.md`, and `FOUNDER_COCKPIT.md` are deterministic renderings of machine-readable Company OS state through `scripts/control/generate-company-os-views.mjs`.
 
 The every-PR Company OS guard compares committed bytes against fresh renders. A manual edit that is not backed by machine-readable state therefore fails closed instead of silently creating a second source of truth.
 
 Generation changes presentation only. It does not promote substantive status, reset freshness, create evidence, or override a controlled domain authority.
+
+### Founder cockpit boundary
+
+`FOUNDER_COCKPIT.md` is a public-safe derived navigation view. It may aggregate the current stage gate, experiments, freshness blocks, unknowns, risks, metrics, public-safe finance statuses and Corporate/IP gates, but it MUST NOT:
+
+- create a founder decision that does not exist in a controlled source;
+- assign a synthetic priority score, risk score or probability;
+- convert source order into a ranking;
+- expose restricted legal, personal, supplier, banking or investor material;
+- convert a planning scenario into approved financing or committed capital;
+- treat recent repository activity as fresh domain evidence.
+
+Its job is to shorten navigation from "what needs attention?" to the controlling source, not to replace that source.
 
 ## 6. Core company surfaces
 
@@ -146,6 +159,7 @@ Generation changes presentation only. It does not promote substantive status, re
 | `FINANCE_STATE.md` | Unit economics, runway, funding state | V1 public-safe projection; no invented values |
 | `CORPORATE.md` | Generated public-safe entity, governance, IP and rights state | V2 projection/index; restricted evidence stays external |
 | `FRESHNESS.md` | Generated review cadence, CURRENT/REVIEW_DUE/STALE view | V2 projection/index; never substitutes for domain review |
+| `FOUNDER_COCKPIT.md` | Generated public-safe founder navigation cockpit | V2 derived view; not decision or ranking authority |
 | `state/freshness/freshness-state.json` | Machine-readable freshness overlay | V2 projection with decision-use guardrails |
 | `state/schemas/registry-schema-map.json` | Registry → JSON Schema contract map | V2 structural contract; not domain authority |
 | `EXPERIMENTS.md` | Hypothesis → test → result → decision ledger | V1 projection/index |
@@ -246,11 +260,10 @@ Any AI agent doing substantive EMOPET work should:
 
 V1 includes the company front door, machine-readable state, milestone/experiment/finance/metrics/risk/unknowns registries, and an every-PR structural evidence guard.
 
-V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, and deterministic human views generated from machine-readable state. Freshness remains conservative, and structural or presentation validity never substitutes for domain evidence or authority.
+V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, deterministic human views generated from machine-readable state, and a public-safe founder cockpit derived from those controlled surfaces. Freshness remains conservative, and structural or presentation validity never substitutes for domain evidence or authority.
 
 Next bounded slices should add, in order:
 
-1. founder cockpit derived from controlled state;
-2. redacted investor and supplier views derived from the same controlled state.
+1. redacted investor and supplier views derived from the same controlled state.
 
 Each slice must remain incremental and must not manufacture certainty to make the cockpit look complete.
