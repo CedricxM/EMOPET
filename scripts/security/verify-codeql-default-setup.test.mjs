@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   codeqlJobEvidenceState,
+  isDocumentationOnlyPullRequestFiles,
   normalizePullRequestNumber,
   requireCodeqlAlertInventory,
   requireCodeqlAnalysis,
@@ -151,4 +152,43 @@ test('native open-alert inventory passes only when empty', () => {
     () => requireCodeqlAlertInventory([{ ...alert, tool: { name: 'Other' } }]),
     /Unexpected entry/,
   );
+});
+
+
+test('documentation-only scope is accepted only for a narrow documentation path set', () => {
+  assert.equal(
+    isDocumentationOnlyPullRequestFiles([
+      { filename: 'docs/partnerships/BRETAGNE.md', status: 'added' },
+      { filename: 'README.md', status: 'modified' },
+    ]),
+    true,
+  );
+
+  assert.equal(
+    isDocumentationOnlyPullRequestFiles([
+      {
+        filename: 'docs/partnerships/RENAMED.md',
+        previous_filename: 'docs/partnerships/OLD.md',
+        status: 'renamed',
+      },
+    ]),
+    true,
+  );
+});
+
+test('documentation-only scope fails closed for code, operational data or code-to-doc renames', () => {
+  for (const files of [
+    [],
+    [{ filename: 'apps/web/lib/security.ts', status: 'modified' }],
+    [{ filename: 'docs/control/runtime-policy.json', status: 'modified' }],
+    [{ filename: '.github/workflows/security-supply-chain.yml', status: 'modified' }],
+    [{
+      filename: 'docs/archive/old-code.md',
+      previous_filename: 'apps/web/lib/old-code.ts',
+      status: 'renamed',
+    }],
+    [{ filename: '', status: 'modified' }],
+  ]) {
+    assert.equal(isDocumentationOnlyPullRequestFiles(files), false);
+  }
 });
