@@ -8,14 +8,28 @@ const root = resolve(process.cwd(), '..');
 const read = (...parts) => readFile(resolve(root, ...parts), 'utf8');
 
 test('WORLD-G2 migration locks Owner, idempotency, canonical-source and ownership uniqueness', async () => {
-  const sql = await read('backend', 'db', 'migrations', '0045_world_gamification_persistence.sql');
+  const [sql, schema] = await Promise.all([
+    read('backend', 'db', 'migrations', '0045_world_gamification_persistence.sql'),
+    read('backend', 'db', 'schema', 'world-gamification.ts'),
+  ]);
 
-  for (const table of [
-    'world_progression_events',
-    'world_owned_items',
-    'world_resource_spends',
-  ]) {
-    assert.match(sql, new RegExp(`CREATE TABLE ${table}`));
+  const tables = [
+    ['world_progression_events', 'worldProgressionEvents'],
+    ['world_owned_items', 'worldOwnedItems'],
+    ['world_resource_spends', 'worldResourceSpends'],
+  ];
+
+  for (const [table, exportName] of tables) {
+    assert.equal(
+      (sql.match(new RegExp(`CREATE TABLE ${table}`, 'g')) ?? []).length,
+      1,
+      `${table} must be declared exactly once in migration 0045`,
+    );
+    assert.equal(
+      (schema.match(new RegExp(`export const ${exportName}\\b`, 'g')) ?? []).length,
+      1,
+      `${exportName} must be exported exactly once in the Drizzle schema`,
+    );
     assert.match(sql, new RegExp(`${table.replaceAll('_', '.?')}[\\s\\S]*owner_id uuid NOT NULL REFERENCES users\\(id\\)`));
   }
 
