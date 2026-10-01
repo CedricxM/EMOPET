@@ -74,6 +74,22 @@ export const BRETAGNE_OPEN_DATA_ALLOWLIST: readonly BretagneOpenDataDatasetDescr
     domains: ['territorial_context'],
     allowedRecordFields: [],
     status: 'METADATA_REVIEWED_FIELDS_OPEN',
+    rightsEvidence: {
+      authorityRevision: 'bretagne-reserves-rights-receipt-2026-10-01-v1',
+      immutableSourceVersion:
+        'sha256:65ff0d253fd1a1bddd6ce05389fe4b35c8946cfbcd8787c9d5afaee092506cd0',
+      receiptPath:
+        'data/registry/receipts/bretagne-reserves-naturelles-regionales-2026-10-01.json',
+      attributionText:
+        'Région Bretagne — Réserves naturelles régionales de Bretagne — Licence Ouverte / Open Licence',
+      permittedUseSummary:
+        'Source-published open-licence evidence recorded for this selected territorial dataset. Product-serving disposition remains HOLD pending freshness/recheck authority and #116 review.',
+      reviewedAt: '2026-10-01T18:55:00+02:00',
+      reviewerRole: 'EMOPET engineering/data-rights evidence reviewer',
+      recheckAt: null,
+      evidenceState: 'SOURCE_CONFIRMED',
+      disposition: 'HOLD',
+    },
     notes:
       'Official dataset identity and open-licence statement reviewed. Indexed sources disagree on recent record count, so live schema/version evidence, field minimisation and the dataset-scoped rights receipt remain required before record retrieval.',
   },
