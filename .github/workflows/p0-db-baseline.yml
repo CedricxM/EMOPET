@@ -264,6 +264,14 @@ jobs:
           NODE_ENV: test
         run: node --test test/behavioral-assessment-context.integration.test.mjs
 
+      - name: WORLD-G2 durable progression on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          EMOPET_DB_INTEGRATION_TEST: '1'
+          NODE_ENV: test
+        run: node --test test/world-progression-postgres.integration.test.mjs
+
       - name: DEVICE-TRUST-ID-12 public credential repository on historical migrations
         working-directory: backend
         env:
@@ -516,6 +524,14 @@ jobs:
           EMOPET_DB_INTEGRATION_TEST: '1'
           NODE_ENV: test
         run: node --test test/behavioral-assessment-context.integration.test.mjs
+
+      - name: WORLD-G2 durable progression on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          EMOPET_DB_INTEGRATION_TEST: '1'
+          NODE_ENV: test
+        run: node --test test/world-progression-postgres.integration.test.mjs
 
       - name: DEVICE-TRUST-ID-12 public credential repository on generated baseline
         working-directory: backend
@@ -932,5 +948,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, BEHAV-DATA-01 response/applicability semantics, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification, retention-readiness probes, INT-04A bounded export authority, INT-05 recipient-bound professional sharing, and WORLD-SOCIAL-01 canonical user blocks and World report intake.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, BEHAV-DATA-01 response/applicability semantics, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification, retention-readiness probes, INT-04A bounded export authority, INT-05 recipient-bound professional sharing, WORLD-G2 durable progression persistence, and WORLD-SOCIAL-01 canonical user blocks and World report intake.'
           echo 'It does not authorize production migration, deployment, or release.'
