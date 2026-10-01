@@ -242,6 +242,13 @@ jobs:
         # Turbo executes the same workspace build scripts/topology and can replay deterministic outputs.
         run: pnpm turbo run build --filter=@emopet/api...
 
+      - name: Backend typecheck
+        # Run before Drizzle baseline generation mutates backend/db inputs, so Turbo can
+        # reuse deterministic typecheck results across unchanged backend sources.
+        # This cache never substitutes for disposable-database validation.
+        run: pnpm turbo run typecheck --filter=@emopet/api
+
+
       - name: Instrument repository-only guards
         working-directory: backend
         run: |
@@ -923,12 +930,6 @@ jobs:
           path: backend/db/p0-generated-baseline
           if-no-files-found: error
           retention-days: 7
-
-      - name: Backend typecheck
-        # Typechecking is deterministic and safe to replay from the existing Turbo cache.
-        # This cache never substitutes for disposable-database validation.
-        # Database integration tests below remain direct and always execute.
-        run: pnpm turbo run typecheck --filter=@emopet/api
 
       - name: Backend tests
         run: pnpm --filter @emopet/api test
