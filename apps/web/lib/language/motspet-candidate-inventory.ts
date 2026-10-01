@@ -6,7 +6,7 @@
  * runtime MotsPet lexicon.
  */
 
-import { getMotsPetEntry } from './motspet';
+import { MOTSPET_ENTRIES, getMotsPetEntry } from './motspet';
 
 export const MOTSPET_CANDIDATE_INVENTORY_REVISION =
   'motspet-candidate-inventory-v2-2026-10-01' as const;
@@ -324,6 +324,45 @@ export function auditMotsPetCandidateInventory(): string[] {
       candidate.existingMotsPetId !== null
     ) {
       errors.push(candidate.id + ': candidate review must not point to runtime authority');
+    }
+  }
+
+  const inventoryByRuntimeId = new Map<
+    string,
+    readonly MotsPetCandidateInventoryEntry[]
+  >();
+
+  for (const candidate of MOTSPET_CANDIDATE_INVENTORY) {
+    if (!candidate.existingMotsPetId) continue;
+    const current = inventoryByRuntimeId.get(candidate.existingMotsPetId) ?? [];
+    inventoryByRuntimeId.set(candidate.existingMotsPetId, [...current, candidate]);
+  }
+
+  for (const runtimeEntry of MOTSPET_ENTRIES) {
+    const mirrored = inventoryByRuntimeId.get(runtimeEntry.id) ?? [];
+
+    if (mirrored.length !== 1) {
+      errors.push(
+        runtimeEntry.id +
+          ': runtime MotsPet concept must appear exactly once in candidate inventory',
+      );
+      continue;
+    }
+
+    const candidate = mirrored[0]!;
+    const expectedStatus =
+      runtimeEntry.status === 'CONTROLLED_SEED'
+        ? 'EXISTING_CONTROLLED'
+        : 'AUTHORITY_HOLD';
+
+    if (candidate.status !== expectedStatus) {
+      errors.push(
+        runtimeEntry.id +
+          ': runtime status ' +
+          runtimeEntry.status +
+          ' must map to inventory status ' +
+          expectedStatus,
+      );
     }
   }
 
