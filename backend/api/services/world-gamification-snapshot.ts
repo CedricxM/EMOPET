@@ -7,6 +7,10 @@ import {
   type WorldQuestProgress,
 } from './world-quest-projection';
 import {
+  projectWorldProgressionProvenance,
+  type WorldProgressionProvenanceProjection,
+} from './world-progression-provenance';
+import {
   canAffordWorldRegionalItem,
   resolveWorldRegionalCollection,
   type WorldRegionalCollectionCatalog,
@@ -28,6 +32,7 @@ export interface WorldGamificationSnapshot {
   };
   resources: WorldProgressionBalance;
   quests: WorldQuestProgress[];
+  provenance: WorldProgressionProvenanceProjection;
   collectionItems: WorldGamificationSnapshotItem[];
   ownedItemIds: string[];
 }
@@ -58,6 +63,10 @@ export function buildWorldGamificationSnapshot(input: {
     },
     resources: { ...input.balance },
     quests: projectWorldQuestProgress(input.ownerId, input.ledgerEntries),
+    provenance: projectWorldProgressionProvenance({
+      ownerId: input.ownerId,
+      entries: input.ledgerEntries,
+    }),
     collectionItems: collection.items.map((item) => ({
       id: item.id,
       title: item.title,
