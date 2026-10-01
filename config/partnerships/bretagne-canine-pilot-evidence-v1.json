@@ -1,0 +1,6 @@
+{
+  "schemaVersion": "emopet-bretagne-canine-pilot-evidence-v1",
+  "controlledAt": "2026-10-01",
+  "purpose": "Controlled evidence receipts for status changes in the Bretagne canine pilot candidate register. Empty until exact communication or internal-defer evidence exists.",
+  "receipts": []
+}
