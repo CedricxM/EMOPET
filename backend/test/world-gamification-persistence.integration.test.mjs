@@ -77,6 +77,48 @@ runtimeTest('WORLD-G2 durable ledger/build persistence is replay-safe, anti-farm
       },
     );
 
+    await assert.rejects(
+      () => sqlClient`
+        INSERT INTO world_resource_spends
+          (owner_id, idempotency_key, item_id, cost_json)
+        VALUES (
+          ${ownerA},
+          'direct:unknown-cost:001',
+          'direct-test-item',
+          ${sqlClient.json({ cryptoCoins: 1 })}
+        )
+      `,
+      (error) => {
+        assert.equal(error.code, '23514');
+        assert.equal(
+          error.constraint_name,
+          'chk_world_resource_spends_cost_keys',
+        );
+        return true;
+      },
+    );
+
+    await assert.rejects(
+      () => sqlClient`
+        INSERT INTO world_resource_spends
+          (owner_id, idempotency_key, item_id, cost_json)
+        VALUES (
+          ${ownerA},
+          'direct:negative-cost:001',
+          'direct-test-item',
+          ${sqlClient.json({ memoryThreads: -1 })}
+        )
+      `,
+      (error) => {
+        assert.equal(error.code, '23514');
+        assert.equal(
+          error.constraint_name,
+          'chk_world_resource_spends_cost_positive_integers',
+        );
+        return true;
+      },
+    );
+
     const sourceAuthority = {
       async isAuthorizedSource() {
         return true;
