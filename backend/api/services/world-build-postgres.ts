@@ -116,6 +116,12 @@ export class PostgresWorldBuildService {
           );
         }
         const state = await this.readState(tx, input.ownerId);
+        if (!state.ownedItemIds.includes(item.id)) {
+          throw new WorldBuildPersistenceError(
+            'WORLD_BUILD_PERSISTENCE_INVARIANT',
+            'Committed World build spend is missing its ownership row.',
+          );
+        }
         return {
           decision: 'duplicate',
           itemId: item.id,
