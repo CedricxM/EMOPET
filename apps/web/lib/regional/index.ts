@@ -65,3 +65,15 @@ export type {
   RegionalPackEvidenceReport,
 } from './regional-pack-evidence';
 export { buildRegionalPackEvidenceReport } from './regional-pack-evidence';
+
+
+export type {
+  RegionalSourceReadinessScope,
+  RegionalSourceReadinessRequest,
+  RegionalSourceEffectiveBlocker,
+  RegionalSourceReadinessVerdict,
+} from './regional-source-readiness';
+export {
+  evaluateRegionalSourceReadiness,
+  listBretagneOpenDataDatasetIds,
+} from './regional-source-readiness';
