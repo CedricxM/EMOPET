@@ -2,7 +2,7 @@
  * Détection de la région de l'utilisateur (Section 6 + PATCH 6).
  *
  * Priorité : (1) région déclarée dans le profil ; (2) département (déclaré ou
- * géoloc consentie) → mapping ; (3) défaut Bretagne (région témoin).
+ * géoloc consentie) → mapping ; (3) fallback national neutre.
  *
  * RGPD : la géoloc n'est utilisée qu'avec consentement, et seul le
  * département/région est conservé, jamais la position précise.
@@ -13,6 +13,7 @@
 
 import { BRETAGNE_KNOWLEDGE, BRETAGNE_PROFILE } from './profiles/bretagne';
 import { TEST_REGION_KNOWLEDGE, TEST_REGION_PROFILE } from './profiles/test-region';
+import { NEUTRAL_FRANCE_KNOWLEDGE, NEUTRAL_FRANCE_PROFILE } from './profiles/neutral-france';
 import type { RegionalKnowledgeBase } from './knowledge-types';
 import type { RegionalProfile } from './types';
 
@@ -23,11 +24,12 @@ export interface RegionBundle {
 
 /** Registre des régions disponibles. Ajouter une région = l'enregistrer ici. */
 export const REGION_REGISTRY: Record<string, RegionBundle> = {
+  neutral_france: { profile: NEUTRAL_FRANCE_PROFILE, knowledge: NEUTRAL_FRANCE_KNOWLEDGE },
   bretagne: { profile: BRETAGNE_PROFILE, knowledge: BRETAGNE_KNOWLEDGE },
   test_region: { profile: TEST_REGION_PROFILE, knowledge: TEST_REGION_KNOWLEDGE },
 };
 
-export const DEFAULT_REGION_ID = 'bretagne';
+export const DEFAULT_REGION_ID = 'neutral_france';
 
 /**
  * Mapping département → région. Construit depuis les profils, avec le cas
@@ -36,7 +38,7 @@ export const DEFAULT_REGION_ID = 'bretagne';
 function buildDepartmentMap(): Record<string, string> {
   const map: Record<string, string> = {};
   for (const [regionId, bundle] of Object.entries(REGION_REGISTRY)) {
-    if (regionId === 'test_region') continue; // ne pas exposer la région de test
+    if (regionId === 'test_region' || regionId === 'neutral_france') continue; // profils non territoriaux
     for (const dep of bundle.profile.departments) map[dep] = regionId;
   }
   // Cas particulier documenté : 44 (Loire-Atlantique, INSEE Pays de la Loire)
@@ -73,7 +75,7 @@ export function detectRegion(input: DetectRegionInput = {}): DetectRegionResult 
       return { ...REGION_REGISTRY[regionId]!, isDefault: false };
     }
   }
-  // 3) Défaut Bretagne + invitation douce
+  // 3) Fallback neutre + invitation douce
   return {
     ...REGION_REGISTRY[DEFAULT_REGION_ID]!,
     isDefault: true,
