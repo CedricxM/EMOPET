@@ -23,3 +23,13 @@ export {
 } from './detect-region';
 export type { RegionBundle, DetectRegionResult, DetectRegionInput } from './detect-region';
 export { BRETAGNE_PROFILE, BRETAGNE_KNOWLEDGE } from './profiles/bretagne';
+
+export type {
+  RegionalPack,
+  RegionalSourceBinding,
+  RegionalDataDomain,
+  RegionalPackReleaseBlocker,
+  RegionalPackReleaseVerdict,
+} from './regional-pack';
+export { evaluateRegionalPackReleaseReadiness } from './regional-pack';
+export { BRETAGNE_REGIONAL_PACK } from './profiles/bretagne-pack';
