@@ -38,3 +38,12 @@ export {
   isRegionalIdentityEvidenceReleaseReady,
 } from './regional-pack';
 export { BRETAGNE_REGIONAL_PACK } from './profiles/bretagne-pack';
+
+export type {
+  RegionalDomainEvidenceStatus,
+  RegionalPackSourceEvidence,
+  RegionalPackDomainEvidence,
+  RegionalPackIdentityEvidence,
+  RegionalPackEvidenceReport,
+} from './regional-pack-evidence';
+export { buildRegionalPackEvidenceReport } from './regional-pack-evidence';
