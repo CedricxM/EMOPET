@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "emopet-production-db-migration-authority-v1",
+  "status": "CONTRACT_ONLY / NO_PRODUCTION_MIGRATION_AUTHORITY",
+  "issue": 831,
+  "migrationLedgerIssue": 258,
+  "claimsProductionMigrationAuthority": false,
+  "claimsExistingDatabaseUpgradeReadiness": false,
+  "currentRepositoryBoundary": {
+    "authorityDecision": "NO_EXISTING_DB_TO_PRESERVE",
+    "scope": "REPOSITORY_BASELINE_AND_DISPOSABLE_QA_ONLY",
+    "productionMeaning": "NONE",
+    "authorityRefs": [
+      "docs/control/P0_DB_AUTHORITY_DECISION_NO_EXISTING_DB.md",
+      "backend/db/MIGRATION_BASELINE_RECONCILIATION.md",
+      "docs/control/P0_DB_DISPOSABLE_VALIDATION_EVIDENCE.md"
+    ]
+  },
+  "promotionStates": {
+    "allowed": [
+      "DRAFT_HOLD",
+      "REVIEWED_HOLD",
+      "AUTHORIZED_WINDOW_PENDING",
+      "EXECUTED_PENDING_VERIFICATION",
+      "VERIFIED_COMPLETE",
+      "SUPERSEDED"
+    ],
+    "templateDefault": "DRAFT_HOLD",
+    "executionAllowedOnlyWhen": "AUTHORIZED_WINDOW_PENDING"
+  },
+  "requiredPromotionReceiptFields": [
+    "schemaVersion",
+    "migrationPromotionId",
+    "state",
+    "releaseReceiptRef",
+    "commitSha",
+    "targetEnvironment.name",
+    "targetEnvironment.authorityRef",
+    "databaseAuthority.principalRole",
+    "databaseAuthority.authorityRef",
+    "orderedMigrationSet",
+    "migrationSetDigest",
+    "preflight.disposableQaRef",
+    "preflight.existingDatabaseRehearsalRef",
+    "preflight.backupRestoreEvidenceRef",
+    "review.operatorRole",
+    "review.approverRef",
+    "execution.windowRef",
+    "execution.strategy",
+    "recovery.disposition",
+    "recovery.evidenceRef",
+    "postApply.verificationRef",
+    "completedAt"
+  ],
+  "formats": {
+    "commitSha": "LOWERCASE_GIT_SHA40",
+    "migrationSetDigest": "LOWERCASE_SHA256_HEX_64",
+    "completedAt": "RFC3339_UTC",
+    "authorityRef": "NON_SECRET_REPOSITORY_OR_PROVIDER_REFERENCE"
+  },
+  "migrationEntry": {
+    "requiredFields": [
+      "order",
+      "path",
+      "sha256",
+      "provenanceRef"
+    ],
+    "pathAuthority": "CHECKED_IN_ACTIVE_MIGRATION_LEDGER",
+    "orderingAuthority": "EXACT_REVIEWED_ORDER_ONLY"
+  },
+  "promotionReceiptTemplate": {
+    "schemaVersion": "emopet-production-db-migration-promotion-v1",
+    "migrationPromotionId": null,
+    "state": "DRAFT_HOLD",
+    "releaseReceiptRef": null,
+    "commitSha": null,
+    "targetEnvironment": {
+      "name": null,
+      "authorityRef": null
+    },
+    "databaseAuthority": {
+      "principalRole": null,
+      "authorityRef": null
+    },
+    "orderedMigrationSet": [],
+    "migrationSetDigest": null,
+    "preflight": {
+      "disposableQaRef": null,
+      "existingDatabaseRehearsalRef": null,
+      "backupRestoreEvidenceRef": null
+    },
+    "review": {
+      "operatorRole": null,
+      "approverRef": null
+    },
+    "execution": {
+      "windowRef": null,
+      "strategy": null
+    },
+    "recovery": {
+      "disposition": "UNVERIFIED",
+      "evidenceRef": null
+    },
+    "postApply": {
+      "verificationRef": null
+    },
+    "completedAt": null
+  },
+  "failClosedRules": [
+    "A green P0 DB baseline validation run does not authorize production migration.",
+    "The repository decision NO_EXISTING_DB_TO_PRESERVE does not assert that any production database is disposable or absent.",
+    "An empty orderedMigrationSet never authorizes execution.",
+    "Every migration entry must be immutable by path, order and SHA-256 digest before an execution window is authorized.",
+    "Missing existing-database rehearsal evidence keeps the promotion HOLD unless a reviewed authority explicitly establishes that no existing target database exists.",
+    "Missing backup/restore evidence keeps the promotion HOLD for any durable production database.",
+    "Database credentials, passwords, connection strings and secret values must never be stored in the promotion receipt.",
+    "Operator role and approver reference are evidence pointers, not credentials.",
+    "Execution must stop on migration failure; recovery disposition must be reviewed as rollback or forward-fix authority for the exact migration set.",
+    "Post-apply verification is required before the promotion may reach VERIFIED_COMPLETE.",
+    "This contract selects no production database provider, operator, migration tool, execution window or rollback mechanism."
+  ]
+}
