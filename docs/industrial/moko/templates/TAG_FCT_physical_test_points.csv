@@ -1,0 +1,2 @@
+test_point_id,pcb_ref,net_name,side,x_mm,y_mm,contact_type,max_voltage,measurement_role,required_for_test,notes
+TBD,TBD,TBD,TBD,TBD,TBD,TBD,TBD,TBD,TBD,Populate only from controlled released PCB; never infer coordinates

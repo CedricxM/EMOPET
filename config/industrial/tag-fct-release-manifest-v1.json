@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "status": "PREPARED_NOT_RELEASED",
+  "authorityDate": "2026-10-01",
+  "issues": [
+    480,
+    580
+  ],
+  "compatibility": {
+    "pcbRevision": null,
+    "bomRevision": null,
+    "firmwareCommit": null,
+    "firmwareBuildHash": null,
+    "testScriptRevision": null,
+    "limitsRevision": "v1-draft",
+    "testPointMapRevision": "v1-draft",
+    "fixtureInterfaceRevision": null
+  },
+  "requiredBeforeRelease": [
+    "CONTROLLED_PCB_REVISION_BOUND",
+    "CONTROLLED_BOM_REVISION_BOUND",
+    "NATIVE_DRC_RECEIPT_BOUND",
+    "PHYSICAL_TEST_POINTS_BOUND",
+    "FIRMWARE_TEST_IMAGE_BOUND",
+    "DETERMINISTIC_TEST_COMMANDS_BOUND",
+    "LIMITS_REVIEWED",
+    "OPERATOR_SOP_RELEASED"
+  ],
+  "authorityBoundaries": {
+    "fixtureDesignRelease": false,
+    "fixturePurchaseAuthority": false,
+    "fabricationAuthority": false,
+    "productionRelease": false,
+    "deviceTrustAuthorized": false
+  }
+}
