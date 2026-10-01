@@ -8,10 +8,19 @@ test('WORLD-G2 durable progression repository enforces idempotence, anti-farming
   skip: !enabled,
   timeout: 40_000,
 }, async (t) => {
-  const [{ default: postgres }, ledgerModule, persistenceModule, dbModule] = await Promise.all([
+  const [
+    { default: postgres },
+    ledgerModule,
+    persistenceModule,
+    discoveryModule,
+    erasureModule,
+    dbModule,
+  ] = await Promise.all([
     import('postgres'),
     import('../dist/api/services/world-progression-ledger.js'),
     import('../dist/api/services/world-progression-postgres.js'),
+    import('../dist/api/services/subject-discovery.js'),
+    import('../dist/api/services/erasure-residue-verification.js'),
     import('../dist/db/index.js'),
   ]);
 
@@ -162,6 +171,27 @@ test('WORLD-G2 durable progression repository enforces idempotence, anti-farming
   const builtKey = buildA.decision === 'built'
     ? 'build:durable:lighthouse:001'
     : 'build:durable:bench:001';
+
+  const discovered = await discoveryModule.discoverSubjectData(ownerA);
+  assert.equal(discovered.ok, true);
+  assert.equal(discovered.owner.worldProgressionEvents.count, 4);
+  assert.equal(discovered.owner.worldOwnedItems.count, 1);
+  assert.equal(discovered.owner.worldResourceSpends.count, 1);
+
+  const captured = await erasureModule.captureErasureVerificationSnapshot(ownerA);
+  assert.equal(captured.ok, true);
+  const residue = await erasureModule.verifyErasureResidue(captured.snapshot);
+  assert.equal(residue.ok, true);
+  const worldResidue = Object.fromEntries(
+    residue.accountRelationProbes
+      .filter((row) => row.key.startsWith('world_'))
+      .map((row) => [row.key, row.count]),
+  );
+  assert.deepEqual(worldResidue, {
+    'world_progression_events.owner_id': 4,
+    'world_owned_items.owner_id': 1,
+    'world_resource_spends.owner_id': 1,
+  });
 
   const buildReplay = await persistenceModule.buildWorldItemDurably({
     ownerId: ownerA,
