@@ -18,6 +18,21 @@ const DATATOURISME_BASE = 'https://api.datatourisme.fr/v1';
 const SIRET_RE = /^\d{14}$/;
 const INSEE_CODE_RE = /^\d{5}$/;
 
+export const DATATOURISME_BRETAGNE_DEPARTMENTS = ['22', '29', '35', '44', '56'] as const;
+
+export const DATATOURISME_BRETAGNE_EVENT_FIELDS = [
+  'uuid',
+  'uri',
+  'label',
+  'type',
+  'isLocatedAt.address.hasAddressCity.isPartOfDepartment.insee',
+  'hasBeenCreatedBy',
+  '!hasBeenCreatedBy.address',
+  'lastUpdate',
+  'lastUpdateDatatourisme',
+  'hasDescription',
+] as const;
+
 export function prepareSireneEstablishmentRequest(
   siretInput: string,
 ): BreizPreparedProviderRequest {
@@ -95,6 +110,69 @@ export function prepareDatatourismeCatalogRequest(
 
   const geoDistance = input.geoDistance?.trim();
   if (geoDistance) url.searchParams.set('geo_distance', geoDistance);
+
+  return {
+    ready: true,
+    reason: 'ok',
+    url: url.toString(),
+    headers: auth.headers,
+  };
+}
+
+
+export interface DatatourismeBretagneEventsQuery {
+  lang?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+/**
+ * Prepare the bounded Brittany events request used by the regional data
+ * workstream.
+ *
+ * This request intentionally:
+ * - uses the pre-filtered /entertainmentAndEvent endpoint;
+ * - requests only the fields needed for identity, location, producer
+ *   attribution, freshness and a possible public description;
+ * - excludes producer addresses;
+ * - uses structured department filtering rather than free-text inference;
+ * - keeps the API key in X-API-Key only.
+ *
+ * Preparing this request is not permission to ingest or publish the response.
+ * Source-rights/release gates stay independent.
+ */
+export function prepareDatatourismeBretagneEventsRequest(
+  input: DatatourismeBretagneEventsQuery = {},
+): BreizPreparedProviderRequest {
+  const page = input.page ?? 1;
+  const pageSize = input.pageSize ?? 20;
+
+  if (
+    !Number.isSafeInteger(page)
+    || page < 1
+    || !Number.isSafeInteger(pageSize)
+    || pageSize < 1
+    || pageSize > 100
+    || ((page - 1) * pageSize) >= 10_000
+  ) {
+    return { ready: false, reason: 'invalid_input' };
+  }
+
+  const auth = resolveBreizProviderAuth('datatourisme');
+  if (!auth.ready) {
+    return { ready: false, reason: auth.reason };
+  }
+
+  const url = new URL(`${DATATOURISME_BASE}/entertainmentAndEvent`);
+  url.searchParams.set('page', String(page));
+  url.searchParams.set('page_size', String(pageSize));
+  url.searchParams.set('lang', input.lang?.trim() || 'fr');
+  url.searchParams.set('fields', DATATOURISME_BRETAGNE_EVENT_FIELDS.join(','));
+  url.searchParams.set(
+    'filters',
+    `isLocatedAt.address.hasAddressCity.isPartOfDepartment.insee[in]=${DATATOURISME_BRETAGNE_DEPARTMENTS.join(',')}`,
+  );
+  url.searchParams.set('sort', 'lastUpdate[desc]');
 
   return {
     ready: true,
