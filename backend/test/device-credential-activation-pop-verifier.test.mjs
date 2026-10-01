@@ -67,15 +67,15 @@ function signedResponse(challengeValue = challenge(), overrides = {}) {
 function fixture(overrides = {}) {
   const stored = challenge();
   let consumedAt = null;
-  let consumeCalls = 0;
+  let evidenceCalls = 0;
 
   return {
     stored,
     get consumedAt() {
       return consumedAt;
     },
-    get consumeCalls() {
-      return consumeCalls;
+    get evidenceCalls() {
+      return evidenceCalls;
     },
     deps: {
       challenges: {
@@ -83,11 +83,32 @@ function fixture(overrides = {}) {
           if (id !== stored.challengeId) return null;
           return { challenge: stored, consumedAt };
         },
-        async consumeIfUnconsumed(id, at) {
-          consumeCalls++;
-          if (id !== stored.challengeId || consumedAt !== null) return false;
-          consumedAt = at;
-          return true;
+      },
+      evidence: {
+        async commitVerifiedProof(input) {
+          evidenceCalls++;
+          if (
+            input.challengeId !== stored.challengeId
+            || input.deviceId !== stored.deviceId
+            || input.credentialVersion !== stored.credentialVersion
+            || consumedAt !== null
+          ) {
+            return null;
+          }
+          consumedAt = input.verifiedAt;
+          return {
+            receiptId: input.receiptId,
+            authority: 'SERVER_SIDE_POP_VERIFICATION_AUTHORITY',
+            deviceId: input.deviceId,
+            credentialVersion: input.credentialVersion,
+            challengeId: input.challengeId,
+            verificationResult: 'VERIFIED_AND_CONSUMED',
+            verifiedAt: input.verifiedAt,
+            consumedAt: input.verifiedAt,
+          };
+        },
+        async findByReceiptId() {
+          return null;
         },
       },
       pendingCredentials: {
@@ -130,7 +151,7 @@ test('manufacturing verifier proves exact PENDING_PROOF credential and consumes 
     deviceDataTrustAuthorized: false,
     telemetryPersistenceAuthorized: false,
   });
-  assert.equal(f.consumeCalls, 1);
+  assert.equal(f.evidenceCalls, 1);
   assert.equal(f.consumedAt, NOW.toISOString());
 });
 
@@ -154,7 +175,7 @@ test('manufacturing verifier refuses telemetry purpose before credential authori
 
   assert.deepEqual(result, { ok: false, error: 'PURPOSE_NOT_ALLOWED' });
   assert.equal(credentialCalls, 0);
-  assert.equal(f.consumeCalls, 0);
+  assert.equal(f.evidenceCalls, 0);
 });
 
 test('manufacturing verifier refuses ACTIVE credential as M4 authority', async () => {
@@ -180,7 +201,7 @@ test('manufacturing verifier refuses ACTIVE credential as M4 authority', async (
     ok: false,
     error: 'PENDING_CREDENTIAL_NOT_FOUND',
   });
-  assert.equal(f.consumeCalls, 0);
+  assert.equal(f.evidenceCalls, 0);
 });
 
 test('invalid manufacturing signature authorizes nothing and does not consume', async () => {
@@ -194,17 +215,17 @@ test('invalid manufacturing signature authorizes nothing and does not consume', 
     await verifyDeviceCredentialActivationPopResponseV1(response, f.deps),
     { ok: false, error: 'INVALID_SIGNATURE' },
   );
-  assert.equal(f.consumeCalls, 0);
+  assert.equal(f.evidenceCalls, 0);
 });
 
-test('manufacturing verifier loses authority when atomic consume loses race', async () => {
+test('manufacturing verifier loses authority when atomic M4 persistence loses race', async () => {
   const f = fixture({
-    challenges: {
-      async findByChallengeId() {
-        return { challenge: challenge(), consumedAt: null };
+    evidence: {
+      async commitVerifiedProof() {
+        return null;
       },
-      async consumeIfUnconsumed() {
-        return false;
+      async findByReceiptId() {
+        return null;
       },
     },
   });
@@ -236,8 +257,13 @@ test('expired/replayed manufacturing challenge fails closed', async () => {
           consumedAt: '2026-09-30T16:29:30.000Z',
         };
       },
-      async consumeIfUnconsumed() {
-        throw new Error('must not consume');
+    },
+    evidence: {
+      async commitVerifiedProof() {
+        throw new Error('must not commit evidence');
+      },
+      async findByReceiptId() {
+        return null;
       },
     },
   });

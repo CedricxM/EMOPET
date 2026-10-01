@@ -34,7 +34,9 @@ const registry = JSON.parse(registrySource);
 test('#720 keeps credential activation blocked behind M4/M5 physical evidence', () => {
   assert.equal(authority.issue, 720);
   assert.match(authority.status, /M6_SERVICE_BLOCKED/);
-  assert.match(authority.status, /M4_M5_TARGET_EVIDENCE_REQUIRED/);
+  assert.match(authority.status, /M4_POP_EVIDENCE_DURABLE/);
+  assert.match(authority.status, /M5_TARGET_EVIDENCE_REQUIRED/);
+  assert.match(authority.status, /M6_SERVICE_BLOCKED/);
 
   for (const required of [
     'FRESH_SINGLE_USE_POP_PROOF_BOUND_TO_DEVICE_AND_CREDENTIAL',
@@ -53,7 +55,9 @@ test('#720 keeps credential activation blocked behind M4/M5 physical evidence', 
   assert.equal(authority.runtime.publicActivationRouteImplemented, false);
   assert.equal(authority.runtime.manufacturingPopIssuerSourceImplemented, true);
   assert.equal(authority.runtime.manufacturingPopVerifierSourceImplemented, true);
-  assert.equal(authority.runtime.manufacturingPopEvidencePersistenceImplemented, false);
+  assert.equal(authority.runtime.manufacturingPopEvidencePersistenceImplemented, true);
+  assert.equal(authority.runtime.m5DebugEvidencePersistenceImplemented, false);
+  assert.equal(authority.runtime.targetEvidencePersistenceImplemented, false);
   assert.equal(authority.runtime.manufacturingPopPublicRouteImplemented, false);
   assert.equal(authority.runtime.m4M5EvidenceStoresImplemented, false);
   assert.equal(authority.runtime.m4M5EvidenceAuthorityImplemented, false);
