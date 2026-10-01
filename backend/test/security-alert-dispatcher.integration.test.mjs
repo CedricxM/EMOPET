@@ -237,7 +237,7 @@ test('health probe surfaces stale pending and terminal failed alerts using calle
   const begun = await outbox.beginSecurityAlertDeliveryAttempt(
     alert.alertId,
     ATTEMPT_A,
-    '2026-10-01T15:00:00.000Z',
+    '2026-10-01T15:10:00.000Z',
   );
   assert.equal(begun.status, 'CREATED');
 
