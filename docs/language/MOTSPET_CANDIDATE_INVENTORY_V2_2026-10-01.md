@@ -65,7 +65,7 @@ The inventory audit fails when:
 - a `CANDIDATE_REVIEW` entry points to runtime authority;
 - authority paths or review questions are missing.
 
-This prevents candidate inventory and runtime MotsPet from drifting into two contradictory dictionaries.
+This prevents candidate inventory and runtime MotsPet from drifting into two contradictory dictionaries. The audit also checks the reverse direction: every runtime MotsPet entry must appear exactly once in the inventory, with `CONTROLLED_SEED -> EXISTING_CONTROLLED` and `HOLD -> AUTHORITY_HOLD`.
 
 ## Review sequence for remaining candidates
 
