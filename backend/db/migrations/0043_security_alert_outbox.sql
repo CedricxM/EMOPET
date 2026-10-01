@@ -45,7 +45,6 @@ CREATE TABLE security_alert_outbox (
     CHECK (
       acknowledge_by >= detected_at
       AND escalate_at >= acknowledge_by
-      AND created_at >= detected_at
     )
 );
 
