@@ -289,6 +289,30 @@
         "eli_inferred"
       ],
       "mappingRationale": "Derived walk-quality scores and WQI from dog-linked observations."
+    },
+    {
+      "table": "world_progression_events",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "world_progression"
+      ],
+      "mappingRationale": "Owner-scoped World reward ledger with bounded event/source identifiers and server-owned grant vectors; lifecycle/export authority remains unresolved."
+    },
+    {
+      "table": "world_owned_items",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "world_progression"
+      ],
+      "mappingRationale": "Owner-scoped World inventory with item id, coarse region code and build timestamp; lifecycle/export authority remains unresolved."
+    },
+    {
+      "table": "world_resource_spends",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "world_progression"
+      ],
+      "mappingRationale": "Owner-scoped World build spend ledger with bounded item/idempotency identifiers and cost vectors; lifecycle/export authority remains unresolved."
     }
   ],
   "scopeLimitations": [
