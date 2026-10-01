@@ -11,6 +11,10 @@ import {
   type BreizRightsEvidence,
   type BreizSourceDescriptor,
 } from './sourceRegistry';
+import {
+  evaluateBretagneOpenDataSchemaEvidence,
+  type BretagneOpenDataSchemaEvidence,
+} from './bretagneOpenDataSchemaEvidence';
 
 export type BretagneDatasetDomain =
   | 'territorial_context'
@@ -37,6 +41,8 @@ export interface BretagneOpenDataDatasetDescriptor {
   status: BretagneDatasetReviewStatus;
   /** Exact dataset-level reuse/review receipt. Portal-level rights are not enough. */
   rightsEvidence?: BreizRightsEvidence;
+  /** Exact primary API schema receipt. Secondary observations cannot release fields. */
+  schemaEvidence?: BretagneOpenDataSchemaEvidence;
   notes: string;
 }
 
@@ -75,7 +81,9 @@ export type BretagneDatasetRightsBlocker =
   | 'NO_DATASET_LICENCE'
   | 'NO_DATASET_RIGHTS_EVIDENCE'
   | 'DATASET_RIGHTS_EVIDENCE_NOT_GO'
-  | 'DATASET_RIGHTS_EVIDENCE_INVALID_OR_EXPIRED';
+  | 'DATASET_RIGHTS_EVIDENCE_INVALID_OR_EXPIRED'
+  | 'NO_PRIMARY_SCHEMA_EVIDENCE'
+  | 'DATASET_SCHEMA_EVIDENCE_INVALID';
 
 export interface BretagneDatasetRightsVerdict {
   datasetId: string;
@@ -115,6 +123,13 @@ export function evaluateBretagneOpenDataDatasetRights(
   }
   if (!dataset.licence.trim() || !dataset.licenceUrl.trim()) {
     blockers.push('NO_DATASET_LICENCE');
+  }
+
+  const schemaVerdict = evaluateBretagneOpenDataSchemaEvidence(dataset, nowMs);
+  if (!dataset.schemaEvidence) {
+    blockers.push('NO_PRIMARY_SCHEMA_EVIDENCE');
+  } else if (!schemaVerdict.schemaUsable) {
+    blockers.push('DATASET_SCHEMA_EVIDENCE_INVALID');
   }
 
   const evidence = dataset.rightsEvidence;
