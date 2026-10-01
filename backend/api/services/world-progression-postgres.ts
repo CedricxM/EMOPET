@@ -19,7 +19,8 @@ import {
 } from './world-progression-ledger.js';
 import {
   canAffordWorldRegionalItem,
-  type WorldRegionalCollectionItem,
+  resolveWorldRegionalCollection,
+  type WorldRegionalCollectionCatalog,
 } from './world-regional-collections.js';
 
 const RESOURCES: readonly WorldProgressionResource[] = [
@@ -70,7 +71,7 @@ export interface WorldDurableProgressionState {
 }
 
 export type WorldDurableBuildResult = {
-  decision: 'built' | 'already_owned' | 'insufficient_resources';
+  decision: 'built' | 'already_owned' | 'unknown_item' | 'insufficient_resources';
   itemId: string;
   balance: WorldProgressionBalance;
   ownedItemIds: string[];
@@ -319,7 +320,8 @@ export async function buildWorldItemDurably(input: {
   ownerId: string;
   idempotencyKey: string;
   regionCode: string;
-  item: WorldRegionalCollectionItem;
+  itemId: string;
+  catalog: WorldRegionalCollectionCatalog;
 }): Promise<WorldDurableBuildResult> {
   if (!UUID_RE.test(input.ownerId)) {
     throw new WorldProgressionPersistenceError('WORLD_BUILD_INVALID_OWNER', 'Owner id is invalid.');
@@ -334,7 +336,19 @@ export async function buildWorldItemDurably(input: {
     throw new WorldProgressionPersistenceError('WORLD_BUILD_INVALID_REGION', 'Region code is invalid.');
   }
 
-  const canonicalCost = normalizeResourceVector(input.item.cost, 'WORLD_PERSISTENCE_CORRUPT_SPEND');
+  const collection = resolveWorldRegionalCollection(input.catalog, input.regionCode);
+  const item = collection.items.find((candidate) => candidate.id === itemId);
+  if (!item) {
+    const state = await readWorldDurableProgressionState(input.ownerId);
+    return {
+      decision: 'unknown_item',
+      itemId: itemId,
+      balance: state.balance,
+      ownedItemIds: state.ownedItems.map((row) => row.itemId),
+    };
+  }
+
+  const canonicalCost = normalizeResourceVector(item.cost, 'WORLD_PERSISTENCE_CORRUPT_SPEND');
 
   return db.transaction(async (tx) => {
     await tx.execute(sql`SET LOCAL lock_timeout = '5s'`);
@@ -365,7 +379,7 @@ export async function buildWorldItemDurably(input: {
         existingSpend.costJson,
         'WORLD_PERSISTENCE_CORRUPT_SPEND',
       );
-      if (existingSpend.itemId !== input.item.id || !sameResourceVector(persistedCost, canonicalCost)) {
+      if (existingSpend.itemId !== item.id || !sameResourceVector(persistedCost, canonicalCost)) {
         throw new WorldProgressionPersistenceError(
           'WORLD_BUILD_IDEMPOTENCY_CONFLICT',
           'Build idempotency key is already bound to a different build.',
@@ -376,7 +390,7 @@ export async function buildWorldItemDurably(input: {
         .from(worldOwnedItems)
         .where(and(
           eq(worldOwnedItems.ownerId, input.ownerId),
-          eq(worldOwnedItems.itemId, input.item.id),
+          eq(worldOwnedItems.itemId, item.id),
         ))
         .limit(1);
       if (!owned) {
@@ -388,27 +402,27 @@ export async function buildWorldItemDurably(input: {
 
       return {
         decision: 'already_owned',
-        itemId: input.item.id,
+        itemId: item.id,
         balance: await readBalanceTx(tx, input.ownerId),
         ownedItemIds: (await listOwnedItemsTx(tx, input.ownerId)).map((row) => row.itemId),
       };
     }
 
     const existingOwned = await listOwnedItemsTx(tx, input.ownerId);
-    if (existingOwned.some((row) => row.itemId === input.item.id)) {
+    if (existingOwned.some((row) => row.itemId === item.id)) {
       return {
         decision: 'already_owned',
-        itemId: input.item.id,
+        itemId: item.id,
         balance: await readBalanceTx(tx, input.ownerId),
         ownedItemIds: existingOwned.map((row) => row.itemId),
       };
     }
 
     const balance = await readBalanceTx(tx, input.ownerId);
-    if (!canAffordWorldRegionalItem(balance, input.item)) {
+    if (!canAffordWorldRegionalItem(balance, item)) {
       return {
         decision: 'insufficient_resources',
-        itemId: input.item.id,
+        itemId: item.id,
         balance,
         ownedItemIds: existingOwned.map((row) => row.itemId),
       };
@@ -417,21 +431,21 @@ export async function buildWorldItemDurably(input: {
     await tx.insert(worldResourceSpends).values({
       ownerId: input.ownerId,
       idempotencyKey: input.idempotencyKey,
-      itemId: input.item.id,
+      itemId: item.id,
       costJson: canonicalCost,
       recordedAt: new Date(),
     });
 
     await tx.insert(worldOwnedItems).values({
       ownerId: input.ownerId,
-      itemId: input.item.id,
-      regionCode: input.regionCode,
+      itemId: item.id,
+      regionCode: collection.regionCode,
       builtAt: new Date(),
     });
 
     return {
       decision: 'built',
-      itemId: input.item.id,
+      itemId: item.id,
       balance: await readBalanceTx(tx, input.ownerId),
       ownedItemIds: (await listOwnedItemsTx(tx, input.ownerId)).map((row) => row.itemId),
     };
