@@ -94,6 +94,7 @@ jobs:
           scripts/hardware/tag-source-coherence.test.mjs
           scripts/security/summarize-pnpm-licenses.test.mjs
 
+      # Warm-cache benchmark marker; no validation semantics change.
       - name: Build backend for C-BARQ G9 guard
         # Turbo preserves the same package/dependency closure and can replay deterministic dist outputs.
         run: pnpm turbo run build --filter=@emopet/api...
