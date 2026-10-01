@@ -87,6 +87,15 @@ export function requireCodeqlAnalysis(run, jobs, expectedSha) {
   }
 }
 
+export function isRetryableGitHubEvidenceStatus(status) {
+  return (
+    status === 408 ||
+    status === 425 ||
+    status === 429 ||
+    (Number.isInteger(status) && status >= 500 && status <= 599)
+  );
+}
+
 export function normalizePullRequestNumber(value) {
   if (value == null || String(value).trim() === '') return null;
   if (!/^\d+$/.test(String(value)) || Number(value) < 1 || !Number.isSafeInteger(Number(value))) {
@@ -152,16 +161,44 @@ async function main() {
   }
 
   async function get(path) {
-    const response = await fetch(`https://api.github.com/repos/${repository}/${path}`, {
-      headers: {
-        Accept: 'application/vnd.github+json',
-        Authorization: `Bearer ${token}`,
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
-      signal: AbortSignal.timeout(15_000),
-    });
-    if (!response.ok) throw new Error(`GitHub evidence request failed: HTTP ${response.status}.`);
-    return response.json();
+    const url = `https://api.github.com/repos/${repository}/${path}`;
+    let lastError;
+
+    for (let attempt = 1; attempt <= 4; attempt += 1) {
+      try {
+        const response = await fetch(url, {
+          headers: {
+            Accept: 'application/vnd.github+json',
+            Authorization: `Bearer ${token}`,
+            'X-GitHub-Api-Version': '2022-11-28',
+          },
+          signal: AbortSignal.timeout(15_000),
+        });
+
+        if (response.ok) return response.json();
+
+        const error = new Error(
+          `GitHub evidence request failed: HTTP ${response.status}.`,
+        );
+
+        if (!isRetryableGitHubEvidenceStatus(response.status) || attempt === 4) {
+          throw error;
+        }
+
+        lastError = error;
+      } catch (error) {
+        lastError = error;
+        if (attempt === 4) throw error;
+      }
+
+      const waitMs = attempt * 1_000;
+      console.log(
+        `Retrying GitHub evidence request ${path} after attempt ${attempt} in ${waitMs}ms.`,
+      );
+      await delay(waitMs);
+    }
+
+    throw lastError ?? new Error('GitHub evidence request failed.');
   }
 
   async function listOpenCodeqlAlerts() {
