@@ -29,6 +29,8 @@ const paths = {
   freshness: 'state/freshness/freshness-state.json',
   freshnessSchema: 'state/freshness/freshness-state.schema.json',
   schemaMap: 'state/schemas/registry-schema-map.json',
+  transitions: 'state/history/company-transitions.jsonl',
+  transitionSchema: 'state/history/company-transition.schema.json',
 };
 
 const company = readJson(paths.company);
@@ -45,6 +47,11 @@ const corporateSchema = readJson(paths.corporateSchema);
 const freshnessState = readJson(paths.freshness);
 const freshnessSchema = readJson(paths.freshnessSchema);
 const schemaMap = readJson(paths.schemaMap);
+const transitionSchema = readJson(paths.transitionSchema);
+const transitionEvents = readText(paths.transitions)
+  .split(/\r?\n/)
+  .filter((line) => line.trim().length > 0)
+  .map((line) => JSON.parse(line));
 
 const allObjects = [
   company.company_phase,
@@ -718,6 +725,111 @@ test('redacted external Company OS views do not leak planning ranges or manufact
   );
 });
 
+
+test('Company Time Machine ledger is structurally valid, ordered and correction-safe', () => {
+  assert.ok(transitionEvents.length >= 1, 'transition ledger must contain a bootstrap event');
+
+  const ids = new Set();
+  let previousId = null;
+  let previousDate = null;
+
+  for (const [index, event] of transitionEvents.entries()) {
+    validateAgainstSchema(event, transitionSchema, transitionSchema, `transitionEvents[${index}]`);
+    assert.ok(!ids.has(event.event_id), `duplicate transition event id: ${event.event_id}`);
+    ids.add(event.event_id);
+
+    if (index === 0) {
+      assert.equal(event.kind, 'BOOTSTRAP', 'first transition event must be BOOTSTRAP');
+      assert.equal(event.previous_event_id, null, 'bootstrap event cannot point backward');
+    } else {
+      assert.equal(
+        event.previous_event_id,
+        previousId,
+        `${event.event_id} must point to the immediately preceding event`,
+      );
+    }
+
+    if (event.kind === 'CORRECTION') {
+      assert.ok(event.corrects_event_id, 'CORRECTION events must identify the corrected event');
+      assert.ok(ids.has(event.corrects_event_id), 'CORRECTION must target an earlier ledger event');
+    } else {
+      assert.equal(event.corrects_event_id, null, 'non-CORRECTION events cannot set corrects_event_id');
+    }
+
+    if (previousDate !== null) {
+      assert.ok(
+        previousDate <= event.recorded_on,
+        'transition event dates must be non-decreasing',
+      );
+    }
+
+    for (const ref of [
+      ...(event.authority_refs ?? []),
+      ...(event.evidence_refs ?? []),
+      ...(event.decision_refs ?? []),
+    ]) {
+      assertRef(ref, event.event_id);
+    }
+
+    previousId = event.event_id;
+    previousDate = event.recorded_on;
+  }
+});
+
+async function fetchBaseTransitionLedger() {
+  const eventPath = process.env.GITHUB_EVENT_PATH;
+  const repository = process.env.GITHUB_REPOSITORY;
+
+  if (!eventPath || !repository || !existsSync(eventPath)) return null;
+
+  const event = JSON.parse(readText(eventPath));
+  const baseSha = event.pull_request?.base?.sha;
+  if (!baseSha) return null;
+
+  const url =
+    `https://api.github.com/repos/${repository}/contents/${paths.transitions}?ref=${baseSha}`;
+  const headers = {
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+  if (process.env.GITHUB_TOKEN) {
+    headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
+  }
+
+  const response = await fetch(url, { headers });
+  if (response.status === 404) return '';
+
+  assert.equal(
+    response.status,
+    200,
+    `failed to fetch base transition ledger: HTTP ${response.status}`,
+  );
+
+  const payload = await response.json();
+  return Buffer.from(payload.content.replaceAll('\n', ''), 'base64').toString('utf8');
+}
+
+test('Company Time Machine ledger is append-only against the pull-request base', async () => {
+  const baseLedger = await fetchBaseTransitionLedger();
+  if (baseLedger === null) return;
+
+  const currentLedger = readText(paths.transitions);
+
+  if (baseLedger.length === 0) {
+    assert.equal(
+      transitionEvents[0]?.kind,
+      'BOOTSTRAP',
+      'first ledger introduction must start with a BOOTSTRAP event',
+    );
+    return;
+  }
+
+  assert.ok(
+    currentLedger.startsWith(baseLedger),
+    'existing transition ledger bytes are immutable; append new records instead of editing history',
+  );
+});
+
 test('Company OS human views disclose projection/non-authority status', () => {
   const disclosures = {
     'STATE.md': /NOT DOMAIN AUTHORITY/,
@@ -732,6 +844,7 @@ test('Company OS human views disclose projection/non-authority status', () => {
     'FOUNDER_COCKPIT.md': /NOT DECISION AUTHORITY/,
     'INVESTOR_VIEW.md': /NOT FUNDRAISING AUTHORITY/,
     'SUPPLIER_VIEW.md': /NOT RELEASE AUTHORITY/,
+    'TIME_MACHINE.md': /NOT DECISION AUTHORITY/,
   };
 
   for (const [path, pattern] of Object.entries(disclosures)) {
