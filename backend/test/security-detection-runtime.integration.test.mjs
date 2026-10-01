@@ -79,11 +79,50 @@ function denialEvent(index) {
   };
 }
 
+function sensitiveAccessEvent(index) {
+  return {
+    eventType: 'privileged_sensitive_access',
+    occurredAt: `2026-09-30T10:01:${String(index * 10).padStart(2, '0')}.000Z`,
+    actor: {
+      kind: 'privileged_human',
+      subject: ACTOR_ID,
+      role: 'support',
+    },
+    action: 'moderation.queue.read',
+    target: {
+      scope: 'support_case',
+      ref: `detect525:sensitive-${index}`,
+    },
+    outcome: 'allowed',
+    reason: 'allowed',
+  };
+}
+
+function machineAttemptEvent() {
+  return {
+    eventType: 'privileged_authority_decision',
+    occurredAt: '2026-09-30T10:01:30.000Z',
+    actor: {
+      kind: 'machine',
+      subject: 'service:detect525-worker',
+      role: null,
+    },
+    action: 'moderation.queue.read',
+    target: {
+      scope: 'system',
+      ref: null,
+    },
+    outcome: 'denied',
+    reason: 'machine_principal_not_supported',
+  };
+}
+
 async function cleanup() {
   if (!sql) return;
   await sql`
     DELETE FROM security_audit_events
     WHERE target_ref LIKE 'detect525:%'
+       OR actor_subject = 'service:detect525-worker'
   `;
 }
 
@@ -152,6 +191,49 @@ test('runtime reads canonical durable audit events and evaluates the existing de
     WHERE target_ref LIKE 'detect525:%'
   `;
   assert.equal(afterRows[0].count, before[0].count);
+});
+
+test('DB-backed runtime exercise surfaces all three canonical detector paths', {
+  skip: !enabled,
+}, async () => {
+  await cleanup();
+
+  for (let index = 0; index < 3; index += 1) {
+    const denial = await persistSecurityAuditEvent(denialEvent(index));
+    assert.equal(denial.ok, true);
+
+    const access = await persistSecurityAuditEvent(sensitiveAccessEvent(index));
+    assert.equal(access.ok, true);
+  }
+
+  const machine = await persistSecurityAuditEvent(machineAttemptEvent());
+  assert.equal(machine.ok, true);
+
+  const result = await runSecurityDetectionScan(request());
+  assert.equal(result.status, 'EVALUATED');
+  if (result.status !== 'EVALUATED') return;
+
+  assert.equal(result.eventCount, 7);
+  assert.deepEqual(
+    result.detections.map((detection) => detection.type).sort(),
+    [
+      'machine_privileged_authority_attempt',
+      'rapid_multi_target_access',
+      'repeated_privileged_denials',
+    ],
+  );
+
+  const summary = summarizeSecurityDetectionRuntimeResult(result);
+  assert.deepEqual(summary.detectionTypes, {
+    repeated_privileged_denials: 1,
+    rapid_multi_target_access: 1,
+    machine_privileged_authority_attempt: 1,
+  });
+
+  const serialized = JSON.stringify(summary);
+  assert.equal(serialized.includes(ACTOR_ID), false);
+  assert.equal(serialized.includes('service:detect525-worker'), false);
+  assert.equal(serialized.includes('detect525:sensitive-'), false);
 });
 
 test('worker-safe summary strips actor keys and target references', {
