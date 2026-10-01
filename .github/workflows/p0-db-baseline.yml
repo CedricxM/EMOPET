@@ -91,9 +91,9 @@ jobs:
           POSTGRES_DB: emopet_qa
         ports:
           - 5432:5432
+        # Poll readiness sooner without shrinking the existing ~50s retry window.
         options: >-
           --health-cmd "pg_isready -U emopet_qa -d emopet_qa"
-          # Poll readiness sooner without shrinking the existing ~50s retry window.
           --health-interval 2s
           --health-timeout 5s
           --health-retries 25
