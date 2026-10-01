@@ -1,7 +1,7 @@
 # EMOPET — Current Company State
 
 **Snapshot date:** 2026-10-01  
-**Snapshot base:** `main@34f7f71cf0a270af81aa1be2e404210adfffa95b`  
+**Snapshot base:** `main@a7e9002fbd744641128aad3c3ac1a06a4dd3564e`  
 **Status:** `COMPANY STATE PROJECTION / NOT DOMAIN AUTHORITY`  
 **Machine-readable source:** `state/company-state.json`
 
@@ -25,7 +25,7 @@ Authority: `docs/strategy/PROJECT_TIMELINE_2026_2027.md`.
 | ELI | `GATED` | Advance only through controlled scientific/product gates with provenance + abstention |
 | World / Unity | `GATED / NOT PRODUCTION AUTHORITY` | Live loopback Unity → Hono → Nakama spike evidenced; keep gated until explicit product-value and production-readiness authority |
 | Funding | `PROJECT_DECISION / EVIDENCE-GATED` | Build sourced cost, milestone, runway and verified funding state |
-| Corporate / IP | `OPEN` | Safe entity/founder/IP/contribution index without exposing restricted material |
+| Corporate / IP | `OPEN / INDEXED / EVIDENCE-GATED` | Advance entity, provenance, third-party-rights and repository-policy gates through controlled evidence; see `CORPORATE.md` |
 
 ## Critical company gates
 
@@ -57,7 +57,7 @@ No invented pricing, sales volume, grant award or data-revenue assumption should
 
 **Question:** are contribution ownership, third-party rights and public-repository policy controlled before scale?
 
-Related gates include `#114`, `#116` and `#680`.
+Related gates include `#114`, `#116` and `#680`. The public-safe projection is indexed in `CORPORATE.md` and `state/corporate/corporate-state.json`.
 
 ## Resource-allocation principle
 
