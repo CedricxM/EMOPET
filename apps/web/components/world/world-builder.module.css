@@ -54,7 +54,7 @@
 .heroLead {
   margin: 0;
   max-width: 650px;
-  color: rgba(251, 247, 241, 0.82);
+  color: var(--cream-50);
   font-size: var(--text-lg);
   line-height: var(--lh-relaxed);
 }
