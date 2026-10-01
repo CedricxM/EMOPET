@@ -265,15 +265,11 @@ export async function dispatchNextSecurityAlert(
     };
   }
 
-  if (adapterResult.status === 'ATTEMPT_FAILED') {
-    return failAttempt(
-      claimed.attemptId,
-      resolvedAt,
-      'ADAPTER_FAILURE',
-    );
-  }
-
-  return { status: 'PENDING_PRESERVED', attemptId: claimed.attemptId };
+  return failAttempt(
+    claimed.attemptId,
+    resolvedAt,
+    'ADAPTER_FAILURE',
+  );
 }
 
 /**
