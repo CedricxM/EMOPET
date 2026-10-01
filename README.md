@@ -116,7 +116,7 @@ That evidence is **disposable QA, not production migration authority**. Known cl
 Repository-native controls are materially stronger than the original baseline, but they are not fully closed:
 
 - the active `main-protection` ruleset requires pull-request promotion and conversation resolution and blocks branch deletion/non-fast-forward updates;
-- all 33 current `scripts/control/*.test.mjs` authority tests now have a CI execution path;
+- all current `scripts/control/*.test.mjs` authority tests have a CI execution path enforced by the dynamic coverage guard;
 - `.github/workflows/windows-portability.yml` adds a targeted `windows-latest` gate for checkout attributes, byte-sensitive evidence, Windows-sensitive guards and web tests;
 - the seven selected repository-owned security/supply-chain status checks are **required by the active `main-protection` ruleset**; #257 is completed;
 - `P0 DB baseline validation` remains intentionally excluded from global required checks because it is path-scoped; DB-scoped changes still receive its own PR evidence;

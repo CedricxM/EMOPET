@@ -133,7 +133,7 @@ Both workstreams remain `GATED / NOT PRODUCTION AUTHORITY` until their own activ
 ## 9. CI, deployment, and repository controls
 
 - GitHub Actions runs repository-owned Security supply-chain, P0 DB (path-scoped), Owner-terminology and targeted Windows-portability workflows;
-- all 33 current `scripts/control/*.test.mjs` authority tests have a CI execution path, either directly or through a package-script alias invoked by CI;
+- all current `scripts/control/*.test.mjs` authority tests have a CI execution path, with dynamic coverage enforcement preventing newly added root control tests from silently bypassing pull-request CI;
 - the Windows gate verifies cross-platform checkout attributes, generated-source byte stability, VBO committed-snapshot evidence, Windows-sensitive path/guard behavior and the web test suite on `windows-latest`;
 - the active `main-protection` repository ruleset requires pull-request promotion and conversation resolution, blocks branch deletion and non-fast-forward updates, uses 0 required approvals for the current single-admin ownership model, and has no bypass actors;
 - **seven selected repository-owned security/supply-chain status checks are required by the active `main-protection` ruleset**, making them mechanical merge prerequisites; #257 is completed;
