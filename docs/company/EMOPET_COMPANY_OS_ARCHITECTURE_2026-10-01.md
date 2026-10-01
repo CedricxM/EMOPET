@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-01  
 **Status:** `PROPOSED COMPANY CONTROL PLANE / DOES NOT REPLACE DOMAIN AUTHORITIES`  
-**Branch base:** `main@b8c4b17d4905a6bd04bbe0770358bdec796a402f`
+**Branch base:** `main@769987f9b0de6f0e1cb45d38c283a7308075044a`
 
 ## 1. Purpose
 
@@ -125,19 +125,27 @@ The every-PR Company OS guard validates those registry files against their decla
 
 Schema conformance does not make a claim true. It only prevents malformed or dangling projections from masquerading as controlled state.
 
+### Generated human views
+
+`STATE.md`, `CORPORATE.md`, and `FRESHNESS.md` are deterministic renderings of machine-readable Company OS state through `scripts/control/generate-company-os-views.mjs`.
+
+The every-PR Company OS guard compares committed bytes against fresh renders. A manual edit that is not backed by machine-readable state therefore fails closed instead of silently creating a second source of truth.
+
+Generation changes presentation only. It does not promote substantive status, reset freshness, create evidence, or override a controlled domain authority.
+
 ## 6. Core company surfaces
 
 | Surface | Purpose | Authority behavior |
 |---|---|---|
 | `COMPANY.md` | Front door to EMOPET as a company | Navigation only |
-| `STATE.md` | Human-readable current snapshot | Projection, not domain authority |
+| `STATE.md` | Generated human-readable current snapshot | Projection, not domain authority |
 | `state/company-state.json` | Machine-readable current snapshot | Projection with authority/evidence refs |
 | `MILESTONES.md` | Stage gates and proof sequence | V1 projection/index |
 | `METRICS.md` | Evidence/traction/quality metrics | V1 projection/index |
 | `RISKS.md` | Company risk register and kill gates | V1 projection/index |
 | `FINANCE_STATE.md` | Unit economics, runway, funding state | V1 public-safe projection; no invented values |
-| `CORPORATE.md` | Public-safe entity, governance, IP and rights state | V2 projection/index; restricted evidence stays external |
-| `FRESHNESS.md` | Review cadence, CURRENT/REVIEW_DUE/STALE semantics | V2 projection/index; never substitutes for domain review |
+| `CORPORATE.md` | Generated public-safe entity, governance, IP and rights state | V2 projection/index; restricted evidence stays external |
+| `FRESHNESS.md` | Generated review cadence, CURRENT/REVIEW_DUE/STALE view | V2 projection/index; never substitutes for domain review |
 | `state/freshness/freshness-state.json` | Machine-readable freshness overlay | V2 projection with decision-use guardrails |
 | `state/schemas/registry-schema-map.json` | Registry → JSON Schema contract map | V2 structural contract; not domain authority |
 | `EXPERIMENTS.md` | Hypothesis → test → result → decision ledger | V1 projection/index |
@@ -238,12 +246,11 @@ Any AI agent doing substantive EMOPET work should:
 
 V1 includes the company front door, machine-readable state, milestone/experiment/finance/metrics/risk/unknowns registries, and an every-PR structural evidence guard.
 
-V2 adds the public-safe Corporate/IP projection, the freshness overlay, and per-registry schema contracts with cross-object dependency validation. Freshness remains conservative, and structural validity never substitutes for domain evidence or authority.
+V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, and deterministic human views generated from machine-readable state. Freshness remains conservative, and structural or presentation validity never substitutes for domain evidence or authority.
 
 Next bounded slices should add, in order:
 
-1. generated human views from machine-readable state to prevent drift;
-2. founder cockpit derived from controlled state;
-3. redacted investor and supplier views derived from the same controlled state.
+1. founder cockpit derived from controlled state;
+2. redacted investor and supplier views derived from the same controlled state.
 
 Each slice must remain incremental and must not manufacture certainty to make the cockpit look complete.
