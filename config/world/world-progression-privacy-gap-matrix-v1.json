@@ -128,7 +128,18 @@
           "breiz-map-user-spots"
         ],
         "promotionTreatment": "RETIRE_MIGRATE_OR_EXPLICITLY_EXCLUDE_FROM_G1B2_AUTHORITY",
-        "note": "Legacy Owner gamification counters/read state are not the G2 ledger but still block a blanket no-non-SQL-copy claim."
+        "note": "Legacy Owner gamification/read state and browser-derived counters are not the G2 ledger but still block a blanket no-non-SQL-copy claim."
+      },
+      {
+        "path": "apps/web/lib/community.ts",
+        "mechanism": "localStorage",
+        "status": "LEGACY_NON_SQL_COMMUNITY_STATE_FEEDS_GAMIFICATION",
+        "observedKeys": [
+          "breiz-community-memberships",
+          "breiz-community-events"
+        ],
+        "promotionTreatment": "RETIRE_MIGRATE_OR_EXPLICITLY_EXCLUDE_FROM_G1B2_AUTHORITY",
+        "note": "Legacy Community membership/event browser state is consumed by the old gamification counter path and therefore belongs in the non-SQL cutover inventory."
       }
     ]
   },
