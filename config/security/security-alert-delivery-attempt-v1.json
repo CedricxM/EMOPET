@@ -36,8 +36,14 @@
     "backoffSelected": false,
     "slaApproved": false,
     "acknowledgementIngestionActivated": false,
-    "databasePersistenceActivated": false,
     "httpRouteAdded": false
   },
-  "durableOutboxFollowUp": "BLOCKED_FROM_THIS_SLICE_BY_CONCURRENT_0042_MIGRATION_OWNERSHIP_IN_PR_858"
+  "durableOutboxFollowUp": "DELIVERED_BY_ISSUE_863_PR_879",
+  "durability": {
+    "databasePersistenceActivated": true,
+    "issue": 863,
+    "mergedPr": 879,
+    "outboxTable": "security_alert_outbox",
+    "attemptTable": "security_alert_delivery_attempts"
+  }
 }
