@@ -55,6 +55,28 @@ runtimeTest('WORLD-G2 durable ledger/build persistence is replay-safe, anti-farm
         (${ownerA}, ${`world-g2-a-${suffix}@example.test`}, 'test-only-hash', 'World G2 A'),
         (${ownerB}, ${`world-g2-b-${suffix}@example.test`}, 'test-only-hash', 'World G2 B')`;
 
+    await assert.rejects(
+      () => sqlClient`
+        INSERT INTO world_progression_events
+          (owner_id, idempotency_key, event_kind, source_ref, grants_json)
+        VALUES (
+          ${ownerA},
+          'direct:inflated:001',
+          'knowledge.card_read',
+          'knowledge:direct:inflated',
+          ${sqlClient.json({ knowledgeFragments: 999999 })}
+        )
+      `,
+      (error) => {
+        assert.equal(error.code, '23514');
+        assert.equal(
+          error.constraint_name,
+          'chk_world_progression_events_grants_exact',
+        );
+        return true;
+      },
+    );
+
     const sourceAuthority = {
       async isAuthorizedSource() {
         return true;
@@ -205,6 +227,34 @@ runtimeTest('WORLD-G2 durable ledger/build persistence is replay-safe, anti-farm
       sameItem.map((result) => result.decision).sort(),
       ['already_owned', 'built'],
     );
+
+    const repricedGlobalCollection = {
+      ...globalCollection,
+      items: globalCollection.items.map((item) =>
+        item.id === 'memory-lantern'
+          ? { ...item, cost: { memoryThreads: 999 } }
+          : item
+      ),
+    };
+    const stableReplay = await builder.build({
+      ownerId: ownerB,
+      idempotencyKey: 'build:g2:memory-lantern:001',
+      collection: repricedGlobalCollection,
+      itemId: 'memory-lantern',
+    });
+    assert.equal(stableReplay.decision, 'duplicate');
+
+    const retiredItemCollection = {
+      ...globalCollection,
+      items: globalCollection.items.filter((item) => item.id !== 'memory-lantern'),
+    };
+    const retiredReplay = await builder.build({
+      ownerId: ownerB,
+      idempotencyKey: 'build:g2:memory-lantern:001',
+      collection: retiredItemCollection,
+      itemId: 'memory-lantern',
+    });
+    assert.equal(retiredReplay.decision, 'duplicate');
 
     const [sameItemCounts] = await sqlClient`
       SELECT
