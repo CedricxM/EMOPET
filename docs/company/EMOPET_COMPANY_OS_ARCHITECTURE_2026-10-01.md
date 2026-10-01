@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-01  
 **Status:** `PROPOSED COMPANY CONTROL PLANE / DOES NOT REPLACE DOMAIN AUTHORITIES`  
-**Branch base:** `main@f769168be4f5cf16fd1a9ca221ac400f20f8a312`
+**Branch base:** `main@e4ac25aa70fa7efb2552f8e84f937bf050cc8028`
 
 ## 1. Purpose
 

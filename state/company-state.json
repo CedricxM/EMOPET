@@ -3,7 +3,7 @@
   "snapshot": {
     "date": "2026-10-01",
     "base_ref": "main",
-    "base_sha": "f769168be4f5cf16fd1a9ca221ac400f20f8a312"
+    "base_sha": "e4ac25aa70fa7efb2552f8e84f937bf050cc8028"
   },
   "authority_mode": "INDEX_PROJECTION_NOT_DOMAIN_AUTHORITY",
   "company_phase": {
@@ -107,7 +107,7 @@
       "domain": "product",
       "label": "World / Unity",
       "status": "GATED / NOT PRODUCTION AUTHORITY",
-      "statement": "Unity is absent from main and World/Nakama experimentation is not canonical production authority. It must not become a launch dependency without a later gate decision.",
+      "statement": "A validated loopback live Unity → Hono → Nakama spike now exists on main, covering two-user bootstrap, presence, preset chat, renewal, and degraded transport. This is spike evidence only and does not authorize production World release, durable client authority, deployment readiness, or product-value conclusions.",
       "authority_refs": [
         {
           "kind": "path",
@@ -116,10 +116,23 @@
         {
           "kind": "path",
           "value": "docs/control/EMOPET_PRODUCT_AUTHORITY_MAP_v0.1.md"
+        },
+        {
+          "kind": "path",
+          "value": "unity/world/README.md"
+        },
+        {
+          "kind": "path",
+          "value": "docs/implementation/WORLD_UNITY_LIVE_VALIDATION_2026-10-01.md"
         }
       ],
-      "evidence_refs": [],
-      "next_gate": "Keep experimental work isolated until explicit value, retention and production-readiness gates justify promotion."
+      "evidence_refs": [
+        {
+          "kind": "path",
+          "value": "docs/implementation/WORLD_UNITY_LIVE_VALIDATION_2026-10-01.md"
+        }
+      ],
+      "next_gate": "Keep World outside production authority until explicit product-value, retention, security/deployment, and production-readiness gates justify promotion."
     },
     {
       "id": "EMO-WS-FUNDING",

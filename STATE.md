@@ -1,7 +1,7 @@
 # EMOPET — Current Company State
 
 **Snapshot date:** 2026-10-01  
-**Snapshot base:** `main@f769168be4f5cf16fd1a9ca221ac400f20f8a312`  
+**Snapshot base:** `main@e4ac25aa70fa7efb2552f8e84f937bf050cc8028`  
 **Status:** `COMPANY STATE PROJECTION / NOT DOMAIN AUTHORITY`  
 **Machine-readable source:** `state/company-state.json`
 
@@ -23,7 +23,7 @@ Authority: `docs/strategy/PROJECT_TIMELINE_2026_2027.md`.
 | TAG | `OBSERVED_PARTIAL / VALIDATION OPEN` | Controlled physical/end-to-end evidence before production claims |
 | Core software | `OBSERVED / PRODUCTION GATES OPEN` | Close narrow identity, durable backend-contract and release-authority gaps |
 | ELI | `GATED` | Advance only through controlled scientific/product gates with provenance + abstention |
-| World / Unity | `GATED / NOT PRODUCTION AUTHORITY` | Keep isolated until explicit value and production gates justify promotion |
+| World / Unity | `GATED / NOT PRODUCTION AUTHORITY` | Live loopback Unity → Hono → Nakama spike evidenced; keep gated until explicit product-value and production-readiness authority |
 | Funding | `PROJECT_DECISION / EVIDENCE-GATED` | Build sourced cost, milestone, runway and verified funding state |
 | Corporate / IP | `OPEN` | Safe entity/founder/IP/contribution index without exposing restricted material |
 
