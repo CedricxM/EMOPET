@@ -9,11 +9,11 @@ P0 adds:
 - Dependabot for npm/pnpm manifests and GitHub Actions;
 - dependency audit in CI with the complete JSON report retained as a workflow artifact;
 - Semgrep security SAST as the repository-independent blocking static-analysis gate;
-- CodeQL JavaScript/TypeScript as a best-effort secondary scanner when GitHub Code Security / Advanced Security is available for the private repository;
+- CodeQL JavaScript/TypeScript default-setup evidence as a repository-required security check, alongside Semgrep as the repository-owned blocking SAST control;
 - CycloneDX and SPDX SBOM generation as build artifacts;
 - Gitleaks secret scanning with pull-request read permission and full-history checkout.
 
-A green workflow is evidence for that commit only; it is not a general production-security claim. A best-effort CodeQL result must never be represented as passing if GitHub refuses analysis/upload because the private repository does not have the required Code Security entitlement enabled; Semgrep remains the blocking SAST control in that case.
+A green workflow is evidence for that commit only; it is not a general production-security claim. The active `main-protection` ruleset requires `CodeQL default setup evidence` and the other selected security/supply-chain contexts before merge. Semgrep remains an independent repository-owned SAST gate.
 
 ## Dependency vulnerability gate
 
@@ -40,6 +40,19 @@ Before a production software release, EMOPET must define and implement:
 - dependency and vulnerability disposition at release time.
 
 Preferred future direction: Sigstore/cosign or an equivalent controlled signing/attestation flow. Selection remains `TO_CONFIRM`.
+
+### Production release authority
+
+Production release and deployment authority is tracked under #831.
+
+Canonical provider-neutral evidence contracts:
+
+- `config/release/production-release-evidence-contract-v1.json` with its doctrine at `docs/control/PRODUCTION_RELEASE_EVIDENCE_CONTRACT_2026-10-01.md`;
+- `config/release/production-db-migration-authority-v1.json` with its doctrine at `docs/control/PRODUCTION_DB_MIGRATION_AUTHORITY_2026-10-01.md`.
+
+These contracts are **fail-closed control surfaces, not deployment permission**. Their checked-in defaults explicitly deny production release and production migration authority. A green security workflow, a green P0 DB run, an SBOM artifact, or the `Release provenance gate` alone does not authorize a production release.
+
+Until #831's external and operational gates are satisfied, `G-PROD-RELEASE-AUTHORITY = OPEN` and `PRODUCTION_DB_MIGRATION = NOT AUTHORIZED`.
 
 ## Firmware / device update security
 
