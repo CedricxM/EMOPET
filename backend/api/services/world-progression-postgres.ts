@@ -5,6 +5,7 @@ import {
   worldProgressionEvents,
   worldResourceSpends,
 } from '../../db/schema/index.js';
+import { SAFE_WORLD_REWARDS } from './world-progression-ledger.js';
 import type {
   WorldProgressionAppendResult,
   WorldProgressionBalance,
@@ -34,13 +35,23 @@ function emptyBalance(): WorldProgressionBalance {
 }
 
 function rowToEntry(row: typeof worldProgressionEvents.$inferSelect): WorldProgressionLedgerEntry {
+  if (!Object.prototype.hasOwnProperty.call(SAFE_WORLD_REWARDS, row.eventKind)) {
+    throw new Error('WORLD_PROGRESSION_PERSISTED_EVENT_KIND_INVALID');
+  }
+
+  const kind = row.eventKind as WorldProgressionEventKind;
+  const grants = validatePersistedResourceMap(row.grantsJson, 'grant');
+  if (!sameResourceMap(grants, SAFE_WORLD_REWARDS[kind])) {
+    throw new Error('WORLD_PROGRESSION_PERSISTED_GRANT_MISMATCH');
+  }
+
   return {
     id: row.id,
     ownerId: row.ownerId,
     idempotencyKey: row.idempotencyKey,
-    kind: row.eventKind as WorldProgressionEventKind,
+    kind,
     sourceRef: row.sourceRef,
-    grants: validatePersistedResourceMap(row.grantsJson, 'grant'),
+    grants,
     recordedAt: row.recordedAt,
   };
 }
@@ -64,7 +75,7 @@ function validatePersistedResourceMap(
   for (const resource of WORLD_RESOURCES) {
     if (!(resource in raw)) continue;
     const amount = raw[resource];
-    if (!Number.isInteger(amount) || Number(amount) <= 0) {
+    if (!Number.isSafeInteger(amount) || Number(amount) <= 0) {
       throw new Error(`WORLD_PROGRESSION_PERSISTED_${label.toUpperCase()}_INVALID`);
     }
     clean[resource] = Number(amount);
@@ -74,6 +85,15 @@ function validatePersistedResourceMap(
     throw new Error(`WORLD_PROGRESSION_PERSISTED_${label.toUpperCase()}_INVALID`);
   }
   return clean;
+}
+
+function sameResourceMap(
+  left: WorldProgressionGrant,
+  right: WorldProgressionGrant,
+): boolean {
+  return WORLD_RESOURCES.every(
+    (resource) => Number(left[resource] ?? 0) === Number(right[resource] ?? 0),
+  );
 }
 
 export function applyPersistedWorldResourceMap(
