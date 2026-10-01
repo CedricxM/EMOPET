@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "emopet-production-transport-security-authority-v1",
+  "status": "CONTRACT_ONLY / PRODUCTION_TRANSPORT_SECURITY_UNVERIFIED",
+  "issue": 964,
+  "parentIssue": 831,
+  "launchSecurityIssue": 214,
+  "claimsProductionTransportSecurity": false,
+  "claimsHttpsVerified": false,
+  "claimsHstsPolicyApproved": false,
+  "claimsEdgeToOriginProtectionVerified": false,
+  "environmentBinding": {
+    "requiredEnvironment": "production",
+    "authorityRefRequired": true,
+    "meaning": "EVIDENCE MUST BIND TO THE REVIEWED PRODUCTION ENVIRONMENT / NO ENVIRONMENT CONFIGURED HERE"
+  },
+  "evidenceStates": {
+    "allowed": [
+      "DRAFT_UNVERIFIED",
+      "REVIEWED_HOLD",
+      "REVIEWED_EVIDENCE_ACCEPTED"
+    ],
+    "templateDefault": "DRAFT_UNVERIFIED",
+    "meaning": "REVIEWED_EVIDENCE_ACCEPTED IS TRANSPORT EVIDENCE ONLY / NOT RELEASE AUTHORITY"
+  },
+  "allowedObservedDispositions": {
+    "httpPlaintext": [
+      "UNVERIFIED",
+      "REDIRECTS_TO_HTTPS",
+      "REJECTS_PLAINTEXT",
+      "NOT_EXPOSED_REVIEWED"
+    ],
+    "hsts": [
+      "UNVERIFIED",
+      "ENABLED_REVIEWED",
+      "DISABLED_REVIEWED"
+    ],
+    "edgeToOrigin": [
+      "UNVERIFIED",
+      "TLS_VERIFIED",
+      "PRIVATE_TRUSTED_NETWORK_REVIEWED",
+      "NOT_APPLICABLE_REVIEWED"
+    ]
+  },
+  "requiredEvidenceFields": [
+    "schemaVersion",
+    "state",
+    "environment.name",
+    "environment.authorityRef",
+    "publicOrigin.authorityRef",
+    "https.evidenceRef",
+    "httpPlaintext.disposition",
+    "httpPlaintext.evidenceRef",
+    "tls.terminationAuthorityRef",
+    "tls.certificateEvidenceRef",
+    "tls.protocolEvidenceRef",
+    "hsts.disposition",
+    "hsts.evidenceRef",
+    "securityHeaders.evidenceRef",
+    "edgeToOrigin.disposition",
+    "edgeToOrigin.evidenceRef",
+    "review.approverRef",
+    "review.reviewedAt"
+  ],
+  "formats": {
+    "evidenceRef": "NON_SECRET_REPOSITORY_OR_PROVIDER_REFERENCE",
+    "reviewedAt": "RFC3339_UTC"
+  },
+  "evidenceReceiptTemplate": {
+    "schemaVersion": "emopet-production-transport-security-receipt-v1",
+    "state": "DRAFT_UNVERIFIED",
+    "environment": {
+      "name": "production",
+      "authorityRef": null
+    },
+    "publicOrigin": {
+      "authorityRef": null
+    },
+    "https": {
+      "evidenceRef": null
+    },
+    "httpPlaintext": {
+      "disposition": "UNVERIFIED",
+      "evidenceRef": null
+    },
+    "tls": {
+      "terminationAuthorityRef": null,
+      "certificateEvidenceRef": null,
+      "protocolEvidenceRef": null
+    },
+    "hsts": {
+      "disposition": "UNVERIFIED",
+      "evidenceRef": null
+    },
+    "securityHeaders": {
+      "evidenceRef": null
+    },
+    "edgeToOrigin": {
+      "disposition": "UNVERIFIED",
+      "evidenceRef": null
+    },
+    "review": {
+      "approverRef": null,
+      "reviewedAt": null
+    }
+  },
+  "failClosedRules": [
+    "This contract proves no live production HTTPS, TLS, HSTS, security-header or edge-to-origin state by itself.",
+    "Localhost, local HTTPS, preview deployments and CI success are not production transport-security evidence.",
+    "Transport evidence must bind to the exact reviewed production environment and public-origin authority.",
+    "HTTP plaintext handling must be explicitly evidenced rather than inferred.",
+    "TLS termination, certificate and protocol evidence must come from the reviewed live ingress or provider authority.",
+    "HSTS disposition and any max-age/includeSubDomains/preload values must come from reviewed live evidence; this contract selects none.",
+    "Edge-to-origin transport must remain UNVERIFIED until its protection boundary is explicitly classified and evidenced.",
+    "Missing, stale, mismatched or UNVERIFIED transport evidence keeps the production release receipt HOLD.",
+    "Private keys, certificate private material, provider tokens, credentials and secret values must never appear in evidence receipts or logs.",
+    "This contract selects no provider, deployment platform, domain, certificate authority, HSTS value or edge architecture."
+  ]
+}
