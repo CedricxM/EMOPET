@@ -123,7 +123,7 @@ Repository-native controls are materially stronger than the original baseline, b
 - GitHub reports `delete_branch_on_merge=true`; controlled cleanup of legacy/stale branches remains open under #679;
 - the repository is public while licence/contribution ownership and CODEOWNERS policy remain an explicit decision under #680.
 
-Do not treat a green workflow as equivalent to repository-enforced required-check policy until #257 is closed.
+Repository-enforced required-check policy applies to the seven contexts listed above; path-scoped `P0 DB baseline validation` remains a separate DB-change evidence gate.
 
 ## Docker warning
 
