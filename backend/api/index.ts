@@ -14,6 +14,7 @@ import { dataExport } from './routes/data-export.js';
 import { blocks } from './routes/blocks.js';
 import { connections } from './routes/connections.js';
 import { internalSecurityAudit } from './routes/internal-security-audit.js';
+import { internalSecurityAlertAck } from './routes/internal-security-alert-ack.js';
 import { configuredWorldSpike } from './routes/world-spike.js';
 import { authMiddleware } from './middleware/auth.js';
 import { rateLimitMiddleware } from './middleware/rate-limit.js';
@@ -52,6 +53,7 @@ app.get('/health', (c) => c.json({ status: 'ok', version: '1.0.0' }));
 // Service-authenticated, not user-authenticated. Must be mounted before the
 // ordinary /api/* user JWT middleware and never reuse user access tokens.
 app.route('/internal/security-audit', internalSecurityAudit);
+app.route('/internal/security-alert-ack', internalSecurityAlertAck);
 
 // ── Public Routes ───────────────────────────────────────────────
 
