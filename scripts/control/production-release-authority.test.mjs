@@ -104,7 +104,7 @@ test('production release receipt cannot drop immutable identity or readiness evi
 
   const rules = release.failClosedRules.join('\n');
   assert.match(rules, /green P0 DB baseline validation run/i);
-  assert.match(rules, /not.*production.*migration authority/i);
+  assert.match(rules, /(?:not|never).*production.*migration authority/i);
   assert.match(rules, /UNVERIFIED transport-security or backup\/restore/i);
   assert.match(rules, /keeps production authority OPEN/i);
   assert.match(rules, /Missing artifact digest, commit SHA, SBOM/i);
