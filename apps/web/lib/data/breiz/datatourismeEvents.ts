@@ -99,8 +99,31 @@ function integerOrNull(value: unknown): number | null {
   return Number.isSafeInteger(value) ? (value as number) : null;
 }
 
-function stringOrNull(value: unknown): string | null {
-  return nonEmptyString(value);
+export function sanitizeDatatourismePaginationLink(value: unknown): string | null {
+  const raw = nonEmptyString(value);
+  if (!raw) return null;
+
+  let url: URL;
+  try {
+    url = new URL(raw, 'https://api.datatourisme.fr');
+  } catch {
+    return null;
+  }
+
+  if (url.protocol !== 'https:' || url.hostname !== 'api.datatourisme.fr') {
+    return null;
+  }
+  if (!url.pathname.startsWith('/v1/')) {
+    return null;
+  }
+
+  for (const key of [...url.searchParams.keys()]) {
+    if (/api[_-]?key|token|secret/i.test(key)) {
+      url.searchParams.delete(key);
+    }
+  }
+
+  return url.toString();
 }
 
 /**
@@ -144,8 +167,8 @@ export function parseDatatourismeBretagneEventsResponse(
       page: integerOrNull(payload.meta.page),
       pageSize: integerOrNull(payload.meta.page_size),
       totalPages: integerOrNull(payload.meta.total_pages),
-      next: stringOrNull(payload.meta.next),
-      previous: stringOrNull(payload.meta.previous),
+      next: sanitizeDatatourismePaginationLink(payload.meta.next),
+      previous: sanitizeDatatourismePaginationLink(payload.meta.previous),
     };
   }
 
