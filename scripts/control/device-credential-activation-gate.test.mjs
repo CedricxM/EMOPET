@@ -14,6 +14,8 @@ const [
   activationTransactionSource,
   activationReceiptMigrationSource,
   activationEvidenceResolverSource,
+  m5EvidenceRepositorySource,
+  m5EvidenceMigrationSource,
 ] = await Promise.all([
     readFile(new URL('../../config/security/device-credential-activation-v1.json', import.meta.url), 'utf8'),
     readFile(new URL('../../config/security/psa-key-id-registry-v1.json', import.meta.url), 'utf8'),
@@ -26,6 +28,8 @@ const [
     readFile(new URL('../../backend/api/security/device-credential-activation-transaction.ts', import.meta.url), 'utf8'),
     readFile(new URL('../../backend/db/migrations/0034_device_credential_activation_receipts.sql', import.meta.url), 'utf8'),
     readFile(new URL('../../backend/api/security/device-credential-activation-evidence-resolver.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../backend/api/security/device-credential-activation-m5-evidence-repository.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../../backend/db/migrations/0042_device_credential_activation_m5_evidence.sql', import.meta.url), 'utf8'),
   ]);
 
 const authority = JSON.parse(authoritySource);
@@ -35,7 +39,8 @@ test('#720 keeps credential activation blocked behind M4/M5 physical evidence', 
   assert.equal(authority.issue, 720);
   assert.match(authority.status, /M6_SERVICE_BLOCKED/);
   assert.match(authority.status, /M4_POP_EVIDENCE_DURABLE/);
-  assert.match(authority.status, /M5_TARGET_EVIDENCE_REQUIRED/);
+  assert.match(authority.status, /M5_READ_STORES_DURABLE/);
+  assert.match(authority.status, /HARDWARE_EVIDENCE_GENERATION_REQUIRED/);
   assert.match(authority.status, /M6_SERVICE_BLOCKED/);
 
   for (const required of [
@@ -56,10 +61,12 @@ test('#720 keeps credential activation blocked behind M4/M5 physical evidence', 
   assert.equal(authority.runtime.manufacturingPopIssuerSourceImplemented, true);
   assert.equal(authority.runtime.manufacturingPopVerifierSourceImplemented, true);
   assert.equal(authority.runtime.manufacturingPopEvidencePersistenceImplemented, true);
-  assert.equal(authority.runtime.m5DebugEvidencePersistenceImplemented, false);
-  assert.equal(authority.runtime.targetEvidencePersistenceImplemented, false);
+  assert.equal(authority.runtime.m5DebugEvidencePersistenceImplemented, true);
+  assert.equal(authority.runtime.targetEvidencePersistenceImplemented, true);
+  assert.equal(authority.runtime.m5DebugEvidenceWriteAuthorityImplemented, false);
+  assert.equal(authority.runtime.targetEvidenceWriteAuthorityImplemented, false);
   assert.equal(authority.runtime.manufacturingPopPublicRouteImplemented, false);
-  assert.equal(authority.runtime.m4M5EvidenceStoresImplemented, false);
+  assert.equal(authority.runtime.m4M5EvidenceStoresImplemented, true);
   assert.equal(authority.runtime.m4M5EvidenceAuthorityImplemented, false);
 });
 
@@ -160,7 +167,7 @@ test('activation evidence contract is reference-only and server-resolved', () =>
 
 test('source-level M4/M5 resolver stays injected and non-activating', () => {
   assert.equal(authority.runtime.m4M5EvidenceResolverSourceImplemented, true);
-  assert.equal(authority.runtime.m4M5EvidenceStoresImplemented, false);
+  assert.equal(authority.runtime.m4M5EvidenceStoresImplemented, true);
   assert.equal(authority.runtime.activationServiceImplemented, false);
   assert.equal(authority.runtime.publicActivationRouteImplemented, false);
 
@@ -193,6 +200,25 @@ test('source-level M4/M5 resolver stays injected and non-activating', () => {
     activationEvidenceResolverSource,
     /commitVerifiedDeviceCredentialActivationReceipt\s*\(/,
   );
+});
+
+test('M5/target evidence stores are durable read-only runtime authorities', () => {
+  assert.match(m5EvidenceRepositorySource, /durableDeviceCredentialActivationDebugEvidenceRepository/);
+  assert.match(m5EvidenceRepositorySource, /durableDeviceCredentialActivationTargetEvidenceRepository/);
+  assert.match(m5EvidenceRepositorySource, /findByReceiptId/);
+  assert.doesNotMatch(m5EvidenceRepositorySource, /\.insert\(|\.update\(|\.delete\(/);
+  assert.doesNotMatch(m5EvidenceRepositorySource, /app\.(get|post|put|patch|delete)\(/);
+
+  assert.match(m5EvidenceMigrationSource, /CREATE TABLE device_credential_activation_debug_receipts/);
+  assert.match(m5EvidenceMigrationSource, /SERVER_SIDE_PRODUCTION_DEBUG_AUTHORITY/);
+  assert.match(m5EvidenceMigrationSource, /APPROTECT_PRODUCTION_POLICY_VERIFIED/);
+  assert.match(m5EvidenceMigrationSource, /CREATE TABLE device_credential_activation_target_receipts/);
+  assert.match(m5EvidenceMigrationSource, /SERVER_SIDE_TARGET_EVIDENCE_AUTHORITY/);
+  assert.match(m5EvidenceMigrationSource, /REPRESENTATIVE_MS88SF3_NRF52840_VERIFIED/);
+
+  assert.equal(authority.runtime.m4M5EvidenceAuthorityImplemented, false);
+  assert.equal(authority.runtime.activationServiceImplemented, false);
+  assert.equal(authority.runtime.publicActivationRouteImplemented, false);
 });
 
 test('internal cutover primitive is transactional but is not M4/M5 authority', () => {
