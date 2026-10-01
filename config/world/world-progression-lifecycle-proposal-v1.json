@@ -1,0 +1,86 @@
+{
+  "version": "1",
+  "status": "PRODUCT_TECHNICAL_PROPOSAL_NOT_PRIVACY_LEGAL_AUTHORITY",
+  "productionAuthority": false,
+  "legalPrivacySignoff": false,
+  "migrationAuthorized": false,
+  "rationale": [
+    "World progression is deliberate Owner product state, not dog telemetry, Care, ELI or inferred health/wellbeing data.",
+    "No separate archive is technically necessary for the first durable slice.",
+    "A fixed post-account retention duration is not proposed without explicit privacy/legal authority."
+  ],
+  "lifecycleProposal": {
+    "activeRetention": {
+      "mode": "WHILE_ACTIVE_ACCOUNT"
+    },
+    "accountErasure": {
+      "proposedDisposition": "DELETE",
+      "trigger": "VALIDATED_ACCOUNT_ERASURE",
+      "archive": "NONE_BY_DEFAULT",
+      "purgeEvidenceRequired": true
+    },
+    "ownerExport": {
+      "proposedDisposition": "INCLUDE",
+      "scope": "OWNER_ACCOUNT_EXPORT",
+      "includeProvenance": true,
+      "includeInventory": true,
+      "includeResourceSpends": true
+    },
+    "retention": {
+      "proposedDisposition": "NO_SEPARATE_POST_ACCOUNT_RETENTION_BY_DEFAULT",
+      "fixedDurationDays": null,
+      "holdException": "ONLY_EXPLICIT_SEPARATE_LEGAL_SECURITY_RIGHTS_AUTHORITY"
+    },
+    "nonSqlCopies": {
+      "proposedDisposition": "NONE_EXPECTED_IN_G1B2",
+      "verificationRequired": true
+    }
+  },
+  "tables": [
+    {
+      "table": "world_progression_events",
+      "category": "account_product_progression",
+      "ownerColumn": "owner_id",
+      "proposedErasure": "DELETE",
+      "proposedExport": "INCLUDE",
+      "proposedRetention": "WHILE_ACTIVE_ACCOUNT"
+    },
+    {
+      "table": "world_owned_items",
+      "category": "account_product_inventory",
+      "ownerColumn": "owner_id",
+      "proposedErasure": "DELETE",
+      "proposedExport": "INCLUDE",
+      "proposedRetention": "WHILE_ACTIVE_ACCOUNT"
+    },
+    {
+      "table": "world_resource_spends",
+      "category": "account_product_progression",
+      "ownerColumn": "owner_id",
+      "proposedErasure": "DELETE",
+      "proposedExport": "INCLUDE",
+      "proposedRetention": "WHILE_ACTIVE_ACCOUNT"
+    }
+  ],
+  "promotionRequirements": [
+    "explicit privacy/legal approval or recorded product authority for lifecycle decisions",
+    "active privacy inventory reconciliation",
+    "user subject lineage reconciliation",
+    "account erasure topology reconciliation",
+    "erasure disposition matrix reconciliation",
+    "retention schedule reconciliation",
+    "Owner export policy reconciliation",
+    "subject discovery integration",
+    "erasure residue verification integration",
+    "explicit non-SQL negative evidence",
+    "PostgreSQL migration and runtime store remain separately gated"
+  ],
+  "claims": {
+    "privacyApproved": false,
+    "legalBasisFinal": false,
+    "retentionFinal": false,
+    "erasureExecutable": false,
+    "exportComplete": false,
+    "durableProductionPersistence": false
+  }
+}
