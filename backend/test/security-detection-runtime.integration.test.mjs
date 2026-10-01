@@ -122,6 +122,7 @@ async function cleanup() {
   await sql`
     DELETE FROM security_audit_events
     WHERE target_ref LIKE 'detect525:%'
+       OR actor_subject = 'service:detect525-worker'
   `;
 }
 
