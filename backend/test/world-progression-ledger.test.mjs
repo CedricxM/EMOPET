@@ -133,6 +133,38 @@ test('recorded replay remains idempotent if source authority later becomes unava
   }
 });
 
+test('same canonical reward source cannot be farmed with fresh idempotency keys', async () => {
+  const mod = await loadLedgerModule();
+  const previousNodeEnv = process.env.NODE_ENV;
+  process.env.NODE_ENV = 'test';
+
+  try {
+    const store = new mod.InMemoryWorldProgressionLedgerStore();
+    const service = new mod.WorldProgressionLedgerService(store, allowAllSources());
+
+    const first = await service.record({
+      ownerId: OWNER_ID,
+      idempotencyKey: 'knowledge:farm:001',
+      kind: 'knowledge.card_read',
+      sourceRef: 'knowledge:one-card',
+    });
+    const second = await service.record({
+      ownerId: OWNER_ID,
+      idempotencyKey: 'knowledge:farm:002',
+      kind: 'knowledge.card_read',
+      sourceRef: 'knowledge:one-card',
+    });
+
+    assert.equal(first.status, 'recorded');
+    assert.equal(second.status, 'duplicate');
+    assert.equal(second.entry.id, first.entry.id);
+    assert.equal(second.balance.knowledgeFragments, 1);
+  } finally {
+    if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = previousNodeEnv;
+  }
+});
+
 test('idempotency key reuse for a different event fails closed', async () => {
   const mod = await loadLedgerModule();
   const previousNodeEnv = process.env.NODE_ENV;
