@@ -101,21 +101,27 @@ export async function readPostgresWorldProgressionBalance(
   ownerId: string,
   database: Database = db,
 ): Promise<WorldProgressionBalance> {
-  const [eventRows, spendRows] = await Promise.all([
-    database
+  return database.transaction(async (tx) => {
+    await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY`);
+
+    const eventRows = await tx
       .select({ grantsJson: worldProgressionEvents.grantsJson })
       .from(worldProgressionEvents)
-      .where(eq(worldProgressionEvents.ownerId, ownerId)),
-    database
+      .where(eq(worldProgressionEvents.ownerId, ownerId));
+    const spendRows = await tx
       .select({ costJson: worldResourceSpends.costJson })
       .from(worldResourceSpends)
-      .where(eq(worldResourceSpends.ownerId, ownerId)),
-  ]);
+      .where(eq(worldResourceSpends.ownerId, ownerId));
 
-  const balance = emptyBalance();
-  for (const row of eventRows) applyPersistedWorldResourceMap(balance, row.grantsJson, 1, 'grant');
-  for (const row of spendRows) applyPersistedWorldResourceMap(balance, row.costJson, -1, 'cost');
-  return balance;
+    const balance = emptyBalance();
+    for (const row of eventRows) {
+      applyPersistedWorldResourceMap(balance, row.grantsJson, 1, 'grant');
+    }
+    for (const row of spendRows) {
+      applyPersistedWorldResourceMap(balance, row.costJson, -1, 'cost');
+    }
+    return balance;
+  });
 }
 
 /**
