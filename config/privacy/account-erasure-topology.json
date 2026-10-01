@@ -176,6 +176,27 @@
       "source": "backend/db/schema/professional-sharing.ts",
       "databaseDeleteAction": "NO_ACTION",
       "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "world_progression_events",
+      "column": "owner_id",
+      "source": "backend/db/schema/world-gamification.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "world_owned_items",
+      "column": "owner_id",
+      "source": "backend/db/schema/world-gamification.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "world_resource_spends",
+      "column": "owner_id",
+      "source": "backend/db/schema/world-gamification.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
     }
   ],
   "unconstrainedUserIdentifiers": [],
@@ -185,6 +206,7 @@
     "SET_NULL on auth_refresh_sessions.user_id provides schema support for phased account erasure while retained revoked/expired session evidence remains bounded by its original expiry; it does not promote the matrix disposition.",
     "Other unresolved account relations remain fail-closed and keep their existing database mechanics until separately authorized.",
     "External/object/cache/analytics/backup copies remain blockers to any complete-erasure claim.",
-    "CASCADE on auth_email_verification_tokens.user_id removes account-verification token state with the account root; this database mechanic does not by itself promote complete account-erasure authority."
+    "CASCADE on auth_email_verification_tokens.user_id removes account-verification token state with the account root; this database mechanic does not by itself promote complete account-erasure authority.",
+    "World progression tables are Owner-linked with NO ACTION foreign keys; lifecycle disposition remains TO_CONFIRM and blocks complete account-erasure authority."
   ]
 }
