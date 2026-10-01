@@ -354,6 +354,14 @@ jobs:
           NODE_ENV: test
         run: node --test test/security-alert-outbox.integration.test.mjs
 
+      - name: PRIV-SEC-ALERT-DISPATCH-01 one-shot dispatcher on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          SECURITY_ALERT_DISPATCH_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/security-alert-dispatcher.integration.test.mjs
+
       - name: AUTH-RATE-LIMIT-01 shared auth limiter on historical migrations
         working-directory: backend
         env:
@@ -598,6 +606,14 @@ jobs:
           SECURITY_ALERT_OUTBOX_DB_INTEGRATION: '1'
           NODE_ENV: test
         run: node --test test/security-alert-outbox.integration.test.mjs
+
+      - name: PRIV-SEC-ALERT-DISPATCH-01 one-shot dispatcher on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          SECURITY_ALERT_DISPATCH_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/security-alert-dispatcher.integration.test.mjs
 
       - name: AUTH-RATE-LIMIT-01 shared auth limiter on generated baseline
         working-directory: backend
