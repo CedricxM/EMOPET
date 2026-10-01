@@ -108,6 +108,7 @@ export class WorldProgressionAuthorityError extends Error {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const IDEMPOTENCY_RE = /^[A-Za-z0-9:_-]{8,128}$/;
+const SOURCE_REF_RE = /^[A-Za-z0-9:._/-]{1,160}$/;
 
 export function isForbiddenWorldProgressionEventKind(kind: string): boolean {
   return WORLD_PROGRESSION_FORBIDDEN_PREFIXES.some((prefix) => kind.startsWith(prefix));
@@ -219,10 +220,10 @@ function validateInput(input: WorldProgressionEventInput): void {
   }
 
   const sourceRef = input.sourceRef.trim();
-  if (sourceRef.length < 1 || sourceRef.length > 160) {
+  if (!SOURCE_REF_RE.test(sourceRef)) {
     throw new WorldProgressionAuthorityError(
       'WORLD_PROGRESSION_INVALID_SOURCE_REF',
-      'World progression source reference must be 1-160 characters.',
+      'World progression source reference must be a 1-160 character opaque identifier.',
     );
   }
 }
