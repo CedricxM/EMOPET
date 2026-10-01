@@ -363,6 +363,14 @@ jobs:
           NODE_ENV: test
         run: node --test test/security-alert-outbox.integration.test.mjs
 
+      - name: PRIV-SEC-ALERT-ACK-01 atomic acknowledgement on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          SECURITY_ALERT_ACK_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/security-alert-acknowledgement.integration.test.mjs
+
       - name: PRIV-SEC-ALERT-DISPATCH-01 one-shot dispatcher on historical migrations
         working-directory: backend
         env:
@@ -615,6 +623,14 @@ jobs:
           SECURITY_ALERT_OUTBOX_DB_INTEGRATION: '1'
           NODE_ENV: test
         run: node --test test/security-alert-outbox.integration.test.mjs
+
+      - name: PRIV-SEC-ALERT-ACK-01 atomic acknowledgement on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          SECURITY_ALERT_ACK_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/security-alert-acknowledgement.integration.test.mjs
 
       - name: PRIV-SEC-ALERT-DISPATCH-01 one-shot dispatcher on generated baseline
         working-directory: backend
