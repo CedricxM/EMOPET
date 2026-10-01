@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-01  
 **Status:** `PROPOSED COMPANY CONTROL PLANE / DOES NOT REPLACE DOMAIN AUTHORITIES`  
-**Branch base:** `main@34f7f71cf0a270af81aa1be2e404210adfffa95b`
+**Branch base:** `main@f8918182db7121f7fbb710ad0bfa6b8c1b492da0`
 
 ## 1. Purpose
 
@@ -108,7 +108,7 @@ No object should become more certain merely because it is machine-readable.
 | `METRICS.md` | Evidence/traction/quality metrics | V1 projection/index |
 | `RISKS.md` | Company risk register and kill gates | V1 projection/index |
 | `FINANCE_STATE.md` | Unit economics, runway, funding state | V1 public-safe projection; no invented values |
-| `CORPORATE.md` | Entity, founders, IP and governance state | Future slice; restricted refs only |
+| `CORPORATE.md` | Public-safe entity, governance, IP and rights state | V2 projection/index; restricted evidence stays external |
 | `EXPERIMENTS.md` | Hypothesis → test → result → decision ledger | V1 projection/index |
 | `UNKNOWNS.md` | Critical unknowns / value-of-information ledger | V1 projection/index |
 | `docs/strategy/COMPETITIVE_LANDSCAPE.md` | Competitor intelligence | Existing controlled watch |
@@ -205,15 +205,16 @@ Any AI agent doing substantive EMOPET work should:
 
 ## 13. Implementation sequence
 
-V1 now includes the company front door, machine-readable state, milestone/experiment/finance/metrics/risk/unknowns registries, and an every-PR structural evidence guard.
+V1 includes the company front door, machine-readable state, milestone/experiment/finance/metrics/risk/unknowns registries, and an every-PR structural evidence guard.
+
+V2 adds the public-safe Corporate/IP projection in `CORPORATE.md` and `state/corporate/corporate-state.json`, indexing entity/governance status and the controlled rights gates in #114, #116 and #680 without copying restricted instruments.
 
 Next bounded slices should add, in order:
 
-1. corporate/IP state with public-safe references only;
-2. freshness and STALE semantics tied to evidence review cadence;
-3. per-registry schemas and cross-object dependency validation;
-4. generated human views from machine-readable state to prevent drift;
-5. founder cockpit derived from controlled state;
-6. redacted investor and supplier views derived from the same controlled state.
+1. freshness and STALE semantics tied to evidence review cadence;
+2. per-registry schemas and cross-object dependency validation;
+3. generated human views from machine-readable state to prevent drift;
+4. founder cockpit derived from controlled state;
+5. redacted investor and supplier views derived from the same controlled state.
 
 Each slice must remain incremental and must not manufacture certainty to make the cockpit look complete.

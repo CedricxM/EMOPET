@@ -3,7 +3,7 @@
   "snapshot": {
     "date": "2026-10-01",
     "base_ref": "main",
-    "base_sha": "34f7f71cf0a270af81aa1be2e404210adfffa95b"
+    "base_sha": "f8918182db7121f7fbb710ad0bfa6b8c1b492da0"
   },
   "authority_mode": "INDEX_PROJECTION_NOT_DOMAIN_AUTHORITY",
   "company_phase": {
@@ -157,8 +157,8 @@
       "id": "EMO-WS-CORPORATE",
       "domain": "corporate",
       "label": "Corporate / IP",
-      "status": "OPEN",
-      "statement": "Company formation details, final founder/equity structure and public-repository contribution/IP policy are not fixed by the current planning authority. Restricted investor/founder guardrails exist and must not be copied into public detail.",
+      "status": "OPEN / INDEXED / EVIDENCE-GATED",
+      "statement": "A public-safe Corporate/IP index now exists. Final entity/governance structure, chain-of-title, third-party rights, and public-repository licensing/contribution policy remain controlled open gates; this projection is not legal sign-off.",
       "authority_refs": [
         {
           "kind": "path",
@@ -166,11 +166,19 @@
         },
         {
           "kind": "issue",
+          "value": "#114"
+        },
+        {
+          "kind": "issue",
+          "value": "#116"
+        },
+        {
+          "kind": "issue",
           "value": "#680"
         }
       ],
       "evidence_refs": [],
-      "next_gate": "Create a safe corporate-state index covering entity, founders, contribution/IP chain and decision status without exposing restricted terms or personal data."
+      "next_gate": "Advance the source gates in #114, #116 and #680 with controlled evidence and reviewed dispositions while keeping restricted instruments and personal data outside the public repository."
     }
   ],
   "critical_gates": [
