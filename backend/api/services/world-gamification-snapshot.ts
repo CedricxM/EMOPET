@@ -16,6 +16,16 @@ import {
   type WorldRegionalCollectionCatalog,
 } from './world-regional-collections';
 
+export interface WorldOwnerScopedResourceState {
+  ownerId: string;
+  balance: WorldProgressionBalance;
+}
+
+export interface WorldOwnerScopedOwnershipState {
+  ownerId: string;
+  itemIds: readonly string[];
+}
+
 export interface WorldGamificationSnapshotItem {
   id: string;
   title: string;
@@ -45,14 +55,22 @@ export interface WorldGamificationSnapshot {
  */
 export function buildWorldGamificationSnapshot(input: {
   ownerId: string;
-  balance: WorldProgressionBalance;
+  resourceState: WorldOwnerScopedResourceState;
   ledgerEntries: readonly WorldProgressionLedgerEntry[];
-  ownedItemIds: readonly string[];
+  ownershipState: WorldOwnerScopedOwnershipState;
   regionalCatalog: WorldRegionalCollectionCatalog;
   regionCode: string | null | undefined;
 }): WorldGamificationSnapshot {
+  if (input.resourceState.ownerId !== input.ownerId) {
+    throw new Error('WORLD_GAMIFICATION_RESOURCE_OWNER_SCOPE_MISMATCH');
+  }
+  if (input.ownershipState.ownerId !== input.ownerId) {
+    throw new Error('WORLD_GAMIFICATION_OWNERSHIP_OWNER_SCOPE_MISMATCH');
+  }
+
   const collection = resolveWorldRegionalCollection(input.regionalCatalog, input.regionCode);
-  const owned = [...new Set(input.ownedItemIds)];
+  const balance = input.resourceState.balance;
+  const owned = [...new Set(input.ownershipState.itemIds)];
 
   return {
     authority: 'CONTROLLED_DRAFT_NOT_PRODUCTION_AUTHORITY',
@@ -61,7 +79,7 @@ export function buildWorldGamificationSnapshot(input: {
       identityName: collection.identity.name,
       themeId: collection.identity.themeId,
     },
-    resources: { ...input.balance },
+    resources: { ...balance },
     quests: projectWorldQuestProgress(input.ownerId, input.ledgerEntries),
     provenance: projectWorldProgressionProvenance({
       ownerId: input.ownerId,
@@ -73,7 +91,7 @@ export function buildWorldGamificationSnapshot(input: {
       owned: owned.includes(item.id),
       affordable: owned.includes(item.id)
         ? false
-        : canAffordWorldRegionalItem(input.balance, item),
+        : canAffordWorldRegionalItem(balance, item),
     })),
     ownedItemIds: owned,
   };
