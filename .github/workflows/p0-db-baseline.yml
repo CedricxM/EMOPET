@@ -91,11 +91,12 @@ jobs:
           POSTGRES_DB: emopet_qa
         ports:
           - 5432:5432
+        # Poll readiness sooner without shrinking the existing ~50s retry window.
         options: >-
           --health-cmd "pg_isready -U emopet_qa -d emopet_qa"
-          --health-interval 10s
+          --health-interval 2s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 25
 
     env:
       DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
@@ -240,6 +241,14 @@ jobs:
       - name: Build backend dependency closure
         # Turbo executes the same workspace build scripts/topology and can replay deterministic outputs.
         run: pnpm turbo run build --filter=@emopet/api...
+
+      - name: Backend typecheck
+        # Run before Drizzle baseline generation mutates backend/db inputs, so Turbo can
+        # reuse deterministic typecheck results across unchanged backend sources.
+        # Keep this step ahead of all generated-baseline writes.
+        # This cache never substitutes for disposable-database validation.
+        run: pnpm turbo run typecheck --filter=@emopet/api
+
 
       - name: WORLD-G2 durable gamification persistence on historical migrations
         working-directory: backend
@@ -939,14 +948,11 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Backend typecheck
-        run: pnpm --filter @emopet/api typecheck
-
       - name: Backend tests
         run: pnpm --filter @emopet/api test
 
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, BEHAV-DATA-01 response/applicability semantics, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification, WORLD-G2 durable gamification persistence (non-activated), retention-readiness probes, INT-04A bounded export authority, INT-05 recipient-bound professional sharing, and WORLD-SOCIAL-01 canonical user blocks and World report intake.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, BEHAV-DATA-01 response/applicability semantics, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification, retention-readiness probes, INT-04A bounded export authority, INT-05 recipient-bound professional sharing, and WORLD-SOCIAL-01 canonical user blocks and World report intake.'
           echo 'It does not authorize production migration, deployment, or release.'

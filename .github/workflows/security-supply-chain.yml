@@ -116,7 +116,11 @@ jobs:
         run: node --test scripts/control/control-test-ci-coverage.test.mjs
       - name: Test Bretagne schema evidence capture contract
         run: node --test scripts/data/capture-bretagne-open-data-schema.test.mjs
+      - name: Enforce Bretagne RNR licence clarification HOLD
+        run: node --test scripts/control/bretagne-rnr-licence-clarification.test.mjs
       - name: Enforce Company OS evidence-gated state invariants
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node --test scripts/control/company-os-state.test.mjs
       - name: Enforce Unity World authority boundary (#567)
         run: node --test scripts/control/world-unity-authority-boundary.test.mjs
@@ -131,6 +135,7 @@ jobs:
           node --test
           scripts/control/activity-variability-authority.test.mjs
           scripts/control/breiz-territorial-rights-authority.test.mjs
+          scripts/control/bretagne-canine-pilot-evidence.test.mjs
           scripts/control/eli-api-projection.test.mjs
           scripts/control/eli-dynamics-parameter-authority.test.mjs
           scripts/control/eli-proxy-evidence.test.mjs

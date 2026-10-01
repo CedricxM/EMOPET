@@ -15,6 +15,7 @@ const runtimeConfig = readJson('config/release/production-runtime-config-authori
 const environmentAuthority = readJson('config/release/production-environment-authority-v1.json');
 const artifactProvenance = readJson('config/release/production-artifact-provenance-authority-v1.json');
 const transportSecurity = readJson('config/release/production-transport-security-authority-v1.json');
+const backupRestore = readJson('config/release/production-backup-restore-authority-v1.json');
 const p0Workflow = readFileSync(
   resolve(root, '.github', 'workflows', 'p0-db-baseline.yml'),
   'utf8',
@@ -341,6 +342,116 @@ test('production transport-security authority stays provider-neutral and fail-cl
   );
 });
 
+
+test('production backup-restore authority stays provider-neutral and fail-closed', () => {
+  assert.equal(
+    backupRestore.schemaVersion,
+    'emopet-production-backup-restore-authority-v1',
+  );
+  assert.match(
+    backupRestore.status,
+    /PRODUCTION_BACKUP_RESTORE_UNVERIFIED/,
+  );
+  assert.equal(backupRestore.issue, 965);
+  assert.equal(backupRestore.parentIssue, 831);
+  assert.equal(backupRestore.launchSecurityIssue, 214);
+  assert.equal(backupRestore.privacyRetentionIssue, 69);
+  assert.equal(backupRestore.retentionDecisionIssue, 478);
+  assert.equal(backupRestore.claimsProductionBackupAuthority, false);
+  assert.equal(backupRestore.claimsBackupConfigured, false);
+  assert.equal(backupRestore.claimsRestoreExercisePassed, false);
+  assert.equal(backupRestore.claimsRetentionApproved, false);
+  assert.equal(
+    backupRestore.environmentBinding.requiredEnvironment,
+    'production',
+  );
+  assert.equal(backupRestore.evidenceStates.templateDefault, 'DRAFT_UNVERIFIED');
+
+  includesAll(
+    backupRestore.requiredEvidenceFields,
+    [
+      'environment.name',
+      'environment.authorityRef',
+      'backup.authorityRef',
+      'backup.coverageEvidenceRef',
+      'backup.automationEvidenceRef',
+      'backup.encryptionEvidenceRef',
+      'backup.accessControlEvidenceRef',
+      'backup.failureVisibilityEvidenceRef',
+      'restore.snapshotRef',
+      'restore.targetEnvironmentRef',
+      'restore.exerciseEvidenceRef',
+      'restore.verificationEvidenceRef',
+      'retention.authorityRef',
+      'retention.evidenceRef',
+      'review.approverRef',
+      'review.reviewedAt',
+    ],
+    'backupRestore.requiredEvidenceFields',
+  );
+
+  assert.equal(
+    backupRestore.evidenceReceiptTemplate.state,
+    'DRAFT_UNVERIFIED',
+  );
+  assert.equal(
+    backupRestore.evidenceReceiptTemplate.environment.name,
+    'production',
+  );
+  assert.equal(
+    backupRestore.evidenceReceiptTemplate.backup.authorityRef,
+    null,
+  );
+  assert.equal(
+    backupRestore.evidenceReceiptTemplate.restore.exerciseEvidenceRef,
+    null,
+  );
+  assert.equal(
+    backupRestore.evidenceReceiptTemplate.retention.authorityRef,
+    null,
+  );
+
+  const rules = backupRestore.failClosedRules.join('\n');
+  assert.match(rules, /proves no live production backup/i);
+  assert.match(
+    rules,
+    /disposable QA databases.*(?:CI database|P0 DB) setup are not production backup evidence/i,
+  );
+  assert.match(
+    rules,
+    /successful production-readiness claim requires a reviewed restore exercise/i,
+  );
+  assert.match(
+    rules,
+    /Backup frequency, RPO, RTO and retention duration are not selected/i,
+  );
+  assert.match(rules, /#69\/#478 authority is reviewed and referenced/i);
+  assert.match(
+    rules,
+    /selects no backup provider.*schedule.*recovery objective.*retention duration/i,
+  );
+
+  assert.equal(
+    release.authorities.backupRestoreAuthority,
+    'config/release/production-backup-restore-authority-v1.json',
+  );
+  assert.ok(
+    release.requiredReceiptFields.includes('backupRestore.authorityRef'),
+  );
+  assert.equal(
+    release.releaseReceiptTemplate.backupRestore.disposition,
+    'UNVERIFIED',
+  );
+  assert.equal(
+    release.releaseReceiptTemplate.backupRestore.authorityRef,
+    null,
+  );
+  assert.equal(
+    release.releaseReceiptTemplate.backupRestore.evidenceRef,
+    null,
+  );
+});
+
 test('production release receipt cannot drop immutable identity or readiness evidence', () => {
   includesAll(
     release.requiredReceiptFields,
@@ -375,6 +486,7 @@ test('production release receipt cannot drop immutable identity or readiness evi
       'transportSecurity.authorityRef',
       'transportSecurity.disposition',
       'transportSecurity.evidenceRef',
+      'backupRestore.authorityRef',
       'backupRestore.disposition',
       'backupRestore.evidenceRef',
       'releasedAt',

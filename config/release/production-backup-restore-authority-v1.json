@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "emopet-production-backup-restore-authority-v1",
+  "status": "CONTRACT_ONLY / PRODUCTION_BACKUP_RESTORE_UNVERIFIED",
+  "issue": 965,
+  "parentIssue": 831,
+  "launchSecurityIssue": 214,
+  "privacyRetentionIssue": 69,
+  "retentionDecisionIssue": 478,
+  "claimsProductionBackupAuthority": false,
+  "claimsBackupConfigured": false,
+  "claimsRestoreExercisePassed": false,
+  "claimsRetentionApproved": false,
+  "environmentBinding": {
+    "requiredEnvironment": "production",
+    "authorityRefRequired": true,
+    "meaning": "EVIDENCE MUST BIND TO THE REVIEWED PRODUCTION ENVIRONMENT / NO BACKUP SYSTEM CONFIGURED HERE"
+  },
+  "evidenceStates": {
+    "allowed": [
+      "DRAFT_UNVERIFIED",
+      "REVIEWED_HOLD",
+      "REVIEWED_EVIDENCE_ACCEPTED"
+    ],
+    "templateDefault": "DRAFT_UNVERIFIED",
+    "meaning": "REVIEWED_EVIDENCE_ACCEPTED IS BACKUP/RESTORE EVIDENCE ONLY / NOT RELEASE AUTHORITY"
+  },
+  "requiredEvidenceFields": [
+    "schemaVersion",
+    "state",
+    "environment.name",
+    "environment.authorityRef",
+    "backup.authorityRef",
+    "backup.coverageEvidenceRef",
+    "backup.automationEvidenceRef",
+    "backup.encryptionEvidenceRef",
+    "backup.accessControlEvidenceRef",
+    "backup.failureVisibilityEvidenceRef",
+    "restore.snapshotRef",
+    "restore.targetEnvironmentRef",
+    "restore.exerciseEvidenceRef",
+    "restore.verificationEvidenceRef",
+    "retention.authorityRef",
+    "retention.evidenceRef",
+    "review.approverRef",
+    "review.reviewedAt"
+  ],
+  "formats": {
+    "evidenceRef": "NON_SECRET_REPOSITORY_OR_PROVIDER_REFERENCE",
+    "reviewedAt": "RFC3339_UTC"
+  },
+  "evidenceReceiptTemplate": {
+    "schemaVersion": "emopet-production-backup-restore-receipt-v1",
+    "state": "DRAFT_UNVERIFIED",
+    "environment": {
+      "name": "production",
+      "authorityRef": null
+    },
+    "backup": {
+      "authorityRef": null,
+      "coverageEvidenceRef": null,
+      "automationEvidenceRef": null,
+      "encryptionEvidenceRef": null,
+      "accessControlEvidenceRef": null,
+      "failureVisibilityEvidenceRef": null
+    },
+    "restore": {
+      "snapshotRef": null,
+      "targetEnvironmentRef": null,
+      "exerciseEvidenceRef": null,
+      "verificationEvidenceRef": null
+    },
+    "retention": {
+      "authorityRef": null,
+      "evidenceRef": null
+    },
+    "review": {
+      "approverRef": null,
+      "reviewedAt": null
+    }
+  },
+  "failClosedRules": [
+    "This contract proves no live production backup, restore capability, recovery objective or retention compliance by itself.",
+    "Provider marketing, default service features, local dumps, disposable QA databases and CI database setup are not production backup evidence.",
+    "Backup evidence must bind to the exact reviewed production environment and enumerate the durable-store coverage it claims.",
+    "Missing backup automation, encryption, access-control or failure-visibility evidence keeps the production release receipt HOLD.",
+    "A successful production-readiness claim requires a reviewed restore exercise bound to an identified backup snapshot/set and target environment.",
+    "Restore verification evidence must not contain restored personal-data dumps, credentials, secret values or encryption keys.",
+    "Backup frequency, RPO, RTO and retention duration are not selected by this contract.",
+    "Retention/erasure composition remains HOLD until the applicable #69/#478 authority is reviewed and referenced.",
+    "Missing, stale, mismatched or UNVERIFIED backup/restore evidence keeps the production release receipt HOLD.",
+    "This contract selects no backup provider, storage vendor, cloud, schedule, recovery objective or retention duration."
+  ]
+}
