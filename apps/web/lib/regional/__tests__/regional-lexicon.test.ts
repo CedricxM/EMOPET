@@ -3,8 +3,6 @@ import { test } from 'node:test';
 
 import { buildAssistantSystemPrompt } from '../build-system-prompt';
 import { BRETAGNE_KNOWLEDGE, BRETAGNE_PROFILE } from '../profiles/bretagne';
-const NOW = Date.parse('2026-10-01T12:00:00Z');
-
 import {
   REGIONAL_LEXICON,
   REGIONAL_LEXICON_REVISION,
@@ -12,6 +10,8 @@ import {
   getVerifiedRegionalLexicon,
   hasCompleteRegionalReviewReceipt,
 } from '../regional-lexicon';
+
+const NOW = Date.parse('2026-10-01T12:00:00Z');
 
 test('Breiz regional lexicon fails closed until named review receipt exists', () => {
   assert.equal(getVerifiedRegionalLexicon('bretagne').length, 0);
