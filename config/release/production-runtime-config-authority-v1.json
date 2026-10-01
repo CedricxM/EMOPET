@@ -1,0 +1,144 @@
+{
+  "schemaVersion": "emopet-production-runtime-config-authority-v1",
+  "status": "CONTRACT_ONLY / PRODUCTION_SECRET_CUSTODY_UNVERIFIED",
+  "issue": 831,
+  "launchSecurityIssue": 214,
+  "claimsProductionRuntimeConfigured": false,
+  "claimsSecretManagerConfigured": false,
+  "claimsSecretRotationComplete": false,
+  "classificationRules": {
+    "clientExposedPrefix": "NEXT_PUBLIC_",
+    "clientExposedMeaning": "PUBLISHABLE_BUILD_OR_RUNTIME_CONFIG / NEVER_SECRET",
+    "serverDefaultMeaning": "SERVER_PRIVATE_UNLESS_EXPLICITLY_REVIEWED",
+    "secretNamePatterns": [
+      "*_SECRET",
+      "*_PASSWORD",
+      "*_API_KEY",
+      "*_ACCESS_KEY",
+      "*_ACCESS_TOKEN",
+      "*_WEBHOOK_SECRET",
+      "DATABASE_URL",
+      "MIGRATION_DATABASE_URL",
+      "REDIS_URL"
+    ],
+    "nonSecretServerConfigExamples": [
+      "NODE_ENV",
+      "PORT",
+      "CORS_ORIGIN",
+      "ANTHROPIC_MODEL",
+      "AI_MODEL",
+      "RESEND_FROM",
+      "AUTH_EMAIL_VERIFICATION_URL",
+      "EMOPET_INTERNAL_BACKEND_URL"
+    ],
+    "featureControlPatterns": [
+      "FEATURE_*",
+      "*_ENABLED",
+      "*_GATE"
+    ]
+  },
+  "knownAuthorityExamples": {
+    "runtimeDatabase": {
+      "variable": "DATABASE_URL",
+      "classification": "SERVER_SECRET",
+      "authority": "LONG_LIVED_RUNTIME_DML_ROLE"
+    },
+    "migrationDatabase": {
+      "variable": "MIGRATION_DATABASE_URL",
+      "classification": "SERVER_SECRET",
+      "authority": "MIGRATION_DDL_ROLE / NOT_LONG_LIVED_RUNTIME"
+    },
+    "ordinaryJwt": {
+      "variable": "JWT_SECRET",
+      "classification": "SERVER_SECRET"
+    },
+    "privilegedJwt": {
+      "variable": "PRIVILEGED_JWT_SECRET",
+      "classification": "SERVER_SECRET / DISTINCT_FROM_JWT_SECRET"
+    },
+    "authRateLimitHmac": {
+      "variable": "AUTH_RATE_LIMIT_HMAC_SECRET",
+      "classification": "SERVER_SECRET / DISTINCT_FROM_JWT_SECRET"
+    },
+    "internalAuditService": {
+      "variable": "EMOPET_INTERNAL_AUDIT_SERVICE_SECRET",
+      "classification": "SERVER_SECRET / DISTINCT_FROM_ORDINARY_AND_PRIVILEGED_JWT"
+    },
+    "mapboxPublicToken": {
+      "variable": "NEXT_PUBLIC_MAPBOX_TOKEN",
+      "classification": "CLIENT_EXPOSED_PUBLISHABLE_TOKEN / SERVICE_RIGHTS_STILL_SEPARATE"
+    }
+  },
+  "requiredEnvironmentReceiptFields": [
+    "schemaVersion",
+    "environment.name",
+    "environment.authorityRef",
+    "runtimeConfigReceiptId",
+    "releaseReceiptRef",
+    "configManifestDigest",
+    "injection.authorityRef",
+    "secretCustody.authorityRef",
+    "secretCustody.rotationOwnerRole",
+    "secretCustody.rotationEvidenceRef",
+    "database.runtimeRoleEvidenceRef",
+    "database.migrationRoleEvidenceRef",
+    "database.roleSeparationEvidenceRef",
+    "publicConfig.reviewRef",
+    "transport.backendHttpsEvidenceRef",
+    "review.approverRef",
+    "review.reviewedAt"
+  ],
+  "formats": {
+    "configManifestDigest": "LOWERCASE_SHA256_HEX_64",
+    "reviewedAt": "RFC3339_UTC",
+    "evidenceRef": "NON_SECRET_REPOSITORY_OR_PROVIDER_REFERENCE"
+  },
+  "environmentReceiptTemplate": {
+    "schemaVersion": "emopet-production-runtime-config-receipt-v1",
+    "environment": {
+      "name": null,
+      "authorityRef": null
+    },
+    "runtimeConfigReceiptId": null,
+    "releaseReceiptRef": null,
+    "configManifestDigest": null,
+    "injection": {
+      "authorityRef": null
+    },
+    "secretCustody": {
+      "authorityRef": null,
+      "rotationOwnerRole": null,
+      "rotationEvidenceRef": null
+    },
+    "database": {
+      "runtimeRoleEvidenceRef": null,
+      "migrationRoleEvidenceRef": null,
+      "roleSeparationEvidenceRef": null
+    },
+    "publicConfig": {
+      "reviewRef": null
+    },
+    "transport": {
+      "backendHttpsEvidenceRef": null
+    },
+    "review": {
+      "approverRef": null,
+      "reviewedAt": null
+    },
+    "state": "DRAFT_UNVERIFIED"
+  },
+  "failClosedRules": [
+    "Any NEXT_PUBLIC_* value must be safe for disclosure to arbitrary clients and must never carry a secret.",
+    "NEXT_PUBLIC_* presence does not authorize provider use, billing, data reuse, egress or publication.",
+    "Non-NEXT_PUBLIC values are server-private by default unless an explicit reviewed authority classifies them otherwise.",
+    "Secret values must never be committed to Git, issues, PR text, release receipts, logs or client bundles.",
+    "Checked-in .env.example files are templates only and never secret-custody evidence.",
+    "Production secret custody remains OPEN until an external secret-store or runtime-injection authority is evidenced.",
+    "DATABASE_URL and MIGRATION_DATABASE_URL are separate authorities in production; disposable/local fallback behavior is not production evidence.",
+    "EMOPET_INTERNAL_AUDIT_SERVICE_SECRET must remain distinct from JWT_SECRET and PRIVILEGED_JWT_SECRET.",
+    "Production backend URLs carrying privileged/server-to-server traffic require HTTPS evidence.",
+    "A configured provider credential does not override rights, privacy, release or service-authority HOLD gates.",
+    "Missing custody, rotation, role-separation, public-config review or HTTPS evidence keeps the environment receipt DRAFT_UNVERIFIED or HOLD.",
+    "This contract selects no cloud, secret manager, deployment platform, provider account or credential value."
+  ]
+}
