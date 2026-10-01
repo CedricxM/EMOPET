@@ -214,6 +214,24 @@ runtimeTest('WORLD-G2 durable ledger/build persistence is replay-safe, anti-farm
           WHERE owner_id = ${ownerB} AND item_id = 'memory-lantern') AS owned
     `;
     assert.deepEqual(sameItemCounts, { spends: 1, owned: 1 });
+
+    await sqlClient`
+      DELETE FROM world_owned_items
+      WHERE owner_id = ${ownerB}
+        AND item_id = 'memory-lantern'
+    `;
+    await assert.rejects(
+      () => builder.build({
+        ownerId: ownerB,
+        idempotencyKey: 'build:g2:memory-lantern:001',
+        collection: globalCollection,
+        itemId: 'memory-lantern',
+      }),
+      (error) => {
+        assert.equal(error.code, 'WORLD_BUILD_PERSISTENCE_INVARIANT');
+        return true;
+      },
+    );
   } finally {
     await sqlClient`DELETE FROM world_resource_spends WHERE owner_id IN (${ownerA}, ${ownerB})`;
     await sqlClient`DELETE FROM world_owned_items WHERE owner_id IN (${ownerA}, ${ownerB})`;
