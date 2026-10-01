@@ -95,6 +95,21 @@ export function normalizePullRequestNumber(value) {
   return Number(value);
 }
 
+const DOCUMENTATION_ONLY_PATH = /^(?:docs\/.*\.(?:md|mdx|txt)|README\.md|ARCHITECTURE\.md|CONTRIBUTING\.md|SECURITY\.md)$/i;
+
+export function isDocumentationOnlyPullRequestFiles(files) {
+  if (!Array.isArray(files) || files.length === 0) return false;
+
+  return files.every((file) => {
+    const filename = typeof file?.filename === 'string' ? file.filename : '';
+    const previous = typeof file?.previous_filename === 'string' ? file.previous_filename : null;
+
+    if (!DOCUMENTATION_ONLY_PATH.test(filename)) return false;
+    if (previous && !DOCUMENTATION_ONLY_PATH.test(previous)) return false;
+    return true;
+  });
+}
+
 function formatCodeqlAlert(alert) {
   const number = alert?.number ?? '?';
   const rule = alert?.rule?.id ?? alert?.rule?.name ?? 'unknown-rule';
@@ -163,6 +178,68 @@ async function main() {
       if (batch.length < 100) return { alerts, target };
     }
     throw new Error('CodeQL alert inventory exceeded 2000 entries; refusing an incomplete security decision.');
+  }
+
+  async function listPullRequestFiles(number) {
+    const files = [];
+    for (let page = 1; page <= 20; page += 1) {
+      const batch = await get(`pulls/${number}/files?per_page=100&page=${page}`);
+      if (!Array.isArray(batch)) throw new Error('Invalid pull-request file inventory response.');
+      files.push(...batch);
+      if (batch.length < 100) return files;
+    }
+    throw new Error('Pull-request file inventory exceeded 2000 entries; refusing an incomplete scope decision.');
+  }
+
+  if (prNumber) {
+    const pullRequest = await get(`pulls/${prNumber}`);
+    if (pullRequest?.head?.sha !== expectedSha) {
+      throw new Error('Pull-request head SHA changed during CodeQL applicability verification.');
+    }
+
+    const changedFiles = await listPullRequestFiles(prNumber);
+    if (isDocumentationOnlyPullRequestFiles(changedFiles)) {
+      const { alerts, target } = await listOpenCodeqlAlerts();
+      requireCodeqlAlertInventory(alerts);
+
+      const evidence = {
+        repository,
+        headSha: expectedSha,
+        workflowPath,
+        runId: null,
+        runAttempt: null,
+        url: `https://github.com/${repository}/pull/${prNumber}/files`,
+        conclusion: 'not_applicable_documentation_only',
+        evidenceSource: 'exact-pr-file-scope',
+        applicability: 'documentation-only',
+        changedFiles: changedFiles.map((file) => ({
+          filename: file.filename,
+          status: file.status ?? null,
+          previousFilename: file.previous_filename ?? null,
+        })),
+        findings: {
+          source: 'GitHub code-scanning alerts REST API',
+          target,
+          tool: 'CodeQL',
+          state: 'open',
+          count: alerts.length,
+        },
+      };
+
+      writeFileSync('codeql-default-setup-evidence.json', `${JSON.stringify(evidence, null, 2)}\n`);
+      if (process.env.GITHUB_STEP_SUMMARY) {
+        appendFileSync(
+          process.env.GITHUB_STEP_SUMMARY,
+          `CodeQL exact-head analysis N/A for documentation-only PR #${prNumber} at \`${expectedSha}\`; ` +
+            `${changedFiles.length} documentation file(s) verified and 0 open CodeQL alerts for ${target}.\n`,
+        );
+      }
+      console.log(
+        `CodeQL exact-head analysis N/A for documentation-only PR #${prNumber} at ${expectedSha}; ` +
+          `${changedFiles.length} documentation file(s), ${target}, 0 open alerts.`,
+      );
+      return;
+    }
   }
 
   // Default setup runs independently. Require all configured languages to finish
