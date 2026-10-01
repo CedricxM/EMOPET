@@ -16,23 +16,6 @@ import {
   type WorldRegionalCollectionCatalog,
 } from './world-regional-collections';
 
-export interface WorldOwnerScopedResourceState {
-  ownerId: string;
-  balance: WorldProgressionBalance;
-}
-
-export interface WorldOwnerScopedOwnershipState {
-  ownerId: string;
-  itemIds: readonly string[];
-}
-
-export interface WorldGamificationSnapshotItem {
-  id: string;
-  title: string;
-  owned: boolean;
-  affordable: boolean;
-}
-
 export interface WorldGamificationOwnerBalance {
   ownerId: string;
   balance: WorldProgressionBalance;
@@ -41,6 +24,13 @@ export interface WorldGamificationOwnerBalance {
 export interface WorldGamificationOwnedItem {
   ownerId: string;
   itemId: string;
+}
+
+export interface WorldGamificationSnapshotItem {
+  id: string;
+  title: string;
+  owned: boolean;
+  affordable: boolean;
 }
 
 export interface WorldGamificationSnapshot {
@@ -65,22 +55,31 @@ export interface WorldGamificationSnapshot {
  */
 export function buildWorldGamificationSnapshot(input: {
   ownerId: string;
-  resourceState: WorldOwnerScopedResourceState;
+  ownerBalance: WorldGamificationOwnerBalance;
   ledgerEntries: readonly WorldProgressionLedgerEntry[];
-  ownershipState: WorldOwnerScopedOwnershipState;
+  ownedItems: readonly WorldGamificationOwnedItem[];
   regionalCatalog: WorldRegionalCollectionCatalog;
   regionCode: string | null | undefined;
 }): WorldGamificationSnapshot {
-  if (input.resourceState.ownerId !== input.ownerId) {
-    throw new Error('WORLD_GAMIFICATION_RESOURCE_OWNER_SCOPE_MISMATCH');
+  if (input.ownerBalance.ownerId !== input.ownerId) {
+    throw new Error('WORLD_GAMIFICATION_BALANCE_OWNER_SCOPE_MISMATCH');
   }
-  if (input.ownershipState.ownerId !== input.ownerId) {
-    throw new Error('WORLD_GAMIFICATION_OWNERSHIP_OWNER_SCOPE_MISMATCH');
+
+  const ownedIds: string[] = [];
+  const seenOwnedIds = new Set<string>();
+  for (const row of input.ownedItems) {
+    if (row.ownerId !== input.ownerId) {
+      throw new Error('WORLD_GAMIFICATION_OWNED_ITEM_OWNER_SCOPE_MISMATCH');
+    }
+    if (seenOwnedIds.has(row.itemId)) {
+      throw new Error('WORLD_GAMIFICATION_DUPLICATE_OWNED_ITEM');
+    }
+    seenOwnedIds.add(row.itemId);
+    ownedIds.push(row.itemId);
   }
 
   const collection = resolveWorldRegionalCollection(input.regionalCatalog, input.regionCode);
-  const balance = input.resourceState.balance;
-  const owned = [...new Set(input.ownershipState.itemIds)];
+  const balance = input.ownerBalance.balance;
 
   return {
     authority: 'CONTROLLED_DRAFT_NOT_PRODUCTION_AUTHORITY',
@@ -98,11 +97,11 @@ export function buildWorldGamificationSnapshot(input: {
     collectionItems: collection.items.map((item) => ({
       id: item.id,
       title: item.title,
-      owned: owned.includes(item.id),
-      affordable: owned.includes(item.id)
+      owned: seenOwnedIds.has(item.id),
+      affordable: seenOwnedIds.has(item.id)
         ? false
         : canAffordWorldRegionalItem(balance, item),
     })),
-    ownedItemIds: owned,
+    ownedItemIds: ownedIds,
   };
 }
