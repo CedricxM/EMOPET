@@ -280,6 +280,26 @@
       "internationalTransfer": "PROVIDER_OR_STUDY_SPECIFIC_REVIEW_REQUIRED",
       "exportable": true,
       "erasure": "DELETE_OR_IRREVERSIBLY_ANONYMISE_UNDER_SEPARATE_RESEARCH_GOVERNANCE"
+    },
+    {
+      "id": "world_progression",
+      "data": [
+        "owner_id",
+        "bounded World progression event kind",
+        "opaque canonical source_ref",
+        "server-owned grant vector",
+        "World owned item id",
+        "coarse region code",
+        "resource spend idempotency and cost vector",
+        "recorded/built timestamps"
+      ],
+      "purpose": "Owner-controlled World progression, inventory and deterministic build accounting",
+      "legalBasis": "TO_CONFIRM_BEFORE_PRODUCTION",
+      "retention": "TO_CONFIRM_BEFORE_PRODUCTION; NO_FINAL_RETENTION_SCHEDULE_AUTHORITY",
+      "thirdParties": [],
+      "internationalTransfer": "NONE_BY_DEFAULT",
+      "exportable": "TO_CONFIRM_BEFORE_COMPLETE_ACCOUNT_EXPORT",
+      "erasure": "TO_CONFIRM_BEFORE_DESTRUCTIVE_ERASURE_AUTHORITY"
     }
   ],
   "retentionAuthority": {
