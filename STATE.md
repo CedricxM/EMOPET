@@ -57,7 +57,7 @@ No invented pricing, sales volume, grant award or data-revenue assumption should
 
 **Question:** are contribution ownership, third-party rights and public-repository policy controlled before scale?
 
-Related gates include `#114`, `#116` and `#680`. The public-safe projection is indexed in `CORPORATE.md` and `state/corporate/corporate-state.json`.
+Related gates include `#114`, `#116` and `#680`. The public-safe projection is indexed in `CORPORATE.md` and `state/corporate/corporate-state.json`. The public-safe projection is indexed in `CORPORATE.md` and `state/corporate/corporate-state.json`.
 
 ## Resource-allocation principle
 
