@@ -14,6 +14,7 @@ const ACK_SECRET = 'k'.repeat(48);
 const AUDIT_SECRET = 'a'.repeat(48);
 const ORDINARY_SECRET = 'o'.repeat(48);
 const PRIVILEGED_SECRET = 'p'.repeat(48);
+const SHARED_DOMAIN_TEST_SECRET = 's'.repeat(48);
 const NOW = new Date('2026-10-01T20:00:00.000Z');
 const BODY = JSON.stringify({
   alertId: '92400000-0000-4000-8000-000000000099',
@@ -83,7 +84,12 @@ test('acknowledgement and audit service tokens cannot cross authorization domain
   const ackToken = await signInternalAlertAckServiceToken({
     requestId: REQUEST_ID,
     body: BODY,
-    key: ackKey(),
+    key: {
+      secret: SHARED_DOMAIN_TEST_SECRET,
+      ordinaryJwtSecret: ORDINARY_SECRET,
+      privilegedJwtSecret: PRIVILEGED_SECRET,
+      internalAuditServiceSecret: AUDIT_SECRET,
+    },
     now: NOW,
   });
 
@@ -91,7 +97,7 @@ test('acknowledgement and audit service tokens cannot cross authorization domain
     eventId: REQUEST_ID,
     body: BODY,
     key: {
-      secret: AUDIT_SECRET,
+      secret: SHARED_DOMAIN_TEST_SECRET,
       ordinaryJwtSecret: ORDINARY_SECRET,
       privilegedJwtSecret: PRIVILEGED_SECRET,
     },
@@ -103,7 +109,7 @@ test('acknowledgement and audit service tokens cannot cross authorization domain
       token: ackToken,
       body: BODY,
       key: {
-        secret: ACK_SECRET,
+        secret: SHARED_DOMAIN_TEST_SECRET,
         ordinaryJwtSecret: ORDINARY_SECRET,
         privilegedJwtSecret: PRIVILEGED_SECRET,
       },
@@ -115,7 +121,12 @@ test('acknowledgement and audit service tokens cannot cross authorization domain
     verifyInternalAlertAckServiceToken({
       token: auditToken,
       body: BODY,
-      key: ackKey(AUDIT_SECRET),
+      key: {
+        secret: SHARED_DOMAIN_TEST_SECRET,
+        ordinaryJwtSecret: ORDINARY_SECRET,
+        privilegedJwtSecret: PRIVILEGED_SECRET,
+        internalAuditServiceSecret: AUDIT_SECRET,
+      },
       now: new Date('2026-10-01T20:00:10.000Z'),
     }),
   );
