@@ -174,3 +174,25 @@ test('every quest event kind is already authorised by the World progression auth
     );
   }
 });
+
+
+test('quest catalogue ids are unique and targets are positive bounded integers', async () => {
+  const cfg = JSON.parse(
+    await readFile(
+      new URL('../../config/world/world-quest-catalog-v1.json', import.meta.url),
+      'utf8',
+    ),
+  );
+
+  const ids = cfg.quests.map((quest) => quest.id);
+  assert.equal(new Set(ids).size, ids.length);
+
+  for (const quest of cfg.quests) {
+    assert.equal(Number.isInteger(quest.targetDistinctSources), true);
+    assert.equal(
+      quest.targetDistinctSources > 0 && quest.targetDistinctSources <= 20,
+      true,
+      `quest ${quest.id} target must stay positive and bounded`,
+    );
+  }
+});
