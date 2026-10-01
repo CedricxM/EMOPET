@@ -265,16 +265,11 @@ test('community default is used when user override is absent', () => {
   });
 });
 
-test('legacy aliases stay mapped to the new Breiz-derived profiles', () => {
+test('legacy Brittany alias stays Breiz while unsupported regional aliases fail neutral', () => {
   const persona = getAiPersona('BREIZ_BASE', {
     dogName: 'Naya',
     locale: 'fr-FR',
     region: 'Bretagne',
-  });
-  const parisPersona = getAiPersona('FR_IDF', {
-    dogName: 'Naya',
-    locale: 'fr-FR',
-    region: 'Ile-de-France',
   });
 
   assert.deepEqual(persona, {
@@ -283,5 +278,41 @@ test('legacy aliases stay mapped to the new Breiz-derived profiles', () => {
     lexiconHints: ['demat', 'doucement', 'au grand air', 'petits pas'],
     styleHints: ['ton chaleureux', 'rituels inclusifs', 'jamais clinique'],
   });
-  assert.equal(parisPersona.displayName, 'Breizat');
+
+  for (const [legacyId, region] of [
+    ['FR_NORM', 'Normandie'],
+    ['FR_IDF', 'Ile-de-France'],
+    ['FR_PROV', 'Provence'],
+    ['FR_OCC', 'Occitanie'],
+    ['FR_ARA', 'Auvergne-Rhone-Alpes'],
+    ['FR_HDF', 'Hauts-de-France'],
+    ['FR_GE', 'Grand Est'],
+    ['FR_NAQ', 'Nouvelle-Aquitaine'],
+    ['FR_PDL', 'Pays de la Loire'],
+    ['FR_CVL', 'Centre-Val de Loire'],
+    ['FR_BFC', 'Bourgogne-Franche-Comte'],
+    ['FR_COR', 'Corse'],
+  ]) {
+    const regionalPersona = getAiPersona(legacyId, {
+      dogName: 'Naya',
+      locale: 'fr-FR',
+      region,
+    });
+
+    assert.equal(regionalPersona.displayName, 'EMOPET', legacyId);
+    assert.equal(regionalPersona.greeting, 'Bonjour, Naya !', legacyId);
+    assert.equal(regionalPersona.greeting.toLowerCase().includes('demat'), false, legacyId);
+  }
+});
+
+test('unknown non-empty persona ids fail neutral instead of impersonating Breiz', () => {
+  const persona = getAiPersona('UNREVIEWED_REGION_PERSONA', {
+    dogName: 'Naya',
+    locale: 'fr-FR',
+    region: 'Region non controlee',
+  });
+
+  assert.equal(persona.displayName, 'EMOPET');
+  assert.equal(persona.greeting, 'Bonjour, Naya !');
+  assert.ok(persona.styleHints.includes('aucune identite regionale inventee'));
 });
