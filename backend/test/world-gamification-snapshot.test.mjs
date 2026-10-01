@@ -63,6 +63,17 @@ function balance(overrides = {}) {
 const OWNER_ID = '11111111-1111-4111-8111-111111111111';
 const OTHER_OWNER_ID = '22222222-2222-4222-8222-222222222222';
 
+function ownerBalance(overrides = {}, ownerId = OWNER_ID) {
+  return {
+    ownerId,
+    balance: balance(overrides),
+  };
+}
+
+function ownedItem(itemId, ownerId = OWNER_ID) {
+  return { ownerId, itemId };
+}
+
 function ledgerEntry(overrides = {}) {
   return {
     id: 'entry-1',
@@ -76,20 +87,17 @@ function ledgerEntry(overrides = {}) {
   };
 }
 
-test('snapshot composes Breiz identity, safe resources, quests and collection availability', async () => {
+test('snapshot composes Breiz identity, safe resources, quests, provenance and collection availability', async () => {
   const { module: mod } = await loadSnapshotModule();
   const regionalCatalog = await loadRegionalCatalog();
 
   const snapshot = mod.buildWorldGamificationSnapshot({
     ownerId: OWNER_ID,
-    resourceState: {
-      ownerId: OWNER_ID,
-      balance: balance({
+    ownerBalance: ownerBalance({
       knowledgeFragments: 7,
       localDiscoveries: 5,
       communitySeeds: 3,
     }),
-    },
     ledgerEntries: [
       ledgerEntry({ sourceRef: 'knowledge:card:one' }),
       ledgerEntry({
@@ -98,10 +106,7 @@ test('snapshot composes Breiz identity, safe resources, quests and collection av
         sourceRef: 'knowledge:card:two',
       }),
     ],
-    ownershipState: {
-      ownerId: OWNER_ID,
-      itemIds: ['breiz-learning-sail'],
-    },
+    ownedItems: [ownedItem('breiz-learning-sail')],
     regionalCatalog,
     regionCode: 'FR-BRE',
   });
@@ -138,23 +143,15 @@ test('snapshot composes Breiz identity, safe resources, quests and collection av
   assert.equal(sail.affordable, false);
 });
 
-test('snapshot falls back to GLOBAL and canonicalizes owned ids', async () => {
+test('snapshot falls back to GLOBAL with Owner-scoped inventory', async () => {
   const { module: mod } = await loadSnapshotModule();
   const regionalCatalog = await loadRegionalCatalog();
 
   const snapshot = mod.buildWorldGamificationSnapshot({
     ownerId: OWNER_ID,
-    resourceState: {
-      ownerId: OWNER_ID,
-      resourceState: {
-      ownerId: OWNER_ID,
-      balance: balance(),
-    },
+    ownerBalance: ownerBalance(),
     ledgerEntries: [],
-    ownershipState: {
-      ownerId: OWNER_ID,
-      itemIds: ['memory-lantern', 'memory-lantern'],
-    },
+    ownedItems: [ownedItem('memory-lantern')],
     regionalCatalog,
     regionCode: 'not-a-region',
   });
@@ -171,19 +168,14 @@ test('snapshot rejects ledger rows from another Owner', async () => {
   assert.throws(
     () => mod.buildWorldGamificationSnapshot({
       ownerId: OWNER_ID,
-      resourceState: {
-      ownerId: OWNER_ID,
-      balance: balance(),
+      ownerBalance: ownerBalance(),
       ledgerEntries: [
         ledgerEntry({
           ownerId: OTHER_OWNER_ID,
           sourceRef: 'knowledge:foreign',
         }),
       ],
-      ownershipState: {
-      ownerId: OWNER_ID,
-      itemIds: [],
-    },
+      ownedItems: [],
       regionalCatalog,
       regionCode: 'GLOBAL',
     }),
@@ -191,49 +183,57 @@ test('snapshot rejects ledger rows from another Owner', async () => {
   );
 });
 
-test('snapshot rejects resource balance from another Owner', async () => {
+test('snapshot rejects a balance belonging to another Owner', async () => {
   const { module: mod } = await loadSnapshotModule();
   const regionalCatalog = await loadRegionalCatalog();
 
   assert.throws(
     () => mod.buildWorldGamificationSnapshot({
       ownerId: OWNER_ID,
-      resourceState: {
-        ownerId: OTHER_OWNER_ID,
-        balance: balance({ localDiscoveries: 99 }),
-      },
+      ownerBalance: ownerBalance({}, OTHER_OWNER_ID),
       ledgerEntries: [],
-      ownershipState: {
-        ownerId: OWNER_ID,
-        itemIds: [],
-      },
+      ownedItems: [],
       regionalCatalog,
       regionCode: 'GLOBAL',
     }),
-    /WORLD_GAMIFICATION_RESOURCE_OWNER_SCOPE_MISMATCH/,
+    /BALANCE_OWNER_SCOPE_MISMATCH/,
   );
 });
 
-test('snapshot rejects ownership state from another Owner', async () => {
+test('snapshot rejects inventory rows belonging to another Owner', async () => {
   const { module: mod } = await loadSnapshotModule();
   const regionalCatalog = await loadRegionalCatalog();
 
   assert.throws(
     () => mod.buildWorldGamificationSnapshot({
       ownerId: OWNER_ID,
-      resourceState: {
-        ownerId: OWNER_ID,
-        balance: balance(),
-      },
+      ownerBalance: ownerBalance(),
       ledgerEntries: [],
-      ownershipState: {
-        ownerId: OTHER_OWNER_ID,
-        itemIds: ['memory-lantern'],
-      },
+      ownedItems: [ownedItem('memory-lantern', OTHER_OWNER_ID)],
       regionalCatalog,
       regionCode: 'GLOBAL',
     }),
-    /WORLD_GAMIFICATION_OWNERSHIP_OWNER_SCOPE_MISMATCH/,
+    /OWNED_ITEM_OWNER_SCOPE_MISMATCH/,
+  );
+});
+
+test('snapshot rejects duplicate ownership rows instead of hiding persistence corruption', async () => {
+  const { module: mod } = await loadSnapshotModule();
+  const regionalCatalog = await loadRegionalCatalog();
+
+  assert.throws(
+    () => mod.buildWorldGamificationSnapshot({
+      ownerId: OWNER_ID,
+      ownerBalance: ownerBalance(),
+      ledgerEntries: [],
+      ownedItems: [
+        ownedItem('memory-lantern'),
+        ownedItem('memory-lantern'),
+      ],
+      regionalCatalog,
+      regionCode: 'GLOBAL',
+    }),
+    /DUPLICATE_OWNED_ITEM/,
   );
 });
 
@@ -242,17 +242,9 @@ test('snapshot contract excludes ranking, XP, streak and dog/Care scoring surfac
   const regionalCatalog = await loadRegionalCatalog();
   const snapshot = mod.buildWorldGamificationSnapshot({
     ownerId: OWNER_ID,
-    resourceState: {
-      ownerId: OWNER_ID,
-      resourceState: {
-      ownerId: OWNER_ID,
-      balance: balance(),
-    },
+    ownerBalance: ownerBalance(),
     ledgerEntries: [],
-    ownershipState: {
-      ownerId: OWNER_ID,
-      itemIds: [],
-    },
+    ownedItems: [],
     regionalCatalog,
     regionCode: 'GLOBAL',
   });
@@ -279,23 +271,17 @@ test('snapshot contract excludes ranking, XP, streak and dog/Care scoring surfac
 test('snapshot copies caller balance instead of exposing mutable state', async () => {
   const { module: mod } = await loadSnapshotModule();
   const regionalCatalog = await loadRegionalCatalog();
-  const original = balance({ localDiscoveries: 9 });
+  const original = ownerBalance({ localDiscoveries: 9 });
 
   const snapshot = mod.buildWorldGamificationSnapshot({
     ownerId: OWNER_ID,
-    resourceState: {
-      ownerId: OWNER_ID,
-      balance: original,
-    },
+    ownerBalance: original,
     ledgerEntries: [],
-    ownershipState: {
-      ownerId: OWNER_ID,
-      itemIds: [],
-    },
+    ownedItems: [],
     regionalCatalog,
     regionCode: 'GLOBAL',
   });
 
   snapshot.resources.localDiscoveries = 0;
-  assert.equal(original.localDiscoveries, 9);
+  assert.equal(original.balance.localDiscoveries, 9);
 });
