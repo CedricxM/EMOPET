@@ -104,8 +104,8 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <a
                 href="#decouvrir"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-[#A65E3F] text-white text-base font-semibold rounded-full hover:bg-[#1F2A36] transition-colors duration-200 shadow-lg shadow-[#A65E3F]/20"
-                style={{ fontFamily: 'var(--font-body)' }}
+                className="inline-flex items-center gap-2 px-8 py-4 bg-[#814931] text-white text-base font-semibold rounded-full hover:bg-[#1F2A36] transition-colors duration-200 shadow-lg shadow-[#814931]/20"
+                style={{ fontFamily: 'var(--font-body)', color: '#FFFFFF' }}
               >
                 Découvrir EMOPET
               </a>
@@ -711,7 +711,7 @@ export default function HomePage() {
                 />
                 <button
                   type="submit"
-                  className="w-full px-4 py-3 bg-[#A65E3F] text-white text-base font-semibold rounded-xl hover:bg-[#1F2A36] transition-colors duration-200 shadow-lg shadow-[#A65E3F]/20"
+                  className="w-full px-4 py-3 bg-[#814931] text-white text-base font-semibold rounded-xl hover:bg-[#1F2A36] transition-colors duration-200 shadow-lg shadow-[#814931]/20"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   Je veux participer

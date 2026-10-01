@@ -1,5 +1,6 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
+import { tmpdir } from 'node:os';
 
 const BASE_URL = process.env.QA_BASE_URL || 'http://127.0.0.1:3100';
 const OUT_DIR = process.env.QA_OUT_DIR || 'apps/web/.qa-rendered';
@@ -377,16 +378,19 @@ function renderMarkdown(report) {
 }
 
 let chrome;
+let chromeStderr = '';
 try {
   await mkdir(OUT_DIR, { recursive: true });
   const command = await findChrome();
+  const chromeProfileDir = await mkdtemp(`${tmpdir()}/emopet-chrome-qa-`);
   chrome = spawn(command, [
     '--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage',
-    '--remote-debugging-port=9222', '--remote-debugging-address=127.0.0.1', '--user-data-dir=/tmp/emopet-chrome-qa', `--window-size=${VIEWPORT.width},${VIEWPORT.height}`, 'about:blank',
+    '--remote-debugging-port=9222', '--remote-debugging-address=127.0.0.1', `--user-data-dir=${chromeProfileDir}`, '--no-first-run', '--no-default-browser-check', `--window-size=${VIEWPORT.width},${VIEWPORT.height}`, 'about:blank',
   ], { stdio: ['ignore','pipe','pipe'] });
+  chrome.stderr?.on('data', (chunk) => { chromeStderr += chunk.toString(); });
 
   let target;
-  for (let i=0; i<80; i+=1) {
+  for (let i=0; i<200; i+=1) {
     try {
       const list = await fetch('http://127.0.0.1:9222/json/list').then(r => r.json());
       target = list.find(x => x.type === 'page');
@@ -394,7 +398,9 @@ try {
     } catch {}
     await sleep(100);
   }
-  if (!target?.webSocketDebuggerUrl) throw new Error('Chrome DevTools endpoint did not become ready');
+  if (!target?.webSocketDebuggerUrl) {
+    throw new Error(`Chrome DevTools endpoint did not become ready. Chrome stderr tail: ${chromeStderr.slice(-2000)}`);
+  }
 
   const cdp = new Cdp(target.webSocketDebuggerUrl);
   await cdp.open();

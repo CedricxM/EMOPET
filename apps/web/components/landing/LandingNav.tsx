@@ -69,8 +69,8 @@ export default function LandingNav() {
             ))}
             <a
               href="#decouvrir"
-              className="inline-flex items-center gap-1 px-5 py-2.5 bg-[#A65E3F] text-white text-sm font-semibold rounded-full hover:bg-[#1F2A36] transition-colors duration-200"
-              style={{ fontFamily: 'var(--font-body)' }}
+              className="inline-flex items-center gap-1 px-5 py-2.5 bg-[#814931] text-white text-sm font-semibold rounded-full hover:bg-[#1F2A36] transition-colors duration-200"
+              style={{ fontFamily: 'var(--font-body)', color: '#FFFFFF' }}
             >
               Découvrir
               <span aria-hidden="true">→</span>
@@ -120,8 +120,8 @@ export default function LandingNav() {
           <a
             href="#decouvrir"
             onClick={() => setMobileOpen(false)}
-            className="inline-flex items-center gap-1 px-5 py-3 bg-[#A65E3F] text-white text-base font-semibold rounded-full w-full justify-center mt-2"
-            style={{ fontFamily: 'var(--font-body)' }}
+            className="inline-flex items-center gap-1 px-5 py-3 bg-[#814931] text-white text-base font-semibold rounded-full w-full justify-center mt-2"
+            style={{ fontFamily: 'var(--font-body)', color: '#FFFFFF' }}
           >
             Découvrir EMOPET
             <span aria-hidden="true">→</span>
