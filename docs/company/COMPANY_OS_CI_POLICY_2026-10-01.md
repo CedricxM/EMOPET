@@ -21,6 +21,10 @@ The guard at `scripts/control/company-os-state.test.mjs` therefore protects a sm
 8. Research-derived fundraising numbers must remain labelled as planning assumptions and not approvals or commitments.
 9. Public Markdown views must disclose that they are projections/indexes rather than their domain authority.
 10. The guard itself must run in the every-PR security workflow.
+11. A metric value requires evidence; a filled metric target cannot remain `TBD_BEFORE_RUN` or `NOT_DEFINED`.
+12. A numerical risk probability requires evidence, and a `CLOSED` risk requires evidence.
+13. A `RESOLVED` critical unknown requires evidence; null cost/time-to-reduce values must remain explicitly `UNKNOWN`.
+14. Proof Velocity remains a transparent count of evidence-backed uncertainty transitions, not an opaque score or a proxy for PR/commit/feature volume.
 
 ## Deliberately not enforced yet
 
