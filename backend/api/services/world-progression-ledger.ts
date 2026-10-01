@@ -152,7 +152,7 @@ export class WorldProgressionLedgerService {
       ownerId: input.ownerId,
       idempotencyKey: input.idempotencyKey,
       kind: authorized.kind,
-      sourceRef: input.sourceRef,
+      sourceRef: input.sourceRef.trim(),
       grants: authorized.grants,
       recordedAt: this.now(),
     };
