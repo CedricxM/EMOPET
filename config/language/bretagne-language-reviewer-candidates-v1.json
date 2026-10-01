@@ -1,0 +1,111 @@
+{
+  "schemaVersion": "emopet-bretagne-language-reviewer-candidates-v1",
+  "controlledAt": "2026-10-01",
+  "purpose": "Candidate organisations for linguistic/cultural review of the Bretagne regional companion and MotsPet regional layer. This register is not a partnership, endorsement or language approval record.",
+  "allowedStatuses": [
+    "CANDIDATE_NOT_CONTACTED",
+    "OUTREACH_SENT",
+    "RESPONSE_RECEIVED",
+    "REVIEW_SCOPE_DISCUSSION",
+    "REVIEW_SCOPE_AGREED",
+    "REVIEW_RECEIPT_RECORDED",
+    "DECLINED",
+    "DEFERRED"
+  ],
+  "candidates": [
+    {
+      "candidateId": "oplb",
+      "organisationName": "Office Public de la Langue Bretonne",
+      "relationshipStatus": "CANDIDATE_NOT_CONTACTED",
+      "reviewScope": [
+        "breton_public_wording",
+        "breton_translation_review",
+        "technical_terminology",
+        "software_localisation",
+        "style_and_readability"
+      ],
+      "publicCapabilityEvidence": {
+        "reviewedAt": "2026-10-01",
+        "summary": "The OPLB publicly operates Traduction-Conseil, TermBret terminology, digital-language services and linguistic review. TermOfis is the public terminology database maintained by TermBret."
+      },
+      "publicSources": [
+        "https://www.fr.brezhoneg.bzh/140-poles-et-services.htm",
+        "https://www.fr.brezhoneg.bzh/19-traduire.htm",
+        "https://www.fr.brezhoneg.bzh/36-termofis.htm"
+      ],
+      "candidateRequests": [
+        "review_existing_breiz_terms",
+        "advise_public_breton_wording",
+        "identify_terms_requiring_terminology_work",
+        "review_future_breton_locale_copy"
+      ],
+      "reviewClaimAllowed": false,
+      "partnershipClaimAllowed": false,
+      "notes": "Presence in this register does not mean OPLB has reviewed EMOPET. Exact term approval requires the regional review-receipt gate."
+    },
+    {
+      "candidateId": "institut-du-galo",
+      "organisationName": "Institut du Galo",
+      "relationshipStatus": "CANDIDATE_NOT_CONTACTED",
+      "reviewScope": [
+        "gallo_public_wording",
+        "gallo_translation_review",
+        "terminology",
+        "geographic_cultural_usage",
+        "style_and_readability"
+      ],
+      "publicCapabilityEvidence": {
+        "reviewedAt": "2026-10-01",
+        "summary": "The Institut du Galo publicly states that it develops translation services, linguistic/terminological tools and expertise intended to support modern public use of Gallo."
+      },
+      "publicSources": [
+        "https://institutdugalo.bzh/fr/accueil/",
+        "https://institutdugalo.bzh/fr/linstitut/nos-missions/"
+      ],
+      "candidateRequests": [
+        "review_when_gallo_is_geographically_culturally_relevant",
+        "advise_gallo_public_wording",
+        "avoid_breton_only_representation_of_brittany",
+        "review_future_gallo_locale_or_regional_copy"
+      ],
+      "reviewClaimAllowed": false,
+      "partnershipClaimAllowed": false,
+      "notes": "Gallo support must be evidence-based and geographically appropriate, not decorative regional slang."
+    },
+    {
+      "candidateId": "bcd",
+      "organisationName": "Bretagne Culture Diversité",
+      "relationshipStatus": "OUTREACH_SENT",
+      "reviewScope": [
+        "cultural_context_review",
+        "cultural_source_guidance",
+        "qualified_reviewer_referral",
+        "heritage_context"
+      ],
+      "publicCapabilityEvidence": {
+        "reviewedAt": "2026-10-01",
+        "summary": "BCD is already the subject of a documented EMOPET Bécédia/Bretania access and partnership enquiry. No response or rights grant is recorded in this candidate register."
+      },
+      "publicSources": [
+        "https://www.bcd.bzh/",
+        "https://www.bcd.bzh/becedia/",
+        "https://www.bretania.bzh/"
+      ],
+      "candidateRequests": [
+        "identify_qualified_cultural_reviewers",
+        "review_bounded_cultural_context_model",
+        "clarify_becedia_bretania_access_and_rights"
+      ],
+      "reviewClaimAllowed": false,
+      "partnershipClaimAllowed": false,
+      "notes": "OUTREACH_SENT reflects the existing controlled BCD communication record only. It does not establish response, review, rights or partnership."
+    }
+  ],
+  "promotionRules": {
+    "responseReceivedRequires": "inbound written evidence from the organisation",
+    "reviewScopeDiscussionRequires": "substantive written or documented meeting evidence describing a possible review role",
+    "reviewScopeAgreedRequires": "written agreement on exact review scope, deliverable and permitted representation",
+    "reviewReceiptRecordedRequires": "exact term/content review evidence captured by the regional review-receipt authority",
+    "partnershipTerminology": "FORBIDDEN_UNLESS_SEPARATELY_CONTRACTED_AND_EVIDENCED"
+  }
+}
