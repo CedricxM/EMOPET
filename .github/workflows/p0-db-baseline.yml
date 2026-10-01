@@ -241,6 +241,14 @@ jobs:
         # Turbo executes the same workspace build scripts/topology and can replay deterministic outputs.
         run: pnpm turbo run build --filter=@emopet/api...
 
+      - name: WORLD-G2 durable gamification persistence on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          WORLD_GAMIFICATION_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/world-gamification-persistence.integration.test.mjs
+
       - name: Instrument repository-only guards
         working-directory: backend
         run: |
@@ -829,6 +837,14 @@ jobs:
           NODE_ENV: test
         run: node --test test/instrument-database-guards.integration.test.mjs
 
+      - name: WORLD-G2 durable gamification persistence on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          WORLD_GAMIFICATION_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/world-gamification-persistence.integration.test.mjs
+
       - name: PRIV-ERASURE-TOPOLOGY generated database parity
         working-directory: backend
         env:
@@ -932,5 +948,5 @@ jobs:
       - name: Maturity boundary
         if: always()
         run: |
-          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, BEHAV-DATA-01 response/applicability semantics, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification, retention-readiness probes, INT-04A bounded export authority, INT-05 recipient-bound professional sharing, and WORLD-SOCIAL-01 canonical user blocks and World report intake.'
+          echo 'This workflow validates disposable P0 database behavior plus focused AUTH-01, ID-01, INT-03A/03B, INT-06 durable Community core + copresence identity, durable Health journal create/read, BEHAV-DATA-01 response/applicability semantics, PRIV-DISC-01, PRIV-ERASURE-TOPOLOGY, read-only PRIV-ERASURE-RESIDUE verification, WORLD-G2 durable gamification persistence (non-activated), retention-readiness probes, INT-04A bounded export authority, INT-05 recipient-bound professional sharing, and WORLD-SOCIAL-01 canonical user blocks and World report intake.'
           echo 'It does not authorize production migration, deployment, or release.'
