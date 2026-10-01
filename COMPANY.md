@@ -17,8 +17,10 @@ Start here when the question is: **what is true now, what controls that truth, w
 6. `FRESHNESS.md` — review freshness and STALE semantics.
 7. `state/freshness/freshness-state.json` — machine-readable freshness overlay.
 8. `FOUNDER_COCKPIT.md` — public-safe generated founder navigation cockpit.
-9. `docs/company/EMOPET_COMPANY_OS_ARCHITECTURE_2026-10-01.md` — operating model and source-of-truth hierarchy.
-10. Relevant controlled domain authority before making a substantive decision.
+9. `TIME_MACHINE.md` — generated append-only Company OS history view.
+10. `state/history/company-transitions.jsonl` — canonical append-only transition ledger.
+11. `docs/company/EMOPET_COMPANY_OS_ARCHITECTURE_2026-10-01.md` — operating model and source-of-truth hierarchy.
+12. Relevant controlled domain authority before making a substantive decision.
 
 ## Truth model
 
@@ -62,6 +64,7 @@ Authority: `docs/strategy/PROJECT_TIMELINE_2026_2027.md`.
 | Generated human views | Added in V2 |
 | Founder cockpit | Added in V2 |
 | Redacted investor/supplier views | Added in V2 |
+| Company Time Machine append-only ledger | Added in V2 |
 
 ## Public-safe external views
 
