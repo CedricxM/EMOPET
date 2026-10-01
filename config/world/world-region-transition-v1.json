@@ -1,0 +1,18 @@
+{
+  "version": "1",
+  "status": "CONTROLLED_DRAFT_NOT_PRODUCTION_AUTHORITY",
+  "automaticRegionSwitch": false,
+  "switchReward": false,
+  "ownershipPersistsAcrossRegionSwitch": true,
+  "earnedResourceReset": false,
+  "ownedItemExpiry": false,
+  "outsideActiveCollectionPolicy": "RETAIN_IN_INVENTORY_NOT_AUTO_PLACED",
+  "rules": [
+    "Region changes are explicit Owner actions using a coarse region code.",
+    "Switching region never grants World resources.",
+    "Switching region never removes or expires an owned item.",
+    "Owned items from another regional collection remain in inventory but are not auto-placed into the active region.",
+    "Unknown and retired owned item ids remain retained until an explicit migration policy exists.",
+    "Exact location, geofencing and passive movement do not trigger regional transitions."
+  ]
+}
