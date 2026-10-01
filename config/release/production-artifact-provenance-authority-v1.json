@@ -1,0 +1,111 @@
+{
+  "schemaVersion": "emopet-production-artifact-provenance-authority-v1",
+  "status": "CONTRACT_ONLY / ARTIFACT_IDENTITY_DEFINED / SIGNING_AUTHORITY_UNSELECTED",
+  "issue": 831,
+  "claimsReleaseArtifactBuilt": false,
+  "claimsArtifactSigned": false,
+  "claimsAttestationVerified": false,
+  "claimsSigningAuthoritySelected": false,
+  "repository": {
+    "canonical": "CedricxM/EMOPET",
+    "sourceIdentity": "IMMUTABLE_COMMIT_SHA40"
+  },
+  "artifactIdentity": {
+    "requiredFields": [
+      "artifact.identity",
+      "artifact.sha256",
+      "source.commitSha",
+      "build.runRef",
+      "build.builderRef"
+    ],
+    "digestAlgorithm": "SHA256",
+    "mutableRefsNotIdentity": [
+      "branch",
+      "pullRequest",
+      "tagWithoutImmutableArtifactDigest",
+      "latestUrl"
+    ]
+  },
+  "sbomBinding": {
+    "requiredFields": [
+      "sbom.cycloneDxRef",
+      "sbom.cycloneDxSha256",
+      "sbom.spdxRef",
+      "sbom.spdxSha256"
+    ],
+    "meaning": "SBOM REFERENCES AND DIGESTS MUST BELONG TO THE SAME RELEASE CANDIDATE ARTIFACT"
+  },
+  "attestation": {
+    "statusAllowed": [
+      "UNVERIFIED",
+      "VERIFIED"
+    ],
+    "templateDefault": "UNVERIFIED",
+    "mechanism": null,
+    "signingAuthorityRef": null,
+    "evidenceRef": null,
+    "requiredBindings": [
+      "subjectArtifactSha256",
+      "sourceCommitSha",
+      "buildRunRef"
+    ],
+    "verifiedMeaning": "ATTESTATION EVIDENCE BINDS THE REVIEWED ARTIFACT DIGEST TO THE REVIEWED SOURCE COMMIT AND BUILD"
+  },
+  "signingAuthority": {
+    "state": "UNSELECTED",
+    "authorityRef": null,
+    "allowedFutureMechanisms": "REVIEWED_MECHANISM_ONLY",
+    "selectionBoundary": "SIGSTORE_COSIGN_OR_EQUIVALENT_MAY_BE_REVIEWED_LATER / NONE_SELECTED_HERE"
+  },
+  "provenanceReceiptTemplate": {
+    "schemaVersion": "emopet-production-artifact-provenance-receipt-v1",
+    "state": "DRAFT_UNVERIFIED",
+    "artifact": {
+      "identity": null,
+      "sha256": null
+    },
+    "source": {
+      "commitSha": null
+    },
+    "build": {
+      "runRef": null,
+      "builderRef": null
+    },
+    "sbom": {
+      "cycloneDxRef": null,
+      "cycloneDxSha256": null,
+      "spdxRef": null,
+      "spdxSha256": null
+    },
+    "attestation": {
+      "status": "UNVERIFIED",
+      "mechanism": null,
+      "signingAuthorityRef": null,
+      "evidenceRef": null,
+      "subjectArtifactSha256": null,
+      "sourceCommitSha": null,
+      "buildRunRef": null
+    },
+    "review": {
+      "reviewRef": null,
+      "reviewedAt": null
+    }
+  },
+  "formats": {
+    "commitSha": "LOWERCASE_GIT_SHA40",
+    "sha256": "LOWERCASE_HEX_64",
+    "evidenceRef": "NON_SECRET_REPOSITORY_OR_PROVIDER_REFERENCE",
+    "reviewedAt": "RFC3339_UTC"
+  },
+  "failClosedRules": [
+    "The current required check named Release provenance gate is repository policy evidence only and is not a cryptographic provenance or attestation by itself.",
+    "GitHub Actions artifact upload is transport/storage evidence and is not release signing authority.",
+    "A branch name, pull-request number, mutable URL or tag without an immutable artifact digest is not artifact identity.",
+    "Production promotion remains HOLD until the artifact digest, source commit, build evidence and both SBOM digests are present and reviewed.",
+    "Production promotion remains HOLD while attestation status is UNVERIFIED.",
+    "Production promotion remains HOLD while signingAuthority.state is UNSELECTED or signingAuthorityRef is missing.",
+    "A VERIFIED attestation must bind the same artifact SHA-256, source commit SHA and build run reference recorded by the release candidate.",
+    "Private signing keys, tokens, credentials and secret values must never be stored in repository release receipts or logs.",
+    "This contract selects no signing mechanism, signing provider, key custody system, builder platform or production artifact registry."
+  ]
+}
