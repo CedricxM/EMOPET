@@ -105,7 +105,7 @@ export default function HomePage() {
               <a
                 href="#decouvrir"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-[#814931] text-white text-base font-semibold rounded-full hover:bg-[#1F2A36] transition-colors duration-200 shadow-lg shadow-[#814931]/20"
-                style={{ fontFamily: 'var(--font-body)' }}
+                style={{ fontFamily: 'var(--font-body)', color: '#FFFFFF' }}
               >
                 Découvrir EMOPET
               </a>
