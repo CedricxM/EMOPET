@@ -136,12 +136,12 @@ Both workstreams remain `GATED / NOT PRODUCTION AUTHORITY` until their own activ
 - all 33 current `scripts/control/*.test.mjs` authority tests have a CI execution path, either directly or through a package-script alias invoked by CI;
 - the Windows gate verifies cross-platform checkout attributes, generated-source byte stability, VBO committed-snapshot evidence, Windows-sensitive path/guard behavior and the web test suite on `windows-latest`;
 - the active `main-protection` repository ruleset requires pull-request promotion and conversation resolution, blocks branch deletion and non-fast-forward updates, uses 0 required approvals for the current single-admin ownership model, and has no bypass actors;
-- **required status checks are not yet configured in the ruleset**, so the seven selected repository-owned checks remain a governance P0 rather than a mechanical merge prerequisite (#257);
+- **seven selected repository-owned security/supply-chain status checks are required by the active `main-protection` ruleset**, making them mechanical merge prerequisites; #257 is completed;
 - P0 DB remains intentionally excluded from global required checks because it is path-scoped;
-- GitHub still reports `delete_branch_on_merge=false`; branch lifecycle cleanup remains open under #679;
+- GitHub reports `delete_branch_on_merge=true`; automatic deletion is active for newly merged heads, while legacy/stale branch cleanup remains open under #679;
 - the repository is public while licence/contribution ownership and CODEOWNERS policy remain open under #680.
 
-CI is materially stronger than the original baseline, but required-check enforcement, branch lifecycle settings, IP/contribution ownership, CODEOWNERS/reviewer ownership, deployment environments and release ownership remain `OPEN`.
+CI is materially stronger than the original baseline. Required-check enforcement and automatic merged-head deletion are active; legacy/stale branch cleanup, IP/contribution ownership, CODEOWNERS/reviewer ownership, deployment environments and release ownership remain `OPEN`.
 
 ## 10. Confirmed constraints and open decisions
 
@@ -160,7 +160,7 @@ Open or gated decisions include:
 - disposition of the Next.js prototype API/data plane;
 - consent, retention, deletion, location, and telemetry rules;
 - exact ELI/ELS/Claim Guard definitions and Breiz bounds;
-- required status-check enforcement, branch lifecycle, repository IP/licensing, CODEOWNERS/reviewer policy, environments, and deployment ownership;
+- legacy/stale branch cleanup, repository IP/licensing, CODEOWNERS/reviewer policy, environments, and deployment ownership;
 - Unity project/version/targets/first slice;
 - Nakama use cases and deployment target.
 

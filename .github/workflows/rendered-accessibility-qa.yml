@@ -1,0 +1,87 @@
+name: Rendered accessibility QA
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web/app/page.tsx'
+      - 'apps/web/app/**/layout.tsx'
+      - 'apps/web/app/world/page.tsx'
+      - 'apps/web/components/landing/**'
+      - 'apps/web/components/bretagne-map/**'
+      - 'apps/web/styles/**'
+      - 'apps/web/scripts/rendered-accessibility-qa.mjs'
+      - '.github/workflows/rendered-accessibility-qa.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/app/page.tsx'
+      - 'apps/web/app/**/layout.tsx'
+      - 'apps/web/app/world/page.tsx'
+      - 'apps/web/components/landing/**'
+      - 'apps/web/components/bretagne-map/**'
+      - 'apps/web/styles/**'
+      - 'apps/web/scripts/rendered-accessibility-qa.mjs'
+      - '.github/workflows/rendered-accessibility-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  TURBO_TELEMETRY_DISABLED: '1'
+  NEXT_TELEMETRY_DISABLED: '1'
+
+jobs:
+  rendered-a11y:
+    name: Chrome rendered evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 10.33.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: pnpm
+      - name: Install exact locked dependency graph
+        run: pnpm install --frozen-lockfile
+      - name: Build web application
+        run: pnpm build --filter=@emopet/web
+      - name: Start production web server
+        shell: bash
+        run: |
+          pnpm --filter @emopet/web start > /tmp/emopet-web.log 2>&1 &
+          echo $! > /tmp/emopet-web.pid
+          for i in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:3100/ > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/emopet-web.log
+          exit 1
+      - name: Capture rendered accessibility evidence in Chrome
+        env:
+          QA_BASE_URL: http://127.0.0.1:3100
+          QA_OUT_DIR: apps/web/.qa-rendered
+        run: node apps/web/scripts/rendered-accessibility-qa.mjs
+      - name: Print rendered QA report
+        if: always()
+        shell: bash
+        run: |
+          if [ -f apps/web/.qa-rendered/report.md ]; then
+            cat apps/web/.qa-rendered/report.md
+          else
+            echo "Rendered QA report was not produced."
+          fi
+      - name: Upload rendered QA evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: rendered-accessibility-qa
+          path: apps/web/.qa-rendered/
+          if-no-files-found: warn
+          retention-days: 14
+          include-hidden-files: true
