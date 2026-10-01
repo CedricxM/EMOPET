@@ -124,3 +124,16 @@ test('regional boundary does not accept coordinates, address, geofence or passiv
   assert.match(source, /explicit coarse region code/i);
   assert.match(source, /No coordinates, address, distance, geofence, passive history or dog telemetry/);
 });
+
+
+test('regional catalogue has unique region codes and globally unique item ids', async () => {
+  const cfg = await loadCatalog();
+  const regionCodes = cfg.collections.map((collection) => collection.regionCode);
+  assert.equal(new Set(regionCodes).size, regionCodes.length);
+  assert.equal(regionCodes.filter((code) => code === 'GLOBAL').length, 1);
+
+  const itemIds = cfg.collections.flatMap((collection) =>
+    collection.items.map((item) => item.id),
+  );
+  assert.equal(new Set(itemIds).size, itemIds.length);
+});
