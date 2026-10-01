@@ -24,6 +24,12 @@ on:
       - '.github/workflows/rendered-accessibility-qa.yml'
   workflow_dispatch:
 
+# Keep only the newest pull-request run for this workflow.
+# Pushes to main and manual runs remain non-cancelling evidence.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 
