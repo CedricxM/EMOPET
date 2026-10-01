@@ -14,6 +14,7 @@ const migration = readJson('config/release/production-db-migration-authority-v1.
 const runtimeConfig = readJson('config/release/production-runtime-config-authority-v1.json');
 const environmentAuthority = readJson('config/release/production-environment-authority-v1.json');
 const artifactProvenance = readJson('config/release/production-artifact-provenance-authority-v1.json');
+const transportSecurity = readJson('config/release/production-transport-security-authority-v1.json');
 const p0Workflow = readFileSync(
   resolve(root, '.github', 'workflows', 'p0-db-baseline.yml'),
   'utf8',
@@ -239,6 +240,107 @@ test('production artifact provenance authority stays unselected and fail-closed'
   assert.match(rules, /selects no signing mechanism/i);
 });
 
+test('production transport-security authority stays provider-neutral and fail-closed', () => {
+  assert.equal(
+    transportSecurity.schemaVersion,
+    'emopet-production-transport-security-authority-v1',
+  );
+  assert.match(
+    transportSecurity.status,
+    /PRODUCTION_TRANSPORT_SECURITY_UNVERIFIED/,
+  );
+  assert.equal(transportSecurity.issue, 964);
+  assert.equal(transportSecurity.parentIssue, 831);
+  assert.equal(transportSecurity.launchSecurityIssue, 214);
+  assert.equal(transportSecurity.claimsProductionTransportSecurity, false);
+  assert.equal(transportSecurity.claimsHttpsVerified, false);
+  assert.equal(transportSecurity.claimsHstsPolicyApproved, false);
+  assert.equal(
+    transportSecurity.claimsEdgeToOriginProtectionVerified,
+    false,
+  );
+  assert.equal(
+    transportSecurity.environmentBinding.requiredEnvironment,
+    'production',
+  );
+  assert.equal(transportSecurity.evidenceStates.templateDefault, 'DRAFT_UNVERIFIED');
+
+  includesAll(
+    transportSecurity.requiredEvidenceFields,
+    [
+      'environment.name',
+      'environment.authorityRef',
+      'publicOrigin.authorityRef',
+      'https.evidenceRef',
+      'httpPlaintext.disposition',
+      'httpPlaintext.evidenceRef',
+      'tls.terminationAuthorityRef',
+      'tls.certificateEvidenceRef',
+      'tls.protocolEvidenceRef',
+      'hsts.disposition',
+      'hsts.evidenceRef',
+      'securityHeaders.evidenceRef',
+      'edgeToOrigin.disposition',
+      'edgeToOrigin.evidenceRef',
+      'review.approverRef',
+      'review.reviewedAt',
+    ],
+    'transportSecurity.requiredEvidenceFields',
+  );
+
+  assert.equal(
+    transportSecurity.evidenceReceiptTemplate.state,
+    'DRAFT_UNVERIFIED',
+  );
+  assert.equal(
+    transportSecurity.evidenceReceiptTemplate.environment.name,
+    'production',
+  );
+  assert.equal(
+    transportSecurity.evidenceReceiptTemplate.environment.authorityRef,
+    null,
+  );
+  assert.equal(
+    transportSecurity.evidenceReceiptTemplate.httpPlaintext.disposition,
+    'UNVERIFIED',
+  );
+  assert.equal(
+    transportSecurity.evidenceReceiptTemplate.hsts.disposition,
+    'UNVERIFIED',
+  );
+  assert.equal(
+    transportSecurity.evidenceReceiptTemplate.edgeToOrigin.disposition,
+    'UNVERIFIED',
+  );
+
+  const rules = transportSecurity.failClosedRules.join('\n');
+  assert.match(rules, /proves no live production HTTPS/i);
+  assert.match(rules, /Localhost, local HTTPS, preview deployments and CI success are not production/i);
+  assert.match(rules, /HSTS.*selects none/i);
+  assert.match(rules, /Missing, stale, mismatched or UNVERIFIED transport evidence keeps.*HOLD/i);
+  assert.match(rules, /selects no provider.*domain.*certificate authority.*HSTS value/i);
+
+  assert.equal(
+    release.authorities.transportSecurityAuthority,
+    'config/release/production-transport-security-authority-v1.json',
+  );
+  assert.ok(
+    release.requiredReceiptFields.includes('transportSecurity.authorityRef'),
+  );
+  assert.equal(
+    release.releaseReceiptTemplate.transportSecurity.disposition,
+    'UNVERIFIED',
+  );
+  assert.equal(
+    release.releaseReceiptTemplate.transportSecurity.authorityRef,
+    null,
+  );
+  assert.equal(
+    release.releaseReceiptTemplate.transportSecurity.evidenceRef,
+    null,
+  );
+});
+
 test('production release receipt cannot drop immutable identity or readiness evidence', () => {
   includesAll(
     release.requiredReceiptFields,
@@ -270,6 +372,7 @@ test('production release receipt cannot drop immutable identity or readiness evi
       'databaseMigration.evidenceRef',
       'runtimeConfig.disposition',
       'runtimeConfig.evidenceRef',
+      'transportSecurity.authorityRef',
       'transportSecurity.disposition',
       'transportSecurity.evidenceRef',
       'backupRestore.disposition',
