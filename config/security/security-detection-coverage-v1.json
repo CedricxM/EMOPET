@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "security-detection-coverage-v1",
+  "status": "REPOSITORY_EVENT_COVERAGE_ENUMERATED / PRODUCTION_POLICY_UNSELECTED",
+  "parentIssue": 525,
+  "sourceSchema": "security-audit-v1",
+  "eventCoverage": [
+    {
+      "eventType": "privileged_authority_decision",
+      "coverage": "PARTIAL",
+      "detectorTypes": [
+        "repeated_privileged_denials",
+        "machine_privileged_authority_attempt"
+      ],
+      "coveredConditions": [
+        "outcome=denied AND actor.kind!=anonymous -> repeated-denial aggregation when enabled policy threshold/window is met",
+        "actor.kind=machine AND outcome=denied AND reason=machine_principal_not_supported -> machine privileged-attempt detection when enabled"
+      ],
+      "knownUnsupported": [
+        "allowed authority decisions are not anomaly signals in the current detector",
+        "anonymous denials are intentionally not aggregated into a synthetic actor",
+        "machine denials with other reasons do not trigger the machine-specific detector"
+      ]
+    },
+    {
+      "eventType": "privileged_sensitive_access",
+      "coverage": "PARTIAL",
+      "detectorTypes": [
+        "rapid_multi_target_access"
+      ],
+      "coveredConditions": [
+        "actor.kind=privileged_human AND outcome=allowed AND target.ref!=null -> rapid unique-target detection when enabled policy threshold/window is met"
+      ],
+      "knownUnsupported": [
+        "denied or error sensitive-access events are not evaluated by the current rapid-access detector",
+        "non-human privileged actors are not evaluated by the current rapid-access detector",
+        "single-target access below the explicit policy threshold is not a detection"
+      ]
+    },
+    {
+      "eventType": "security_incident_access",
+      "coverage": "UNSUPPORTED",
+      "detectorTypes": [],
+      "coveredConditions": [],
+      "knownUnsupported": [
+        "no current anomaly detector consumes security_incident_access"
+      ]
+    }
+  ],
+  "nonEffects": {
+    "productionThresholdsSelected": false,
+    "continuousDeploymentProven": false,
+    "alertDeliveryAuthorized": false,
+    "siemProviderSelected": false,
+    "productionReleaseAuthorized": false
+  }
+}
