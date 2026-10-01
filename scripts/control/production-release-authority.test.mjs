@@ -13,6 +13,7 @@ const release = readJson('config/release/production-release-evidence-contract-v1
 const migration = readJson('config/release/production-db-migration-authority-v1.json');
 const runtimeConfig = readJson('config/release/production-runtime-config-authority-v1.json');
 const environmentAuthority = readJson('config/release/production-environment-authority-v1.json');
+const artifactProvenance = readJson('config/release/production-artifact-provenance-authority-v1.json');
 const p0Workflow = readFileSync(
   resolve(root, '.github', 'workflows', 'p0-db-baseline.yml'),
   'utf8',
@@ -57,6 +58,14 @@ test('production release contract remains non-authorizing by default', () => {
     'DRAFT_UNVERIFIED',
   );
   assert.equal(release.releaseReceiptTemplate.commitSha, null);
+  assert.equal(release.releaseReceiptTemplate.artifact.provenanceRef, null);
+  assert.equal(release.releaseReceiptTemplate.sbom.cycloneDxSha256, null);
+  assert.equal(release.releaseReceiptTemplate.sbom.spdxSha256, null);
+  assert.equal(release.releaseReceiptTemplate.attestation.mechanism, null);
+  assert.equal(
+    release.releaseReceiptTemplate.attestation.signingAuthorityRef,
+    null,
+  );
   assert.equal(release.releaseReceiptTemplate.releasedAt, null);
   assert.equal(release.releaseReceiptTemplate.environment.name, null);
   assert.equal(release.releaseReceiptTemplate.releaseOwner.role, null);
@@ -173,6 +182,64 @@ test('production environment and release-owner authority stays fail-closed', () 
   assert.match(rules, /Repository authorship.*does not assign/i);
 });
 
+test('production artifact provenance authority stays unselected and fail-closed', () => {
+  assert.equal(
+    artifactProvenance.schemaVersion,
+    'emopet-production-artifact-provenance-authority-v1',
+  );
+  assert.match(
+    artifactProvenance.status,
+    /ARTIFACT_IDENTITY_DEFINED.*SIGNING_AUTHORITY_UNSELECTED/,
+  );
+  assert.equal(artifactProvenance.issue, 831);
+  assert.equal(artifactProvenance.claimsReleaseArtifactBuilt, false);
+  assert.equal(artifactProvenance.claimsArtifactSigned, false);
+  assert.equal(artifactProvenance.claimsAttestationVerified, false);
+  assert.equal(artifactProvenance.claimsSigningAuthoritySelected, false);
+  assert.equal(artifactProvenance.artifactIdentity.digestAlgorithm, 'SHA256');
+  includesAll(
+    artifactProvenance.artifactIdentity.requiredFields,
+    [
+      'artifact.identity',
+      'artifact.sha256',
+      'artifact.provenanceRef',
+      'source.commitSha',
+      'build.runRef',
+      'build.builderRef',
+    ],
+    'artifactProvenance.artifactIdentity.requiredFields',
+  );
+  includesAll(
+    artifactProvenance.sbomBinding.requiredFields,
+    [
+      'sbom.cycloneDxRef',
+      'sbom.cycloneDxSha256',
+      'sbom.spdxRef',
+      'sbom.spdxSha256',
+    ],
+    'artifactProvenance.sbomBinding.requiredFields',
+  );
+  assert.equal(artifactProvenance.attestation.templateDefault, 'UNVERIFIED');
+  assert.equal(artifactProvenance.attestation.mechanism, null);
+  assert.equal(artifactProvenance.attestation.signingAuthorityRef, null);
+  assert.equal(artifactProvenance.signingAuthority.state, 'UNSELECTED');
+  assert.equal(artifactProvenance.signingAuthority.authorityRef, null);
+  assert.equal(
+    artifactProvenance.provenanceReceiptTemplate.state,
+    'DRAFT_UNVERIFIED',
+  );
+  assert.equal(
+    artifactProvenance.provenanceReceiptTemplate.attestation.status,
+    'UNVERIFIED',
+  );
+
+  const rules = artifactProvenance.failClosedRules.join('\n');
+  assert.match(rules, /Release provenance gate.*not a cryptographic provenance/i);
+  assert.match(rules, /Production promotion remains HOLD.*attestation status is UNVERIFIED/i);
+  assert.match(rules, /signingAuthority\.state is UNSELECTED/i);
+  assert.match(rules, /selects no signing mechanism/i);
+});
+
 test('production release receipt cannot drop immutable identity or readiness evidence', () => {
   includesAll(
     release.requiredReceiptFields,
@@ -187,6 +254,8 @@ test('production release receipt cannot drop immutable identity or readiness evi
       'dependencyDisposition.status',
       'dependencyDisposition.evidenceRef',
       'attestation.status',
+      'attestation.mechanism',
+      'attestation.signingAuthorityRef',
       'attestation.evidenceRef',
       'environment.name',
       'environment.authorityRef',
@@ -215,6 +284,14 @@ test('production release receipt cannot drop immutable identity or readiness evi
   assert.match(rules, /UNVERIFIED transport-security or backup\/restore/i);
   assert.match(rules, /keeps production authority OPEN/i);
   assert.match(rules, /Missing artifact digest, commit SHA, SBOM/i);
+  assert.match(
+    rules,
+    /Missing artifact provenance reference, SBOM digests, reviewed attestation or selected signing authority/i,
+  );
+  assert.match(
+    rules,
+    /Release provenance gate.*not cryptographic provenance or artifact attestation/i,
+  );
 });
 
 test('production runtime configuration contract remains fail-closed and release-linked', () => {
