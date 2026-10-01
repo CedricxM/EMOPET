@@ -30,6 +30,11 @@ export type {
   RegionalDataDomain,
   RegionalPackReleaseBlocker,
   RegionalPackReleaseVerdict,
+  RegionalIdentityEvidence,
+  RegionalIdentityReviewStatus,
 } from './regional-pack';
-export { evaluateRegionalPackReleaseReadiness } from './regional-pack';
+export {
+  evaluateRegionalPackReleaseReadiness,
+  isRegionalIdentityEvidenceReleaseReady,
+} from './regional-pack';
 export { BRETAGNE_REGIONAL_PACK } from './profiles/bretagne-pack';
