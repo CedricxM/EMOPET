@@ -91,12 +91,28 @@ test('legacy browser gamification remains explicit non-SQL evidence', async () =
   );
   assert.equal(/world[ _-]?progression/i.test(inventoryText), false);
 
-  const legacy = matrix.nonSqlSurface.observedLegacyRuntimeSurfaces[0];
-  const source = await readRepoText(legacy.path);
-  assert.equal(legacy.mechanism, 'localStorage');
-  assert.match(source, /localStorage\.getItem/);
-  assert.match(source, /localStorage\.setItem/);
-  for (const key of legacy.observedKeys) {
-    assert.equal(source.includes(key), true);
+  const surfaces = matrix.nonSqlSurface.observedLegacyRuntimeSurfaces;
+  assert.equal(surfaces.length, 2);
+
+  const allObservedKeys = new Set();
+  for (const legacy of surfaces) {
+    const source = await readRepoText(legacy.path);
+    assert.equal(legacy.mechanism, 'localStorage');
+    assert.match(source, /localStorage\.getItem/);
+    assert.match(source, /localStorage\.setItem/);
+    for (const key of legacy.observedKeys) {
+      assert.equal(source.includes(key), true);
+      allObservedKeys.add(key);
+    }
+  }
+
+  for (const key of [
+    'breiz-gamification-read',
+    'breiz-journal-user-entries',
+    'breiz-map-user-spots',
+    'breiz-community-memberships',
+    'breiz-community-events',
+  ]) {
+    assert.equal(allObservedKeys.has(key), true, `missing legacy browser key ${key}`);
   }
 });
