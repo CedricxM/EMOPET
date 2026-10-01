@@ -30,7 +30,6 @@ export const DATATOURISME_BRETAGNE_EVENT_FIELDS = [
   '!hasBeenCreatedBy.address',
   'lastUpdate',
   'lastUpdateDatatourisme',
-  'hasDescription',
 ] as const;
 
 export function prepareSireneEstablishmentRequest(
