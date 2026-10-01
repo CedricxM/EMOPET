@@ -384,7 +384,7 @@
 }
 
 .sceneCaption span {
-  color: rgba(246, 239, 231, 0.78);
+  color: var(--cream-50);
   font-size: var(--text-xs);
 }
 
