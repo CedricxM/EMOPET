@@ -22,6 +22,10 @@ test('Bretagne open-data allow-list is explicit and dataset-scoped', () => {
   assert.deepEqual(dataset.allowedRecordFields, []);
   assert.equal(dataset.status, 'METADATA_REVIEWED_FIELDS_OPEN');
   assert.equal(dataset.schemaEvidence, undefined);
+  assert.ok(dataset.rightsEvidence);
+  assert.equal(dataset.rightsEvidence.evidenceState, 'SOURCE_CONFIRMED');
+  assert.equal(dataset.rightsEvidence.disposition, 'HOLD');
+  assert.match(dataset.rightsEvidence.receiptPath, /data\/registry\/receipts\//);
 });
 
 test('metadata lookup works only for allow-listed datasets', () => {
@@ -241,7 +245,7 @@ test('rights receipt cannot authorize a different schema/source version', () => 
   assert.ok(verdict.blockers.includes('RIGHTS_VERSION_SCHEMA_MISMATCH'));
 });
 
-test('current first dataset remains blocked at metadata-review state', () => {
+test('current first dataset records source-confirmed HOLD evidence but remains blocked', () => {
   const current = getBretagneOpenDataDataset(
     'reserves-naturelles-regionales-de-bretagne',
   );
@@ -249,12 +253,13 @@ test('current first dataset remains blocked at metadata-review state', () => {
 
   const verdict = evaluateBretagneOpenDataDatasetRights(
     current,
-    Date.parse('2026-10-01T12:00:00Z'),
+    Date.parse('2026-10-01T17:00:00Z'),
   );
 
   assert.equal(verdict.ingestionPermitted, false);
   assert.ok(verdict.blockers.includes('DATASET_NOT_RELEASE_READY'));
   assert.ok(verdict.blockers.includes('NO_APPROVED_FIELDS'));
   assert.ok(verdict.blockers.includes('NO_SCHEMA_EVIDENCE'));
-  assert.ok(verdict.blockers.includes('NO_DATASET_RIGHTS_EVIDENCE'));
+  assert.ok(!verdict.blockers.includes('NO_DATASET_RIGHTS_EVIDENCE'));
+  assert.ok(verdict.blockers.includes('DATASET_RIGHTS_EVIDENCE_NOT_GO'));
 });
