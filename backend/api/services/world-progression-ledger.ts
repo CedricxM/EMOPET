@@ -77,8 +77,9 @@ export interface WorldProgressionAppendResult {
 
 export interface WorldProgressionLedgerStore {
   /**
-   * A durable implementation MUST enforce a unique constraint equivalent to
-   * (owner_id, idempotency_key) and return the existing entry on duplicate.
+   * A durable implementation MUST enforce unique constraints equivalent to
+   * (owner_id, idempotency_key) and (owner_id, event_kind, source_ref), returning
+   * the existing entry when either replay boundary is hit.
    */
   findByIdempotencyKey(ownerId: string, idempotencyKey: string): Promise<WorldProgressionLedgerEntry | null>;
   appendIfAbsent(entry: WorldProgressionLedgerEntry): Promise<WorldProgressionAppendResult>;
@@ -229,7 +230,10 @@ export class WorldProgressionLedgerService {
     };
 
     const append = await this.store.appendIfAbsent(candidate);
-    if (!sameLogicalEvent(append.entry, candidate)) {
+    if (
+      !sameLogicalEvent(append.entry, candidate)
+      && !sameRewardSource(append.entry, candidate)
+    ) {
       throw new WorldProgressionAuthorityError(
         'WORLD_PROGRESSION_IDEMPOTENCY_CONFLICT',
         'The idempotency key is already bound to a different World progression event.',
@@ -250,6 +254,7 @@ export class WorldProgressionLedgerService {
  */
 export class InMemoryWorldProgressionLedgerStore implements WorldProgressionLedgerStore {
   private readonly entries = new Map<string, WorldProgressionLedgerEntry>();
+  private readonly rewardSources = new Map<string, WorldProgressionLedgerEntry>();
   private readonly balances = new Map<string, WorldProgressionBalance>();
 
   constructor() {
@@ -270,7 +275,12 @@ export class InMemoryWorldProgressionLedgerStore implements WorldProgressionLedg
     const existing = this.entries.get(key);
     if (existing) return { inserted: false, entry: existing };
 
+    const sourceKey = rewardSourceKey(entry.ownerId, entry.kind, entry.sourceRef);
+    const existingSource = this.rewardSources.get(sourceKey);
+    if (existingSource) return { inserted: false, entry: existingSource };
+
     this.entries.set(key, entry);
+    this.rewardSources.set(sourceKey, entry);
     const current = this.balances.get(entry.ownerId) ?? emptyBalance();
     this.balances.set(entry.ownerId, addGrant(current, entry.grants));
     return { inserted: true, entry };
@@ -314,8 +324,27 @@ function sameLogicalEvent(a: WorldProgressionLedgerEntry, b: WorldProgressionLed
   );
 }
 
+function sameRewardSource(
+  a: WorldProgressionLedgerEntry,
+  b: WorldProgressionLedgerEntry,
+): boolean {
+  return (
+    a.ownerId === b.ownerId
+    && a.kind === b.kind
+    && a.sourceRef === b.sourceRef
+  );
+}
+
 function ledgerKey(ownerId: string, idempotencyKey: string): string {
   return `${ownerId}\u0000${idempotencyKey}`;
+}
+
+function rewardSourceKey(
+  ownerId: string,
+  kind: WorldProgressionEventKind,
+  sourceRef: string,
+): string {
+  return `${ownerId}\u0000${kind}\u0000${sourceRef}`;
 }
 
 function emptyBalance(): WorldProgressionBalance {
