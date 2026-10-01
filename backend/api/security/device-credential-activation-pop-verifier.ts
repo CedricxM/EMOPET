@@ -12,6 +12,10 @@ import {
   type DevicePopStoredChallengeStateV1,
   type DevicePopVerificationChallengeStore,
 } from './device-pop-verifier.js';
+import type {
+  PopVerificationEvidenceRecordV1,
+  PopVerificationEvidenceStore,
+} from './device-credential-activation-evidence-resolver.js';
 
 export interface DevicePopPendingVerificationCredentialV1 {
   deviceId: string;
@@ -27,9 +31,25 @@ export interface DevicePopPendingVerificationCredentialResolver {
   ): Promise<DevicePopPendingVerificationCredentialV1 | null>;
 }
 
+export interface DeviceCredentialActivationPopEvidenceCommitV1 {
+  receiptId: string;
+  deviceId: string;
+  credentialVersion: number;
+  challengeId: string;
+  verifiedAt: string;
+}
+
+export interface DeviceCredentialActivationPopEvidenceStore
+  extends PopVerificationEvidenceStore {
+  commitVerifiedProof(
+    input: DeviceCredentialActivationPopEvidenceCommitV1,
+  ): Promise<PopVerificationEvidenceRecordV1 | null>;
+}
+
 export interface DeviceCredentialActivationPopVerifierDependencies {
-  challenges: DevicePopVerificationChallengeStore;
+  challenges: Pick<DevicePopVerificationChallengeStore, 'findByChallengeId'>;
   pendingCredentials: DevicePopPendingVerificationCredentialResolver;
+  evidence: DeviceCredentialActivationPopEvidenceStore;
   now?: () => Date;
   randomUuid?: () => string;
 }
@@ -222,31 +242,38 @@ export async function verifyDeviceCredentialActivationPopResponseV1(
   }
 
   const verifiedAt = now.toISOString();
+  const receiptId = (dependencies.randomUuid ?? randomUUID)();
+
+  let evidence: PopVerificationEvidenceRecordV1 | null;
   try {
-    const consumed = await dependencies.challenges.consumeIfUnconsumed(
-      challenge.challengeId,
+    evidence = await dependencies.evidence.commitVerifiedProof({
+      receiptId,
+      deviceId: challenge.deviceId,
+      credentialVersion: challenge.credentialVersion,
+      challengeId: challenge.challengeId,
       verifiedAt,
-    );
-    if (!consumed) {
-      return { ok: false, error: 'CHALLENGE_CONSUME_CONFLICT' };
-    }
+    });
   } catch {
     return { ok: false, error: 'CHALLENGE_STORE_FAILURE' };
+  }
+
+  if (evidence == null) {
+    return { ok: false, error: 'CHALLENGE_CONSUME_CONFLICT' };
   }
 
   return {
     ok: true,
     proof: {
       schemaVersion: 'device-credential-activation-pop-proof-v1',
-      receiptId: (dependencies.randomUuid ?? randomUUID)(),
-      authority: 'SERVER_SIDE_POP_VERIFICATION_AUTHORITY',
-      deviceId: challenge.deviceId,
-      credentialVersion: challenge.credentialVersion,
+      receiptId: evidence.receiptId,
+      authority: evidence.authority,
+      deviceId: evidence.deviceId,
+      credentialVersion: evidence.credentialVersion,
       purpose: 'DEVICE_CREDENTIAL_ACTIVATION',
-      challengeId: challenge.challengeId,
-      verificationResult: 'VERIFIED_AND_CONSUMED',
-      verifiedAt,
-      consumedAt: verifiedAt,
+      challengeId: evidence.challengeId,
+      verificationResult: evidence.verificationResult,
+      verifiedAt: evidence.verifiedAt,
+      consumedAt: evidence.consumedAt,
       cryptographicProofVerified: true,
       deviceDataTrustAuthorized: false,
       telemetryPersistenceAuthorized: false,
