@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import { afterEach, test } from 'node:test';
 
 import {
+  DATATOURISME_BRETAGNE_DEPARTMENTS,
+  DATATOURISME_BRETAGNE_EVENT_FIELDS,
+  prepareDatatourismeBretagneEventsRequest,
   prepareDatatourismeCatalogRequest,
   prepareSireneEstablishmentRequest,
 } from '../providerRequest';
@@ -144,4 +147,76 @@ test('DATAtourisme defaults to page 1, 20 rows and French', () => {
   assert.equal(url.searchParams.get('page'), '1');
   assert.equal(url.searchParams.get('page_size'), '20');
   assert.equal(url.searchParams.get('lang'), 'fr');
+});
+
+
+test('DATAtourisme Bretagne events request is structured, minimised and header-authenticated', () => {
+  process.env.API_DATATOURISME_ENABLED = 'true';
+  process.env.DATATOURISME_API_KEY = 'test-datatourisme-key';
+
+  const request = prepareDatatourismeBretagneEventsRequest({
+    lang: 'fr',
+    page: 1,
+    pageSize: 100,
+  });
+  assert.equal(request.ready, true);
+  if (!request.ready) return;
+
+  const url = new URL(request.url);
+  assert.equal(
+    url.origin + url.pathname,
+    'https://api.datatourisme.fr/v1/entertainmentAndEvent',
+  );
+  assert.equal(url.searchParams.get('lang'), 'fr');
+  assert.equal(url.searchParams.get('page'), '1');
+  assert.equal(url.searchParams.get('page_size'), '100');
+  assert.equal(
+    url.searchParams.get('fields'),
+    DATATOURISME_BRETAGNE_EVENT_FIELDS.join(','),
+  );
+  assert.equal(
+    url.searchParams.get('filters'),
+    'isLocatedAt.address.hasAddressCity.isPartOfDepartment.insee[in]='
+      + DATATOURISME_BRETAGNE_DEPARTMENTS.join(','),
+  );
+  assert.equal(url.searchParams.get('sort'), 'lastUpdate[desc]');
+  assert.equal(url.searchParams.has('api_key'), false);
+  assert.equal(url.searchParams.has('search'), false);
+  assert.equal(url.searchParams.has('hasContact'), false);
+  assert.deepEqual(request.headers, {
+    'X-API-Key': 'test-datatourisme-key',
+  });
+});
+
+test('DATAtourisme Bretagne events request fails closed without flag or key', () => {
+  process.env.DATATOURISME_API_KEY = 'test-datatourisme-key';
+  delete process.env.API_DATATOURISME_ENABLED;
+  assert.deepEqual(prepareDatatourismeBretagneEventsRequest(), {
+    ready: false,
+    reason: 'flag_off',
+  });
+
+  process.env.API_DATATOURISME_ENABLED = 'true';
+  delete process.env.DATATOURISME_API_KEY;
+  assert.deepEqual(prepareDatatourismeBretagneEventsRequest(), {
+    ready: false,
+    reason: 'missing_env',
+  });
+});
+
+test('DATAtourisme Bretagne events request rejects unsafe direct pagination', () => {
+  process.env.API_DATATOURISME_ENABLED = 'true';
+  process.env.DATATOURISME_API_KEY = 'test-datatourisme-key';
+
+  for (const input of [
+    { page: 0 },
+    { pageSize: 0 },
+    { pageSize: 101 },
+    { page: 101, pageSize: 100 },
+  ]) {
+    assert.deepEqual(prepareDatatourismeBretagneEventsRequest(input), {
+      ready: false,
+      reason: 'invalid_input',
+    });
+  }
 });
