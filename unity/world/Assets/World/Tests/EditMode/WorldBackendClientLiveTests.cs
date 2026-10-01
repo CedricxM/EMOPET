@@ -85,8 +85,19 @@ namespace Emopet.World.Tests
                 "http://127.0.0.1:1",
                 new StaticTokenProvider(fixture.tokenA),
                 new UnityWebRequestWorldHttpTransport()));
-            var error = Assert.CatchAsync<WorldBackendException>(
-                () => unavailable.ConnectAsync(deadTimeout.Token));
+            WorldBackendException error = null;
+
+            try
+            {
+                await unavailable.ConnectAsync(deadTimeout.Token);
+                Assert.Fail("Expected unavailable World backend connection to fail.");
+            }
+            catch (WorldBackendException caught)
+            {
+                error = caught;
+            }
+
+            Assert.That(error, Is.Not.Null);
             Assert.That(error.Code, Is.EqualTo(WorldErrorCode.Unavailable));
             Assert.That(unavailable.State, Is.EqualTo(WorldSessionState.Degraded));
         }
