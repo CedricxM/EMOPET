@@ -1,0 +1,149 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+
+import { parseDatatourismeBretagneEventsResponse } from '../datatourismeEvents';
+
+function fixture(overrides: Record<string, unknown> = {}) {
+  return {
+    uuid: 'c9308386-8fb9-308a-bb1e-fa9c080b7b58',
+    uri: 'https://data.datatourisme.fr/poi/example',
+    label: { fr: 'Événement test' },
+    type: ['EntertainmentAndEvent'],
+    isLocatedAt: {
+      address: {
+        hasAddressCity: {
+          isPartOfDepartment: {
+            insee: '56',
+          },
+        },
+      },
+    },
+    hasBeenCreatedBy: {
+      legalName: 'Office de tourisme test',
+      address: [{ addressLocality: 'SHOULD_NOT_BE_RETAINED' }],
+    },
+    lastUpdate: '2026-09-30T10:00:00Z',
+    lastUpdateDatatourisme: '2026-09-30T11:00:00Z',
+    hasContact: {
+      telephone: '+33 0 00 00 00 00',
+      email: 'SHOULD_NOT_BE_RETAINED@example.invalid',
+    },
+    hasDescription: {
+      fr: 'SHOULD_NOT_BE_RETAINED_BY_V0',
+    },
+    ...overrides,
+  };
+}
+
+test('DATAtourisme event normalizer keeps only bounded metadata and producer attribution', () => {
+  const parsed = parseDatatourismeBretagneEventsResponse({
+    objects: [fixture()],
+    meta: {
+      total: 1,
+      page: 1,
+      page_size: 20,
+      total_pages: 1,
+      next: null,
+      previous: null,
+    },
+  });
+
+  assert.equal(parsed.rejected.length, 0);
+  assert.deepEqual(parsed.meta, {
+    total: 1,
+    page: 1,
+    pageSize: 20,
+    totalPages: 1,
+    next: null,
+    previous: null,
+  });
+  assert.deepEqual(parsed.records, [
+    {
+      uuid: 'c9308386-8fb9-308a-bb1e-fa9c080b7b58',
+      uri: 'https://data.datatourisme.fr/poi/example',
+      label: 'Événement test',
+      types: ['EntertainmentAndEvent'],
+      department: '56',
+      producerAttribution: 'Office de tourisme test',
+      sourceUpdatedAt: '2026-09-30T10:00:00Z',
+      datatourismeUpdatedAt: '2026-09-30T11:00:00Z',
+    },
+  ]);
+
+  const serialized = JSON.stringify(parsed.records);
+  assert.doesNotMatch(serialized, /SHOULD_NOT_BE_RETAINED/);
+  assert.doesNotMatch(serialized, /email|telephone|hasContact|hasDescription/i);
+});
+
+test('DATAtourisme event normalizer accepts all configured Bretagne departments including 44', () => {
+  for (const department of ['22', '29', '35', '44', '56']) {
+    const parsed = parseDatatourismeBretagneEventsResponse({
+      objects: [
+        fixture({
+          uuid: `uuid-${department}`,
+          isLocatedAt: {
+            address: {
+              hasAddressCity: {
+                isPartOfDepartment: { insee: department },
+              },
+            },
+          },
+        }),
+      ],
+      meta: {},
+    });
+    assert.equal(parsed.records.length, 1, department);
+    assert.equal(parsed.records[0]!.department, department);
+  }
+});
+
+test('DATAtourisme event normalizer rejects records outside configured Bretagne territory', () => {
+  const parsed = parseDatatourismeBretagneEventsResponse({
+    objects: [
+      fixture({
+        isLocatedAt: {
+          address: {
+            hasAddressCity: {
+              isPartOfDepartment: { insee: '75' },
+            },
+          },
+        },
+      }),
+    ],
+    meta: {},
+  });
+
+  assert.equal(parsed.records.length, 0);
+  assert.deepEqual(parsed.rejected, [
+    { index: 0, reason: 'outside_bretagne_or_missing_department' },
+  ]);
+});
+
+test('DATAtourisme event normalizer requires attribution and provider freshness evidence', () => {
+  const parsed = parseDatatourismeBretagneEventsResponse({
+    objects: [
+      fixture({ hasBeenCreatedBy: null }),
+      fixture({
+        uuid: 'second',
+        lastUpdate: 'not-a-date',
+      }),
+    ],
+    meta: {},
+  });
+
+  assert.deepEqual(parsed.records, []);
+  assert.deepEqual(parsed.rejected, [
+    { index: 0, reason: 'missing_producer_attribution' },
+    { index: 1, reason: 'missing_or_invalid_last_update' },
+  ]);
+});
+
+test('DATAtourisme event normalizer rejects malformed envelopes', () => {
+  for (const payload of [null, {}, { objects: null }, { objects: 'nope' }]) {
+    const parsed = parseDatatourismeBretagneEventsResponse(payload);
+    assert.deepEqual(parsed.records, []);
+    assert.deepEqual(parsed.rejected, [
+      { index: -1, reason: 'invalid_catalog_envelope' },
+    ]);
+  }
+});
