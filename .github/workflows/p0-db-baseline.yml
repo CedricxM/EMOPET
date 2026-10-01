@@ -324,6 +324,14 @@ jobs:
           NODE_ENV: test
         run: node --test test/security-detection-history.integration.test.mjs
 
+      - name: PRIV-SEC-ALERT-OUTBOX-01 durable alert outbox on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          SECURITY_ALERT_OUTBOX_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/security-alert-outbox.integration.test.mjs
+
       - name: AUTH-RATE-LIMIT-01 shared auth limiter on historical migrations
         working-directory: backend
         env:
@@ -558,6 +566,14 @@ jobs:
           SECURITY_DETECTION_HISTORY_DB_INTEGRATION: '1'
           NODE_ENV: test
         run: node --test test/security-detection-history.integration.test.mjs
+
+      - name: PRIV-SEC-ALERT-OUTBOX-01 durable alert outbox on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          SECURITY_ALERT_OUTBOX_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/security-alert-outbox.integration.test.mjs
 
       - name: AUTH-RATE-LIMIT-01 shared auth limiter on generated baseline
         working-directory: backend
