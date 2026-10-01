@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://emopet.invalid/schema/company-transition.schema.json",
+  "title": "EMOPET Company OS Transition Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "recorded_on",
+    "kind",
+    "subject",
+    "from_state",
+    "to_state",
+    "summary",
+    "source_snapshot_ref",
+    "authority_refs",
+    "evidence_refs",
+    "decision_refs",
+    "previous_event_id",
+    "corrects_event_id",
+    "confidentiality"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^EMO-TRANSITION-[0-9]{8}-[0-9]{4}$"
+    },
+    "recorded_on": {
+      "type": "string",
+      "format": "date"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "BOOTSTRAP",
+        "STATE_TRANSITION",
+        "AUTHORITY_TRANSITION",
+        "EVIDENCE_TRANSITION",
+        "CORRECTION"
+      ]
+    },
+    "subject": {
+      "type": "string",
+      "minLength": 1
+    },
+    "from_state": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "to_state": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_snapshot_ref": {
+      "type": "string",
+      "pattern": "^main@[0-9a-f]{40}$"
+    },
+    "authority_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ref"
+      }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ref"
+      }
+    },
+    "decision_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ref"
+      }
+    },
+    "previous_event_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^EMO-TRANSITION-[0-9]{8}-[0-9]{4}$"
+    },
+    "corrects_event_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^EMO-TRANSITION-[0-9]{8}-[0-9]{4}$"
+    },
+    "confidentiality": {
+      "type": "string",
+      "const": "PUBLIC"
+    }
+  },
+  "$defs": {
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "value"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "path",
+            "issue",
+            "pr",
+            "commit",
+            "external"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
