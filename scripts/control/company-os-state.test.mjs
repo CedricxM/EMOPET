@@ -27,6 +27,7 @@ const paths = {
   corporateSchema: 'state/corporate/corporate-state.schema.json',
   freshness: 'state/freshness/freshness-state.json',
   freshnessSchema: 'state/freshness/freshness-state.schema.json',
+  schemaMap: 'state/schemas/registry-schema-map.json',
 };
 
 const company = readJson(paths.company);
@@ -42,6 +43,7 @@ const corporateState = readJson(paths.corporate);
 const corporateSchema = readJson(paths.corporateSchema);
 const freshnessState = readJson(paths.freshness);
 const freshnessSchema = readJson(paths.freshnessSchema);
+const schemaMap = readJson(paths.schemaMap);
 
 const allObjects = [
   company.company_phase,
@@ -97,6 +99,123 @@ function isStrongEvidenceState(status) {
   );
 }
 
+function resolveLocalSchemaRef(rootSchema, ref) {
+  assert.match(ref, /^#\//, `only local schema refs are supported: ${ref}`);
+  return ref
+    .slice(2)
+    .split('/')
+    .map((part) => part.replaceAll('~1', '/').replaceAll('~0', '~'))
+    .reduce((node, part) => node?.[part], rootSchema);
+}
+
+function schemaTypeMatches(value, type) {
+  if (type === 'null') return value === null;
+  if (type === 'array') return Array.isArray(value);
+  if (type === 'object') return value !== null && typeof value === 'object' && !Array.isArray(value);
+  if (type === 'integer') return Number.isInteger(value);
+  if (type === 'number') return typeof value === 'number' && Number.isFinite(value);
+  return typeof value === type;
+}
+
+function validateAgainstSchema(value, schema, rootSchema, label) {
+  if (schema.$ref) {
+    const resolved = resolveLocalSchemaRef(rootSchema, schema.$ref);
+    assert.ok(resolved, `${label} unresolved schema ref ${schema.$ref}`);
+    validateAgainstSchema(value, resolved, rootSchema, label);
+    return;
+  }
+
+  if (schema.anyOf) {
+    let matched = false;
+    for (const candidate of schema.anyOf) {
+      try {
+        validateAgainstSchema(value, candidate, rootSchema, label);
+        matched = true;
+        break;
+      } catch {
+        // Try the next allowed shape.
+      }
+    }
+    assert.ok(matched, `${label} must satisfy at least one anyOf schema`);
+  }
+
+  if (schema.type) {
+    const allowed = Array.isArray(schema.type) ? schema.type : [schema.type];
+    assert.ok(
+      allowed.some((type) => schemaTypeMatches(value, type)),
+      `${label} has invalid type; expected ${allowed.join('|')}`,
+    );
+  }
+
+  if (Object.hasOwn(schema, 'const')) {
+    assert.deepEqual(value, schema.const, `${label} must equal schema const`);
+  }
+  if (schema.enum) {
+    assert.ok(schema.enum.includes(value), `${label} must be one of schema enum values`);
+  }
+  if (schema.pattern && typeof value === 'string') {
+    assert.match(value, new RegExp(schema.pattern), `${label} does not match schema pattern`);
+  }
+  if (schema.minLength && typeof value === 'string') {
+    assert.ok(value.length >= schema.minLength, `${label} is shorter than minLength`);
+  }
+  if (schema.format === 'date' && typeof value === 'string') {
+    assert.match(value, /^\d{4}-\d{2}-\d{2}$/, `${label} must use YYYY-MM-DD`);
+  }
+  if (typeof value === 'number') {
+    if (schema.minimum !== undefined) assert.ok(value >= schema.minimum, `${label} is below minimum`);
+    if (schema.maximum !== undefined) assert.ok(value <= schema.maximum, `${label} exceeds maximum`);
+  }
+
+  if (Array.isArray(value)) {
+    if (schema.minItems !== undefined) {
+      assert.ok(value.length >= schema.minItems, `${label} has fewer than minItems`);
+    }
+    if (schema.uniqueItems) {
+      const encoded = value.map((item) => JSON.stringify(item));
+      assert.equal(encoded.length, new Set(encoded).size, `${label} must contain unique items`);
+    }
+    if (schema.items) {
+      value.forEach((item, index) =>
+        validateAgainstSchema(item, schema.items, rootSchema, `${label}[${index}]`),
+      );
+    }
+  }
+
+  if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+    for (const required of schema.required ?? []) {
+      assert.ok(Object.hasOwn(value, required), `${label} missing required property ${required}`);
+    }
+
+    if (schema.minProperties !== undefined) {
+      assert.ok(
+        Object.keys(value).length >= schema.minProperties,
+        `${label} has fewer than minProperties`,
+      );
+    }
+
+    const properties = schema.properties ?? {};
+    for (const [key, nested] of Object.entries(value)) {
+      if (properties[key]) {
+        validateAgainstSchema(nested, properties[key], rootSchema, `${label}.${key}`);
+        continue;
+      }
+
+      if (schema.additionalProperties === false) {
+        assert.fail(`${label} has unexpected property ${key}`);
+      }
+      if (schema.additionalProperties && typeof schema.additionalProperties === 'object') {
+        validateAgainstSchema(
+          nested,
+          schema.additionalProperties,
+          rootSchema,
+          `${label}.${key}`,
+        );
+      }
+    }
+  }
+}
+
 test('Company OS machine-readable files parse and keep stable unique IDs', () => {
   assert.equal(company.schema_version, '0.1.0');
   assert.match(company.snapshot.base_sha, /^[0-9a-f]{40}$/);
@@ -109,6 +228,8 @@ test('Company OS machine-readable files parse and keep stable unique IDs', () =>
   assert.match(freshnessState.snapshot.base_sha, /^[0-9a-f]{40}$/);
   assert.equal(freshnessState.snapshot.base_ref, 'main');
   assert.equal(freshnessSchema.title, 'EMOPET Company OS Freshness State');
+  assert.equal(schemaMap.schema_version, '0.1.0');
+  assert.equal(schemaMap.authority_mode, 'SCHEMA_MAP_NOT_DOMAIN_AUTHORITY');
 
   const ids = allObjects.map((object) => object?.id).filter(Boolean);
   assert.equal(ids.length, new Set(ids).size, 'Company OS object IDs must be unique');
@@ -125,6 +246,108 @@ test('Company OS repository references resolve without inventing external author
     assert.ok(gate.experiment_ref, 'milestone gate must link to an experiment');
     for (const ref of gate.authority_refs ?? []) assertRef(ref, gate.id);
   }
+});
+
+
+test('per-registry schemas validate mapped Company OS registries', () => {
+  const expectedDataPaths = new Set([
+    paths.milestone,
+    paths.matExperiment,
+    paths.tagExperiment,
+    paths.finance,
+    paths.preseed,
+    paths.metrics,
+    paths.risks,
+    paths.unknowns,
+  ]);
+
+  const mappedDataPaths = new Set(schemaMap.registries.map((entry) => entry.data_path));
+  assert.equal(
+    mappedDataPaths.size,
+    schemaMap.registries.length,
+    'registry schema map must not duplicate data paths',
+  );
+  assert.deepEqual(
+    mappedDataPaths,
+    expectedDataPaths,
+    'registry schema map must cover every V1 registry file',
+  );
+
+  const schemaTitles = new Set();
+  for (const entry of schemaMap.registries) {
+    assert.ok(existsSync(resolve(root, entry.data_path)), `missing registry ${entry.data_path}`);
+    assert.ok(existsSync(resolve(root, entry.schema_path)), `missing schema ${entry.schema_path}`);
+
+    const data = readJson(entry.data_path);
+    const schema = readJson(entry.schema_path);
+    assert.match(schema.title, /^EMOPET Company OS /, `${entry.schema_path} needs a Company OS title`);
+    schemaTitles.add(schema.title);
+    validateAgainstSchema(data, schema, schema, entry.data_path);
+  }
+
+  assert.ok(schemaTitles.size >= 7, 'distinct registry families must retain distinct schema contracts');
+});
+
+test('cross-object Company OS dependencies resolve semantically', () => {
+  const experimentsById = new Map(
+    [matExperiment, tagExperiment].map((experiment) => [experiment.id, experiment]),
+  );
+
+  for (const gate of milestone.required_gates) {
+    const experiment = experimentsById.get(gate.experiment_ref);
+    assert.ok(experiment, `${gate.id} references unknown experiment ${gate.experiment_ref}`);
+    assert.equal(
+      experiment.stage,
+      milestone.stage,
+      `${gate.id} experiment must belong to milestone stage ${milestone.stage}`,
+    );
+  }
+
+  const mappedRegistryPaths = new Set(schemaMap.registries.map((entry) => entry.data_path));
+  const allowedInternalStatePaths = new Set([
+    ...mappedRegistryPaths,
+    paths.company,
+    paths.corporate,
+    paths.freshness,
+  ]);
+
+  for (const object of allObjects) {
+    for (const ref of refsFrom(object)) {
+      if (ref.kind !== 'path' || !ref.value.startsWith('state/')) continue;
+      assert.ok(
+        allowedInternalStatePaths.has(ref.value),
+        `${object.id ?? object.type} points to an unregistered internal state path: ${ref.value}`,
+      );
+    }
+  }
+
+  for (const scenario of finance.planning_scenarios) {
+    assert.ok(
+      mappedRegistryPaths.has(scenario.object_ref),
+      `${scenario.id} points to an unmapped finance object ${scenario.object_ref}`,
+    );
+  }
+
+  const preseedScenario = finance.planning_scenarios.find(
+    (scenario) => scenario.object_ref === paths.preseed,
+  );
+  assert.ok(preseedScenario, 'finance state must resolve the pre-seed scenario object');
+  assert.equal(preseed.currency, finance.currency, 'finance and fundraising currency must agree');
+  assert.deepEqual(preseedScenario.target_eur, preseed.target, 'finance and fundraising targets must agree');
+  assert.deepEqual(
+    preseedScenario.intended_runway_months,
+    preseed.intended_runway_months,
+    'finance and fundraising runway ranges must agree',
+  );
+
+  const useOfFundsTotal = Object.values(preseed.indicative_use_of_funds).reduce(
+    (sum, value) => sum + value,
+    0,
+  );
+  assert.ok(
+    Math.abs(useOfFundsTotal - 1) < 1e-9,
+    'fundraising indicative use-of-funds fractions must sum to 1',
+  );
 });
 
 test('strong Company OS states require evidence and cannot bypass required milestone gates', () => {

@@ -5,9 +5,11 @@
  * non vérifiée, sous MAX_KNOWLEDGE_TOKENS).
  */
 
+import { buildMotsPetPromptBlock } from '../language/motspet';
 import { COMMON_ENGINE_BLOCKS, ELI_LOCKED_BLOCK } from './engine';
 import { MAX_KNOWLEDGE_TOKENS, estimateTokens, filterRelevantKnowledge } from './filter-knowledge';
 import type { CultureEntry, GeographyEntry, RegionalKnowledgeBase } from './knowledge-types';
+import { buildRegionalLexiconPromptBlock } from './regional-lexicon';
 import type { ConversationContext, RegionalProfile } from './types';
 
 function geoLine(e: GeographyEntry): string {
@@ -44,6 +46,12 @@ export function buildAssistantSystemPrompt(
   blocks.push(
     `# Identité\nTu t'appelles ${profile.assistantName} (${profile.assistantNameOrigin}). Tu accompagnes les propriétaires de la région « ${profile.regionId} » (départements : ${profile.departments.join(', ')}).`,
   );
+
+  // Contrat lexical commun puis coloration régionale fail-closed.
+  // MotsPet porte le sens public autorisé ; le lexique régional ne peut que
+  // colorer la formulation avec des termes explicitement vérifiés.
+  blocks.push(buildMotsPetPromptBlock());
+  blocks.push(buildRegionalLexiconPromptBlock(profile.regionId));
 
   // Connaissance régionale filtrée par pertinence (jamais toute la base).
   const filtered = filterRelevantKnowledge(context.userMessage, knowledgeBase, {

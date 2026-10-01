@@ -1,0 +1,46 @@
+{
+  "schema_version": "0.1.0",
+  "authority_mode": "SCHEMA_MAP_NOT_DOMAIN_AUTHORITY",
+  "registries": [
+    {
+      "data_path": "state/milestones/MS-S1-PHYSICS.json",
+      "schema_path": "state/schemas/milestone.schema.json",
+      "registry_kind": "milestone"
+    },
+    {
+      "data_path": "state/experiments/EXP-MAT-INCREMENTAL-001.json",
+      "schema_path": "state/schemas/experiment.schema.json",
+      "registry_kind": "experiment"
+    },
+    {
+      "data_path": "state/experiments/EXP-TAG-PHYSICAL-001.json",
+      "schema_path": "state/schemas/experiment.schema.json",
+      "registry_kind": "experiment"
+    },
+    {
+      "data_path": "state/finance/finance-state.json",
+      "schema_path": "state/schemas/finance-state.schema.json",
+      "registry_kind": "finance"
+    },
+    {
+      "data_path": "state/finance/fundraising/PRESEED-CONDITIONAL-2027.json",
+      "schema_path": "state/schemas/fundraising-round.schema.json",
+      "registry_kind": "fundraising_round"
+    },
+    {
+      "data_path": "state/metrics/metrics.json",
+      "schema_path": "state/schemas/metrics.schema.json",
+      "registry_kind": "metrics"
+    },
+    {
+      "data_path": "state/risks/risk-register.json",
+      "schema_path": "state/schemas/risk-register.schema.json",
+      "registry_kind": "risk_register"
+    },
+    {
+      "data_path": "state/unknowns/critical-unknowns.json",
+      "schema_path": "state/schemas/critical-unknowns.schema.json",
+      "registry_kind": "critical_unknowns"
+    }
+  ]
+}
