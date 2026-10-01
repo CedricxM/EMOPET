@@ -1,0 +1,55 @@
+name: Bretagne open-data schema evidence
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/bretagne-open-data-schema-evidence.yml'
+      - 'scripts/data/capture-bretagne-open-data-schema.mjs'
+      - 'scripts/data/capture-bretagne-open-data-schema.test.mjs'
+      - 'apps/web/lib/data/breiz/bretagneOpenDataAllowlist.ts'
+  workflow_dispatch:
+    inputs:
+      dataset_id:
+        description: Controlled Région Bretagne dataset id
+        required: true
+        default: reserves-naturelles-regionales-de-bretagne
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  capture-schema-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      DATASET_ID: ${{ inputs.dataset_id || 'reserves-naturelles-regionales-de-bretagne' }}
+      EVIDENCE_PATH: artifacts/bretagne-open-data-schema-evidence.json
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '20'
+
+      - name: Test schema evidence capture
+        run: node --test scripts/data/capture-bretagne-open-data-schema.test.mjs
+
+      - name: Capture zero-row live schema evidence
+        run: |
+          node scripts/data/capture-bretagne-open-data-schema.mjs \
+            --dataset "$DATASET_ID" \
+            --output "$EVIDENCE_PATH"
+
+      - name: Upload schema evidence artifact
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bretagne-open-data-schema-evidence-${{ github.run_id }}
+          path: ${{ env.EVIDENCE_PATH }}
+          if-no-files-found: warn
+          retention-days: 14
