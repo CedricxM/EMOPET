@@ -295,24 +295,37 @@ runtimeTest('WORLD-G2 durable ledger/build persistence is replay-safe, anti-farm
       });
     }
 
-    const sameItem = await Promise.all([
-      builder.build({
+    const sameItemRequests = [
+      {
         ownerId: ownerB,
-        idempotencyKey: 'build:g2:memory-lantern:001',
+        idempotencyKey: committedBuildKey,
         collection: globalCollection,
         itemId: 'memory-lantern',
-      }),
-      builder.build({
+      },
+      {
         ownerId: ownerB,
         idempotencyKey: 'build:g2:memory-lantern:002',
         collection: globalCollection,
         itemId: 'memory-lantern',
-      }),
-    ]);
+      },
+    ];
+    const sameItem = await Promise.all(
+      sameItemRequests.map((request) => builder.build(request)),
+    );
     assert.deepEqual(
       sameItem.map((result) => result.decision).sort(),
       ['already_owned', 'built'],
     );
+
+    const committedBuildIndex = sameItem.findIndex(
+      (result) => result.decision === 'built',
+    );
+    assert.notEqual(
+      committedBuildIndex,
+      -1,
+      'exactly one concurrent same-item request must commit',
+    );
+    const committedBuildKey = sameItemRequests[committedBuildIndex].idempotencyKey;
 
     const repricedGlobalCollection = {
       ...globalCollection,
@@ -324,7 +337,7 @@ runtimeTest('WORLD-G2 durable ledger/build persistence is replay-safe, anti-farm
     };
     const stableReplay = await builder.build({
       ownerId: ownerB,
-      idempotencyKey: 'build:g2:memory-lantern:001',
+      idempotencyKey: committedBuildKey,
       collection: repricedGlobalCollection,
       itemId: 'memory-lantern',
     });
@@ -336,7 +349,7 @@ runtimeTest('WORLD-G2 durable ledger/build persistence is replay-safe, anti-farm
     };
     const retiredReplay = await builder.build({
       ownerId: ownerB,
-      idempotencyKey: 'build:g2:memory-lantern:001',
+      idempotencyKey: committedBuildKey,
       collection: retiredItemCollection,
       itemId: 'memory-lantern',
     });
