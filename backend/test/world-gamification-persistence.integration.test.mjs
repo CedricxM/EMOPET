@@ -79,6 +79,50 @@ runtimeTest('WORLD-G2 durable ledger/build persistence is replay-safe, anti-farm
 
     await assert.rejects(
       () => sqlClient`
+        INSERT INTO world_progression_events
+          (owner_id, idempotency_key, event_kind, source_ref, grants_json)
+        VALUES (
+          ${ownerA},
+          'bad key with spaces',
+          'knowledge.card_read',
+          'knowledge:direct:format',
+          ${sqlClient.json({ knowledgeFragments: 1 })}
+        )
+      `,
+      (error) => {
+        assert.equal(error.code, '23514');
+        assert.equal(
+          error.constraint_name,
+          'chk_world_progression_events_idempotency_format',
+        );
+        return true;
+      },
+    );
+
+    await assert.rejects(
+      () => sqlClient`
+        INSERT INTO world_progression_events
+          (owner_id, idempotency_key, event_kind, source_ref, grants_json)
+        VALUES (
+          ${ownerA},
+          'direct:source:format:001',
+          'knowledge.card_read',
+          'knowledge:bad ref',
+          ${sqlClient.json({ knowledgeFragments: 1 })}
+        )
+      `,
+      (error) => {
+        assert.equal(error.code, '23514');
+        assert.equal(
+          error.constraint_name,
+          'chk_world_progression_events_source_format',
+        );
+        return true;
+      },
+    );
+
+    await assert.rejects(
+      () => sqlClient`
         INSERT INTO world_resource_spends
           (owner_id, idempotency_key, item_id, cost_json)
         VALUES (
