@@ -76,7 +76,10 @@ export class PostgresWorldBuildService {
     validateBuildInput(input.ownerId, input.idempotencyKey);
 
     return this.database.transaction(async (tx) => {
-      await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL SERIALIZABLE`);
+      // READ COMMITTED + a transaction-scoped per-Owner advisory lock gives
+      // conflict-safe serialization without stale SERIALIZABLE snapshots.
+      // A waiting build acquires the lock only after the prior build commits,
+      // then subsequent statements observe that committed spend/ownership.
       await tx.execute(
         sql`SELECT pg_advisory_xact_lock(hashtextextended(${input.ownerId}::text, 1))`,
       );
