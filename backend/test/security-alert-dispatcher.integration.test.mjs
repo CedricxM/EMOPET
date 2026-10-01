@@ -71,7 +71,7 @@ async function seedAlert(policyRevision = 'routing-925-v1') {
       ${'9'.repeat(64)},
       'repeated_privileged_denials',
       'detector-v925',
-      '2026-10-01T15:00:00.000Z',
+      '2026-10-01T15:10:00.000Z',
       '2026-10-01T15:05:00.000Z',
       '2026-10-01T15:06:00.000Z',
       3,
@@ -242,7 +242,7 @@ test('health probe surfaces stale pending and terminal failed alerts using calle
   assert.equal(begun.status, 'CREATED');
 
   const stale = await dispatcher.probeSecurityAlertDispatchHealth({
-    now: new Date('2026-10-01T15:10:01.000Z'),
+    now: new Date('2026-10-01T15:20:01.000Z'),
     staleAfterSeconds: 600,
   });
   assert.deepEqual(stale, {
@@ -253,12 +253,12 @@ test('health probe surfaces stale pending and terminal failed alerts using calle
 
   await outbox.resolveSecurityAlertOutboxAttempt(ATTEMPT_A, {
     status: 'ATTEMPT_FAILED',
-    resolvedAt: '2026-10-01T15:11:00.000Z',
+    resolvedAt: '2026-10-01T15:21:00.000Z',
     failureCode: 'DELIVERY_TIMEOUT',
   });
 
   const failed = await dispatcher.probeSecurityAlertDispatchHealth({
-    now: new Date('2026-10-01T15:12:00.000Z'),
+    now: new Date('2026-10-01T15:22:00.000Z'),
     staleAfterSeconds: 600,
   });
   assert.deepEqual(failed, {
