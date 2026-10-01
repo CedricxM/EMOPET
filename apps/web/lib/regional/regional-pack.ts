@@ -30,10 +30,28 @@ export interface RegionalSourceBinding {
   purpose: string;
 }
 
+export type RegionalIdentityReviewStatus = 'PENDING_REVIEW' | 'VERIFIED';
+
+export interface RegionalIdentityEvidence {
+  status: RegionalIdentityReviewStatus;
+  /** Exact assistant identity covered by the review. */
+  exactAssistantName: string;
+  /** Exact origin/explanation claim covered by the review. */
+  exactAssistantNameOrigin: string;
+  /** Exact naming doctrine covered by the review. */
+  exactNamingRule: string;
+  reviewerRole: string | null;
+  reviewerRef: string | null;
+  reviewedAt: string | null;
+  reviewReceipt: string | null;
+  note: string;
+}
+
 export interface RegionalPack {
   id: string;
   regionId: string;
   profile: RegionalProfile;
+  identityEvidence: RegionalIdentityEvidence;
   knowledgeBase: RegionalKnowledgeBase;
   defaultLocale: string;
   supportedLocales: readonly string[];
@@ -45,6 +63,7 @@ export interface RegionalPack {
 export type RegionalPackReleaseBlocker =
   | 'REGION_ID_MISMATCH'
   | 'PROFILE_NOT_PRODUCTION_READY'
+  | 'IDENTITY_NOT_REVIEWED'
   | 'NO_VERIFIED_REGIONAL_LEXICON'
   | 'REQUIRED_DATA_DOMAIN_WITHOUT_RELEASE_READY_SOURCE'
   | 'UNKNOWN_SOURCE_BINDING';
@@ -56,6 +75,32 @@ export interface RegionalPackReleaseVerdict {
   blockers: readonly RegionalPackReleaseBlocker[];
   missingDomains: readonly RegionalDataDomain[];
   unknownSourceIds: readonly string[];
+}
+
+export function isRegionalIdentityEvidenceReleaseReady(
+  pack: RegionalPack,
+  nowMs: number = Date.now(),
+): boolean {
+  const evidence = pack.identityEvidence;
+
+  if (evidence.status !== 'VERIFIED') return false;
+  if (evidence.exactAssistantName !== pack.profile.assistantName) return false;
+  if (evidence.exactAssistantNameOrigin !== pack.profile.assistantNameOrigin) return false;
+  if (evidence.exactNamingRule !== pack.profile.namingRule) return false;
+
+  if (
+    !evidence.reviewerRole?.trim() ||
+    !evidence.reviewerRef?.trim() ||
+    !evidence.reviewReceipt?.trim()
+  ) {
+    return false;
+  }
+
+  if (!evidence.reviewedAt) return false;
+  const reviewedAt = Date.parse(evidence.reviewedAt);
+  if (!Number.isFinite(reviewedAt) || reviewedAt > nowMs) return false;
+
+  return true;
 }
 
 export function evaluateRegionalPackReleaseReadiness(
@@ -74,6 +119,10 @@ export function evaluateRegionalPackReleaseReadiness(
 
   if (pack.profile.status !== 'PRODUCTION_READY') {
     blockers.push('PROFILE_NOT_PRODUCTION_READY');
+  }
+
+  if (!isRegionalIdentityEvidenceReleaseReady(pack, nowMs)) {
+    blockers.push('IDENTITY_NOT_REVIEWED');
   }
 
   if (getVerifiedRegionalLexicon(pack.regionId).length === 0) {
