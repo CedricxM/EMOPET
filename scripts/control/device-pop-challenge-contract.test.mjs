@@ -13,6 +13,8 @@ const [
   verifierSource,
   manufacturingIssuerSource,
   manufacturingVerifierSource,
+  manufacturingEvidenceRepositorySource,
+  manufacturingEvidenceMigrationSource,
   challengeRepositorySource,
   challengeMigrationSource,
   purposeMigrationSource,
@@ -29,6 +31,8 @@ const [
   readFile(new URL('../../backend/api/security/device-pop-verifier.ts', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/api/security/device-credential-activation-pop-issuer.ts', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/api/security/device-credential-activation-pop-verifier.ts', import.meta.url), 'utf8'),
+  readFile(new URL('../../backend/api/security/device-credential-activation-pop-evidence-repository.ts', import.meta.url), 'utf8'),
+  readFile(new URL('../../backend/db/migrations/0040_device_credential_activation_pop_receipts.sql', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/api/security/device-pop-challenge-repository.ts', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/db/migrations/0026_device_pop_challenges.sql', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/db/migrations/0039_device_pop_activation_purpose.sql', import.meta.url), 'utf8'),
@@ -323,6 +327,44 @@ test('manufacturing PoP lane is PENDING_PROOF-only and never routed or trust-aut
   assert.equal(contract.runtime.manufacturingVerifierAuthorizesActivation, false);
   assert.equal(contract.runtime.manufacturingVerifierAuthorizesDeviceDataTrust, false);
   assert.equal(contract.runtime.manufacturingVerifierAuthorizesTelemetryPersistence, false);
+
+  assert.match(
+    contract.runtime.manufacturingPopEvidencePersistence,
+    /DURABLE_POSTGRES_IMPLEMENTED/,
+  );
+  assert.match(
+    contract.runtime.manufacturingPopEvidencePersistence,
+    /MIGRATION_0040/,
+  );
+
+  assert.match(manufacturingVerifierSource, /commitVerifiedProof/);
+  assert.doesNotMatch(manufacturingVerifierSource, /consumeIfUnconsumed/);
+
+  assert.match(manufacturingEvidenceRepositorySource, /db\.transaction\(async \(tx\)/);
+  assert.match(manufacturingEvidenceRepositorySource, /\.for\('update'\)/);
+  assert.match(manufacturingEvidenceRepositorySource, /DEVICE_CREDENTIAL_ACTIVATION/);
+  assert.match(manufacturingEvidenceRepositorySource, /consumedAt:\s*parsed\.verifiedAt/);
+  assert.match(
+    manufacturingEvidenceRepositorySource,
+    /deviceCredentialActivationPopReceipts/,
+  );
+
+  assert.match(
+    manufacturingEvidenceMigrationSource,
+    /CREATE TABLE device_credential_activation_pop_receipts/,
+  );
+  assert.match(
+    manufacturingEvidenceMigrationSource,
+    /SERVER_SIDE_POP_VERIFICATION_AUTHORITY/,
+  );
+  assert.match(
+    manufacturingEvidenceMigrationSource,
+    /VERIFIED_AND_CONSUMED/,
+  );
+  assert.doesNotMatch(
+    manufacturingEvidenceMigrationSource,
+    /signature|nonce|public_key|private_key|response_body/i,
+  );
 });
 
 test('verifier primitive reconstructs server challenge state and cannot activate trust', async () => {
