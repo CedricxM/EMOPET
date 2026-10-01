@@ -1,0 +1,152 @@
+{
+  "version": "1",
+  "status": "PARTIAL_TECHNICAL_RECONCILIATION_NOT_PROMOTED",
+  "productionAuthority": false,
+  "plannedTables": [
+    "world_progression_events",
+    "world_owned_items",
+    "world_resource_spends"
+  ],
+  "sourceCandidate": "config/world/world-progression-privacy-candidate-v1.json",
+  "g2Foundation": {
+    "migration": "backend/db/migrations/0045_world_gamification_persistence.sql",
+    "schema": "backend/db/schema/world-gamification.ts",
+    "pullRequest": 973,
+    "activeWrites": false
+  },
+  "activeSurfaces": [
+    {
+      "id": "user-subject-lineage",
+      "path": "config/privacy/user-subject-lineage.json",
+      "purpose": "Owner subject lineage",
+      "currentTableMentions": [
+        "world_progression_events",
+        "world_owned_items",
+        "world_resource_spends"
+      ]
+    },
+    {
+      "id": "account-erasure-topology",
+      "path": "config/privacy/account-erasure-topology.json",
+      "purpose": "account erasure topology/order",
+      "currentTableMentions": [
+        "world_progression_events",
+        "world_owned_items",
+        "world_resource_spends"
+      ]
+    },
+    {
+      "id": "subject-persistence-coverage",
+      "path": "config/privacy/subject-persistence-privacy-coverage.json",
+      "purpose": "privacy coverage for persisted subject relations",
+      "currentTableMentions": [
+        "world_progression_events",
+        "world_owned_items",
+        "world_resource_spends"
+      ]
+    },
+    {
+      "id": "erasure-disposition",
+      "path": "config/privacy/erasure-disposition-matrix.json",
+      "purpose": "explicit erasure disposition",
+      "currentTableMentions": [
+        "world_progression_events",
+        "world_owned_items",
+        "world_resource_spends"
+      ]
+    },
+    {
+      "id": "retention-schedule",
+      "path": "config/privacy/retention-schedule.json",
+      "purpose": "explicit retention/disposition",
+      "currentTableMentions": []
+    },
+    {
+      "id": "data-inventory",
+      "path": "config/privacy/data-inventory.json",
+      "purpose": "personal-data inventory classification",
+      "currentTableMentions": []
+    },
+    {
+      "id": "data-export-policy",
+      "path": "backend/api/services/data-export-policy.ts",
+      "purpose": "Owner export treatment",
+      "currentTableMentions": []
+    },
+    {
+      "id": "subject-discovery-runtime",
+      "path": "backend/api/services/subject-discovery.ts",
+      "purpose": "runtime subject discovery",
+      "currentTableMentions": [
+        "world_progression_events",
+        "world_owned_items",
+        "world_resource_spends"
+      ]
+    },
+    {
+      "id": "residue-verification-contract",
+      "path": "config/privacy/erasure-residue-verification-contract.json",
+      "purpose": "post-erasure residue verification contract",
+      "currentTableMentions": []
+    },
+    {
+      "id": "residue-verification-runtime",
+      "path": "backend/api/services/erasure-residue-verification.ts",
+      "purpose": "runtime post-erasure negative verification",
+      "currentTableMentions": [
+        "world_progression_events",
+        "world_owned_items",
+        "world_resource_spends"
+      ]
+    }
+  ],
+  "technicalProgress": {
+    "ownerLineageRegistered": true,
+    "erasureTopologyRegistered": true,
+    "persistenceCoverageRegistered": true,
+    "erasureDispositionRowsPresent": true,
+    "subjectDiscoveryIntegrated": true,
+    "residueVerificationIntegrated": true,
+    "privacyClassificationApproved": false,
+    "erasureDispositionApproved": false,
+    "exportTreatmentApproved": false,
+    "retentionApproved": false
+  },
+  "nonSqlSurface": {
+    "path": "config/privacy/non-sql-erasure-surface-inventory.json",
+    "currentWorldProgressionDecision": "ACTIVE_INVENTORY_DECISION_ABSENT_LEGACY_RUNTIME_PRESENT",
+    "requiredBeforePromotion": true,
+    "note": "Absence of a non-SQL copy is not assumed from silence; promotion requires explicit negative evidence or an explicit governed surface entry.",
+    "observedLegacyRuntimeSurfaces": [
+      {
+        "path": "apps/web/lib/gamification.ts",
+        "mechanism": "localStorage",
+        "status": "LEGACY_NON_SQL_GAMIFICATION_PRESENT",
+        "observedKeys": [
+          "breiz-gamification-read",
+          "breiz-journal-user-entries",
+          "breiz-map-user-spots"
+        ],
+        "promotionTreatment": "RETIRE_MIGRATE_OR_EXPLICITLY_EXCLUDE_FROM_G1B2_AUTHORITY",
+        "note": "Legacy Owner gamification counters/read state are not the G2 ledger but still block a blanket no-non-SQL-copy claim."
+      }
+    ]
+  },
+  "unresolvedDecisions": [
+    "privacy inventory classification for each durable World table",
+    "erasure disposition approval for each durable World table",
+    "Owner export treatment for progression events, ownership and resource spends",
+    "retention/disposition for each durable World table",
+    "foreign-key-safe executable erasure ordering",
+    "legacy localStorage gamification retirement/migration/exclusion plus explicit non-SQL copy evidence"
+  ],
+  "claims": {
+    "privacyReconciled": false,
+    "migrationSchemaPresent": true,
+    "productionWritesActive": false,
+    "durableProductionPersistence": false,
+    "accountErasureComplete": false,
+    "accountExportComplete": false,
+    "retentionApproved": false
+  }
+}
