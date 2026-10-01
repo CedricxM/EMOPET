@@ -50,6 +50,37 @@ test('every authorised progression event has a canonical source-authority route'
   );
 });
 
+test('runtime source routes exactly match machine-readable authority routing', async () => {
+  const { module: mod } = await loadSourceAuthorityModule();
+  const cfg = JSON.parse(
+    await readFile(
+      new URL('../../config/world/world-progression-source-authority-v1.json', import.meta.url),
+      'utf8',
+    ),
+  );
+
+  const runtime = Object.fromEntries(
+    Object.entries(mod.WORLD_PROGRESSION_SOURCE_ROUTES).map(([kind, route]) => [
+      kind,
+      {
+        authorityDomain: route.authorityDomain,
+        sourceRefPrefix: route.sourceRefPrefix,
+      },
+    ]),
+  );
+  const configured = Object.fromEntries(
+    Object.entries(cfg.routes).map(([kind, route]) => [
+      kind,
+      {
+        authorityDomain: route.authorityDomain,
+        sourceRefPrefix: route.sourceRefPrefix,
+      },
+    ]),
+  );
+
+  assert.deepEqual(runtime, configured);
+});
+
 test('wrong source namespace fails closed before a domain verifier is called', async () => {
   const { module: mod } = await loadSourceAuthorityModule();
   let calls = 0;
