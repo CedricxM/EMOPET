@@ -1,0 +1,87 @@
+{
+  "version": "1",
+  "status": "LEGACY_SURFACES_PRESENT_CUTOVER_NOT_AUTHORIZED",
+  "productionAuthority": false,
+  "g2LedgerMayReadLegacyState": false,
+  "silentRewardImportAllowed": false,
+  "automaticDeletionAllowed": false,
+  "migrationRequiresCanonicalServerAuthority": true,
+  "legacySurfaces": [
+    {
+      "path": "apps/web/lib/gamification.ts",
+      "mechanism": "localStorage",
+      "observedKeys": [
+        "breiz-gamification-read",
+        "breiz-journal-user-entries",
+        "breiz-map-user-spots"
+      ],
+      "feedsLegacyGamification": true,
+      "g2Treatment": "TO_CONFIRM_RETIRE_MIGRATE_OR_EXCLUDE",
+      "directImportToG2": "FORBIDDEN"
+    },
+    {
+      "path": "apps/web/lib/community.ts",
+      "mechanism": "localStorage",
+      "observedKeys": [
+        "breiz-community-memberships",
+        "breiz-community-posts",
+        "breiz-community-events"
+      ],
+      "feedsLegacyGamificationPartially": true,
+      "note": "Legacy gamification counters directly consume memberships and events; posts are part of the same browser prototype state but are not observed as a direct G2 reward source.",
+      "g2Treatment": "TO_CONFIRM_RETIRE_MIGRATE_OR_EXCLUDE",
+      "directImportToG2": "FORBIDDEN"
+    }
+  ],
+  "legacyGamificationNotG2Authority": {
+    "path": "apps/web/lib/gamification.ts",
+    "functions": [
+      "computeCounters",
+      "fetchServerCounters",
+      "computeProgression",
+      "markCardRead"
+    ],
+    "legacySignalsObserved": [
+      "walks",
+      "baselineFrozen",
+      "validDataDays",
+      "knowledgeCardsRead",
+      "mapPointsAdded",
+      "journalEntries",
+      "circlesJoined",
+      "eventsOrganized"
+    ],
+    "explicitlyForbiddenAsG2RewardEvidence": [
+      "baselineFrozen",
+      "validDataDays",
+      "walks",
+      "distance-based challenges",
+      "legacy badge points",
+      "legacy levels"
+    ]
+  },
+  "cutoverRules": [
+    "No G2 backend service may read localStorage or any breiz-* legacy browser key.",
+    "Legacy counters, badges, levels and challenges are not G2 progression authority.",
+    "Legacy browser state must never be converted directly into World resources.",
+    "Any migration of an eligible Owner action requires canonical server-side source verification for the exact Owner and event kind.",
+    "A migration must be idempotent and must not double-reward an action already present in world_progression_events.",
+    "Legacy key deletion requires an explicit product/data-handling decision and must not happen silently.",
+    "Until cutover is explicitly approved, legacy browser state and G2 durable state remain separate authorities, with G2 production writes still inactive."
+  ],
+  "promotionRequirements": [
+    "choose RETIRE, MIGRATE or EXCLUDE for each legacy surface",
+    "define Owner-visible handling for legacy browser state before deletion",
+    "prove G2 backend has no dependency on localStorage or breiz-* keys",
+    "if migration is chosen, define canonical source mapping and anti-double-reward rules",
+    "reconcile non-SQL erasure inventory with the chosen treatment",
+    "keep dog/Care/ELI-derived legacy metrics outside G2 reward authority"
+  ],
+  "claims": {
+    "legacyCutoverComplete": false,
+    "nonSqlErasureEvidenceComplete": false,
+    "g2ProductionWritesAuthorized": false,
+    "legacyStateMigrated": false,
+    "legacyStateDeleted": false
+  }
+}
