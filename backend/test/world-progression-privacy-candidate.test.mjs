@@ -10,7 +10,7 @@ const candidate = JSON.parse(
 );
 
 test('G1B.2 privacy plan remains candidate-only and non-authoritative', () => {
-  assert.equal(candidate.status, 'CANDIDATE_NOT_PROMOTED');
+  assert.equal(candidate.status, 'TECHNICAL_TOPOLOGY_RECONCILED_LIFECYCLE_UNRESOLVED');
   assert.equal(candidate.productionAuthority, false);
   assert.equal(
     candidate.mappingAuthority,
@@ -18,7 +18,7 @@ test('G1B.2 privacy plan remains candidate-only and non-authoritative', () => {
   );
   assert.equal(
     candidate.lifecyclePolicyStatus,
-    'TO_CONFIRM_BEFORE_DURABLE_ACTIVATION_ACCOUNT_ERASURE_OR_COMPLETE_ACCOUNT_EXPORT',
+    'TO_CONFIRM_BEFORE_RUNTIME_ACTIVATION_ACCOUNT_ERASURE_OR_COMPLETE_ACCOUNT_EXPORT',
   );
 
   assert.deepEqual(candidate.claims, {
@@ -71,4 +71,27 @@ test('privacy promotion requires lineage, erasure, export, retention, discovery 
   ]) {
     assert.match(requirements, new RegExp(required));
   }
+});
+
+
+test('technical reconciliation is explicit while lifecycle authorities remain open', () => {
+  assert.deepEqual(candidate.technicalReconciliation, {
+    userSubjectLineage: true,
+    accountErasureTopology: true,
+    subjectPersistenceCoverage: true,
+    erasureDispositionMatrix: true,
+    erasureDecisionPacket: true,
+    subjectDiscovery: true,
+    erasureResidueVerification: true,
+    breachRecipientSurfaces: true,
+    dataExportAuthority: false,
+    retentionAuthority: false,
+    nonSqlCopyEvidence: false,
+  });
+
+  assert.equal(candidate.claims.completeAccountErasure, false);
+  assert.equal(candidate.claims.completeAccountExport, false);
+  assert.equal(candidate.claims.approvedRetention, false);
+  assert.equal(candidate.claims.executableErasure, false);
+  assert.equal(candidate.claims.durableProductionPersistence, false);
 });
