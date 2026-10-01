@@ -98,6 +98,8 @@ jobs:
       # #118 and #86.
       - name: Enforce CI coverage of every root scripts/ and tools/ test (#671)
         run: node --test scripts/control/control-test-ci-coverage.test.mjs
+      - name: Enforce Company OS evidence-gated state invariants
+        run: node --test scripts/control/company-os-state.test.mjs
       - name: Enforce Unity World authority boundary (#567)
         run: node --test scripts/control/world-unity-authority-boundary.test.mjs
       - name: Enforce control-register pointers (#114, #116)
