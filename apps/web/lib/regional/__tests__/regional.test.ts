@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { buildAssistantSystemPrompt } from '../build-system-prompt';
-import { detectRegion } from '../detect-region';
+import { detectRegion, resolveRegionalCompanionContext } from '../detect-region';
 import { MAX_KNOWLEDGE_TOKENS, estimateTokens, filterRelevantKnowledge } from '../filter-knowledge';
 import { shouldInitiate } from '../initiate';
 import { BRETAGNE_KNOWLEDGE, BRETAGNE_PROFILE } from '../profiles/bretagne';
@@ -117,4 +117,52 @@ test('duplication : le moteur fonctionne sur une région fictive sans modificati
   assert.match(built.prompt, /Testig/);
   assert.match(built.prompt, /test_region/);
   assert.ok(built.usedGeography >= 1);
+});
+
+
+test('contexte régional : le territoire courant supporté change le compagnon actif', () => {
+  const r = resolveRegionalCompanionContext({
+    homeRegionId: 'bretagne',
+    currentDepartment: '29',
+  });
+
+  assert.equal(r.mode, 'CURRENT_REGION');
+  assert.equal(r.active.profile.regionId, 'bretagne');
+  assert.equal(r.active.profile.assistantName, 'Breiz');
+  assert.equal(r.isAwayFromHome, false);
+});
+
+test('contexte régional : territoire courant non supporté neutralise le compagnon du domicile', () => {
+  const r = resolveRegionalCompanionContext({
+    homeRegionId: 'bretagne',
+    currentDepartment: '75',
+  });
+
+  assert.equal(r.mode, 'CURRENT_REGION_UNSUPPORTED_NEUTRAL');
+  assert.equal(r.active.profile.regionId, 'neutral_france');
+  assert.equal(r.active.profile.assistantName, 'EMOPET');
+  assert.equal(r.homeRegionId, 'bretagne');
+  assert.equal(r.isAwayFromHome, true);
+});
+
+test('contexte régional : sans contexte courant, la région de domicile reste active', () => {
+  const r = resolveRegionalCompanionContext({
+    homeRegionId: 'bretagne',
+  });
+
+  assert.equal(r.mode, 'HOME_REGION');
+  assert.equal(r.active.profile.regionId, 'bretagne');
+  assert.equal(r.active.profile.assistantName, 'Breiz');
+  assert.equal(r.currentContextProvided, false);
+});
+
+test('contexte régional : région courante déclarée mais non implémentée reste neutre', () => {
+  const r = resolveRegionalCompanionContext({
+    homeRegionId: 'bretagne',
+    currentRegionId: 'normandie',
+  });
+
+  assert.equal(r.mode, 'CURRENT_REGION_UNSUPPORTED_NEUTRAL');
+  assert.equal(r.active.profile.assistantName, 'EMOPET');
+  assert.equal(r.isAwayFromHome, true);
 });
