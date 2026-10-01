@@ -39,6 +39,7 @@ export interface WorldGamificationSnapshot {
  * relationship score, ELI value, sensor value and exact location.
  */
 export function buildWorldGamificationSnapshot(input: {
+  ownerId: string;
   balance: WorldProgressionBalance;
   ledgerEntries: readonly WorldProgressionLedgerEntry[];
   ownedItemIds: readonly string[];
@@ -56,7 +57,7 @@ export function buildWorldGamificationSnapshot(input: {
       themeId: collection.identity.themeId,
     },
     resources: { ...input.balance },
-    quests: projectWorldQuestProgress(input.ledgerEntries),
+    quests: projectWorldQuestProgress(input.ownerId, input.ledgerEntries),
     collectionItems: collection.items.map((item) => ({
       id: item.id,
       title: item.title,
