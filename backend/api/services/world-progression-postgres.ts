@@ -76,7 +76,7 @@ function validatePersistedResourceMap(
   return clean;
 }
 
-function applyResourceMap(
+export function applyPersistedWorldResourceMap(
   balance: WorldProgressionBalance,
   value: unknown,
   sign: 1 | -1,
@@ -91,6 +91,10 @@ function applyResourceMap(
       throw new Error('WORLD_PROGRESSION_PERSISTED_BALANCE_NEGATIVE');
     }
   }
+}
+
+export function emptyWorldProgressionBalance(): WorldProgressionBalance {
+  return emptyBalance();
 }
 
 export async function readPostgresWorldProgressionBalance(
@@ -109,8 +113,8 @@ export async function readPostgresWorldProgressionBalance(
   ]);
 
   const balance = emptyBalance();
-  for (const row of eventRows) applyResourceMap(balance, row.grantsJson, 1, 'grant');
-  for (const row of spendRows) applyResourceMap(balance, row.costJson, -1, 'cost');
+  for (const row of eventRows) applyPersistedWorldResourceMap(balance, row.grantsJson, 1, 'grant');
+  for (const row of spendRows) applyPersistedWorldResourceMap(balance, row.costJson, -1, 'cost');
   return balance;
 }
 
