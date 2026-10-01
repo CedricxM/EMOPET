@@ -926,6 +926,7 @@ jobs:
 
       - name: Backend typecheck
         # Typechecking is deterministic and safe to replay from the existing Turbo cache.
+        # This cache never substitutes for disposable-database validation.
         # Database integration tests below remain direct and always execute.
         run: pnpm turbo run typecheck --filter=@emopet/api
 
