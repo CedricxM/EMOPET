@@ -102,6 +102,7 @@ test('precise-looking or unknown next-region input falls back to GLOBAL', async 
 
   for (const nextRegionCode of ['48.8566,2.3522', '10 rue de test', 'FR-IDF']) {
     const plan = mod.planWorldRegionTransition({
+      ownerId: OWNER_ID,
       catalog,
       currentRegionCode: 'FR-BRE',
       nextRegionCode,
@@ -149,13 +150,14 @@ test('duplicate owned items fail closed instead of being silently normalized', a
 
   assert.throws(
     () => mod.planWorldRegionTransition({
+      ownerId: OWNER_ID,
       catalog,
       currentRegionCode: 'FR-BRE',
       nextRegionCode: 'GLOBAL',
       ownedItems: [
-      ownedItem('breiz-mini-lighthouse'),
-      ownedItem('breiz-mini-lighthouse'),
-    ],
+        ownedItem('breiz-mini-lighthouse'),
+        ownedItem('breiz-mini-lighthouse'),
+      ],
     }),
     /DUPLICATE_OWNED_ITEM/,
   );
