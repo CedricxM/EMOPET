@@ -106,8 +106,12 @@ test('proposal treats no non-SQL G1B.2 copy as a hypothesis while acknowledging 
   assert.match(source, /localStorage\.setItem/);
 });
 
-test('proposal does not introduce dog/Care/ELI retention language into World progression', () => {
-  const text = JSON.stringify(proposal).toLowerCase();
+test('operational lifecycle fields do not introduce dog/Care/ELI retention semantics', () => {
+  const operational = JSON.stringify({
+    lifecycleProposal: proposal.lifecycleProposal,
+    tables: proposal.tables,
+  }).toLowerCase();
+
   for (const forbidden of [
     'dog telemetry',
     'care score',
@@ -115,10 +119,12 @@ test('proposal does not introduce dog/Care/ELI retention language into World pro
     'health score',
     'relationship score',
   ]) {
-    assert.equal(text.includes(forbidden), false);
+    assert.equal(operational.includes(forbidden), false);
   }
 
-  assert.match(text, /owner product state/);
+  const rationale = proposal.rationale.join(' ').toLowerCase();
+  assert.match(rationale, /owner product state/);
+  assert.match(rationale, /not dog telemetry/);
 });
 
 test('promotion requirements preserve every active G1B.2 gate', () => {
