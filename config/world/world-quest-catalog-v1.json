@@ -52,6 +52,8 @@
     "countLedgerDuplicates": false,
     "measuredDistance": false,
     "dogActivity": false,
-    "careOrEliSignals": false
+    "careOrEliSignals": false,
+    "ownerScopedProjection": true,
+    "sourceRefsServerAuthorized": true
   }
 }
