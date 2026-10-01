@@ -87,12 +87,36 @@ export function requireCodeqlAnalysis(run, jobs, expectedSha) {
   }
 }
 
+export function isRetryableGitHubEvidenceStatus(status) {
+  return (
+    status === 408 ||
+    status === 425 ||
+    status === 429 ||
+    (Number.isInteger(status) && status >= 500 && status <= 599)
+  );
+}
+
 export function normalizePullRequestNumber(value) {
   if (value == null || String(value).trim() === '') return null;
   if (!/^\d+$/.test(String(value)) || Number(value) < 1 || !Number.isSafeInteger(Number(value))) {
     throw new Error('CODEQL_PR_NUMBER must be a positive integer when supplied.');
   }
   return Number(value);
+}
+
+const DOCUMENTATION_ONLY_PATH = /^(?:docs\/.*\.(?:md|mdx|txt)|README\.md|ARCHITECTURE\.md|CONTRIBUTING\.md|SECURITY\.md)$/i;
+
+export function isDocumentationOnlyPullRequestFiles(files) {
+  if (!Array.isArray(files) || files.length === 0) return false;
+
+  return files.every((file) => {
+    const filename = typeof file?.filename === 'string' ? file.filename : '';
+    const previous = typeof file?.previous_filename === 'string' ? file.previous_filename : null;
+
+    if (!DOCUMENTATION_ONLY_PATH.test(filename)) return false;
+    if (previous && !DOCUMENTATION_ONLY_PATH.test(previous)) return false;
+    return true;
+  });
 }
 
 function formatCodeqlAlert(alert) {
@@ -137,16 +161,44 @@ async function main() {
   }
 
   async function get(path) {
-    const response = await fetch(`https://api.github.com/repos/${repository}/${path}`, {
-      headers: {
-        Accept: 'application/vnd.github+json',
-        Authorization: `Bearer ${token}`,
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
-      signal: AbortSignal.timeout(15_000),
-    });
-    if (!response.ok) throw new Error(`GitHub evidence request failed: HTTP ${response.status}.`);
-    return response.json();
+    const url = `https://api.github.com/repos/${repository}/${path}`;
+    let lastError;
+
+    for (let attempt = 1; attempt <= 4; attempt += 1) {
+      try {
+        const response = await fetch(url, {
+          headers: {
+            Accept: 'application/vnd.github+json',
+            Authorization: `Bearer ${token}`,
+            'X-GitHub-Api-Version': '2022-11-28',
+          },
+          signal: AbortSignal.timeout(15_000),
+        });
+
+        if (response.ok) return response.json();
+
+        const error = new Error(
+          `GitHub evidence request failed: HTTP ${response.status}.`,
+        );
+
+        if (!isRetryableGitHubEvidenceStatus(response.status) || attempt === 4) {
+          throw error;
+        }
+
+        lastError = error;
+      } catch (error) {
+        lastError = error;
+        if (attempt === 4) throw error;
+      }
+
+      const waitMs = attempt * 1_000;
+      console.log(
+        `Retrying GitHub evidence request ${path} after attempt ${attempt} in ${waitMs}ms.`,
+      );
+      await delay(waitMs);
+    }
+
+    throw lastError ?? new Error('GitHub evidence request failed.');
   }
 
   async function listOpenCodeqlAlerts() {
@@ -163,6 +215,68 @@ async function main() {
       if (batch.length < 100) return { alerts, target };
     }
     throw new Error('CodeQL alert inventory exceeded 2000 entries; refusing an incomplete security decision.');
+  }
+
+  async function listPullRequestFiles(number) {
+    const files = [];
+    for (let page = 1; page <= 20; page += 1) {
+      const batch = await get(`pulls/${number}/files?per_page=100&page=${page}`);
+      if (!Array.isArray(batch)) throw new Error('Invalid pull-request file inventory response.');
+      files.push(...batch);
+      if (batch.length < 100) return files;
+    }
+    throw new Error('Pull-request file inventory exceeded 2000 entries; refusing an incomplete scope decision.');
+  }
+
+  if (prNumber) {
+    const pullRequest = await get(`pulls/${prNumber}`);
+    if (pullRequest?.head?.sha !== expectedSha) {
+      throw new Error('Pull-request head SHA changed during CodeQL applicability verification.');
+    }
+
+    const changedFiles = await listPullRequestFiles(prNumber);
+    if (isDocumentationOnlyPullRequestFiles(changedFiles)) {
+      const { alerts, target } = await listOpenCodeqlAlerts();
+      requireCodeqlAlertInventory(alerts);
+
+      const evidence = {
+        repository,
+        headSha: expectedSha,
+        workflowPath,
+        runId: null,
+        runAttempt: null,
+        url: `https://github.com/${repository}/pull/${prNumber}/files`,
+        conclusion: 'not_applicable_documentation_only',
+        evidenceSource: 'exact-pr-file-scope',
+        applicability: 'documentation-only',
+        changedFiles: changedFiles.map((file) => ({
+          filename: file.filename,
+          status: file.status ?? null,
+          previousFilename: file.previous_filename ?? null,
+        })),
+        findings: {
+          source: 'GitHub code-scanning alerts REST API',
+          target,
+          tool: 'CodeQL',
+          state: 'open',
+          count: alerts.length,
+        },
+      };
+
+      writeFileSync('codeql-default-setup-evidence.json', `${JSON.stringify(evidence, null, 2)}\n`);
+      if (process.env.GITHUB_STEP_SUMMARY) {
+        appendFileSync(
+          process.env.GITHUB_STEP_SUMMARY,
+          `CodeQL exact-head analysis N/A for documentation-only PR #${prNumber} at \`${expectedSha}\`; ` +
+            `${changedFiles.length} documentation file(s) verified and 0 open CodeQL alerts for ${target}.\n`,
+        );
+      }
+      console.log(
+        `CodeQL exact-head analysis N/A for documentation-only PR #${prNumber} at ${expectedSha}; ` +
+          `${changedFiles.length} documentation file(s), ${target}, 0 open alerts.`,
+      );
+      return;
+    }
   }
 
   // Default setup runs independently. Require all configured languages to finish
