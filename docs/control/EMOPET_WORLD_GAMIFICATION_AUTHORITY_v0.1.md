@@ -258,3 +258,29 @@ Required behavior:
 - Care, ELI, sensor and dog-performance systems are not progression source authorities.
 
 This slice still does not wire the domain verifiers to active runtime routes. That integration remains gated behind the existing product authorities for Knowledge, Local, Community, World and Memories.
+
+
+## 12. G1G provenance
+
+World progression exposes a bounded explainability projection for the future "why earned" surface.
+
+The contract is defined in:
+
+- `config/world/world-progression-provenance-v1.json`
+- `backend/api/services/world-progression-provenance.ts`
+
+Every explanation is derived from an already-authorized ledger entry. The projection uses bounded reason codes and opaque source identifiers only. It rejects mixed-Owner input and duplicate ledger ids, and it does not expose free-text reasons, exact location, Care values, ELI values or dog telemetry.
+
+The unified gamification snapshot includes this provenance projection so clients do not need to reconstruct reward explanations independently.
+
+## 13. G1H Owner-scope integrity
+
+The unified gamification snapshot requires Owner-scoped inputs for all state-bearing domains:
+
+- ledger rows;
+- resource balance;
+- owned-item rows.
+
+A balance or owned item belonging to another Owner fails closed. Duplicate owned-item rows also fail closed instead of being silently deduplicated.
+
+This prevents the read model from becoming an accidental cross-Owner aggregation boundary when durable persistence is introduced.
