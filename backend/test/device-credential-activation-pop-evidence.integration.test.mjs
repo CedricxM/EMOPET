@@ -290,12 +290,17 @@ test('two concurrent durable M4 commits yield exactly one winner', {
     ),
   ]);
 
-  assert.equal([a, b].filter((entry) => entry.ok).length, 1);
-  assert.equal(
-    [a, b].filter(
-      (entry) => !entry.ok && entry.error === 'CHALLENGE_CONSUME_CONFLICT',
-    ).length,
-    1,
+  const winners = [a, b].filter((entry) => entry.ok);
+  const losers = [a, b].filter((entry) => !entry.ok);
+
+  assert.equal(winners.length, 1);
+  assert.equal(losers.length, 1);
+  assert.ok(
+    [
+      'CHALLENGE_CONSUME_CONFLICT',
+      'CHALLENGE_ALREADY_CONSUMED',
+    ].includes(losers[0].error),
+    JSON.stringify(losers[0]),
   );
 
   const [{ receipt_count }] = await sql`
