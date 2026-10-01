@@ -2,7 +2,7 @@
 
 **Status:** CONTROLLED DRAFT / NOT PRODUCTION AUTHORITY  
 **Date:** 2026-10-01  
-**Scope:** G1A authority + G1B ledger core + G1C quest projection + G1D build economy + G1E regional collections
+**Scope:** G1A authority + G1B ledger core + G1B.2 persistence gate + G1C quest projection + G1D build economy + G1E regional collections + G1F source authority + G1G provenance + G1H Owner-scope integrity + G1I regional transition + unified snapshot
 
 ## 1. Product decision
 
@@ -239,7 +239,7 @@ Production activation remains blocked until Owner-linked privacy topology is rec
 The migration number is intentionally not reserved in this draft because the active migration sequence must be rechecked at implementation time.
 
 
-## 11. G1F source authority
+## 13. G1F source authority
 
 World progression does not trust caller-supplied source identifiers as evidence.
 
@@ -262,7 +262,7 @@ Required behavior:
 This slice still does not wire the domain verifiers to active runtime routes. That integration remains gated behind the existing product authorities for Knowledge, Local, Community, World and Memories.
 
 
-## 12. G1G provenance
+## 14. G1G provenance
 
 World progression exposes a bounded explainability projection for the future "why earned" surface.
 
@@ -275,7 +275,7 @@ Every explanation is derived from an already-authorized ledger entry. The projec
 
 The unified gamification snapshot includes this provenance projection so clients do not need to reconstruct reward explanations independently.
 
-## 13. G1H Owner-scope integrity
+## 15. G1H Owner-scope integrity
 
 The unified gamification snapshot requires Owner-scoped inputs for all state-bearing domains:
 
@@ -288,7 +288,7 @@ A balance or owned item belonging to another Owner fails closed. Duplicate owned
 This prevents the read model from becoming an accidental cross-Owner aggregation boundary when durable persistence is introduced.
 
 
-## 14. G1I regional transition
+## 16. G1I regional transition
 
 Regional identity changes are explicit Owner actions and operate on coarse region codes only.
 
