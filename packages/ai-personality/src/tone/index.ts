@@ -33,6 +33,8 @@ type LegacyRegionalProfile =
 
 type LegacyBreizProfile = 'BREIZ_BASE' | AIToneProfile;
 
+type ResolvedToneProfile = AIToneProfile | 'EMOPET_NEUTRAL';
+
 export interface AiPersonaOptions {
   dogName?: string;
   locale?: string;
@@ -48,7 +50,7 @@ export interface AiPersona {
 }
 
 export interface ToneProfile {
-  id: AIToneProfile;
+  id: ResolvedToneProfile;
   label: string;
   region: string;
   displayName: string;
@@ -70,24 +72,24 @@ export interface ToneProfile {
   privacyNotes: string[];
 }
 
-const LEGACY_PROFILE_ALIASES: Record<LegacyToneProfile | LegacyRegionalProfile | 'BREIZ_BASE', AIToneProfile> = {
+const LEGACY_PROFILE_ALIASES: Record<LegacyToneProfile | LegacyRegionalProfile | 'BREIZ_BASE', ResolvedToneProfile> = {
   breton: 'BREIZ',
-  parisien: 'BREIZAT',
-  marseillais: 'BREIZIG',
-  default: 'BREIZ',
+  parisien: 'EMOPET_NEUTRAL',
+  marseillais: 'EMOPET_NEUTRAL',
+  default: 'EMOPET_NEUTRAL',
   FR_BREIZ: 'BREIZ',
-  FR_NORM: 'BREIZAT',
-  FR_IDF: 'BREIZAT',
-  FR_PROV: 'BREIZIG',
-  FR_OCC: 'BREIZOU',
-  FR_ARA: 'BREIZENN',
-  FR_HDF: 'BREIZOU',
-  FR_GE: 'BREIZENN',
-  FR_NAQ: 'BREIZOU',
-  FR_PDL: 'BREIZ',
-  FR_CVL: 'BREIZENN',
-  FR_BFC: 'BREIZAT',
-  FR_COR: 'BREIZIG',
+  FR_NORM: 'EMOPET_NEUTRAL',
+  FR_IDF: 'EMOPET_NEUTRAL',
+  FR_PROV: 'EMOPET_NEUTRAL',
+  FR_OCC: 'EMOPET_NEUTRAL',
+  FR_ARA: 'EMOPET_NEUTRAL',
+  FR_HDF: 'EMOPET_NEUTRAL',
+  FR_GE: 'EMOPET_NEUTRAL',
+  FR_NAQ: 'EMOPET_NEUTRAL',
+  FR_PDL: 'EMOPET_NEUTRAL',
+  FR_CVL: 'EMOPET_NEUTRAL',
+  FR_BFC: 'EMOPET_NEUTRAL',
+  FR_COR: 'EMOPET_NEUTRAL',
   BREIZ_BASE: 'BREIZ',
 };
 
@@ -110,7 +112,7 @@ function createToneMix(
 }
 
 function createToneProfile(config: {
-  id: AIToneProfile;
+  id: ResolvedToneProfile;
   label: string;
   region: string;
   displayName: string;
@@ -138,7 +140,26 @@ function createToneProfile(config: {
   };
 }
 
-export const PERSONA_CATALOG: Record<AIToneProfile, ToneProfile> = {
+export const PERSONA_CATALOG: Record<ResolvedToneProfile, ToneProfile> = {
+  EMOPET_NEUTRAL: createToneProfile({
+    id: 'EMOPET_NEUTRAL',
+    label: 'EMOPET',
+    region: 'Aucune région contrôlée',
+    displayName: 'EMOPET',
+    greeting: 'Bonjour, {dogName} !',
+    communityPrompt: 'Question du jour : quel moment utile voulez-vous partager avec votre communauté ?',
+    greetingStyle: 'warm',
+    hedgingPhrases: ['Il semble que', 'D apres les elements disponibles', 'Avec les reperes disponibles'],
+    encouragement: ['On garde les choses simples.', 'Un repere a la fois.', 'On reste sur ce qui est observable.'],
+    culturalNotes: [],
+    lexiconHints: ['repere', 'observation', 'contexte', 'simple'],
+    styleHints: ['ton neutre', 'aucune identite regionale inventee', 'jamais clinique'],
+    toneMix: createToneMix(0.08, 0.24, 0.24, 0.34, 0.1),
+    favoredCategories: ['education', 'relationship', 'community'],
+    minPushConfidence: 0.85,
+    maxPushPerWeekOverride: 3,
+    privacyNotes: ['aucune deduction regionale automatique', 'aucune couleur culturelle sans profil regional controle'],
+  }),
   BREIZ: createToneProfile({
     id: 'BREIZ',
     label: 'Breiz',
@@ -241,7 +262,7 @@ export const PERSONA_CATALOG: Record<AIToneProfile, ToneProfile> = {
   }),
 };
 
-function getBaseProfile(profileId: AIToneProfile): ToneProfile {
+function getBaseProfile(profileId: ResolvedToneProfile): ToneProfile {
   return PERSONA_CATALOG[profileId];
 }
 
@@ -266,7 +287,7 @@ function withRegionHints(profile: ToneProfile, region?: string): ToneProfile {
   };
 }
 
-export function normalizeAiToneProfile(id?: string | null): AIToneProfile {
+export function normalizeAiToneProfile(id?: string | null): ResolvedToneProfile {
   if (typeof id !== 'string' || id.trim() === '') {
     return 'BREIZ';
   }
@@ -281,13 +302,13 @@ export function normalizeAiToneProfile(id?: string | null): AIToneProfile {
   }
 
   const lowered = id.trim().toLowerCase() as LegacyToneProfile;
-  return LEGACY_PROFILE_ALIASES[lowered] ?? 'BREIZ';
+  return LEGACY_PROFILE_ALIASES[lowered] ?? 'EMOPET_NEUTRAL';
 }
 
 export function resolveAiToneProfileEffective(
   aiToneProfileOverride?: string | null,
   communityDefaultProfile?: string | null,
-): AIToneProfile {
+): ResolvedToneProfile {
   if (typeof aiToneProfileOverride === 'string' && aiToneProfileOverride.trim() !== '') {
     return normalizeAiToneProfile(aiToneProfileOverride);
   }
@@ -300,7 +321,7 @@ export function resolveAiToneProfileEffective(
 }
 
 function resolvePersonaVariant(
-  effectiveProfileId: AIToneProfile,
+  effectiveProfileId: ResolvedToneProfile,
   rawProfileId?: string | null,
 ): { displayName: string; greeting: string } | null {
   if (effectiveProfileId !== 'BREIZ') {
