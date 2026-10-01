@@ -1,0 +1,51 @@
+{
+  "version": "1",
+  "status": "CONTROLLED_DRAFT_NOT_PRODUCTION_AUTHORITY",
+  "defaultDecision": "DENY",
+  "unavailableDecision": "FAIL_CLOSED",
+  "routes": {
+    "knowledge.card_read": {
+      "authorityDomain": "knowledge",
+      "sourceRefPrefix": "knowledge:",
+      "ownerScopeRequired": true,
+      "canonicalExistenceRequired": true
+    },
+    "local.place_saved": {
+      "authorityDomain": "local",
+      "sourceRefPrefix": "place:",
+      "ownerScopeRequired": true,
+      "canonicalExistenceRequired": true
+    },
+    "local.route_saved": {
+      "authorityDomain": "local",
+      "sourceRefPrefix": "route:",
+      "ownerScopeRequired": true,
+      "canonicalExistenceRequired": true
+    },
+    "community.contribution_created": {
+      "authorityDomain": "community",
+      "sourceRefPrefix": "community:",
+      "ownerScopeRequired": true,
+      "canonicalExistenceRequired": true
+    },
+    "world.group_joined": {
+      "authorityDomain": "world",
+      "sourceRefPrefix": "world-group:",
+      "ownerScopeRequired": true,
+      "canonicalExistenceRequired": true
+    },
+    "memory.created": {
+      "authorityDomain": "memories",
+      "sourceRefPrefix": "memory:",
+      "ownerScopeRequired": true,
+      "canonicalExistenceRequired": true
+    }
+  },
+  "rules": [
+    "A syntactically valid sourceRef is never proof by itself.",
+    "The canonical domain must verify both source existence and Owner scope.",
+    "A missing verifier denies progression.",
+    "A verifier failure propagates so the ledger can fail closed as source authority unavailable.",
+    "Care, ELI, sensor and dog-performance systems are not progression source authorities."
+  ]
+}
