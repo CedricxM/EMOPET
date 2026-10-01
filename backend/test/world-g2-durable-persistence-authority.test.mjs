@@ -23,6 +23,17 @@ test('WORLD-G2 migration locks Owner, idempotency, canonical-source and ownershi
   assert.match(sql, /UNIQUE \(owner_id, event_kind, source_ref\)/);
   assert.match(sql, /UNIQUE \(owner_id, item_id\)/);
   assert.match(sql, /chk_world_progression_events_grants_exact/);
+  assert.match(sql, /chk_world_resource_spends_cost_keys/);
+  assert.match(sql, /chk_world_resource_spends_cost_positive_integers/);
+  for (const resource of [
+    'knowledgeFragments',
+    'localDiscoveries',
+    'walkTraces',
+    'communitySeeds',
+    'memoryThreads',
+  ]) {
+    assert.match(sql, new RegExp(resource));
+  }
   assert.match(sql, /'knowledge\.card_read'[\s\S]*"knowledgeFragments": 1/);
   assert.match(sql, /'local\.route_saved'[\s\S]*"walkTraces": 2[\s\S]*"localDiscoveries": 1/);
   assert.match(sql, /'community\.contribution_created'[\s\S]*"communitySeeds": 2/);
