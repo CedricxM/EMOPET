@@ -1,7 +1,7 @@
 {
   "schemaVersion": "emopet-security-detection-runtime-v1",
   "issue": 525,
-  "status": "DB_SOURCE + ONE_SHOT + CURSOR_BACKED_SCHEDULER + LATE_EVENT_RECEIPT_REPLAY + BOUNDED_DETECTION_HISTORY_CANDIDATE / CONTINUOUS_DEPLOYMENT_OPEN",
+  "status": "DB_SOURCE + ONE_SHOT + CURSOR_BACKED_SCHEDULER + LATE_EVENT_RECEIPT_REPLAY + BOUNDED_DURABLE_DETECTION_HISTORY / EVENT_COVERAGE_ENUMERATED / CONTINUOUS_DEPLOYMENT_OPEN",
   "eventSource": "security_audit_events",
   "detector": "backend/api/security/security-anomaly-detection.ts",
   "runtimeService": "backend/api/security/security-detection-runtime.ts",
@@ -23,7 +23,7 @@
   },
   "operationalGaps": {
     "continuousScheduler": "CURSOR_BACKED_TICK_IMPLEMENTED / DEPLOYMENT_CADENCE_OPEN",
-    "durableDetectionHistory": "BOUNDED_DURABLE_HISTORY_CANDIDATE / RETENTION_POLICY_OPEN / ALERT_DELIVERY_SEPARATE",
+    "durableDetectionHistory": "BOUNDED_DURABLE_HISTORY_LANDED / RETENTION_POLICY_OPEN / ALERT_DELIVERY_SEPARATE",
     "productionPolicyApproval": "OPEN",
     "providerMonitoring": "NOT_SELECTED",
     "alertDelivery": "OPEN_UNDER_526",
@@ -59,7 +59,7 @@
   },
   "detectionHistory": {
     "issue": 805,
-    "status": "BOUNDED_DURABLE_HISTORY_CANDIDATE",
+    "status": "BOUNDED_DURABLE_HISTORY_LANDED / RETENTION_POLICY_OPEN",
     "historyTable": "security_detection_history",
     "evidenceTable": "security_detection_history_events",
     "sourceAuthority": "CANONICAL_SECURITY_AUDIT_EVENT_IDS_ONLY",
