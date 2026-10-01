@@ -44,7 +44,7 @@ CREATE TABLE world_progression_events (
 );
 
 CREATE INDEX idx_world_progression_events_owner_recorded
-  ON world_progression_events(owner_id, recorded_at DESC);
+  ON world_progression_events(owner_id, recorded_at);
 
 CREATE TABLE world_owned_items (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -67,7 +67,7 @@ CREATE TABLE world_owned_items (
 );
 
 CREATE INDEX idx_world_owned_items_owner_built
-  ON world_owned_items(owner_id, built_at DESC);
+  ON world_owned_items(owner_id, built_at);
 
 CREATE TABLE world_resource_spends (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -94,4 +94,4 @@ CREATE TABLE world_resource_spends (
 );
 
 CREATE INDEX idx_world_resource_spends_owner_recorded
-  ON world_resource_spends(owner_id, recorded_at DESC);
+  ON world_resource_spends(owner_id, recorded_at);
