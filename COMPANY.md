@@ -42,13 +42,15 @@ Authority: `docs/strategy/PROJECT_TIMELINE_2026_2027.md`.
 | Project memory/evidence standard | Existing controlled policy |
 | Strategy memory/index | Existing |
 | Product/science/brand authorities | Existing, domain-specific |
-| Company front door | Added in this slice |
-| Machine-readable company state | Added in this slice |
-| State schema | Added in this slice |
-| Milestone/dependency graph | Next |
-| Experiment ledger + kill criteria | Next |
-| Metrics/proof velocity | Next |
-| Finance/fundraising state | Next |
+| Company front door | Added in V1 |
+| Machine-readable company state | Added in V1 |
+| State schema | Added in V1 |
+| Milestone/dependency graph | Added in V1 |
+| Experiment ledger + kill criteria | Added in V1 |
+| Metrics/proof velocity | Added in V1 |
+| Finance/fundraising state | Added in V1 |
+| Risk + critical-unknowns registers | Added in V1 |
+| CI evidence-state guard | Added in V1 |
 | Corporate/IP state | Next |
 | Founder cockpit | Later, generated from controlled state |
 

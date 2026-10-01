@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-01  
 **Status:** `PROPOSED COMPANY CONTROL PLANE / DOES NOT REPLACE DOMAIN AUTHORITIES`  
-**Branch base:** `main@d88baa5ed27964fafe012ce44891cdde2c199ce4`
+**Branch base:** `main@0c8da12a4dca85d608c4d1aebf3b2e65b654f1d0`
 
 ## 1. Purpose
 
@@ -104,12 +104,13 @@ No object should become more certain merely because it is machine-readable.
 | `COMPANY.md` | Front door to EMOPET as a company | Navigation only |
 | `STATE.md` | Human-readable current snapshot | Projection, not domain authority |
 | `state/company-state.json` | Machine-readable current snapshot | Projection with authority/evidence refs |
-| `MILESTONES.md` | Stage gates and proof sequence | Future phase |
-| `METRICS.md` | Evidence/traction/quality metrics | Future phase |
-| `RISKS.md` | Company risk register and kill gates | Future phase |
-| `FINANCE.md` | Unit economics, runway, funding state | Future phase; no invented values |
-| `CORPORATE.md` | Entity, founders, IP and governance state | Future phase; restricted refs only |
-| `EXPERIMENTS.md` | Hypothesis → test → result → decision ledger | Future phase |
+| `MILESTONES.md` | Stage gates and proof sequence | V1 projection/index |
+| `METRICS.md` | Evidence/traction/quality metrics | V1 projection/index |
+| `RISKS.md` | Company risk register and kill gates | V1 projection/index |
+| `FINANCE_STATE.md` | Unit economics, runway, funding state | V1 public-safe projection; no invented values |
+| `CORPORATE.md` | Entity, founders, IP and governance state | Future slice; restricted refs only |
+| `EXPERIMENTS.md` | Hypothesis → test → result → decision ledger | V1 projection/index |
+| `UNKNOWNS.md` | Critical unknowns / value-of-information ledger | V1 projection/index |
 | `docs/strategy/COMPETITIVE_LANDSCAPE.md` | Competitor intelligence | Existing controlled watch |
 | `docs/records/*` | Evidence chronology and memory | Existing controlled layer |
 
@@ -204,18 +205,15 @@ Any AI agent doing substantive EMOPET work should:
 
 ## 13. Implementation sequence
 
-This first slice creates only the company front door, architecture, schema and initial state projection.
+V1 now includes the company front door, machine-readable state, milestone/experiment/finance/metrics/risk/unknowns registries, and an every-PR structural evidence guard.
 
-Next slices should add, in order:
+Next bounded slices should add, in order:
 
-1. state validation and freshness checks;
-2. milestone and dependency graph;
-3. experiment ledger with kill criteria;
-4. metrics and proof-velocity model;
-5. finance/fundraising state;
-6. corporate/IP state;
-7. risk and unknowns register;
-8. generated founder cockpit;
-9. redacted investor and supplier views derived from the same controlled state.
+1. corporate/IP state with public-safe references only;
+2. freshness and STALE semantics tied to evidence review cadence;
+3. per-registry schemas and cross-object dependency validation;
+4. generated human views from machine-readable state to prevent drift;
+5. founder cockpit derived from controlled state;
+6. redacted investor and supplier views derived from the same controlled state.
 
 Each slice must remain incremental and must not manufacture certainty to make the cockpit look complete.
