@@ -80,6 +80,7 @@ export interface WorldProgressionLedgerStore {
    * A durable implementation MUST enforce a unique constraint equivalent to
    * (owner_id, idempotency_key) and return the existing entry on duplicate.
    */
+  findByIdempotencyKey(ownerId: string, idempotencyKey: string): Promise<WorldProgressionLedgerEntry | null>;
   appendIfAbsent(entry: WorldProgressionLedgerEntry): Promise<WorldProgressionAppendResult>;
   getBalance(ownerId: string): Promise<WorldProgressionBalance>;
 }
@@ -167,6 +168,35 @@ export class WorldProgressionLedgerService {
     }
 
     const sourceRef = input.sourceRef.trim();
+
+    const existing = await this.store.findByIdempotencyKey(
+      input.ownerId,
+      input.idempotencyKey,
+    );
+    if (existing) {
+      const replayCandidate: WorldProgressionLedgerEntry = {
+        id: existing.id,
+        ownerId: input.ownerId,
+        idempotencyKey: input.idempotencyKey,
+        kind: authorized.kind,
+        sourceRef,
+        grants: authorized.grants,
+        recordedAt: existing.recordedAt,
+      };
+      if (!sameLogicalEvent(existing, replayCandidate)) {
+        throw new WorldProgressionAuthorityError(
+          'WORLD_PROGRESSION_IDEMPOTENCY_CONFLICT',
+          'The idempotency key is already bound to a different World progression event.',
+        );
+      }
+
+      return {
+        status: 'duplicate',
+        entry: existing,
+        balance: await this.store.getBalance(input.ownerId),
+      };
+    }
+
     let sourceIsAuthorized = false;
     try {
       sourceIsAuthorized = await this.sourceAuthority.isAuthorizedSource({
@@ -226,6 +256,13 @@ export class InMemoryWorldProgressionLedgerStore implements WorldProgressionLedg
     if (process.env.NODE_ENV === 'production') {
       throw new Error('InMemoryWorldProgressionLedgerStore is not production authority.');
     }
+  }
+
+  async findByIdempotencyKey(
+    ownerId: string,
+    idempotencyKey: string,
+  ): Promise<WorldProgressionLedgerEntry | null> {
+    return this.entries.get(ledgerKey(ownerId, idempotencyKey)) ?? null;
   }
 
   async appendIfAbsent(entry: WorldProgressionLedgerEntry): Promise<WorldProgressionAppendResult> {
