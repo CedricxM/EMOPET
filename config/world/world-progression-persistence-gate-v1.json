@@ -107,5 +107,10 @@
       "negative resource balance is prevented",
       "duplicate ownership is prevented"
     ]
+  },
+  "privacyCandidateContract": {
+    "path": "config/world/world-progression-privacy-candidate-v1.json",
+    "status": "CANDIDATE_NOT_PROMOTED",
+    "blocksProductionPersistence": true
   }
 }
