@@ -4,9 +4,15 @@ import { db } from '../../db/index.js';
 import {
   securityAuditEvents,
   securityDetectionEvaluatedEvents,
+  securityDetectionHistory,
+  securityDetectionHistoryEvents,
   securityDetectionSchedulerState,
 } from '../../db/schema/index.js';
 import { securityDetectionContextWindowSeconds } from './security-anomaly-detection.js';
+import {
+  buildSecurityDetectionHistoryRecords,
+  type SecurityDetectionHistoryRecord,
+} from './security-detection-history.js';
 import {
   SECURITY_DETECTION_SCAN_HARD_CAP,
   runSecurityDetectionScan,
@@ -231,6 +237,15 @@ export async function runSecurityDetectionSchedulerTick(
         };
       }
 
+      let historyRecords: SecurityDetectionHistoryRecord[] = [
+        ...buildSecurityDetectionHistoryRecords({
+          policyRevision: scan.policyRevision,
+          evaluationWindowStart: scan.windowStart,
+          evaluationWindowEnd: scan.windowEnd,
+          evidence: scan.detectionEvidence,
+        }),
+      ];
+
       const lateRows = await tx
         .select({
           id: securityAuditEvents.id,
@@ -329,6 +344,109 @@ export async function runSecurityDetectionSchedulerTick(
         }
 
         lateReevaluationDetectionCount = lateSummary.detectionCount;
+        historyRecords.push(
+          ...buildSecurityDetectionHistoryRecords({
+            policyRevision: lateScan.policyRevision,
+            evaluationWindowStart: lateScan.windowStart,
+            evaluationWindowEnd: lateScan.windowEnd,
+            evidence: lateScan.detectionEvidence,
+          }),
+        );
+      }
+
+      const uniqueHistoryRecords = [
+        ...new Map(
+          historyRecords.map((record) => [record.dedupeKey, record] as const),
+        ).values(),
+      ];
+
+      for (const record of uniqueHistoryRecords) {
+        const [created] = await tx
+          .insert(securityDetectionHistory)
+          .values({
+            dedupeKey: record.dedupeKey,
+            detectorType: record.detectorType,
+            policyRevision: record.policyRevision,
+            evaluationWindowStart: new Date(record.evaluationWindowStart),
+            evaluationWindowEnd: new Date(record.evaluationWindowEnd),
+            recordedAt: databaseNow,
+            eventCount: record.eventCount,
+            uniqueTargetCount: record.uniqueTargetCount,
+          })
+          .onConflictDoNothing({
+            target: securityDetectionHistory.dedupeKey,
+          })
+          .returning({
+            detectionId: securityDetectionHistory.detectionId,
+          });
+
+        let detectionId = created?.detectionId;
+
+        if (!detectionId) {
+          const [existing] = await tx
+            .select({
+              detectionId: securityDetectionHistory.detectionId,
+              detectorType: securityDetectionHistory.detectorType,
+              policyRevision: securityDetectionHistory.policyRevision,
+              eventCount: securityDetectionHistory.eventCount,
+              uniqueTargetCount: securityDetectionHistory.uniqueTargetCount,
+            })
+            .from(securityDetectionHistory)
+            .where(eq(securityDetectionHistory.dedupeKey, record.dedupeKey))
+            .limit(1);
+
+          if (
+            !existing
+            || existing.detectorType !== record.detectorType
+            || existing.policyRevision !== record.policyRevision
+            || existing.eventCount !== record.eventCount
+            || existing.uniqueTargetCount !== record.uniqueTargetCount
+          ) {
+            throw new Error('security detection history idempotency conflict');
+          }
+
+          detectionId = existing.detectionId;
+        }
+
+        if (record.sourceEventIds.length === 0) {
+          throw new Error('security detection history requires source evidence');
+        }
+
+        await tx
+          .insert(securityDetectionHistoryEvents)
+          .values(record.sourceEventIds.map((auditEventId) => ({
+            detectionId,
+            auditEventId,
+          })))
+          .onConflictDoNothing({
+            target: [
+              securityDetectionHistoryEvents.detectionId,
+              securityDetectionHistoryEvents.auditEventId,
+            ],
+          });
+
+        const persistedEvidence = await tx
+          .select({
+            auditEventId: securityDetectionHistoryEvents.auditEventId,
+          })
+          .from(securityDetectionHistoryEvents)
+          .where(eq(
+            securityDetectionHistoryEvents.detectionId,
+            detectionId,
+          ));
+
+        const persistedIds = persistedEvidence
+          .map((row) => row.auditEventId)
+          .sort();
+
+        if (
+          persistedIds.length !== record.sourceEventIds.length
+          || persistedIds.some(
+            (id, index) => id !== record.sourceEventIds[index],
+          )
+        ) {
+          throw new Error('security detection history evidence conflict');
+        }
       }
 
       const evaluatedIds = [
