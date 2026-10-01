@@ -67,6 +67,7 @@ function buildProvenance(
   event: DatatourismeBretagneEventRecord,
   retrievedAt: string,
   responseContentType: string,
+  language: string,
 ): BreizSourceProvenance | null {
   const source = getBreizSource(DATATOURISME_SOURCE_ID);
   if (!source || !source.license || source.freshnessHours === null) return null;
@@ -77,13 +78,13 @@ function buildProvenance(
     canonicalUrl: event.uri ?? source.canonicalUrl,
     publisher: event.producerAttribution,
     retrievedAt,
-    sourceUpdatedAt: event.datatourismeUpdatedAt ?? event.sourceUpdatedAt,
+    sourceUpdatedAt: event.sourceUpdatedAt,
     territory: 'Bretagne',
     contentType: responseContentType || 'application/json',
     license: source.license,
     allowedUse: [...source.usagePolicy],
     attribution: event.producerAttribution,
-    language: 'fr',
+    language,
     checksumSha256: null,
     freshnessPolicyHours: source.freshnessHours,
     authority: source.authority,
@@ -210,10 +211,11 @@ export async function loadDatatourismeBretagneEvents(
 
   const retrievedAt = new Date(nowMs).toISOString();
   const contentType = response.headers.get('content-type') ?? 'application/json';
+  const language = options.lang?.trim() || 'fr';
   const events: DatatourismeBretagneLoadedEvent[] = [];
 
   for (const event of parsed.records) {
-    const provenance = buildProvenance(event, retrievedAt, contentType);
+    const provenance = buildProvenance(event, retrievedAt, contentType, language);
     if (!provenance) {
       continue;
     }
