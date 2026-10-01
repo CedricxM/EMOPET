@@ -1,13 +1,13 @@
 {
   "version": "1",
-  "status": "CANDIDATE_NOT_PROMOTED",
+  "status": "TECHNICAL_TOPOLOGY_RECONCILED_LIFECYCLE_UNRESOLVED",
   "productionAuthority": false,
   "mappingAuthority": "TECHNICAL_WORLD_PERSISTENCE_PLAN_NOT_LEGAL_SIGNOFF",
   "subjectRoot": {
     "table": "users",
     "column": "id"
   },
-  "lifecyclePolicyStatus": "TO_CONFIRM_BEFORE_DURABLE_ACTIVATION_ACCOUNT_ERASURE_OR_COMPLETE_ACCOUNT_EXPORT",
+  "lifecyclePolicyStatus": "TO_CONFIRM_BEFORE_RUNTIME_ACTIVATION_ACCOUNT_ERASURE_OR_COMPLETE_ACCOUNT_EXPORT",
   "relations": [
     {
       "table": "world_progression_events",
@@ -61,5 +61,18 @@
     "approvedRetention": false,
     "executableErasure": false,
     "durableProductionPersistence": false
+  },
+  "technicalReconciliation": {
+    "userSubjectLineage": true,
+    "accountErasureTopology": true,
+    "subjectPersistenceCoverage": true,
+    "erasureDispositionMatrix": true,
+    "erasureDecisionPacket": true,
+    "subjectDiscovery": true,
+    "erasureResidueVerification": true,
+    "breachRecipientSurfaces": true,
+    "dataExportAuthority": false,
+    "retentionAuthority": false,
+    "nonSqlCopyEvidence": false
   }
 }
