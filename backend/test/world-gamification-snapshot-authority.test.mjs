@@ -7,10 +7,26 @@ const snapshotSource = await readFile(
   'utf8',
 );
 
-test('gamification snapshot requires explicit Owner scope for quest projection', () => {
+test('gamification snapshot requires explicit Owner scope for every progression state', () => {
   assert.match(
     snapshotSource,
     /buildWorldGamificationSnapshot\(input:\s*\{[\s\S]*?ownerId:\s*string;/,
+  );
+  assert.match(
+    snapshotSource,
+    /resourceState:\s*WorldOwnerScopedResourceState/,
+  );
+  assert.match(
+    snapshotSource,
+    /ownershipState:\s*WorldOwnerScopedOwnershipState/,
+  );
+  assert.match(
+    snapshotSource,
+    /WORLD_GAMIFICATION_RESOURCE_OWNER_SCOPE_MISMATCH/,
+  );
+  assert.match(
+    snapshotSource,
+    /WORLD_GAMIFICATION_OWNERSHIP_OWNER_SCOPE_MISMATCH/,
   );
   assert.match(
     snapshotSource,
