@@ -87,6 +87,24 @@ async function persistDenial(index, occurredAt) {
 async function cleanup() {
   if (!sql) return;
   await sql`
+    DELETE FROM security_detection_history
+    WHERE detection_id IN (
+      SELECT DISTINCT history.detection_id
+      FROM security_detection_history_events AS history
+      JOIN security_audit_events AS audit
+        ON audit.id = history.audit_event_id
+      WHERE audit.target_ref LIKE 'sched769:%'
+    )
+  `;
+  await sql`
+    DELETE FROM security_detection_evaluated_events
+    WHERE audit_event_id IN (
+      SELECT id
+      FROM security_audit_events
+      WHERE target_ref LIKE 'sched769:%'
+    )
+  `;
+  await sql`
     DELETE FROM security_audit_events
     WHERE target_ref LIKE 'sched769:%'
   `;
