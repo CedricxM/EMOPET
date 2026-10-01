@@ -54,6 +54,15 @@ test('every planned World table is a direct Owner relation with unresolved lifec
   }
 });
 
+test('durable schema foundation is present but not privacy-promoted', () => {
+  assert.deepEqual(candidate.durableSchemaFoundation, {
+    migration: 'backend/db/migrations/0045_world_gamification_persistence.sql',
+    schema: 'backend/db/schema/world-gamification.ts',
+    status: 'PRESENT_NOT_PRIVACY_PROMOTED',
+    productionWritesActivated: false,
+  });
+});
+
 test('privacy promotion requires lineage, erasure, export, retention, discovery and residue reconciliation', () => {
   const requirements = candidate.promotionRequirements.join(' ').toLowerCase();
 
