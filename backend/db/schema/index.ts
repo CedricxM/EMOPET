@@ -26,3 +26,4 @@ export * from './device-credential-activation-pop.js';
 export * from './security-detection-history.js';
 export * from './security-alert-outbox.js';
 export * from './device-credential-activation-m5.js';
+export * from './world-progression.js';
