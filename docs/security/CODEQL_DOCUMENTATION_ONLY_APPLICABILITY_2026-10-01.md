@@ -73,3 +73,22 @@ This is not a general CodeQL skip.
 Any PR touching a non-documentation path still requires the existing managed CodeQL exact-head run and language-job evidence.
 
 No workflow permissions or CodeQL language requirements are reduced.
+
+
+## Transient GitHub API failures
+
+The same verifier also uses bounded retries for transient evidence-API failures.
+
+Retryable conditions are limited to:
+
+- HTTP 408;
+- HTTP 425;
+- HTTP 429;
+- HTTP 5xx;
+- network/timeout exceptions.
+
+The verifier makes at most four attempts with short increasing delays.
+
+Permanent 4xx responses still fail immediately. Exhausted retries still fail the security gate.
+
+This addresses transient `fetch failed` behaviour without converting unavailable security evidence into a pass.
