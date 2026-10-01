@@ -1,0 +1,167 @@
+{
+  "schema_version": "0.1.0",
+  "as_of": "2026-10-01",
+  "authority_mode": "UNCERTAINTY_LEDGER_NOT_DECISION_AUTHORITY",
+  "principle": "Unknowns are not failures. Hidden unknowns are. The company should spend time and capital where evidence can materially change a decision.",
+  "unknowns": [
+    {
+      "id": "UNKNOWN-MAT-INCREMENTAL-VALUE",
+      "status": "OPEN",
+      "decision_leverage": "BLOCKS_S1_AND_TWO_DEVICE_ARCHITECTURE",
+      "question": "Does MAT add enough incremental value over TAG-only to justify commercial burden?",
+      "cost_to_reduce": {
+        "value": null,
+        "status": "UNKNOWN"
+      },
+      "time_to_reduce": {
+        "value": null,
+        "status": "UNKNOWN"
+      },
+      "authority_refs": [
+        {
+          "kind": "issue",
+          "value": "#230"
+        }
+      ],
+      "next_evidence_refs": [
+        {
+          "kind": "path",
+          "value": "state/experiments/EXP-MAT-INCREMENTAL-001.json"
+        }
+      ],
+      "evidence_refs": []
+    },
+    {
+      "id": "UNKNOWN-TAG-PHYSICAL-FEASIBILITY",
+      "status": "OPEN",
+      "decision_leverage": "BLOCKS_S1",
+      "question": "Does integrated TAG pass its coupled physical-feasibility gate?",
+      "cost_to_reduce": {
+        "value": null,
+        "status": "UNKNOWN"
+      },
+      "time_to_reduce": {
+        "value": null,
+        "status": "UNKNOWN"
+      },
+      "authority_refs": [
+        {
+          "kind": "issue",
+          "value": "#480"
+        }
+      ],
+      "next_evidence_refs": [
+        {
+          "kind": "path",
+          "value": "state/experiments/EXP-TAG-PHYSICAL-001.json"
+        }
+      ],
+      "evidence_refs": []
+    },
+    {
+      "id": "UNKNOWN-LANDED-COGS",
+      "status": "OPEN",
+      "decision_leverage": "BLOCKS_S3_AND_FINANCE_MODEL",
+      "question": "What are sourced MAT, TAG and landed bundle costs at the intended prototype/launch configuration?",
+      "cost_to_reduce": {
+        "value": null,
+        "status": "UNKNOWN"
+      },
+      "time_to_reduce": {
+        "value": null,
+        "status": "UNKNOWN"
+      },
+      "authority_refs": [
+        {
+          "kind": "path",
+          "value": "state/finance/finance-state.json"
+        }
+      ],
+      "next_evidence_refs": [],
+      "evidence_refs": []
+    },
+    {
+      "id": "UNKNOWN-OWNER-RECURRING-VALUE",
+      "status": "OPEN",
+      "decision_leverage": "BLOCKS_S2",
+      "question": "Does the narrow end-to-end product create recurring, understandable value for real households?",
+      "cost_to_reduce": {
+        "value": null,
+        "status": "UNKNOWN"
+      },
+      "time_to_reduce": {
+        "value": null,
+        "status": "UNKNOWN"
+      },
+      "authority_refs": [
+        {
+          "kind": "path",
+          "value": "docs/strategy/CORE_CAPABILITY_AND_ACTIVATION_DOCTRINE_2026-09-07.md"
+        }
+      ],
+      "next_evidence_refs": [
+        {
+          "kind": "path",
+          "value": "state/metrics/metrics.json"
+        }
+      ],
+      "evidence_refs": []
+    },
+    {
+      "id": "UNKNOWN-IP-RIGHTS-READINESS",
+      "status": "OPEN",
+      "decision_leverage": "BLOCKS_DUE_DILIGENCE_AND_SCALE",
+      "question": "Are contribution provenance, chain-of-title and third-party rights controlled enough for the next financing/launch gate?",
+      "cost_to_reduce": {
+        "value": null,
+        "status": "UNKNOWN"
+      },
+      "time_to_reduce": {
+        "value": null,
+        "status": "UNKNOWN"
+      },
+      "authority_refs": [
+        {
+          "kind": "issue",
+          "value": "#114"
+        },
+        {
+          "kind": "issue",
+          "value": "#116"
+        },
+        {
+          "kind": "issue",
+          "value": "#680"
+        }
+      ],
+      "next_evidence_refs": [],
+      "evidence_refs": []
+    },
+    {
+      "id": "UNKNOWN-FUNDING-NEED",
+      "status": "OPEN",
+      "decision_leverage": "BLOCKS_FUNDRAISING_DECISION",
+      "question": "What capital, if any, is actually required to buy the next named proofs once cash, burn, runway, COGS and operating plan are controlled?",
+      "cost_to_reduce": {
+        "value": null,
+        "status": "UNKNOWN"
+      },
+      "time_to_reduce": {
+        "value": null,
+        "status": "UNKNOWN"
+      },
+      "authority_refs": [
+        {
+          "kind": "path",
+          "value": "state/finance/finance-state.json"
+        },
+        {
+          "kind": "path",
+          "value": "docs/strategy/INDUSTRIAL_AND_FUNDING_GOVERNANCE_2026-09-07.md"
+        }
+      ],
+      "next_evidence_refs": [],
+      "evidence_refs": []
+    }
+  ]
+}

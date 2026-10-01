@@ -1,0 +1,56 @@
+{
+  "schema_version": "0.1.0",
+  "id": "MS-S1-PHYSICS",
+  "type": "milestone",
+  "stage": "S1_PHYSICS",
+  "status": "OPEN",
+  "authority_mode": "PROJECTION_NOT_DOMAIN_AUTHORITY",
+  "updated_at": "2026-10-01",
+  "question": "Can MAT and TAG produce repeatable, trustworthy physical evidence in their intended contexts without overstating maturity?",
+  "required_gates": [
+    {
+      "id": "G-MAT-INCREMENTAL-VALUE-01",
+      "status": "OPEN",
+      "required": true,
+      "authority_refs": [
+        {
+          "kind": "issue",
+          "value": "#230"
+        },
+        {
+          "kind": "path",
+          "value": "docs/validation/EMOPET_MAT_INCREMENTAL_VALUE_EXECUTION_2026-09-25.md"
+        }
+      ],
+      "experiment_ref": "EXP-MAT-INCREMENTAL-001"
+    },
+    {
+      "id": "G-TAG-PHYSICAL-FEASIBILITY-01",
+      "status": "OPEN",
+      "required": true,
+      "authority_refs": [
+        {
+          "kind": "issue",
+          "value": "#480"
+        },
+        {
+          "kind": "path",
+          "value": "docs/hardware/tag/TAG_COMBINED_PHYSICAL_FEASIBILITY_2026-09-25.md"
+        }
+      ],
+      "experiment_ref": "EXP-TAG-PHYSICAL-001"
+    }
+  ],
+  "exit_rule": "Do not mark S1 passed unless every required gate is explicitly closed by its controlling authority with evidence references. Detailed designs, supplier discussions and synthetic tests are insufficient.",
+  "unlocks": [
+    "Consider whether S2 product pilots are ready to expand.",
+    "Consider whether a fundraising readiness review is justified."
+  ],
+  "does_not_unlock": [
+    "Manufacturing release",
+    "Scientific validation",
+    "Clinical claims",
+    "Automatic fundraising approval",
+    "Commercial launch"
+  ]
+}
