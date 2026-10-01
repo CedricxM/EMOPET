@@ -26,12 +26,12 @@ test('WORLD-G2 migration locks Owner, idempotency, canonical-source and ownershi
   assert.match(sql, /chk_world_resource_spends_cost_keys/);
   assert.match(sql, /chk_world_resource_spends_cost_positive_integers/);
   const spendCostConstraint = sql.match(
-    /CONSTRAINT chk_world_resource_spends_cost_positive_integers([\\s\\S]*?)\\n\\);/,
+    /CONSTRAINT chk_world_resource_spends_cost_positive_integers([\s\S]*?)\n\);/,
   );
   assert.ok(spendCostConstraint, 'spend cost constraint must remain complete');
   assert.doesNotMatch(spendCostConstraint[1], /CREATE INDEX/);
   assert.equal(
-    (spendCostConstraint[1].match(/\\^\\[1-9\\]\\[0-9\\]\\*\\$/g) ?? []).length,
+    (spendCostConstraint[1].match(/\^\[1-9\]\[0-9\]\*\$/g) ?? []).length,
     5,
     'all five resource-cost branches must require complete positive-integer syntax',
   );
