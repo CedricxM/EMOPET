@@ -11,6 +11,7 @@ function readJson(path) {
 
 const release = readJson('config/release/production-release-evidence-contract-v1.json');
 const migration = readJson('config/release/production-db-migration-authority-v1.json');
+const runtimeConfig = readJson('config/release/production-runtime-config-authority-v1.json');
 const p0Workflow = readFileSync(
   resolve(root, '.github', 'workflows', 'p0-db-baseline.yml'),
   'utf8',
@@ -63,6 +64,11 @@ test('production release contract remains non-authorizing by default', () => {
     'UNVERIFIED',
   );
   assert.equal(
+    release.releaseReceiptTemplate.runtimeConfig.disposition,
+    'UNVERIFIED',
+  );
+  assert.equal(release.releaseReceiptTemplate.runtimeConfig.evidenceRef, null);
+  assert.equal(
     release.releaseReceiptTemplate.transportSecurity.disposition,
     'UNVERIFIED',
   );
@@ -93,6 +99,8 @@ test('production release receipt cannot drop immutable identity or readiness evi
       'releaseOwner.reviewRef',
       'databaseMigration.disposition',
       'databaseMigration.evidenceRef',
+      'runtimeConfig.disposition',
+      'runtimeConfig.evidenceRef',
       'transportSecurity.disposition',
       'transportSecurity.evidenceRef',
       'backupRestore.disposition',
@@ -105,9 +113,86 @@ test('production release receipt cannot drop immutable identity or readiness evi
   const rules = release.failClosedRules.join('\n');
   assert.match(rules, /green P0 DB baseline validation run/i);
   assert.match(rules, /(?:not|never).*production.*migration authority/i);
+  assert.match(rules, /UNVERIFIED runtime configuration or secret-custody evidence/i);
   assert.match(rules, /UNVERIFIED transport-security or backup\/restore/i);
   assert.match(rules, /keeps production authority OPEN/i);
   assert.match(rules, /Missing artifact digest, commit SHA, SBOM/i);
+});
+
+test('production runtime configuration contract remains fail-closed and release-linked', () => {
+  assert.equal(
+    runtimeConfig.schemaVersion,
+    'emopet-production-runtime-config-authority-v1',
+  );
+  assert.match(runtimeConfig.status, /PRODUCTION_SECRET_CUSTODY_UNVERIFIED/);
+  assert.equal(runtimeConfig.issue, 831);
+  assert.equal(runtimeConfig.claimsProductionRuntimeConfigured, false);
+  assert.equal(runtimeConfig.claimsSecretManagerConfigured, false);
+  assert.equal(runtimeConfig.claimsSecretRotationComplete, false);
+
+  assert.equal(runtimeConfig.classificationRules.clientExposedPrefix, 'NEXT_PUBLIC_');
+  assert.match(
+    runtimeConfig.classificationRules.clientExposedMeaning,
+    /NEVER_SECRET/,
+  );
+  assert.equal(
+    runtimeConfig.classificationRules.serverDefaultMeaning,
+    'SERVER_PRIVATE_UNLESS_EXPLICITLY_REVIEWED',
+  );
+
+  includesAll(
+    runtimeConfig.requiredEnvironmentReceiptFields,
+    [
+      'environment.name',
+      'environment.authorityRef',
+      'runtimeConfigReceiptId',
+      'releaseReceiptRef',
+      'configManifestDigest',
+      'injection.authorityRef',
+      'secretCustody.authorityRef',
+      'secretCustody.rotationOwnerRole',
+      'secretCustody.rotationEvidenceRef',
+      'database.runtimeRoleEvidenceRef',
+      'database.migrationRoleEvidenceRef',
+      'database.roleSeparationEvidenceRef',
+      'publicConfig.reviewRef',
+      'transport.backendHttpsEvidenceRef',
+      'review.approverRef',
+      'review.reviewedAt',
+    ],
+    'runtimeConfig.requiredEnvironmentReceiptFields',
+  );
+
+  assert.equal(runtimeConfig.environmentReceiptTemplate.state, 'DRAFT_UNVERIFIED');
+  assert.equal(runtimeConfig.environmentReceiptTemplate.releaseReceiptRef, null);
+  assert.equal(runtimeConfig.environmentReceiptTemplate.environment.name, null);
+  assert.equal(runtimeConfig.environmentReceiptTemplate.secretCustody.authorityRef, null);
+  assert.equal(runtimeConfig.environmentReceiptTemplate.review.approverRef, null);
+
+  const variables = Object.values(runtimeConfig.knownAuthorityExamples)
+    .map((entry) => entry.variable);
+  assert.equal(new Set(variables).size, variables.length);
+  includesAll(
+    variables,
+    [
+      'DATABASE_URL',
+      'MIGRATION_DATABASE_URL',
+      'JWT_SECRET',
+      'PRIVILEGED_JWT_SECRET',
+      'AUTH_RATE_LIMIT_HMAC_SECRET',
+      'EMOPET_INTERNAL_AUDIT_SERVICE_SECRET',
+      'NEXT_PUBLIC_MAPBOX_TOKEN',
+    ],
+    'runtimeConfig known authority variables',
+  );
+
+  const rules = runtimeConfig.failClosedRules.join('\n');
+  assert.match(rules, /NEXT_PUBLIC_\*.*never carry a secret/i);
+  assert.match(rules, /Secret values must never be committed/i);
+  assert.match(rules, /Production secret custody remains OPEN/i);
+  assert.match(rules, /DATABASE_URL and MIGRATION_DATABASE_URL are separate authorities/i);
+  assert.match(rules, /Production backend URLs.*require HTTPS evidence/i);
+  assert.match(rules, /keeps the environment receipt DRAFT_UNVERIFIED or HOLD/i);
 });
 
 test('production database migration contract remains non-authorizing by default', () => {
