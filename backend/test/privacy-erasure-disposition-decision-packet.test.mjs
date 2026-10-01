@@ -80,10 +80,10 @@ test('packet covers every canonical matrix relation exactly once and mirrors pro
 
 test('decision grouping counts remain explicit and exhaustive', () => {
   assert.deepEqual(packet.summary, {
-    relationalTotal: 52,
+    relationalTotal: 55,
     policyAlignedDeleteCandidates: 30,
     policyConditionalExecutionRequired: 19,
-    legalAuthorityBlocked: 3,
+    legalAuthorityBlocked: 6,
     matrixRowsPromoted: 5,
   });
 
@@ -101,7 +101,7 @@ test('decision grouping counts remain explicit and exhaustive', () => {
   assert.deepEqual(counts, {
     POLICY_ALIGNED_DELETE_CANDIDATE: 30,
     POLICY_CONDITIONAL_EXECUTION_REQUIRED: 19,
-    LEGAL_AUTHORITY_BLOCKED: 3,
+    LEGAL_AUTHORITY_BLOCKED: 6,
   });
 });
 
@@ -212,7 +212,7 @@ test('conditional rows distinguish approved D1-D4 detach from still-unresolved e
   }
 });
 
-test('legal blockers are exactly research consent evidence and subscription billing lifecycle', () => {
+test('legal blockers include research, subscription and unresolved World progression lifecycle authority', () => {
   const blocked = packet.relations.filter(
     (row) => row.decisionSupportStatus === 'LEGAL_AUTHORITY_BLOCKED',
   );
@@ -223,6 +223,9 @@ test('legal blockers are exactly research consent evidence and subscription bill
       'dogs.id|DIRECT_FK|research_data_consents|dog_id',
       'users.id|DIRECT_FK|research_data_consents|user_id',
       'users.id|DIRECT_FK|subscriptions|user_id',
+      'users.id|DIRECT_FK|world_owned_items|owner_id',
+      'users.id|DIRECT_FK|world_progression_events|owner_id',
+      'users.id|DIRECT_FK|world_resource_spends|owner_id',
     ],
   );
 
@@ -233,6 +236,15 @@ test('legal blockers are exactly research consent evidence and subscription bill
   assert.equal(research.length, 2);
   for (const row of research) {
     assert.equal(row.requiredAuthority, 'RESEARCH_LEGAL_GOVERNANCE');
+  }
+
+  const world = blocked.filter((row) => row.table.startsWith('world_'));
+  assert.equal(world.length, 3);
+  for (const row of world) {
+    assert.equal(row.requiredAuthority, 'PRIVACY_LEGAL');
+    assert.equal(row.candidateDisposition, null);
+    assert.equal(row.promotionAuthorized, false);
+    assert.match(row.rationale, /retention, complete-account export and erasure disposition/i);
   }
 });
 
