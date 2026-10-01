@@ -57,10 +57,13 @@ function balance(overrides = {}) {
   };
 }
 
+const OWNER_ID = '11111111-1111-4111-8111-111111111111';
+const OTHER_OWNER_ID = '22222222-2222-4222-8222-222222222222';
+
 function ledgerEntry(overrides = {}) {
   return {
     id: 'entry-1',
-    ownerId: '11111111-1111-4111-8111-111111111111',
+    ownerId: OWNER_ID,
     idempotencyKey: 'knowledge:key:001',
     kind: 'knowledge.card_read',
     sourceRef: 'knowledge:card:one',
@@ -75,6 +78,7 @@ test('snapshot composes Breiz identity, safe resources, quests and collection av
   const regionalCatalog = await loadRegionalCatalog();
 
   const snapshot = mod.buildWorldGamificationSnapshot({
+    ownerId: OWNER_ID,
     balance: balance({
       knowledgeFragments: 7,
       localDiscoveries: 5,
@@ -117,6 +121,7 @@ test('snapshot falls back to GLOBAL and canonicalizes owned ids', async () => {
   const regionalCatalog = await loadRegionalCatalog();
 
   const snapshot = mod.buildWorldGamificationSnapshot({
+    ownerId: OWNER_ID,
     balance: balance(),
     ledgerEntries: [],
     ownedItemIds: ['memory-lantern', 'memory-lantern'],
@@ -129,10 +134,33 @@ test('snapshot falls back to GLOBAL and canonicalizes owned ids', async () => {
   assert.deepEqual(snapshot.ownedItemIds, ['memory-lantern']);
 });
 
+test('snapshot rejects ledger rows from another Owner', async () => {
+  const { module: mod } = await loadSnapshotModule();
+  const regionalCatalog = await loadRegionalCatalog();
+
+  assert.throws(
+    () => mod.buildWorldGamificationSnapshot({
+      ownerId: OWNER_ID,
+      balance: balance(),
+      ledgerEntries: [
+        ledgerEntry({
+          ownerId: OTHER_OWNER_ID,
+          sourceRef: 'knowledge:foreign',
+        }),
+      ],
+      ownedItemIds: [],
+      regionalCatalog,
+      regionCode: 'GLOBAL',
+    }),
+    /WORLD_QUEST_OWNER_SCOPE_MISMATCH/,
+  );
+});
+
 test('snapshot contract excludes ranking, XP, streak and dog/Care scoring surfaces', async () => {
   const { source, module: mod } = await loadSnapshotModule();
   const regionalCatalog = await loadRegionalCatalog();
   const snapshot = mod.buildWorldGamificationSnapshot({
+    ownerId: OWNER_ID,
     balance: balance(),
     ledgerEntries: [],
     ownedItemIds: [],
@@ -165,6 +193,7 @@ test('snapshot copies caller balance instead of exposing mutable state', async (
   const original = balance({ localDiscoveries: 9 });
 
   const snapshot = mod.buildWorldGamificationSnapshot({
+    ownerId: OWNER_ID,
     balance: original,
     ledgerEntries: [],
     ownedItemIds: [],
