@@ -1,0 +1,61 @@
+{
+  "version": "1",
+  "status": "CONTROLLED_DRAFT_NOT_PRODUCTION_AUTHORITY",
+  "subject": "owner",
+  "visibleProgressionSurface": "world",
+  "principles": {
+    "dogPerformanceScoring": false,
+    "careSignalRewards": false,
+    "publicRanking": false,
+    "paidHumanConnection": false,
+    "callerSuppliedRewardAmounts": false,
+    "sourceRefsMustBeServerAuthorized": true
+  },
+  "resources": [
+    "knowledgeFragments",
+    "localDiscoveries",
+    "walkTraces",
+    "communitySeeds",
+    "memoryThreads"
+  ],
+  "rewards": {
+    "knowledge.card_read": {
+      "knowledgeFragments": 1
+    },
+    "local.place_saved": {
+      "localDiscoveries": 2
+    },
+    "local.route_saved": {
+      "walkTraces": 2,
+      "localDiscoveries": 1
+    },
+    "community.contribution_created": {
+      "communitySeeds": 2
+    },
+    "world.group_joined": {
+      "communitySeeds": 1
+    },
+    "memory.created": {
+      "memoryThreads": 2
+    }
+  },
+  "forbiddenEventPrefixes": [
+    "eli.",
+    "sensor.",
+    "care.eli.",
+    "dog.activity.",
+    "dog.sleep.",
+    "dog.rest.",
+    "dog.wellbeing.",
+    "dog.health.",
+    "dog.emotion.",
+    "relationship.score.",
+    "steps."
+  ],
+  "notes": [
+    "Rewards are derived server-side from event kind only.",
+    "A syntactically valid sourceRef is never reward evidence by itself; a server authority must verify canonical source ownership/kind.",
+    "Route rewards are for an explicit owner-authored saved route, never measured distance or dog activity.",
+    "No MAT, TAG, ELI, health, wellbeing, inferred emotion, rest, sleep, activity, steps, distance or relationship score may produce World progression."
+  ]
+}

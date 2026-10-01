@@ -1,0 +1,83 @@
+{
+  "version": "1",
+  "status": "BLOCKED_PENDING_PRIVACY_TOPOLOGY_RECONCILIATION",
+  "productionAuthority": false,
+  "plannedTables": {
+    "world_progression_events": {
+      "ownerReference": "users.id",
+      "uniqueKeys": [
+        [
+          "owner_id",
+          "idempotency_key"
+        ],
+        [
+          "owner_id",
+          "event_kind",
+          "source_ref"
+        ]
+      ],
+      "requiredColumns": [
+        "id",
+        "owner_id",
+        "idempotency_key",
+        "event_kind",
+        "source_ref",
+        "grants_json",
+        "recorded_at"
+      ]
+    },
+    "world_owned_items": {
+      "ownerReference": "users.id",
+      "uniqueKeys": [
+        [
+          "owner_id",
+          "item_id"
+        ]
+      ],
+      "requiredColumns": [
+        "id",
+        "owner_id",
+        "item_id",
+        "region_code",
+        "built_at"
+      ]
+    },
+    "world_resource_spends": {
+      "ownerReference": "users.id",
+      "uniqueKeys": [
+        [
+          "owner_id",
+          "idempotency_key"
+        ]
+      ],
+      "requiredColumns": [
+        "id",
+        "owner_id",
+        "idempotency_key",
+        "item_id",
+        "cost_json",
+        "recorded_at"
+      ]
+    }
+  },
+  "transactionRules": [
+    "Progression insert requires successful canonical server source authorization for the exact Owner and event kind; denial or authority unavailability fails closed.",
+    "Reward replay with the same logical event is idempotent.",
+    "A canonical reward source can grant resources at most once per Owner and event kind, even when a caller retries with a different idempotency key.",
+    "Idempotency-key reuse for a different logical event fails closed.",
+    "Build checks balance, records spend and creates ownership in one database transaction.",
+    "Concurrent build requests cannot create a negative resource balance.",
+    "Concurrent build requests cannot create duplicate ownership."
+  ],
+  "privacyGates": [
+    "account-erasure topology includes every Owner-linked World progression table",
+    "subject discovery counts every Owner-linked World progression table",
+    "erasure residue verification probes every Owner-linked World progression table",
+    "data export decision is explicit for progression events, spends and ownership",
+    "retention/disposition is explicit before production activation"
+  ],
+  "migrationGate": {
+    "migrationNumberMustBeRecheckedAtImplementationTime": true,
+    "reason": "main migration sequence is active and parallel privacy work overlaps the required topology files"
+  }
+}
