@@ -84,6 +84,21 @@ export interface WorldProgressionLedgerStore {
   getBalance(ownerId: string): Promise<WorldProgressionBalance>;
 }
 
+export interface WorldProgressionSourceClaim {
+  ownerId: string;
+  kind: WorldProgressionEventKind;
+  sourceRef: string;
+}
+
+export interface WorldProgressionSourceAuthority {
+  /**
+   * Verifies that the canonical source exists and is authorised for this Owner
+   * and event kind. A route MUST NOT treat a caller-supplied sourceRef string as
+   * evidence merely because its syntax is valid.
+   */
+  isAuthorizedSource(claim: WorldProgressionSourceClaim): Promise<boolean>;
+}
+
 export type WorldProgressionRecordResult = {
   status: 'recorded' | 'duplicate';
   entry: WorldProgressionLedgerEntry;
@@ -98,6 +113,8 @@ export class WorldProgressionAuthorityError extends Error {
       | 'WORLD_PROGRESSION_INVALID_OWNER'
       | 'WORLD_PROGRESSION_INVALID_IDEMPOTENCY_KEY'
       | 'WORLD_PROGRESSION_INVALID_SOURCE_REF'
+      | 'WORLD_PROGRESSION_SOURCE_NOT_AUTHORIZED'
+      | 'WORLD_PROGRESSION_SOURCE_AUTHORITY_UNAVAILABLE'
       | 'WORLD_PROGRESSION_IDEMPOTENCY_CONFLICT',
     message: string,
   ) {
@@ -126,6 +143,7 @@ export function getAuthorizedWorldProgressionGrant(kind: string): {
 export class WorldProgressionLedgerService {
   constructor(
     private readonly store: WorldProgressionLedgerStore,
+    private readonly sourceAuthority: WorldProgressionSourceAuthority,
     private readonly now: () => Date = () => new Date(),
     private readonly newId: () => string = () => randomUUID(),
   ) {}
@@ -148,12 +166,34 @@ export class WorldProgressionLedgerService {
       );
     }
 
+    const sourceRef = input.sourceRef.trim();
+    let sourceIsAuthorized = false;
+    try {
+      sourceIsAuthorized = await this.sourceAuthority.isAuthorizedSource({
+        ownerId: input.ownerId,
+        kind: authorized.kind,
+        sourceRef,
+      });
+    } catch {
+      throw new WorldProgressionAuthorityError(
+        'WORLD_PROGRESSION_SOURCE_AUTHORITY_UNAVAILABLE',
+        'World progression source authority could not verify the source.',
+      );
+    }
+
+    if (!sourceIsAuthorized) {
+      throw new WorldProgressionAuthorityError(
+        'WORLD_PROGRESSION_SOURCE_NOT_AUTHORIZED',
+        'World progression source is not canonical for this Owner and event kind.',
+      );
+    }
+
     const candidate: WorldProgressionLedgerEntry = {
       id: this.newId(),
       ownerId: input.ownerId,
       idempotencyKey: input.idempotencyKey,
       kind: authorized.kind,
-      sourceRef: input.sourceRef.trim(),
+      sourceRef,
       grants: authorized.grants,
       recordedAt: this.now(),
     };
