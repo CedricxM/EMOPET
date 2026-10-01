@@ -8,6 +8,19 @@
 
 export type ContentStatus = 'EXEMPLE_DEMO' | 'PENDING_VERIFIED_CONTENT' | 'VERIFIED';
 
+export interface RegionalKnowledgeEvidence {
+  /** Controlled source identifier or stable source label. */
+  sourceId: string;
+  /** Exact item/record/document reference used for review. */
+  sourceRef: string;
+  /** Human reviewer role, not a free-form endorsement claim. */
+  reviewerRole: string;
+  /** ISO timestamp of the review. */
+  reviewedAt: string;
+  /** Short summary of the permitted use/provenance basis. */
+  provenanceNote: string;
+}
+
 export interface GeographyEntry {
   id: string;
   name: string;
@@ -20,6 +33,7 @@ export interface GeographyEntry {
   /** Pertinence pour la promenade canine. */
   dogFriendlyNotes?: string;
   sourceVerified: boolean;
+  evidence?: RegionalKnowledgeEvidence;
   _status: ContentStatus;
 }
 
@@ -31,6 +45,7 @@ export interface CultureEntry {
   /** Façons justes d'évoquer ce thème en conversation. */
   evocationExamples?: string[];
   sourceVerified: boolean;
+  evidence?: RegionalKnowledgeEvidence;
   _status: ContentStatus;
 }
 
