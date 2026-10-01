@@ -22,7 +22,7 @@
       "name": "production",
       "class": "PRODUCTION",
       "authorityState": "EXTERNAL_UNVERIFIED",
-      "githubActionsRequirement": "IF_GITHUB_ACTIONS_PROMOTES_PRODUCTION_USE_A_NAMED_PROTECTED_GITHUB_ENVIRONMENT"
+      "githubActionsRequirement": "NAMED_PROTECTED_GITHUB_ENVIRONMENT_REQUIRED_IF_GITHUB_ACTIONS_PROMOTES_PRODUCTION"
     }
   ],
   "releaseRoles": {
