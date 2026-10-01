@@ -105,8 +105,12 @@ test('WORLD-G2 runtime store derives balance from journals and uses conflict-saf
   assert.match(ledger, /SAFE_WORLD_REWARDS/);
   assert.match(ledger, /Number\.isSafeInteger/);
 
-  assert.match(build, /SET TRANSACTION ISOLATION LEVEL SERIALIZABLE/);
   assert.match(build, /pg_advisory_xact_lock/);
+  assert.doesNotMatch(
+    build,
+    /SET TRANSACTION ISOLATION LEVEL SERIALIZABLE/,
+    'Owner advisory locking must not be combined with a stale SERIALIZABLE snapshot',
+  );
   assert.match(build, /worldResourceSpends/);
   assert.match(build, /worldOwnedItems/);
   assert.match(build, /WORLD_BUILD_IDEMPOTENCY_CONFLICT/);
