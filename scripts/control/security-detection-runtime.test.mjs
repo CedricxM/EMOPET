@@ -13,6 +13,9 @@ const [
   detectorSource,
   detectionHistoryMigrationSource,
   detectionHistorySource,
+  healthMigrationSource,
+  healthSource,
+  healthWorkerSource,
 ] = await Promise.all([
   readFile(new URL('../../config/security/security-detection-runtime-v1.json', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/api/security/security-detection-runtime.ts', import.meta.url), 'utf8'),
@@ -24,6 +27,9 @@ const [
   readFile(new URL('../../backend/api/security/security-anomaly-detection.ts', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/db/migrations/0041_security_detection_history.sql', import.meta.url), 'utf8'),
   readFile(new URL('../../backend/api/security/security-detection-history.ts', import.meta.url), 'utf8'),
+  readFile(new URL('../../backend/db/migrations/0044_security_detection_scheduler_health.sql', import.meta.url), 'utf8'),
+  readFile(new URL('../../backend/api/security/security-detection-health.ts', import.meta.url), 'utf8'),
+  readFile(new URL('../../backend/api/workers/security-detection-health-probe.ts', import.meta.url), 'utf8'),
 ]);
 
 const authority = JSON.parse(authoritySource);
@@ -114,6 +120,73 @@ test('#769 scheduler serializes ticks and advances only a minimal durable cursor
 
   assert.doesNotMatch(schedulerSource, /app\.(get|post|put|patch|delete)\(/);
   assert.doesNotMatch(schedulerWorkerSource, /app\.(get|post|put|patch|delete)\(/);
+});
+
+test('#870 scheduler health receipt is minimal, fail-closed and provider-neutral', () => {
+  assert.equal(authority.scheduler.health.issue, 870);
+  assert.equal(
+    authority.scheduler.health.healthTable,
+    'security_detection_scheduler_health',
+  );
+  assert.equal(authority.scheduler.health.lastAttemptPersisted, true);
+  assert.equal(authority.scheduler.health.lastSuccessPersisted, true);
+  assert.equal(authority.scheduler.health.consecutiveFailuresPersisted, true);
+  assert.equal(authority.scheduler.health.busyCountsAsFailure, false);
+  assert.equal(authority.scheduler.health.stalenessPolicy, 'CALLER_SUPPLIED / NO_DEFAULT');
+  assert.equal(authority.scheduler.health.providerMonitoringAuthority, false);
+  assert.equal(authority.scheduler.health.httpRoute, null);
+  assert.match(
+    authority.operationalGaps.providerMonitoring,
+    /DEPLOYMENT_PROVIDER_MONITORING_OPEN/,
+  );
+
+  assert.match(
+    healthMigrationSource,
+    /CREATE TABLE security_detection_scheduler_health/,
+  );
+  for (const column of [
+    'stream_id',
+    'last_attempt_at',
+    'last_success_at',
+    'last_status',
+    'consecutive_failures',
+    'updated_at',
+  ]) {
+    assert.ok(healthMigrationSource.includes(column), column);
+  }
+
+  const executableHealthMigration =
+    healthMigrationSource.replace(/--.*$/gm, '');
+  assert.doesNotMatch(
+    executableHealthMigration,
+    /actor|target_ref|email|token|payload|policy_json|alert_body|audit_event_id/i,
+  );
+
+  assert.match(
+    schedulerSource,
+    /INSERT INTO security_detection_scheduler_health/,
+  );
+  assert.match(schedulerSource, /last_attempt_at = CURRENT_TIMESTAMP/);
+  assert.match(schedulerSource, /consecutive_failures/);
+  assert.match(schedulerSource, /result\.status === 'EVALUATED'/);
+  assert.match(schedulerSource, /result\.status === 'INITIAL_CURSOR_REQUIRED'/);
+
+  assert.match(healthSource, /maxStalenessSeconds/);
+  assert.match(healthSource, /CURRENT_TIMESTAMP AS database_now/);
+  assert.match(healthSource, /status: 'NO_RECEIPT'/);
+  assert.match(healthSource, /status: 'STALE_ATTEMPT'/);
+  assert.match(healthSource, /status: 'STALE_SUCCESS'/);
+  assert.match(healthSource, /status: 'LAST_TICK_FAILED'/);
+  assert.match(healthSource, /status: 'HEALTHY'/);
+  assert.doesNotMatch(healthSource, /setInterval|setTimeout|cron/i);
+  assert.doesNotMatch(healthSource, /app\.(get|post|put|patch|delete)\(/);
+
+  assert.match(
+    healthWorkerSource,
+    /SECURITY_DETECTION_HEALTH_MAX_STALENESS_SECONDS/,
+  );
+  assert.match(healthWorkerSource, /process\.exitCode = 1/);
+  assert.doesNotMatch(healthWorkerSource, /app\.(get|post|put|patch|delete)\(/);
 });
 
 test('#776 late-event replay uses receipts and policy-derived context without creating alert authority', () => {
