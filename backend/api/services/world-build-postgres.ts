@@ -170,7 +170,7 @@ export class PostgresWorldBuildService {
   }
 
   private async readState(
-    tx: Parameters<Parameters<Database['transaction']>[0]>[0],
+    tx: any,
     ownerId: string,
   ): Promise<{ balance: WorldProgressionBalance; ownedItemIds: string[] }> {
     const [eventRows, spendRows, ownedRows] = await Promise.all([
