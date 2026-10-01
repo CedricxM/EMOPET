@@ -49,7 +49,7 @@ export default function LandingFooter() {
               </span>
             </div>
             <p
-              className="text-sm text-[#6B7684] leading-relaxed max-w-xs"
+              className="text-sm text-[#D8D0C2] leading-relaxed max-w-xs"
               style={{ fontFamily: 'var(--font-body)' }}
             >
               Lorient, Bretagne
@@ -72,7 +72,7 @@ export default function LandingFooter() {
                   <li key={link.href}>
                     <a
                       href={link.href}
-                      className="text-sm text-[#6B7684] hover:text-[#FE502D] transition-colors duration-200"
+                      className="text-sm text-[#D8D0C2] hover:text-[#FE502D] transition-colors duration-200"
                       style={{ fontFamily: 'var(--font-body)' }}
                     >
                       {link.label}
@@ -87,7 +87,7 @@ export default function LandingFooter() {
         {/* Bottom bar */}
         <div className="border-t border-[#2E3A48] pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p
-            className="text-xs text-[#6B7684]"
+            className="text-xs text-[#D8D0C2]"
             style={{ fontFamily: 'var(--font-body)' }}
           >
             © 2025 EMOPET · Lorient, Bretagne

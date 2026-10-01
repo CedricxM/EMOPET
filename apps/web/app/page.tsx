@@ -104,7 +104,7 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <a
                 href="#decouvrir"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-[#B46A4A] text-white text-base font-semibold rounded-full hover:bg-[#9B5A3E] transition-colors duration-200 shadow-lg shadow-[#B46A4A]/20"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-[#A65E3F] text-white text-base font-semibold rounded-full hover:bg-[#1F2A36] transition-colors duration-200 shadow-lg shadow-[#A65E3F]/20"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
                 Découvrir EMOPET
@@ -226,7 +226,7 @@ export default function HomePage() {
               EMOPET observe ce que le repos peut nous apprendre.
             </p>
             <p
-              className="text-[#6B7684] text-sm max-w-sm mx-auto"
+              className="text-[#5A6570] text-sm max-w-sm mx-auto"
               style={{ fontFamily: 'var(--font-body)' }}
             >
               Capteurs non invasifs intégrés dans une surface pensée
@@ -281,7 +281,7 @@ export default function HomePage() {
               Pas de surveillance. De la compréhension.
             </p>
             <p
-              className="text-[#6B7684] text-sm max-w-sm mx-auto"
+              className="text-[#5A6570] text-sm max-w-sm mx-auto"
               style={{ fontFamily: 'var(--font-body)' }}
             >
               Mouvement, environnement, habitudes de promenade.
@@ -447,7 +447,7 @@ export default function HomePage() {
                 Une balade tranquille dimanche matin ?
               </p>
               <p
-                className="text-[#6B7684] text-sm mb-6"
+                className="text-[#5A6570] text-sm mb-6"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
                 Vous aimez tous les deux les promenades près de la côte.
@@ -455,7 +455,7 @@ export default function HomePage() {
 
               <div className="flex gap-3">
                 <button
-                  className="flex-1 px-4 py-3 bg-[#2CB7AB] text-white text-sm font-medium rounded-xl hover:bg-[#1E9A90] transition-colors duration-200"
+                  className="flex-1 px-4 py-3 bg-[#4F6F53] text-white text-sm font-medium rounded-xl hover:bg-[#1F2A36] transition-colors duration-200"
                   style={{ fontFamily: 'var(--font-body)' }}
                   aria-label="Voir la proposition"
                 >
@@ -472,7 +472,7 @@ export default function HomePage() {
             </div>
 
             <p
-              className="text-center text-[#6B7684] text-xs mt-6"
+              className="text-center text-[#5A6570] text-xs mt-6"
               style={{ fontFamily: 'var(--font-body)' }}
             >
               Pas de score de compatibilité. Pas de localisation précise.
@@ -540,7 +540,7 @@ export default function HomePage() {
             </div>
 
             <p
-              className="text-[#6B7684] text-sm mt-8 max-w-sm mx-auto"
+              className="text-[#5A6570] text-sm mt-8 max-w-sm mx-auto"
               style={{ fontFamily: 'var(--font-body)' }}
             >
               Empathie · aide · participation locale
@@ -633,7 +633,7 @@ export default function HomePage() {
               </div>
 
               <button
-                className="w-full mt-6 px-4 py-3 bg-[#2CB7AB] text-white text-sm font-medium rounded-xl hover:bg-[#1E9A90] transition-colors duration-200"
+                className="w-full mt-6 px-4 py-3 bg-[#4F6F53] text-white text-sm font-medium rounded-xl hover:bg-[#1F2A36] transition-colors duration-200"
                 style={{ fontFamily: 'var(--font-body)' }}
                 aria-label="Partager avec mon vétérinaire"
               >
@@ -706,19 +706,19 @@ export default function HomePage() {
                   type="email"
                   placeholder="Votre email"
                   aria-label="Adresse email"
-                  className="w-full px-4 py-3 rounded-xl border border-[#DDD4C2] text-[#2E3A48] placeholder-[#C6BBA4] focus:outline-none focus:ring-2 focus:ring-[#2CB7AB]/50"
+                  className="w-full px-4 py-3 rounded-xl border border-[#DDD4C2] text-[#2E3A48] placeholder-[#5A6570] focus:outline-none focus:ring-2 focus:ring-[#4F6F53]"
                   style={{ fontFamily: 'var(--font-body)' }}
                 />
                 <button
                   type="submit"
-                  className="w-full px-4 py-3 bg-[#B46A4A] text-white text-base font-semibold rounded-xl hover:bg-[#9B5A3E] transition-colors duration-200 shadow-lg shadow-[#B46A4A]/20"
+                  className="w-full px-4 py-3 bg-[#A65E3F] text-white text-base font-semibold rounded-xl hover:bg-[#1F2A36] transition-colors duration-200 shadow-lg shadow-[#A65E3F]/20"
                   style={{ fontFamily: 'var(--font-body)' }}
                 >
                   Je veux participer
                 </button>
               </form>
               <p
-                className="text-[#A8BCAC] text-xs mt-4"
+                className="text-[#5A6570] text-xs mt-4"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
                 Pas de spam. Juste des nouvelles quand c&apos;est prêt.

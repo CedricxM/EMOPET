@@ -59,7 +59,7 @@ export default function PrivacyControls() {
                 {control.label}
               </p>
               <p
-                className="text-[#6B7684] text-xs mt-0.5"
+                className="text-[#5A6570] text-xs mt-0.5"
                 style={{ fontFamily: 'var(--font-body)' }}
               >
                 {control.description}

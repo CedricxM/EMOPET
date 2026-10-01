@@ -59,7 +59,7 @@ export default function LandingNav() {
               <a
                 key={link.href}
                 href={link.href}
-                className={`text-sm font-medium transition-colors duration-200 hover:text-[#B46A4A] ${
+                className={`text-sm font-medium transition-colors duration-200 hover:text-[#A65E3F] ${
                   scrolled ? 'text-[#2E3A48]' : 'text-[#2E3A48]'
                 }`}
                 style={{ fontFamily: 'var(--font-body)' }}
@@ -69,7 +69,7 @@ export default function LandingNav() {
             ))}
             <a
               href="#decouvrir"
-              className="inline-flex items-center gap-1 px-5 py-2.5 bg-[#B46A4A] text-white text-sm font-semibold rounded-full hover:bg-[#9B5A3E] transition-colors duration-200"
+              className="inline-flex items-center gap-1 px-5 py-2.5 bg-[#A65E3F] text-white text-sm font-semibold rounded-full hover:bg-[#1F2A36] transition-colors duration-200"
               style={{ fontFamily: 'var(--font-body)' }}
             >
               Découvrir
@@ -120,7 +120,7 @@ export default function LandingNav() {
           <a
             href="#decouvrir"
             onClick={() => setMobileOpen(false)}
-            className="inline-flex items-center gap-1 px-5 py-3 bg-[#B46A4A] text-white text-base font-semibold rounded-full w-full justify-center mt-2"
+            className="inline-flex items-center gap-1 px-5 py-3 bg-[#A65E3F] text-white text-base font-semibold rounded-full w-full justify-center mt-2"
             style={{ fontFamily: 'var(--font-body)' }}
           >
             Découvrir EMOPET
