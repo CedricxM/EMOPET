@@ -28,6 +28,9 @@ const MESSAGE_A = randomUUID();
 const COPRESENCE_A = randomUUID();
 const PROFESSIONAL_SHARE_GRANT_A = randomUUID();
 const PROFESSIONAL_SHARE_AUDIT_A = randomUUID();
+const WORLD_EVENT_A = randomUUID();
+const WORLD_OWNED_A = randomUUID();
+const WORLD_SPEND_A = randomUUID();
 
 let sql = null;
 let lockConnection = null;
@@ -59,6 +62,9 @@ after(async () => {
     await sql`DELETE FROM professional_share_access_audits WHERE id = ${PROFESSIONAL_SHARE_AUDIT_A}`;
     await sql`DELETE FROM professional_share_grants WHERE id = ${PROFESSIONAL_SHARE_GRANT_A}`;
     await sql`DELETE FROM copresence_events WHERE id = ${COPRESENCE_A}`;
+    await sql`DELETE FROM world_resource_spends WHERE id = ${WORLD_SPEND_A}`;
+    await sql`DELETE FROM world_owned_items WHERE id = ${WORLD_OWNED_A}`;
+    await sql`DELETE FROM world_progression_events WHERE id = ${WORLD_EVENT_A}`;
     await sql`DELETE FROM user_config WHERE user_id IN (${USER_A}, ${USER_B})`;
     await sql`DELETE FROM dogs WHERE id IN (${DOG_A}, ${DOG_B})`;
     await sql`DELETE FROM achievements WHERE user_id IN (${USER_A}, ${USER_B})`;
@@ -96,7 +102,10 @@ async function snapshot() {
       (SELECT count(*)::int FROM eli_behavioral_priors WHERE id = ${PRIOR_A}) AS priors,
       (SELECT count(*)::int FROM research_data_consents WHERE id = ${CONSENT_A}) AS consents,
       (SELECT count(*)::int FROM auth_refresh_sessions WHERE id = ${SESSION_A}) AS sessions,
-      (SELECT count(*)::int FROM copresence_events WHERE id = ${COPRESENCE_A}) AS copresence
+      (SELECT count(*)::int FROM copresence_events WHERE id = ${COPRESENCE_A}) AS copresence,
+      (SELECT count(*)::int FROM world_progression_events WHERE id = ${WORLD_EVENT_A}) AS world_events,
+      (SELECT count(*)::int FROM world_owned_items WHERE id = ${WORLD_OWNED_A}) AS world_owned,
+      (SELECT count(*)::int FROM world_resource_spends WHERE id = ${WORLD_SPEND_A}) AS world_spends
   `;
   return row;
 }
@@ -131,6 +140,27 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
   await sql`
     INSERT INTO achievements (user_id, type)
     VALUES (${USER_A}, 'discovery-test')
+  `;
+  await sql`
+    INSERT INTO world_progression_events (
+      id, owner_id, idempotency_key, event_kind, source_ref, grants_json
+    ) VALUES (
+      ${WORLD_EVENT_A}, ${USER_A}, 'knowledge:test:001',
+      'knowledge.card_read', 'knowledge:card:test',
+      '{"knowledgeFragments":1}'::jsonb
+    )
+  `;
+  await sql`
+    INSERT INTO world_owned_items (id, owner_id, item_id, region_code)
+    VALUES (${WORLD_OWNED_A}, ${USER_A}, 'memory-lantern', 'GLOBAL')
+  `;
+  await sql`
+    INSERT INTO world_resource_spends (
+      id, owner_id, idempotency_key, item_id, cost_json
+    ) VALUES (
+      ${WORLD_SPEND_A}, ${USER_A}, 'build:test:001', 'memory-lantern',
+      '{"memoryThreads":4,"knowledgeFragments":2}'::jsonb
+    )
   `;
   await sql`
     INSERT INTO user_config (user_id, dog_id, config_key, config_value)
@@ -239,6 +269,9 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
     assert.equal(first.owner.behavioralAssessmentsAsRespondent.count, 1);
     assert.equal(first.owner.researchDataConsents.count, 1);
     assert.equal(first.owner.userConfig.count, 1);
+    assert.equal(first.owner.worldProgressionEvents.count, 1);
+    assert.equal(first.owner.worldOwnedItems.count, 1);
+    assert.equal(first.owner.worldResourceSpends.count, 1);
 
     assert.equal(first.dog.professionalShareGrants.count, 1);
     assert.equal(first.dog.professionalShareAccessAudits.count, 1);
@@ -349,6 +382,9 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
       consents: 1,
       sessions: 1,
       copresence: 1,
+      world_events: 1,
+      world_owned: 1,
+      world_spends: 1,
     });
   });
 });
