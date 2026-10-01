@@ -19,9 +19,23 @@ test('Bretagne open-data allow-list is explicit and dataset-scoped', () => {
   assert.equal(dataset.producer, 'Région Bretagne');
   assert.match(dataset.licence, /Licence Ouverte/i);
   assert.deepEqual(dataset.domains, ['territorial_context']);
-  assert.deepEqual(dataset.allowedRecordFields, []);
+  assert.deepEqual(dataset.allowedRecordFields, [
+    'id',
+    'nom',
+    'geo_point_2d',
+    'surface',
+    'date_creation',
+  ]);
   assert.equal(dataset.status, 'METADATA_REVIEWED_FIELDS_OPEN');
-  assert.equal(dataset.schemaEvidence, undefined);
+  assert.ok(dataset.schemaEvidence);
+  assert.equal(dataset.schemaEvidence.recordCount, 11);
+  assert.equal(
+    dataset.schemaEvidence.schemaFingerprint,
+    'sha256:c1c150f210e79b85c31525863b6ee92dd7d96a504c61fc0456c38e38355eb9dd',
+  );
+  for (const field of dataset.allowedRecordFields) {
+    assert.ok(dataset.schemaEvidence.fields.includes(field), field);
+  }
 });
 
 test('metadata lookup works only for allow-listed datasets', () => {
@@ -43,7 +57,7 @@ test('metadata lookup works only for allow-listed datasets', () => {
   );
 });
 
-test('record retrieval remains blocked until status and fields are explicitly approved', () => {
+test('record retrieval remains blocked until dataset status and rights are promoted', () => {
   assert.deepEqual(
     prepareBretagneOpenDataRecordsRequest(
       'reserves-naturelles-regionales-de-bretagne',
@@ -241,7 +255,7 @@ test('rights receipt cannot authorize a different schema/source version', () => 
   assert.ok(verdict.blockers.includes('RIGHTS_VERSION_SCHEMA_MISMATCH'));
 });
 
-test('current first dataset remains blocked at metadata-review state', () => {
+test('current first dataset has fields + schema but remains blocked at metadata-review state', () => {
   const current = getBretagneOpenDataDataset(
     'reserves-naturelles-regionales-de-bretagne',
   );
@@ -254,7 +268,7 @@ test('current first dataset remains blocked at metadata-review state', () => {
 
   assert.equal(verdict.ingestionPermitted, false);
   assert.ok(verdict.blockers.includes('DATASET_NOT_RELEASE_READY'));
-  assert.ok(verdict.blockers.includes('NO_APPROVED_FIELDS'));
-  assert.ok(verdict.blockers.includes('NO_SCHEMA_EVIDENCE'));
+  assert.ok(!verdict.blockers.includes('NO_APPROVED_FIELDS'));
+  assert.ok(!verdict.blockers.includes('NO_SCHEMA_EVIDENCE'));
   assert.ok(verdict.blockers.includes('NO_DATASET_RIGHTS_EVIDENCE'));
 });
