@@ -44,7 +44,10 @@ test('WORLD-G2 migration locks Owner, idempotency, canonical-source and ownershi
       1,
       `${exportName} must be exported exactly once in the Drizzle schema`,
     );
-    assert.match(sql, new RegExp(`${table.replaceAll('_', '.?')}[\\s\\S]*owner_id uuid NOT NULL REFERENCES users\\(id\\)`));
+    assert.match(
+      sql,
+      new RegExp(`owner_id uuid NOT NULL[\\s\\S]*CONSTRAINT ${table}_owner_id_users_id_fk[\\s\\S]*FOREIGN KEY \\(owner_id\\) REFERENCES users\\(id\\)`),
+    );
   }
 
   assert.match(sql, /UNIQUE \(owner_id, idempotency_key\)/);
