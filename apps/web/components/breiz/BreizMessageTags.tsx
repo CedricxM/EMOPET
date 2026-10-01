@@ -26,7 +26,7 @@ const TAG_STYLE = {
   fontSize: 9,
   letterSpacing: '0.08em',
   textTransform: 'uppercase',
-  color: 'var(--fg-muted)',
+  color: 'var(--fg-2)',
   background: 'var(--bg-sunk)',
   padding: '2px 7px',
   borderRadius: 'var(--radius-pill)',
