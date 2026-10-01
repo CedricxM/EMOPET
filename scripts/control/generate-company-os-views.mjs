@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const root = process.cwd();
 
@@ -282,7 +283,8 @@ function writeViews(views) {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1].replaceAll('\\\\', '/')}`) {
+const invokedPath = process.argv[1] ? resolve(process.argv[1]) : null;
+if (invokedPath && fileURLToPath(import.meta.url) === invokedPath) {
   const views = renderCompanyOsViews();
   if (process.argv.includes('--write')) {
     writeViews(views);
