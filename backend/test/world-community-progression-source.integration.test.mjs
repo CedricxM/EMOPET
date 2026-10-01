@@ -12,6 +12,10 @@ runtimeTest('Community contribution source verifier proves canonical Owner autho
     drizzleCommunityContributionSourceVerifier,
     parseCommunityContributionSourceRef,
   } = await import('../dist/api/services/world-community-progression-source.js');
+  const {
+    InMemoryWorldProgressionLedgerStore,
+    WorldProgressionLedgerService,
+  } = await import('../dist/api/services/world-progression-ledger.js');
   const { closeDatabase } = await import('../dist/db/index.js');
 
   const ownerA = randomUUID();
@@ -97,6 +101,39 @@ runtimeTest('Community contribution source verifier proves canonical Owner autho
         sourceRef: `community:post:${postB}`,
       }),
       false,
+    );
+  });
+
+  await t.test('canonical Community proof flows through the normal World ledger without payload leakage', async () => {
+    const ledger = new WorldProgressionLedgerService(
+      new InMemoryWorldProgressionLedgerStore(),
+      { isAuthorizedSource: verifier },
+    );
+
+    const recorded = await ledger.record({
+      ownerId: ownerA,
+      idempotencyKey: 'community:canonical:post:001',
+      kind: 'community.contribution_created',
+      sourceRef: `community:post:${postA}`,
+    });
+
+    assert.equal(recorded.status, 'recorded');
+    assert.deepEqual(recorded.entry.grants, { communitySeeds: 2 });
+    assert.equal(recorded.balance.communitySeeds, 2);
+    assert.equal(JSON.stringify(recorded.entry).includes('Owner A post'), false);
+    assert.equal(JSON.stringify(recorded.entry).includes('ignoredForProgression'), false);
+
+    await assert.rejects(
+      () => ledger.record({
+        ownerId: ownerB,
+        idempotencyKey: 'community:foreign:post:001',
+        kind: 'community.contribution_created',
+        sourceRef: `community:post:${postA}`,
+      }),
+      (error) => {
+        assert.equal(error.code, 'WORLD_PROGRESSION_SOURCE_NOT_AUTHORIZED');
+        return true;
+      },
     );
   });
 
