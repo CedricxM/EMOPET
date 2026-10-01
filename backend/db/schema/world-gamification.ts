@@ -35,12 +35,12 @@ export const worldProgressionEvents = pgTable('world_progression_events', {
   index('idx_world_progression_events_owner_recorded')
     .on(table.ownerId, table.recordedAt),
   check(
-    'chk_world_progression_events_idempotency_nonempty',
-    sql`length(${table.idempotencyKey}) >= 8`,
+    'chk_world_progression_events_idempotency_format',
+    sql`${table.idempotencyKey} ~ '^[A-Za-z0-9:_-]{8,128}$'`,
   ),
   check(
-    'chk_world_progression_events_source_nonempty',
-    sql`length(${table.sourceRef}) >= 1`,
+    'chk_world_progression_events_source_format',
+    sql`${table.sourceRef} ~ '^[A-Za-z0-9:._/-]{1,160}$'`,
   ),
   check(
     'chk_world_progression_events_kind',
@@ -105,8 +105,8 @@ export const worldResourceSpends = pgTable('world_resource_spends', {
   index('idx_world_resource_spends_owner_recorded')
     .on(table.ownerId, table.recordedAt),
   check(
-    'chk_world_resource_spends_idempotency_nonempty',
-    sql`length(${table.idempotencyKey}) >= 8`,
+    'chk_world_resource_spends_idempotency_format',
+    sql`${table.idempotencyKey} ~ '^[A-Za-z0-9:_-]{8,128}$'`,
   ),
   check('chk_world_resource_spends_item_nonempty', sql`length(${table.itemId}) >= 1`),
   check(
@@ -152,5 +152,5 @@ export const worldResourceSpends = pgTable('world_resource_spends', {
           AND (${table.costJson} ->> 'memoryThreads') ~ '^[1-9][0-9]*$'
         ))
     )`,
-  )
+  ),
 ]);
