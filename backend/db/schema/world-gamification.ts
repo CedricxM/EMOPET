@@ -57,6 +57,23 @@ export const worldProgressionEvents = pgTable('world_progression_events', {
     'chk_world_progression_events_grants_object',
     sql`jsonb_typeof(${table.grantsJson}) = 'object' AND ${table.grantsJson} <> '{}'::jsonb`,
   ),
+  check(
+    'chk_world_progression_events_grants_exact',
+    sql`(
+      (${table.eventKind} = 'knowledge.card_read'
+        AND ${table.grantsJson} = '{"knowledgeFragments": 1}'::jsonb)
+      OR (${table.eventKind} = 'local.place_saved'
+        AND ${table.grantsJson} = '{"localDiscoveries": 2}'::jsonb)
+      OR (${table.eventKind} = 'local.route_saved'
+        AND ${table.grantsJson} = '{"walkTraces": 2, "localDiscoveries": 1}'::jsonb)
+      OR (${table.eventKind} = 'community.contribution_created'
+        AND ${table.grantsJson} = '{"communitySeeds": 2}'::jsonb)
+      OR (${table.eventKind} = 'world.group_joined'
+        AND ${table.grantsJson} = '{"communitySeeds": 1}'::jsonb)
+      OR (${table.eventKind} = 'memory.created'
+        AND ${table.grantsJson} = '{"memoryThreads": 2}'::jsonb)
+    )`,
+  ),
 ]);
 
 export const worldOwnedItems = pgTable('world_owned_items', {
