@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "emopet-third-party-data-rights-receipt-v1",
+  "authority": "SOURCE_EVIDENCE_ONLY_NOT_LEGAL_SIGN_OFF_NOT_RELEASE_AUTHORITY",
+  "issue": 836,
+  "parentGate": 116,
+  "sourceId": "region-bretagne-open-data",
+  "datasetId": "reserves-naturelles-regionales-de-bretagne",
+  "title": "Réserves naturelles régionales de Bretagne",
+  "publisher": "Région Bretagne",
+  "canonicalDatasetUrl": "https://data.bretagne.bzh/explore/dataset/reserves-naturelles-regionales-de-bretagne/",
+  "exportLicenceUrl": "https://data.bretagne.bzh/explore/dataset/reserves-naturelles-regionales-de-bretagne/export/",
+  "legalCodeUrl": "https://www.etalab.gouv.fr/licence-ouverte-open-licence",
+  "sourceObservation": {
+    "observedAt": "2026-10-01T16:38:59.589Z",
+    "immutableSourceVersion": "sha256:65ff0d253fd1a1bddd6ce05389fe4b35c8946cfbcd8787c9d5afaee092506cd0",
+    "schemaFingerprint": "sha256:c1c150f210e79b85c31525863b6ee92dd7d96a504c61fc0456c38e38355eb9dd",
+    "recordCount": 11,
+    "metadataProcessedAt": "2026-09-27T03:39:40.891000+00:00",
+    "dataProcessedAt": "2026-09-20T03:16:25+00:00",
+    "workflowRunId": 36893545531,
+    "workflowArtifactId": 11178636271,
+    "workflowArtifactDigest": "sha256:cd3186bc5543956d319c16de3ed22e1bc7a5378213af2141d448a3b7c0c45354"
+  },
+  "publishedLicenceObservation": {
+    "label": "Licence Ouverte / Open Licence",
+    "sourceState": "SOURCE_CONFIRMED",
+    "note": "Official Région Bretagne dataset/export surfaces publish an open-licence statement for this dataset. This receipt records the source statement only and does not perform legal sign-off."
+  },
+  "attributionText": "Région Bretagne — Réserves naturelles régionales de Bretagne — Licence Ouverte / Open Licence",
+  "permittedUseSummary": "Source-published open-licence evidence recorded for the selected territorial dataset. EMOPET product-serving disposition remains HOLD pending dataset-scoped review, freshness/recheck authority and #116 G8 disposition.",
+  "reviewedAt": "2026-10-01T18:55:00+02:00",
+  "reviewerRole": "EMOPET engineering/data-rights evidence reviewer",
+  "recheckAt": null,
+  "evidenceState": "SOURCE_CONFIRMED",
+  "disposition": "HOLD",
+  "releaseEffects": {
+    "ingestionAuthorized": false,
+    "publicationAuthorized": false,
+    "productServingAuthorized": false,
+    "descriptionReuseAuthorized": false,
+    "mediaReuseAuthorized": false,
+    "dogAccessInferenceAuthorized": false
+  },
+  "nextActions": [
+    "Define source-update/freshness recheck policy from observed dataset cadence or publisher guidance.",
+    "Complete dataset-scoped product-use review under #116 G6/G8.",
+    "Keep record retrieval blocked until disposition is explicitly promoted to GO.",
+    "Preserve exact attribution and source-version binding if promotion occurs."
+  ]
+}
