@@ -1,0 +1,140 @@
+{
+  "version": "1",
+  "status": "HUMAN_DECISION_REQUIRED_NOT_APPROVED",
+  "productionAuthority": false,
+  "privacyLegalAuthority": false,
+  "auditedScope": [
+    "world_progression_events",
+    "world_owned_items",
+    "world_resource_spends"
+  ],
+  "technicalRecommendation": {
+    "erasure": "DELETE",
+    "export": "INCLUDE_IN_OWNER_ACCOUNT_EXPORT",
+    "retention": "WHILE_ACTIVE_ACCOUNT_NO_SEPARATE_POST_ACCOUNT_ARCHIVE_BY_DEFAULT",
+    "legacyBrowserState": "DO_NOT_RETRO_REWARD_FROM_LOCALSTORAGE"
+  },
+  "decisions": [
+    {
+      "id": "world-erasure-disposition",
+      "required": true,
+      "question": "What lifecycle disposition should apply to the three Owner-linked World tables on validated account erasure?",
+      "options": [
+        {
+          "value": "DELETE",
+          "technicalImpact": "Preserves Owner-bound semantics, removes direct personal linkage, aligns with no-archive first slice.",
+          "implementationImpact": [
+            "add executable delete order before users row deletion",
+            "update erasure disposition matrix",
+            "update account erasure topology execution plan",
+            "prove residue count reaches zero"
+          ]
+        },
+        {
+          "value": "ANONYMIZE",
+          "technicalImpact": "Requires a new non-identifying schema/semantic model because current rows are directly Owner-scoped.",
+          "implementationImpact": [
+            "design irreversible de-identification",
+            "remove owner linkage",
+            "prove retained state cannot relink to Owner",
+            "define why retained aggregate remains necessary"
+          ]
+        },
+        {
+          "value": "RETAIN_WITH_JUSTIFICATION",
+          "technicalImpact": "Requires separate explicit legal/rights/security necessity; current product design has no technical requirement for retained identifiable World progression after account erasure.",
+          "implementationImpact": [
+            "record separate authority and retention window",
+            "restrict processing purpose",
+            "update export/erasure disclosures",
+            "prove bounded expiry"
+          ]
+        }
+      ],
+      "technicalRecommendation": "DELETE",
+      "approved": false
+    },
+    {
+      "id": "world-owner-export-treatment",
+      "required": true,
+      "question": "Should durable World progression state be included in Owner account export?",
+      "options": [
+        {
+          "value": "INCLUDE",
+          "technicalImpact": "Export progression events/provenance, owned items and resource spends in an Owner-scoped bounded representation."
+        },
+        {
+          "value": "EXCLUDE_WITH_JUSTIFICATION",
+          "technicalImpact": "Requires explicit documented reason for withholding Owner-linked product state."
+        }
+      ],
+      "technicalRecommendation": "INCLUDE",
+      "approved": false
+    },
+    {
+      "id": "world-retention",
+      "required": true,
+      "question": "What retention rule should apply while and after an account exists?",
+      "options": [
+        {
+          "value": "WHILE_ACTIVE_ACCOUNT_THEN_ERASURE_DISPOSITION",
+          "technicalImpact": "Keep state while the account uses World; on validated account erasure apply the approved erasure disposition. No separate archive by default."
+        },
+        {
+          "value": "FIXED_POST_ACCOUNT_WINDOW",
+          "technicalImpact": "Requires a specific justified duration, purge scheduler, backup handling and user-facing disclosure."
+        }
+      ],
+      "technicalRecommendation": "WHILE_ACTIVE_ACCOUNT_THEN_ERASURE_DISPOSITION",
+      "approved": false
+    },
+    {
+      "id": "legacy-browser-cutover",
+      "required": true,
+      "question": "How should legacy browser gamification/community state interact with G2?",
+      "options": [
+        {
+          "value": "EXCLUDE_FROM_G2_AND_RETIRE_SEPARATELY",
+          "technicalImpact": "Never retro-reward localStorage counters. Preserve/remove legacy UI state only through its own explicit cutover."
+        },
+        {
+          "value": "MIGRATE_VERIFIED_ELIGIBLE_ACTIONS_ONLY",
+          "technicalImpact": "Requires canonical server-side evidence for each Owner/event; localStorage alone is insufficient evidence and cannot grant resources."
+        }
+      ],
+      "technicalRecommendation": "EXCLUDE_FROM_G2_AND_RETIRE_SEPARATELY",
+      "approved": false
+    }
+  ],
+  "implementationFilesAfterApproval": {
+    "erasure": [
+      "config/privacy/erasure-disposition-matrix.json",
+      "config/privacy/account-erasure-topology.json",
+      "backend/api/services/erasure-residue-verification.ts"
+    ],
+    "export": [
+      "backend/api/services/data-export-policy.ts",
+      "config/privacy/data-inventory.json"
+    ],
+    "retention": [
+      "config/privacy/retention-schedule.json",
+      "config/privacy/data-inventory.json"
+    ],
+    "discovery": [
+      "backend/api/services/subject-discovery.ts"
+    ],
+    "nonSql": [
+      "config/privacy/non-sql-erasure-surface-inventory.json",
+      "config/world/world-gamification-non-sql-cutover-v1.json"
+    ]
+  },
+  "claims": {
+    "humanDecisionRecorded": false,
+    "privacyApproved": false,
+    "erasureExecutable": false,
+    "exportComplete": false,
+    "retentionApproved": false,
+    "legacyCutoverComplete": false,
+    "productionWritesAuthorized": false
+  }
+}
