@@ -33,7 +33,11 @@
     },
     "nonSqlCopies": {
       "proposedDisposition": "NONE_EXPECTED_IN_G1B2",
-      "verificationRequired": true
+      "verificationRequired": true,
+      "legacyGamificationSurfaceObserved": true,
+      "legacyPath": "apps/web/lib/gamification.ts",
+      "legacyMechanism": "localStorage",
+      "legacyTreatmentRequired": "RETIRE_MIGRATE_OR_EXPLICITLY_EXCLUDE_FROM_G1B2_AUTHORITY"
     }
   },
   "tables": [
@@ -72,7 +76,7 @@
     "Owner export policy reconciliation",
     "subject discovery integration",
     "erasure residue verification integration",
-    "explicit non-SQL negative evidence",
+    "legacy localStorage gamification retirement/migration/exclusion plus explicit non-SQL negative evidence",
     "PostgreSQL migration and runtime store remain separately gated"
   ],
   "claims": {
