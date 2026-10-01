@@ -45,6 +45,8 @@ test('atomic build contract forbids negative balances and duplicate ownership', 
   assert.match(text, /negative resource balance/);
   assert.match(text, /duplicate ownership/);
   assert.match(text, /idempotent/);
+  assert.match(text, /canonical server source authorization/);
+  assert.match(text, /exact owner and event kind/);
   assert.match(text, /fails closed/);
 });
 
