@@ -53,7 +53,7 @@ export default function QuartierPage() {
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-sans)', fontWeight: 'var(--weight-semi)', fontSize: 'var(--text-sm)', color: 'var(--lichen-700)' }}>
               <Icon name="users" size={16} /> {t('quartier', 'activityTitle')}
             </span>
-            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontFamily: 'var(--font-sans)', fontSize: 'var(--text-xs)', color: 'var(--fg-2)' }}>
+            <label style={{ display: 'inline-flex', alignItems: 'center', minHeight: 24, gap: 8, cursor: 'pointer', fontFamily: 'var(--font-sans)', fontSize: 'var(--text-xs)', color: 'var(--fg-2)' }}>
               <input type="checkbox" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} />
               {t('quartier', 'optIn')}
             </label>
