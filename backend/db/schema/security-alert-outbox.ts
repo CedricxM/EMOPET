@@ -10,6 +10,7 @@ import {
 } from 'drizzle-orm/pg-core';
 
 import { securityDetectionHistory } from './security-detection-history.js';
+import { securityAuditEvents } from './security-audit.js';
 
 export const securityAlertOutbox = pgTable(
   'security_alert_outbox',
@@ -118,6 +119,36 @@ export const securityAlertDeliveryAttempts = pgTable(
           'ADAPTER_FAILURE'
         )
       )`,
+    ),
+  ],
+);
+
+
+export const securityAlertAcknowledgements = pgTable(
+  'security_alert_acknowledgements',
+  {
+    alertId: uuid('alert_id')
+      .primaryKey()
+      .references(() => securityAlertOutbox.alertId, { onDelete: 'cascade' }),
+    requestId: uuid('request_id').notNull(),
+    actorSubject: uuid('actor_subject').notNull(),
+    actorRole: varchar('actor_role', { length: 16 }).notNull(),
+    acknowledgedAt: timestamp('acknowledged_at', { withTimezone: true }).notNull(),
+    auditEventId: uuid('audit_event_id')
+      .notNull()
+      .references(() => securityAuditEvents.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('uq_security_alert_acknowledgements_request_id')
+      .on(table.requestId),
+    uniqueIndex('uq_security_alert_acknowledgements_audit_event_id')
+      .on(table.auditEventId),
+    index('idx_security_alert_acknowledgements_actor_time')
+      .on(table.actorSubject, table.acknowledgedAt),
+    check(
+      'chk_security_alert_acknowledgements_actor_role',
+      sql`${table.actorRole} IN ('admin', 'operator')`,
     ),
   ],
 );
