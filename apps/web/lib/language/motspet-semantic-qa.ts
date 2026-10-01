@@ -23,6 +23,14 @@ export type MotsPetTruthClass =
   | 'CONFIDENCE_METADATA'
   | 'EPISTEMIC_ABSTENTION'
   | 'PROVENANCE_METADATA'
+  | 'CONTEXT_METADATA'
+  | 'TEMPORAL_METADATA'
+  | 'INDIVIDUAL_REFERENCE'
+  | 'INTERPRETATION_LIMIT'
+  | 'PUBLICATION_METADATA'
+  | 'DEVICE_STATE'
+  | 'SIGNAL_QUALITY'
+  | 'MODEL_METADATA'
   | 'PURPOSE_BOUND_PERMISSION';
 
 export interface MotsPetSemanticContract {
@@ -96,6 +104,70 @@ export const MOTSPET_SEMANTIC_CONTRACTS: Readonly<
   source: {
     conceptId: 'source',
     truthClass: 'PROVENANCE_METADATA',
+    provenance: 'REQUIRED',
+    causalBoundary: 'NO_CAUSAL_UPGRADE',
+    medicalBoundary: 'NON_DIAGNOSTIC',
+    privacyBoundary: 'PRESERVE_PURPOSE_AND_CONSENT',
+  },
+  context: {
+    conceptId: 'context',
+    truthClass: 'CONTEXT_METADATA',
+    provenance: 'REQUIRED',
+    causalBoundary: 'NO_CAUSAL_UPGRADE',
+    medicalBoundary: 'NON_DIAGNOSTIC',
+    privacyBoundary: 'PRESERVE_PURPOSE_AND_CONSENT',
+  },
+  time_window: {
+    conceptId: 'time_window',
+    truthClass: 'TEMPORAL_METADATA',
+    provenance: 'REQUIRED',
+    causalBoundary: 'NO_CAUSAL_UPGRADE',
+    medicalBoundary: 'NON_DIAGNOSTIC',
+    privacyBoundary: 'PRESERVE_PURPOSE_AND_CONSENT',
+  },
+  individual_reference: {
+    conceptId: 'individual_reference',
+    truthClass: 'INDIVIDUAL_REFERENCE',
+    provenance: 'REQUIRED',
+    causalBoundary: 'NO_CAUSAL_UPGRADE',
+    medicalBoundary: 'NON_DIAGNOSTIC',
+    privacyBoundary: 'PRESERVE_PURPOSE_AND_CONSENT',
+  },
+  limits: {
+    conceptId: 'limits',
+    truthClass: 'INTERPRETATION_LIMIT',
+    provenance: 'NOT_REQUIRED',
+    causalBoundary: 'NO_CAUSAL_UPGRADE',
+    medicalBoundary: 'NON_DIAGNOSTIC',
+    privacyBoundary: 'PRESERVE_PURPOSE_AND_CONSENT',
+  },
+  publication_state: {
+    conceptId: 'publication_state',
+    truthClass: 'PUBLICATION_METADATA',
+    provenance: 'REQUIRED',
+    causalBoundary: 'NO_CAUSAL_UPGRADE',
+    medicalBoundary: 'NON_DIAGNOSTIC',
+    privacyBoundary: 'PRESERVE_PURPOSE_AND_CONSENT',
+  },
+  device_state: {
+    conceptId: 'device_state',
+    truthClass: 'DEVICE_STATE',
+    provenance: 'REQUIRED',
+    causalBoundary: 'NO_CAUSAL_UPGRADE',
+    medicalBoundary: 'NON_DIAGNOSTIC',
+    privacyBoundary: 'PRESERVE_PURPOSE_AND_CONSENT',
+  },
+  signal_quality: {
+    conceptId: 'signal_quality',
+    truthClass: 'SIGNAL_QUALITY',
+    provenance: 'REQUIRED',
+    causalBoundary: 'NO_CAUSAL_UPGRADE',
+    medicalBoundary: 'NON_DIAGNOSTIC',
+    privacyBoundary: 'PRESERVE_PURPOSE_AND_CONSENT',
+  },
+  model_version: {
+    conceptId: 'model_version',
+    truthClass: 'MODEL_METADATA',
     provenance: 'REQUIRED',
     causalBoundary: 'NO_CAUSAL_UPGRADE',
     medicalBoundary: 'NON_DIAGNOSTIC',
