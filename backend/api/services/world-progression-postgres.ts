@@ -337,18 +337,6 @@ export async function buildWorldItemDurably(input: {
   }
 
   const collection = resolveWorldRegionalCollection(input.catalog, input.regionCode);
-  const item = collection.items.find((candidate) => candidate.id === itemId);
-  if (!item) {
-    const state = await readWorldDurableProgressionState(input.ownerId);
-    return {
-      decision: 'unknown_item',
-      itemId: itemId,
-      balance: state.balance,
-      ownedItemIds: state.ownedItems.map((row) => row.itemId),
-    };
-  }
-
-  const canonicalCost = normalizeResourceVector(item.cost, 'WORLD_PERSISTENCE_CORRUPT_SPEND');
 
   return db.transaction(async (tx) => {
     await tx.execute(sql`SET LOCAL lock_timeout = '5s'`);
@@ -365,6 +353,18 @@ export async function buildWorldItemDurably(input: {
         'World build Owner does not exist.',
       );
     }
+
+    const item = collection.items.find((candidate) => candidate.id === input.itemId);
+    if (!item) {
+      return {
+        decision: 'unknown_item',
+        itemId: input.itemId,
+        balance: await readBalanceTx(tx, input.ownerId),
+        ownedItemIds: (await listOwnedItemsTx(tx, input.ownerId)).map((row) => row.itemId),
+      };
+    }
+
+    const canonicalCost = normalizeResourceVector(item.cost, 'WORLD_PERSISTENCE_CORRUPT_SPEND');
 
     const [existingSpend] = await tx.select()
       .from(worldResourceSpends)
