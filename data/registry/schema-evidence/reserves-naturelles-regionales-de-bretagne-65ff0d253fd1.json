@@ -1,0 +1,173 @@
+{
+  "schemaVersion": "emopet-api-schema-evidence-receipt-v1",
+  "datasetId": "reserves-naturelles-regionales-de-bretagne",
+  "datasetUid": "da_b4p8we",
+  "title": "Réserves naturelles régionales de Bretagne",
+  "sourceAuthority": "Région Bretagne",
+  "sourceType": "official_open_data_api",
+  "metadataUrl": "https://data.bretagne.bzh/api/explore/v2.1/catalog/datasets/reserves-naturelles-regionales-de-bretagne",
+  "recordsProbeUrl": "https://data.bretagne.bzh/api/explore/v2.1/catalog/datasets/reserves-naturelles-regionales-de-bretagne/records?limit=0",
+  "observations": [
+    {
+      "observedAt": "2026-10-01T16:36:42.969Z",
+      "workflowRunId": 36893270093,
+      "artifactId": 11177526933,
+      "artifactDigest": "sha256:0545b040276b25ebbaa94ea72a29a27195617ed286aabfa76fb40919f1dd64ea"
+    },
+    {
+      "observedAt": "2026-10-01T16:38:59.589Z",
+      "workflowRunId": 36893545531,
+      "artifactId": 11178636271,
+      "artifactDigest": "sha256:cd3186bc5543956d319c16de3ed22e1bc7a5378213af2141d448a3b7c0c45354"
+    }
+  ],
+  "stableAcrossObservations": true,
+  "schemaFingerprint": "sha256:c1c150f210e79b85c31525863b6ee92dd7d96a504c61fc0456c38e38355eb9dd",
+  "sourceVersion": "sha256:65ff0d253fd1a1bddd6ce05389fe4b35c8946cfbcd8787c9d5afaee092506cd0",
+  "recordCount": 11,
+  "metadataRecordCount": 11,
+  "metadataProcessedAt": "2026-09-27T03:39:40.891000+00:00",
+  "dataProcessedAt": "2026-09-20T03:16:25+00:00",
+  "modifiedAt": "2025-01-29T00:00:00+00:00",
+  "publisher": "Région Bretagne",
+  "licenceObservation": {
+    "apiValue": "Licence ouverte : https://www.etalab.gouv.fr/licence-ouverte-open-licence",
+    "apiUrl": "https://www.etalab.gouv.fr/wp-content/uploads/2014/05/Licence_Ouverte.pdf",
+    "dataGouvMirrorUrl": "https://www.data.gouv.fr/datasets/reserves-naturelles-regionales-de-bretagne-2",
+    "dataGouvMirrorLabel": "Licence Ouverte / Open Licence version 2.0",
+    "reconciliationStatus": "HOLD_VERSION_RECONCILIATION_REQUIRED"
+  },
+  "fieldInventory": [
+    {
+      "name": "credit_photo",
+      "type": "text"
+    },
+    {
+      "name": "date_creation",
+      "type": "text"
+    },
+    {
+      "name": "description",
+      "type": "text"
+    },
+    {
+      "name": "geo_point_2d",
+      "type": "geo_point_2d"
+    },
+    {
+      "name": "geo_shape",
+      "type": "geo_shape"
+    },
+    {
+      "name": "gml_id",
+      "type": "text"
+    },
+    {
+      "name": "id",
+      "type": "text"
+    },
+    {
+      "name": "image",
+      "type": "text"
+    },
+    {
+      "name": "latitude",
+      "type": "double"
+    },
+    {
+      "name": "lien_plaquette",
+      "type": "text"
+    },
+    {
+      "name": "longitude",
+      "type": "double"
+    },
+    {
+      "name": "nom",
+      "type": "text"
+    },
+    {
+      "name": "nom_long",
+      "type": "text"
+    },
+    {
+      "name": "search_id",
+      "type": "text"
+    },
+    {
+      "name": "site_web",
+      "type": "text"
+    },
+    {
+      "name": "site_web_ext",
+      "type": "text"
+    },
+    {
+      "name": "surface",
+      "type": "double"
+    }
+  ],
+  "candidateMinimumFields": [
+    {
+      "name": "id",
+      "state": "CANDIDATE",
+      "reason": "Candidate record identity field. Stability/semantics must be confirmed before promotion."
+    },
+    {
+      "name": "nom",
+      "state": "CANDIDATE",
+      "reason": "Minimum human-readable reserve name for territorial context."
+    },
+    {
+      "name": "geo_point_2d",
+      "state": "CANDIDATE",
+      "reason": "Single compact geographic representation; avoids duplicate latitude/longitude and the heavier boundary geometry."
+    }
+  ],
+  "deferredFields": [
+    {
+      "fields": [
+        "description",
+        "image",
+        "credit_photo",
+        "lien_plaquette",
+        "site_web",
+        "site_web_ext"
+      ],
+      "reason": "Not required for the first territorial-context slice; content, media, link and attribution handling need separate review."
+    },
+    {
+      "fields": [
+        "latitude",
+        "longitude",
+        "geo_shape"
+      ],
+      "reason": "Redundant or broader geometry if geo_point_2d is sufficient for the first slice."
+    },
+    {
+      "fields": [
+        "nom_long",
+        "surface",
+        "date_creation"
+      ],
+      "reason": "Potentially useful later but not necessary for minimum territorial identity."
+    },
+    {
+      "fields": [
+        "gml_id",
+        "search_id"
+      ],
+      "reason": "Technical/search identifiers not needed for the first public context projection."
+    }
+  ],
+  "releaseDisposition": "HOLD",
+  "rightsDisposition": "HOLD",
+  "runtimeIngestionPermitted": false,
+  "notes": [
+    "This receipt records schema/provenance observations only.",
+    "No dataset row was persisted by the capture workflow.",
+    "Candidate field names are not runtime approval.",
+    "Licence-version reconciliation and dataset-scoped rights review remain required before GO.",
+    "Reserve existence/location must never be converted into dog-access, leash-rule, opening-hours, safety or dog-friendly claims."
+  ]
+}
