@@ -1,0 +1,65 @@
+{
+  "version": "1",
+  "status": "CANDIDATE_NOT_PROMOTED",
+  "productionAuthority": false,
+  "mappingAuthority": "TECHNICAL_WORLD_PERSISTENCE_PLAN_NOT_LEGAL_SIGNOFF",
+  "subjectRoot": {
+    "table": "users",
+    "column": "id"
+  },
+  "lifecyclePolicyStatus": "TO_CONFIRM_BEFORE_DURABLE_ACTIVATION_ACCOUNT_ERASURE_OR_COMPLETE_ACCOUNT_EXPORT",
+  "relations": [
+    {
+      "table": "world_progression_events",
+      "column": "owner_id",
+      "relationType": "DIRECT_FK",
+      "technicalCategoryCandidate": "account_product_progression",
+      "erasureDisposition": "TO_CONFIRM",
+      "exportDisposition": "TO_CONFIRM",
+      "retentionDisposition": "TO_CONFIRM",
+      "subjectDiscoveryRequired": true,
+      "residueVerificationRequired": true
+    },
+    {
+      "table": "world_owned_items",
+      "column": "owner_id",
+      "relationType": "DIRECT_FK",
+      "technicalCategoryCandidate": "account_product_inventory",
+      "erasureDisposition": "TO_CONFIRM",
+      "exportDisposition": "TO_CONFIRM",
+      "retentionDisposition": "TO_CONFIRM",
+      "subjectDiscoveryRequired": true,
+      "residueVerificationRequired": true
+    },
+    {
+      "table": "world_resource_spends",
+      "column": "owner_id",
+      "relationType": "DIRECT_FK",
+      "technicalCategoryCandidate": "account_product_progression",
+      "erasureDisposition": "TO_CONFIRM",
+      "exportDisposition": "TO_CONFIRM",
+      "retentionDisposition": "TO_CONFIRM",
+      "subjectDiscoveryRequired": true,
+      "residueVerificationRequired": true
+    }
+  ],
+  "promotionRequirements": [
+    "reconcile relations into config/privacy/user-subject-lineage.json",
+    "reconcile relations into config/privacy/account-erasure-topology.json",
+    "reconcile relations into config/privacy/subject-persistence-privacy-coverage.json",
+    "make erasure disposition explicit in config/privacy/erasure-disposition-matrix.json",
+    "make Owner export treatment explicit in the active data-export authority",
+    "make retention/disposition explicit in the active retention authority",
+    "extend subject discovery with all promoted World tables",
+    "extend erasure residue verification with all promoted World tables",
+    "prove deletion/detach ordering does not violate foreign keys",
+    "prove no non-SQL World progression copy remains after the chosen erasure disposition"
+  ],
+  "claims": {
+    "completeAccountErasure": false,
+    "completeAccountExport": false,
+    "approvedRetention": false,
+    "executableErasure": false,
+    "durableProductionPersistence": false
+  }
+}
