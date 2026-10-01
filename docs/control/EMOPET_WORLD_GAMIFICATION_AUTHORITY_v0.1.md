@@ -2,7 +2,7 @@
 
 **Status:** CONTROLLED DRAFT / NOT PRODUCTION AUTHORITY  
 **Date:** 2026-10-01  
-**Scope:** G1A authority + G1B ledger core + G1C quest projection
+**Scope:** G1A authority + G1B ledger core + G1C quest projection + G1E regional collections
 
 ## 1. Product decision
 
@@ -124,3 +124,31 @@ Anti-farming rules:
 The initial quest catalogue covers learning, local discovery, explicit saved routes, Community contribution, World group joining and deliberate Memories.
 
 The UI remains intentionally untouched until the runtime source of truth and persistence gate are ready.
+
+
+## 9. G1E regional collections
+
+Regional collection authority is implemented in:
+
+- `config/world/world-regional-collections-v1.json`
+- `backend/api/services/world-regional-collections.ts`
+
+The first regional identity is Brittany:
+
+- coarse region code: `FR-BRE`;
+- World identity: `Breiz`;
+- theme: `world-bretagne`.
+
+A `GLOBAL` collection is mandatory as the fallback.
+
+Privacy and fairness boundary:
+
+- region selection is explicit and coarse;
+- exact coordinates are not accepted;
+- street addresses are not accepted;
+- geofences and passive location history are not accepted;
+- entering or being physically present in a region grants no resources;
+- unknown region codes fall back to `GLOBAL`;
+- regional cosmetics spend only resources already earned through authorized Owner actions.
+
+This means regional identity changes what the World can look like, not how valuable the Owner or dog is.
