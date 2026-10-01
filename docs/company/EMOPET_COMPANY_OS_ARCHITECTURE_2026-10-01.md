@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-01  
 **Status:** `PROPOSED COMPANY CONTROL PLANE / DOES NOT REPLACE DOMAIN AUTHORITIES`  
-**Branch base:** `main@f12e39d1c8d453aac1189b484d5a1c7cbb21ae74`
+**Branch base:** `main@b8c4b17d4905a6bd04bbe0770358bdec796a402f`
 
 ## 1. Purpose
 
@@ -111,6 +111,20 @@ The Company OS freshness layer uses:
 
 Git activity, document edit time and file naming do not reset domain freshness. Missing cadence stays missing; the Company OS must not invent review intervals.
 
+### Registry contracts and dependency validation
+
+Every V1 machine-readable registry has an explicit JSON Schema contract indexed by `state/schemas/registry-schema-map.json`.
+
+The every-PR Company OS guard validates those registry files against their declared schemas and validates semantic cross-object dependencies, including:
+
+- milestone gate → experiment ID resolution and stage consistency;
+- finance planning scenario → fundraising object resolution;
+- finance/fundraising currency, target and runway consistency;
+- internal `state/` references resolving only to registered Company OS state surfaces;
+- fundraising use-of-funds fractions remaining internally coherent.
+
+Schema conformance does not make a claim true. It only prevents malformed or dangling projections from masquerading as controlled state.
+
 ## 6. Core company surfaces
 
 | Surface | Purpose | Authority behavior |
@@ -125,6 +139,7 @@ Git activity, document edit time and file naming do not reset domain freshness. 
 | `CORPORATE.md` | Public-safe entity, governance, IP and rights state | V2 projection/index; restricted evidence stays external |
 | `FRESHNESS.md` | Review cadence, CURRENT/REVIEW_DUE/STALE semantics | V2 projection/index; never substitutes for domain review |
 | `state/freshness/freshness-state.json` | Machine-readable freshness overlay | V2 projection with decision-use guardrails |
+| `state/schemas/registry-schema-map.json` | Registry → JSON Schema contract map | V2 structural contract; not domain authority |
 | `EXPERIMENTS.md` | Hypothesis → test → result → decision ledger | V1 projection/index |
 | `UNKNOWNS.md` | Critical unknowns / value-of-information ledger | V1 projection/index |
 | `docs/strategy/COMPETITIVE_LANDSCAPE.md` | Competitor intelligence | Existing controlled watch |
@@ -223,13 +238,12 @@ Any AI agent doing substantive EMOPET work should:
 
 V1 includes the company front door, machine-readable state, milestone/experiment/finance/metrics/risk/unknowns registries, and an every-PR structural evidence guard.
 
-V2 adds the public-safe Corporate/IP projection plus the freshness overlay in `FRESHNESS.md` and `state/freshness/freshness-state.json`. Freshness is deliberately conservative: missing review cadence remains `UNREVIEWED`, and stale/unreviewed material cannot silently support strong current-state claims.
+V2 adds the public-safe Corporate/IP projection, the freshness overlay, and per-registry schema contracts with cross-object dependency validation. Freshness remains conservative, and structural validity never substitutes for domain evidence or authority.
 
 Next bounded slices should add, in order:
 
-1. per-registry schemas and cross-object dependency validation;
-2. generated human views from machine-readable state to prevent drift;
-3. founder cockpit derived from controlled state;
-4. redacted investor and supplier views derived from the same controlled state.
+1. generated human views from machine-readable state to prevent drift;
+2. founder cockpit derived from controlled state;
+3. redacted investor and supplier views derived from the same controlled state.
 
 Each slice must remain incremental and must not manufacture certainty to make the cockpit look complete.
