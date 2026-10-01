@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "emopet-security-alert-delivery-attempt-v1",
+  "issue": 859,
+  "parentIssue": 526,
+  "status": "PROVIDER_NEUTRAL_ATTEMPT_STATE / NO_DELIVERY_OR_RETRY_ACTIVATION",
+  "states": [
+    "PENDING",
+    "DELIVERED",
+    "ATTEMPT_FAILED"
+  ],
+  "failureCodes": [
+    "PROVIDER_UNAVAILABLE",
+    "PROVIDER_REJECTED",
+    "DELIVERY_TIMEOUT",
+    "ADAPTER_FAILURE"
+  ],
+  "providerReceiptRef": "OPAQUE_BOUNDED_REFERENCE_ONLY",
+  "forbiddenFields": [
+    "email",
+    "phone",
+    "webhook",
+    "channel",
+    "destination",
+    "providerToken",
+    "providerError",
+    "requestBody",
+    "responseBody",
+    "message",
+    "note"
+  ],
+  "nonEffects": {
+    "providerSelected": false,
+    "deliveryActivated": false,
+    "retryPolicySelected": false,
+    "retryCountSelected": false,
+    "backoffSelected": false,
+    "slaApproved": false,
+    "acknowledgementIngestionActivated": false,
+    "databasePersistenceActivated": false,
+    "httpRouteAdded": false
+  },
+  "durableOutboxFollowUp": "BLOCKED_FROM_THIS_SLICE_BY_CONCURRENT_0042_MIGRATION_OWNERSHIP_IN_PR_858"
+}
