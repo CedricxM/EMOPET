@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://emopet.invalid/schema/company-state.schema.json",
+  "title": "EMOPET Company State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "snapshot",
+    "authority_mode",
+    "company_phase",
+    "workstreams",
+    "critical_gates",
+    "confidentiality"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "0.1.0" },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["date", "base_ref", "base_sha"],
+      "properties": {
+        "date": { "type": "string", "format": "date" },
+        "base_ref": { "type": "string" },
+        "base_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+      }
+    },
+    "authority_mode": {
+      "type": "string",
+      "const": "INDEX_PROJECTION_NOT_DOMAIN_AUTHORITY"
+    },
+    "company_phase": {
+      "$ref": "#/$defs/stateItem"
+    },
+    "workstreams": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/stateItem" }
+    },
+    "critical_gates": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/gate" }
+    },
+    "confidentiality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository_visibility", "rule"],
+      "properties": {
+        "repository_visibility": { "type": "string" },
+        "rule": { "type": "string" }
+      }
+    }
+  },
+  "$defs": {
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "value"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["path", "issue", "pr", "commit", "external"]
+        },
+        "value": { "type": "string", "minLength": 1 }
+      }
+    },
+    "stateItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "domain",
+        "label",
+        "status",
+        "statement",
+        "authority_refs",
+        "evidence_refs",
+        "next_gate"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^EMO-[A-Z0-9-]+$" },
+        "domain": { "type": "string" },
+        "label": { "type": "string" },
+        "status": { "type": "string" },
+        "statement": { "type": "string" },
+        "authority_refs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ref" }
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ref" }
+        },
+        "next_gate": { "type": "string" }
+      }
+    },
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "domain", "question", "status", "refs"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^EMO-[A-Z0-9-]+$" },
+        "domain": { "type": "string" },
+        "question": { "type": "string" },
+        "status": { "type": "string" },
+        "refs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ref" }
+        }
+      }
+    }
+  }
+}
