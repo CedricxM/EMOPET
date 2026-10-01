@@ -15,10 +15,10 @@
     "Database mechanics never substitute for privacy disposition authority on unresolved rows."
   ],
   "summary": {
-    "relationalTotal": 52,
+    "relationalTotal": 55,
     "policyAlignedDeleteCandidates": 30,
     "policyConditionalExecutionRequired": 19,
-    "legalAuthorityBlocked": 3,
+    "legalAuthorityBlocked": 6,
     "matrixRowsPromoted": 5
   },
   "relations": [
@@ -1008,6 +1008,51 @@
         "DELETE",
         "RETAIN_WITH_JUSTIFICATION"
       ],
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "world_progression_events",
+      "column": "owner_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "LEGAL_AUTHORITY_BLOCKED",
+      "candidateDisposition": null,
+      "policyRefs": [],
+      "rationale": "World progression is durable Owner product data, but retention, complete-account export and erasure disposition are not approved. Engineering must not choose DELETE, DETACH, ANONYMIZE or retained evidence unilaterally.",
+      "requiredAuthority": "PRIVACY_LEGAL",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "world_owned_items",
+      "column": "owner_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "LEGAL_AUTHORITY_BLOCKED",
+      "candidateDisposition": null,
+      "policyRefs": [],
+      "rationale": "World progression is durable Owner product data, but retention, complete-account export and erasure disposition are not approved. Engineering must not choose DELETE, DETACH, ANONYMIZE or retained evidence unilaterally.",
+      "requiredAuthority": "PRIVACY_LEGAL",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "world_resource_spends",
+      "column": "owner_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "LEGAL_AUTHORITY_BLOCKED",
+      "candidateDisposition": null,
+      "policyRefs": [],
+      "rationale": "World progression is durable Owner product data, but retention, complete-account export and erasure disposition are not approved. Engineering must not choose DELETE, DETACH, ANONYMIZE or retained evidence unilaterally.",
+      "requiredAuthority": "PRIVACY_LEGAL",
       "promotionAuthorized": false
     }
   ],
