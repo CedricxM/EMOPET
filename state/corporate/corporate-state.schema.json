@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://emopet.invalid/schema/corporate-state.schema.json",
+  "title": "EMOPET Corporate/IP State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "snapshot",
+    "authority_mode",
+    "entity",
+    "governance",
+    "rights_gates",
+    "confidentiality"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "date",
+        "base_ref",
+        "base_sha"
+      ],
+      "properties": {
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "base_ref": {
+          "type": "string",
+          "const": "main"
+        },
+        "base_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      }
+    },
+    "authority_mode": {
+      "type": "string",
+      "const": "PUBLIC_SAFE_INDEX_PROJECTION_NOT_LEGAL_SIGN_OFF"
+    },
+    "entity": {
+      "$ref": "#/$defs/stateItem"
+    },
+    "governance": {
+      "$ref": "#/$defs/stateItem"
+    },
+    "rights_gates": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "$ref": "#/$defs/rightsGate"
+      }
+    },
+    "confidentiality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository_visibility",
+        "safe_projection_rule",
+        "forbidden_public_fields"
+      ],
+      "properties": {
+        "repository_visibility": {
+          "type": "string",
+          "const": "PUBLIC"
+        },
+        "safe_projection_rule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "forbidden_public_fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "value"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "path",
+            "issue",
+            "pr",
+            "commit",
+            "external"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "stateItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "domain",
+        "label",
+        "status",
+        "statement",
+        "owner_role",
+        "authority_refs",
+        "evidence_refs",
+        "next_gate"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^EMO-[A-Z0-9-]+$"
+        },
+        "domain": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner_role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "authority_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
+        },
+        "next_gate": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "rightsGate": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/stateItem"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "source_gate": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "source_gate"
+          ]
+        }
+      ]
+    }
+  }
+}
