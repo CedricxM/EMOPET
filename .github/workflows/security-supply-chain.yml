@@ -125,6 +125,8 @@ jobs:
         run: node --test scripts/control/http-upload-webhook-activation.test.mjs
       - name: Enforce PostgreSQL runtime least-privilege boundary (#214)
         run: node --test scripts/control/database-least-privilege.test.mjs
+      - name: Enforce PostgreSQL CI trigger coverage
+        run: node --test scripts/control/p0-db-trigger-coverage.test.mjs
       - name: Enforce UPenn meeting-pack claim boundary (C-BARQ / Penn / ELI, #617)
         run: node --test scripts/control/upenn-meeting-claims.test.mjs
       - name: Enforce INT-08 product and science documentation authorities
