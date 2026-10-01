@@ -284,3 +284,25 @@ The unified gamification snapshot requires Owner-scoped inputs for all state-bea
 A balance or owned item belonging to another Owner fails closed. Duplicate owned-item rows also fail closed instead of being silently deduplicated.
 
 This prevents the read model from becoming an accidental cross-Owner aggregation boundary when durable persistence is introduced.
+
+
+## 14. G1I regional transition
+
+Regional identity changes are explicit Owner actions and operate on coarse region codes only.
+
+The transition contract is defined in:
+
+- `config/world/world-region-transition-v1.json`
+- `backend/api/services/world-region-transition.ts`
+
+Changing region:
+
+- changes the active regional collection;
+- never grants resources;
+- never resets earned resources;
+- never removes or expires owned items;
+- retains items from other or retired collections in inventory;
+- does not auto-place out-of-region items;
+- is not triggered by exact location, geofencing or passive movement.
+
+This preserves continuity when Breiz changes identity across regions without turning travel or movement into a reward mechanic.
