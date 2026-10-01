@@ -3,6 +3,7 @@ import { test } from 'node:test';
 
 import {
   BRETAGNE_OPEN_DATA_ALLOWLIST,
+  evaluateBretagneOpenDataDatasetRights,
   getBretagneOpenDataDataset,
   prepareBretagneOpenDataMetadataRequest,
   prepareBretagneOpenDataRecordsRequest,
@@ -74,4 +75,115 @@ test('nature-reserve dataset purpose never implies dog access or dog-friendlines
   const normalized = dataset.purpose.toLowerCase();
   assert.match(normalized, /never infer dog access/);
   assert.match(normalized, /dog-friendliness/);
+});
+
+
+test('dataset-scoped rights do not treat the whole portal as one blanket licence', () => {
+  const current = getBretagneOpenDataDataset(
+    'reserves-naturelles-regionales-de-bretagne',
+  );
+  assert.ok(current);
+
+  const releaseReady = {
+    ...current,
+    allowedRecordFields: ['nom', 'geometry'],
+    status: 'RELEASE_READY' as const,
+    rightsEvidence: {
+      authorityRevision: 'bretagne-open-data-dataset-rights-fixture-v1',
+      immutableSourceVersion:
+        'reserves-naturelles-regionales-de-bretagne@fixture-version',
+      receiptPath: 'docs/control/FIXTURE_ONLY.md',
+      attributionText: 'Région Bretagne',
+      permittedUseSummary:
+        'Synthetic test fixture: selected territorial metadata under dataset-level open licence.',
+      reviewedAt: '2026-09-30T10:00:00Z',
+      reviewerRole: 'test reviewer',
+      recheckAt: '2026-10-15T00:00:00Z',
+      evidenceState: 'SOURCE_CONFIRMED' as const,
+      disposition: 'GO' as const,
+    },
+  };
+
+  const verdict = evaluateBretagneOpenDataDatasetRights(
+    releaseReady,
+    Date.parse('2026-10-01T12:00:00Z'),
+  );
+
+  assert.equal(verdict.ingestionPermitted, true);
+  assert.deepEqual(verdict.blockers, []);
+});
+
+test('dataset-scoped rights stay blocked without exact dataset evidence', () => {
+  const current = getBretagneOpenDataDataset(
+    'reserves-naturelles-regionales-de-bretagne',
+  );
+  assert.ok(current);
+
+  const releaseReadyWithoutReceipt = {
+    ...current,
+    allowedRecordFields: ['nom'],
+    status: 'RELEASE_READY' as const,
+  };
+
+  const verdict = evaluateBretagneOpenDataDatasetRights(
+    releaseReadyWithoutReceipt,
+    Date.parse('2026-10-01T12:00:00Z'),
+  );
+
+  assert.equal(verdict.ingestionPermitted, false);
+  assert.ok(verdict.blockers.includes('NO_DATASET_RIGHTS_EVIDENCE'));
+});
+
+test('dataset rights reject expired receipts and missing dataset licence', () => {
+  const current = getBretagneOpenDataDataset(
+    'reserves-naturelles-regionales-de-bretagne',
+  );
+  assert.ok(current);
+
+  const broken = {
+    ...current,
+    licence: '',
+    allowedRecordFields: ['nom'],
+    status: 'RELEASE_READY' as const,
+    rightsEvidence: {
+      authorityRevision: 'fixture-v1',
+      immutableSourceVersion: 'fixture-source-version',
+      receiptPath: 'docs/control/FIXTURE_ONLY.md',
+      attributionText: 'Région Bretagne',
+      permittedUseSummary: 'Synthetic test fixture only.',
+      reviewedAt: '2026-09-30T10:00:00Z',
+      reviewerRole: 'test reviewer',
+      recheckAt: '2026-10-01T10:00:00Z',
+      evidenceState: 'SOURCE_CONFIRMED' as const,
+      disposition: 'GO' as const,
+    },
+  };
+
+  const verdict = evaluateBretagneOpenDataDatasetRights(
+    broken,
+    Date.parse('2026-10-01T12:00:00Z'),
+  );
+
+  assert.equal(verdict.ingestionPermitted, false);
+  assert.ok(verdict.blockers.includes('NO_DATASET_LICENCE'));
+  assert.ok(
+    verdict.blockers.includes('DATASET_RIGHTS_EVIDENCE_INVALID_OR_EXPIRED'),
+  );
+});
+
+test('current first dataset remains blocked at metadata-review state', () => {
+  const current = getBretagneOpenDataDataset(
+    'reserves-naturelles-regionales-de-bretagne',
+  );
+  assert.ok(current);
+
+  const verdict = evaluateBretagneOpenDataDatasetRights(
+    current,
+    Date.parse('2026-10-01T12:00:00Z'),
+  );
+
+  assert.equal(verdict.ingestionPermitted, false);
+  assert.ok(verdict.blockers.includes('DATASET_NOT_RELEASE_READY'));
+  assert.ok(verdict.blockers.includes('NO_APPROVED_FIELDS'));
+  assert.ok(verdict.blockers.includes('NO_DATASET_RIGHTS_EVIDENCE'));
 });
