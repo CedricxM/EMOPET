@@ -61,7 +61,7 @@ export function getBretagneOpenDataDataset(
 export type BretagneOpenDataPreparedRequest =
   | {
       ready: false;
-      reason: 'dataset_not_allowlisted' | 'fields_not_approved' | 'dataset_not_release_ready';
+      reason: 'dataset_not_allowlisted' | 'fields_not_approved' | 'dataset_not_release_ready' | 'invalid_input';
     }
   | {
       ready: true;
@@ -121,7 +121,7 @@ export function prepareBretagneOpenDataRecordsRequest(
     return { ready: false, reason: 'fields_not_approved' };
   }
   if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) {
-    return { ready: false, reason: 'fields_not_approved' };
+    return { ready: false, reason: 'invalid_input' };
   }
 
   const url = new URL(`${BRETAGNE_OPEN_DATA_BASE}/${encodeURIComponent(datasetId)}/records`);
