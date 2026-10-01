@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import ts from 'typescript';
 
 const authorityUrl = new URL('../../config/world/world-progression-authority-v1.json', import.meta.url);
 const serviceUrl = new URL('../api/services/world-progression-ledger.ts', import.meta.url);
@@ -98,6 +99,23 @@ test('server ledger derives rewards itself and keeps idempotency fail-closed', (
   );
   assert.ok(inputInterface, 'WorldProgressionEventInput contract must exist');
   assert.doesNotMatch(inputInterface[1], /grants|points|xp|level|rank|score/i);
+});
+
+test('machine-readable rewards exactly match the executable server catalogue', async () => {
+  const output = ts.transpileModule(serviceSource, {
+    compilerOptions: {
+      module: ts.ModuleKind.ESNext,
+      target: ts.ScriptTarget.ES2022,
+    },
+  }).outputText;
+  const mod = await import(
+    `data:text/javascript;base64,${Buffer.from(output).toString('base64')}`
+  );
+
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(mod.SAFE_WORLD_REWARDS)),
+    authority.rewards,
+  );
 });
 
 test('config and ledger service expose the same authorised event kinds and resources', () => {
