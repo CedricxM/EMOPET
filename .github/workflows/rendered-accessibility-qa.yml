@@ -51,8 +51,17 @@ jobs:
         with:
           node-version: '22'
           cache: pnpm
+      - name: Restore Turbo and Next build caches
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            .turbo
+            apps/web/.next/cache
+          key: emopet-rendered-build-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            emopet-rendered-build-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
       - name: Install exact locked dependency graph
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
       - name: Build web application
         run: pnpm build --filter=@emopet/web
       - name: Start production web server
