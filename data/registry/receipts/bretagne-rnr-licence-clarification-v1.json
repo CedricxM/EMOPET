@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "emopet-bretagne-rnr-licence-clarification-v1",
+  "datasetId": "reserves-naturelles-regionales-de-bretagne",
+  "sourceVersion": "sha256:65ff0d253fd1a1bddd6ce05389fe4b35c8946cfbcd8787c9d5afaee092506cd0",
+  "schemaEvidencePath": "data/registry/schema-evidence/reserves-naturelles-regionales-de-bretagne-65ff0d253fd1.json",
+  "reconciliationState": "HOLD_AUTHORITATIVE_CLARIFICATION_REQUIRED",
+  "runtimeRightsDisposition": "HOLD",
+  "releaseAllowed": false,
+  "observations": [
+    {
+      "observationId": "PRIMARY_API_METADATA",
+      "authorityClass": "PRIMARY_DATASET_API",
+      "source": "https://data.bretagne.bzh/api/explore/v2.1/catalog/datasets/reserves-naturelles-regionales-de-bretagne",
+      "observedValue": "Licence ouverte : https://www.etalab.gouv.fr/licence-ouverte-open-licence",
+      "secondaryUrl": "https://www.etalab.gouv.fr/wp-content/uploads/2014/05/Licence_Ouverte.pdf",
+      "versionConclusion": "UNRESOLVED",
+      "state": "SOURCE_CONFIRMED"
+    },
+    {
+      "observationId": "CANONICAL_ETALAB_PAGE",
+      "authorityClass": "OFFICIAL_LICENCE_AUTHORITY",
+      "source": "https://www.etalab.gouv.fr/licence-ouverte-open-licence",
+      "observedValue": "Licence Ouverte 2.0",
+      "versionConclusion": "2.0",
+      "state": "SOURCE_CONFIRMED"
+    },
+    {
+      "observationId": "DATAGOUV_MIRROR",
+      "authorityClass": "SECONDARY_PUBLIC_CATALOGUE",
+      "source": "https://www.data.gouv.fr/datasets/reserves-naturelles-regionales-de-bretagne-2",
+      "observedValue": "Licence Ouverte / Open Licence version 2.0",
+      "versionConclusion": "2.0",
+      "state": "SOURCE_CONFIRMED"
+    },
+    {
+      "observationId": "LEGACY_PDF_IDENTIFICATION",
+      "authorityClass": "SECONDARY_ARCHIVAL_IDENTIFICATION",
+      "source": "https://commons.wikimedia.org/wiki/File:Licence_Ouverte_1.0_(Fran%C3%A7ais).pdf",
+      "observedValue": "The exact 2014 Etalab PDF URL is identified as Licence Ouverte 1.0.",
+      "versionConclusion": "1.0",
+      "state": "SECONDARY_OBSERVATION"
+    }
+  ],
+  "clarificationRequest": {
+    "targetAuthority": "Région Bretagne / publisher of the exact dataset",
+    "messageSent": false,
+    "requiredAnswers": [
+      "Confirm the exact Licence Ouverte version applicable to this dataset and source version.",
+      "Confirm whether the legacy 2014 PDF URL in API metadata is stale metadata or still the intended legal-code pointer.",
+      "Confirm the attribution text and whether the reused-information last-update date must be displayed.",
+      "Confirm whether API/download use is subject to additional portal or service conditions beyond the dataset licence."
+    ]
+  },
+  "authoritativeConfirmation": null,
+  "notes": [
+    "No legal conclusion is inferred from the conflict.",
+    "The stricter runtime state remains HOLD until a primary-publisher confirmation is recorded.",
+    "Schema and field-minimisation evidence remain separate gates.",
+    "No private contact details are stored in this register."
+  ]
+}
