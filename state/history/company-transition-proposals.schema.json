@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://emopet.invalid/schema/company-transition-proposals.schema.json",
+  "title": "EMOPET Company OS Transition Proposal Queue",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "authority_mode",
+    "base_ref",
+    "candidate_ref",
+    "generated_on",
+    "proposals"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "authority_mode": {
+      "type": "string",
+      "const": "DIFF_PROPOSALS_REQUIRE_EXPLICIT_REVIEW"
+    },
+    "base_ref": {
+      "type": "string",
+      "pattern": "^(main|head|commit)@[0-9a-f]{40}$"
+    },
+    "candidate_ref": {
+      "type": "string",
+      "pattern": "^(main|head|commit)@[0-9a-f]{40}$"
+    },
+    "generated_on": {
+      "type": "string",
+      "format": "date"
+    },
+    "proposals": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/proposal"
+      }
+    }
+  },
+  "$defs": {
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "value"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "path",
+            "issue",
+            "pr",
+            "commit",
+            "external"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "proposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "proposal_id",
+        "review_status",
+        "kind",
+        "subject_id",
+        "field",
+        "before_value",
+        "after_value",
+        "source_path",
+        "authority_refs",
+        "evidence_refs",
+        "decision_refs",
+        "append_ready",
+        "note"
+      ],
+      "properties": {
+        "proposal_id": {
+          "type": "string",
+          "pattern": "^EMO-PROPOSAL-[0-9]{8}-[0-9]{4}$"
+        },
+        "review_status": {
+          "type": "string",
+          "const": "REVIEW_REQUIRED"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "OBJECT_ADDED",
+            "OBJECT_REMOVED",
+            "STATE_TRANSITION",
+            "AUTHORITY_TRANSITION",
+            "EVIDENCE_TRANSITION",
+            "DECISION_TRANSITION"
+          ]
+        },
+        "subject_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
+        "before_value": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ]
+        },
+        "after_value": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ]
+        },
+        "source_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "authority_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
+        },
+        "decision_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
+        },
+        "append_ready": {
+          "type": "boolean",
+          "const": false
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
