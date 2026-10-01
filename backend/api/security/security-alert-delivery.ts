@@ -1,4 +1,6 @@
 import {
+  SECURITY_ALERT_OWNER_ROLES,
+  SECURITY_ALERT_SEVERITIES,
   evaluateSecurityAlertResponse,
   type SecurityAlertCandidate,
   type SecurityAlertOwnerRole,
@@ -8,6 +10,12 @@ import {
 
 export const SECURITY_ALERT_DELIVERY_SCHEMA_VERSION =
   'security-alert-delivery-v1' as const;
+
+export const SECURITY_ALERT_DELIVERY_DETECTION_TYPES = [
+  'repeated_privileged_denials',
+  'rapid_multi_target_access',
+  'machine_privileged_authority_attempt',
+] as const satisfies readonly SecurityDetectionType[];
 
 export interface SecurityAlertDeliveryEnvelope {
   schemaVersion: typeof SECURITY_ALERT_DELIVERY_SCHEMA_VERSION;
@@ -30,9 +38,86 @@ export type SecurityAlertDeliveryBuildResult =
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const ENVELOPE_KEYS = Object.freeze([
+  'schemaVersion',
+  'sourceDetectionHistoryId',
+  'sourceDetectionType',
+  'severity',
+  'primaryOwner',
+  'detectedAt',
+  'acknowledgeBy',
+  'escalationOwner',
+  'escalateAt',
+]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function hasOnlyKeys(value: Record<string, unknown>, allowed: readonly string[]): boolean {
+  return Object.keys(value).every((key) => allowed.includes(key));
+}
+
+function includesString<const T extends readonly string[]>(
+  values: T,
+  value: unknown,
+): value is T[number] {
+  return typeof value === 'string' && values.includes(value);
+}
+
+function canonicalUtcTimestamp(value: unknown): string | null {
+  if (typeof value !== 'string' || !value.endsWith('Z')) return null;
+  const timestamp = Date.parse(value);
+  if (!Number.isFinite(timestamp)) return null;
+
+  try {
+    return new Date(timestamp).toISOString();
+  } catch {
+    return null;
+  }
+}
+
+export function parseSecurityAlertDeliveryEnvelope(
+  input: unknown,
+): SecurityAlertDeliveryEnvelope | null {
+  if (!isRecord(input) || !hasOnlyKeys(input, ENVELOPE_KEYS)) return null;
+  if (input.schemaVersion !== SECURITY_ALERT_DELIVERY_SCHEMA_VERSION) return null;
+  if (
+    typeof input.sourceDetectionHistoryId !== 'string'
+    || !UUID_RE.test(input.sourceDetectionHistoryId)
+  ) {
+    return null;
+  }
+  if (
+    !includesString(
+      SECURITY_ALERT_DELIVERY_DETECTION_TYPES,
+      input.sourceDetectionType,
+    )
+    || !includesString(SECURITY_ALERT_SEVERITIES, input.severity)
+    || !includesString(SECURITY_ALERT_OWNER_ROLES, input.primaryOwner)
+    || !includesString(SECURITY_ALERT_OWNER_ROLES, input.escalationOwner)
+  ) {
+    return null;
+  }
+
+  const detectedAt = canonicalUtcTimestamp(input.detectedAt);
+  const acknowledgeBy = canonicalUtcTimestamp(input.acknowledgeBy);
+  const escalateAt = canonicalUtcTimestamp(input.escalateAt);
+  if (!detectedAt || !acknowledgeBy || !escalateAt) return null;
+  if (Date.parse(acknowledgeBy) < Date.parse(detectedAt)) return null;
+  if (Date.parse(escalateAt) < Date.parse(acknowledgeBy)) return null;
+
+  return {
+    schemaVersion: SECURITY_ALERT_DELIVERY_SCHEMA_VERSION,
+    sourceDetectionHistoryId: input.sourceDetectionHistoryId.toLowerCase(),
+    sourceDetectionType: input.sourceDetectionType,
+    severity: input.severity,
+    primaryOwner: input.primaryOwner,
+    detectedAt,
+    acknowledgeBy,
+    escalationOwner: input.escalationOwner,
+    escalateAt,
+  };
 }
 
 /**
