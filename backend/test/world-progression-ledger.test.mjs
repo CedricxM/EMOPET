@@ -189,3 +189,31 @@ test('in-memory store cannot become production authority', async () => {
     else process.env.NODE_ENV = previousNodeEnv;
   }
 });
+
+
+test('source references are opaque identifiers, not arbitrary user text', async () => {
+  const mod = await loadLedgerModule();
+  const previousNodeEnv = process.env.NODE_ENV;
+  process.env.NODE_ENV = 'test';
+
+  try {
+    const store = new mod.InMemoryWorldProgressionLedgerStore();
+    const service = new mod.WorldProgressionLedgerService(store);
+
+    await assert.rejects(
+      () => service.record({
+        ownerId: OWNER_ID,
+        idempotencyKey: 'source-ref:001',
+        kind: 'memory.created',
+        sourceRef: 'this is free text and must not enter the ledger',
+      }),
+      (error) => {
+        assert.equal(error.code, 'WORLD_PROGRESSION_INVALID_SOURCE_REF');
+        return true;
+      },
+    );
+  } finally {
+    if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = previousNodeEnv;
+  }
+});
