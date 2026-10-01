@@ -13,7 +13,7 @@ const {
 
 const authority = JSON.parse(
   await readFile(
-    new URL('../config/security/security-alert-delivery-v1.json', import.meta.url),
+    new URL('../../config/security/security-alert-delivery-v1.json', import.meta.url),
     'utf8',
   ),
 );
