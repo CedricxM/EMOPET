@@ -39,6 +39,10 @@ export const BRETAGNE_REGIONAL_PACK: RegionalPack = {
       domains: ['territorial_context'],
       purpose:
         'Official territorial context where exact dataset-level rights and provenance are release-ready.',
+      readinessScope: {
+        kind: 'BRETAGNE_OPEN_DATA_DATASETS',
+        datasetIds: ['reserves-naturelles-regionales-de-bretagne'],
+      },
     },
     {
       sourceId: 'geobretagne',
