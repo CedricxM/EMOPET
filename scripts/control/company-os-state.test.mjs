@@ -25,6 +25,8 @@ const paths = {
   unknowns: 'state/unknowns/critical-unknowns.json',
   corporate: 'state/corporate/corporate-state.json',
   corporateSchema: 'state/corporate/corporate-state.schema.json',
+  freshness: 'state/freshness/freshness-state.json',
+  freshnessSchema: 'state/freshness/freshness-state.schema.json',
 };
 
 const company = readJson(paths.company);
@@ -38,6 +40,8 @@ const riskState = readJson(paths.risks);
 const unknownState = readJson(paths.unknowns);
 const corporateState = readJson(paths.corporate);
 const corporateSchema = readJson(paths.corporateSchema);
+const freshnessState = readJson(paths.freshness);
+const freshnessSchema = readJson(paths.freshnessSchema);
 
 const allObjects = [
   company.company_phase,
@@ -101,6 +105,10 @@ test('Company OS machine-readable files parse and keep stable unique IDs', () =>
   assert.match(corporateState.snapshot.base_sha, /^[0-9a-f]{40}$/);
   assert.equal(corporateState.snapshot.base_ref, 'main');
   assert.equal(corporateSchema.title, 'EMOPET Corporate/IP State');
+  assert.equal(freshnessState.schema_version, '0.1.0');
+  assert.match(freshnessState.snapshot.base_sha, /^[0-9a-f]{40}$/);
+  assert.equal(freshnessState.snapshot.base_ref, 'main');
+  assert.equal(freshnessSchema.title, 'EMOPET Company OS Freshness State');
 
   const ids = allObjects.map((object) => object?.id).filter(Boolean);
   assert.equal(ids.length, new Set(ids).size, 'Company OS object IDs must be unique');
@@ -341,6 +349,105 @@ test('corporate/IP projection stays public-safe, issue-backed and non-conclusive
   }
 });
 
+test('freshness overlay covers Company + Corporate V2 objects and exposed evidence refs', () => {
+  assert.equal(freshnessState.authority_mode, 'FRESHNESS_INDEX_NOT_DOMAIN_AUTHORITY');
+
+  const coveredObjects = [
+    company.company_phase,
+    ...company.workstreams,
+    ...company.critical_gates,
+    corporateState.entity,
+    corporateState.governance,
+    ...corporateState.rights_gates,
+  ];
+
+  const expectedIds = new Set(coveredObjects.map((object) => object.id));
+  const actualIds = new Set(freshnessState.objects.map((entry) => entry.target_id));
+
+  assert.equal(actualIds.size, freshnessState.objects.length, 'freshness object targets must be unique');
+  assert.deepEqual(actualIds, expectedIds, 'freshness state must cover the complete V2 Company + Corporate scope');
+
+  const expectedEvidence = new Set(
+    coveredObjects.flatMap((object) =>
+      (object.evidence_refs ?? []).map((ref) => `${ref.kind}:${ref.value}`),
+    ),
+  );
+  const actualEvidence = new Set(
+    freshnessState.evidence.map((entry) => `${entry.target_ref.kind}:${entry.target_ref.value}`),
+  );
+  assert.deepEqual(actualEvidence, expectedEvidence, 'freshness state must cover exposed evidence refs');
+});
+
+test('freshness statuses are date-consistent and fail closed for strong claims', () => {
+  const snapshotDate = freshnessState.snapshot.date;
+  const entries = [...freshnessState.objects, ...freshnessState.evidence];
+
+  for (const entry of entries) {
+    assert.ok(
+      freshnessState.semantics.allowed_statuses.includes(entry.freshness_status),
+      `unsupported freshness status: ${entry.freshness_status}`,
+    );
+
+    if (entry.freshness_status === 'UNREVIEWED') {
+      assert.ok(
+        entry.last_domain_review_at === null ||
+          entry.review_cadence_days === null ||
+          entry.review_due_at === null ||
+          entry.stale_after === null,
+        'UNREVIEWED must preserve a missing controlled review input',
+      );
+    }
+
+    if (entry.freshness_status === 'CURRENT') {
+      assert.ok(entry.last_domain_review_at, 'CURRENT requires last_domain_review_at');
+      assert.ok(entry.review_cadence_days, 'CURRENT requires review_cadence_days');
+      assert.ok(entry.review_due_at, 'CURRENT requires review_due_at');
+      assert.ok(entry.stale_after, 'CURRENT requires stale_after');
+      assert.ok(snapshotDate < entry.review_due_at, 'CURRENT requires snapshot before review_due_at');
+      assert.ok(entry.review_due_at <= entry.stale_after, 'review_due_at must not exceed stale_after');
+    }
+
+    if (entry.freshness_status === 'REVIEW_DUE') {
+      assert.ok(entry.review_due_at && entry.stale_after, 'REVIEW_DUE requires review_due_at + stale_after');
+      assert.ok(entry.review_due_at <= snapshotDate, 'REVIEW_DUE requires review date reached');
+      assert.ok(snapshotDate < entry.stale_after, 'REVIEW_DUE must precede stale_after');
+    }
+
+    if (entry.freshness_status === 'STALE') {
+      assert.ok(entry.stale_after, 'STALE requires stale_after');
+      assert.ok(entry.stale_after <= snapshotDate, 'STALE requires hard stale boundary reached');
+    }
+
+    if (['UNREVIEWED', 'REVIEW_DUE', 'STALE'].includes(entry.freshness_status)) {
+      assert.match(
+        entry.decision_use,
+        /BLOCK|CANNOT/,
+        `${entry.freshness_status} entries must fail closed for freshness-dependent decisions`,
+      );
+    }
+  }
+
+  const freshnessById = new Map(
+    freshnessState.objects.map((entry) => [entry.target_id, entry]),
+  );
+
+  for (const object of [
+    company.company_phase,
+    ...company.workstreams,
+    ...company.critical_gates,
+    corporateState.entity,
+    corporateState.governance,
+    ...corporateState.rights_gates,
+  ]) {
+    if (!isStrongEvidenceState(object.status)) continue;
+    assert.equal(
+      freshnessById.get(object.id)?.freshness_status,
+      'CURRENT',
+      `${object.id} cannot carry strong state ${object.status} unless freshness is CURRENT`,
+    );
+  }
+});
+
 test('Company OS human views disclose projection/non-authority status', () => {
   const disclosures = {
     'STATE.md': /NOT DOMAIN AUTHORITY/,
@@ -351,6 +458,7 @@ test('Company OS human views disclose projection/non-authority status', () => {
     'RISKS.md': /NOT DOMAIN AUTHORITY/,
     'UNKNOWNS.md': /NOT DECISION AUTHORITY/,
     'CORPORATE.md': /NOT LEGAL SIGN-OFF/,
+    'FRESHNESS.md': /NOT DOMAIN AUTHORITY/,
   };
 
   for (const [path, pattern] of Object.entries(disclosures)) {

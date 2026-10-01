@@ -1,0 +1,262 @@
+{
+  "schema_version": "0.1.0",
+  "snapshot": {
+    "date": "2026-10-01",
+    "base_ref": "main",
+    "base_sha": "f12e39d1c8d453aac1189b484d5a1c7cbb21ae74"
+  },
+  "authority_mode": "FRESHNESS_INDEX_NOT_DOMAIN_AUTHORITY",
+  "semantics": {
+    "allowed_statuses": [
+      "UNREVIEWED",
+      "CURRENT",
+      "REVIEW_DUE",
+      "STALE",
+      "NOT_APPLICABLE"
+    ],
+    "unreviewed_rule": "Use UNREVIEWED when a controlled domain review date or review cadence is absent.",
+    "current_rule": "CURRENT requires a controlled domain review date, review cadence, review_due_at and stale_after, with the snapshot date before review_due_at.",
+    "review_due_rule": "REVIEW_DUE requires the snapshot date to be on or after review_due_at but before stale_after.",
+    "stale_rule": "STALE requires stale_after to be on or before the snapshot date.",
+    "decision_rule": "UNREVIEWED, REVIEW_DUE and STALE cannot support freshness-dependent strong claims, promotions or decisions."
+  },
+  "coverage": {
+    "state_scope": "COMPANY_AND_CORPORATE_V2",
+    "evidence_scope": "EVIDENCE_REFS_EXPOSED_BY_COMPANY_AND_CORPORATE_V2"
+  },
+  "objects": [
+    {
+      "target_id": "EMO-COMPANY-PHASE",
+      "target_kind": "STATE_OBJECT",
+      "freshness_status": "UNREVIEWED",
+      "indexed_at": "2026-10-01",
+      "last_domain_review_at": null,
+      "review_cadence_days": null,
+      "review_due_at": null,
+      "stale_after": null,
+      "decision_use": "BLOCK_STRONG_CLAIMS_UNTIL_CURRENT",
+      "note": "No controlled domain review cadence and review event are recorded in the Company OS freshness layer yet."
+    },
+    {
+      "target_id": "EMO-WS-MAT",
+      "target_kind": "STATE_OBJECT",
+      "freshness_status": "UNREVIEWED",
+      "indexed_at": "2026-10-01",
+      "last_domain_review_at": null,
+      "review_cadence_days": null,
+      "review_due_at": null,
+      "stale_after": null,
+      "decision_use": "BLOCK_STRONG_CLAIMS_UNTIL_CURRENT",
+      "note": "No controlled domain review cadence and review event are recorded in the Company OS freshness layer yet."
+    },
+    {
+      "target_id": "EMO-WS-TAG",
+      "target_kind": "STATE_OBJECT",
+      "freshness_status": "UNREVIEWED",
+      "indexed_at": "2026-10-01",
+      "last_domain_review_at": null,
+      "review_cadence_days": null,
+      "review_due_at": null,
+      "stale_after": null,
+      "decision_use": "BLOCK_STRONG_CLAIMS_UNTIL_CURRENT",
+      "note": "No controlled domain review cadence and review event are recorded in the Company OS freshness layer yet."
+    },
+    {
+      "target_id": "EMO-WS-SOFTWARE",
+      "target_kind": "STATE_OBJECT",
+      "freshness_status": "UNREVIEWED",
+      "indexed_at": "2026-10-01",
+      "last_domain_review_at": null,
+      "review_cadence_days": null,
+      "review_due_at": null,
+      "stale_after": null,
+      "decision_use": "BLOCK_STRONG_CLAIMS_UNTIL_CURRENT",
+      "note": "No controlled domain review cadence and review event are recorded in the Company OS freshness layer yet."
+    },
+    {
+      "target_id": "EMO-WS-ELI",
+      "target_kind": "STATE_OBJECT",
+      "freshness_status": "UNREVIEWED",
+      "indexed_at": "2026-10-01",
+      "last_domain_review_at": null,
+      "review_cadence_days": null,
+      "review_due_at": null,
+      "stale_after": null,
+      "decision_use": "BLOCK_STRONG_CLAIMS_UNTIL_CURRENT",
+      "note": "No controlled domain review cadence and review event are recorded in the Company OS freshness layer yet."
+    },
+    {
+      "target_id": "EMO-WS-WORLD",
+      "target_kind": "STATE_OBJECT",
+      "freshness_status": "UNREVIEWED",
+      "indexed_at": "2026-10-01",
+      "last_domain_review_at": null,
+      "review_cadence_days": null,
+      "review_due_at": null,
+      "stale_after": null,
+      "decision_use": "BLOCK_STRONG_CLAIMS_UNTIL_CURRENT",
+      "note": "No controlled domain review cadence and review event are recorded in the Company OS freshness layer yet."
+    },
+    {
+      "target_id": "EMO-WS-FUNDING",
+      "target_kind": "STATE_OBJECT",
+      "freshness_status": "UNREVIEWED",
+      "indexed_at": "2026-10-01",
+      "last_domain_review_at": null,
+      "review_cadence_days": null,
+      "review_due_at": null,
+      "stale_after": null,
+      "decision_use": "BLOCK_STRONG_CLAIMS_UNTIL_CURRENT",
+      "note": "No controlled domain review cadence and review event are recorded in the Company OS freshness layer yet."
+    },
+    {
+      "target_id": "EMO-WS-CORPORATE",
+      "target_kind": "STATE_OBJECT",
+      "freshness_status": "UNREVIEWED",
+      "indexed_at": "2026-10-01",
+      "last_domain_review_at": null,
+      "review_cadence_days": null,
+      "review_due_at": null,
+      "stale_after": null,
+      "decision_use": "BLOCK_STRONG_CLAIMS_UNTIL_CURRENT",
+      "note": "No controlled domain review cadence and review event are recorded in the Company OS freshness layer yet."
+    },
+    {
+      "target_id": "EMO-GATE-MAT-VALUE",
+      "target_kind": "STATE_OBJECT",
+      "freshness_status": "UNREVIEWED",
+      "indexed_at": "2026-10-01",
+      "last_domain_review_at": null,
+      "review_cadence_days": null,
+      "review_due_at": null,
+      "stale_after": null,
+      "decision_use": "BLOCK_STRONG_CLAIMS_UNTIL_CURRENT",
+      "note": "No controlled domain review cadence and review event are recorded in the Company OS freshness layer yet."
+    },
+    {
+      "target_id": "EMO-GATE-PHYSICAL-PROOF",
+      "target_kind": "STATE_OBJECT",
+      "freshness_status": "UNREVIEWED",
+      "indexed_at": "2026-10-01",
+      "last_domain_review_at": null,
+      "review_cadence_days": null,
+      "review_due_at": null,
+      "stale_after": null,
+      "decision_use": "BLOCK_STRONG_CLAIMS_UNTIL_CURRENT",
+      "note": "No controlled domain review cadence and review event are recorded in the Company OS freshness layer yet."
+    },
+    {
+      "target_id": "EMO-GATE-PRODUCT-VALUE",
+      "target_kind": "STATE_OBJECT",
+      "freshness_status": "UNREVIEWED",
+      "indexed_at": "2026-10-01",
+      "last_domain_review_at": null,
+      "review_cadence_days": null,
+      "review_due_at": null,
+      "stale_after": null,
+      "decision_use": "BLOCK_STRONG_CLAIMS_UNTIL_CURRENT",
+      "note": "No controlled domain review cadence and review event are recorded in the Company OS freshness layer yet."
+    },
+    {
+      "target_id": "EMO-GATE-ECONOMICS",
+      "target_kind": "STATE_OBJECT",
+      "freshness_status": "UNREVIEWED",
+      "indexed_at": "2026-10-01",
+      "last_domain_review_at": null,
+      "review_cadence_days": null,
+      "review_due_at": null,
+      "stale_after": null,
+      "decision_use": "BLOCK_STRONG_CLAIMS_UNTIL_CURRENT",
+      "note": "No controlled domain review cadence and review event are recorded in the Company OS freshness layer yet."
+    },
+    {
+      "target_id": "EMO-GATE-IP-RIGHTS",
+      "target_kind": "STATE_OBJECT",
+      "freshness_status": "UNREVIEWED",
+      "indexed_at": "2026-10-01",
+      "last_domain_review_at": null,
+      "review_cadence_days": null,
+      "review_due_at": null,
+      "stale_after": null,
+      "decision_use": "BLOCK_STRONG_CLAIMS_UNTIL_CURRENT",
+      "note": "No controlled domain review cadence and review event are recorded in the Company OS freshness layer yet."
+    },
+    {
+      "target_id": "EMO-CORP-ENTITY",
+      "target_kind": "STATE_OBJECT",
+      "freshness_status": "UNREVIEWED",
+      "indexed_at": "2026-10-01",
+      "last_domain_review_at": null,
+      "review_cadence_days": null,
+      "review_due_at": null,
+      "stale_after": null,
+      "decision_use": "BLOCK_STRONG_CLAIMS_UNTIL_CURRENT",
+      "note": "No controlled domain review cadence and review event are recorded in the Company OS freshness layer yet."
+    },
+    {
+      "target_id": "EMO-CORP-GOVERNANCE",
+      "target_kind": "STATE_OBJECT",
+      "freshness_status": "UNREVIEWED",
+      "indexed_at": "2026-10-01",
+      "last_domain_review_at": null,
+      "review_cadence_days": null,
+      "review_due_at": null,
+      "stale_after": null,
+      "decision_use": "BLOCK_STRONG_CLAIMS_UNTIL_CURRENT",
+      "note": "No controlled domain review cadence and review event are recorded in the Company OS freshness layer yet."
+    },
+    {
+      "target_id": "EMO-CORP-IP-PROVENANCE",
+      "target_kind": "STATE_OBJECT",
+      "freshness_status": "UNREVIEWED",
+      "indexed_at": "2026-10-01",
+      "last_domain_review_at": null,
+      "review_cadence_days": null,
+      "review_due_at": null,
+      "stale_after": null,
+      "decision_use": "BLOCK_STRONG_CLAIMS_UNTIL_CURRENT",
+      "note": "No controlled domain review cadence and review event are recorded in the Company OS freshness layer yet."
+    },
+    {
+      "target_id": "EMO-CORP-THIRD-PARTY-RIGHTS",
+      "target_kind": "STATE_OBJECT",
+      "freshness_status": "UNREVIEWED",
+      "indexed_at": "2026-10-01",
+      "last_domain_review_at": null,
+      "review_cadence_days": null,
+      "review_due_at": null,
+      "stale_after": null,
+      "decision_use": "BLOCK_STRONG_CLAIMS_UNTIL_CURRENT",
+      "note": "No controlled domain review cadence and review event are recorded in the Company OS freshness layer yet."
+    },
+    {
+      "target_id": "EMO-CORP-REPO-IP-POLICY",
+      "target_kind": "STATE_OBJECT",
+      "freshness_status": "UNREVIEWED",
+      "indexed_at": "2026-10-01",
+      "last_domain_review_at": null,
+      "review_cadence_days": null,
+      "review_due_at": null,
+      "stale_after": null,
+      "decision_use": "BLOCK_STRONG_CLAIMS_UNTIL_CURRENT",
+      "note": "No controlled domain review cadence and review event are recorded in the Company OS freshness layer yet."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "EMO-FRESH-EVIDENCE-001",
+      "target_ref": {
+        "kind": "path",
+        "value": "docs/implementation/WORLD_UNITY_LIVE_VALIDATION_2026-10-01.md"
+      },
+      "freshness_status": "UNREVIEWED",
+      "indexed_at": "2026-10-01",
+      "last_domain_review_at": null,
+      "review_cadence_days": null,
+      "review_due_at": null,
+      "stale_after": null,
+      "decision_use": "CANNOT_SUPPORT_FRESHNESS_DEPENDENT_PROMOTION",
+      "note": "Evidence presence and source date do not establish continuing validity; no controlled review cadence is recorded here."
+    }
+  ]
+}

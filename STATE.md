@@ -1,7 +1,7 @@
 # EMOPET — Current Company State
 
 **Snapshot date:** 2026-10-01  
-**Snapshot base:** `main@f8918182db7121f7fbb710ad0bfa6b8c1b492da0`  
+**Snapshot base:** `main@f12e39d1c8d453aac1189b484d5a1c7cbb21ae74`  
 **Status:** `COMPANY STATE PROJECTION / NOT DOMAIN AUTHORITY`  
 **Machine-readable source:** `state/company-state.json`
 
@@ -26,6 +26,14 @@ Authority: `docs/strategy/PROJECT_TIMELINE_2026_2027.md`.
 | World / Unity | `GATED / NOT PRODUCTION AUTHORITY` | Live loopback Unity → Hono → Nakama spike evidenced; keep gated until explicit product-value and production-readiness authority |
 | Funding | `PROJECT_DECISION / EVIDENCE-GATED` | Build sourced cost, milestone, runway and verified funding state |
 | Corporate / IP | `OPEN / INDEXED / EVIDENCE-GATED` | Advance entity, provenance, third-party-rights and repository-policy gates through controlled evidence; see `CORPORATE.md` |
+
+## Freshness / STALE overlay
+
+Freshness is tracked separately in `FRESHNESS.md` and `state/freshness/freshness-state.json`.
+
+The initial V2 overlay is conservative: if a controlled domain review date or review cadence is not recorded, the item is `UNREVIEWED`, not `CURRENT`. `UNREVIEWED`, `REVIEW_DUE`, and `STALE` items cannot support freshness-dependent promotion into strong Company OS states.
+
+Repository recency does not reset domain freshness.
 
 ## Critical company gates
 
@@ -57,7 +65,7 @@ No invented pricing, sales volume, grant award or data-revenue assumption should
 
 **Question:** are contribution ownership, third-party rights and public-repository policy controlled before scale?
 
-Related gates include `#114`, `#116` and `#680`. The public-safe projection is indexed in `CORPORATE.md` and `state/corporate/corporate-state.json`. The public-safe projection is indexed in `CORPORATE.md` and `state/corporate/corporate-state.json`.
+Related gates include `#114`, `#116` and `#680`. The public-safe projection is indexed in `CORPORATE.md` and `state/corporate/corporate-state.json`.
 
 ## Resource-allocation principle
 
