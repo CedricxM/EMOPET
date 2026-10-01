@@ -108,19 +108,42 @@ test('WORLD-G2 durable progression repository enforces idempotence, anti-farming
     title: 'Coastal bench',
     cost: { localDiscoveries: 5 },
   };
+  const catalog = {
+    fallbackRegionCode: 'GLOBAL',
+    collections: [
+      {
+        regionCode: 'FR-BRE',
+        companionIdentity: 'Breiz',
+        items: [lighthouse, bench],
+      },
+      {
+        regionCode: 'GLOBAL',
+        companionIdentity: 'EMOPET',
+        items: [
+          {
+            id: 'global-memory-lantern',
+            title: 'Memory lantern',
+            cost: { memoryThreads: 1 },
+          },
+        ],
+      },
+    ],
+  };
 
   const [buildA, buildB] = await Promise.all([
     persistenceModule.buildWorldItemDurably({
       ownerId: ownerA,
       idempotencyKey: 'build:durable:lighthouse:001',
       regionCode: 'FR-BRE',
-      item: lighthouse,
+      itemId: lighthouse.id,
+      catalog,
     }),
     persistenceModule.buildWorldItemDurably({
       ownerId: ownerA,
       idempotencyKey: 'build:durable:bench:001',
       regionCode: 'FR-BRE',
-      item: bench,
+      itemId: bench.id,
+      catalog,
     }),
   ]);
 
@@ -144,7 +167,8 @@ test('WORLD-G2 durable progression repository enforces idempotence, anti-farming
     ownerId: ownerA,
     idempotencyKey: builtKey,
     regionCode: 'FR-BRE',
-    item: builtItem,
+    itemId: builtItem.id,
+    catalog,
   });
   assert.equal(buildReplay.decision, 'already_owned');
   assert.equal(buildReplay.balance.localDiscoveries, 1);
@@ -154,11 +178,8 @@ test('WORLD-G2 durable progression repository enforces idempotence, anti-farming
       ownerId: ownerA,
       idempotencyKey: builtKey,
       regionCode: 'FR-BRE',
-      item: {
-        id: 'different-item-for-same-idempotency',
-        title: 'Different item',
-        cost: { localDiscoveries: 5 },
-      },
+      itemId: builtItem.id === lighthouse.id ? bench.id : lighthouse.id,
+      catalog,
     }),
     (error) => {
       assert.equal(error.code, 'WORLD_BUILD_IDEMPOTENCY_CONFLICT');
@@ -171,17 +192,24 @@ test('WORLD-G2 durable progression repository enforces idempotence, anti-farming
       ownerId: randomUUID(),
       idempotencyKey: 'build:missing-owner:001',
       regionCode: 'GLOBAL',
-      item: {
-        id: 'global-memory-lantern',
-        title: 'Memory lantern',
-        cost: { memoryThreads: 1 },
-      },
+      itemId: 'global-memory-lantern',
+      catalog,
     }),
     (error) => {
       assert.equal(error.code, 'WORLD_BUILD_OWNER_NOT_FOUND');
       return true;
     },
   );
+
+  const unknownBuild = await persistenceModule.buildWorldItemDurably({
+    ownerId: ownerA,
+    idempotencyKey: 'build:unknown-item:001',
+    regionCode: 'FR-BRE',
+    itemId: 'caller-invented-zero-cost-palace',
+    catalog,
+  });
+  assert.equal(unknownBuild.decision, 'unknown_item');
+  assert.equal(unknownBuild.balance.localDiscoveries, 1);
 
   // Persisted rows are not trusted merely because the database accepted them.
   // A grant that diverges from SAFE_WORLD_REWARDS must poison the read instead
