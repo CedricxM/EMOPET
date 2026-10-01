@@ -1,0 +1,25 @@
+{
+  "version": "1",
+  "status": "CONTROLLED_DRAFT_NOT_PRODUCTION_AUTHORITY",
+  "projection": "event-derived",
+  "defaultLimit": 50,
+  "maxLimit": 100,
+  "sourceRefExposure": "OPAQUE_IDENTIFIER_ONLY",
+  "freeTextReason": false,
+  "exactLocationExposure": false,
+  "reasonCodes": {
+    "knowledge.card_read": "knowledge_read",
+    "local.place_saved": "local_place_saved",
+    "local.route_saved": "local_route_saved",
+    "community.contribution_created": "community_contribution",
+    "world.group_joined": "world_group_joined",
+    "memory.created": "memory_created"
+  },
+  "rules": [
+    "Every displayed earned-resource explanation comes from an authorised ledger entry.",
+    "Reason labels are rendered from bounded reason codes, never caller free text.",
+    "Projection is Owner-scoped and rejects mixed-Owner input.",
+    "Duplicate ledger entry ids fail closed instead of being silently deduplicated.",
+    "Exact location, dog telemetry, Care values and ELI values are not exposed."
+  ]
+}
