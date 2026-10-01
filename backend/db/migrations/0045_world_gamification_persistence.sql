@@ -40,6 +40,22 @@ CREATE TABLE world_progression_events (
     CHECK (
       jsonb_typeof(grants_json) = 'object'
       AND grants_json <> '{}'::jsonb
+    ),
+
+  CONSTRAINT chk_world_progression_events_grants_exact
+    CHECK (
+      (event_kind = 'knowledge.card_read'
+        AND grants_json = '{"knowledgeFragments": 1}'::jsonb)
+      OR (event_kind = 'local.place_saved'
+        AND grants_json = '{"localDiscoveries": 2}'::jsonb)
+      OR (event_kind = 'local.route_saved'
+        AND grants_json = '{"walkTraces": 2, "localDiscoveries": 1}'::jsonb)
+      OR (event_kind = 'community.contribution_created'
+        AND grants_json = '{"communitySeeds": 2}'::jsonb)
+      OR (event_kind = 'world.group_joined'
+        AND grants_json = '{"communitySeeds": 1}'::jsonb)
+      OR (event_kind = 'memory.created'
+        AND grants_json = '{"memoryThreads": 2}'::jsonb)
     )
 );
 
