@@ -33,3 +33,11 @@ export type {
 } from './regional-pack';
 export { evaluateRegionalPackReleaseReadiness } from './regional-pack';
 export { BRETAGNE_REGIONAL_PACK } from './profiles/bretagne-pack';
+
+export type {
+  RegionalDomainEvidenceStatus,
+  RegionalPackSourceEvidence,
+  RegionalPackDomainEvidence,
+  RegionalPackEvidenceReport,
+} from './regional-pack-evidence';
+export { buildRegionalPackEvidenceReport } from './regional-pack-evidence';
