@@ -6,6 +6,12 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# For pull requests, keep only the newest run for this workflow.
+# Pushes to main and manual runs remain non-cancelling evidence.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
   actions: read
