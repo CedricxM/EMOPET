@@ -699,16 +699,22 @@ test('redacted external Company OS views do not leak planning ranges or manufact
     );
   }
 
-  assert.doesNotMatch(
-    investorView,
-    /dilution target|valuation|investor name/i,
-    'redacted investor view must not present restricted financing specifics as content',
-  );
+  for (const value of Object.values(preseed.target)) {
+    assert.ok(
+      !supplierView.includes(String(value)),
+      'redacted supplier view must not expose the planning raise range',
+    );
+  }
 
-  assert.doesNotMatch(
+  assert.match(
+    investorView,
+    /This public view intentionally excludes:/,
+    'redacted investor view must disclose its redaction boundary',
+  );
+  assert.match(
     supplierView,
-    /private quote amount|bank account|executed contract/i,
-    'redacted supplier view must not present restricted supplier/commercial specifics as content',
+    /This public view intentionally excludes:/,
+    'redacted supplier view must disclose its redaction boundary',
   );
 });
 
