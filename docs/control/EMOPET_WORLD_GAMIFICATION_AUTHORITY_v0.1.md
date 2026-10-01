@@ -179,3 +179,23 @@ Properties:
 This is a deterministic projection, not durable transaction authority.
 
 G1B.2 must make the same decision atomically in PostgreSQL so concurrent requests cannot double-spend a balance or create duplicate ownership.
+
+
+## 11. Unified gamification snapshot
+
+The API-ready read model is implemented in:
+
+- `backend/api/services/world-gamification-snapshot.ts`
+
+It composes:
+
+- safe World resource balances;
+- ledger-derived quest progress;
+- coarse regional identity;
+- regional collection items;
+- owned-item state;
+- affordability.
+
+It deliberately excludes XP, levels, ranks, streaks, dog scores, health scores, relationship scores, ELI values, sensor values and exact location.
+
+This snapshot is the intended future UI/API seam. The web and Unity clients should consume one governed snapshot rather than independently recalculating progression rules.
