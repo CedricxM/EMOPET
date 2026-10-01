@@ -33,6 +33,16 @@ export interface WorldGamificationSnapshotItem {
   affordable: boolean;
 }
 
+export interface WorldGamificationOwnerBalance {
+  ownerId: string;
+  balance: WorldProgressionBalance;
+}
+
+export interface WorldGamificationOwnedItem {
+  ownerId: string;
+  itemId: string;
+}
+
 export interface WorldGamificationSnapshot {
   authority: 'CONTROLLED_DRAFT_NOT_PRODUCTION_AUTHORITY';
   region: {
