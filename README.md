@@ -20,7 +20,7 @@ This README describes the code observed on `main`. It does not establish product
 | Shared packages | ELI engine, BLE protocol, AI personality, shared types | `OBSERVED` |
 | Firmware | Partial MAT/TAG C sources | `OBSERVED_PARTIAL` |
 | Authentication | JWT middleware and ownership helper; register/login/refresh are stubs | `OPEN / GATED` |
-| CI and branch protection | Security, P0 DB, Owner and path-scoped Windows workflows; active `main` ruleset; all 33 `scripts/control` tests have a CI path | `ACTIVE`; seven selected security/supply-chain checks are required; branch auto-delete and CODEOWNERS remain `OPEN` |
+| CI and branch protection | Security, P0 DB, Owner and path-scoped Windows workflows; active `main` ruleset; all 33 `scripts/control` tests have a CI path | `ACTIVE`; seven selected security/supply-chain checks are required; automatic merged-head deletion is enabled; historical branch cleanup and CODEOWNERS remain `OPEN` |
 | Unity | No Unity project in this repository | `ABSENT_IN_REPOSITORY / GATED` |
 | Nakama | Not canonical on `main`; experimental World/Nakama work remains outside current main authority | `GATED / NOT PRODUCTION AUTHORITY` |
 
@@ -120,7 +120,7 @@ Repository-native controls are materially stronger than the original baseline, b
 - `.github/workflows/windows-portability.yml` adds a targeted `windows-latest` gate for checkout attributes, byte-sensitive evidence, Windows-sensitive guards and web tests;
 - the seven selected repository-owned security/supply-chain status checks are **required by the active `main-protection` ruleset**; #257 is completed;
 - `P0 DB baseline validation` remains intentionally excluded from global required checks because it is path-scoped; DB-scoped changes still receive its own PR evidence;
-- GitHub still reports `delete_branch_on_merge=false`; controlled branch-lifecycle cleanup remains open under #679;
+- GitHub reports `delete_branch_on_merge=true`; controlled cleanup of legacy/stale branches remains open under #679;
 - the repository is public while licence/contribution ownership and CODEOWNERS policy remain an explicit decision under #680.
 
 Do not treat a green workflow as equivalent to repository-enforced required-check policy until #257 is closed.
