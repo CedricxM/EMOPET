@@ -1,0 +1,350 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://emopet.invalid/schema/freshness-state.schema.json",
+  "title": "EMOPET Company OS Freshness State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "snapshot",
+    "authority_mode",
+    "semantics",
+    "coverage",
+    "objects",
+    "evidence"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "date",
+        "base_ref",
+        "base_sha"
+      ],
+      "properties": {
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "base_ref": {
+          "type": "string",
+          "const": "main"
+        },
+        "base_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      }
+    },
+    "authority_mode": {
+      "type": "string",
+      "const": "FRESHNESS_INDEX_NOT_DOMAIN_AUTHORITY"
+    },
+    "semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowed_statuses",
+        "unreviewed_rule",
+        "current_rule",
+        "review_due_rule",
+        "stale_rule",
+        "decision_rule"
+      ],
+      "properties": {
+        "allowed_statuses": {
+          "type": "array",
+          "minItems": 5,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "UNREVIEWED",
+              "CURRENT",
+              "REVIEW_DUE",
+              "STALE",
+              "NOT_APPLICABLE"
+            ]
+          }
+        },
+        "unreviewed_rule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "current_rule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "review_due_rule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "stale_rule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decision_rule": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state_scope",
+        "evidence_scope"
+      ],
+      "properties": {
+        "state_scope": {
+          "type": "string",
+          "const": "COMPANY_AND_CORPORATE_V2"
+        },
+        "evidence_scope": {
+          "type": "string",
+          "const": "EVIDENCE_REFS_EXPOSED_BY_COMPANY_AND_CORPORATE_V2"
+        }
+      }
+    },
+    "objects": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/objectFreshness"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidenceFreshness"
+      }
+    }
+  },
+  "$defs": {
+    "nullableDate": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date"
+    },
+    "nullablePositiveInteger": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1
+    },
+    "commonFreshness": {
+      "type": "object",
+      "required": [
+        "freshness_status",
+        "indexed_at",
+        "last_domain_review_at",
+        "review_cadence_days",
+        "review_due_at",
+        "stale_after",
+        "decision_use",
+        "note"
+      ],
+      "properties": {
+        "freshness_status": {
+          "type": "string",
+          "enum": [
+            "UNREVIEWED",
+            "CURRENT",
+            "REVIEW_DUE",
+            "STALE",
+            "NOT_APPLICABLE"
+          ]
+        },
+        "indexed_at": {
+          "type": "string",
+          "format": "date"
+        },
+        "last_domain_review_at": {
+          "$ref": "#/$defs/nullableDate"
+        },
+        "review_cadence_days": {
+          "$ref": "#/$defs/nullablePositiveInteger"
+        },
+        "review_due_at": {
+          "$ref": "#/$defs/nullableDate"
+        },
+        "stale_after": {
+          "$ref": "#/$defs/nullableDate"
+        },
+        "decision_use": {
+          "type": "string",
+          "minLength": 1
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "value"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "path",
+            "issue",
+            "pr",
+            "commit",
+            "external"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "objectFreshness": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/commonFreshness"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "target_id",
+            "target_kind",
+            "freshness_status",
+            "indexed_at",
+            "last_domain_review_at",
+            "review_cadence_days",
+            "review_due_at",
+            "stale_after",
+            "decision_use",
+            "note"
+          ],
+          "properties": {
+            "target_id": {
+              "type": "string",
+              "pattern": "^EMO-[A-Z0-9-]+$"
+            },
+            "target_kind": {
+              "type": "string",
+              "const": "STATE_OBJECT"
+            },
+            "freshness_status": {
+              "type": "string",
+              "enum": [
+                "UNREVIEWED",
+                "CURRENT",
+                "REVIEW_DUE",
+                "STALE",
+                "NOT_APPLICABLE"
+              ]
+            },
+            "indexed_at": {
+              "type": "string",
+              "format": "date"
+            },
+            "last_domain_review_at": {
+              "$ref": "#/$defs/nullableDate"
+            },
+            "review_cadence_days": {
+              "$ref": "#/$defs/nullablePositiveInteger"
+            },
+            "review_due_at": {
+              "$ref": "#/$defs/nullableDate"
+            },
+            "stale_after": {
+              "$ref": "#/$defs/nullableDate"
+            },
+            "decision_use": {
+              "type": "string",
+              "minLength": 1
+            },
+            "note": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      ]
+    },
+    "evidenceFreshness": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/commonFreshness"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "target_ref",
+            "freshness_status",
+            "indexed_at",
+            "last_domain_review_at",
+            "review_cadence_days",
+            "review_due_at",
+            "stale_after",
+            "decision_use",
+            "note"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "pattern": "^EMO-FRESH-EVIDENCE-[0-9]{3}$"
+            },
+            "target_ref": {
+              "$ref": "#/$defs/ref"
+            },
+            "freshness_status": {
+              "type": "string",
+              "enum": [
+                "UNREVIEWED",
+                "CURRENT",
+                "REVIEW_DUE",
+                "STALE",
+                "NOT_APPLICABLE"
+              ]
+            },
+            "indexed_at": {
+              "type": "string",
+              "format": "date"
+            },
+            "last_domain_review_at": {
+              "$ref": "#/$defs/nullableDate"
+            },
+            "review_cadence_days": {
+              "$ref": "#/$defs/nullablePositiveInteger"
+            },
+            "review_due_at": {
+              "$ref": "#/$defs/nullableDate"
+            },
+            "stale_after": {
+              "$ref": "#/$defs/nullableDate"
+            },
+            "decision_use": {
+              "type": "string",
+              "minLength": 1
+            },
+            "note": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      ]
+    }
+  }
+}
