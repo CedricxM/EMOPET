@@ -121,8 +121,12 @@ test('WORLD-G2 runtime privacy probes cover the promoted relational surface and 
     readJson('../../config/privacy/user-subject-lineage.json'),
   ]);
 
-  for (const table of WORLD_TABLES) {
-    assert.match(discovery, new RegExp(table.replaceAll('_', '[A-Z]?|_'), 'i'));
+  for (const identifier of [
+    'worldProgressionEvents',
+    'worldOwnedItems',
+    'worldResourceSpends',
+  ]) {
+    assert.match(discovery, new RegExp(identifier));
   }
 
   for (const key of [
