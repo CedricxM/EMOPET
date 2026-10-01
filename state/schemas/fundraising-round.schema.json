@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EMOPET Company OS Fundraising Round Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "type",
+    "status",
+    "classification",
+    "currency",
+    "target",
+    "intended_runway_months",
+    "trigger_conditions",
+    "blocking_refs",
+    "indicative_use_of_funds",
+    "dilution",
+    "committed_eur",
+    "evidence_refs",
+    "non_authority_note"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^ROUND-[A-Z0-9-]+$"
+    },
+    "type": {
+      "type": "string",
+      "const": "fundraising_round"
+    },
+    "status": {
+      "type": "string",
+      "minLength": 1
+    },
+    "classification": {
+      "type": "string",
+      "minLength": 1
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target": {
+      "$ref": "#/$defs/rangeWithBase"
+    },
+    "intended_runway_months": {
+      "$ref": "#/$defs/range"
+    },
+    "trigger_conditions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "blocking_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ref"
+      }
+    },
+    "indicative_use_of_funds": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      }
+    },
+    "dilution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "target"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "type": [
+            "number",
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "committed_eur": {
+      "type": "number",
+      "minimum": 0
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ref"
+      }
+    },
+    "non_authority_note": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "$defs": {
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "value"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "path",
+            "issue",
+            "pr",
+            "commit",
+            "external"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "min",
+        "max"
+      ],
+      "properties": {
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        }
+      }
+    },
+    "rangeWithBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "min",
+        "base",
+        "max"
+      ],
+      "properties": {
+        "min": {
+          "type": "number"
+        },
+        "base": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}
