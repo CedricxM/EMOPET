@@ -245,6 +245,7 @@ jobs:
       - name: Backend typecheck
         # Run before Drizzle baseline generation mutates backend/db inputs, so Turbo can
         # reuse deterministic typecheck results across unchanged backend sources.
+        # Keep this step ahead of all generated-baseline writes.
         # This cache never substitutes for disposable-database validation.
         run: pnpm turbo run typecheck --filter=@emopet/api
 
