@@ -59,7 +59,7 @@ test('#525 runtime has canonical DB source without claiming continuous productio
   assert.equal(authority.lateEventReplay.httpRoute, null);
   assert.match(
     authority.operationalGaps.durableDetectionHistory,
-    /BOUNDED_DURABLE_HISTORY_CANDIDATE/,
+    /BOUNDED_DURABLE_HISTORY_LANDED/,
   );
   assert.match(
     authority.operationalGaps.durableDetectionHistory,
@@ -146,6 +146,8 @@ test('#776 late-event replay uses receipts and policy-derived context without cr
 
 test('#805 persists bounded detector evidence without durable actor fingerprints', () => {
   assert.equal(authority.detectionHistory.issue, 805);
+  assert.match(authority.detectionHistory.status, /BOUNDED_DURABLE_HISTORY_LANDED/);
+  assert.match(authority.detectionHistory.status, /RETENTION_POLICY_OPEN/);
   assert.equal(
     authority.detectionHistory.historyTable,
     'security_detection_history',
