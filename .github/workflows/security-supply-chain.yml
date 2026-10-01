@@ -117,6 +117,8 @@ jobs:
       - name: Test Bretagne schema evidence capture contract
         run: node --test scripts/data/capture-bretagne-open-data-schema.test.mjs
       - name: Enforce Company OS evidence-gated state invariants
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node --test scripts/control/company-os-state.test.mjs
       - name: Enforce Unity World authority boundary (#567)
         run: node --test scripts/control/world-unity-authority-boundary.test.mjs
