@@ -39,8 +39,11 @@ import {
   userConfig,
   users,
   walkQuality,
+  worldOwnedItems,
   worldPilotAccess,
   worldPresenceConsents,
+  worldProgressionEvents,
+  worldResourceSpends,
 } from '../../db/schema/index.js';
 import { isCanonicalSubjectUuid } from './subject-access.js';
 
@@ -350,7 +353,10 @@ export async function verifyErasureResidue(
           probe('user_blocks.blocked_user_id', await countWhere(tx, userBlocks, eq(userBlocks.blockedUserId, snapshot.accountId))),
           probe('user_blocks.blocker_user_id', await countWhere(tx, userBlocks, eq(userBlocks.blockerUserId, snapshot.accountId))),
           probe('user_config.user_id', await countWhere(tx, userConfig, eq(userConfig.userId, snapshot.accountId))),
+          probe('world_owned_items.owner_id', await countWhere(tx, worldOwnedItems, eq(worldOwnedItems.ownerId, snapshot.accountId))),
           probe('world_pilot_access.user_id', await countWhere(tx, worldPilotAccess, eq(worldPilotAccess.userId, snapshot.accountId))),
+          probe('world_progression_events.owner_id', await countWhere(tx, worldProgressionEvents, eq(worldProgressionEvents.ownerId, snapshot.accountId))),
+          probe('world_resource_spends.owner_id', await countWhere(tx, worldResourceSpends, eq(worldResourceSpends.ownerId, snapshot.accountId))),
           probe('world_presence_consents.user_id', await countWhere(tx, worldPresenceConsents, eq(worldPresenceConsents.userId, snapshot.accountId))),
         );
       }
