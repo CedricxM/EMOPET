@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-01  
 **Status:** `PROPOSED COMPANY CONTROL PLANE / DOES NOT REPLACE DOMAIN AUTHORITIES`  
-**Branch base:** `main@3c565b60780d2aaec97416dc81a88987e38fa9cb`
+**Branch base:** `main@7642323643d99737bbbc98763b7d8739bff58083`
 
 ## 1. Purpose
 
@@ -127,7 +127,7 @@ Schema conformance does not make a claim true. It only prevents malformed or dan
 
 ### Generated human views
 
-`STATE.md`, `CORPORATE.md`, `FRESHNESS.md`, `FOUNDER_COCKPIT.md`, `INVESTOR_VIEW.md`, and `SUPPLIER_VIEW.md` are deterministic renderings of machine-readable Company OS state through `scripts/control/generate-company-os-views.mjs`.
+`STATE.md`, `CORPORATE.md`, `FRESHNESS.md`, `FOUNDER_COCKPIT.md`, `INVESTOR_VIEW.md`, `SUPPLIER_VIEW.md`, and `TIME_MACHINE.md` are deterministic renderings of machine-readable Company OS state through `scripts/control/generate-company-os-views.mjs`.
 
 The every-PR Company OS guard compares committed bytes against fresh renders. A manual edit that is not backed by machine-readable state therefore fails closed instead of silently creating a second source of truth.
 
@@ -172,6 +172,8 @@ Both views fail closed: missing data remains missing, planning remains planning,
 | `FOUNDER_COCKPIT.md` | Generated public-safe founder navigation cockpit | V2 derived view; not decision or ranking authority |
 | `INVESTOR_VIEW.md` | Generated redacted public-safe investor orientation | V2 derived view; not fundraising, valuation or investment authority |
 | `SUPPLIER_VIEW.md` | Generated redacted public-safe supplier orientation | V2 derived view; not procurement, specification-freeze or release authority |
+| `TIME_MACHINE.md` | Generated append-only transition chronology | V2 history view; not decision or domain authority |
+| `state/history/company-transitions.jsonl` | Canonical append-only Company OS transition ledger | V2 historical record; corrections append, never rewrite |
 | `state/freshness/freshness-state.json` | Machine-readable freshness overlay | V2 projection with decision-use guardrails |
 | `state/schemas/registry-schema-map.json` | Registry → JSON Schema contract map | V2 structural contract; not domain authority |
 | `EXPERIMENTS.md` | Hypothesis → test → result → decision ledger | V1 projection/index |
@@ -238,7 +240,9 @@ Git history plus dated state snapshots should make it possible to reconstruct:
 - why a decision changed;
 - which evidence triggered the change.
 
-Later phases should add an append-only state-transition ledger instead of silently editing away important history.
+The Company Time Machine now uses `state/history/company-transitions.jsonl` as an append-only transition ledger. Existing lines are immutable; corrections are appended as explicit `CORRECTION` events. Pull-request CI compares the candidate ledger with the base-branch copy and fails closed on historical rewrites.
+
+The bootstrap event marks the start of controlled transition logging and does not claim exhaustive reconstruction of pre-ledger history.
 
 ## 11. Confidentiality boundary
 
@@ -272,10 +276,10 @@ Any AI agent doing substantive EMOPET work should:
 
 V1 includes the company front door, machine-readable state, milestone/experiment/finance/metrics/risk/unknowns registries, and an every-PR structural evidence guard.
 
-V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, deterministic human views generated from machine-readable state, a public-safe founder cockpit, and redacted investor/supplier views derived from the same controlled surfaces. Freshness remains conservative, and structural or presentation validity never substitutes for domain evidence or authority.
+V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, deterministic human views generated from machine-readable state, a public-safe founder cockpit, redacted investor/supplier views, and an append-only Company Time Machine transition ledger. Freshness remains conservative, and structural, presentation or historical-record validity never substitutes for domain evidence or authority.
 
 Next bounded slices should add, in order:
 
-1. an append-only Company Time Machine transition ledger that records material state changes without rewriting history.
+1. automated transition proposals derived from controlled state diffs, requiring explicit review before ledger append.
 
 Each slice must remain incremental and must not manufacture certainty to make the cockpit look complete.
