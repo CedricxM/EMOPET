@@ -108,9 +108,30 @@
       "erasureDisposition": "TO_CONFIRM"
     },
     {
+      "table": "professional_share_grants",
+      "column": "owner_user_id",
+      "source": "backend/db/schema/professional-sharing.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
       "table": "research_data_consents",
       "column": "user_id",
       "source": "backend/db/schema/behavioral-assessments.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "social_connections",
+      "column": "user_high_id",
+      "source": "backend/db/schema/social-connections.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "social_connections",
+      "column": "user_low_id",
+      "source": "backend/db/schema/social-connections.ts",
       "databaseDeleteAction": "NO_ACTION",
       "erasureDisposition": "TO_CONFIRM"
     },
@@ -136,23 +157,23 @@
       "erasureDisposition": "TO_CONFIRM"
     },
     {
+      "table": "user_config",
+      "column": "user_id",
+      "source": "backend/db/schema/eli-v5.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "world_owned_items",
+      "column": "owner_id",
+      "source": "backend/db/schema/world-gamification.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
       "table": "world_pilot_access",
       "column": "user_id",
       "source": "backend/db/schema/world-pilot-access.ts",
-      "databaseDeleteAction": "NO_ACTION",
-      "erasureDisposition": "TO_CONFIRM"
-    },
-    {
-      "table": "social_connections",
-      "column": "user_high_id",
-      "source": "backend/db/schema/social-connections.ts",
-      "databaseDeleteAction": "NO_ACTION",
-      "erasureDisposition": "TO_CONFIRM"
-    },
-    {
-      "table": "social_connections",
-      "column": "user_low_id",
-      "source": "backend/db/schema/social-connections.ts",
       "databaseDeleteAction": "NO_ACTION",
       "erasureDisposition": "TO_CONFIRM"
     },
@@ -164,16 +185,16 @@
       "erasureDisposition": "TO_CONFIRM"
     },
     {
-      "table": "user_config",
-      "column": "user_id",
-      "source": "backend/db/schema/eli-v5.ts",
+      "table": "world_progression_events",
+      "column": "owner_id",
+      "source": "backend/db/schema/world-gamification.ts",
       "databaseDeleteAction": "NO_ACTION",
       "erasureDisposition": "TO_CONFIRM"
     },
     {
-      "table": "professional_share_grants",
-      "column": "owner_user_id",
-      "source": "backend/db/schema/professional-sharing.ts",
+      "table": "world_resource_spends",
+      "column": "owner_id",
+      "source": "backend/db/schema/world-gamification.ts",
       "databaseDeleteAction": "NO_ACTION",
       "erasureDisposition": "TO_CONFIRM"
     }
