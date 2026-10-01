@@ -16,7 +16,7 @@ This README describes the code observed on `main`. It does not establish product
 | Web | Next.js 15, React 19, HeroUI 3, Tailwind 4 | `OBSERVED` |
 | Mobile | Expo 52, React 18, React Native 0.76 | `OBSERVED` |
 | API | Hono 4 on Node.js, Zod validation | `OBSERVED`, several routes remain placeholders |
-| Database | Drizzle ORM schemas + SQL path-A migrations for PostgreSQL | `DISPOSABLE-QA VALIDATED`; production migration/release authority remains `OPEN` |
+| Database | Drizzle ORM schemas + SQL path-A migrations for PostgreSQL | `DISPOSABLE-QA VALIDATED`; production migration/release authority remains `OPEN` under #831 |
 | Shared packages | ELI engine, BLE protocol, AI personality, shared types | `OBSERVED` |
 | Firmware | Partial MAT/TAG C sources | `OBSERVED_PARTIAL` |
 | Authentication | JWT middleware and ownership helper; register/login/refresh are stubs | `OPEN / GATED` |
@@ -109,7 +109,7 @@ Treat the JSON, in-memory, and browser stores as prototype paths, not production
 
 Disposable PostgreSQL QA now exercises both repository database paths: path A (checked-in SQL baseline/migrations) and the Drizzle-generated baseline. The P0 DB workflow gates table inventory plus constraint/index parity against an explicit classified-drift ledger, and current path-A migrations repair the previously identified shadow-FK and missing membership/sensor-summary provenance defects.
 
-That evidence is **disposable QA, not production migration authority**. Known classified drift still exists, column-level drift is not yet globally gated, and release/upgrade promotion still requires its own reviewed evidence. Do not treat a green P0 DB run as permission to run production migrations.
+That evidence is **disposable QA, not production migration authority**. Known classified drift still exists, column-level drift is not yet globally gated, and release/upgrade promotion still requires its own reviewed evidence under #831. Do not treat a green P0 DB run as permission to run production migrations.
 
 ## Repository governance warning
 
