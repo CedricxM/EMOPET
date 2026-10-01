@@ -13,7 +13,8 @@
     "repositoryGovernanceIssue": 831,
     "ipContributionIssue": 680,
     "environmentAuthority": "config/release/production-environment-authority-v1.json",
-    "artifactProvenanceAuthority": "config/release/production-artifact-provenance-authority-v1.json"
+    "artifactProvenanceAuthority": "config/release/production-artifact-provenance-authority-v1.json",
+    "transportSecurityAuthority": "config/release/production-transport-security-authority-v1.json"
   },
   "receiptState": {
     "allowed": [
@@ -53,6 +54,7 @@
     "databaseMigration.evidenceRef",
     "runtimeConfig.disposition",
     "runtimeConfig.evidenceRef",
+    "transportSecurity.authorityRef",
     "transportSecurity.disposition",
     "transportSecurity.evidenceRef",
     "backupRestore.disposition",
@@ -109,6 +111,7 @@
     },
     "transportSecurity": {
       "disposition": "UNVERIFIED",
+      "authorityRef": null,
       "evidenceRef": null
     },
     "backupRestore": {
@@ -132,6 +135,7 @@
     "Missing artifact provenance reference, SBOM digests, reviewed attestation or selected signing authority keeps production promotion HOLD.",
     "UNVERIFIED runtime configuration or secret-custody evidence keeps production authority OPEN.",
     "UNVERIFIED transport-security or backup/restore disposition keeps production authority OPEN.",
+    "Missing transport-security authority or UNVERIFIED live transport evidence keeps production promotion HOLD.",
     "Receipt evidence must not contain credentials, tokens, private keys, personal data dumps or secret values.",
     "Provider, signing mechanism, deployment platform and production environment are not selected by this contract."
   ]
