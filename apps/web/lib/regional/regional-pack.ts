@@ -9,9 +9,9 @@
  */
 
 import {
-  getBreizSource,
-  isBreizSourceReleaseReady,
-} from '../data/breiz/sourceRegistry';
+  evaluateRegionalSourceReadiness,
+  type RegionalSourceReadinessScope,
+} from './regional-source-readiness';
 import { getVerifiedRegionalLexicon } from './regional-lexicon';
 import type { RegionalKnowledgeBase } from './knowledge-types';
 import type { RegionalProfile } from './types';
@@ -28,6 +28,11 @@ export interface RegionalSourceBinding {
   sourceId: string;
   domains: readonly RegionalDataDomain[];
   purpose: string;
+  /**
+   * Default is SOURCE. Catalogue-style sources may bind exact lower-level
+   * resources whose rights/evidence are governed independently.
+   */
+  readinessScope?: RegionalSourceReadinessScope;
 }
 
 export type RegionalIdentityReviewStatus = 'PENDING_REVIEW' | 'VERIFIED';
@@ -132,14 +137,14 @@ export function evaluateRegionalPackReleaseReadiness(
   const readyDomains = new Set<RegionalDataDomain>();
 
   for (const binding of pack.sourceBindings) {
-    const source = getBreizSource(binding.sourceId);
+    const readiness = evaluateRegionalSourceReadiness(binding, nowMs);
 
-    if (!source) {
+    if (!readiness.sourceKnown) {
       unknownSourceIds.push(binding.sourceId);
       continue;
     }
 
-    if (!isBreizSourceReleaseReady(source, nowMs)) {
+    if (!readiness.releaseReady) {
       continue;
     }
 
