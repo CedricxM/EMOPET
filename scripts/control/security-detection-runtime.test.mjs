@@ -181,8 +181,10 @@ test('#805 persists bounded detector evidence without durable actor fingerprints
     detectionHistoryMigrationSource,
     /uq_security_detection_history_dedupe_key/,
   );
+  const detectionHistoryMigrationExecutableSource =
+    detectionHistoryMigrationSource.replace(/--.*$/gm, '');
   assert.doesNotMatch(
-    detectionHistoryMigrationSource,
+    detectionHistoryMigrationExecutableSource,
     /actor_key|actor_subject|target_ref|email|ip_address|user_agent|token|payload|request_body|response_body|free_form/i,
   );
 
