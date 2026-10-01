@@ -22,6 +22,10 @@ test('WORLD-G2 migration locks Owner, idempotency, canonical-source and ownershi
   assert.match(sql, /UNIQUE \(owner_id, idempotency_key\)/);
   assert.match(sql, /UNIQUE \(owner_id, event_kind, source_ref\)/);
   assert.match(sql, /UNIQUE \(owner_id, item_id\)/);
+  assert.match(sql, /chk_world_progression_events_grants_exact/);
+  assert.match(sql, /'knowledge\.card_read'[\s\S]*"knowledgeFragments": 1/);
+  assert.match(sql, /'local\.route_saved'[\s\S]*"walkTraces": 2[\s\S]*"localDiscoveries": 1/);
+  assert.match(sql, /'community\.contribution_created'[\s\S]*"communitySeeds": 2/);
   assert.doesNotMatch(sql, /ON DELETE CASCADE/i);
 });
 
@@ -35,12 +39,17 @@ test('WORLD-G2 runtime store derives balance from journals and uses conflict-saf
   assert.match(ledger, /worldProgressionEvents/);
   assert.match(ledger, /worldResourceSpends/);
   assert.match(ledger, /WORLD_PROGRESSION_PERSISTED_BALANCE_NEGATIVE/);
+  assert.match(ledger, /WORLD_PROGRESSION_PERSISTED_GRANT_MISMATCH/);
+  assert.match(ledger, /SAFE_WORLD_REWARDS/);
+  assert.match(ledger, /Number\.isSafeInteger/);
 
   assert.match(build, /SET TRANSACTION ISOLATION LEVEL SERIALIZABLE/);
   assert.match(build, /pg_advisory_xact_lock/);
   assert.match(build, /worldResourceSpends/);
   assert.match(build, /worldOwnedItems/);
   assert.match(build, /WORLD_BUILD_IDEMPOTENCY_CONFLICT/);
+  assert.match(build, /existingSpend\.itemId !== input\.itemId/);
+  assert.doesNotMatch(build, /sameCost/);
 });
 
 test('WORLD-G2 durable store is not activated by any HTTP route', async () => {
