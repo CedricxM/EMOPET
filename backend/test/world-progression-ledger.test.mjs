@@ -94,6 +94,45 @@ test('same idempotency key and same logical event is a no-op', async () => {
   }
 });
 
+test('recorded replay remains idempotent if source authority later becomes unavailable', async () => {
+  const mod = await loadLedgerModule();
+  const previousNodeEnv = process.env.NODE_ENV;
+  process.env.NODE_ENV = 'test';
+
+  try {
+    const store = new mod.InMemoryWorldProgressionLedgerStore();
+    let authorityAvailable = true;
+    let authorityCalls = 0;
+    const service = new mod.WorldProgressionLedgerService(store, {
+      async isAuthorizedSource() {
+        authorityCalls += 1;
+        if (!authorityAvailable) throw new Error('source authority offline');
+        return true;
+      },
+    });
+
+    const input = {
+      ownerId: OWNER_ID,
+      idempotencyKey: 'knowledge:replay:001',
+      kind: 'knowledge.card_read',
+      sourceRef: 'knowledge:canonical-card',
+    };
+
+    const first = await service.record(input);
+    authorityAvailable = false;
+    const replay = await service.record(input);
+
+    assert.equal(first.status, 'recorded');
+    assert.equal(replay.status, 'duplicate');
+    assert.equal(replay.entry.id, first.entry.id);
+    assert.equal(replay.balance.knowledgeFragments, 1);
+    assert.equal(authorityCalls, 1, 'existing replay must not depend on live source authority');
+  } finally {
+    if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = previousNodeEnv;
+  }
+});
+
 test('idempotency key reuse for a different event fails closed', async () => {
   const mod = await loadLedgerModule();
   const previousNodeEnv = process.env.NODE_ENV;
