@@ -24,3 +24,4 @@ export * from './auth-rate-limit.js';
 export * from './security-detection-scheduler.js';
 export * from './device-credential-activation-pop.js';
 export * from './security-detection-history.js';
+export * from './device-credential-activation-m5.js';
