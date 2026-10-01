@@ -1,0 +1,110 @@
+{
+  "schema_version": "0.1.0",
+  "snapshot": {
+    "date": "2026-10-01",
+    "base_ref": "main",
+    "base_sha": "f8918182db7121f7fbb710ad0bfa6b8c1b492da0"
+  },
+  "authority_mode": "PUBLIC_SAFE_INDEX_PROJECTION_NOT_LEGAL_SIGN_OFF",
+  "entity": {
+    "id": "EMO-CORP-ENTITY",
+    "domain": "corporate",
+    "label": "Legal entity and governance structure",
+    "status": "OPEN / NOT FIXED BY CURRENT AUTHORITY",
+    "statement": "The current planning authority establishes 2026 as a legal/IP structuring period but does not fix final entity formation details, founder/equity structure or governance instruments.",
+    "owner_role": "FOUNDER / QUALIFIED LEGAL REVIEW",
+    "authority_refs": [
+      {
+        "kind": "path",
+        "value": "docs/strategy/PROJECT_TIMELINE_2026_2027.md"
+      }
+    ],
+    "evidence_refs": [],
+    "next_gate": "Record a separate controlled founder/legal decision for entity, governance and equity details when ready; keep restricted instruments outside the public repository."
+  },
+  "governance": {
+    "id": "EMO-CORP-GOVERNANCE",
+    "domain": "corporate/legal",
+    "label": "Public repository governance posture",
+    "status": "OPEN / FOUNDER-LEGAL DECISION REQUIRED",
+    "statement": "Repository visibility is public, while licensing, contribution provenance and reviewer ownership are not yet established by a controlled founder/legal decision.",
+    "owner_role": "FOUNDER / QUALIFIED LEGAL-IP REVIEW",
+    "authority_refs": [
+      {
+        "kind": "issue",
+        "value": "#680"
+      }
+    ],
+    "evidence_refs": [],
+    "next_gate": "Resolve G-REPO-IP-POLICY with an explicit reviewed repository visibility, licensing, contribution and ownership policy."
+  },
+  "rights_gates": [
+    {
+      "id": "EMO-CORP-IP-PROVENANCE",
+      "domain": "legal/ip",
+      "label": "Code, contributor and brand-asset provenance",
+      "source_gate": "G-IP-PROVENANCE-01",
+      "status": "OPEN",
+      "statement": "Repository history and asset presence do not establish complete chain of title. The controlled provenance intake remains open and must preserve unresolved contributor, baseline-origin and brand-asset gaps.",
+      "owner_role": "FOUNDER / QUALIFIED LEGAL-IP REVIEW",
+      "authority_refs": [
+        {
+          "kind": "issue",
+          "value": "#114"
+        }
+      ],
+      "evidence_refs": [],
+      "next_gate": "Complete the controlled provenance register and reviewed disposition without committing sensitive agreements, signatures, identity records or private prompt transcripts."
+    },
+    {
+      "id": "EMO-CORP-THIRD-PARTY-RIGHTS",
+      "domain": "legal/data",
+      "label": "Third-party data and service rights",
+      "source_gate": "G-THIRD-PARTY-DATA-RIGHTS-01",
+      "status": "OPEN / PARTIAL HOLD",
+      "statement": "Third-party source confirmation is not product-use authorization. Item-level rights, attribution, service authority and release disposition remain open, with explicit HOLD states where the source gate requires them.",
+      "owner_role": "PRODUCT/ENGINEERING + QUALIFIED LEGAL-LICENSING REVIEW",
+      "authority_refs": [
+        {
+          "kind": "issue",
+          "value": "#116"
+        }
+      ],
+      "evidence_refs": [],
+      "next_gate": "Advance DATA-LIC-G1 through G8 with exact receipts, runtime-use classification, attribution evidence and a dated reviewed disposition."
+    },
+    {
+      "id": "EMO-CORP-REPO-IP-POLICY",
+      "domain": "legal/ip",
+      "label": "Repository IP, licence and contribution policy",
+      "source_gate": "G-REPO-IP-POLICY",
+      "status": "OPEN / FOUNDER-LEGAL DECISION REQUIRED",
+      "statement": "A public repository is not automatically open source. No licence, CLA, DCO or contribution-ownership posture is selected by this projection.",
+      "owner_role": "FOUNDER / QUALIFIED LEGAL-IP REVIEW",
+      "authority_refs": [
+        {
+          "kind": "issue",
+          "value": "#680"
+        }
+      ],
+      "evidence_refs": [],
+      "next_gate": "Record and implement the reviewed repository licensing, contribution provenance and reviewer-ownership decision without granting rights to externally controlled material."
+    }
+  ],
+  "confidentiality": {
+    "repository_visibility": "PUBLIC",
+    "safe_projection_rule": "Store only public-safe state, gate status and controlled references. Restricted evidence remains in its controlled source system.",
+    "forbidden_public_fields": [
+      "secrets_or_credentials",
+      "bank_details",
+      "private_addresses",
+      "identity_documents",
+      "signatures",
+      "raw_personal_data",
+      "confidential_supplier_material",
+      "executed_legal_originals",
+      "restricted_investor_terms",
+      "private_contract_text"
+    ]
+  }
+}

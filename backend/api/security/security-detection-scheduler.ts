@@ -162,6 +162,53 @@ export async function runSecurityDetectionSchedulerTick(
 
   try {
     return await db.transaction(async (tx): Promise<SecurityDetectionSchedulerTickResult> => {
+      const recordHealth = async <T extends SecurityDetectionSchedulerTickResult>(
+        result: T,
+      ): Promise<T> => {
+        const isSuccess = result.status === 'EVALUATED';
+        const countsAsFailure =
+          result.status === 'INITIAL_CURSOR_REQUIRED'
+          || result.status === 'SCAN_FAILED'
+          || result.status === 'LATE_EVENT_LIMIT_EXCEEDED'
+          || result.status === 'LATE_SCAN_FAILED'
+          || result.status === 'SCHEDULER_UNAVAILABLE';
+
+        await tx.execute(sql`
+          INSERT INTO security_detection_scheduler_health (
+            stream_id,
+            last_attempt_at,
+            last_success_at,
+            last_status,
+            consecutive_failures,
+            updated_at
+          )
+          VALUES (
+            ${SECURITY_DETECTION_STREAM_ID},
+            CURRENT_TIMESTAMP,
+            CASE WHEN ${isSuccess} THEN CURRENT_TIMESTAMP ELSE NULL END,
+            ${result.status},
+            CASE WHEN ${countsAsFailure} THEN 1 ELSE 0 END,
+            CURRENT_TIMESTAMP
+          )
+          ON CONFLICT (stream_id) DO UPDATE SET
+            last_attempt_at = CURRENT_TIMESTAMP,
+            last_success_at = CASE
+              WHEN ${isSuccess} THEN CURRENT_TIMESTAMP
+              ELSE security_detection_scheduler_health.last_success_at
+            END,
+            last_status = ${result.status},
+            consecutive_failures = CASE
+              WHEN ${isSuccess} THEN 0
+              WHEN ${countsAsFailure}
+                THEN security_detection_scheduler_health.consecutive_failures + 1
+              ELSE security_detection_scheduler_health.consecutive_failures
+            END,
+            updated_at = CURRENT_TIMESTAMP
+        `);
+
+        return result;
+      };
+
       const lockRows = await tx.execute(sql`
         SELECT pg_try_advisory_xact_lock(
           hashtextextended(${SECURITY_DETECTION_STREAM_ID}, 0)
@@ -169,7 +216,7 @@ export async function runSecurityDetectionSchedulerTick(
       `);
       const acquired = (lockRows[0] as { acquired?: unknown } | undefined)?.acquired === true;
       if (!acquired) {
-        return { status: 'BUSY', cursorAdvanced: false };
+        return recordHealth({ status: 'BUSY', cursorAdvanced: false });
       }
 
       const nowRows = await tx.execute(sql`SELECT CURRENT_TIMESTAMP AS now`);
@@ -177,11 +224,11 @@ export async function runSecurityDetectionSchedulerTick(
         (nowRows[0] as { now?: unknown } | undefined)?.now,
       );
       if (!databaseNow) {
-        return {
+        return recordHealth({
           status: 'SCHEDULER_UNAVAILABLE',
           cursorAdvanced: false,
           retryable: true,
-        };
+        });
       }
 
       const [cursor] = await tx
@@ -201,7 +248,10 @@ export async function runSecurityDetectionSchedulerTick(
       const windowStart = cursor?.lastSuccessfulWindowEnd.toISOString()
         ?? request.initialWindowStart;
       if (!windowStart) {
-        return { status: 'INITIAL_CURSOR_REQUIRED', cursorAdvanced: false };
+        return recordHealth({
+          status: 'INITIAL_CURSOR_REQUIRED',
+          cursorAdvanced: false,
+        });
       }
 
       const monitoringStartedAt = cursor?.monitoringStartedAt
@@ -209,12 +259,12 @@ export async function runSecurityDetectionSchedulerTick(
 
       const windowEnd = databaseNow.toISOString();
       if (Date.parse(windowEnd) <= Date.parse(windowStart)) {
-        return {
+        return recordHealth({
           status: 'WINDOW_NOT_READY',
           cursorAdvanced: false,
           windowStart,
           windowEnd,
-        };
+        });
       }
 
       const scan = await runSecurityDetectionScan({
@@ -228,13 +278,13 @@ export async function runSecurityDetectionSchedulerTick(
       const summary = summarizeSecurityDetectionRuntimeResult(scan);
 
       if (scan.status !== 'EVALUATED') {
-        return {
+        return recordHealth({
           status: 'SCAN_FAILED',
           cursorAdvanced: false,
           windowStart,
           windowEnd,
           scan: summary,
-        };
+        });
       }
 
       let historyRecords: SecurityDetectionHistoryRecord[] = [
@@ -271,13 +321,13 @@ export async function runSecurityDetectionSchedulerTick(
         .limit(request.maxEvents + 1);
 
       if (lateRows.length > request.maxEvents) {
-        return {
+        return recordHealth({
           status: 'LATE_EVENT_LIMIT_EXCEEDED',
           cursorAdvanced: false,
           windowStart,
           windowEnd,
           maxEvents: request.maxEvents,
-        };
+        });
       }
 
       let lateReevaluationDetectionCount = 0;
@@ -286,7 +336,7 @@ export async function runSecurityDetectionSchedulerTick(
         const contextWindowSeconds =
           securityDetectionContextWindowSeconds(request.policy);
         if (contextWindowSeconds === null) {
-          return {
+          return recordHealth({
             status: 'LATE_SCAN_FAILED',
             cursorAdvanced: false,
             windowStart,
@@ -300,17 +350,17 @@ export async function runSecurityDetectionSchedulerTick(
                 machine_privileged_authority_attempt: 0,
               },
             },
-          };
+          });
         }
 
         const firstLate = lateRows[0];
         const lastLate = lateRows[lateRows.length - 1];
         if (!firstLate || !lastLate) {
-          return {
+          return recordHealth({
             status: 'SCHEDULER_UNAVAILABLE',
             cursorAdvanced: false,
             retryable: true,
-          };
+          });
         }
 
         const contextWindowMs = contextWindowSeconds * 1000;
@@ -334,13 +384,13 @@ export async function runSecurityDetectionSchedulerTick(
         const lateSummary = summarizeSecurityDetectionRuntimeResult(lateScan);
 
         if (lateScan.status !== 'EVALUATED') {
-          return {
+          return recordHealth({
             status: 'LATE_SCAN_FAILED',
             cursorAdvanced: false,
             windowStart,
             windowEnd,
             scan: lateSummary,
-          };
+          });
         }
 
         lateReevaluationDetectionCount = lateSummary.detectionCount;
@@ -483,7 +533,7 @@ export async function runSecurityDetectionSchedulerTick(
           },
         });
 
-      return {
+      return recordHealth({
         status: 'EVALUATED',
         cursorAdvanced: true,
         windowStart,
@@ -494,7 +544,7 @@ export async function runSecurityDetectionSchedulerTick(
         lateEventCount: lateRows.length,
         lateReevaluationDetectionCount,
         policyRevision: scan.policyRevision,
-      };
+      });
     });
   } catch {
     return {

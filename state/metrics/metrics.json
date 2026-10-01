@@ -1,0 +1,180 @@
+{
+  "schema_version": "0.1.0",
+  "as_of": "2026-10-01",
+  "authority_mode": "METRIC_DEFINITION_AND_STATUS_PROJECTION_NOT_DOMAIN_AUTHORITY",
+  "principle": "A metric exists only if it can inform a named decision, gate or learning loop. No target is filled merely to make a dashboard look complete.",
+  "metrics": [
+    {
+      "id": "METRIC-PROOF-VELOCITY",
+      "family": "COMPANY",
+      "status": "DEFINED_NOT_MEASURED",
+      "definition": "Count of critical uncertainties that reach an evidence-backed GO, ITERATE, HOLD, REDIRECT or KILL disposition during a review period. Report the underlying transitions; do not compress them into an opaque score.",
+      "unit": "evidence_backed_state_transitions_per_review_period",
+      "value": null,
+      "target": null,
+      "authority_refs": [
+        {
+          "kind": "path",
+          "value": "docs/company/EMOPET_COMPANY_OS_ARCHITECTURE_2026-10-01.md"
+        }
+      ],
+      "decision_refs": [
+        {
+          "kind": "path",
+          "value": "state/milestones/MS-S1-PHYSICS.json"
+        }
+      ],
+      "evidence_refs": [],
+      "anti_gaming_rule": "A well-supported KILL or REDIRECT counts as learning progress. PR count, commit count and feature count do not."
+    },
+    {
+      "id": "METRIC-MAT-QUALIFICATION-RATE",
+      "family": "PHYSICS",
+      "status": "DEFINED_NOT_MEASURED",
+      "definition": "Qualification rate produced by the controlled MAT incremental-value experiment.",
+      "unit": "ratio",
+      "value": null,
+      "target": {
+        "value": null,
+        "status": "TBD_BEFORE_RUN"
+      },
+      "authority_refs": [
+        {
+          "kind": "issue",
+          "value": "#230"
+        },
+        {
+          "kind": "path",
+          "value": "state/experiments/EXP-MAT-INCREMENTAL-001.json"
+        }
+      ],
+      "decision_refs": [
+        {
+          "kind": "path",
+          "value": "state/milestones/MS-S1-PHYSICS.json"
+        }
+      ],
+      "evidence_refs": []
+    },
+    {
+      "id": "METRIC-MAT-REPEATABILITY",
+      "family": "PHYSICS",
+      "status": "DEFINED_NOT_MEASURED",
+      "definition": "Repeatability metric selected by the controlled MAT Phase 0 protocol.",
+      "unit": "CONTROLLED_PROTOCOL",
+      "value": null,
+      "target": {
+        "value": null,
+        "status": "TBD_BEFORE_RUN"
+      },
+      "authority_refs": [
+        {
+          "kind": "issue",
+          "value": "#230"
+        },
+        {
+          "kind": "path",
+          "value": "docs/validation/EMOPET_MAT_PHASE0_EXECUTION_PROTOCOL_v0.2.md"
+        }
+      ],
+      "decision_refs": [
+        {
+          "kind": "path",
+          "value": "state/experiments/EXP-MAT-INCREMENTAL-001.json"
+        }
+      ],
+      "evidence_refs": []
+    },
+    {
+      "id": "METRIC-TAG-PHYSICAL-EVIDENCE-COVERAGE",
+      "family": "PHYSICS",
+      "status": "DEFINED_NOT_MEASURED",
+      "definition": "Coverage of the coupled TAG physical-feasibility domains required by the controlled gate. This is evidence coverage, not a product-readiness percentage.",
+      "unit": "required_domains_with_controlled_evidence",
+      "value": null,
+      "target": {
+        "value": null,
+        "status": "CONTROLLED_GATE_DEFINES_COMPLETION"
+      },
+      "authority_refs": [
+        {
+          "kind": "issue",
+          "value": "#480"
+        },
+        {
+          "kind": "path",
+          "value": "state/experiments/EXP-TAG-PHYSICAL-001.json"
+        }
+      ],
+      "decision_refs": [
+        {
+          "kind": "path",
+          "value": "state/milestones/MS-S1-PHYSICS.json"
+        }
+      ],
+      "evidence_refs": []
+    },
+    {
+      "id": "METRIC-LANDED-BUNDLE-COGS",
+      "family": "ECONOMICS",
+      "status": "DEFINED_NOT_MEASURED",
+      "definition": "Sourced landed cost of the commercial hardware bundle once architecture and supplier evidence are sufficient.",
+      "unit": "EUR_per_bundle",
+      "value": null,
+      "target": null,
+      "authority_refs": [
+        {
+          "kind": "path",
+          "value": "state/finance/finance-state.json"
+        }
+      ],
+      "decision_refs": [
+        {
+          "kind": "path",
+          "value": "state/finance/fundraising/PRESEED-CONDITIONAL-2027.json"
+        }
+      ],
+      "evidence_refs": []
+    },
+    {
+      "id": "METRIC-OWNER-RECURRING-VALUE",
+      "family": "PRODUCT",
+      "status": "PROPOSED_NOT_MEASURED",
+      "definition": "Future S2 metric family for whether households repeatedly obtain and understand useful value from the narrow end-to-end product. The exact instrument and threshold remain to be controlled before use.",
+      "unit": "TBD_BY_S2_PROTOCOL",
+      "value": null,
+      "target": {
+        "value": null,
+        "status": "NOT_DEFINED"
+      },
+      "authority_refs": [
+        {
+          "kind": "path",
+          "value": "docs/strategy/CORE_CAPABILITY_AND_ACTIVATION_DOCTRINE_2026-09-07.md"
+        }
+      ],
+      "decision_refs": [],
+      "evidence_refs": []
+    },
+    {
+      "id": "METRIC-ELI-ABSTENTION",
+      "family": "TRUST",
+      "status": "DEFINED_NOT_MEASURED",
+      "definition": "Rate at which an authorized ELI path abstains or degrades rather than increasing certainty beyond available evidence. Exact production measurement remains gated.",
+      "unit": "ratio",
+      "value": null,
+      "target": {
+        "value": null,
+        "status": "NOT_DEFINED"
+      },
+      "authority_refs": [
+        {
+          "kind": "path",
+          "value": "docs/control/EMOPET_PRODUCT_AUTHORITY_MAP_v0.1.md"
+        }
+      ],
+      "decision_refs": [],
+      "evidence_refs": []
+    }
+  ]
+}

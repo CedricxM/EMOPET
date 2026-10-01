@@ -1,0 +1,59 @@
+{
+  "schema_version": "0.1.0",
+  "id": "EXP-MAT-INCREMENTAL-001",
+  "type": "experiment",
+  "stage": "S1_PHYSICS",
+  "status": "NOT_RUN",
+  "authority_mode": "INDEX_OF_EXISTING_CONTROLLED_PROTOCOL",
+  "owner_role": "Hardware/Product Validation",
+  "decision_question": "Does MAT materially improve an important V1 observation class enough to justify a second device and its BOM, setup, cleaning, placement and support burden?",
+  "authority_refs": [
+    {
+      "kind": "issue",
+      "value": "#230"
+    },
+    {
+      "kind": "path",
+      "value": "docs/validation/EMOPET_MAT_INCREMENTAL_VALUE_PROTOCOL_v0.1.md"
+    },
+    {
+      "kind": "path",
+      "value": "docs/validation/EMOPET_MAT_INCREMENTAL_VALUE_EXECUTION_2026-09-25.md"
+    },
+    {
+      "kind": "path",
+      "value": "docs/validation/EMOPET_MAT_PHASE0_EVIDENCE_MAP_v0.1.md"
+    }
+  ],
+  "comparison_arms": [
+    "TAG_ONLY",
+    "MAT_ONLY",
+    "MAT_PLUS_TAG",
+    "REFERENCE"
+  ],
+  "required_evidence": [
+    "qualification_rate",
+    "missingness",
+    "repeatability",
+    "provenance_quality",
+    "publish_degrade_reject_impact",
+    "placement_dog_size_posture_sensitivity",
+    "multi_dog_attribution_failure_modes",
+    "household_burden",
+    "commercial_comprehension"
+  ],
+  "thresholds": {
+    "status": "MUST_BE_FIXED_BY_CONTROLLED_PROTOCOL_BEFORE_RESULT_INTERPRETATION",
+    "values": null
+  },
+  "allowed_decisions": [
+    "MAT_CORE",
+    "MAT_OPTIONAL",
+    "MAT_POST_V1",
+    "MAT_REDIRECT",
+    "MAT_KILL"
+  ],
+  "current_decision": null,
+  "evidence_refs": [],
+  "anti_bias_rule": "No sunk-cost exception. Results must not be re-labelled after observation to preserve MAT."
+}

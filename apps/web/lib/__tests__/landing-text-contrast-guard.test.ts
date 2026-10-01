@@ -61,7 +61,7 @@ test('les couples de remplacement gardent au moins 4.5:1', () => {
     ['lichen sombre sur vert pâle', '#4F6F53', '#E3EAE4'],
     ['lichen sombre sur sable clair', '#4F6F53', '#FAF7F1'],
     ['pierre sur footer granit', '#D8D0C2', '#141C25'],
-    ['blanc sur terre cuite sombre', '#FFFFFF', '#A65E3F'],
+    ['blanc sur CTA terre cuite renforcé', '#FFFFFF', '#814931'],
     ['blanc sur lichen sombre', '#FFFFFF', '#4F6F53'],
     ['blanc sur granit hover', '#FFFFFF', '#1F2A36'],
   ] as const;
@@ -104,7 +104,7 @@ test('les remplacements restent présents dans les surfaces qui en ont besoin', 
   const breiz = read('components', 'landing', 'BreizConversation.tsx');
   const mockup = read('components', 'landing', 'AppMockup.tsx');
 
-  assert.match(page, /bg-\[#A65E3F\]\s+text-white/);
+  assert.match(page, /bg-\[#814931\]\s+text-white/);
   assert.match(page, /bg-\[#4F6F53\]\s+text-white/);
   assert.match(page, /placeholder-\[#5A6570\]/);
   assert.match(footer, /text-\[#D8D0C2\]/);

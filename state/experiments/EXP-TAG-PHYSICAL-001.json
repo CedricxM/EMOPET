@@ -1,0 +1,47 @@
+{
+  "schema_version": "0.1.0",
+  "id": "EXP-TAG-PHYSICAL-001",
+  "type": "experiment",
+  "stage": "S1_PHYSICS",
+  "status": "OPEN_NO_PHYSICAL_EVIDENCE_IN_REPOSITORY",
+  "authority_mode": "INDEX_OF_EXISTING_CONTROLLED_GATE",
+  "owner_role": "Hardware / Mechanical / RF / Safety",
+  "decision_question": "Does the integrated TAG remain physically feasible when battery, RF, GNSS, thermal, sealing, acoustics, charging, packing and wearability are evaluated together?",
+  "authority_refs": [
+    {
+      "kind": "issue",
+      "value": "#480"
+    },
+    {
+      "kind": "path",
+      "value": "docs/hardware/tag/TAG_COMBINED_PHYSICAL_FEASIBILITY_2026-09-25.md"
+    }
+  ],
+  "required_domains": [
+    "3D_packing",
+    "battery_capacity_and_low_temperature",
+    "peak_current",
+    "PDN_integrity",
+    "RF_keepouts",
+    "antenna_on_body_equivalent_load",
+    "GNSS_enclosure_and_body",
+    "thermal_skin_contact",
+    "acoustic_membrane_vs_sealing",
+    "IP_sealing",
+    "charging",
+    "comfort_and_wearability"
+  ],
+  "thresholds": {
+    "status": "CONTROLLED_GATE_MUST_DEFINE_NUMBERS_WHERE_REQUIRED",
+    "values": null
+  },
+  "allowed_decisions": [
+    "GO_TO_NEXT_HARDWARE_GATE",
+    "ITERATE",
+    "HOLD",
+    "REDIRECT"
+  ],
+  "current_decision": null,
+  "evidence_refs": [],
+  "prohibition": "A detailed architecture, PCB package or supplier review is not physical feasibility proof and does not authorize routing freeze or manufacturing release."
+}
