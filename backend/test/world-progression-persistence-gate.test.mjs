@@ -102,3 +102,12 @@ test('dry-run proof is explicit, disposable-only and non-authoritative', () => {
     ],
   });
 });
+
+
+test('privacy candidate remains a hard production block', () => {
+  assert.deepEqual(gate.privacyCandidateContract, {
+    path: 'config/world/world-progression-privacy-candidate-v1.json',
+    status: 'CANDIDATE_NOT_PROMOTED',
+    blocksProductionPersistence: true,
+  });
+});
