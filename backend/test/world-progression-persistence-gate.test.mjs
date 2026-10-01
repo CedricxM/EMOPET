@@ -27,7 +27,10 @@ test('every planned durable World economy table is directly Owner-linked and uni
 
   assert.deepEqual(
     gate.plannedTables.world_progression_events.uniqueKeys,
-    [['owner_id', 'idempotency_key']],
+    [
+      ['owner_id', 'idempotency_key'],
+      ['owner_id', 'event_kind', 'source_ref'],
+    ],
   );
   assert.deepEqual(
     gate.plannedTables.world_owned_items.uniqueKeys,
@@ -46,6 +49,7 @@ test('atomic build contract forbids negative balances and duplicate ownership', 
   assert.match(text, /duplicate ownership/);
   assert.match(text, /idempotent/);
   assert.match(text, /canonical server source authorization/);
+  assert.match(text, /at most once per owner and event kind/);
   assert.match(text, /exact owner and event kind/);
   assert.match(text, /fails closed/);
 });
