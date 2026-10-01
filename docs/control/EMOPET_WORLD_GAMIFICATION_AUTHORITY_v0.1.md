@@ -309,3 +309,36 @@ Changing region:
 - is not triggered by exact location, geofencing or passive movement.
 
 This preserves continuity when Breiz changes identity across regions without turning travel or movement into a reward mechanic.
+
+## G2.1 — Durable persistence foundation
+
+Status: **SCHEMA + STORE PRESENT / NOT ACTIVATED / NOT PRODUCTION AUTHORITY**.
+
+The durable foundation is now defined by:
+
+- `backend/db/migrations/0045_world_gamification_persistence.sql`;
+- `backend/db/schema/world-gamification.ts`;
+- `backend/api/services/world-progression-postgres.ts`;
+- `backend/api/services/world-build-postgres.ts`.
+
+Database invariants:
+
+- `world_progression_events` is unique by both `(owner_id, idempotency_key)` and `(owner_id, event_kind, source_ref)`;
+- `world_owned_items` is unique by `(owner_id, item_id)`;
+- `world_resource_spends` is unique by `(owner_id, idempotency_key)`;
+- all three relations are direct `users.id` foreign keys with **NO ACTION** deletion semantics;
+- balances are derived from immutable grants minus spends; there is no mutable balance table;
+- build persistence serializes per Owner and commits spend + ownership atomically;
+- persisted malformed resource maps fail closed when read.
+
+Privacy state is intentionally not promoted:
+
+- erasure disposition: **TO_CONFIRM**;
+- export disposition: **TO_CONFIRM**;
+- retention disposition: **TO_CONFIRM**;
+- subject discovery: implemented read-only counts;
+- erasure residue verification: implemented read-only probes;
+- no complete-account-erasure or complete-account-export claim is created by this foundation.
+
+No HTTP route imports the durable store in G2.1. Production writes remain inactive until issue #898 privacy/export/retention gates are explicitly resolved.
+
