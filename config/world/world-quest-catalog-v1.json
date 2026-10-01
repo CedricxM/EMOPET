@@ -1,0 +1,57 @@
+{
+  "version": "1",
+  "status": "CONTROLLED_DRAFT_NOT_PRODUCTION_AUTHORITY",
+  "progressSource": "world-progression-ledger",
+  "completionRewards": "NONE_IN_G1C",
+  "quests": [
+    {
+      "id": "learn-three",
+      "title": "Read 3 knowledge cards",
+      "eventKind": "knowledge.card_read",
+      "targetDistinctSources": 3,
+      "category": "learning"
+    },
+    {
+      "id": "local-scout-three",
+      "title": "Save 3 useful local places",
+      "eventKind": "local.place_saved",
+      "targetDistinctSources": 3,
+      "category": "local"
+    },
+    {
+      "id": "route-cartographer-two",
+      "title": "Save 2 routes",
+      "eventKind": "local.route_saved",
+      "targetDistinctSources": 2,
+      "category": "local"
+    },
+    {
+      "id": "community-seed-two",
+      "title": "Create 2 community contributions",
+      "eventKind": "community.contribution_created",
+      "targetDistinctSources": 2,
+      "category": "community"
+    },
+    {
+      "id": "join-one-world-group",
+      "title": "Join a World group",
+      "eventKind": "world.group_joined",
+      "targetDistinctSources": 1,
+      "category": "world"
+    },
+    {
+      "id": "memory-keeper-three",
+      "title": "Create 3 memories",
+      "eventKind": "memory.created",
+      "targetDistinctSources": 3,
+      "category": "memory"
+    }
+  ],
+  "antiFarming": {
+    "countDistinctSourceRefs": true,
+    "countLedgerDuplicates": false,
+    "measuredDistance": false,
+    "dogActivity": false,
+    "careOrEliSignals": false
+  }
+}
