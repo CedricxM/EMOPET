@@ -5,12 +5,15 @@
 
 CREATE TABLE world_progression_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  owner_id uuid NOT NULL REFERENCES users(id),
+  owner_id uuid NOT NULL,
   idempotency_key varchar(128) NOT NULL,
   event_kind varchar(100) NOT NULL,
   source_ref varchar(160) NOT NULL,
   grants_json jsonb NOT NULL,
   recorded_at timestamptz NOT NULL DEFAULT now(),
+
+  CONSTRAINT world_progression_events_owner_id_users_id_fk
+    FOREIGN KEY (owner_id) REFERENCES users(id),
 
   CONSTRAINT uq_world_progression_events_owner_idempotency
     UNIQUE (owner_id, idempotency_key),
@@ -64,10 +67,13 @@ CREATE INDEX idx_world_progression_events_owner_recorded
 
 CREATE TABLE world_owned_items (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  owner_id uuid NOT NULL REFERENCES users(id),
+  owner_id uuid NOT NULL,
   item_id varchar(160) NOT NULL,
   region_code varchar(16) NOT NULL,
   built_at timestamptz NOT NULL DEFAULT now(),
+
+  CONSTRAINT world_owned_items_owner_id_users_id_fk
+    FOREIGN KEY (owner_id) REFERENCES users(id),
 
   CONSTRAINT uq_world_owned_items_owner_item
     UNIQUE (owner_id, item_id),
@@ -87,11 +93,14 @@ CREATE INDEX idx_world_owned_items_owner_built
 
 CREATE TABLE world_resource_spends (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  owner_id uuid NOT NULL REFERENCES users(id),
+  owner_id uuid NOT NULL,
   idempotency_key varchar(128) NOT NULL,
   item_id varchar(160) NOT NULL,
   cost_json jsonb NOT NULL,
   recorded_at timestamptz NOT NULL DEFAULT now(),
+
+  CONSTRAINT world_resource_spends_owner_id_users_id_fk
+    FOREIGN KEY (owner_id) REFERENCES users(id),
 
   CONSTRAINT uq_world_resource_spends_owner_idempotency
     UNIQUE (owner_id, idempotency_key),
