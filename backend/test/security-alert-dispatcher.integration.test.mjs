@@ -153,13 +153,7 @@ test('two concurrent workers call the adapter once for one unattempted alert', {
   const rows = await sql`
     SELECT state, provider_receipt_ref
     FROM security_alert_delivery_attempts
-    WHERE alert_id = ${results.find((r) => r.status === 'DELIVERED')?.attemptId
-      ? (await sql`
-          SELECT alert_id
-          FROM security_alert_delivery_attempts
-          WHERE attempt_id = ${results.find((r) => r.status === 'DELIVERED').attemptId}
-        `)[0].alert_id
-      : null}
+    WHERE attempt_id IN (${ATTEMPT_A}, ${ATTEMPT_B})
   `;
   assert.equal(rows.length, 1);
   assert.equal(rows[0].state, 'DELIVERED');
