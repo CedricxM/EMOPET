@@ -88,5 +88,6 @@ test('web action inventory remains a compile-time subset of canonical privileged
     'admin.data.read',
     'contact.request.manage',
     'moderation.post.manage',
+    'security.incident.coordinate',
   ]);
 });

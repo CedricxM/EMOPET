@@ -10,8 +10,10 @@ import { authorizePrivilegedRequest } from '../privileged-request';
 
 const ADMIN_ID = '11111111-1111-4111-8111-111111111111';
 const SUPPORT_ID = '22222222-2222-4222-8222-222222222222';
+const OPERATOR_ID = '33333333-3333-4333-8333-333333333333';
 const ACTION = 'moderation.queue.read' as const;
 const CONTACT_ACTION = 'contact.request.read' as const;
+const INCIDENT_COORDINATE_ACTION = 'security.incident.coordinate' as const;
 const NOW = new Date('2026-09-04T10:00:00.000Z');
 const MFA_AT = new Date('2026-09-04T09:58:00.000Z');
 const KEY = {
@@ -98,6 +100,77 @@ test('canonical adapter enforces contact.request.read through the same package a
       subject: SUPPORT_ID,
       role: 'support',
       action: CONTACT_ACTION,
+    },
+  );
+});
+
+test('canonical adapter authorizes incident coordination for operator/admin and denies support', async () => {
+  const operatorToken = await signPrivilegedAccessToken({
+    subject: OPERATOR_ID,
+    role: 'operator',
+    mfaMethod: 'totp',
+    mfaVerifiedAt: MFA_AT,
+    tokenTtlSeconds: 600,
+    key: KEY,
+    now: NOW,
+  });
+  const adminToken = await signPrivilegedAccessToken({
+    subject: ADMIN_ID,
+    role: 'admin',
+    mfaMethod: 'webauthn',
+    mfaVerifiedAt: MFA_AT,
+    tokenTtlSeconds: 600,
+    key: KEY,
+    now: NOW,
+  });
+  const supportToken = await signPrivilegedAccessToken({
+    subject: SUPPORT_ID,
+    role: 'support',
+    mfaMethod: 'idp_mfa',
+    mfaVerifiedAt: MFA_AT,
+    tokenTtlSeconds: 600,
+    key: KEY,
+    now: NOW,
+  });
+
+  assert.deepEqual(
+    await authorizePrivilegedRequest(
+      requestWith(operatorToken),
+      INCIDENT_COORDINATE_ACTION,
+      verifierFor(),
+    ),
+    {
+      status: 'AUTHORIZED',
+      subject: OPERATOR_ID,
+      role: 'operator',
+      action: INCIDENT_COORDINATE_ACTION,
+    },
+  );
+  assert.deepEqual(
+    await authorizePrivilegedRequest(
+      requestWith(adminToken),
+      INCIDENT_COORDINATE_ACTION,
+      verifierFor(),
+    ),
+    {
+      status: 'AUTHORIZED',
+      subject: ADMIN_ID,
+      role: 'admin',
+      action: INCIDENT_COORDINATE_ACTION,
+    },
+  );
+  assert.deepEqual(
+    await authorizePrivilegedRequest(
+      requestWith(supportToken),
+      INCIDENT_COORDINATE_ACTION,
+      verifierFor(),
+    ),
+    {
+      status: 'DENIED',
+      reason: 'not_authorized',
+      subject: SUPPORT_ID,
+      role: 'support',
+      action: INCIDENT_COORDINATE_ACTION,
     },
   );
 });
