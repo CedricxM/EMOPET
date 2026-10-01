@@ -78,6 +78,11 @@ jobs:
           scripts/hardware/tag-source-coherence.test.mjs
           scripts/security/summarize-pnpm-licenses.test.mjs
 
+      - name: Build backend for C-BARQ G9 guard
+        run: |
+          pnpm --filter '@emopet/api^...' build
+          pnpm --filter @emopet/api build
+
       - name: Run C-BARQ G9 sensor embargo guard on Windows
         working-directory: backend
         run: node --test test/instrument-sensor-embargo.test.mjs
