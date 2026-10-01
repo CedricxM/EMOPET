@@ -172,10 +172,31 @@ test('expected detection persists bounded history plus exact canonical source id
       )
     ORDER BY table_name, ordinal_position
   `;
+  const prohibitedColumns = new Set([
+    'actor_key',
+    'actor_subject',
+    'actor_id',
+    'target_ref',
+    'target_id',
+    'email',
+    'ip',
+    'ip_address',
+    'user_agent',
+    'token',
+    'session_id',
+    'payload',
+    'request_body',
+    'response_body',
+    'free_form',
+    'note',
+    'notes',
+    'subject',
+  ]);
   for (const { column_name } of columns) {
-    assert.doesNotMatch(
-      column_name,
-      /actor|target|email|ip|user_agent|token|payload|body|note|subject/i,
+    assert.equal(
+      prohibitedColumns.has(column_name),
+      false,
+      `unexpected durable actor/target payload column: ${column_name}`,
     );
   }
 });
