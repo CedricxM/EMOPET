@@ -60,11 +60,13 @@ Required properties:
 1. reward amount is derived from the server-owned catalogue, never from caller input;
 2. every event is Owner-scoped;
 3. every event has a bounded source reference;
-4. every event has an idempotency key;
-5. a durable store must enforce uniqueness equivalent to `(owner_id, idempotency_key)`;
-6. a replay of the same logical event is a no-op and returns the existing entry;
-7. reuse of an idempotency key for a different logical event fails closed;
-8. no arbitrary metadata payload is accepted by this first slice.
+4. syntax is not evidence: a mandatory server-side source authority must verify that the canonical source exists and is valid for the exact Owner + event kind before any ledger insert;
+5. source-authority denial or unavailability fails closed before resources are granted;
+6. every event has an idempotency key;
+7. a durable store must enforce uniqueness equivalent to `(owner_id, idempotency_key)`;
+8. a replay of the same logical event is a no-op and returns the existing entry;
+9. reuse of an idempotency key for a different logical event fails closed;
+10. no arbitrary metadata payload is accepted by this first slice.
 
 The checked-in in-memory store is **test/dev only** and throws in `NODE_ENV=production`.
 
@@ -99,6 +101,7 @@ The next UI integration must consume the World progression contract rather than 
 - Dog/Care/ELI-derived reward families are deny-listed.
 - Caller cannot submit reward quantities.
 - Ledger semantics are idempotent and conflict-safe.
+- A syntactically valid source reference cannot grant progression without canonical server authorization.
 - In-memory implementation cannot become production authority accidentally.
 - Backend tests guard the machine-readable authority.
 - No migration, UI or active route is introduced by this slice.
@@ -115,7 +118,8 @@ Quest progress is a read model over already-authorized ledger entries. It does n
 
 Anti-farming rules:
 
-- only distinct `sourceRef` values count toward a quest;
+- only distinct **server-authorized** `sourceRef` values count toward a quest;
+- quest projection requires one explicit Owner scope and rejects any mixed-owner ledger row;
 - duplicate ledger rows do not increase progress;
 - progress is capped at the quest target;
 - completion grants no bonus resource in G1C;
@@ -189,6 +193,7 @@ The API-ready read model is implemented in:
 
 It composes:
 
+- one explicit Owner scope;
 - safe World resource balances;
 - ledger-derived quest progress;
 - coarse regional identity;
@@ -196,7 +201,7 @@ It composes:
 - owned-item state;
 - affordability.
 
-It deliberately excludes XP, levels, ranks, streaks, dog scores, health scores, relationship scores, ELI values, sensor values and exact location.
+It deliberately excludes XP, levels, ranks, streaks, dog scores, health scores, relationship scores, ELI values, sensor values and exact location. Quest projection fails closed if a ledger row belongs to another Owner.
 
 This snapshot is the intended future UI/API seam. The web and Unity clients should consume one governed snapshot rather than independently recalculating progression rules.
 
