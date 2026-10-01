@@ -12,6 +12,7 @@ function readJson(path) {
 const release = readJson('config/release/production-release-evidence-contract-v1.json');
 const migration = readJson('config/release/production-db-migration-authority-v1.json');
 const runtimeConfig = readJson('config/release/production-runtime-config-authority-v1.json');
+const environmentAuthority = readJson('config/release/production-environment-authority-v1.json');
 const p0Workflow = readFileSync(
   resolve(root, '.github', 'workflows', 'p0-db-baseline.yml'),
   'utf8',
@@ -60,6 +61,15 @@ test('production release contract remains non-authorizing by default', () => {
   assert.equal(release.releaseReceiptTemplate.environment.name, null);
   assert.equal(release.releaseReceiptTemplate.releaseOwner.role, null);
   assert.equal(
+    release.releaseReceiptTemplate.approval.independentRequired,
+    true,
+  );
+  assert.equal(
+    release.releaseReceiptTemplate.approval.approverRole,
+    'independent_approver',
+  );
+  assert.equal(release.releaseReceiptTemplate.approval.approverRef, null);
+  assert.equal(
     release.releaseReceiptTemplate.databaseMigration.disposition,
     'UNVERIFIED',
   );
@@ -76,6 +86,91 @@ test('production release contract remains non-authorizing by default', () => {
     release.releaseReceiptTemplate.backupRestore.disposition,
     'UNVERIFIED',
   );
+});
+
+test('production environment and release-owner authority stays fail-closed', () => {
+  assert.equal(
+    environmentAuthority.schemaVersion,
+    'emopet-production-environment-authority-v1',
+  );
+  assert.match(
+    environmentAuthority.status,
+    /NO_ENVIRONMENT_CONFIGURED.*RELEASE_ROLES_UNASSIGNED/,
+  );
+  assert.equal(environmentAuthority.issue, 831);
+  assert.equal(environmentAuthority.claimsEnvironmentConfigured, false);
+  assert.equal(environmentAuthority.claimsProductionPromotionAuthority, false);
+  assert.equal(environmentAuthority.claimsNamedReleaseOwner, false);
+
+  assert.deepEqual(
+    environmentAuthority.canonicalEnvironments.map((entry) => entry.name),
+    ['development', 'staging', 'production'],
+  );
+  assert.equal(
+    environmentAuthority.releaseRoles.releaseOwner.symbolicRole,
+    'release_owner',
+  );
+  assert.equal(environmentAuthority.releaseRoles.releaseOwner.assignment, null);
+  assert.equal(
+    environmentAuthority.releaseRoles.independentApprover.symbolicRole,
+    'independent_approver',
+  );
+  assert.equal(
+    environmentAuthority.releaseRoles.independentApprover.requiredForProduction,
+    true,
+  );
+  assert.equal(
+    environmentAuthority.releaseRoles.independentApprover.assignment,
+    null,
+  );
+  assert.equal(
+    environmentAuthority.productionPromotion.requiresIndependentApproval,
+    true,
+  );
+
+  includesAll(
+    environmentAuthority.requiredAuthorityReceiptFields,
+    [
+      'environment.name',
+      'environment.authorityRef',
+      'releaseOwner.role',
+      'releaseOwner.reviewRef',
+      'approval.independentRequired',
+      'approval.approverRole',
+      'approval.approverRef',
+      'reviewedAt',
+    ],
+    'environmentAuthority.requiredAuthorityReceiptFields',
+  );
+
+  assert.equal(
+    environmentAuthority.authorityReceiptTemplate.state,
+    'DRAFT_UNVERIFIED',
+  );
+  assert.equal(
+    environmentAuthority.authorityReceiptTemplate.environment.authorityRef,
+    null,
+  );
+  assert.equal(
+    environmentAuthority.authorityReceiptTemplate.releaseOwner.reviewRef,
+    null,
+  );
+  assert.equal(
+    environmentAuthority.authorityReceiptTemplate.approval.approverRef,
+    null,
+  );
+
+  const production = environmentAuthority.canonicalEnvironments
+    .find((entry) => entry.name === 'production');
+  assert.match(
+    production.githubActionsRequirement,
+    /NAMED_PROTECTED_GITHUB_ENVIRONMENT_REQUIRED/,
+  );
+
+  const rules = environmentAuthority.failClosedRules.join('\n');
+  assert.match(rules, /No environment is configured or production-authorized/i);
+  assert.match(rules, /Independent approval is required/i);
+  assert.match(rules, /Repository authorship.*does not assign/i);
 });
 
 test('production release receipt cannot drop immutable identity or readiness evidence', () => {
@@ -97,6 +192,9 @@ test('production release receipt cannot drop immutable identity or readiness evi
       'environment.authorityRef',
       'releaseOwner.role',
       'releaseOwner.reviewRef',
+      'approval.independentRequired',
+      'approval.approverRole',
+      'approval.approverRef',
       'databaseMigration.disposition',
       'databaseMigration.evidenceRef',
       'runtimeConfig.disposition',
