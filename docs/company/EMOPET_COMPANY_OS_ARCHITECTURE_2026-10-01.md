@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-01  
 **Status:** `PROPOSED COMPANY CONTROL PLANE / DOES NOT REPLACE DOMAIN AUTHORITIES`  
-**Branch base:** `main@7642323643d99737bbbc98763b7d8739bff58083`
+**Branch base:** `main@efc86354dc2179d45bae7152ebb203c93f225da0`
 
 ## 1. Purpose
 
@@ -174,6 +174,7 @@ Both views fail closed: missing data remains missing, planning remains planning,
 | `SUPPLIER_VIEW.md` | Generated redacted public-safe supplier orientation | V2 derived view; not procurement, specification-freeze or release authority |
 | `TIME_MACHINE.md` | Generated append-only transition chronology | V2 history view; not decision or domain authority |
 | `state/history/company-transitions.jsonl` | Canonical append-only Company OS transition ledger | V2 historical record; corrections append, never rewrite |
+| `state/history/pending-transition-proposals.json` | Committed review-only proposal queue | V2 proposal staging; not ledger or decision authority |
 | `state/freshness/freshness-state.json` | Machine-readable freshness overlay | V2 projection with decision-use guardrails |
 | `state/schemas/registry-schema-map.json` | Registry → JSON Schema contract map | V2 structural contract; not domain authority |
 | `EXPERIMENTS.md` | Hypothesis → test → result → decision ledger | V1 projection/index |
@@ -244,6 +245,20 @@ The Company Time Machine now uses `state/history/company-transitions.jsonl` as a
 
 The bootstrap event marks the start of controlled transition logging and does not claim exhaustive reconstruction of pre-ledger history.
 
+### Review-only transition proposals
+
+`scripts/control/propose-company-transitions.mjs` derives deterministic review proposals from differences between controlled Company OS state at a pull-request base and the candidate state.
+
+The proposal layer MUST remain weaker than the append-only ledger:
+
+- a proposal is always `REVIEW_REQUIRED`;
+- `append_ready` is always `false`;
+- no proposal is a founder, legal, product, scientific, funding or release decision;
+- CI may generate and preserve proposal artifacts, but it MUST NOT append to `company-transitions.jsonl`;
+- explicit human review remains required before a separate append-only transition event is created.
+
+Tracked diffs cover stable Company OS object IDs and material state fields such as status, decision, freshness, stage, classification, measured value and controlling refs. Duplicate controlled IDs fail closed instead of being silently overwritten. Missing or untracked meaning is not inferred.
+
 ## 11. Confidentiality boundary
 
 The repository is public. Therefore the Company OS MUST NOT contain:
@@ -276,10 +291,10 @@ Any AI agent doing substantive EMOPET work should:
 
 V1 includes the company front door, machine-readable state, milestone/experiment/finance/metrics/risk/unknowns registries, and an every-PR structural evidence guard.
 
-V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, deterministic human views generated from machine-readable state, a public-safe founder cockpit, redacted investor/supplier views, and an append-only Company Time Machine transition ledger. Freshness remains conservative, and structural, presentation or historical-record validity never substitutes for domain evidence or authority.
+V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, deterministic human views generated from machine-readable state, a public-safe founder cockpit, redacted investor/supplier views, an append-only Company Time Machine transition ledger, and review-only transition proposals generated from controlled state diffs. Freshness remains conservative, and structural, presentation, historical-record or proposal validity never substitutes for domain evidence or authority.
 
 Next bounded slices should add, in order:
 
-1. automated transition proposals derived from controlled state diffs, requiring explicit review before ledger append.
+1. an explicit reviewed-proposal acceptance path that prepares, but never auto-merges, a ledger append for human approval.
 
 Each slice must remain incremental and must not manufacture certainty to make the cockpit look complete.
