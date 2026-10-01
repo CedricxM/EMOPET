@@ -5,7 +5,7 @@
  * language. It never creates scientific/legal authority by itself.
  */
 
-export const MOTSPET_REVISION = 'motspet-v0.2-seed-2026-10-01' as const;
+export const MOTSPET_REVISION = 'motspet-v0.3-seed-2026-10-01' as const;
 
 export type MotsPetDomain =
   | 'care'
@@ -123,6 +123,118 @@ export const MOTSPET_ENTRIES: readonly MotsPetEntry[] = [
     publicEn: 'source',
     definitionFr:
       'Origine déclarée de l’information ou de la mesure présentée à l’utilisateur.',
+    prohibitedPublicTerms: [],
+    requiresProvenance: true,
+    authorityPaths: [CARE_AUTHORITY],
+    status: 'CONTROLLED_SEED',
+    ...internalReview,
+  },
+  {
+    id: 'context',
+    domain: 'care',
+    internalTerms: ['context', 'observation_context'],
+    publicFr: 'contexte',
+    publicEn: 'context',
+    definitionFr:
+      'Circonstances bornées dans lesquelles une observation ou une note est située. Le contexte ne constitue pas, à lui seul, une cause.',
+    prohibitedPublicTerms: ['cause certaine', 'preuve de causalité'],
+    requiresProvenance: true,
+    authorityPaths: [CARE_AUTHORITY, EXPERIENCE_AUTHORITY],
+    status: 'CONTROLLED_SEED',
+    ...internalReview,
+  },
+  {
+    id: 'time_window',
+    domain: 'care',
+    internalTerms: ['time_window', 'observation_window', 'capture_window'],
+    publicFr: 'fenêtre de temps',
+    publicEn: 'time window',
+    definitionFr:
+      'Intervalle temporel explicitement associé à une observation ou à une capture.',
+    prohibitedPublicTerms: ['toujours', 'jamais'],
+    requiresProvenance: true,
+    authorityPaths: [CARE_AUTHORITY],
+    status: 'CONTROLLED_SEED',
+    ...internalReview,
+  },
+  {
+    id: 'individual_reference',
+    domain: 'science',
+    internalTerms: ['individual_reference', 'contextual_reference', 'baseline_reference'],
+    publicFr: 'référence individuelle',
+    publicEn: 'individual reference',
+    definitionFr:
+      'Repère longitudinal propre au chien et au contexte autorisé, utilisé comme comparaison sans classement entre chiens.',
+    prohibitedPublicTerms: ['norme universelle', 'chien normal', 'classement', 'percentile de race'],
+    requiresProvenance: true,
+    authorityPaths: [CARE_AUTHORITY, EXPERIENCE_AUTHORITY],
+    status: 'CONTROLLED_SEED',
+    ...internalReview,
+  },
+  {
+    id: 'limits',
+    domain: 'science',
+    internalTerms: ['limits', 'interpretation_limits', 'cannot_conclude'],
+    publicFr: 'limites',
+    publicEn: 'limits',
+    definitionFr:
+      'Ce que les données et le contexte disponibles ne permettent pas de conclure.',
+    prohibitedPublicTerms: ['preuve absolue', 'certitude totale'],
+    requiresProvenance: false,
+    authorityPaths: [CARE_AUTHORITY, EXPERIENCE_AUTHORITY],
+    status: 'CONTROLLED_SEED',
+    ...internalReview,
+  },
+  {
+    id: 'publication_state',
+    domain: 'science',
+    internalTerms: ['publication_state', 'publication_decision', 'eligibility_state'],
+    publicFr: 'état de publication',
+    publicEn: 'publication state',
+    definitionFr:
+      'État indiquant si une observation peut être présentée, dégradée ou supprimée selon les règles de qualité et de confiance.',
+    prohibitedPublicTerms: ['validation clinique', 'validation scientifique automatique'],
+    requiresProvenance: true,
+    authorityPaths: [CARE_AUTHORITY],
+    status: 'CONTROLLED_SEED',
+    ...internalReview,
+  },
+  {
+    id: 'device_state',
+    domain: 'product',
+    internalTerms: ['device_state', 'mat_state', 'tag_state'],
+    publicFr: 'état du dispositif',
+    publicEn: 'device state',
+    definitionFr:
+      'État technique du MAT ou du TAG, distinct d’un état biologique ou médical du chien.',
+    prohibitedPublicTerms: ['état de santé', 'diagnostic'],
+    requiresProvenance: true,
+    authorityPaths: [CARE_AUTHORITY, EXPERIENCE_AUTHORITY],
+    status: 'CONTROLLED_SEED',
+    ...internalReview,
+  },
+  {
+    id: 'signal_quality',
+    domain: 'science',
+    internalTerms: ['signal_quality', 'data_quality', 'capture_quality'],
+    publicFr: 'qualité du signal',
+    publicEn: 'signal quality',
+    definitionFr:
+      'Qualification de la qualité des données ou du signal avant toute décision d’inférence ou de publication.',
+    prohibitedPublicTerms: ['qualité du bien-être', 'état émotionnel'],
+    requiresProvenance: true,
+    authorityPaths: [CARE_AUTHORITY, EXPERIENCE_AUTHORITY],
+    status: 'CONTROLLED_SEED',
+    ...internalReview,
+  },
+  {
+    id: 'model_version',
+    domain: 'science',
+    internalTerms: ['model_version', 'inference_version', 'pipeline_version'],
+    publicFr: 'version du modèle',
+    publicEn: 'model version',
+    definitionFr:
+      'Version déclarée du modèle ou de la logique d’inférence ayant contribué à l’observation publiée.',
     prohibitedPublicTerms: [],
     requiresProvenance: true,
     authorityPaths: [CARE_AUTHORITY],
