@@ -2,7 +2,7 @@
 
 **Status:** CONTROLLED DRAFT / NOT PRODUCTION AUTHORITY  
 **Date:** 2026-10-01  
-**Scope:** G1A authority + G1B ledger core only
+**Scope:** G1A authority + G1B ledger core + G1C quest projection
 
 ## 1. Product decision
 
@@ -102,3 +102,25 @@ The next UI integration must consume the World progression contract rather than 
 - In-memory implementation cannot become production authority accidentally.
 - Backend tests guard the machine-readable authority.
 - No migration, UI or active route is introduced by this slice.
+
+
+## 8. G1C quest projection
+
+The first quest projection is implemented in:
+
+- `config/world/world-quest-catalog-v1.json`
+- `backend/api/services/world-quest-projection.ts`
+
+Quest progress is a read model over already-authorized ledger entries. It does not ingest Care, ELI, sensor or dog-performance inputs directly.
+
+Anti-farming rules:
+
+- only distinct `sourceRef` values count toward a quest;
+- duplicate ledger rows do not increase progress;
+- progress is capped at the quest target;
+- completion grants no bonus resource in G1C;
+- measured distance and dog activity do not participate.
+
+The initial quest catalogue covers learning, local discovery, explicit saved routes, Community contribution, World group joining and deliberate Memories.
+
+The UI remains intentionally untouched until the runtime source of truth and persistence gate are ready.
