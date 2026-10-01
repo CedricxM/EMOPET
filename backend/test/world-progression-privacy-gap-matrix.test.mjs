@@ -85,15 +85,39 @@ test('candidate lifecycle decisions remain unresolved and cannot silently promot
   assert.equal(candidate.claims.durableProductionPersistence, false);
 });
 
-test('non-SQL World progression erasure evidence is explicitly still missing', async () => {
-  const text = await readRepoText(matrix.nonSqlSurface.path);
-  const hasPlannedTable = matrix.plannedTables.some((table) => text.includes(table));
-  const hasWorldProgressionDecision = /world[ _-]?progression/i.test(text);
+test('non-SQL World progression evidence remains blocked and legacy browser gamification is explicitly observed', async () => {
+  const inventoryText = await readRepoText(matrix.nonSqlSurface.path);
+  const hasPlannedTable = matrix.plannedTables.some((table) => inventoryText.includes(table));
+  const hasWorldProgressionDecision = /world[ _-]?progression/i.test(inventoryText);
 
-  assert.equal(matrix.nonSqlSurface.currentWorldProgressionDecision, 'ABSENT');
+  assert.equal(
+    matrix.nonSqlSurface.currentWorldProgressionDecision,
+    'ACTIVE_INVENTORY_DECISION_ABSENT_LEGACY_RUNTIME_PRESENT',
+  );
   assert.equal(matrix.nonSqlSurface.requiredBeforePromotion, true);
   assert.equal(hasPlannedTable, false);
   assert.equal(hasWorldProgressionDecision, false);
+
+  assert.equal(matrix.nonSqlSurface.observedLegacyRuntimeSurfaces.length, 1);
+  const legacy = matrix.nonSqlSurface.observedLegacyRuntimeSurfaces[0];
+  assert.equal(legacy.path, 'apps/web/lib/gamification.ts');
+  assert.equal(legacy.mechanism, 'localStorage');
+  assert.equal(legacy.status, 'LEGACY_NON_SQL_GAMIFICATION_PRESENT');
+  assert.equal(
+    legacy.promotionTreatment,
+    'RETIRE_MIGRATE_OR_EXPLICITLY_EXCLUDE_FROM_G1B2_AUTHORITY',
+  );
+
+  const legacySource = await readRepoText(legacy.path);
+  assert.match(legacySource, /localStorage\.getItem/);
+  assert.match(legacySource, /localStorage\.setItem/);
+  for (const key of legacy.observedKeys) {
+    assert.equal(
+      legacySource.includes(key),
+      true,
+      `legacy gamification evidence key ${key} disappeared; review the gap rather than silently clearing it`,
+    );
+  }
 });
 
 test('gap matrix names every promotion question from the G1B.2 privacy candidate', () => {
