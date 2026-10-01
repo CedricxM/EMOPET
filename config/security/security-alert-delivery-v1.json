@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "emopet-security-alert-delivery-v1",
+  "issue": 854,
+  "parentIssue": 526,
+  "status": "PROVIDER_NEUTRAL_MINIMIZED_ENVELOPE / NO_DELIVERY_ACTIVATION",
+  "source": "security-alert-v1",
+  "durableReference": "security_detection_history.detection_id",
+  "allowedFields": [
+    "schemaVersion",
+    "sourceDetectionHistoryId",
+    "sourceDetectionType",
+    "severity",
+    "primaryOwner",
+    "detectedAt",
+    "acknowledgeBy",
+    "escalationOwner",
+    "escalateAt"
+  ],
+  "forbiddenProviderPayloadFields": [
+    "sourceActorKey",
+    "targetRef",
+    "auditEventPayload",
+    "email",
+    "phone",
+    "webhook",
+    "channel",
+    "destination",
+    "token",
+    "message",
+    "body",
+    "note"
+  ],
+  "nonEffects": {
+    "providerSelected": false,
+    "deliveryActivated": false,
+    "routingRosterSelected": false,
+    "acknowledgementIngestionActivated": false,
+    "slaApproved": false,
+    "httpRouteAdded": false
+  }
+}
