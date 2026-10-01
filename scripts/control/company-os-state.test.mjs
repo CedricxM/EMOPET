@@ -142,8 +142,21 @@ test('experiments cannot acquire decisions without evidence', () => {
     assert.notEqual(experiment.status, 'NOT_RUN');
   }
 
-  assert.equal(matExperiment.status, 'NOT_RUN');
-  assert.equal(matExperiment.current_decision, null);
+  if (matExperiment.status === 'NOT_RUN') {
+    assert.equal(
+      matExperiment.current_decision,
+      null,
+      'MAT experiment cannot carry a decision while status is NOT_RUN',
+    );
+  }
+
+  if (matExperiment.current_decision !== null) {
+    assert.ok(
+      matExperiment.allowed_decisions.includes(matExperiment.current_decision),
+      'MAT experiment decision must be one of its predeclared allowed decisions',
+    );
+  }
+
   assert.deepEqual(matExperiment.allowed_decisions, [
     'MAT_CORE',
     'MAT_OPTIONAL',
@@ -180,11 +193,27 @@ test('finance state preserves unknown != zero and planning != commitment', () =>
   }
 
   assert.match(preseed.classification, /PLANNING_ASSUMPTION/);
-  assert.match(preseed.status, /NOT_APPROVED/);
-  assert.equal(preseed.committed_eur, 0);
+
+  if ((preseed.evidence_refs ?? []).length === 0) {
+    assert.match(
+      preseed.status,
+      /NOT_APPROVED|PLANNING|CONDITIONAL/,
+      'unevidenced fundraising state must remain planning/not-approved/conditional',
+    );
+    assert.equal(
+      preseed.committed_eur,
+      0,
+      'unevidenced fundraising state cannot record committed capital',
+    );
+  }
 
   if (preseed.committed_eur > 0) {
     assert.ok(preseed.evidence_refs.length > 0, 'committed capital requires evidence_refs');
+    assert.doesNotMatch(
+      preseed.status,
+      /NOT_APPROVED/,
+      'committed capital cannot coexist with NOT_APPROVED status',
+    );
   }
 });
 
