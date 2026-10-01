@@ -297,6 +297,7 @@ The transition contract is defined in:
 
 Changing region:
 
+- requires one explicit Owner scope and rejects owned-item rows from any other Owner;
 - changes the active regional collection;
 - never grants resources;
 - never resets earned resources;
