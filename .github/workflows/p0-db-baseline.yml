@@ -3,6 +3,13 @@ name: P0 DB baseline validation
 on:
   pull_request:
     paths:
+      - 'backend/**'
+      - 'packages/**'
+      - 'config/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'turbo.json'
       - 'backend/db/**'
       - 'backend/api/routes/auth.ts'
       - 'backend/api/middleware/auth.ts'
