@@ -178,7 +178,9 @@ Properties:
 - insufficient resources spend nothing;
 - an item outside the selected collection cannot be built;
 - input balance and owned-item state are never mutated;
-- duplicate owned ids are canonicalized.
+- build resource state and ownership rows are scoped to one explicit Owner;
+- foreign-Owner state fails closed;
+- duplicate owned-item rows fail closed instead of hiding persistence corruption.
 
 This is a deterministic projection, not durable transaction authority.
 
