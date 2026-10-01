@@ -6,7 +6,10 @@
     "world_progression_events": {
       "ownerReference": "users.id",
       "uniqueKeys": [
-        ["owner_id", "idempotency_key"]
+        [
+          "owner_id",
+          "idempotency_key"
+        ]
       ],
       "requiredColumns": [
         "id",
@@ -21,7 +24,10 @@
     "world_owned_items": {
       "ownerReference": "users.id",
       "uniqueKeys": [
-        ["owner_id", "item_id"]
+        [
+          "owner_id",
+          "item_id"
+        ]
       ],
       "requiredColumns": [
         "id",
@@ -34,7 +40,10 @@
     "world_resource_spends": {
       "ownerReference": "users.id",
       "uniqueKeys": [
-        ["owner_id", "idempotency_key"]
+        [
+          "owner_id",
+          "idempotency_key"
+        ]
       ],
       "requiredColumns": [
         "id",
@@ -47,6 +56,7 @@
     }
   },
   "transactionRules": [
+    "Progression insert requires successful canonical server source authorization for the exact Owner and event kind; denial or authority unavailability fails closed.",
     "Reward replay with the same logical event is idempotent.",
     "Idempotency-key reuse for a different logical event fails closed.",
     "Build checks balance, records spend and creates ownership in one database transaction.",
