@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EMOPET Company OS Critical Unknowns Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "as_of",
+    "authority_mode",
+    "principle",
+    "unknowns"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "as_of": {
+      "type": "string",
+      "format": "date"
+    },
+    "authority_mode": {
+      "type": "string",
+      "minLength": 1
+    },
+    "principle": {
+      "type": "string",
+      "minLength": 1
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status",
+          "decision_leverage",
+          "question",
+          "cost_to_reduce",
+          "time_to_reduce",
+          "authority_refs",
+          "next_evidence_refs",
+          "evidence_refs"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^UNKNOWN-[A-Z0-9-]+$"
+          },
+          "status": {
+            "type": "string",
+            "minLength": 1
+          },
+          "decision_leverage": {
+            "type": "string",
+            "minLength": 1
+          },
+          "question": {
+            "type": "string",
+            "minLength": 1
+          },
+          "cost_to_reduce": {
+            "$ref": "#/$defs/estimate"
+          },
+          "time_to_reduce": {
+            "$ref": "#/$defs/estimate"
+          },
+          "authority_refs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/ref"
+            }
+          },
+          "next_evidence_refs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/ref"
+            }
+          },
+          "evidence_refs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/ref"
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "value"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "path",
+            "issue",
+            "pr",
+            "commit",
+            "external"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "estimate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "status"
+      ],
+      "properties": {
+        "value": {
+          "type": [
+            "number",
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
