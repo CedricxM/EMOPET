@@ -20,6 +20,9 @@ const paths = {
   tagExperiment: 'state/experiments/EXP-TAG-PHYSICAL-001.json',
   finance: 'state/finance/finance-state.json',
   preseed: 'state/finance/fundraising/PRESEED-CONDITIONAL-2027.json',
+  metrics: 'state/metrics/metrics.json',
+  risks: 'state/risks/risk-register.json',
+  unknowns: 'state/unknowns/critical-unknowns.json',
 };
 
 const company = readJson(paths.company);
@@ -28,6 +31,9 @@ const matExperiment = readJson(paths.matExperiment);
 const tagExperiment = readJson(paths.tagExperiment);
 const finance = readJson(paths.finance);
 const preseed = readJson(paths.preseed);
+const metricsState = readJson(paths.metrics);
+const riskState = readJson(paths.risks);
+const unknownState = readJson(paths.unknowns);
 
 const allObjects = [
   company.company_phase,
@@ -37,6 +43,9 @@ const allObjects = [
   matExperiment,
   tagExperiment,
   preseed,
+  ...metricsState.metrics,
+  ...riskState.risks,
+  ...unknownState.unknowns,
 ];
 
 function refsFrom(object) {
@@ -45,6 +54,9 @@ function refsFrom(object) {
     ...(object.evidence_refs ?? []),
     ...(object.refs ?? []),
     ...(object.blocking_refs ?? []),
+    ...(object.decision_refs ?? []),
+    ...(object.mitigation_refs ?? []),
+    ...(object.next_evidence_refs ?? []),
   ];
 }
 
@@ -176,12 +188,98 @@ test('finance state preserves unknown != zero and planning != commitment', () =>
   }
 });
 
+test('metrics require evidence once measured and keep thresholds preregistered', () => {
+  assert.equal(metricsState.schema_version, '0.1.0');
+
+  for (const metric of metricsState.metrics) {
+    if (metric.value !== null) {
+      assert.ok(
+        Array.isArray(metric.evidence_refs) && metric.evidence_refs.length > 0,
+        `${metric.id} has a measured value without evidence_refs`,
+      );
+      assert.doesNotMatch(
+        metric.status,
+        /NOT_MEASURED/,
+        `${metric.id} cannot keep NOT_MEASURED after receiving a value`,
+      );
+    }
+
+    if (metric.target && metric.target.value !== null) {
+      assert.doesNotMatch(
+        metric.target.status ?? '',
+        /TBD_BEFORE_RUN|NOT_DEFINED/,
+        `${metric.id} has a target value while its target status is still undefined`,
+      );
+      assert.ok(
+        Array.isArray(metric.authority_refs) && metric.authority_refs.length > 0,
+        `${metric.id} target values require authority_refs`,
+      );
+    }
+  }
+
+  const proofVelocity = metricsState.metrics.find((metric) => metric.id === 'METRIC-PROOF-VELOCITY');
+  assert.ok(proofVelocity, 'Proof Velocity metric must remain explicit');
+  assert.equal(proofVelocity.value, null);
+  assert.equal(proofVelocity.target, null);
+  assert.match(proofVelocity.anti_gaming_rule, /KILL|REDIRECT/);
+  assert.match(proofVelocity.anti_gaming_rule, /PR count|commit count|feature count/i);
+});
+
+test('risk states cannot invent probability or closure evidence', () => {
+  assert.equal(riskState.schema_version, '0.1.0');
+
+  for (const risk of riskState.risks) {
+    if (risk.probability !== null) {
+      assert.ok(
+        Array.isArray(risk.evidence_refs) && risk.evidence_refs.length > 0,
+        `${risk.id} cannot assign probability without evidence_refs`,
+      );
+    }
+
+    if (risk.status === 'CLOSED') {
+      assert.ok(
+        Array.isArray(risk.evidence_refs) && risk.evidence_refs.length > 0,
+        `${risk.id} cannot close without evidence_refs`,
+      );
+    }
+  }
+});
+
+test('critical unknowns remain explicit until evidence resolves them', () => {
+  assert.equal(unknownState.schema_version, '0.1.0');
+
+  for (const unknown of unknownState.unknowns) {
+    if (unknown.status === 'RESOLVED') {
+      assert.ok(
+        Array.isArray(unknown.evidence_refs) && unknown.evidence_refs.length > 0,
+        `${unknown.id} cannot resolve without evidence_refs`,
+      );
+    }
+
+    for (const [field, estimate] of Object.entries({
+      cost_to_reduce: unknown.cost_to_reduce,
+      time_to_reduce: unknown.time_to_reduce,
+    })) {
+      if (estimate.value === null) {
+        assert.match(
+          estimate.status,
+          /UNKNOWN/,
+          `${unknown.id} ${field} null value must remain explicitly UNKNOWN`,
+        );
+      }
+    }
+  }
+});
+
 test('Company OS human views disclose projection/non-authority status', () => {
   const disclosures = {
     'STATE.md': /NOT DOMAIN AUTHORITY/,
     'MILESTONES.md': /NOT DOMAIN AUTHORITY/,
     'EXPERIMENTS.md': /NOT A SUBSTITUTE FOR CONTROLLED PROTOCOLS/,
     'FINANCE_STATE.md': /NOT ACCOUNTING AUTHORITY/,
+    'METRICS.md': /NOT DOMAIN AUTHORITY/,
+    'RISKS.md': /NOT DOMAIN AUTHORITY/,
+    'UNKNOWNS.md': /NOT DECISION AUTHORITY/,
   };
 
   for (const [path, pattern] of Object.entries(disclosures)) {
