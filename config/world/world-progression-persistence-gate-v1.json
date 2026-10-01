@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "status": "BLOCKED_PENDING_PRIVACY_TOPOLOGY_RECONCILIATION",
+  "status": "DURABLE_SCHEMA_IMPLEMENTED_RUNTIME_ACTIVATION_BLOCKED",
   "productionAuthority": false,
   "plannedTables": {
     "world_progression_events": {
@@ -78,7 +78,11 @@
   ],
   "migrationGate": {
     "migrationNumberMustBeRecheckedAtImplementationTime": true,
-    "reason": "main migration sequence is active and parallel privacy work overlaps the required topology files"
+    "recheckedAtImplementation": true,
+    "selectedMigration": "backend/db/migrations/0045_world_progression_economy.sql",
+    "baseMainSha": "6784469ece47541f16320e1364b3f5b1bf88199a",
+    "productionActivation": false,
+    "reason": "0045 was free on the implementation base; future schema changes must recheck the active migration sequence."
   },
   "durableStoreContract": {
     "isolationRequirement": "SERIALIZABLE_OR_EQUIVALENT_CONFLICT_SAFE",
@@ -110,7 +114,15 @@
   },
   "privacyCandidateContract": {
     "path": "config/world/world-progression-privacy-candidate-v1.json",
-    "status": "CANDIDATE_NOT_PROMOTED",
+    "status": "TECHNICAL_TOPOLOGY_RECONCILED_LIFECYCLE_UNRESOLVED",
     "blocksProductionPersistence": true
+  },
+  "durableImplementation": {
+    "status": "IMPLEMENTED_NOT_RUNTIME_ACTIVATED",
+    "schemaPath": "backend/db/schema/world-progression.ts",
+    "migrationPath": "backend/db/migrations/0045_world_progression_economy.sql",
+    "storePath": "backend/api/services/world-progression-postgres-store.ts",
+    "routeWired": false,
+    "productionAuthority": false
   }
 }
