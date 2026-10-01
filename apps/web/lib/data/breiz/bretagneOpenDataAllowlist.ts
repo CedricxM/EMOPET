@@ -72,10 +72,47 @@ export const BRETAGNE_OPEN_DATA_ALLOWLIST: readonly BretagneOpenDataDatasetDescr
     purpose:
       'Territorial context about officially designated regional nature reserves. Never infer dog access, dog-friendliness or local rules from reserve existence alone.',
     domains: ['territorial_context'],
-    allowedRecordFields: [],
+    allowedRecordFields: [
+      'id',
+      'nom',
+      'geo_point_2d',
+      'surface',
+      'date_creation',
+    ],
     status: 'METADATA_REVIEWED_FIELDS_OPEN',
+    schemaEvidence: {
+      observedAt: '2026-10-01T16:38:59.589Z',
+      sourceVersion:
+        'sha256:65ff0d253fd1a1bddd6ce05389fe4b35c8946cfbcd8787c9d5afaee092506cd0',
+      schemaFingerprint:
+        'sha256:c1c150f210e79b85c31525863b6ee92dd7d96a504c61fc0456c38e38355eb9dd',
+      recordCount: 11,
+      fields: [
+        'credit_photo',
+        'date_creation',
+        'description',
+        'geo_point_2d',
+        'geo_shape',
+        'gml_id',
+        'id',
+        'image',
+        'latitude',
+        'lien_plaquette',
+        'longitude',
+        'nom',
+        'nom_long',
+        'search_id',
+        'site_web',
+        'site_web_ext',
+        'surface',
+      ],
+      sourceUrl:
+        'https://data.bretagne.bzh/api/explore/v2.1/catalog/datasets/reserves-naturelles-regionales-de-bretagne',
+      metadataProcessedAt: '2026-09-27T03:39:40.891000+00:00',
+      dataProcessedAt: '2026-09-20T03:16:25+00:00',
+    },
     notes:
-      'Official dataset identity and open-licence statement reviewed. Indexed sources disagree on recent record count, so live schema/version evidence, field minimisation and the dataset-scoped rights receipt remain required before record retrieval.',
+      'Live schema captured on 2026-10-01 with a zero-row probe. Five low-risk territorial fields are approved: id, nom, geo_point_2d, surface and date_creation. Description, media, external links, technical identifiers and redundant geometry fields remain excluded. Dataset status stays METADATA_REVIEWED_FIELDS_OPEN and record retrieval remains blocked until dataset-scoped rights/recheck evidence is promoted.',
   },
 ] as const;
 
