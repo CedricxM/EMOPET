@@ -214,7 +214,7 @@ test('#859 fails closed on invalid ids, chronology, resolved attempts and extra 
   );
 });
 
-test('#859 authority selects no provider, retry policy, SLA, DB or HTTP activation', () => {
+test('#859 authority keeps provider/retry/SLA/HTTP inactive while #863 supplies durability', () => {
   assert.equal(authority.issue, 859);
   assert.equal(authority.parentIssue, 526);
   assert.match(authority.status, /NO_DELIVERY_OR_RETRY_ACTIVATION/);
@@ -223,7 +223,14 @@ test('#859 authority selects no provider, retry policy, SLA, DB or HTTP activati
     assert.equal(value, false);
   }
 
-  assert.match(authority.durableOutboxFollowUp, /PR_858/);
+  assert.deepEqual(authority.durability, {
+    databasePersistenceActivated: true,
+    issue: 863,
+    mergedPr: 879,
+    outboxTable: 'security_alert_outbox',
+    attemptTable: 'security_alert_delivery_attempts',
+  });
+  assert.match(authority.durableOutboxFollowUp, /ISSUE_863_PR_879/);
 });
 
 test('#859 attempt contract contains no network, environment, HTTP or scheduling primitive', () => {
