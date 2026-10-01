@@ -75,11 +75,19 @@ export const WORLD_QUEST_CATALOG: readonly WorldQuestDefinition[] = Object.freez
 ]);
 
 export function projectWorldQuestProgress(
+  ownerId: string,
   entries: readonly WorldProgressionLedgerEntry[],
 ): WorldQuestProgress[] {
+  if (!ownerId) {
+    throw new Error('WORLD_QUEST_OWNER_SCOPE_REQUIRED');
+  }
+
   const distinctSourcesByKind = new Map<WorldProgressionEventKind, Set<string>>();
 
   for (const entry of entries) {
+    if (entry.ownerId !== ownerId) {
+      throw new Error('WORLD_QUEST_OWNER_SCOPE_MISMATCH');
+    }
     let sources = distinctSourcesByKind.get(entry.kind);
     if (!sources) {
       sources = new Set<string>();
