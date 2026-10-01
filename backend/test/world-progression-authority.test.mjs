@@ -48,6 +48,7 @@ test('World progression authority is owner-only, World-only and explicitly non-p
   assert.equal(authority.principles.publicRanking, false);
   assert.equal(authority.principles.paidHumanConnection, false);
   assert.equal(authority.principles.callerSuppliedRewardAmounts, false);
+  assert.equal(authority.principles.sourceRefsMustBeServerAuthorized, true);
 });
 
 test('only the bounded owner-action catalogue can grant World resources', () => {
@@ -85,6 +86,10 @@ test('server ledger derives rewards itself and keeps idempotency fail-closed', (
   assert.match(serviceSource, /SAFE_WORLD_REWARDS/);
   assert.match(serviceSource, /appendIfAbsent/);
   assert.match(serviceSource, /WORLD_PROGRESSION_IDEMPOTENCY_CONFLICT/);
+  assert.match(serviceSource, /WorldProgressionSourceAuthority/);
+  assert.match(serviceSource, /isAuthorizedSource/);
+  assert.match(serviceSource, /WORLD_PROGRESSION_SOURCE_NOT_AUTHORIZED/);
+  assert.match(serviceSource, /WORLD_PROGRESSION_SOURCE_AUTHORITY_UNAVAILABLE/);
   assert.match(serviceSource, /caller|server-owned reward catalogue/i);
   assert.match(serviceSource, /InMemoryWorldProgressionLedgerStore is not production authority/);
 
