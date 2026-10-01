@@ -1,7 +1,7 @@
 {
   "schemaVersion": "emopet-security-detection-runtime-v1",
   "issue": 525,
-  "status": "DB_SOURCE + ONE_SHOT + CURSOR_BACKED_SCHEDULER + LATE_EVENT_RECEIPT_REPLAY + BOUNDED_DURABLE_DETECTION_HISTORY / EVENT_COVERAGE_ENUMERATED / CONTINUOUS_DEPLOYMENT_OPEN",
+  "status": "DB_SOURCE + ONE_SHOT + CURSOR_BACKED_SCHEDULER + LATE_EVENT_RECEIPT_REPLAY + BOUNDED_DURABLE_DETECTION_HISTORY + SCHEDULER_HEALTH_RECEIPT+PROBE / EVENT_COVERAGE_ENUMERATED / CONTINUOUS_DEPLOYMENT_OPEN",
   "eventSource": "security_audit_events",
   "detector": "backend/api/security/security-anomaly-detection.ts",
   "runtimeService": "backend/api/security/security-detection-runtime.ts",
@@ -25,7 +25,7 @@
     "continuousScheduler": "CURSOR_BACKED_TICK_IMPLEMENTED / DEPLOYMENT_CADENCE_OPEN",
     "durableDetectionHistory": "BOUNDED_DURABLE_HISTORY_LANDED / RETENTION_POLICY_OPEN / ALERT_DELIVERY_SEPARATE",
     "productionPolicyApproval": "OPEN",
-    "providerMonitoring": "NOT_SELECTED",
+    "providerMonitoring": "REPOSITORY_HEALTH_RECEIPT+FAIL_CLOSED_PROBE_IMPLEMENTED / DEPLOYMENT_PROVIDER_MONITORING_OPEN",
     "alertDelivery": "OPEN_UNDER_526",
     "responseSla": "OPEN",
     "lateAuditEventArrival": "REPOSITORY_RECEIPT_REPLAY_IMPLEMENTED / PRODUCTION_DEPLOYMENT+ALERT_DEDUPE_OPEN"
@@ -41,7 +41,21 @@
     "databaseClockWindowEnd": true,
     "initialCursorRequired": true,
     "httpRoute": null,
-    "lateArrivalBoundary": "UNRECEIPTED_CANONICAL_EVENT_DISCOVERY / MONITORING_SCOPE_BOUNDED / POLICY_DERIVED_CONTEXT"
+    "lateArrivalBoundary": "UNRECEIPTED_CANONICAL_EVENT_DISCOVERY / MONITORING_SCOPE_BOUNDED / POLICY_DERIVED_CONTEXT",
+    "health": {
+      "issue": 870,
+      "healthTable": "security_detection_scheduler_health",
+      "probe": "backend/api/security/security-detection-health.ts",
+      "probeWorker": "backend/api/workers/security-detection-health-probe.ts",
+      "lastAttemptPersisted": true,
+      "lastSuccessPersisted": true,
+      "consecutiveFailuresPersisted": true,
+      "busyCountsAsFailure": false,
+      "stalenessPolicy": "CALLER_SUPPLIED / NO_DEFAULT",
+      "databaseOutagePersistence": "IMPOSSIBLE_TO_SAME_DATABASE / WORKER_NONZERO_PROCESS_EVIDENCE_REMAINS_REQUIRED",
+      "providerMonitoringAuthority": false,
+      "httpRoute": null
+    }
   },
   "lateEventReplay": {
     "issue": 776,
