@@ -1,0 +1,57 @@
+{
+  "schema_version": "0.1.0",
+  "id": "ROUND-PRESEED-CONDITIONAL-2027",
+  "type": "fundraising_round",
+  "status": "PLANNING_SCENARIO_NOT_APPROVED",
+  "classification": "RESEARCH_DERIVED_PLANNING_ASSUMPTION",
+  "currency": "EUR",
+  "target": {
+    "min": 500000,
+    "base": 650000,
+    "max": 800000
+  },
+  "intended_runway_months": {
+    "min": 12,
+    "max": 18
+  },
+  "trigger_conditions": [
+    "S1 physics evidence is sufficiently mature for founder review",
+    "A sourced COGS v1 exists",
+    "IP/contribution/third-party-rights gaps are explicitly mapped",
+    "An 18-month operating plan exists",
+    "The raise can be expressed as proofs bought rather than feature expansion"
+  ],
+  "blocking_refs": [
+    {
+      "kind": "path",
+      "value": "state/milestones/MS-S1-PHYSICS.json"
+    },
+    {
+      "kind": "issue",
+      "value": "#114"
+    },
+    {
+      "kind": "issue",
+      "value": "#116"
+    },
+    {
+      "kind": "issue",
+      "value": "#680"
+    }
+  ],
+  "indicative_use_of_funds": {
+    "hardware_industrial": 0.3,
+    "software_data_production_critical": 0.25,
+    "pilots_science_validation": 0.15,
+    "corporate_ip_compliance": 0.1,
+    "go_to_market_discovery_brittany": 0.1,
+    "contingency": 0.1
+  },
+  "dilution": {
+    "status": "NOT_SET",
+    "target": null
+  },
+  "committed_eur": 0,
+  "evidence_refs": [],
+  "non_authority_note": "This object is a planning scenario derived from comparative startup/deeptech research. It is not a founder-approved raise, valuation, investor commitment, grant eligibility statement or financing instruction."
+}
