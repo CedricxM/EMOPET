@@ -23,6 +23,9 @@ const MESSAGE_A = randomUUID();
 const COPRESENCE_A = randomUUID();
 const PROFESSIONAL_SHARE_GRANT_A = randomUUID();
 const PROFESSIONAL_SHARE_AUDIT_A = randomUUID();
+const WORLD_EVENT_A = randomUUID();
+const WORLD_OWNED_A = randomUUID();
+const WORLD_SPEND_A = randomUUID();
 
 let sql = null;
 let closeDatabase = null;
@@ -55,6 +58,9 @@ async function cleanup() {
   await sql`DELETE FROM professional_share_access_audits WHERE id = ${PROFESSIONAL_SHARE_AUDIT_A}`;
   await sql`DELETE FROM professional_share_grants WHERE id = ${PROFESSIONAL_SHARE_GRANT_A}`;
   await sql`DELETE FROM copresence_events WHERE id = ${COPRESENCE_A}`;
+  await sql`DELETE FROM world_resource_spends WHERE id = ${WORLD_SPEND_A}`;
+  await sql`DELETE FROM world_owned_items WHERE id = ${WORLD_OWNED_A}`;
+  await sql`DELETE FROM world_progression_events WHERE id = ${WORLD_EVENT_A}`;
   await sql`DELETE FROM user_config WHERE user_id IN (${USER_A}, ${USER_B})`;
   await sql`DELETE FROM achievements WHERE user_id IN (${USER_A}, ${USER_B})`;
   await sql`DELETE FROM subscriptions WHERE user_id IN (${USER_A}, ${USER_B})`;
@@ -140,6 +146,27 @@ test('snapshot capture and residue verification survive parent deletion without 
   await sql`
     INSERT INTO achievements (user_id, type)
     VALUES (${USER_A}, 'erasure-test')
+  `;
+  await sql`
+    INSERT INTO world_progression_events (
+      id, owner_id, idempotency_key, event_kind, source_ref, grants_json
+    ) VALUES (
+      ${WORLD_EVENT_A}, ${USER_A}, 'knowledge:erase:001',
+      'knowledge.card_read', 'knowledge:card:erase',
+      '{"knowledgeFragments":1}'::jsonb
+    )
+  `;
+  await sql`
+    INSERT INTO world_owned_items (id, owner_id, item_id, region_code)
+    VALUES (${WORLD_OWNED_A}, ${USER_A}, 'memory-lantern', 'GLOBAL')
+  `;
+  await sql`
+    INSERT INTO world_resource_spends (
+      id, owner_id, idempotency_key, item_id, cost_json
+    ) VALUES (
+      ${WORLD_SPEND_A}, ${USER_A}, 'build:erase:001', 'memory-lantern',
+      '{"memoryThreads":4,"knowledgeFragments":2}'::jsonb
+    )
   `;
   await sql`
     INSERT INTO user_config (user_id, dog_id, config_key, config_value)
@@ -269,6 +296,9 @@ test('snapshot capture and residue verification survive parent deletion without 
   assert.equal(probesBefore['professional_share_grants.dog_id'], 1);
   assert.equal(probesBefore['professional_share_access_audits.dog_id'], 1);
   assert.equal(probesBefore['professional_share_access_audits.grant_id'], 1);
+  assert.equal(probesBefore['world_progression_events.owner_id'], 1);
+  assert.equal(probesBefore['world_owned_items.owner_id'], 1);
+  assert.equal(probesBefore['world_resource_spends.owner_id'], 1);
 
   const dogOnly = await captureErasureVerificationSnapshot(USER_A, DOG_A);
   assert.equal(dogOnly.ok, true);
@@ -302,6 +332,9 @@ test('snapshot capture and residue verification survive parent deletion without 
   await sql`DELETE FROM copresence_events WHERE id = ${COPRESENCE_A}`;
   await sql`DELETE FROM user_config WHERE user_id = ${USER_A}`;
   await sql`DELETE FROM achievements WHERE user_id = ${USER_A}`;
+  await sql`DELETE FROM world_resource_spends WHERE id = ${WORLD_SPEND_A}`;
+  await sql`DELETE FROM world_owned_items WHERE id = ${WORLD_OWNED_A}`;
+  await sql`DELETE FROM world_progression_events WHERE id = ${WORLD_EVENT_A}`;
   await sql`DELETE FROM subscriptions WHERE user_id = ${USER_A}`;
   await sql`DELETE FROM professional_share_grants WHERE id = ${PROFESSIONAL_SHARE_GRANT_A}`;
   await sql`DELETE FROM dogs WHERE id = ${DOG_A}`;
