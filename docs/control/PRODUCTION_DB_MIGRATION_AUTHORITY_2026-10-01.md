@@ -1,6 +1,6 @@
 # Production Database Migration Authority
 
-Status: `CONTRACT_ONLY / NO_PRODUCTION_MIGRATION AUTHORITY`  
+Status: `CONTRACT_ONLY / NO_PRODUCTION_MIGRATION_AUTHORITY`  
 Authority issue: #831  
 Migration-ledger lineage: #258  
 Machine-readable contract: `config/release/production-db-migration-authority-v1.json`
