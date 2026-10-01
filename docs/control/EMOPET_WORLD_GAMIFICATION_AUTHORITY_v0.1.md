@@ -2,7 +2,7 @@
 
 **Status:** CONTROLLED DRAFT / NOT PRODUCTION AUTHORITY  
 **Date:** 2026-10-01  
-**Scope:** G1A authority + G1B ledger core + G1C quest projection + G1E regional collections
+**Scope:** G1A authority + G1B ledger core + G1C quest projection + G1D build economy + G1E regional collections
 
 ## 1. Product decision
 
@@ -152,3 +152,30 @@ Privacy and fairness boundary:
 - regional cosmetics spend only resources already earned through authorized Owner actions.
 
 This means regional identity changes what the World can look like, not how valuable the Owner or dog is.
+
+
+## 10. G1D deterministic build economy
+
+The build projection is implemented in:
+
+- `backend/api/services/world-build-economy.ts`
+
+It takes an already-derived World resource balance, an owned-item set, a selected regional collection and an item id. It returns exactly one decision:
+
+- `built`;
+- `already_owned`;
+- `unknown_item`;
+- `insufficient_resources`.
+
+Properties:
+
+- successful build subtracts only the server-owned catalogue cost;
+- an already-owned item spends nothing;
+- insufficient resources spend nothing;
+- an item outside the selected collection cannot be built;
+- input balance and owned-item state are never mutated;
+- duplicate owned ids are canonicalized.
+
+This is a deterministic projection, not durable transaction authority.
+
+G1B.2 must make the same decision atomically in PostgreSQL so concurrent requests cannot double-spend a balance or create duplicate ownership.
