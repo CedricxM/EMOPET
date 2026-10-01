@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { renderCompanyOsViews } from './generate-company-os-views.mjs';
+import { CONTROLLED_STATE_PATHS, proposeCompanyTransitions } from './propose-company-transitions.mjs';
 
 const root = process.cwd();
 
@@ -31,6 +32,8 @@ const paths = {
   schemaMap: 'state/schemas/registry-schema-map.json',
   transitions: 'state/history/company-transitions.jsonl',
   transitionSchema: 'state/history/company-transition.schema.json',
+  proposalQueue: 'state/history/pending-transition-proposals.json',
+  proposalSchema: 'state/history/company-transition-proposals.schema.json',
 };
 
 const company = readJson(paths.company);
@@ -48,6 +51,8 @@ const freshnessState = readJson(paths.freshness);
 const freshnessSchema = readJson(paths.freshnessSchema);
 const schemaMap = readJson(paths.schemaMap);
 const transitionSchema = readJson(paths.transitionSchema);
+const proposalQueue = readJson(paths.proposalQueue);
+const proposalSchema = readJson(paths.proposalSchema);
 const transitionEvents = readText(paths.transitions)
   .split(/\r?\n/)
   .filter((line) => line.trim().length > 0)
@@ -827,6 +832,84 @@ test('Company Time Machine ledger is append-only against the pull-request base',
   assert.ok(
     currentLedger.startsWith(baseLedger),
     'existing transition ledger bytes are immutable; append new records instead of editing history',
+  );
+});
+
+
+test('transition proposal queue is review-only and schema-valid', () => {
+  validateAgainstSchema(proposalQueue, proposalSchema, proposalSchema, 'proposalQueue');
+  assert.equal(
+    proposalQueue.authority_mode,
+    'DIFF_PROPOSALS_REQUIRE_EXPLICIT_REVIEW',
+  );
+
+  for (const proposal of proposalQueue.proposals) {
+    assert.equal(proposal.review_status, 'REVIEW_REQUIRED');
+    assert.equal(proposal.append_ready, false);
+    assert.ok(
+      CONTROLLED_STATE_PATHS.includes(proposal.source_path),
+      `${proposal.proposal_id} must originate from controlled Company OS state`,
+    );
+    for (const ref of [
+      ...(proposal.authority_refs ?? []),
+      ...(proposal.evidence_refs ?? []),
+      ...(proposal.decision_refs ?? []),
+    ]) {
+      assertRef(ref, proposal.proposal_id);
+    }
+  }
+});
+
+test('transition proposals are deterministic diffs and never self-approve', () => {
+  const before = {
+    'state/company-state.json': {
+      company_phase: {
+        id: 'EMO-TEST-PHASE',
+        status: 'OPEN',
+        authority_refs: [{ kind: 'path', value: 'COMPANY.md' }],
+        evidence_refs: [],
+      },
+    },
+  };
+  const after = {
+    'state/company-state.json': {
+      company_phase: {
+        id: 'EMO-TEST-PHASE',
+        status: 'PASSED',
+        authority_refs: [{ kind: 'path', value: 'COMPANY.md' }],
+        evidence_refs: [{ kind: 'commit', value: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' }],
+      },
+    },
+  };
+
+  const queue = proposeCompanyTransitions(before, after, {
+    baseRef: 'main@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+    candidateRef: 'head@cccccccccccccccccccccccccccccccccccccccc',
+    generatedOn: '2026-10-01',
+  });
+
+  assert.equal(queue.proposals.length, 2);
+  assert.deepEqual(
+    queue.proposals.map((proposal) => [proposal.kind, proposal.field]),
+    [
+      ['EVIDENCE_TRANSITION', 'evidence_refs'],
+      ['STATE_TRANSITION', 'status'],
+    ],
+  );
+  assert.ok(queue.proposals.every((proposal) => proposal.review_status === 'REVIEW_REQUIRED'));
+  assert.ok(queue.proposals.every((proposal) => proposal.append_ready === false));
+
+  const unchanged = proposeCompanyTransitions(after, after, {
+    baseRef: 'main@cccccccccccccccccccccccccccccccccccccccc',
+    candidateRef: 'head@cccccccccccccccccccccccccccccccccccccccc',
+    generatedOn: '2026-10-01',
+  });
+  assert.equal(unchanged.proposals.length, 0);
+
+  assert.doesNotMatch(
+    readText('scripts/control/propose-company-transitions.mjs'),
+    /company-transitions\.jsonl/,
+    'proposal generator must not contain an automatic append path to the canonical ledger',
   );
 });
 
