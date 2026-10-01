@@ -23,12 +23,15 @@ function dataUrl(source) {
 async function loadSnapshotModule() {
   const regional = await transpile('../api/services/world-regional-collections.ts');
   const quest = await transpile('../api/services/world-quest-projection.ts');
+  const provenance = await transpile('../api/services/world-progression-provenance.ts');
   const snapshot = await transpile('../api/services/world-gamification-snapshot.ts');
 
   const regionalUrl = dataUrl(regional.output);
   const questUrl = dataUrl(quest.output);
+  const provenanceUrl = dataUrl(provenance.output);
   const rewritten = snapshot.output
     .replace(/from ['"]\.\/world-quest-projection['"]/, `from '${questUrl}'`)
+    .replace(/from ['"]\.\/world-progression-provenance['"]/, `from '${provenanceUrl}'`)
     .replace(/from ['"]\.\/world-regional-collections['"]/, `from '${regionalUrl}'`);
 
   return {
@@ -107,6 +110,19 @@ test('snapshot composes Breiz identity, safe resources, quests and collection av
   const learningQuest = snapshot.quests.find((quest) => quest.id === 'learn-three');
   assert.equal(learningQuest.current, 2);
   assert.equal(learningQuest.completed, false);
+
+  assert.equal(snapshot.provenance.ownerId, OWNER_ID);
+  assert.deepEqual(snapshot.provenance.grossEarned, {
+    knowledgeFragments: 2,
+    localDiscoveries: 0,
+    walkTraces: 0,
+    communitySeeds: 0,
+    memoryThreads: 0,
+  });
+  assert.deepEqual(
+    snapshot.provenance.items.map((item) => item.reasonCode),
+    ['knowledge_read', 'knowledge_read'],
+  );
 
   const lighthouse = snapshot.collectionItems.find((item) => item.id === 'breiz-mini-lighthouse');
   const sail = snapshot.collectionItems.find((item) => item.id === 'breiz-learning-sail');
