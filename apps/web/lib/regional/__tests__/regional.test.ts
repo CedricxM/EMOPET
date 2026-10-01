@@ -43,9 +43,10 @@ test('détection région : 44 rattaché à la Bretagne (PATCH 6)', () => {
   assert.equal(r.isDefault, false);
 });
 
-test('détection région : défaut Bretagne si rien', () => {
+test('détection région : fallback national neutre si rien', () => {
   const r = detectRegion({});
-  assert.equal(r.profile.regionId, 'bretagne');
+  assert.equal(r.profile.regionId, 'neutral_france');
+  assert.equal(r.profile.assistantName, 'EMOPET');
   assert.equal(r.isDefault, true);
   assert.ok(r.invitation);
 });
