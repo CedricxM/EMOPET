@@ -259,8 +259,20 @@ export async function dispatchNextSecurityAlert(
   );
 
   if (resolution.status === 'RESOLVED') {
+    if (resolution.attempt.state === 'DELIVERED') {
+      return {
+        status: 'DELIVERED',
+        attemptId: claimed.attemptId,
+      };
+    }
+    if (resolution.attempt.state === 'ATTEMPT_FAILED') {
+      return {
+        status: 'ATTEMPT_FAILED',
+        attemptId: claimed.attemptId,
+      };
+    }
     return {
-      status: resolution.attempt.state,
+      status: 'PENDING_PRESERVED',
       attemptId: claimed.attemptId,
     };
   }
@@ -308,9 +320,7 @@ export async function probeSecurityAlertDispatchHealth(input: {
       lte(securityAlertDeliveryAttempts.attemptedAt, cutoff),
     ));
 
-  const [failedAlerts] = await db.execute(sql<{
-    count: number;
-  }>`
+  const failedAlertRows = await db.execute(sql`
     SELECT count(DISTINCT failed.alert_id)::int AS count
     FROM security_alert_delivery_attempts AS failed
     WHERE failed.state = 'ATTEMPT_FAILED'
@@ -323,7 +333,15 @@ export async function probeSecurityAlertDispatchHealth(input: {
   `);
 
   const stalePendingCount = stalePending?.count ?? 0;
-  const undeliveredFailedAlertCount = failedAlerts?.count ?? 0;
+  const rawFailedCount = (
+    failedAlertRows[0] as { count?: unknown } | undefined
+  )?.count;
+  const undeliveredFailedAlertCount =
+    typeof rawFailedCount === 'number' && Number.isSafeInteger(rawFailedCount)
+      ? rawFailedCount
+      : typeof rawFailedCount === 'string' && /^\\d+$/.test(rawFailedCount)
+        ? Number(rawFailedCount)
+        : 0;
 
   return {
     status:
