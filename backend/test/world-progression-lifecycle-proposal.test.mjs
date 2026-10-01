@@ -86,12 +86,24 @@ test('proposal invents no fixed post-account retention duration', () => {
   );
 });
 
-test('proposal assumes no non-SQL copy only as a hypothesis that still requires proof', () => {
+test('proposal treats no non-SQL G1B.2 copy as a hypothesis while acknowledging legacy browser gamification state', async () => {
+  const nonSql = proposal.lifecycleProposal.nonSqlCopies;
+  assert.equal(nonSql.proposedDisposition, 'NONE_EXPECTED_IN_G1B2');
+  assert.equal(nonSql.verificationRequired, true);
+  assert.equal(nonSql.legacyGamificationSurfaceObserved, true);
+  assert.equal(nonSql.legacyPath, 'apps/web/lib/gamification.ts');
+  assert.equal(nonSql.legacyMechanism, 'localStorage');
   assert.equal(
-    proposal.lifecycleProposal.nonSqlCopies.proposedDisposition,
-    'NONE_EXPECTED_IN_G1B2',
+    nonSql.legacyTreatmentRequired,
+    'RETIRE_MIGRATE_OR_EXPLICITLY_EXCLUDE_FROM_G1B2_AUTHORITY',
   );
-  assert.equal(proposal.lifecycleProposal.nonSqlCopies.verificationRequired, true);
+
+  const source = await readFile(
+    new URL('../../apps/web/lib/gamification.ts', import.meta.url),
+    'utf8',
+  );
+  assert.match(source, /localStorage\.getItem/);
+  assert.match(source, /localStorage\.setItem/);
 });
 
 test('proposal does not introduce dog/Care/ELI retention language into World progression', () => {
