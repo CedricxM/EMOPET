@@ -199,3 +199,34 @@ It composes:
 It deliberately excludes XP, levels, ranks, streaks, dog scores, health scores, relationship scores, ELI values, sensor values and exact location.
 
 This snapshot is the intended future UI/API seam. The web and Unity clients should consume one governed snapshot rather than independently recalculating progression rules.
+
+
+## 12. G1B.2 persistence gate
+
+The machine-readable persistence contract is:
+
+- `config/world/world-progression-persistence-gate-v1.json`
+
+Planned durable relations:
+
+- `world_progression_events`;
+- `world_owned_items`;
+- `world_resource_spends`.
+
+Required atomicity:
+
+- reward replay is idempotent;
+- conflicting idempotency reuse fails closed;
+- build balance check, resource spend and item ownership occur in one database transaction;
+- concurrent requests cannot create negative balances;
+- concurrent requests cannot create duplicate ownership.
+
+Production activation remains blocked until Owner-linked privacy topology is reconciled for:
+
+- account erasure;
+- subject discovery;
+- residue verification;
+- export disposition;
+- retention/disposition.
+
+The migration number is intentionally not reserved in this draft because the active migration sequence must be rechecked at implementation time.
