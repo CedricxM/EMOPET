@@ -111,7 +111,15 @@ test('plafond de tokens : la connaissance reste sous MAX_KNOWLEDGE_TOKENS', () =
     geographyEntries: Array.from({ length: 40 }, (_, i) => ({
       id: `g${i}`, name: `Plage numéro ${i}`, type: 'plage' as const, department: '29',
       description: 'Plage de Bretagne avec une longue description '.repeat(8),
-      sourceVerified: true, _status: 'VERIFIED' as const,
+      sourceVerified: true,
+      evidence: {
+        sourceId: 'synthetic-test-source',
+        sourceRef: `synthetic-geo-${i}`,
+        reviewerRole: 'test reviewer',
+        reviewedAt: '2026-09-30T10:00:00Z',
+        provenanceNote: 'Synthetic test evidence only.',
+      },
+      _status: 'VERIFIED' as const,
     })),
     cultureEntries: [],
     rhythmSources: [],
