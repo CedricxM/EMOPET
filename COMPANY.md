@@ -16,8 +16,9 @@ Start here when the question is: **what is true now, what controls that truth, w
 5. `state/corporate/corporate-state.json` — machine-readable corporate/IP state.
 6. `FRESHNESS.md` — review freshness and STALE semantics.
 7. `state/freshness/freshness-state.json` — machine-readable freshness overlay.
-8. `docs/company/EMOPET_COMPANY_OS_ARCHITECTURE_2026-10-01.md` — operating model and source-of-truth hierarchy.
-9. Relevant controlled domain authority before making a substantive decision.
+8. `FOUNDER_COCKPIT.md` — public-safe generated founder navigation cockpit.
+9. `docs/company/EMOPET_COMPANY_OS_ARCHITECTURE_2026-10-01.md` — operating model and source-of-truth hierarchy.
+10. Relevant controlled domain authority before making a substantive decision.
 
 ## Truth model
 
@@ -59,7 +60,7 @@ Authority: `docs/strategy/PROJECT_TIMELINE_2026_2027.md`.
 | Freshness + STALE semantics | Added in V2 |
 | Per-registry schemas + dependency validation | Added in V2 |
 | Generated human views | Added in V2 |
-| Founder cockpit | Later, generated from controlled state |
+| Founder cockpit | Added in V2 |
 
 ## Non-negotiable rule
 
