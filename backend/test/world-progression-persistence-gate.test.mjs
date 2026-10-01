@@ -9,10 +9,24 @@ const gate = JSON.parse(
   ),
 );
 
-test('World progression persistence remains blocked until privacy topology is reconciled', () => {
-  assert.equal(gate.status, 'BLOCKED_PENDING_PRIVACY_TOPOLOGY_RECONCILIATION');
+test('durable schema is implemented while runtime activation remains blocked', () => {
+  assert.equal(gate.status, 'DURABLE_SCHEMA_IMPLEMENTED_RUNTIME_ACTIVATION_BLOCKED');
   assert.equal(gate.productionAuthority, false);
   assert.equal(gate.migrationGate.migrationNumberMustBeRecheckedAtImplementationTime, true);
+  assert.equal(gate.migrationGate.recheckedAtImplementation, true);
+  assert.equal(
+    gate.migrationGate.selectedMigration,
+    'backend/db/migrations/0045_world_progression_economy.sql',
+  );
+  assert.equal(gate.migrationGate.productionActivation, false);
+  assert.deepEqual(gate.durableImplementation, {
+    status: 'IMPLEMENTED_NOT_RUNTIME_ACTIVATED',
+    schemaPath: 'backend/db/schema/world-progression.ts',
+    migrationPath: 'backend/db/migrations/0045_world_progression_economy.sql',
+    storePath: 'backend/api/services/world-progression-postgres-store.ts',
+    routeWired: false,
+    productionAuthority: false,
+  });
 });
 
 test('every planned durable World economy table is directly Owner-linked and uniqueness-constrained', () => {
@@ -107,7 +121,7 @@ test('dry-run proof is explicit, disposable-only and non-authoritative', () => {
 test('privacy candidate remains a hard production block', () => {
   assert.deepEqual(gate.privacyCandidateContract, {
     path: 'config/world/world-progression-privacy-candidate-v1.json',
-    status: 'CANDIDATE_NOT_PROMOTED',
+    status: 'TECHNICAL_TOPOLOGY_RECONCILED_LIFECYCLE_UNRESOLVED',
     blocksProductionPersistence: true,
   });
 });
