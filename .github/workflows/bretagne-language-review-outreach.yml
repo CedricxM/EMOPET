@@ -2,14 +2,6 @@ name: Bretagne language review outreach gate
 
 on:
   pull_request:
-    paths:
-      - '.github/workflows/bretagne-language-review-outreach.yml'
-      - 'apps/web/lib/regional/bretagne-language-review-*.ts'
-      - 'apps/web/lib/regional/__tests__/bretagne-language-review-*.test.ts'
-      - 'apps/web/lib/regional/index.ts'
-      - 'config/partnerships/bretagne-language-review-outreach-*.json'
-      - 'docs/partnerships/BRETAGNE_LANGUAGE_REVIEW_*.md'
-      - 'scripts/control/bretagne-language-review-outreach*.mjs'
   push:
     branches: [main]
     paths:
