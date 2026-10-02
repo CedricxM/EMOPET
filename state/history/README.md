@@ -71,3 +71,35 @@ node scripts/control/prepare-reviewed-transition-append.mjs \
 ```
 
 Do not create a reviewed candidate unless a real human review reference exists. The tooling must not fabricate approval to make the ledger look complete.
+
+## Human-approved finalization
+
+`scripts/control/finalize-reviewed-transition-append.mjs` is the only Company OS helper allowed to append a prepared reviewed transition to the canonical ledger.
+
+It is deliberately manual and fail-closed:
+
+- it refuses to run when `CI` is set;
+- it requires explicit `--finalize`;
+- it requires a human-supplied final event ID;
+- the event-ID date must match `--recorded-on`;
+- it requires an already-merged `main@<40-hex-sha>` source snapshot reference;
+- it requires the explicit append pull request reference as `#<number>`;
+- the reviewed candidate must still point to the current ledger tail;
+- duplicate event IDs are rejected;
+- the prior human review reference and append-PR reference are preserved in `decision_refs`.
+
+Example:
+
+```bash
+node scripts/control/finalize-reviewed-transition-append.mjs \
+  --reviewed-candidate reviewed-transition-append.json \
+  --event-id EMO-TRANSITION-YYYYMMDD-NNNN \
+  --recorded-on YYYY-MM-DD \
+  --source-snapshot-ref main@<already-merged-sha> \
+  --append-pr-ref '#123' \
+  --finalize
+```
+
+This command is intended for a separate, explicit append PR after human review. CI may validate the resulting append-only ledger, but CI must never invoke the finalizer.
+
+No final event should be created merely because tooling exists. If there is no real reviewed proposal and real append PR, there is nothing to append.

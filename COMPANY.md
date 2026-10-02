@@ -67,6 +67,7 @@ Authority: `docs/strategy/PROJECT_TIMELINE_2026_2027.md`.
 | Company Time Machine append-only ledger | Added in V2 |
 | Review-only transition proposal engine | Added in V2 |
 | Reviewed proposal append preparation | Added in V2 |
+| Human-approved transition finalization | Added in V2 |
 
 ## Public-safe external views
 
