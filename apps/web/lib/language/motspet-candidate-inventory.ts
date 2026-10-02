@@ -9,7 +9,7 @@
 import { MOTSPET_ENTRIES, getMotsPetEntry } from './motspet';
 
 export const MOTSPET_CANDIDATE_INVENTORY_REVISION =
-  'motspet-candidate-inventory-v2-2026-10-01' as const;
+  'motspet-candidate-inventory-v3-2026-10-02' as const;
 
 export type MotsPetCandidateStatus =
   | 'EXISTING_CONTROLLED'
@@ -215,8 +215,8 @@ export const MOTSPET_CANDIDATE_INVENTORY: readonly MotsPetCandidateInventoryEntr
     sourceSurfaces: ['Care', 'Breiz'],
     reviewQuestionFr: 'Exprimer l’incertitude de façon actionnable sans produire une fausse précision.',
     authorityPaths: [CARE, EXPERIENCE],
-    status: 'CANDIDATE_REVIEW',
-    existingMotsPetId: null,
+    status: 'EXISTING_CONTROLLED',
+    existingMotsPetId: 'uncertainty',
   }),
   entry({
     id: 'trend',
@@ -225,8 +225,8 @@ export const MOTSPET_CANDIDATE_INVENTORY: readonly MotsPetCandidateInventoryEntr
     sourceSurfaces: ['Care history'],
     reviewQuestionFr: 'Parler d’évolution longitudinale uniquement pour une observation nommée et contextualisée.',
     authorityPaths: [CARE_MIGRATION, CARE],
-    status: 'CANDIDATE_REVIEW',
-    existingMotsPetId: null,
+    status: 'EXISTING_CONTROLLED',
+    existingMotsPetId: 'trend',
   }),
   entry({
     id: 'share_scope',
