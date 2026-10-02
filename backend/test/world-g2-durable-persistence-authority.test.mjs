@@ -121,25 +121,43 @@ test('WORLD-G2 runtime store derives balance from journals and uses conflict-saf
   assert.doesNotMatch(build, /sameCost/);
 });
 
-test('WORLD-G2 durable store is not activated anywhere in the API runtime graph', async () => {
+test('WORLD-G2 durable writes stay inactive while Gate 4 may reuse read-only helpers', async () => {
   const apiDir = resolve(root, 'backend', 'api');
   const allowedImplementationFiles = new Set([
     resolve(apiDir, 'services', 'world-progression-postgres.ts'),
     resolve(apiDir, 'services', 'world-build-postgres.ts'),
   ]);
+  const controlledReadFiles = new Set([
+    resolve(apiDir, 'services', 'world-gamification-read.ts'),
+  ]);
 
   for (const file of await collectTypeScriptFiles(apiDir)) {
     if (allowedImplementationFiles.has(file)) continue;
     const source = await readFile(file, 'utf8');
+
+    if (controlledReadFiles.has(file)) {
+      assert.match(
+        source,
+        /world-progression-postgres/,
+        'Gate 4 must reuse the governed durable read helpers',
+      );
+      assert.doesNotMatch(
+        source,
+        /world-build-postgres|postgresWorldProgressionLedgerStore|PostgresWorldProgressionLedgerStore|postgresWorldBuildService|PostgresWorldBuildService/,
+        `${file} may read durable state but must not activate a World write store`,
+      );
+      continue;
+    }
+
     assert.doesNotMatch(
       source,
       /world-progression-postgres|world-build-postgres/,
-      `${file} must not import the durable World G2 implementation before activation`,
+      `${file} must not import the durable World G2 implementation outside the controlled read boundary`,
     );
     assert.doesNotMatch(
       source,
       /postgresWorldProgressionLedgerStore|PostgresWorldProgressionLedgerStore|postgresWorldBuildService|PostgresWorldBuildService/,
-      `${file} must not instantiate or reference a durable World G2 store before activation`,
+      `${file} must not instantiate or reference a durable World G2 write store before activation`,
     );
   }
 });

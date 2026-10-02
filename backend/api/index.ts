@@ -16,6 +16,7 @@ import { connections } from './routes/connections.js';
 import { internalSecurityAudit } from './routes/internal-security-audit.js';
 import { internalSecurityAlertAck } from './routes/internal-security-alert-ack.js';
 import { configuredWorldSpike } from './routes/world-spike.js';
+import { configuredWorldGamificationRead } from './routes/world-gamification.js';
 import { authMiddleware } from './middleware/auth.js';
 import { rateLimitMiddleware } from './middleware/rate-limit.js';
 import { sharedAuthRateLimitMiddleware } from './middleware/shared-auth-rate-limit.js';
@@ -71,6 +72,8 @@ app.route('/api/directory', directory);
 app.route('/api/data-export', dataExport);
 app.route('/api/blocks', blocks);
 app.route('/api/connections', connections);
+const worldGamificationRead = configuredWorldGamificationRead();
+if (worldGamificationRead) app.route('/api/world-gamification', worldGamificationRead);
 const worldSpike = configuredWorldSpike();
 if (worldSpike) app.route('/api/world-spike', worldSpike);
 

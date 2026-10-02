@@ -266,6 +266,14 @@ jobs:
           NODE_ENV: test
         run: node --test test/world-community-progression-source.integration.test.mjs
 
+      - name: WORLD-G4 durable gamification read model on historical migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          WORLD_GAMIFICATION_READ_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/world-gamification-read.integration.test.mjs
+
       - name: Instrument repository-only guards
         working-directory: backend
         run: |
@@ -901,6 +909,14 @@ jobs:
           WORLD_COMMUNITY_SOURCE_DB_INTEGRATION: '1'
           NODE_ENV: test
         run: node --test test/world-community-progression-source.integration.test.mjs
+
+      - name: WORLD-G4 durable gamification read model on generated baseline
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          WORLD_GAMIFICATION_READ_DB_INTEGRATION: '1'
+          NODE_ENV: test
+        run: node --test test/world-gamification-read.integration.test.mjs
 
       - name: PRIV-ERASURE-TOPOLOGY generated database parity
         working-directory: backend

@@ -1,7 +1,7 @@
 import type {
   WorldProgressionEventKind,
   WorldProgressionLedgerEntry,
-} from './world-progression-ledger';
+} from './world-progression-ledger.js';
 
 export type WorldQuestCategory = 'learning' | 'local' | 'community' | 'world' | 'memory';
 
