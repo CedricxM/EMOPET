@@ -8,6 +8,12 @@ const plan = JSON.parse(
     'utf8',
   ),
 );
+const replayAuthority = JSON.parse(
+  await readFile(
+    new URL('../../config/world/world-legacy-replay-authority-v1.json', import.meta.url),
+    'utf8',
+  ),
+);
 const authority = JSON.parse(
   await readFile(
     new URL('../../config/world/world-progression-authority-v1.json', import.meta.url),
@@ -126,3 +132,40 @@ test('cutover requires one server authority and no dual-write period', () => {
   assert.match(criteria, /no dual-write or dual-authority/);
   assert.match(criteria, /lifecycle\/erasure treatment/);
 });
+
+test('decommission replay candidates exactly match the active controlled replay authority', () => {
+  assert.equal(plan.runtimeReplayAuthority, 'config/world/world-legacy-replay-authority-v1.json');
+  assert.equal(replayAuthority.status, 'CONTROLLED_DRAFT_NOT_RUNTIME_AUTHORITY');
+  assert.equal(replayAuthority.productionAuthority, false);
+
+  const candidates = new Map(
+    plan.legacySurfaces
+      .filter((surface) => surface.migrationClass === 'CANONICAL_REPLAY_CANDIDATE')
+      .map((surface) => [surface.id, surface.targetEventKind]),
+  );
+
+  assert.deepEqual(
+    [...candidates.keys()].sort(),
+    Object.keys(replayAuthority.allowedReplaySurfaces).sort(),
+  );
+
+  for (const [surface, rule] of Object.entries(replayAuthority.allowedReplaySurfaces)) {
+    assert.equal(
+      candidates.get(surface),
+      rule.eventKind,
+      `decommission target for ${surface} drifted from runtime replay authority`,
+    );
+  }
+
+  const explicitlyNotReplayable = new Set(replayAuthority.explicitlyNotReplayable);
+  for (const surface of plan.legacySurfaces) {
+    if (surface.migrationClass !== 'CANONICAL_REPLAY_CANDIDATE') {
+      assert.equal(
+        explicitlyNotReplayable.has(surface.id),
+        true,
+        `${surface.id} is content-only in the decommission plan but not denied by replay authority`,
+      );
+    }
+  }
+});
+
