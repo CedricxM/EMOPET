@@ -24,8 +24,17 @@ function assertProposalQueue(queue) {
   if (!Array.isArray(queue.proposals)) {
     throw new Error('proposal queue proposals must be an array');
   }
-  if (typeof queue.candidate_ref !== 'string' || queue.candidate_ref.length === 0) {
-    throw new Error('proposal queue candidate_ref is required');
+  if (
+    typeof queue.base_ref !== 'string' ||
+    !/^(?:main|head)@[0-9a-f]{40}$/.test(queue.base_ref)
+  ) {
+    throw new Error('proposal queue base_ref must be main@<40-hex-sha> or head@<40-hex-sha>');
+  }
+  if (
+    typeof queue.candidate_ref !== 'string' ||
+    !/^(?:main|head)@[0-9a-f]{40}$/.test(queue.candidate_ref)
+  ) {
+    throw new Error('proposal queue candidate_ref must be main@<40-hex-sha> or head@<40-hex-sha>');
   }
 }
 
@@ -126,6 +135,13 @@ export function inspectTransitionWorkflow(
   const currentRef = options.currentRef ?? null;
   const repository = options.repository ?? null;
   if (
+    repository !== null &&
+    (typeof repository !== 'string' ||
+      !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository))
+  ) {
+    throw new Error('repository must use owner/name');
+  }
+  if (
     currentRef !== null &&
     (typeof currentRef !== 'string' ||
       !/^(?:main|head)@[0-9a-f]{40}$/.test(currentRef))
@@ -161,14 +177,20 @@ export function inspectTransitionWorkflow(
     operatorHandoff = {
       action: 'REGENERATE_PROPOSAL_QUEUE',
       command:
-        repository && currentRef
+        repository &&
+        currentRef &&
+        proposalQueue.base_ref.startsWith('main@') &&
+        currentRef.startsWith('main@')
           ? `node scripts/control/propose-company-transitions.mjs --repository ${repository} --base-ref ${proposalQueue.base_ref} --candidate-ref ${currentRef} --output state/history/pending-transition-proposals.json`
           : null,
       scope: 'REMOTE_CONTROLLED_STATE_DIFF_NO_DECISION_AUTHORITY',
       note:
-        repository && currentRef
-          ? 'This handoff regenerates review-only proposals from explicit Git refs. It does not review, prioritize, accept, prepare, finalize or append a transition.'
-          : 'Supply --repository and --current-ref to render an explicit remote regeneration command. No queue mutation is performed by the workflow doctor.',
+        repository &&
+        currentRef &&
+        proposalQueue.base_ref.startsWith('main@') &&
+        currentRef.startsWith('main@')
+          ? 'This handoff regenerates review-only proposals from explicit merged-main Git refs. It does not review, prioritize, accept, prepare, finalize or append a transition.'
+          : 'Supply --repository and a main@<sha> --current-ref, with a main@<sha> queue base, to render an explicit remote regeneration command. No queue mutation is performed by the workflow doctor.',
     };
   }
 
