@@ -80,7 +80,7 @@
     "migrationNumberMustBeRecheckedAtImplementationTime": true,
     "reason": "main migration sequence is active and parallel privacy work overlaps the required topology files",
     "currentReservation": {
-      "migration": "0045_world_gamification_persistence.sql",
+      "migration": "0046_world_gamification_persistence.sql",
       "recheckedAgainstMain": true,
       "schemaFoundationPresent": true
     }
