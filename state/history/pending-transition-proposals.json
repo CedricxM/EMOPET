@@ -1,0 +1,8 @@
+{
+  "schema_version": "0.1.0",
+  "authority_mode": "DIFF_PROPOSALS_REQUIRE_EXPLICIT_REVIEW",
+  "base_ref": "main@efc86354dc2179d45bae7152ebb203c93f225da0",
+  "candidate_ref": "main@efc86354dc2179d45bae7152ebb203c93f225da0",
+  "generated_on": "2026-10-01",
+  "proposals": []
+}
