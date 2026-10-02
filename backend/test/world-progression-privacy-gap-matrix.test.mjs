@@ -13,6 +13,16 @@ const matrix = await readRepoJson('config/world/world-progression-privacy-gap-ma
 const gate = await readRepoJson('config/world/world-progression-persistence-gate-v1.json');
 const candidate = await readRepoJson('config/world/world-progression-privacy-candidate-v1.json');
 
+const TABLE_SOURCE_IDENTIFIERS = {
+  world_progression_events: ['world_progression_events', 'worldProgressionEvents'],
+  world_owned_items: ['world_owned_items', 'worldOwnedItems'],
+  world_resource_spends: ['world_resource_spends', 'worldResourceSpends'],
+};
+
+function sourceMentionsTable(source, table) {
+  return (TABLE_SOURCE_IDENTIFIERS[table] ?? [table]).some((identifier) => source.includes(identifier));
+}
+
 test('privacy gap matrix stays aligned with the durable World relations', () => {
   const expected = Object.keys(gate.plannedTables).sort();
   assert.deepEqual([...matrix.plannedTables].sort(), expected);
@@ -26,7 +36,7 @@ test('privacy gap matrix stays aligned with the durable World relations', () => 
 test('gap matrix exactly reflects current active privacy/runtime table mentions', async () => {
   for (const surface of matrix.activeSurfaces) {
     const text = await readRepoText(surface.path);
-    const actualMentions = matrix.plannedTables.filter((table) => text.includes(table)).sort();
+    const actualMentions = matrix.plannedTables.filter((table) => sourceMentionsTable(text, table)).sort();
     assert.deepEqual(
       [...surface.currentTableMentions].sort(),
       actualMentions,
@@ -98,8 +108,13 @@ test('legacy browser gamification remains explicit non-SQL evidence', async () =
   for (const legacy of surfaces) {
     const source = await readRepoText(legacy.path);
     assert.equal(legacy.mechanism, 'localStorage');
+    assert.ok(['READ_ONLY', 'READ_WRITE'].includes(legacy.accessMode));
     assert.match(source, /localStorage\.getItem/);
-    assert.match(source, /localStorage\.setItem/);
+    if (legacy.accessMode === 'READ_WRITE') {
+      assert.match(source, /localStorage\.setItem/);
+    } else {
+      assert.doesNotMatch(source, /localStorage\.setItem/);
+    }
     for (const key of legacy.observedKeys) {
       assert.equal(source.includes(key), true);
       allObservedKeys.add(key);
