@@ -90,10 +90,10 @@ Ne jamais committer de valeur secrète. Les noms et attentes doivent rester dans
 
 ## 6. Backend et mobile séparés
 
-- `backend` expose une API Hono protégée par JWT après le groupe public `/api/auth` ; l'inscription, la connexion et le refresh restent des stubs ;
-- `backend/db` contient les schémas Drizzle/PostgreSQL, mais la baseline de migration est bloquée ;
+- `backend` expose une API Hono protégée par JWT après le groupe public `/api/auth` ; l'inscription, la vérification d'adresse e-mail, la connexion, la rotation de refresh token et la déconnexion sont implémentées sur PostgreSQL ; la livraison e-mail en production et le rollout des comptes legacy restent gated ;
+- `backend/db` contient les schémas Drizzle/PostgreSQL ; la baseline est validée sur des bases jetables, sans constituer une autorité de migration/release production ;
 - `apps/mobile` est une application Expo 52 / React 18 distincte ;
-- Unity et Nakama sont absents du dépôt et restent `GATED`.
+- Unity et Nakama sont présents sous `unity/world` et `infra/nakama` pour le spike World ; le loopback live a été validé, sans constituer une autorité de production.
 
 Voir `docs/user_manual/api_reference.md` pour la surface Hono observée et `ARCHITECTURE.md` pour les frontières de données.
 
