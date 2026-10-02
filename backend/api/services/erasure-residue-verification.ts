@@ -26,6 +26,7 @@ import {
   eliStates,
   healthEntries,
   posts,
+  presenceEvents,
   professionalShareAccessAudits,
   professionalShareGrants,
   recoveryEvents,
@@ -372,6 +373,7 @@ export async function verifyErasureResidue(
         probe('eli_behavioral_priors.dog_id', await countIn(tx, eliBehavioralPriors, eliBehavioralPriors.dogId, snapshot.dogIds)),
         probe('eli_states.dog_id', await countIn(tx, eliStates, eliStates.dogId, snapshot.dogIds)),
         probe('health_entries.dog_id', await countIn(tx, healthEntries, healthEntries.dogId, snapshot.dogIds)),
+        probe('presence_events.dog_id', await countIn(tx, presenceEvents, presenceEvents.dogId, snapshot.dogIds)),
         probe('professional_share_grants.dog_id', await countIn(
           tx,
           professionalShareGrants,
