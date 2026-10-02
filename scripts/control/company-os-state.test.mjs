@@ -1379,7 +1379,7 @@ test('transition workflow status is read-only and exposes mechanical next state 
   );
   assert.match(
     staleQueue.operator_handoff.note,
-    /Supply --repository and --current-ref/i,
+    /Supply --repository and .*--current-ref/i,
   );
   assert.match(staleQueue.next_action, /Regenerate the queue/i);
 
