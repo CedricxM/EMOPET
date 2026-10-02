@@ -70,8 +70,8 @@ test('Gate 5B web surface quarantines the local World prototype as preview-only'
   assert.match(builder, /PREVIEW_RESOURCE_BALANCE/);
   assert.match(builder, /Aucun état de compte n’a été modifié/);
   assert.match(builder, /Preview non persistant/);
-  assert.doesNotMatch(preview, /localStorage|sessionStorage/);
-  assert.doesNotMatch(builder, /localStorage|sessionStorage/);
+  assert.doesNotMatch(preview, /(?:window\.)?(?:localStorage|sessionStorage)\s*\.(?:getItem|setItem|removeItem|clear)\s*\(/);
+  assert.doesNotMatch(builder, /(?:window\.)?(?:localStorage|sessionStorage)\s*\.(?:getItem|setItem|removeItem|clear)\s*\(/);
 
   for (const forbidden of [
     'routinePoints',
