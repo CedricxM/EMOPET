@@ -119,6 +119,26 @@ test('preuve incomplète → bloquée même avec licence et fraîcheur', () => {
   assert.equal(verdict.ingestionPermitted, false);
 });
 
+test('preuve future, expirée ou recheck illisible → ingestion bloquée', () => {
+  const now = Date.parse('2026-10-02T12:00:00.000Z');
+  for (const rightsEvidence of [
+    { ...source().rightsEvidence!, reviewedAt: '2026-10-03T00:00:00.000Z' },
+    { ...source().rightsEvidence!, recheckAt: '2026-10-01T00:00:00.000Z' },
+    { ...source().rightsEvidence!, recheckAt: 'pas une date' },
+  ]) {
+    const verdict = evaluateBreizSourceRights(source({ rightsEvidence }), now);
+    assert.ok(verdict.blockers.includes('RIGHTS_EVIDENCE_OUT_OF_WINDOW'));
+    assert.equal(verdict.ingestionPermitted, false);
+  }
+});
+
+test('preuve dans sa fenêtre reste ingérable', () => {
+  const now = Date.parse('2026-10-02T12:00:00.000Z');
+  const verdict = evaluateBreizSourceRights(source(), now);
+  assert.equal(verdict.blockers.includes('RIGHTS_EVIDENCE_OUT_OF_WINDOW'), false);
+  assert.equal(verdict.ingestionPermitted, true);
+});
+
 test('licence absente ou vide → bloqué', () => {
   for (const license of [null, '', '   ']) {
     const verdict = evaluateBreizSourceRights(source({ license }));
