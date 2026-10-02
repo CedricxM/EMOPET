@@ -1,6 +1,6 @@
 # EMOPET — Référence de l'API Hono observée
 
-Cette référence décrit les routes montées par `backend/api/index.ts` au 2026-08-29. Elle n'est ni un contrat OpenAPI versionné ni une preuve de disponibilité en production.
+Cette référence décrit les routes montées par `backend/api/index.ts` et a été réconciliée avec le runtime courant le 2026-10-02. Elle n'est ni un contrat OpenAPI versionné ni une preuve de disponibilité en production.
 
 L'ancienne référence FastAPI (`/predict`, `/insights`, rapports CSV et extensions Python) ne correspond pas au serveur actif. Elle reste consultable dans l'historique Git.
 
@@ -23,20 +23,24 @@ Authorization: Bearer <token>
 Limites importantes :
 
 - `JWT_SECRET` est obligatoire hors `NODE_ENV=test` ;
-- le helper `signToken` émet des jetons HS256 à sept jours ; le middleware vérifie leur signature et toute expiration présente ;
-- `register`, `login` et `refresh` sont des stubs et ne fournissent pas encore de cycle d'identité utilisable ;
+- le runtime émet des access tokens JWT HS256 bornés et des refresh credentials persistants, rotatifs et révocables ; le middleware vérifie les access tokens ;
+- `register`, `verify-email`, `verify-email/resend`, `login`, `refresh`, `logout` et `logout-all` forment désormais un cycle d'identité backend implémenté ; la livraison e-mail de production, le rollout legacy et les gates d'exploitation restent séparément ouverts ;
 - plusieurs routes chien/capteur appliquent `requireDogOwnership`, mais la couverture négative de toutes les routes n'est pas démontrée ;
 - un `share_token` signé peut donner un accès temporaire au PDF vétérinaire sans Bearer token ;
-- l'identité, la récupération, la révocation, la rotation et la suppression restent `OPEN / GATED`.
+- la rotation et la révocation de session sont implémentées ; récupération de compte, rollout legacy et suppression/effacement complet restent soumis à leurs gates dédiés.
 
 ## 3. Routes publiques
 
 | Méthode | Chemin | État observé |
 |---|---|---|
 | GET | `/health` | Probe `{ status, version }` |
-| POST | `/api/auth/register` | Validation d'entrée, inscription non implémentée |
-| POST | `/api/auth/login` | Validation d'entrée, vérification/émission JWT non implémentée |
-| POST | `/api/auth/refresh` | Renouvellement non implémenté |
+| POST | `/api/auth/register` | Création idempotente du compte en attente de vérification ; réponse générique, aucune session avant preuve |
+| POST | `/api/auth/verify-email` | Consommation d'un jeton de vérification à usage unique ; aucune session implicite |
+| POST | `/api/auth/verify-email/resend` | Demande générique de renvoi via l'outbox de livraison |
+| POST | `/api/auth/login` | Vérification du mot de passe et de l'état e-mail ; création d'une session refresh persistante + access token |
+| POST | `/api/auth/refresh` | Rotation transactionnelle du refresh credential et émission d'un nouvel access token |
+| POST | `/api/auth/logout` | Révocation de la famille de session concernée |
+| POST | `/api/auth/logout-all` | Révocation authentifiée de toutes les sessions actives du compte |
 
 ## 4. Routes protégées
 
