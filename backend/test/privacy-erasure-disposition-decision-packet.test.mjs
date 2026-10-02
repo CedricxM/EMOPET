@@ -80,9 +80,9 @@ test('packet covers every canonical matrix relation exactly once and mirrors pro
 
 test('decision grouping counts remain explicit and exhaustive', () => {
   assert.deepEqual(packet.summary, {
-    relationalTotal: 52,
+    relationalTotal: 55,
     policyAlignedDeleteCandidates: 30,
-    policyConditionalExecutionRequired: 19,
+    policyConditionalExecutionRequired: 22,
     legalAuthorityBlocked: 3,
     matrixRowsPromoted: 5,
   });
@@ -100,7 +100,7 @@ test('decision grouping counts remain explicit and exhaustive', () => {
 
   assert.deepEqual(counts, {
     POLICY_ALIGNED_DELETE_CANDIDATE: 30,
-    POLICY_CONDITIONAL_EXECUTION_REQUIRED: 19,
+    POLICY_CONDITIONAL_EXECUTION_REQUIRED: 22,
     LEGAL_AUTHORITY_BLOCKED: 3,
   });
 });
@@ -209,6 +209,25 @@ test('conditional rows distinguish approved D1-D4 detach from still-unresolved e
     'dogs.id|TRANSITIVE_FK|behavioral_factor_scores|assessment_id',
   ]) {
     assert.match(conditional[key].why, /research/i);
+  }
+});
+
+test('World G2 rows remain conditional and unpromoted pending Owner lifecycle authority', () => {
+  const expected = [
+    'users.id|DIRECT_FK|world_owned_items|owner_id',
+    'users.id|DIRECT_FK|world_progression_events|owner_id',
+    'users.id|DIRECT_FK|world_resource_spends|owner_id',
+  ];
+
+  const byKey = Object.fromEntries(packet.relations.map((row) => [relationKey(row), row]));
+  for (const key of expected) {
+    const row = byKey[key];
+    assert.ok(row, key);
+    assert.equal(row.decisionSupportStatus, 'POLICY_CONDITIONAL_EXECUTION_REQUIRED');
+    assert.equal(row.candidateDisposition, null);
+    assert.equal(row.promotionAuthorized, false);
+    assert.deepEqual(row.allowedOutcomes, ['DELETE', 'ANONYMIZE', 'RETAIN_WITH_JUSTIFICATION']);
+    assert.match(row.requiredDecision, /durable World progression/i);
   }
 });
 
