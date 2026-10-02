@@ -1161,14 +1161,21 @@ test('reviewed transition finalization is explicit, manual and ledger-tail bound
 
   assert.throws(
     () =>
-      finalizeReviewedTransitionAppend(reviewedCandidate, transitionEvents, {
-        finalize: true,
-        ci: false,
-        eventId: transitionEvents[0].event_id,
-        recordedOn: transitionEvents[0].recorded_on,
-        sourceSnapshotRef: 'main@dddddddddddddddddddddddddddddddddddddddd',
-        appendPrRef: '#1010',
-      }),
+      finalizeReviewedTransitionAppend(
+        {
+          ...reviewedCandidate,
+          reviewed_on: transitionEvents[0].recorded_on,
+        },
+        transitionEvents,
+        {
+          finalize: true,
+          ci: false,
+          eventId: transitionEvents[0].event_id,
+          recordedOn: transitionEvents[0].recorded_on,
+          sourceSnapshotRef: 'main@dddddddddddddddddddddddddddddddddddddddd',
+          appendPrRef: '#1010',
+        },
+      ),
     /Duplicate transition event ID/,
   );
 
