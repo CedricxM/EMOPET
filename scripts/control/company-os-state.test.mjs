@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { renderCompanyOsViews } from './generate-company-os-views.mjs';
-import { CONTROLLED_STATE_PATHS, proposeCompanyTransitions } from './propose-company-transitions.mjs';
+import { CONTROLLED_STATE_PATHS, parseMainRef, proposeCompanyTransitions } from './propose-company-transitions.mjs';
 import { prepareReviewedTransitionAppend } from './prepare-reviewed-transition-append.mjs';
 import { finalizeReviewedTransitionAppend } from './finalize-reviewed-transition-append.mjs';
 import { assertSourceSnapshotIncludedInBase, verifySourceSnapshotMergedInBase } from './verify-transition-source-snapshot.mjs';
@@ -1369,11 +1369,41 @@ test('transition workflow status is read-only and exposes mechanical next state 
     'main@dddddddddddddddddddddddddddddddddddddddd',
   );
   assert.equal(
-    staleQueue.operator_handoff,
+    staleQueue.operator_handoff.action,
+    'REGENERATE_PROPOSAL_QUEUE',
+  );
+  assert.equal(
+    staleQueue.operator_handoff.command,
     null,
-    'stale queues must not hand off into proposal review',
+    'doctor must not invent a repository when none was supplied',
+  );
+  assert.match(
+    staleQueue.operator_handoff.note,
+    /Supply --repository and --current-ref/i,
   );
   assert.match(staleQueue.next_action, /Regenerate the queue/i);
+
+  const staleQueueWithRepository = inspectTransitionWorkflow(
+    { ...queue, proposals: [] },
+    transitionEvents,
+    null,
+    {
+      currentRef: 'main@dddddddddddddddddddddddddddddddddddddddd',
+      repository: 'CedricxM/EMOPET',
+    },
+  );
+  assert.equal(
+    staleQueueWithRepository.operator_handoff.action,
+    'REGENERATE_PROPOSAL_QUEUE',
+  );
+  assert.match(
+    staleQueueWithRepository.operator_handoff.command,
+    /propose-company-transitions\.mjs --repository CedricxM\/EMOPET --base-ref main@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb --candidate-ref main@dddddddddddddddddddddddddddddddddddddddd --output state\/history\/pending-transition-proposals\.json/,
+  );
+  assert.match(
+    staleQueueWithRepository.operator_handoff.note,
+    /does not review, prioritize, accept, prepare, finalize or append/i,
+  );
 
   const currentQueue = inspectTransitionWorkflow(
     {
@@ -1403,7 +1433,11 @@ test('transition workflow status is read-only and exposes mechanical next state 
     'PROPOSAL_QUEUE_STALE',
     'queue freshness must fail closed before reviewed-candidate readiness',
   );
-  assert.equal(staleReviewedCandidate.operator_handoff, null);
+  assert.equal(
+    staleReviewedCandidate.operator_handoff.action,
+    'REGENERATE_PROPOSAL_QUEUE',
+  );
+  assert.equal(staleReviewedCandidate.operator_handoff.command, null);
 
   assert.throws(
     () =>
@@ -1423,6 +1457,32 @@ test('transition workflow status is read-only and exposes mechanical next state 
     source,
     /MECHANICAL_WORKFLOW_STATUS_NOT_DECISION_AUTHORITY/,
     'workflow status helper must disclose its non-authority boundary',
+  );
+});
+
+test('explicit proposal regeneration refs are strict main snapshots', () => {
+  assert.equal(
+    parseMainRef('main@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '--base-ref'),
+    'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  );
+  assert.throws(
+    () => parseMainRef('head@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '--base-ref'),
+    /--base-ref must be main@<40-hex-sha>/,
+  );
+  assert.throws(
+    () => parseMainRef('main@not-a-sha', '--candidate-ref'),
+    /--candidate-ref must be main@<40-hex-sha>/,
+  );
+
+  const source = readText('scripts/control/propose-company-transitions.mjs');
+  assert.match(source, /Explicit regeneration requires --repository, --base-ref and --candidate-ref together/);
+  assert.match(source, /--github-pr cannot be combined with explicit regeneration refs/);
+  assert.match(source, /before = await loadGithubBundle/);
+  assert.match(source, /after = await loadGithubBundle/);
+  assert.doesNotMatch(
+    source,
+    /appendFileSync|finalizeReviewedTransitionAppend/,
+    'proposal regeneration must not append or finalize transition history',
   );
 });
 
