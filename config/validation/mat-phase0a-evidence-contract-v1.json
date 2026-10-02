@@ -4,7 +4,13 @@
   "gate": "G-MAT-PHASE0-EXECUTION-01",
   "decisionAuthority": {
     "incrementalValueDecisionAllowed": false,
-    "allowedDispositions": ["MAT_CORE", "MAT_OPTIONAL", "MAT_POST_V1", "MAT_REDIRECT", "MAT_KILL"],
+    "allowedDispositions": [
+      "MAT_CORE",
+      "MAT_OPTIONAL",
+      "MAT_POST_V1",
+      "MAT_REDIRECT",
+      "MAT_KILL"
+    ],
     "currentDecision": null
   },
   "requiredManifestFields": [
@@ -33,7 +39,13 @@
   ],
   "missingDataPolicy": {
     "replaceMissingWithZero": false,
-    "allowedExplicitStates": ["MISSING", "DROPOUT", "NOT_RUN", "INCONCLUSIVE"]
+    "allowedExplicitStates": [
+      "MISSING",
+      "DROPOUT",
+      "NOT_RUN",
+      "INCONCLUSIVE"
+    ],
+    "observedState": "OBSERVED"
   },
   "claimBoundaries": {
     "benchObservabilityIsScientificValidation": false,
