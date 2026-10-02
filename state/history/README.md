@@ -183,3 +183,10 @@ node scripts/control/transition-review-packet.mjs \
 ```
 
 The packet is inspection only. It is not approval, a review reference, append readiness or substantive decision authority. A real accepted proposal still requires the separate reviewed append preparation flow with a real dated review reference.
+
+
+## Operator handoff
+
+When the workflow doctor reports `PROPOSAL_REVIEW_REQUIRED`, its `operator_handoff` points to the existing read-only transition review packet command.
+
+The handoff is mechanical navigation only. With multiple pending proposals it renders the full queue and deliberately does not select a proposal ID, rank proposals, or imply review priority. It never accepts, approves, prepares, finalizes or appends a transition.
