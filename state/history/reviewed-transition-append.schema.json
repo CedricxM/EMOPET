@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://emopet.invalid/schema/reviewed-transition-append.schema.json",
+  "title": "EMOPET Reviewed Transition Append Candidate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "authority_mode",
+    "proposal_id",
+    "review_status",
+    "reviewed_on",
+    "review_ref",
+    "candidate_ref",
+    "ledger_tail_event_id",
+    "append_candidate",
+    "finalization"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "authority_mode": {
+      "type": "string",
+      "const": "REVIEWED_APPEND_CANDIDATE_REQUIRES_HUMAN_PR_APPROVAL"
+    },
+    "proposal_id": {
+      "type": "string",
+      "pattern": "^EMO-PROPOSAL-[0-9]{8}-[0-9]{4}$"
+    },
+    "review_status": {
+      "type": "string",
+      "const": "REVIEW_RECORDED_ACCEPTED_FOR_PREPARATION"
+    },
+    "reviewed_on": {
+      "type": "string",
+      "format": "date"
+    },
+    "review_ref": {
+      "$ref": "#/$defs/reviewRef"
+    },
+    "candidate_ref": {
+      "type": "string",
+      "pattern": "^(main|head|commit)@[0-9a-f]{40}$"
+    },
+    "ledger_tail_event_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^EMO-TRANSITION-[0-9]{8}-[0-9]{4}$"
+    },
+    "append_candidate": {
+      "$ref": "#/$defs/appendCandidate"
+    },
+    "finalization": {
+      "$ref": "#/$defs/finalization"
+    }
+  },
+  "$defs": {
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "value"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "path",
+            "issue",
+            "pr",
+            "commit",
+            "external"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "reviewRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "value"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "path",
+            "issue",
+            "pr"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "appendCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "subject",
+        "from_state",
+        "to_state",
+        "summary",
+        "source_candidate_ref",
+        "authority_refs",
+        "evidence_refs",
+        "decision_refs",
+        "previous_event_id",
+        "corrects_event_id",
+        "confidentiality"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "STATE_TRANSITION",
+            "AUTHORITY_TRANSITION",
+            "EVIDENCE_TRANSITION"
+          ]
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1
+        },
+        "from_state": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "to_state": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_candidate_ref": {
+          "type": "string",
+          "pattern": "^(main|head|commit)@[0-9a-f]{40}$"
+        },
+        "authority_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
+        },
+        "decision_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
+        },
+        "previous_event_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^EMO-TRANSITION-[0-9]{8}-[0-9]{4}$"
+        },
+        "corrects_event_id": {
+          "type": "null"
+        },
+        "confidentiality": {
+          "type": "string",
+          "const": "PUBLIC"
+        }
+      }
+    },
+    "finalization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "source_snapshot_ref",
+        "append_to_ledger",
+        "requires_human_pr_approval"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "null"
+        },
+        "source_snapshot_ref": {
+          "type": "null"
+        },
+        "append_to_ledger": {
+          "type": "boolean",
+          "const": false
+        },
+        "requires_human_pr_approval": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  }
+}
