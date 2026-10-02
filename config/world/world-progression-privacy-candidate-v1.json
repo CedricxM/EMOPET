@@ -63,7 +63,7 @@
     "durableProductionPersistence": false
   },
   "durableSchemaFoundation": {
-    "migration": "backend/db/migrations/0046_world_gamification_persistence.sql",
+    "migration": "backend/db/migrations/0047_world_gamification_persistence.sql",
     "schema": "backend/db/schema/world-gamification.ts",
     "status": "PRESENT_NOT_PRIVACY_PROMOTED",
     "productionWritesActivated": false
