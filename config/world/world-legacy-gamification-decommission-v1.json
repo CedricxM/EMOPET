@@ -131,6 +131,8 @@
     "forbidden dog/Care/ELI/data-day signals mint zero progression",
     "mock BASE_COUNTERS mint zero progression",
     "legacy keys are covered by explicit lifecycle/erasure treatment",
-    "no dual-write or dual-authority period remains"
-  ]
+    "no dual-write or dual-authority period remains",
+    "decommission plan and runtime replay authority remain mapping-aligned"
+  ],
+  "runtimeReplayAuthority": "config/world/world-legacy-replay-authority-v1.json"
 }
