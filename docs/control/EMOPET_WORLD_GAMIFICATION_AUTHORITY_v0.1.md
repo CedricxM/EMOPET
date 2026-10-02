@@ -316,7 +316,7 @@ Status: **SCHEMA + STORE PRESENT / NOT ACTIVATED / NOT PRODUCTION AUTHORITY**.
 
 The durable foundation is now defined by:
 
-- `backend/db/migrations/0046_world_gamification_persistence.sql`;
+- `backend/db/migrations/0047_world_gamification_persistence.sql`;
 - `backend/db/schema/world-gamification.ts`;
 - `backend/api/services/world-progression-postgres.ts`;
 - `backend/api/services/world-build-postgres.ts`.
