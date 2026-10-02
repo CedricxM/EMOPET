@@ -109,9 +109,10 @@ export function parseOwnerSessionTokens(
   }
 
   if (
-    !Number.isSafeInteger(value.accessTokenExpiresInSeconds)
-    || Number(value.accessTokenExpiresInSeconds) <= 0
-    || Number(value.accessTokenExpiresInSeconds) > MAX_ACCESS_TTL_SECONDS
+    typeof value.accessTokenExpiresInSeconds !== 'number'
+    || !Number.isSafeInteger(value.accessTokenExpiresInSeconds)
+    || value.accessTokenExpiresInSeconds <= 0
+    || value.accessTokenExpiresInSeconds > MAX_ACCESS_TTL_SECONDS
   ) {
     return null;
   }
@@ -131,7 +132,7 @@ export function parseOwnerSessionTokens(
   return {
     accessToken,
     refreshToken,
-    accessTokenExpiresInSeconds: Number(value.accessTokenExpiresInSeconds),
+    accessTokenExpiresInSeconds: value.accessTokenExpiresInSeconds,
     refreshTokenExpiresAt,
   };
 }
