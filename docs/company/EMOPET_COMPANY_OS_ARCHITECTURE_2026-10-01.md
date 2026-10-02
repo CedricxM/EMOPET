@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-01  
 **Status:** `PROPOSED COMPANY CONTROL PLANE / DOES NOT REPLACE DOMAIN AUTHORITIES`  
-**Branch base:** `main@d937a3a8e67669d8c5e90048f1997b19807c93f0`
+**Branch base:** `main@09fa5fbb10d98987f35e02714ac7550678b95815`
 
 ## 1. Purpose
 
@@ -329,6 +329,7 @@ A rendered packet is not itself a review record. If a real reviewer accepts a pr
 
 It reports only mechanical state:
 
+- whether an explicitly supplied current controlled-state ref still matches the proposal queue candidate ref;
 - whether the proposal queue is empty or still requires review;
 - whether an optional reviewed candidate still maps to the current proposal queue;
 - whether its candidate ref still matches;
@@ -339,6 +340,7 @@ It reports only mechanical state:
 The status helper MUST remain weaker than review/finalization:
 
 - it never writes files or appends history;
+- it fails closed with `PROPOSAL_QUEUE_STALE` before proposal count, review handoff or reviewed-candidate readiness is trusted when an explicit current ref differs from the queue candidate ref;
 - it never marks a proposal accepted, approved, validated or decided;
 - it never allocates an event ID or source snapshot;
 - it never substitutes for the human review reference or append PR;
@@ -377,7 +379,7 @@ Any AI agent doing substantive EMOPET work should:
 
 V1 includes the company front door, machine-readable state, milestone/experiment/finance/metrics/risk/unknowns registries, and an every-PR structural evidence guard.
 
-V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, deterministic human views generated from machine-readable state, a public-safe founder cockpit, redacted investor/supplier views, an append-only Company Time Machine transition ledger, review-only transition proposals generated from controlled state diffs, reviewed-proposal append preparation, a human-approved finalization path, and an append-PR checklist with merged-main source-snapshot verification, a read-only transition workflow status doctor, and a read-only transition review packet renderer. Freshness remains conservative, and structural, presentation, historical-record, proposal, preparation, finalization or ancestry validity never substitutes for domain evidence or authority.
+V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, deterministic human views generated from machine-readable state, a public-safe founder cockpit, redacted investor/supplier views, an append-only Company Time Machine transition ledger, review-only transition proposals generated from controlled state diffs, reviewed-proposal append preparation, a human-approved finalization path, and an append-PR checklist with merged-main source-snapshot verification, a read-only transition workflow status doctor with an explicit stale-queue guard and review-packet handoff, and a read-only transition review packet renderer. Freshness remains conservative, and structural, presentation, historical-record, proposal, preparation, finalization or ancestry validity never substitutes for domain evidence or authority.
 
 Next bounded slices should be chosen from observed operator friction in the reviewed transition workflow rather than added for completeness.
 

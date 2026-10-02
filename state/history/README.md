@@ -138,6 +138,15 @@ Default diagnostic:
 node scripts/control/transition-workflow-status.mjs
 ```
 
+For an operator decision about whether the **committed proposal queue is still current**, supply the ref that represents the current controlled-state snapshot:
+
+```bash
+node scripts/control/transition-workflow-status.mjs \
+  --current-ref main@<current-main-sha>
+```
+
+Without `--current-ref`, the helper can describe proposal/review/ledger mechanics but cannot certify that the queue was generated from the current controlled state.
+
 To inspect a prepared reviewed candidate:
 
 ```bash
@@ -147,12 +156,15 @@ node scripts/control/transition-workflow-status.mjs \
 
 The helper can report:
 
+- `PROPOSAL_QUEUE_STALE` when an explicit current ref no longer matches the queue candidate ref;
 - `NO_PENDING_PROPOSALS`;
 - `PROPOSAL_REVIEW_REQUIRED`;
 - `REVIEWED_CANDIDATE_ORPHANED`;
 - `REVIEWED_CANDIDATE_SOURCE_MISMATCH`;
 - `REVIEWED_CANDIDATE_STALE`;
 - `REVIEWED_CANDIDATE_READY_FOR_MANUAL_FINALIZATION_INPUTS`.
+
+`PROPOSAL_QUEUE_STALE` fails closed before proposal count, review handoff or reviewed-candidate readiness is trusted. The next action is to regenerate the review-only queue from the current controlled state.
 
 These are mechanical workflow states only. They are not approval, validation, release authority, funding authority or a substitute for the substantive human review.
 
