@@ -112,3 +112,14 @@ export {
   buildBretagneLanguageRuntimeEvidenceCandidate,
   evaluateBretagneLanguageReviewDecision,
 } from './bretagne-language-review-decision';
+
+export type {
+  RegionalSourceReadinessScope,
+  RegionalSourceReadinessRequest,
+  RegionalSourceEffectiveBlocker,
+  RegionalSourceReadinessVerdict,
+} from './regional-source-readiness';
+export {
+  evaluateRegionalSourceReadiness,
+  listBretagneOpenDataDatasetIds,
+} from './regional-source-readiness';
