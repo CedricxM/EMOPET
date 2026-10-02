@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdir, readFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 
 const readRepo = (path) => readFile(new URL(`../../${path}`, import.meta.url), 'utf8');
 const contract = JSON.parse(
