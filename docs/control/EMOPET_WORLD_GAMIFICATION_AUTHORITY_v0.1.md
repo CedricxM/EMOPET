@@ -259,7 +259,23 @@ Required behavior:
 - a verifier outage propagates so the ledger returns source-authority unavailable and fails closed;
 - Care, ELI, sensor and dog-performance systems are not progression source authorities.
 
-This slice still does not wire the domain verifiers to active runtime routes. That integration remains gated behind the existing product authorities for Knowledge, Local, Community, World and Memories.
+Implementation readiness is tracked separately in:
+
+- `config/world/world-progression-source-readiness-v1.json`
+- `backend/test/world-progression-source-readiness.test.mjs`
+
+Current Gate 3 status is intentionally asymmetric:
+
+- `community.contribution_created` has a specialized canonical PostgreSQL verifier that checks durable Owner authorship;
+- `knowledge.card_read` remains blocked because the Owner read action is still browser-local state;
+- `local.place_saved` remains blocked because the Owner saved-place action is still browser-local state;
+- `local.route_saved` has no canonical durable Owner-authored route authority;
+- `world.group_joined` cannot use Nakama transport membership as durable product authority;
+- `memory.created` remains blocked while Product V1 Journal/Memory persistence is not wired.
+
+A declared source namespace therefore remains only a future routing contract. Missing/blocked verifiers deny progression by default. No blocked domain may be promoted through a permissive placeholder verifier.
+
+This slice still does not activate progression write routes or production authority.
 
 
 ## 14. G1G provenance
