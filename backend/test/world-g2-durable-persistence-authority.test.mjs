@@ -23,7 +23,7 @@ async function collectTypeScriptFiles(dir) {
 
 test('WORLD-G2 migration locks Owner, idempotency, canonical-source and ownership uniqueness', async () => {
   const [sql, schema] = await Promise.all([
-    read('backend', 'db', 'migrations', '0045_world_gamification_persistence.sql'),
+    read('backend', 'db', 'migrations', '0046_world_gamification_persistence.sql'),
     read('backend', 'db', 'schema', 'world-gamification.ts'),
   ]);
 
@@ -37,7 +37,7 @@ test('WORLD-G2 migration locks Owner, idempotency, canonical-source and ownershi
     assert.equal(
       (sql.match(new RegExp(`CREATE TABLE ${table}`, 'g')) ?? []).length,
       1,
-      `${table} must be declared exactly once in migration 0045`,
+      `${table} must be declared exactly once in migration 0046`,
     );
     assert.equal(
       (schema.match(new RegExp(`export const ${exportName}\\b`, 'g')) ?? []).length,
