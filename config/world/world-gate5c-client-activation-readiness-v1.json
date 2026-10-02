@@ -1,0 +1,26 @@
+{
+  "version": "1",
+  "status": "CONTROLLED_DRAFT_NOT_PRODUCTION_AUTHORITY",
+  "gate": "5C_CLIENT_ACTIVATION_READINESS",
+  "sourceIssue": 898,
+  "webActivated": false,
+  "prerequisites": {
+    "gate5bReadContinuityMerged": true,
+    "webExplicitBearerTokenProvider": false,
+    "webExplicitCoarseRegionProvider": false,
+    "webUiCutoverDecisionRecorded": false
+  },
+  "unity": {
+    "readClientPresent": true,
+    "presenceDoesNotPromoteAuthority": true
+  },
+  "forbiddenFallbacks": [
+    "LOCAL_STORAGE_PROGRESSION_AUTHORITY",
+    "SESSION_STORAGE_PROGRESSION_AUTHORITY",
+    "CALLER_SUPPLIED_OWNER_ID",
+    "PRECISE_LOCATION_DERIVED_REGION",
+    "ANONYMOUS_PROGRESSION_READ"
+  ],
+  "webActivationRule": "ALL_WEB_PREREQUISITES_TRUE",
+  "nextAction": "IMPLEMENT_WEB_AUTH_AND_COARSE_REGION_PROVIDERS_WITHOUT_ACTIVATING_WORLD_UI"
+}
