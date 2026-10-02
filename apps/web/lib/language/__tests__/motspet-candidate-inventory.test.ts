@@ -82,8 +82,6 @@ test('inventory reconciles v0.3 observation-contract concepts as existing contro
 
 test('inventory keeps the remaining next-review concepts outside runtime authority', () => {
   for (const id of [
-    'uncertainty',
-    'trend',
     'share_scope',
     'explicit_preference',
     'moment',
@@ -95,6 +93,19 @@ test('inventory keeps the remaining next-review concepts outside runtime authori
     assert.equal(candidate.status, 'CANDIDATE_REVIEW', id);
     assert.equal(candidate.existingMotsPetId, null, id);
     assert.equal(getMotsPetEntry(id), undefined, id);
+  }
+});
+
+test('v0.4 uncertainty and trend are reconciled as bounded controlled concepts', () => {
+  for (const id of ['uncertainty', 'trend']) {
+    const candidate = getMotsPetCandidateInventoryEntry(id);
+    assert.ok(candidate, id);
+    assert.equal(candidate.status, 'EXISTING_CONTROLLED', id);
+    assert.equal(candidate.existingMotsPetId, id, id);
+
+    const runtime = getMotsPetEntry(id);
+    assert.ok(runtime, id);
+    assert.equal(runtime.status, 'CONTROLLED_SEED', id);
   }
 });
 
@@ -139,8 +150,6 @@ test('review queue is derived from the canonical candidate inventory', () => {
 
   assert.deepEqual(projectedIds, canonicalIds);
   assert.deepEqual(projectedIds, [
-    'uncertainty',
-    'trend',
     'share_scope',
     'explicit_preference',
     'moment',
