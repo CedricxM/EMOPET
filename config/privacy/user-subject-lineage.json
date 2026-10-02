@@ -73,14 +73,34 @@
       "source": "backend/db/schema/dogs.ts"
     },
     {
+      "table": "phone_presence_events",
+      "column": "owner_id",
+      "source": "backend/db/schema/presence.ts"
+    },
+    {
       "table": "posts",
       "column": "author_id",
       "source": "backend/db/schema/community.ts"
     },
     {
+      "table": "professional_share_grants",
+      "column": "owner_user_id",
+      "source": "backend/db/schema/professional-sharing.ts"
+    },
+    {
       "table": "research_data_consents",
       "column": "user_id",
       "source": "backend/db/schema/behavioral-assessments.ts"
+    },
+    {
+      "table": "social_connections",
+      "column": "user_high_id",
+      "source": "backend/db/schema/social-connections.ts"
+    },
+    {
+      "table": "social_connections",
+      "column": "user_low_id",
+      "source": "backend/db/schema/social-connections.ts"
     },
     {
       "table": "subscriptions",
@@ -98,19 +118,19 @@
       "source": "backend/db/schema/user-blocks.ts"
     },
     {
+      "table": "user_config",
+      "column": "user_id",
+      "source": "backend/db/schema/eli-v5.ts"
+    },
+    {
+      "table": "world_owned_items",
+      "column": "owner_id",
+      "source": "backend/db/schema/world-gamification.ts"
+    },
+    {
       "table": "world_pilot_access",
       "column": "user_id",
       "source": "backend/db/schema/world-pilot-access.ts"
-    },
-    {
-      "table": "social_connections",
-      "column": "user_high_id",
-      "source": "backend/db/schema/social-connections.ts"
-    },
-    {
-      "table": "social_connections",
-      "column": "user_low_id",
-      "source": "backend/db/schema/social-connections.ts"
     },
     {
       "table": "world_presence_consents",
@@ -118,22 +138,7 @@
       "source": "backend/db/schema/social-connections.ts"
     },
     {
-      "table": "user_config",
-      "column": "user_id",
-      "source": "backend/db/schema/eli-v5.ts"
-    },
-    {
-      "table": "professional_share_grants",
-      "column": "owner_user_id",
-      "source": "backend/db/schema/professional-sharing.ts"
-    },
-    {
       "table": "world_progression_events",
-      "column": "owner_id",
-      "source": "backend/db/schema/world-gamification.ts"
-    },
-    {
-      "table": "world_owned_items",
       "column": "owner_id",
       "source": "backend/db/schema/world-gamification.ts"
     },
