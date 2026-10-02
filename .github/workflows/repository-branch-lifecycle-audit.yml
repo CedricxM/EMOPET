@@ -5,6 +5,7 @@ on:
     paths:
       - 'scripts/repository/branch-lifecycle-audit.mjs'
       - 'tests/repository/branch-lifecycle-audit.test.mjs'
+      - 'config/repository/branch-lifecycle-hard-exclusions-v1.json'
       - 'docs/control/REPOSITORY_BRANCH_LIFECYCLE_AUDIT.md'
       - '.github/workflows/repository-branch-lifecycle-audit.yml'
   workflow_dispatch:
