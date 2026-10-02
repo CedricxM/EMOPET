@@ -30,7 +30,7 @@ Le brief `PROMPT_PROTOTYPE_BRETAGNE.md` décrit une proposition historique. Les 
 
 - Monorepo pnpm 10 + Turbo. App web : **`apps/web`** (Next.js 15 + React 19, port 3100).
 - App mobile : **`apps/mobile`** (Expo 52 + React 18 + React Native 0.76).
-- Backend : **`backend`** (Hono 4 + TypeScript + Drizzle/PostgreSQL). Ce n'est pas NestJS. L'inscription, la connexion et le renouvellement de jeton restent des stubs `TODO`.
+- Backend : **`backend`** (Hono 4 + TypeScript + Drizzle/PostgreSQL). Ce n'est pas NestJS. L'inscription, la vérification d'adresse e-mail, la connexion, la rotation de refresh token et la déconnexion sont implémentées sur PostgreSQL. L'autorité de livraison e-mail en production, le rollout des comptes legacy et les autres gates de production restent séparément ouverts.
 - Le web contient aussi des Route Handlers Next.js avec stockage JSON `.data/` et replis localStorage. Ce plan prototype n'est pas l'autorité durable et reste à réconcilier avec le backend/PostgreSQL.
 - Navigation sidebar observée : `/dashboard`, `/journal`, `/quartier`, `/world`, `/breiz`, `/profil`. Des routes hors sidebar existent, notamment `/rapport`, `/contact` et `/admin`.
 - Design system maison : `apps/web/styles/tokens.css` et primitives `apps/web/components/ui/*`. HeroUI 3 et Tailwind 4 sont également installés.
