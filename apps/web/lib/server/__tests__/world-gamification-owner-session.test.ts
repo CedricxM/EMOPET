@@ -10,10 +10,7 @@ const ENV = {
   EMOPET_INTERNAL_BACKEND_URL: 'http://127.0.0.1:3000',
 } as NodeJS.ProcessEnv;
 
-const ACCESS_A = 'access-token-value-abcdefghijklmnopqrstuvwxyz';
-const ACCESS_B = 'rotated-access-token-value-abcdefghijklmnopqrstuvwxyz';
-const REFRESH_A = 'emopet_rt_original-refresh-token-abcdefghijklmnopqrstuvwxyz';
-const REFRESH_B = 'emopet_rt_rotated-refresh-token-abcdefghijklmnopqrstuvwxyz';
+const ACCESS = 'access-token-value-abcdefghijklmnopqrstuvwxyz';
 
 function snapshot() {
   return {
@@ -47,31 +44,22 @@ function snapshot() {
   };
 }
 
-function rotatedTokens() {
-  return {
-    accessToken: ACCESS_B,
-    refreshToken: REFRESH_B,
-    tokenType: 'Bearer',
-    accessTokenExpiresInSeconds: 900,
-    refreshTokenExpiresAt: '2026-10-10T12:00:00.000Z',
-  };
-}
-
-test('Owner World read uses current access token without rotating refresh', async () => {
+test('Owner World read uses the current access token without touching refresh authority', async () => {
   const calls: string[] = [];
 
   const result = await readWorldGamificationForOwnerSession(
     {
-      accessToken: ACCESS_A,
-      refreshToken: REFRESH_A,
+      accessToken: ACCESS,
       regionCode: 'FR-BRE',
     },
     {
       env: ENV,
-      now: () => new Date('2026-10-02T12:00:00.000Z'),
       fetchImpl: (async (input, init) => {
         calls.push(String(input));
-        assert.equal(init?.headers && new Headers(init.headers).get('authorization'), `Bearer ${ACCESS_A}`);
+        assert.equal(
+          init?.headers && new Headers(init.headers).get('authorization'),
+          `Bearer ${ACCESS}`,
+        );
         return new Response(JSON.stringify(snapshot()), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
@@ -82,65 +70,41 @@ test('Owner World read uses current access token without rotating refresh', asyn
 
   assert.equal(result.status, 'OK');
   if (result.status === 'OK') {
-    assert.equal(result.rotatedTokens, null);
     assert.equal(result.snapshot.region.code, 'FR-BRE');
   }
-  assert.deepEqual(calls, ['http://127.0.0.1:3000/api/world-gamification?region=FR-BRE']);
-});
-
-test('Owner World read rotates refresh only after backend 401 then retries once', async () => {
-  const calls: Array<{ url: string; auth: string | null }> = [];
-
-  const result = await readWorldGamificationForOwnerSession(
-    {
-      accessToken: ACCESS_A,
-      refreshToken: REFRESH_A,
-      regionCode: 'FR-BRE',
-    },
-    {
-      env: ENV,
-      now: () => new Date('2026-10-02T12:00:00.000Z'),
-      fetchImpl: (async (input, init) => {
-        const url = String(input);
-        const auth = new Headers(init?.headers).get('authorization');
-        calls.push({ url, auth });
-
-        if (url.endsWith('/api/auth/refresh')) {
-          return new Response(JSON.stringify(rotatedTokens()), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          });
-        }
-
-        if (auth === `Bearer ${ACCESS_A}`) {
-          return new Response(JSON.stringify({ error: 'expired' }), {
-            status: 401,
-            headers: { 'Content-Type': 'application/json' },
-          });
-        }
-
-        assert.equal(auth, `Bearer ${ACCESS_B}`);
-        return new Response(JSON.stringify(snapshot()), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        });
-      }) as typeof fetch,
-    },
-  );
-
-  assert.equal(result.status, 'OK');
-  if (result.status === 'OK') {
-    assert.equal(result.rotatedTokens?.accessToken, ACCESS_B);
-    assert.equal(result.snapshot.region.code, 'FR-BRE');
-  }
-  assert.deepEqual(calls.map((entry) => entry.url), [
-    'http://127.0.0.1:3000/api/world-gamification?region=FR-BRE',
-    'http://127.0.0.1:3000/api/auth/refresh',
+  assert.deepEqual(calls, [
     'http://127.0.0.1:3000/api/world-gamification?region=FR-BRE',
   ]);
 });
 
-test('missing Owner session denies before World network traffic', async () => {
+test('expired access returns DENIED and never consumes a refresh credential from GET', async () => {
+  const calls: string[] = [];
+
+  const result = await readWorldGamificationForOwnerSession(
+    {
+      accessToken: ACCESS,
+      regionCode: 'FR-BRE',
+    },
+    {
+      env: ENV,
+      fetchImpl: (async (input) => {
+        calls.push(String(input));
+        return new Response(JSON.stringify({ error: 'expired' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }) as typeof fetch,
+    },
+  );
+
+  assert.deepEqual(result, { status: 'DENIED' });
+  assert.deepEqual(calls, [
+    'http://127.0.0.1:3000/api/world-gamification?region=FR-BRE',
+  ]);
+  assert.equal(calls.some((url) => url.includes('/api/auth/refresh')), false);
+});
+
+test('missing Owner access denies before World network traffic', async () => {
   let calls = 0;
   const result = await readWorldGamificationForOwnerSession(
     { regionCode: 'FR-BRE' },
@@ -161,8 +125,7 @@ test('coarse region remains bounded and coordinate-like input falls back to GLOB
   let seenUrl = '';
   const result = await readWorldGamificationForOwnerSession(
     {
-      accessToken: ACCESS_A,
-      refreshToken: REFRESH_A,
+      accessToken: ACCESS,
       regionCode: '48.8566,2.3522',
     },
     {
@@ -182,5 +145,8 @@ test('coarse region remains bounded and coordinate-like input falls back to GLOB
   );
 
   assert.equal(result.status, 'OK');
-  assert.equal(seenUrl, 'http://127.0.0.1:3000/api/world-gamification?region=GLOBAL');
+  assert.equal(
+    seenUrl,
+    'http://127.0.0.1:3000/api/world-gamification?region=GLOBAL',
+  );
 });
