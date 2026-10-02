@@ -1316,6 +1316,58 @@ test('transition workflow status is read-only and exposes mechanical next state 
   );
   assert.equal(empty.mechanical_state, 'NO_PENDING_PROPOSALS');
 
+  const staleQueue = inspectTransitionWorkflow(
+    { ...queue, proposals: [] },
+    transitionEvents,
+    null,
+    {
+      currentRef: 'main@dddddddddddddddddddddddddddddddddddddddd',
+    },
+  );
+  assert.equal(staleQueue.mechanical_state, 'PROPOSAL_QUEUE_STALE');
+  assert.equal(staleQueue.next_action_code, 'REGENERATE_PROPOSAL_QUEUE');
+  assert.equal(
+    staleQueue.current_ref,
+    'main@dddddddddddddddddddddddddddddddddddddddd',
+  );
+  assert.match(staleQueue.next_action, /Regenerate the queue/i);
+
+  const currentQueue = inspectTransitionWorkflow(
+    {
+      ...queue,
+      candidate_ref: 'main@dddddddddddddddddddddddddddddddddddddddd',
+      proposals: [],
+    },
+    transitionEvents,
+    null,
+    {
+      currentRef: 'main@dddddddddddddddddddddddddddddddddddddddd',
+    },
+  );
+  assert.equal(currentQueue.mechanical_state, 'NO_PENDING_PROPOSALS');
+
+  const staleReviewedCandidate = inspectTransitionWorkflow(
+    queue,
+    transitionEvents,
+    reviewedCandidate,
+    {
+      currentRef: 'main@dddddddddddddddddddddddddddddddddddddddd',
+    },
+  );
+  assert.equal(
+    staleReviewedCandidate.mechanical_state,
+    'PROPOSAL_QUEUE_STALE',
+    'queue freshness must fail closed before reviewed-candidate readiness',
+  );
+
+  assert.throws(
+    () =>
+      inspectTransitionWorkflow(queue, transitionEvents, null, {
+        currentRef: 'main@not-a-sha',
+      }),
+    /currentRef must be/,
+  );
+
   const source = readText('scripts/control/transition-workflow-status.mjs');
   assert.doesNotMatch(
     source,
