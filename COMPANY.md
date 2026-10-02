@@ -70,6 +70,7 @@ Authority: `docs/strategy/PROJECT_TIMELINE_2026_2027.md`.
 | Human-approved transition finalization | Added in V2 |
 | Transition append PR checklist + source-snapshot guard | Added in V2 |
 | Transition workflow status doctor | Added in V2 |
+| Transition proposal queue staleness guard | Added in V2 |
 
 ## Public-safe external views
 
