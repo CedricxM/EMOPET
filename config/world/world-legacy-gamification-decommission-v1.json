@@ -1,0 +1,136 @@
+{
+  "version": "1",
+  "status": "CONTROLLED_MIGRATION_PLAN_NOT_RUNTIME_AUTHORITY",
+  "productionAuthority": false,
+  "sourceFiles": [
+    "apps/web/lib/gamification.ts",
+    "apps/web/lib/community.ts"
+  ],
+  "legacySurfaces": [
+    {
+      "id": "knowledge_cards_read",
+      "storage": "localStorage",
+      "keys": [
+        "breiz-gamification-read"
+      ],
+      "legacyMeaning": "explicit browser record that a knowledge card was marked read",
+      "migrationClass": "CANONICAL_REPLAY_CANDIDATE",
+      "targetEventKind": "knowledge.card_read",
+      "requirements": [
+        "card id must resolve through canonical Knowledge source authority",
+        "Owner identity must be authenticated and bound server-side",
+        "import must use deterministic idempotency keys",
+        "duplicate canonical sources must mint at most one reward"
+      ]
+    },
+    {
+      "id": "saved_map_spots",
+      "storage": "localStorage",
+      "keys": [
+        "breiz-map-user-spots"
+      ],
+      "legacyMeaning": "browser-side user-added map spots",
+      "migrationClass": "CANONICAL_REPLAY_CANDIDATE",
+      "targetEventKind": "local.place_saved",
+      "requirements": [
+        "spot must be reconciled to a canonical Owner-scoped Local source",
+        "free-text/browser payload alone is not reward evidence",
+        "unverifiable entries remain content only and mint no progression"
+      ]
+    },
+    {
+      "id": "community_memberships",
+      "storage": "localStorage",
+      "keys": [
+        "breiz-community-memberships"
+      ],
+      "legacyMeaning": "browser-side community membership state",
+      "migrationClass": "CANONICAL_REPLAY_CANDIDATE",
+      "targetEventKind": "world.group_joined",
+      "requirements": [
+        "membership must exist in canonical server-side World/Community authority",
+        "browser membership object alone is not reward evidence"
+      ]
+    },
+    {
+      "id": "community_events",
+      "storage": "localStorage",
+      "keys": [
+        "breiz-community-events"
+      ],
+      "legacyMeaning": "browser-side created/visible community events",
+      "migrationClass": "CONTENT_ONLY_NO_G1_REWARD",
+      "targetEventKind": null,
+      "reason": "Current G1 safe reward catalogue has no event-creation reward kind; do not coerce this counter into community.contribution_created."
+    },
+    {
+      "id": "journal_entries",
+      "storage": "localStorage",
+      "keys": [
+        "breiz-journal-user-entries"
+      ],
+      "legacyMeaning": "browser-side journal entries including legacy walk_recorded entries",
+      "migrationClass": "CONTENT_ONLY_NO_G1_REWARD",
+      "targetEventKind": null,
+      "reason": "A legacy walk_recorded entry is not equivalent to an explicit saved route and must not mint local.route_saved progression."
+    }
+  ],
+  "nonMigratableLegacyCounters": [
+    {
+      "field": "baselineFrozen",
+      "reason": "legacy/mock dog-data lifecycle state; never reward source"
+    },
+    {
+      "field": "validDataDays",
+      "reason": "dog/sensor data-day metric; forbidden reward source"
+    },
+    {
+      "field": "walks",
+      "reason": "legacy count cannot be converted to progression unless each underlying source independently qualifies under a safe canonical event"
+    },
+    {
+      "field": "photos",
+      "reason": "aggregate counter has no canonical G1 event/source evidence"
+    },
+    {
+      "field": "eventsParticipated",
+      "reason": "aggregate counter has no authorized G1 reward kind"
+    },
+    {
+      "field": "questionsAnswered",
+      "reason": "aggregate counter has no authorized G1 reward kind"
+    },
+    {
+      "field": "mapPointsAdded",
+      "reason": "aggregate count alone is not enough; only individually verified canonical place sources may replay"
+    },
+    {
+      "field": "circlesJoined",
+      "reason": "aggregate count alone is not enough; only individually verified canonical memberships may replay"
+    },
+    {
+      "field": "eventsOrganized",
+      "reason": "aggregate count has no current authorized G1 reward kind"
+    }
+  ],
+  "mockHistoryPolicy": {
+    "baseCountersMayMintProgression": false,
+    "reason": "BASE_COUNTERS are presentation/mock history, not canonical Owner evidence."
+  },
+  "cutoverRules": [
+    "Do not bulk-convert legacy numeric counters into World resources.",
+    "Do not treat browser localStorage as canonical progression authority.",
+    "Replay only individually verifiable safe actions through the normal server source-authority + idempotent ledger path.",
+    "Unverifiable legacy state may remain user content where appropriate but mints zero progression.",
+    "After verified cutover, stop reading legacy gamification keys for progression before deleting browser state.",
+    "Deletion or migration of legacy browser state requires its own user-data lifecycle handling."
+  ],
+  "completionCriteria": [
+    "new World progression no longer reads legacy localStorage counters",
+    "every replayed legacy reward has canonical Owner/source evidence",
+    "forbidden dog/Care/ELI/data-day signals mint zero progression",
+    "mock BASE_COUNTERS mint zero progression",
+    "legacy keys are covered by explicit lifecycle/erasure treatment",
+    "no dual-write or dual-authority period remains"
+  ]
+}
