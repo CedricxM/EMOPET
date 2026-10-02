@@ -97,3 +97,20 @@ export {
   evaluateBretagneLanguageReviewResponse,
   evaluateBretagneLanguageReviewResponses,
 } from './bretagne-language-review-response';
+
+export type {
+  BretagneLanguageReviewDecisionDisposition,
+  BretagneLanguageReviewDecision,
+  BretagneLanguageReviewDecisionErrorCode,
+  BretagneLanguageReviewDecisionError,
+  BretagneIdentityRuntimeEvidenceCandidate,
+  BretagneLexiconRuntimeEvidenceCandidate,
+  BretagneLanguageRuntimeEvidenceCandidate,
+  BretagneLanguageReviewDecisionResult,
+} from './bretagne-language-review-decision';
+export {
+  BRETAGNE_LANGUAGE_REVIEW_DECISION_REVISION,
+  validateBretagneLanguageReviewDecision,
+  buildBretagneLanguageRuntimeEvidenceCandidate,
+  evaluateBretagneLanguageReviewDecision,
+} from './bretagne-language-review-decision';
