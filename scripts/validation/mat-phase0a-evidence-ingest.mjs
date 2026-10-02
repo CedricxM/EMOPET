@@ -59,11 +59,13 @@ export function validateEvidence(manifestRows, sampleRows) {
     errors.push('manifest started_at is not a valid timestamp');
   }
 
-  const allowedStates = new Set(['OK', ...contract.missingDataPolicy.allowedExplicitStates]);
+  const observedState = contract.missingDataPolicy.observedState;
+  const allowedStates = new Set([observedState, ...contract.missingDataPolicy.allowedExplicitStates]);
+  let observedSamples = 0;
   for (const row of sampleRows) {
     for (const field of contract.requiredSampleFields) {
       if (!(field in row) || row[field] === '' || row[field] === 'TBD') {
-        if (!(field === 'value' && row.data_state && row.data_state !== 'OK')) {
+        if (!(field === 'value' && contract.missingDataPolicy.allowedExplicitStates.includes(row.data_state))) {
           errors.push(`samples row ${row.__row} missing required field: ${field}`);
         }
       }
@@ -72,16 +74,28 @@ export function validateEvidence(manifestRows, sampleRows) {
     if (row.run_id && manifest.run_id && row.run_id !== manifest.run_id) errors.push(`samples row ${row.__row} run_id mismatch`);
     if (row.test_article_id && manifest.test_article_id && row.test_article_id !== manifest.test_article_id) errors.push(`samples row ${row.__row} test_article_id mismatch`);
     if (!allowedStates.has(row.data_state)) errors.push(`samples row ${row.__row} unknown data_state: ${row.data_state || '<empty>'}`);
-    if (row.data_state !== 'OK' && row.value === '0') {
+    if (row.data_state === observedState) {
+      observedSamples++;
+      const rate = Number(row.sample_rate_hz);
+      if (!Number.isFinite(rate) || rate <= 0) errors.push(`samples row ${row.__row} sample_rate_hz must be a positive finite number`);
+    }
+    if (row.data_state !== observedState && row.value === '0') {
       errors.push(`samples row ${row.__row} uses zero for explicit ${row.data_state} data`);
     }
   }
 
-  const status = errors.length ? (sampleRows.length ? 'REJECTED' : 'INCOMPLETE') : 'ACCEPTED_FOR_ENGINEERING_ANALYSIS';
+  if (observedSamples === 0) warnings.push('no OBSERVED samples supplied');
+  const incomplete = errors.filter((e) => e.includes('missing required field'));
+  const structuralErrors = errors.filter((e) => !e.includes('missing required field'));
+  const status = structuralErrors.length ? 'REJECTED' : (incomplete.length || observedSamples === 0) ? 'INCOMPLETE' : 'ACCEPTED_FOR_ENGINEERING_ANALYSIS';
   return {
     status,
-    errors: [...new Set(errors)],
+    errors: [...new Set(structuralErrors)],
+    incomplete: [...new Set(incomplete)],
     warnings: [...new Set(warnings)],
+    runId: manifest.run_id || null,
+    testArticleId: manifest.test_article_id || null,
+    counts: { totalSamples: sampleRows.length, observedSamples },
     boundaries: {
       scientificValidation: false,
       incrementalValueDecision: false,
