@@ -6,7 +6,7 @@ import styles from './world-builder.module.css';
 
 export function ResourceBar({ resources }: { resources: ResourceBalance }) {
   return (
-    <div className={styles.resourceRail} aria-label="Ressources de construction disponibles">
+    <div className={styles.resourceRail} aria-label="Ressources de prévisualisation, non persistantes">
       {WORLD_RESOURCES.map((resource) => (
         <div
           key={resource.key}
