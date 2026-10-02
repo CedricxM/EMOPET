@@ -41,8 +41,11 @@ import {
   userConfig,
   users,
   walkQuality,
+  worldOwnedItems,
   worldPilotAccess,
   worldPresenceConsents,
+  worldProgressionEvents,
+  worldResourceSpends,
 } from '../../db/schema/index.js';
 import { isCanonicalSubjectUuid } from './subject-access.js';
 
@@ -211,6 +214,9 @@ export async function discoverSubjectData(
           note: 'Count includes declined requests, which stay silent to the declined person.',
         }),
         worldPresenceConsents: counted(await countWhere(tx, worldPresenceConsents, eq(worldPresenceConsents.userId, userId))),
+        worldProgressionEvents: counted(await countWhere(tx, worldProgressionEvents, eq(worldProgressionEvents.ownerId, userId))),
+        worldOwnedItems: counted(await countWhere(tx, worldOwnedItems, eq(worldOwnedItems.ownerId, userId))),
+        worldResourceSpends: counted(await countWhere(tx, worldResourceSpends, eq(worldResourceSpends.ownerId, userId))),
       };
 
       let dogCounts = {

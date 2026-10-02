@@ -1,9 +1,9 @@
-import type { WorldProgressionBalance } from './world-progression-ledger';
+import type { WorldProgressionBalance } from './world-progression-ledger.js';
 import {
   canAffordWorldRegionalItem,
   spendWorldRegionalItemCost,
   type WorldRegionalCollection,
-} from './world-regional-collections';
+} from './world-regional-collections.js';
 
 export type WorldBuildDecision =
   | 'built'

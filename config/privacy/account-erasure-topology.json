@@ -176,6 +176,27 @@
       "source": "backend/db/schema/professional-sharing.ts",
       "databaseDeleteAction": "NO_ACTION",
       "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "world_progression_events",
+      "column": "owner_id",
+      "source": "backend/db/schema/world-gamification.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "world_owned_items",
+      "column": "owner_id",
+      "source": "backend/db/schema/world-gamification.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "world_resource_spends",
+      "column": "owner_id",
+      "source": "backend/db/schema/world-gamification.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
     }
   ],
   "unconstrainedUserIdentifiers": [],

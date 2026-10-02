@@ -23,7 +23,7 @@ async function loadBuildModule() {
 
   const build = await loadModule('../api/services/world-build-economy.ts');
   const rewritten = build.transpiled.replace(
-    /from ['"]\.\/world-regional-collections['"]/,
+    /from ['"]\.\/world-regional-collections(?:\.js)?['"]/,
     `from '${regionalUrl}'`,
   );
 

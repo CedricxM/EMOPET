@@ -126,6 +126,21 @@
       "table": "professional_share_grants",
       "column": "owner_user_id",
       "source": "backend/db/schema/professional-sharing.ts"
+    },
+    {
+      "table": "world_progression_events",
+      "column": "owner_id",
+      "source": "backend/db/schema/world-gamification.ts"
+    },
+    {
+      "table": "world_owned_items",
+      "column": "owner_id",
+      "source": "backend/db/schema/world-gamification.ts"
+    },
+    {
+      "table": "world_resource_spends",
+      "column": "owner_id",
+      "source": "backend/db/schema/world-gamification.ts"
     }
   ],
   "unconstrainedUserIdentifiers": [],

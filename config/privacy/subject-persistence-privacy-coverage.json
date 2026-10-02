@@ -289,6 +289,24 @@
         "eli_inferred"
       ],
       "mappingRationale": "Derived walk-quality scores and WQI from dog-linked observations."
+    },
+    {
+      "table": "world_progression_events",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "mappingRationale": "Durable World progression state is Owner-linked, but lifecycle/export/retention classification remains explicitly TO_CONFIRM under issue #898."
+    },
+    {
+      "table": "world_owned_items",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "mappingRationale": "Durable World progression state is Owner-linked, but lifecycle/export/retention classification remains explicitly TO_CONFIRM under issue #898."
+    },
+    {
+      "table": "world_resource_spends",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "mappingRationale": "Durable World progression state is Owner-linked, but lifecycle/export/retention classification remains explicitly TO_CONFIRM under issue #898."
     }
   ],
   "scopeLimitations": [

@@ -161,6 +161,9 @@ test('PRIV-ERASURE-TOPOLOGY static controls remain fail closed', () => {
     sorted([
       'research_data_consents',
       'subscriptions',
+      'world_owned_items',
+      'world_progression_events',
+      'world_resource_spends',
     ]),
     'only genuinely ambiguous product/legal lifecycle classifications should remain open',
   );

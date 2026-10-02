@@ -15,13 +15,542 @@
     "Database mechanics never substitute for privacy disposition authority on unresolved rows."
   ],
   "summary": {
-    "relationalTotal": 52,
+    "relationalTotal": 55,
     "policyAlignedDeleteCandidates": 30,
-    "policyConditionalExecutionRequired": 19,
+    "policyConditionalExecutionRequired": 22,
     "legalAuthorityBlocked": 3,
     "matrixRowsPromoted": 5
   },
   "relations": [
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "ai_messages",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "ai_messages"
+      ],
+      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "anticipation_events",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "eli_inferred_detailed",
+        "eli_inferred_aggregates"
+      ],
+      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "baseline_drift_monitor",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "sensor_preprocessed_detailed",
+        "sensor_preprocessed_aggregates"
+      ],
+      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "baselines",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "sensor_preprocessed_detailed",
+        "sensor_preprocessed_aggregates"
+      ],
+      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "behavioral_assessments",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "behavioral_assessment_product",
+        "research_validation_personal_datasets"
+      ],
+      "why": "Product assessments delete with the dog; research-mode rows remain under separate research governance.",
+      "requiredDecision": "Executor must branch by administration_mode and any separately valid research hold.",
+      "allowedOutcomes": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "copresence_events",
+      "column": "dog_a_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "exact_location"
+      ],
+      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "copresence_events",
+      "column": "dog_b_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "exact_location"
+      ],
+      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "devices",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "device_binding_admin_metadata"
+      ],
+      "why": "Dog deletion should unbind the device immediately, but approved candidate policy allows bounded support/security metadata after unbind.",
+      "requiredDecision": "Define DETACH-now plus later delete/pseudonymise lifecycle for retained device metadata.",
+      "allowedOutcomes": [
+        "DETACH",
+        "ANONYMIZE",
+        "DELETE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "dog_sub_baselines",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "sensor_preprocessed_detailed",
+        "sensor_preprocessed_aggregates"
+      ],
+      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "eli_behavioral_priors",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "eli_inferred_detailed",
+        "eli_inferred_aggregates"
+      ],
+      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "eli_states",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "eli_inferred_detailed",
+        "eli_inferred_aggregates"
+      ],
+      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "health_entries",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "veterinary_user_entered_records"
+      ],
+      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "professional_share_grants",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "professional_sharing"
+      ],
+      "why": "Professional-share grant lifecycle is recipient-bound and time-bounded, but account/dog erasure behavior is not yet authorized by an approved destructive policy.",
+      "requiredDecision": "Define professional-share grant lifecycle on subject erasure, including pending, active, expired and revoked states, before any destructive executor is promoted.",
+      "allowedOutcomes": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "recovery_events",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "eli_inferred_detailed",
+        "eli_inferred_aggregates"
+      ],
+      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "research_data_consents",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "LEGAL_AUTHORITY_BLOCKED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "research_validation_personal_datasets"
+      ],
+      "rationale": "Research consent/withdrawal proof is governance evidence whose retention/disposition requires research/legal authority distinct from the research dataset.",
+      "requiredAuthority": "RESEARCH_LEGAL_GOVERNANCE",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "routine_stability",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "eli_inferred_detailed",
+        "eli_inferred_aggregates"
+      ],
+      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "sensor_feature_observations",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "sensor_preprocessed_detailed",
+        "sensor_preprocessed_aggregates"
+      ],
+      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "sensor_summaries",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "sensor_preprocessed_detailed",
+        "sensor_preprocessed_aggregates"
+      ],
+      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "user_config",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "account_auth",
+        "dog_profile"
+      ],
+      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "walk_quality",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "eli_inferred_detailed",
+        "eli_inferred_aggregates"
+      ],
+      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "TRANSITIVE_FK",
+      "table": "administration_sessions",
+      "column": "assessment_id",
+      "references": "behavioral_assessments.id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "behavioral_assessment_product",
+        "research_validation_personal_datasets"
+      ],
+      "why": "Session pacing inherits its parent assessment's product/research split: a session under a research administration_mode must defer to research governance exactly as its responses and factor scores do, so one static disposition cannot express both branches.",
+      "requiredDecision": "Resolve alongside the parent assessment's product/research branch rather than encoding a single disposition for both.",
+      "allowedOutcomes": [
+        "DELETE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "TRANSITIVE_FK",
+      "table": "behavioral_factor_scores",
+      "column": "assessment_id",
+      "references": "behavioral_assessments.id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "behavioral_assessment_product",
+        "research_validation_personal_datasets"
+      ],
+      "why": "Factor scores inherit the mixed product/research assessment lifecycle; database CASCADE mechanics do not choose privacy authority.",
+      "requiredDecision": "Follow the parent assessment's row-level product/research disposition.",
+      "allowedOutcomes": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "TRANSITIVE_FK",
+      "table": "behavioral_responses",
+      "column": "assessment_id",
+      "references": "behavioral_assessments.id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "behavioral_assessment_product",
+        "research_validation_personal_datasets"
+      ],
+      "why": "Responses inherit the mixed product/research assessment lifecycle; database CASCADE mechanics do not choose privacy authority.",
+      "requiredDecision": "Follow the parent assessment's row-level product/research disposition.",
+      "allowedOutcomes": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "TRANSITIVE_FK",
+      "table": "eli_behavioral_priors",
+      "column": "assessment_id",
+      "references": "behavioral_assessments.id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "eli_inferred_detailed",
+        "eli_inferred_aggregates"
+      ],
+      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "TRANSITIVE_FK",
+      "table": "eli_behavioral_priors",
+      "column": "factor_score_id",
+      "references": "behavioral_factor_scores.id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "eli_inferred_detailed",
+        "eli_inferred_aggregates"
+      ],
+      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "TRANSITIVE_FK",
+      "table": "instrument_administration_events",
+      "column": "assessment_id",
+      "references": "behavioral_assessments.id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "behavioral_assessment_product",
+        "research_validation_personal_datasets"
+      ],
+      "why": "The fidelity audit journal holds digests and timings only, never item wording, but a licensed instrument may require administration-conformity evidence to outlive the responses it records. Product erasure and licence evidence can therefore point in opposite directions, and the research branch defers as above.",
+      "requiredDecision": "Obtain the instrument licence and legal position on whether administration-conformity evidence must survive erasure of the responses it records; until then neither deletion nor retention is authorised.",
+      "allowedOutcomes": [
+        "DELETE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "UNCONSTRAINED_IDENTIFIER",
+      "table": "professional_share_access_audits",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "professional_sharing",
+        "security_auth_logs"
+      ],
+      "why": "Sanitized professional-share audit evidence has intentionally unconstrained identifiers so denied/unknown lookups remain auditable; lifecycle handling must preserve only justified evidence.",
+      "requiredDecision": "Define DELETE, irreversible minimisation, or justified bounded retention for professional-share audit evidence without relying on parent FKs.",
+      "allowedOutcomes": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "professional_share_grants.id",
+      "relationType": "UNCONSTRAINED_IDENTIFIER",
+      "table": "professional_share_access_audits",
+      "column": "grant_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "professional_sharing",
+        "security_auth_logs"
+      ],
+      "why": "Sanitized professional-share audit evidence has intentionally unconstrained identifiers so denied/unknown lookups remain auditable; lifecycle handling must preserve only justified evidence.",
+      "requiredDecision": "Define DELETE, irreversible minimisation, or justified bounded retention for professional-share audit evidence without relying on parent FKs.",
+      "allowedOutcomes": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": false
+    },
     {
       "subjectRoot": "users.id",
       "relationType": "DIRECT_FK",
@@ -206,190 +735,6 @@
     {
       "subjectRoot": "users.id",
       "relationType": "DIRECT_FK",
-      "table": "dogs",
-      "column": "owner_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "dog_profile"
-      ],
-      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "posts",
-      "column": "author_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
-      "candidateDisposition": null,
-      "policyRefs": [
-        "community_content"
-      ],
-      "why": "R2 already requires delete-by-default with necessity-only irreversible de-identification for public thread integrity.",
-      "requiredDecision": "Executor must evaluate thread-integrity necessity per row.",
-      "allowedOutcomes": [
-        "DELETE",
-        "ANONYMIZE"
-      ],
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "research_data_consents",
-      "column": "user_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "LEGAL_AUTHORITY_BLOCKED",
-      "candidateDisposition": null,
-      "policyRefs": [
-        "research_validation_personal_datasets"
-      ],
-      "rationale": "Research consent/withdrawal proof is governance evidence whose retention/disposition requires research/legal authority distinct from the research dataset.",
-      "requiredAuthority": "RESEARCH_LEGAL_GOVERNANCE",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "subscriptions",
-      "column": "user_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "LEGAL_AUTHORITY_BLOCKED",
-      "candidateDisposition": null,
-      "policyRefs": [],
-      "rationale": "Subscription runtime metadata must be separated from statutory accounting/claims evidence before a disposition can be approved.",
-      "requiredAuthority": "FINANCE_LEGAL_ACCOUNTING",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "user_blocks",
-      "column": "blocked_user_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "account_auth"
-      ],
-      "decisionRef": "#594 (issuecomment-5856975549)",
-      "rationale": "Founder decision #594 (issuecomment-5856975549): blocks are account-scoped safety settings deleted on erasure of either the blocker or the blocked account, through the ordered erasure executor rather than a database cascade; re-registration abuse is handled by moderation, never by retaining an erased person's identifier. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "user_blocks",
-      "column": "blocker_user_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "account_auth"
-      ],
-      "decisionRef": "#594 (issuecomment-5856975549)",
-      "rationale": "Founder decision #594 (issuecomment-5856975549): blocks are account-scoped safety settings deleted on erasure of either the blocker or the blocked account, through the ordered erasure executor rather than a database cascade; re-registration abuse is handled by moderation, never by retaining an erased person's identifier. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "world_pilot_access",
-      "column": "user_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "account_auth"
-      ],
-      "rationale": "Account-scoped access entitlement (#596, decision #48 L1): the existing approved account_auth policy terminates it on account erasure, through the ordered erasure executor rather than a database cascade. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "social_connections",
-      "column": "user_high_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "account_auth"
-      ],
-      "rationale": "Account-scoped World social state between two accounts (#595, decision #48 L3), like user_blocks: the existing account_auth policy terminates it on erasure of either account, through the ordered erasure executor rather than a database cascade. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "social_connections",
-      "column": "user_low_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "account_auth"
-      ],
-      "rationale": "Account-scoped World social state between two accounts (#595, decision #48 L3), like user_blocks: the existing account_auth policy terminates it on erasure of either account, through the ordered erasure executor rather than a database cascade. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "world_presence_consents",
-      "column": "user_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "account_auth"
-      ],
-      "rationale": "Account-scoped World presence consent record (#595, decision #48 L2): the existing account_auth policy terminates it on account erasure, through the ordered erasure executor. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
-      "table": "user_config",
-      "column": "user_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "account_auth",
-        "dog_profile"
-      ],
-      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "users.id",
-      "relationType": "DIRECT_FK",
       "table": "community_reports",
       "column": "reporter_user_id",
       "disposition": "DETACH",
@@ -460,418 +805,40 @@
       "promotionAuthorized": false
     },
     {
-      "subjectRoot": "dogs.id",
+      "subjectRoot": "users.id",
       "relationType": "DIRECT_FK",
-      "table": "ai_messages",
-      "column": "dog_id",
+      "table": "dogs",
+      "column": "owner_id",
       "disposition": "TO_CONFIRM",
       "executionStatus": "NOT_IMPLEMENTED",
       "testEvidence": "NONE",
       "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
       "candidateDisposition": "DELETE",
       "policyRefs": [
-        "ai_messages"
-      ],
-      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "anticipation_events",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "eli_inferred_detailed",
-        "eli_inferred_aggregates"
-      ],
-      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "baseline_drift_monitor",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "sensor_preprocessed_detailed",
-        "sensor_preprocessed_aggregates"
-      ],
-      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "baselines",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "sensor_preprocessed_detailed",
-        "sensor_preprocessed_aggregates"
-      ],
-      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "behavioral_assessments",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
-      "candidateDisposition": null,
-      "policyRefs": [
-        "behavioral_assessment_product",
-        "research_validation_personal_datasets"
-      ],
-      "why": "Product assessments delete with the dog; research-mode rows remain under separate research governance.",
-      "requiredDecision": "Executor must branch by administration_mode and any separately valid research hold.",
-      "allowedOutcomes": [
-        "DELETE",
-        "ANONYMIZE",
-        "RETAIN_WITH_JUSTIFICATION"
-      ],
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "devices",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
-      "candidateDisposition": null,
-      "policyRefs": [
-        "device_binding_admin_metadata"
-      ],
-      "why": "Dog deletion should unbind the device immediately, but approved candidate policy allows bounded support/security metadata after unbind.",
-      "requiredDecision": "Define DETACH-now plus later delete/pseudonymise lifecycle for retained device metadata.",
-      "allowedOutcomes": [
-        "DETACH",
-        "ANONYMIZE",
-        "DELETE",
-        "RETAIN_WITH_JUSTIFICATION"
-      ],
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "dog_sub_baselines",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "sensor_preprocessed_detailed",
-        "sensor_preprocessed_aggregates"
-      ],
-      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "eli_behavioral_priors",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "eli_inferred_detailed",
-        "eli_inferred_aggregates"
-      ],
-      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "eli_states",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "eli_inferred_detailed",
-        "eli_inferred_aggregates"
-      ],
-      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "health_entries",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "veterinary_user_entered_records"
-      ],
-      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "recovery_events",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "eli_inferred_detailed",
-        "eli_inferred_aggregates"
-      ],
-      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "research_data_consents",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "LEGAL_AUTHORITY_BLOCKED",
-      "candidateDisposition": null,
-      "policyRefs": [
-        "research_validation_personal_datasets"
-      ],
-      "rationale": "Research consent/withdrawal proof is governance evidence whose retention/disposition requires research/legal authority distinct from the research dataset.",
-      "requiredAuthority": "RESEARCH_LEGAL_GOVERNANCE",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "routine_stability",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "eli_inferred_detailed",
-        "eli_inferred_aggregates"
-      ],
-      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "sensor_feature_observations",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "sensor_preprocessed_detailed",
-        "sensor_preprocessed_aggregates"
-      ],
-      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "sensor_summaries",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "sensor_preprocessed_detailed",
-        "sensor_preprocessed_aggregates"
-      ],
-      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "user_config",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "account_auth",
         "dog_profile"
       ],
       "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
       "promotionAuthorized": false
     },
     {
-      "subjectRoot": "dogs.id",
+      "subjectRoot": "users.id",
       "relationType": "DIRECT_FK",
-      "table": "walk_quality",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "eli_inferred_detailed",
-        "eli_inferred_aggregates"
-      ],
-      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "copresence_events",
-      "column": "dog_a_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "exact_location"
-      ],
-      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "DIRECT_FK",
-      "table": "copresence_events",
-      "column": "dog_b_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "exact_location"
-      ],
-      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "TRANSITIVE_FK",
-      "table": "behavioral_responses",
-      "column": "assessment_id",
-      "references": "behavioral_assessments.id",
+      "table": "posts",
+      "column": "author_id",
       "disposition": "TO_CONFIRM",
       "executionStatus": "NOT_IMPLEMENTED",
       "testEvidence": "NONE",
       "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
       "candidateDisposition": null,
       "policyRefs": [
-        "behavioral_assessment_product",
-        "research_validation_personal_datasets"
+        "community_content"
       ],
-      "why": "Responses inherit the mixed product/research assessment lifecycle; database CASCADE mechanics do not choose privacy authority.",
-      "requiredDecision": "Follow the parent assessment's row-level product/research disposition.",
+      "why": "R2 already requires delete-by-default with necessity-only irreversible de-identification for public thread integrity.",
+      "requiredDecision": "Executor must evaluate thread-integrity necessity per row.",
       "allowedOutcomes": [
         "DELETE",
-        "ANONYMIZE",
-        "RETAIN_WITH_JUSTIFICATION"
+        "ANONYMIZE"
       ],
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "TRANSITIVE_FK",
-      "table": "behavioral_factor_scores",
-      "column": "assessment_id",
-      "references": "behavioral_assessments.id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
-      "candidateDisposition": null,
-      "policyRefs": [
-        "behavioral_assessment_product",
-        "research_validation_personal_datasets"
-      ],
-      "why": "Factor scores inherit the mixed product/research assessment lifecycle; database CASCADE mechanics do not choose privacy authority.",
-      "requiredDecision": "Follow the parent assessment's row-level product/research disposition.",
-      "allowedOutcomes": [
-        "DELETE",
-        "ANONYMIZE",
-        "RETAIN_WITH_JUSTIFICATION"
-      ],
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "TRANSITIVE_FK",
-      "table": "eli_behavioral_priors",
-      "column": "assessment_id",
-      "references": "behavioral_assessments.id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "eli_inferred_detailed",
-        "eli_inferred_aggregates"
-      ],
-      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "TRANSITIVE_FK",
-      "table": "eli_behavioral_priors",
-      "column": "factor_score_id",
-      "references": "behavioral_factor_scores.id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
-      "candidateDisposition": "DELETE",
-      "policyRefs": [
-        "eli_inferred_detailed",
-        "eli_inferred_aggregates"
-      ],
-      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
       "promotionAuthorized": false
     },
     {
@@ -897,115 +864,214 @@
       "promotionAuthorized": false
     },
     {
-      "subjectRoot": "dogs.id",
+      "subjectRoot": "users.id",
       "relationType": "DIRECT_FK",
-      "table": "professional_share_grants",
-      "column": "dog_id",
+      "table": "research_data_consents",
+      "column": "user_id",
       "disposition": "TO_CONFIRM",
       "executionStatus": "NOT_IMPLEMENTED",
       "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "decisionSupportStatus": "LEGAL_AUTHORITY_BLOCKED",
       "candidateDisposition": null,
       "policyRefs": [
-        "professional_sharing"
-      ],
-      "why": "Professional-share grant lifecycle is recipient-bound and time-bounded, but account/dog erasure behavior is not yet authorized by an approved destructive policy.",
-      "requiredDecision": "Define professional-share grant lifecycle on subject erasure, including pending, active, expired and revoked states, before any destructive executor is promoted.",
-      "allowedOutcomes": [
-        "DELETE",
-        "ANONYMIZE",
-        "RETAIN_WITH_JUSTIFICATION"
-      ],
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "UNCONSTRAINED_IDENTIFIER",
-      "table": "professional_share_access_audits",
-      "column": "dog_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
-      "candidateDisposition": null,
-      "policyRefs": [
-        "professional_sharing",
-        "security_auth_logs"
-      ],
-      "why": "Sanitized professional-share audit evidence has intentionally unconstrained identifiers so denied/unknown lookups remain auditable; lifecycle handling must preserve only justified evidence.",
-      "requiredDecision": "Define DELETE, irreversible minimisation, or justified bounded retention for professional-share audit evidence without relying on parent FKs.",
-      "allowedOutcomes": [
-        "DELETE",
-        "ANONYMIZE",
-        "RETAIN_WITH_JUSTIFICATION"
-      ],
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "professional_share_grants.id",
-      "relationType": "UNCONSTRAINED_IDENTIFIER",
-      "table": "professional_share_access_audits",
-      "column": "grant_id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
-      "candidateDisposition": null,
-      "policyRefs": [
-        "professional_sharing",
-        "security_auth_logs"
-      ],
-      "why": "Sanitized professional-share audit evidence has intentionally unconstrained identifiers so denied/unknown lookups remain auditable; lifecycle handling must preserve only justified evidence.",
-      "requiredDecision": "Define DELETE, irreversible minimisation, or justified bounded retention for professional-share audit evidence without relying on parent FKs.",
-      "allowedOutcomes": [
-        "DELETE",
-        "ANONYMIZE",
-        "RETAIN_WITH_JUSTIFICATION"
-      ],
-      "promotionAuthorized": false
-    },
-    {
-      "subjectRoot": "dogs.id",
-      "relationType": "TRANSITIVE_FK",
-      "table": "administration_sessions",
-      "column": "assessment_id",
-      "references": "behavioral_assessments.id",
-      "disposition": "TO_CONFIRM",
-      "executionStatus": "NOT_IMPLEMENTED",
-      "testEvidence": "NONE",
-      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
-      "candidateDisposition": null,
-      "policyRefs": [
-        "behavioral_assessment_product",
         "research_validation_personal_datasets"
       ],
-      "why": "Session pacing inherits its parent assessment's product/research split: a session under a research administration_mode must defer to research governance exactly as its responses and factor scores do, so one static disposition cannot express both branches.",
-      "requiredDecision": "Resolve alongside the parent assessment's product/research branch rather than encoding a single disposition for both.",
-      "allowedOutcomes": [
-        "DELETE",
-        "RETAIN_WITH_JUSTIFICATION"
-      ],
+      "rationale": "Research consent/withdrawal proof is governance evidence whose retention/disposition requires research/legal authority distinct from the research dataset.",
+      "requiredAuthority": "RESEARCH_LEGAL_GOVERNANCE",
       "promotionAuthorized": false
     },
     {
-      "subjectRoot": "dogs.id",
-      "relationType": "TRANSITIVE_FK",
-      "table": "instrument_administration_events",
-      "column": "assessment_id",
-      "references": "behavioral_assessments.id",
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "social_connections",
+      "column": "user_high_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "account_auth"
+      ],
+      "rationale": "Account-scoped World social state between two accounts (#595, decision #48 L3), like user_blocks: the existing account_auth policy terminates it on erasure of either account, through the ordered erasure executor rather than a database cascade. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "social_connections",
+      "column": "user_low_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "account_auth"
+      ],
+      "rationale": "Account-scoped World social state between two accounts (#595, decision #48 L3), like user_blocks: the existing account_auth policy terminates it on erasure of either account, through the ordered erasure executor rather than a database cascade. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "subscriptions",
+      "column": "user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "LEGAL_AUTHORITY_BLOCKED",
+      "candidateDisposition": null,
+      "policyRefs": [],
+      "rationale": "Subscription runtime metadata must be separated from statutory accounting/claims evidence before a disposition can be approved.",
+      "requiredAuthority": "FINANCE_LEGAL_ACCOUNTING",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "user_blocks",
+      "column": "blocked_user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "account_auth"
+      ],
+      "decisionRef": "#594 (issuecomment-5856975549)",
+      "rationale": "Founder decision #594 (issuecomment-5856975549): blocks are account-scoped safety settings deleted on erasure of either the blocker or the blocked account, through the ordered erasure executor rather than a database cascade; re-registration abuse is handled by moderation, never by retaining an erased person's identifier. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "user_blocks",
+      "column": "blocker_user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "account_auth"
+      ],
+      "decisionRef": "#594 (issuecomment-5856975549)",
+      "rationale": "Founder decision #594 (issuecomment-5856975549): blocks are account-scoped safety settings deleted on erasure of either the blocker or the blocked account, through the ordered erasure executor rather than a database cascade; re-registration abuse is handled by moderation, never by retaining an erased person's identifier. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "user_config",
+      "column": "user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "account_auth",
+        "dog_profile"
+      ],
+      "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "world_owned_items",
+      "column": "owner_id",
       "disposition": "TO_CONFIRM",
       "executionStatus": "NOT_IMPLEMENTED",
       "testEvidence": "NONE",
       "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
       "candidateDisposition": null,
       "policyRefs": [
-        "behavioral_assessment_product",
-        "research_validation_personal_datasets"
+        "world_progression_lifecycle_proposal_v1"
       ],
-      "why": "The fidelity audit journal holds digests and timings only, never item wording, but a licensed instrument may require administration-conformity evidence to outlive the responses it records. Product erasure and licence evidence can therefore point in opposite directions, and the research branch defers as above.",
-      "requiredDecision": "Obtain the instrument licence and legal position on whether administration-conformity evidence must survive erasure of the responses it records; until then neither deletion nor retention is authorised.",
+      "why": "Durable World state is Owner-linked product progression/inventory evidence, but account-erasure/export/retention lifecycle is still a technical proposal rather than approved privacy authority.",
+      "requiredDecision": "Approve the Owner lifecycle for durable World progression, ownership and spend rows before any destructive executor or production write activation is promoted.",
       "allowedOutcomes": [
         "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "world_pilot_access",
+      "column": "user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "account_auth"
+      ],
+      "rationale": "Account-scoped access entitlement (#596, decision #48 L1): the existing approved account_auth policy terminates it on account erasure, through the ordered erasure executor rather than a database cascade. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "world_presence_consents",
+      "column": "user_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_ALIGNED_DELETE_CANDIDATE",
+      "candidateDisposition": "DELETE",
+      "policyRefs": [
+        "account_auth"
+      ],
+      "rationale": "Account-scoped World presence consent record (#595, decision #48 L2): the existing account_auth policy terminates it on account erasure, through the ordered erasure executor. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "world_progression_events",
+      "column": "owner_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "world_progression_lifecycle_proposal_v1"
+      ],
+      "why": "Durable World state is Owner-linked product progression/inventory evidence, but account-erasure/export/retention lifecycle is still a technical proposal rather than approved privacy authority.",
+      "requiredDecision": "Approve the Owner lifecycle for durable World progression, ownership and spend rows before any destructive executor or production write activation is promoted.",
+      "allowedOutcomes": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "world_resource_spends",
+      "column": "owner_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "world_progression_lifecycle_proposal_v1"
+      ],
+      "why": "Durable World state is Owner-linked product progression/inventory evidence, but account-erasure/export/retention lifecycle is still a technical proposal rather than approved privacy authority.",
+      "requiredDecision": "Approve the Owner lifecycle for durable World progression, ownership and spend rows before any destructive executor or production write activation is promoted.",
+      "allowedOutcomes": [
+        "DELETE",
+        "ANONYMIZE",
         "RETAIN_WITH_JUSTIFICATION"
       ],
       "promotionAuthorized": false
