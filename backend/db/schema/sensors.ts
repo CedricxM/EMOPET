@@ -31,6 +31,28 @@ export const sensorSummaries = pgTable('sensor_summaries', {
 }));
 
 
+
+export const presenceEvents = pgTable('presence_events', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  dogId: uuid('dog_id').notNull().references(() => dogs.id),
+  ingestionId: uuid('ingestion_id').notNull(),
+  source: varchar('source', { length: 24 }).notNull(),
+  state: varchar('state', { length: 16 }).notNull(),
+  eventAt: timestamp('event_at', { withTimezone: true }).notNull(),
+  receivedAt: timestamp('received_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('uq_presence_events_ingestion_id').on(table.ingestionId),
+  index('idx_presence_events_dog_event_at').on(table.dogId, table.eventAt),
+  check(
+    'chk_presence_events_source',
+    sql`${table.source} IN ('phone_passive', 'manual_override')`,
+  ),
+  check(
+    'chk_presence_events_state',
+    sql`${table.state} IN ('present', 'absent')`,
+  ),
+]);
+
 export const sensorFeatureObservations = pgTable('sensor_feature_observations', {
   id: uuid('id').primaryKey().defaultRandom(),
   dogId: uuid('dog_id').notNull().references(() => dogs.id),

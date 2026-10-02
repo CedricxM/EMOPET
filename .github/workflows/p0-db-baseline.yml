@@ -289,6 +289,14 @@ jobs:
         working-directory: backend
         run: node --test test/ci-integration-flag-parity.test.mjs
 
+      - name: PRESENCE-01 durable Presence event foundation
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa
+          EMOPET_DB_INTEGRATION_TEST: '1'
+          NODE_ENV: test
+        run: node --test test/presence-events-schema.integration.test.mjs
+
       - name: BEHAV-DATA-01 semantics on historical migrations
         working-directory: backend
         env:
