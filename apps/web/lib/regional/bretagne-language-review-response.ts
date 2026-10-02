@@ -24,6 +24,7 @@ export interface BretagneLanguageReviewResponse {
   kind: BretagneLanguageReviewResponseKind;
   disposition: BretagneReviewRequestedDisposition;
   reviewerRole: string;
+  reviewerRef: string;
   reviewedAt: string;
   evidenceReference: string;
   approvedMeaningOrClaim: string;
@@ -39,6 +40,7 @@ export type BretagneLanguageReviewResponseErrorCode =
   | 'INVALID_REVIEW_DATE'
   | 'FUTURE_REVIEW_DATE'
   | 'MISSING_REVIEWER_ROLE'
+  | 'MISSING_REVIEWER_REF'
   | 'MISSING_EVIDENCE_REFERENCE'
   | 'MISSING_APPROVED_MEANING_OR_CLAIM'
   | 'MISSING_PERMITTED_USAGE'
@@ -61,6 +63,7 @@ export interface BretagneIdentityReviewProposal {
   canApplyAutomatically: false;
   disposition: BretagneReviewRequestedDisposition;
   reviewerRole: string;
+  reviewerRef: string;
   reviewedAt: string;
   evidenceReference: string;
   exactAssistantName: string;
@@ -80,6 +83,7 @@ export interface BretagneLexiconReviewProposal {
   canApplyAutomatically: false;
   disposition: BretagneReviewRequestedDisposition;
   reviewerRole: string;
+  reviewerRef: string;
   reviewedAt: string;
   evidenceReference: string;
   reviewedTerm: string;
@@ -157,6 +161,9 @@ function validateResponse(
 
   if (!nonEmpty(response.reviewerRole)) {
     push('MISSING_REVIEWER_ROLE', 'Reviewer role is required.');
+  }
+  if (!nonEmpty(response.reviewerRef)) {
+    push('MISSING_REVIEWER_REF', 'Reviewer reference is required.');
   }
   if (!nonEmpty(response.evidenceReference)) {
     push('MISSING_EVIDENCE_REFERENCE', 'Controlled evidence reference is required.');
@@ -246,6 +253,7 @@ function buildProposal(
       canApplyAutomatically: false,
       disposition: response.disposition,
       reviewerRole: response.reviewerRole.trim(),
+      reviewerRef: response.reviewerRef.trim(),
       reviewedAt: response.reviewedAt,
       evidenceReference: response.evidenceReference.trim(),
       exactAssistantName: packet.identity.assistantName,
@@ -270,6 +278,7 @@ function buildProposal(
     canApplyAutomatically: false,
     disposition: response.disposition,
     reviewerRole: response.reviewerRole.trim(),
+    reviewerRef: response.reviewerRef.trim(),
     reviewedAt: response.reviewedAt,
     evidenceReference: response.evidenceReference.trim(),
     reviewedTerm: item.term,
