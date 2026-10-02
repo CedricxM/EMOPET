@@ -7,6 +7,7 @@
     "CONCEPTUAL_CONTEXT",
     "HYPOTHESIS",
     "UNVERIFIED",
+    "NOT_ESTABLISHED_BY_CITED_SOURCE",
     "SEPARATE_GATE",
     "REJECTED"
   ],
@@ -56,117 +57,269 @@
     "A01": {
       "claimStatus": "MEASUREMENT_CONTEXT",
       "validationEvidence": null,
-      "note": "Source relevant to canine wearable measurement context; exact proxy-specific validity is not established by this citation."
+      "note": "Source relevant to canine wearable measurement context; exact proxy-specific validity is not established by this citation.",
+      "measurementSources": [
+        "brugarolas2015"
+      ],
+      "interpretationSources": [],
+      "contextSources": [],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     },
     "A02": {
       "claimStatus": "MEASUREMENT_CONTEXT",
       "validationEvidence": null,
-      "note": "Source relevant to canine wearable measurement context; exact proxy-specific validity is not established by this citation."
+      "note": "Source relevant to canine wearable measurement context; exact proxy-specific validity is not established by this citation.",
+      "measurementSources": [
+        "brugarolas2015"
+      ],
+      "interpretationSources": [],
+      "contextSources": [],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     },
     "A03": {
       "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
       "validationEvidence": null,
-      "note": "The cited source does not establish this exact active/rest transition proxy."
+      "note": "The cited source does not establish this exact active/rest transition proxy.",
+      "measurementSources": [],
+      "interpretationSources": [],
+      "contextSources": [
+        "foster2021"
+      ],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     },
     "A04": {
       "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
       "validationEvidence": null,
-      "note": "The cited source does not establish this exact nocturnal-activity proxy."
+      "note": "The cited source does not establish this exact nocturnal-activity proxy.",
+      "measurementSources": [],
+      "interpretationSources": [],
+      "contextSources": [
+        "foster2021"
+      ],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     },
     "A05": {
       "claimStatus": "MEASUREMENT_CONTEXT",
       "validationEvidence": null,
-      "note": "Source supports measurement context, not this exact daily peak definition."
+      "note": "Source supports measurement context, not this exact daily peak definition.",
+      "measurementSources": [
+        "brugarolas2015"
+      ],
+      "interpretationSources": [],
+      "contextSources": [],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     },
     "A06": {
       "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
       "validationEvidence": null,
-      "note": "Russell (1980) is a human affect framework and does not validate canine activity-cycle regularity."
+      "note": "Russell (1980) is a human affect framework and does not validate canine activity-cycle regularity.",
+      "measurementSources": [],
+      "interpretationSources": [],
+      "contextSources": [
+        "russell1980"
+      ],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     },
     "R01": {
       "claimStatus": "MEASUREMENT_CONTEXT",
       "validationEvidence": null,
-      "note": "Source is relevant to rest/sleep sensing context; exact 24 h rest-duration validity is not established here."
+      "note": "Source is relevant to rest/sleep sensing context; exact 24 h rest-duration validity is not established here.",
+      "measurementSources": [
+        "foster2021"
+      ],
+      "interpretationSources": [],
+      "contextSources": [],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     },
     "R02": {
       "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
       "validationEvidence": null,
-      "note": "The cited source does not validate EMOPET deep-rest estimation."
+      "note": "The cited source does not validate EMOPET deep-rest estimation.",
+      "measurementSources": [],
+      "interpretationSources": [],
+      "contextSources": [
+        "homma2008"
+      ],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     },
     "R03": {
       "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
       "validationEvidence": null,
-      "note": "Russell (1980) does not validate canine bedtime regularity."
+      "note": "Russell (1980) does not validate canine bedtime regularity.",
+      "measurementSources": [],
+      "interpretationSources": [],
+      "contextSources": [
+        "russell1980"
+      ],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     },
     "R04": {
       "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
       "validationEvidence": null,
-      "note": "The cited source does not establish EMOPET sleep-latency semantics."
+      "note": "The cited source does not establish EMOPET sleep-latency semantics.",
+      "measurementSources": [],
+      "interpretationSources": [],
+      "contextSources": [
+        "foster2021"
+      ],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     },
     "R05": {
       "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
       "validationEvidence": null,
-      "note": "The cited source does not establish EMOPET rest-interruption semantics."
+      "note": "The cited source does not establish EMOPET rest-interruption semantics.",
+      "measurementSources": [],
+      "interpretationSources": [],
+      "contextSources": [
+        "foster2021"
+      ],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     },
     "R06": {
       "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
       "validationEvidence": null,
-      "note": "The cited source does not establish this rest-continuity index."
+      "note": "The cited source does not establish this rest-continuity index.",
+      "measurementSources": [],
+      "interpretationSources": [],
+      "contextSources": [
+        "homma2008"
+      ],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     },
     "R07": {
       "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
       "validationEvidence": null,
-      "note": "The cited source does not establish this daytime-rest proxy."
+      "note": "The cited source does not establish this daytime-rest proxy.",
+      "measurementSources": [],
+      "interpretationSources": [],
+      "contextSources": [
+        "foster2021"
+      ],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     },
     "G01": {
       "claimStatus": "CONCEPTUAL_CONTEXT",
       "validationEvidence": null,
-      "note": "Respiration physiology context only; sensor validity and canine product thresholds require separate evidence."
+      "note": "Respiration physiology context only; sensor validity and canine product thresholds require separate evidence.",
+      "measurementSources": [],
+      "interpretationSources": [
+        "homma2008"
+      ],
+      "contextSources": [],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     },
     "G02": {
       "claimStatus": "SEPARATE_GATE",
       "validationEvidence": null,
-      "note": "Definition/evidence is controlled by the dedicated rr_variability scientific gate (#86)."
+      "note": "Definition/evidence is controlled by the dedicated rr_variability scientific gate (#86).",
+      "measurementSources": [],
+      "interpretationSources": [],
+      "contextSources": [
+        "homma2008"
+      ],
+      "emopetHypothesisStatus": "NOT_ASSESSED",
+      "separateGate": "#86"
     },
     "G03": {
       "claimStatus": "CONCEPTUAL_CONTEXT",
       "validationEvidence": null,
-      "note": "McEwen provides allostasis context, not this operational calm-phase count."
+      "note": "McEwen provides allostasis context, not this operational calm-phase count.",
+      "measurementSources": [],
+      "interpretationSources": [
+        "mcewen1998"
+      ],
+      "contextSources": [],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     },
     "G04": {
       "claimStatus": "CONCEPTUAL_CONTEXT",
       "validationEvidence": null,
-      "note": "McEwen provides recovery/allostasis context, not EMOPET's exact recovery metric or thresholds."
+      "note": "McEwen provides recovery/allostasis context, not EMOPET's exact recovery metric or thresholds.",
+      "measurementSources": [],
+      "interpretationSources": [
+        "mcewen1998"
+      ],
+      "contextSources": [],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     },
     "G05": {
       "claimStatus": "MEASUREMENT_CONTEXT",
       "validationEvidence": null,
-      "note": "Source is relevant to canine sensing context; this posture-stability index is not directly validated by it."
+      "note": "Source is relevant to canine sensing context; this posture-stability index is not directly validated by it.",
+      "measurementSources": [
+        "brugarolas2015"
+      ],
+      "interpretationSources": [],
+      "contextSources": [],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     },
     "S01": {
       "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
       "validationEvidence": null,
-      "note": "The cited source does not establish shared calm phases with owner presence."
+      "note": "The cited source does not establish shared calm phases with owner presence.",
+      "measurementSources": [],
+      "interpretationSources": [],
+      "contextSources": [
+        "foster2021"
+      ],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     },
     "S02": {
       "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
       "validationEvidence": null,
-      "note": "The cited wearable source does not establish EMOPET TAG vocalisation detection."
+      "note": "The cited wearable source does not establish EMOPET TAG vocalisation detection.",
+      "measurementSources": [],
+      "interpretationSources": [],
+      "contextSources": [
+        "brugarolas2015"
+      ],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     },
     "S03": {
       "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
       "validationEvidence": null,
-      "note": "The cited source does not establish owner-proximity duration."
+      "note": "The cited source does not establish owner-proximity duration.",
+      "measurementSources": [],
+      "interpretationSources": [],
+      "contextSources": [
+        "foster2021"
+      ],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     },
     "S04": {
       "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
       "validationEvidence": null,
-      "note": "Russell (1980) does not validate reactions to passers-by."
+      "note": "Russell (1980) does not validate reactions to passers-by.",
+      "measurementSources": [],
+      "interpretationSources": [],
+      "contextSources": [
+        "russell1980"
+      ],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     },
     "S05": {
       "claimStatus": "NOT_ESTABLISHED_BY_CITED_SOURCE",
       "validationEvidence": null,
-      "note": "The cited source does not establish synchronization to household routines."
+      "note": "The cited source does not establish synchronization to household routines.",
+      "measurementSources": [],
+      "interpretationSources": [],
+      "contextSources": [
+        "foster2021"
+      ],
+      "emopetHypothesisStatus": "NOT_ASSESSED"
     }
+  },
+  "allowedHypothesisStatuses": [
+    "NOT_ASSESSED",
+    "EXPLICIT_HYPOTHESIS",
+    "NOT_APPLICABLE"
+  ],
+  "fieldSemantics": {
+    "measurementSources": "Bibliography ids relevant to the sensing/measurement context only; presence does not establish proxy-specific validation.",
+    "interpretationSources": "Bibliography ids relevant to interpretation/concept context only; presence does not establish the operational proxy or thresholds.",
+    "contextSources": "Bibliography ids retained as context where the cited source does not establish the proxy-specific claim or the proxy is controlled by a separate gate.",
+    "emopetHypothesisStatus": "Explicit hypothesis-assessment state. NOT_ASSESSED is fail-closed and must not be read as NOT_APPLICABLE or scientific support.",
+    "validationEvidence": "Exact EMOPET/canine validation evidence pointer when reviewed; null means no validation evidence is established by this map.",
+    "separateGate": "Dedicated issue/gate controlling semantics where claimStatus is SEPARATE_GATE."
   }
 }
