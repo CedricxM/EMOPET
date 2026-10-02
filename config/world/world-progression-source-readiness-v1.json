@@ -1,0 +1,79 @@
+{
+  "version": "1",
+  "status": "CONTROLLED_GATE3_READINESS_NOT_RUNTIME_AUTHORITY",
+  "productionAuthority": false,
+  "gate": "WORLD_G2_GATE_3_CANONICAL_SOURCE_VERIFIERS",
+  "sourceAuthorityConfig": "config/world/world-progression-source-authority-v1.json",
+  "defaultDecision": "DENY",
+  "events": {
+    "knowledge.card_read": {
+      "authorityDomain": "knowledge",
+      "readiness": "BLOCKED_OWNER_ACTION_ONLY_BROWSER_LOCALSTORAGE",
+      "implementationPath": null,
+      "implementationSymbol": null,
+      "currentEvidence": [
+        "apps/web/lib/gamification.ts keeps card-read state under breiz-gamification-read in localStorage"
+      ],
+      "requiredNextAuthority": "durable authenticated Owner-scoped card-read receipt"
+    },
+    "local.place_saved": {
+      "authorityDomain": "local",
+      "readiness": "BLOCKED_OWNER_SAVED_PLACE_ONLY_BROWSER_LOCALSTORAGE",
+      "implementationPath": null,
+      "implementationSymbol": null,
+      "currentEvidence": [
+        "apps/web/app/quartier/LocalSection.tsx keeps user-saved spots under breiz-map-user-spots in localStorage"
+      ],
+      "requiredNextAuthority": "durable authenticated Owner-scoped saved-place authority"
+    },
+    "local.route_saved": {
+      "authorityDomain": "local",
+      "readiness": "BLOCKED_NO_CANONICAL_OWNER_SAVED_ROUTE_PERSISTENCE",
+      "implementationPath": null,
+      "implementationSymbol": null,
+      "currentEvidence": [
+        "no specialized WorldProgressionSourceVerifier for local.route_saved is present on main"
+      ],
+      "requiredNextAuthority": "durable authenticated Owner-authored saved-route authority"
+    },
+    "community.contribution_created": {
+      "authorityDomain": "community",
+      "readiness": "READY_CANONICAL_VERIFIER_IMPLEMENTED",
+      "implementationPath": "backend/api/services/world-community-progression-source.ts",
+      "implementationSymbol": "drizzleCommunityContributionSourceVerifier",
+      "currentEvidence": [
+        "canonical PostgreSQL posts.author_id and community_events.created_by are checked against Owner identity"
+      ],
+      "requiredNextAuthority": null
+    },
+    "world.group_joined": {
+      "authorityDomain": "world",
+      "readiness": "BLOCKED_NAKAMA_MEMBERSHIP_IS_TRANSPORT_NOT_DURABLE_PRODUCT_AUTHORITY",
+      "implementationPath": null,
+      "implementationSymbol": null,
+      "currentEvidence": [
+        "World group membership currently exists in the Nakama transport spike, which is explicitly not durable product authority"
+      ],
+      "requiredNextAuthority": "canonical durable Owner-scoped World group membership authority"
+    },
+    "memory.created": {
+      "authorityDomain": "memories",
+      "readiness": "BLOCKED_PRODUCT_V1_MEMORY_PERSISTENCE_NOT_WIRED",
+      "implementationPath": null,
+      "implementationSymbol": null,
+      "currentEvidence": [
+        "Product V1 Journal/Memory persistence is explicitly not wired; legacy Journal is demo-only"
+      ],
+      "requiredNextAuthority": "durable deliberate Owner-authored Memory authority"
+    }
+  },
+  "rules": [
+    "A declared source route is not evidence that a canonical verifier exists.",
+    "READY requires a specialized server-side verifier that checks canonical existence and Owner scope.",
+    "Browser localStorage cannot prove a progression source action.",
+    "Nakama transport membership cannot silently become durable World product authority.",
+    "Legacy Journal/Memory demo persistence cannot authorize memory.created progression.",
+    "Missing or blocked verifiers remain deny-by-default.",
+    "Care, ELI, sensor and dog-performance systems remain forbidden progression source authorities."
+  ]
+}
