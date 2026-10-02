@@ -35,6 +35,8 @@ export type MotsPetTruthClass =
   | 'LONGITUDINAL_CHANGE'
   | 'OWNER_PREFERENCE'
   | 'SHARING_SCOPE_METADATA'
+  | 'INTENTIONAL_CAPTURE'
+  | 'OWNER_CHOSEN_MEMORY_CONTENT'
   | 'PURPOSE_BOUND_PERMISSION';
 
 export interface MotsPetSemanticContract {
@@ -204,6 +206,22 @@ export const MOTSPET_SEMANTIC_CONTRACTS: Readonly<
   explicit_preference: {
     conceptId: 'explicit_preference',
     truthClass: 'OWNER_PREFERENCE',
+    provenance: 'REQUIRED',
+    causalBoundary: 'NO_CAUSAL_UPGRADE',
+    medicalBoundary: 'NON_DIAGNOSTIC',
+    privacyBoundary: 'PRESERVE_PURPOSE_AND_CONSENT',
+  },
+  moment: {
+    conceptId: 'moment',
+    truthClass: 'INTENTIONAL_CAPTURE',
+    provenance: 'REQUIRED',
+    causalBoundary: 'NO_CAUSAL_UPGRADE',
+    medicalBoundary: 'NON_DIAGNOSTIC',
+    privacyBoundary: 'PRESERVE_PURPOSE_AND_CONSENT',
+  },
+  memory: {
+    conceptId: 'memory',
+    truthClass: 'OWNER_CHOSEN_MEMORY_CONTENT',
     provenance: 'REQUIRED',
     causalBoundary: 'NO_CAUSAL_UPGRADE',
     medicalBoundary: 'NON_DIAGNOSTIC',
