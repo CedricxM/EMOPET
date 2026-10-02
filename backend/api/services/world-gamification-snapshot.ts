@@ -1,20 +1,20 @@
 import type {
   WorldProgressionBalance,
   WorldProgressionLedgerEntry,
-} from './world-progression-ledger';
+} from './world-progression-ledger.js';
 import {
   projectWorldQuestProgress,
   type WorldQuestProgress,
-} from './world-quest-projection';
+} from './world-quest-projection.js';
 import {
   projectWorldProgressionProvenance,
   type WorldProgressionProvenanceProjection,
-} from './world-progression-provenance';
+} from './world-progression-provenance.js';
 import {
   canAffordWorldRegionalItem,
   resolveWorldRegionalCollection,
   type WorldRegionalCollectionCatalog,
-} from './world-regional-collections';
+} from './world-regional-collections.js';
 
 export interface WorldGamificationOwnerBalance {
   ownerId: string;
