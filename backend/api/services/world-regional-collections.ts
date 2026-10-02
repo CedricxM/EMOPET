@@ -2,7 +2,7 @@ import type {
   WorldProgressionBalance,
   WorldProgressionGrant,
   WorldProgressionResource,
-} from './world-progression-ledger';
+} from './world-progression-ledger.js';
 
 export interface WorldRegionalIdentity {
   name: string;
