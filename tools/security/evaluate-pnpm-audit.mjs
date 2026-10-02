@@ -93,7 +93,19 @@ for (const advisory of advisories) {
 
   const ghsa = advisory.github_advisory_id;
   const exception = exceptions.get(ghsa);
-  const findingPaths = (advisory.findings ?? []).flatMap((finding) => finding.paths ?? []);
+  const findingPaths = (advisory.findings ?? []).flatMap((finding) => finding.paths ?? [  [
+    'GHSA-86w9-cpqp-85rv',
+    {
+      module: 'node-forge',
+      expires: new Date('2026-10-31T23:59:59Z'),
+      allowedPaths: new Set([
+        'apps__mobile>expo>@expo/cli>node-forge',
+      ]),
+      reason:
+        'No patched node-forge release is currently published for GHSA-86w9-cpqp-85rv; the observed EMOPET path is bounded to Expo CLI/tooling and no application code imports node-forge or the affected Expo CLI helpers.',
+    },
+  ],
+]);
 
   const exceptionMatches =
     exception &&

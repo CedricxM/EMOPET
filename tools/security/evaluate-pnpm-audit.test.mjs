@@ -9,6 +9,8 @@ import test from 'node:test';
 const evaluator = fileURLToPath(new URL('./evaluate-pnpm-audit.mjs', import.meta.url));
 const allowedPath = 'apps__mobile>react-native>@react-native/community-cli-plugin>metro>image-size';
 const exceptionIds = ['GHSA-w3rx-r6r6-pgpr', 'GHSA-5p2g-fcmc-qvqq'];
+const nodeForgePath = 'apps__mobile>expo>@expo/cli>node-forge';
+const nodeForgeAdvisoryId = 'GHSA-86w9-cpqp-85rv';
 
 function advisory(overrides = {}) {
   return {
@@ -152,6 +154,16 @@ function exceptions() {
   }));
 }
 
+function nodeForgeException(overrides = {}) {
+  return advisory({
+    github_advisory_id: nodeForgeAdvisoryId,
+    module_name: 'node-forge',
+    patched_versions: '<0.0.0',
+    findings: [{ version: '1.4.0', paths: [nodeForgePath] }],
+    ...overrides,
+  });
+}
+
 test('the two existing path-bounded image-size exceptions still pass', () => {
   const result = evaluate(report(exceptions(), { low: 3, moderate: 19 }));
   assert.equal(result.status, 0, result.stderr);
@@ -173,6 +185,44 @@ for (const [name, override] of [
     expectRejected(report([{ ...exceptions()[0], ...override }]));
   });
 }
+
+
+test('node-forge Expo CLI exception passes only on the observed tooling path', () => {
+  const result = evaluate(report([nodeForgeException()]), {
+    now: '2026-10-02T12:00:00Z',
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, new RegExp(nodeForgeAdvisoryId));
+  assert.match(result.stdout, /Accepted, path-bounded, expiring exceptions:/);
+});
+
+for (const [name, override] of [
+  ['different module', { module_name: 'different-package' }],
+  ['backend path', { findings: [{ version: '1.4.0', paths: ['backend>node-forge'] }] }],
+  ['additional path', {
+    findings: [{
+      version: '1.4.0',
+      paths: [nodeForgePath, 'apps__mobile>runtime>node-forge'],
+    }],
+  }],
+]) {
+  test(`node-forge exception cannot cover ${name}`, () => {
+    expectRejected(report([nodeForgeException(override)]), {
+      now: '2026-10-02T12:00:00Z',
+    });
+  });
+}
+
+test('node-forge exception expires at the October policy boundary', () => {
+  const atBoundary = evaluate(report([nodeForgeException()]), {
+    now: '2026-10-31T23:59:59Z',
+  });
+  assert.equal(atBoundary.status, 0, atBoundary.stderr);
+
+  expectRejected(report([nodeForgeException()]), {
+    now: '2026-10-31T23:59:59.001Z',
+  });
+});
 
 test('exceptions expire at the unchanged policy boundary', () => {
   const atBoundary = evaluate(report(exceptions()), { now: '2026-11-30T23:59:59Z' });
