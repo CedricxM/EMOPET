@@ -21,8 +21,9 @@ This README describes the code observed on `main`. It does not establish product
 | Firmware | Partial MAT/TAG C sources | `OBSERVED_PARTIAL` |
 | Authentication | JWT middleware and ownership helper; register/login/refresh are stubs | `OPEN / GATED` |
 | CI and branch protection | Security, P0 DB, Owner and path-scoped Windows workflows; active `main` ruleset; all 33 `scripts/control` tests have a CI path | `ACTIVE`; seven selected security/supply-chain checks are required; automatic merged-head deletion is enabled; historical branch cleanup and CODEOWNERS remain `OPEN` |
-| Unity | No Unity project in this repository | `ABSENT_IN_REPOSITORY / GATED` |
-| Nakama | Not canonical on `main`; experimental World/Nakama work remains outside current main authority | `GATED / NOT PRODUCTION AUTHORITY` |
+| Unity World | Unity **6000.3.25f1** project under `unity/world`; backend transport/session client, deterministic EditMode tests and recorded live loopback evidence | `SPIKE OBSERVED / LIVE LOOPBACK PASS / NOT PRODUCTION AUTHORITY` |
+| World realtime / Nakama | Hono-owned `/api/world-spike` transport plus isolated local Nakama runtime under `infra/nakama`; Unity never authenticates directly to Nakama | `SPIKE OBSERVED / NOT PRODUCTION AUTHORITY` |
+| World progression | Owner-only controlled progression authority; durable G2 migration `0047`, Drizzle schema and PostgreSQL stores are present; controlled legacy replay exists | `CONTROLLED DRAFT / SCHEMA+STORE PRESENT / HTTP + PRIVACY LIFECYCLE + UI ACTIVATION GATED` |
 
 ## Monorepo layout
 
@@ -132,7 +133,7 @@ Repository-enforced required-check policy applies to the seven contexts listed a
 ## Safety and privacy constraints
 
 - Backend authorization must enforce Owner-to-dog access for protected resources.
-- Clients, Unity, and any future realtime subsystem are untrusted inputs, not policy authorities.
+- Clients, including Unity, and realtime subsystems such as Nakama are untrusted inputs or transport components, not policy authorities.
 - Raw audio must not be stored or transmitted; current data contracts use derived vocal counts/energy, but end-to-end negative tests remain required.
 - Sensitive location/telemetry requires explicit purpose, consent, minimization, retention, and deletion rules.
 - Outputs must remain non-diagnostic and avoid unsupported emotional labels or anthropomorphism.
