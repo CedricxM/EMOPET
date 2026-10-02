@@ -14,7 +14,9 @@ import {
   type BretagneLanguageReviewPacket,
   type BretagneReviewRequestedDisposition,
 } from './bretagne-language-review-packet';
-import type { RegionalLexiconUsage } from './regional-lexicon';
+import type { RegionalLexiconEntry } from './regional-lexicon';
+
+type RegionalLexiconUsage = RegionalLexiconEntry['usage'];
 
 export type BretagneLanguageReviewResponseKind = 'IDENTITY' | 'LEXICON';
 
