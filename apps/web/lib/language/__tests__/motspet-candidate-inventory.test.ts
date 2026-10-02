@@ -80,8 +80,6 @@ test('inventory reconciles v0.3 observation-contract concepts as existing contro
 
 test('inventory keeps the remaining next-review concepts outside runtime authority', () => {
   for (const id of [
-    'moment',
-    'memory',
     'community_visibility',
   ]) {
     const candidate = getMotsPetCandidateInventoryEntry(id);
@@ -128,17 +126,26 @@ test('share scope is reconciled as controlled privacy metadata', () => {
   assert.equal(runtime.domain, 'privacy');
 });
 
-test('relationship/community candidates do not become sensor-derived authority', () => {
-  for (const id of [
-    'moment',
-    'memory',
-    'community_visibility',
-  ]) {
+test('Moment and Memory are controlled relationship-history concepts, not sensor-derived authority', () => {
+  for (const id of ['moment', 'memory']) {
     const candidate = getMotsPetCandidateInventoryEntry(id);
     assert.ok(candidate, id);
-    assert.equal(candidate.status, 'CANDIDATE_REVIEW');
-    assert.equal(candidate.existingMotsPetId, null);
+    assert.equal(candidate.status, 'EXISTING_CONTROLLED', id);
+    assert.equal(candidate.existingMotsPetId, id, id);
+
+    const runtime = getMotsPetEntry(id);
+    assert.ok(runtime, id);
+    assert.equal(runtime.status, 'CONTROLLED_SEED', id);
+    assert.equal(runtime.domain, 'relationship', id);
   }
+});
+
+test('Community visibility remains outside runtime MotsPet authority', () => {
+  const candidate = getMotsPetCandidateInventoryEntry('community_visibility');
+  assert.ok(candidate);
+  assert.equal(candidate.status, 'CANDIDATE_REVIEW');
+  assert.equal(candidate.existingMotsPetId, null);
+  assert.equal(getMotsPetEntry('community_visibility'), undefined);
 });
 
 
@@ -168,8 +175,6 @@ test('review queue is derived from the canonical candidate inventory', () => {
 
   assert.deepEqual(projectedIds, canonicalIds);
   assert.deepEqual(projectedIds, [
-    'moment',
-    'memory',
     'community_visibility',
   ]);
 });
