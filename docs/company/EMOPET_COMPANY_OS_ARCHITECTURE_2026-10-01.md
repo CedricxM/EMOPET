@@ -177,7 +177,8 @@ Both views fail closed: missing data remains missing, planning remains planning,
 | `state/history/pending-transition-proposals.json` | Committed review-only proposal queue | V2 proposal staging; not ledger or decision authority |
 | `state/history/reviewed-transition-append.schema.json` | Reviewed append-candidate contract | V2 preparation contract; never authorizes ledger mutation |
 | `.github/PULL_REQUEST_TEMPLATE/company-transition-append.md` | Human append-PR checklist | V2 review aid; not approval authority |
-| `scripts/control/verify-transition-source-snapshot.mjs` | Verify appended source snapshot is already contained in PR-base main | V2 ancestry guard; not domain validation |\n| `scripts/control/transition-workflow-status.mjs` | Read-only mechanical status for proposal → review → append workflow | V2 operator aid; not review, decision or finalization authority |
+| `scripts/control/verify-transition-source-snapshot.mjs` | Verify appended source snapshot is already contained in PR-base main | V2 ancestry guard; not domain validation |
+| `scripts/control/transition-workflow-status.mjs` | Read-only mechanical status for proposal → review → append workflow | V2 operator aid; not review, decision or finalization authority |
 | `state/freshness/freshness-state.json` | Machine-readable freshness overlay | V2 projection with decision-use guardrails |
 | `state/schemas/registry-schema-map.json` | Registry → JSON Schema contract map | V2 structural contract; not domain authority |
 | `EXPERIMENTS.md` | Hypothesis → test → result → decision ledger | V1 projection/index |
