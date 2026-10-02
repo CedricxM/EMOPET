@@ -49,6 +49,7 @@
     "worldReadBff": "GET /api/world-gamification/session",
     "worldUiActivated": false,
     "refreshRoute": "POST /api/owner-session/refresh",
-    "automaticRefreshOnWorldGet": false
+    "automaticRefreshOnWorldGet": false,
+    "concurrentRefreshSingleFlightRequiredBeforeUiCutover": true
   }
 }
