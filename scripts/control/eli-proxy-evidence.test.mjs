@@ -45,6 +45,36 @@ test('every proxy claim status and hypothesis status belongs to the declared voc
   }
 });
 
+test('every claim status has exactly one Owner-presentation policy class', async () => {
+  const url = new URL('../../config/science/eli-proxy-evidence.json', import.meta.url);
+  const map = JSON.parse(await readFile(url, 'utf8'));
+
+  const classes = [
+    ['directValidationLanguageRequires', new Set(map.ownerPolicy.directValidationLanguageRequires)],
+    ['contextOnlyStatuses', new Set(map.ownerPolicy.contextOnlyStatuses)],
+    ['noValidationImplicationStatuses', new Set(map.ownerPolicy.noValidationImplicationStatuses)],
+  ];
+
+  for (const status of map.allowedStatuses) {
+    const memberships = classes.filter(([, values]) => values.has(status));
+    assert.equal(
+      memberships.length,
+      1,
+      `${status}: must belong to exactly one Owner-presentation policy class`,
+    );
+  }
+
+  assert.deepEqual(
+    map.ownerPolicy.directValidationLanguageRequires,
+    ['SUPPORTED'],
+    'SUPPORTED must remain the only status allowed to use direct validation language',
+  );
+  assert.ok(
+    map.ownerPolicy.noValidationImplicationStatuses.includes('NOT_ESTABLISHED_BY_CITED_SOURCE'),
+    'unresolved cited-source status must fail closed for Owner presentation',
+  );
+});
+
 test('proxy evidence dimensions are explicit, bibliography-backed and fail closed', async () => {
   const url = new URL('../../config/science/eli-proxy-evidence.json', import.meta.url);
   const map = JSON.parse(await readFile(url, 'utf8'));
