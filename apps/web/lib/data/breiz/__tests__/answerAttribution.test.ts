@@ -28,6 +28,7 @@ function source(overrides: Partial<BreizSourceDescriptor> = {}): BreizSourceDesc
       receiptPath: 'data/registry/receipts/fixture.json',
       attributionText: 'Fixture publisher',
       permittedUseSummary: 'Test fixture use only',
+      allowedProductUses: ['INGESTION', 'PUBLIC_ANSWER_WITH_SOURCE'],
       reviewedAt: '2026-09-22T10:00:00.000Z',
       reviewerRole: 'TEST_REVIEWER',
       recheckAt: '2026-10-22T10:00:00.000Z',
@@ -54,6 +55,11 @@ function document(overrides: Partial<BreizDocument> = {}): BreizDocument {
       source_url: 'https://example.invalid/source',
       license: 'Licence Ouverte 2.0',
       attribution_text: 'Fixture publisher',
+      permitted_use_summary: 'Test fixture use only',
+      allowed_product_uses: ['INGESTION', 'PUBLIC_ANSWER_WITH_SOURCE'],
+      rights_reviewed_at: '2026-09-22T10:00:00.000Z',
+      rights_recheck_at: '2026-10-22T10:00:00.000Z',
+      reviewer_role: 'TEST_REVIEWER',
     },
     license: 'Licence Ouverte 2.0',
     territory: 'Bretagne',
@@ -79,6 +85,33 @@ test('exact reviewed authority binding is eligible', () => {
   const verdict = evaluateBreizChunkReleaseAuthority(firstChunk(), source(), NOW);
   assert.equal(verdict.authorized, true);
   assert.deepEqual(verdict.blockers, []);
+});
+
+test('ingestion-only rights cannot authorize a public answer', () => {
+  const ingestionOnly = source({
+    rightsEvidence: {
+      ...source().rightsEvidence!,
+      allowedProductUses: ['INGESTION'],
+    },
+  });
+
+  const verdict = evaluateBreizChunkReleaseAuthority(firstChunk(), ingestionOnly, NOW);
+  assert.equal(verdict.authorized, false);
+  assert.ok(verdict.blockers.includes('REGISTRY_RELEASE_NOT_READY'));
+});
+
+test('silent product-use mutation under the same revision fails closed', () => {
+  const mutated = source({
+    rightsEvidence: {
+      ...source().rightsEvidence!,
+      allowedProductUses: ['INGESTION', 'PUBLIC_ANSWER_WITH_SOURCE',],
+      permittedUseSummary: 'Different scope text under same revision',
+    },
+  });
+
+  const verdict = evaluateBreizChunkReleaseAuthority(firstChunk(), mutated, NOW);
+  assert.equal(verdict.authorized, false);
+  assert.ok(verdict.blockers.includes('PERMITTED_USE_SUMMARY_MISMATCH'));
 });
 
 test('old chunk cannot inherit a later GO authority revision', () => {
