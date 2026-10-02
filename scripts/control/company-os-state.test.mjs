@@ -1251,6 +1251,40 @@ test('transition workflow status is read-only and exposes mechanical next state 
   assert.equal(reviewRequired.mutates_ledger, false);
   assert.equal(reviewRequired.human_review_required, true);
   assert.equal(reviewRequired.substantive_decision_authority, false);
+  assert.equal(reviewRequired.operator_handoff.action, 'RENDER_REVIEW_PACKET');
+  assert.equal(
+    reviewRequired.operator_handoff.scope,
+    'SINGLE_PENDING_PROPOSAL',
+  );
+  assert.match(
+    reviewRequired.operator_handoff.command,
+    /transition-review-packet\.mjs --proposal-queue state\/history\/pending-transition-proposals\.json/,
+  );
+  assert.match(reviewRequired.operator_handoff.note, /does not select, prioritize, accept or approve/i);
+
+  const multiProposal = inspectTransitionWorkflow(
+    {
+      ...queue,
+      proposals: [
+        ...queue.proposals,
+        {
+          proposal_id: 'EMO-PROPOSAL-20261002-0002',
+          review_status: 'REVIEW_REQUIRED',
+          append_ready: false,
+        },
+      ],
+    },
+    transitionEvents,
+  );
+  assert.equal(
+    multiProposal.operator_handoff.scope,
+    'FULL_PENDING_QUEUE_NO_PRIORITY_RANKING',
+  );
+  assert.doesNotMatch(
+    multiProposal.operator_handoff.command,
+    /--proposal-id/,
+    'multi-proposal handoff must not synthesize a review priority',
+  );
 
   const reviewedCandidate = {
     proposal_id: 'EMO-PROPOSAL-20261002-0001',
@@ -1315,6 +1349,7 @@ test('transition workflow status is read-only and exposes mechanical next state 
     transitionEvents,
   );
   assert.equal(empty.mechanical_state, 'NO_PENDING_PROPOSALS');
+  assert.equal(empty.operator_handoff, null);
 
   const source = readText('scripts/control/transition-workflow-status.mjs');
   assert.doesNotMatch(
