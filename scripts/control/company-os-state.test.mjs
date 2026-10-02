@@ -6,7 +6,8 @@ import { renderCompanyOsViews } from './generate-company-os-views.mjs';
 import { CONTROLLED_STATE_PATHS, proposeCompanyTransitions } from './propose-company-transitions.mjs';
 import { prepareReviewedTransitionAppend } from './prepare-reviewed-transition-append.mjs';
 import { finalizeReviewedTransitionAppend } from './finalize-reviewed-transition-append.mjs';
-import { assertSourceSnapshotIncludedInBase, verifySourceSnapshotMergedInBase } from './verify-transition-source-snapshot.mjs';\nimport { inspectTransitionWorkflow } from './transition-workflow-status.mjs';
+import { assertSourceSnapshotIncludedInBase, verifySourceSnapshotMergedInBase } from './verify-transition-source-snapshot.mjs';
+import { inspectTransitionWorkflow } from './transition-workflow-status.mjs';
 
 const root = process.cwd();
 
