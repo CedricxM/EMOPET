@@ -2,12 +2,10 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 import {
-  clearOwnerSessionCookies,
-  writeOwnerSessionCookies,
+  clearOwnerAccessCookie,
 } from '../../../../lib/server/owner-session-cookies';
 import {
   OWNER_ACCESS_COOKIE,
-  OWNER_REFRESH_COOKIE,
 } from '../../../../lib/server/owner-session-provider';
 import { createFixedWindowRateLimiter } from '../../../../lib/server/rate-limit';
 import { enforceRateLimit } from '../../../../lib/server/request-security';
@@ -48,22 +46,17 @@ export async function GET(req: Request) {
   const store = await cookies();
   const result = await readWorldGamificationForOwnerSession({
     accessToken: store.get(OWNER_ACCESS_COOKIE)?.value,
-    refreshToken: store.get(OWNER_REFRESH_COOKIE)?.value,
     regionCode: url.searchParams.get('region'),
   });
 
   if (result.status === 'DENIED') {
-    const response = privateJson({ ok: false, error: 'owner_session_required' }, 401);
-    clearOwnerSessionCookies(response);
+    const response = privateJson({ ok: false, error: 'owner_access_refresh_required' }, 401);
+    clearOwnerAccessCookie(response);
     return response;
   }
   if (result.status !== 'OK') {
     return privateJson({ ok: false, error: 'world_gamification_unavailable' }, 503);
   }
 
-  const response = privateJson(result.snapshot);
-  if (result.rotatedTokens) {
-    writeOwnerSessionCookies(response, result.rotatedTokens);
-  }
-  return response;
+  return privateJson(result.snapshot);
 }
