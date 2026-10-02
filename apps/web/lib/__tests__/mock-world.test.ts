@@ -6,7 +6,7 @@
  */
 
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 import {
@@ -26,24 +26,24 @@ import {
 import type { ResourceBalance, WorldResourceKey } from '../mock-world';
 
 const authority = JSON.parse(
-  await readFile(
+  readFileSync(
     new URL('../../../../config/world/world-progression-authority-v1.json', import.meta.url),
     'utf8',
   ),
 );
 const quests = JSON.parse(
-  await readFile(
+  readFileSync(
     new URL('../../../../config/world/world-quest-catalog-v1.json', import.meta.url),
     'utf8',
   ),
 );
 const regional = JSON.parse(
-  await readFile(
+  readFileSync(
     new URL('../../../../config/world/world-regional-collections-v1.json', import.meta.url),
     'utf8',
   ),
 );
-const source = await readFile(new URL('../mock-world.ts', import.meta.url), 'utf8');
+const source = readFileSync(new URL('../mock-world.ts', import.meta.url), 'utf8');
 
 test('preview is explicitly non-authoritative account state', () => {
   assert.equal(WORLD_PREVIEW_AUTHORITY, 'LOCAL_VISUAL_PREVIEW_NOT_ACCOUNT_PROGRESSION');
