@@ -102,6 +102,22 @@ test('trend is controlled only as named longitudinal change, never a global well
 });
 
 
+test('share scope is bounded by recipient, purpose and access window rather than blanket consent', () => {
+  const shareScope = getMotsPetEntry('share_scope');
+  assert.ok(shareScope);
+  assert.equal(shareScope.status, 'CONTROLLED_SEED');
+  assert.equal(shareScope.domain, 'privacy');
+  assert.equal(shareScope.publicFr, 'périmètre de partage');
+  assert.equal(shareScope.publicEn, 'sharing scope');
+  assert.equal(shareScope.requiresProvenance, true);
+  assert.ok(shareScope.definitionFr.includes('destinataire ou audience'));
+  assert.ok(shareScope.definitionFr.includes('finalité'));
+  assert.ok(shareScope.definitionFr.includes('fenêtre d’accès'));
+  assert.ok(shareScope.definitionFr.includes('ni un consentement pour un autre usage'));
+  assert.ok(shareScope.prohibitedPublicTerms.includes('accès illimité'));
+  assert.ok(shareScope.prohibitedPublicTerms.includes('public par défaut'));
+});
+
 test('explicit preference stays Owner-declared and never becomes dog-state or relationship inference', () => {
   const preference = getMotsPetEntry('explicit_preference');
   assert.ok(preference);
