@@ -9,6 +9,13 @@ const candidate = JSON.parse(
   ),
 );
 
+const gate = JSON.parse(
+  await readFile(
+    new URL('../../config/world/world-progression-persistence-gate-v1.json', import.meta.url),
+    'utf8',
+  ),
+);
+
 test('G1B.2 privacy plan remains candidate-only and non-authoritative', () => {
   assert.equal(candidate.status, 'CANDIDATE_NOT_PROMOTED');
   assert.equal(candidate.productionAuthority, false);
@@ -56,7 +63,7 @@ test('every planned World table is a direct Owner relation with unresolved lifec
 
 test('durable schema foundation is present but not privacy-promoted', () => {
   assert.deepEqual(candidate.durableSchemaFoundation, {
-    migration: 'backend/db/migrations/0046_world_gamification_persistence.sql',
+    migration: `backend/db/migrations/${gate.migrationGate.currentReservation.migration}`,
     schema: 'backend/db/schema/world-gamification.ts',
     status: 'PRESENT_NOT_PRIVACY_PROMOTED',
     productionWritesActivated: false,

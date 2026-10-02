@@ -31,6 +31,10 @@ test('privacy gap matrix stays aligned with the durable World relations', () => 
   assert.equal(matrix.status, 'PARTIAL_TECHNICAL_RECONCILIATION_NOT_PROMOTED');
   assert.equal(matrix.claims.migrationSchemaPresent, true);
   assert.equal(matrix.claims.productionWritesActive, false);
+
+  const canonicalMigration = `backend/db/migrations/${gate.migrationGate.currentReservation.migration}`;
+  assert.equal(matrix.g2Foundation.migration, canonicalMigration);
+  assert.equal(candidate.durableSchemaFoundation.migration, canonicalMigration);
 });
 
 test('gap matrix exactly reflects current active privacy/runtime table mentions', async () => {
@@ -97,7 +101,15 @@ test('legacy browser gamification remains explicit non-SQL evidence', async () =
   assert.equal(matrix.nonSqlSurface.requiredBeforePromotion, true);
   assert.equal(
     matrix.nonSqlSurface.currentWorldProgressionDecision,
-    'ACTIVE_INVENTORY_DECISION_ABSENT_LEGACY_RUNTIME_PRESENT',
+    'CONTROLLED_DECOMMISSION_PLAN_PRESENT_CUTOVER_NOT_EXECUTED',
+  );
+  assert.equal(
+    matrix.nonSqlSurface.decommissionPlan,
+    'config/world/world-legacy-gamification-decommission-v1.json',
+  );
+  assert.equal(
+    matrix.nonSqlSurface.replayAuthority,
+    'config/world/world-legacy-replay-authority-v1.json',
   );
   assert.equal(/world[ _-]?progression/i.test(inventoryText), false);
 
@@ -130,4 +142,12 @@ test('legacy browser gamification remains explicit non-SQL evidence', async () =
   ]) {
     assert.equal(allObservedKeys.has(key), true, `missing legacy browser key ${key}`);
   }
+
+  const decommission = JSON.parse(await readRepoText(matrix.nonSqlSurface.decommissionPlan));
+  const replay = JSON.parse(await readRepoText(matrix.nonSqlSurface.replayAuthority));
+  assert.equal(decommission.productionAuthority, false);
+  assert.equal(replay.productionAuthority, false);
+  assert.equal(decommission.runtimeReplayAuthority, matrix.nonSqlSurface.replayAuthority);
+  assert.equal(decommission.status, 'CONTROLLED_MIGRATION_PLAN_NOT_RUNTIME_AUTHORITY');
+  assert.equal(replay.status, 'CONTROLLED_DRAFT_NOT_RUNTIME_AUTHORITY');
 });
