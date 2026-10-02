@@ -178,6 +178,7 @@ Both views fail closed: missing data remains missing, planning remains planning,
 | `state/history/reviewed-transition-append.schema.json` | Reviewed append-candidate contract | V2 preparation contract; never authorizes ledger mutation |
 | `.github/PULL_REQUEST_TEMPLATE/company-transition-append.md` | Human append-PR checklist | V2 review aid; not approval authority |
 | `scripts/control/verify-transition-source-snapshot.mjs` | Verify appended source snapshot is already contained in PR-base main | V2 ancestry guard; not domain validation |
+| `scripts/control/transition-workflow-status.mjs` | Read-only mechanical status for proposal → review → append workflow | V2 operator aid; not review, decision or finalization authority |
 | `state/freshness/freshness-state.json` | Machine-readable freshness overlay | V2 projection with decision-use guardrails |
 | `state/schemas/registry-schema-map.json` | Registry → JSON Schema contract map | V2 structural contract; not domain authority |
 | `EXPERIMENTS.md` | Hypothesis → test → result → decision ledger | V1 projection/index |
@@ -304,6 +305,26 @@ The checklist makes the human review boundary explicit: reviewers confirm the un
 
 This prevents an unmerged branch commit, divergent commit or future PR head from being cited as if it were already merged company history. The check validates Git ancestry only and cannot approve or substantively validate the transition.
 
+### Mechanical workflow status
+
+`scripts/control/transition-workflow-status.mjs` reduces operator guesswork across the reviewed-transition workflow without mutating any controlled record.
+
+It reports only mechanical state:
+
+- whether the proposal queue is empty or still requires review;
+- whether an optional reviewed candidate still maps to the current proposal queue;
+- whether its candidate ref still matches;
+- whether its recorded ledger tail still matches the current append-only ledger;
+- which mechanical step is possible next.
+
+The status helper MUST remain weaker than review/finalization:
+
+- it never writes files or appends history;
+- it never marks a proposal accepted, approved, validated or decided;
+- it never allocates an event ID or source snapshot;
+- it never substitutes for the human review reference or append PR;
+- `READY_FOR_MANUAL_FINALIZATION_INPUTS` means only that mechanical references still align.
+
 ## 11. Confidentiality boundary
 
 The repository is public. Therefore the Company OS MUST NOT contain:
@@ -336,7 +357,7 @@ Any AI agent doing substantive EMOPET work should:
 
 V1 includes the company front door, machine-readable state, milestone/experiment/finance/metrics/risk/unknowns registries, and an every-PR structural evidence guard.
 
-V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, deterministic human views generated from machine-readable state, a public-safe founder cockpit, redacted investor/supplier views, an append-only Company Time Machine transition ledger, review-only transition proposals generated from controlled state diffs, reviewed-proposal append preparation, a human-approved finalization path, and an append-PR checklist with merged-main source-snapshot verification. Freshness remains conservative, and structural, presentation, historical-record, proposal, preparation, finalization or ancestry validity never substitutes for domain evidence or authority.
+V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, deterministic human views generated from machine-readable state, a public-safe founder cockpit, redacted investor/supplier views, an append-only Company Time Machine transition ledger, review-only transition proposals generated from controlled state diffs, reviewed-proposal append preparation, a human-approved finalization path, and an append-PR checklist with merged-main source-snapshot verification, and a read-only transition workflow status doctor. Freshness remains conservative, and structural, presentation, historical-record, proposal, preparation, finalization or ancestry validity never substitutes for domain evidence or authority.
 
 Next bounded slices should be chosen from observed operator friction in the reviewed transition workflow rather than added for completeness.
 
