@@ -29,7 +29,7 @@ test('missing destination pack falls back globally without inventing identity', 
 });
 
 test('multi-turn correction preserves home while updating current territory', () => {
-  const r = resolveTerritoryTransition(['On est à Lyon.', 'Non, juste en visite, on habite toujours à Lorient.']);
+  const r = resolveTerritoryTransition(['On est à Lyon pour quelques jours.', 'Non, juste en visite, on habite toujours à Lorient.']);
   assert.equal(r.homeRegion, 'Bretagne');
   assert.equal(r.currentTerritory, 'Auvergne-Rhone-Alpes');
   assert.equal(r.transition, 'TEMPORARY_TRAVEL');
