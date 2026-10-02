@@ -9,7 +9,12 @@ on:
       - 'apps/web/lib/server/**'
       - 'apps/web/scripts/run-tests.mjs'
       - 'backend/api/privacy/**'
+      - 'backend/api/security/**'
       - 'backend/api/services/instrument-*.ts'
+      - 'backend/db/schema/security-alert-*.ts'
+      - 'backend/db/migrations/*security_alert*.sql'
+      - 'backend/test/internal-security-alert-ack-route.test.mjs'
+      - 'backend/test/security-alert-*.test.mjs'
       - 'backend/test/instrument-sensor-embargo.test.mjs'
       - 'data/vbo/**'
       - 'package.json'
@@ -25,7 +30,12 @@ on:
       - 'apps/web/lib/server/**'
       - 'apps/web/scripts/run-tests.mjs'
       - 'backend/api/privacy/**'
+      - 'backend/api/security/**'
       - 'backend/api/services/instrument-*.ts'
+      - 'backend/db/schema/security-alert-*.ts'
+      - 'backend/db/migrations/*security_alert*.sql'
+      - 'backend/test/internal-security-alert-ack-route.test.mjs'
+      - 'backend/test/security-alert-*.test.mjs'
       - 'backend/test/instrument-sensor-embargo.test.mjs'
       - 'data/vbo/**'
       - 'package.json'
@@ -96,6 +106,14 @@ jobs:
 
       - name: Build backend for C-BARQ G9 guard
         run: pnpm turbo run build --filter=@emopet/api...
+
+      - name: Run provider-neutral security alert contract tests on Windows
+        working-directory: backend
+        run: >
+          node --test
+          test/security-alert-response.test.mjs
+          test/security-alert-delivery.test.mjs
+          test/security-alert-delivery-attempt.test.mjs
 
       - name: Run C-BARQ G9 sensor embargo guard on Windows
         working-directory: backend
