@@ -73,3 +73,22 @@ test('semantic QA catches missing concepts across locale projections', () => {
     ),
   );
 });
+
+
+test('uncertainty and trend preserve explicit semantic classes across FR and EN', () => {
+  for (const locale of ['fr', 'en'] as const) {
+    const projection = buildMotsPetLocaleProjection(locale);
+    const uncertainty = projection.find(
+      (entry) => entry.conceptId === 'uncertainty',
+    );
+    const trend = projection.find((entry) => entry.conceptId === 'trend');
+
+    assert.ok(uncertainty, locale);
+    assert.equal(uncertainty.truthClass, 'UNCERTAINTY_METADATA');
+    assert.equal(uncertainty.provenance, 'REQUIRED');
+
+    assert.ok(trend, locale);
+    assert.equal(trend.truthClass, 'LONGITUDINAL_CHANGE');
+    assert.equal(trend.provenance, 'REQUIRED');
+  }
+});
