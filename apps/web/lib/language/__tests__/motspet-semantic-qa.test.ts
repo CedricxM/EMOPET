@@ -131,6 +131,25 @@ test('Moment and Memory preserve deliberate Owner authorship across locales', ()
   }
 });
 
+test('Community visibility stays an explicit audience choice across locales', () => {
+  for (const locale of ['fr', 'en'] as const) {
+    const projection = buildMotsPetLocaleProjection(locale);
+    const visibility = projection.find(
+      (entry) => entry.conceptId === 'community_visibility',
+    );
+
+    assert.ok(visibility, locale);
+    assert.equal(visibility.truthClass, 'EXPLICIT_AUDIENCE_CHOICE');
+    assert.equal(visibility.provenance, 'REQUIRED');
+    assert.equal(visibility.causalBoundary, 'NO_CAUSAL_UPGRADE');
+    assert.equal(visibility.medicalBoundary, 'NON_DIAGNOSTIC');
+    assert.equal(
+      visibility.privacyBoundary,
+      'PRESERVE_PURPOSE_AND_CONSENT',
+    );
+  }
+});
+
 test('explicit preference is OWNER_PREFERENCE in every locale and keeps provenance', () => {
   for (const locale of ['fr', 'en'] as const) {
     const projection = buildMotsPetLocaleProjection(locale);
