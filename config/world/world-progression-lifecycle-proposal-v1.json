@@ -88,7 +88,7 @@
     "durableProductionPersistence": false
   },
   "implementationObservation": {
-    "migration": "backend/db/migrations/0046_world_gamification_persistence.sql",
+    "migration": "backend/db/migrations/0047_world_gamification_persistence.sql",
     "ledgerStore": "backend/api/services/world-progression-postgres.ts",
     "buildService": "backend/api/services/world-build-postgres.ts",
     "schemaAndStorePresent": true,
