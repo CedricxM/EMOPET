@@ -1,0 +1,108 @@
+{
+  "version": "1",
+  "status": "CONTROLLED_READINESS_NOT_RUNTIME_AUTHORITY",
+  "issue": 135,
+  "currentRouteAuthority": {
+    "create": "FAIL_CLOSED_503_PRESENCE_PERSISTENCE_NOT_READY",
+    "list": "FAIL_CLOSED_503_PRESENCE_PERSISTENCE_NOT_READY",
+    "absenceComparison": "MUST_REMAIN_FAIL_CLOSED_UNTIL_DURABLE_SOURCE_AND_SCIENCE_AUTHORITY",
+    "volatileProcessStoreIsProductAuthority": false
+  },
+  "currentRequestContract": {
+    "schema": "PresenceEventCreateSchema",
+    "fields": [
+      "dogId",
+      "phoneSeen",
+      "timestamp",
+      "rssi",
+      "source"
+    ],
+    "sources": [
+      "phone_passive",
+      "manual_override"
+    ],
+    "rssiRange": {
+      "min": -120,
+      "max": 0
+    },
+    "durableIdempotencyKeyPresent": false,
+    "durableEventIdPresent": false,
+    "canonicalClientOrDeviceSourceIdentityPresent": false
+  },
+  "durableCandidate": {
+    "storageSubstrate": "POSTGRESQL_DRIZZLE_CANDIDATE_ONLY",
+    "proposedRelation": "phone_presence_events",
+    "migrationReserved": false,
+    "runtimeActivated": false,
+    "mustNotReuseRelation": "copresence_events",
+    "mustNotReuseReason": "Community copresence/exact-location semantics are a distinct authority and lifecycle.",
+    "minimumPersistedFields": [
+      "event_id",
+      "owner_id",
+      "dog_id",
+      "idempotency_key",
+      "phone_seen",
+      "observed_at",
+      "received_at",
+      "source"
+    ],
+    "durableRssiDisposition": "HOLD_NOT_AUTHORIZED_UNTIL_PURPOSE_AND_LIFECYCLE_REVIEW",
+    "exactCoordinatesAllowed": false,
+    "freeTextAllowed": false
+  },
+  "identityAndReplay": {
+    "ownerAuthority": "AUTHENTICATED_OWNER_PLUS_CURRENT_DOG_OWNERSHIP",
+    "eventId": "SERVER_GENERATED_UUID_ON_FIRST_COMMITTED_EVENT",
+    "idempotencyKey": "CALLER_REQUIRED_BEFORE_DURABLE_ROUTE_ACTIVATION",
+    "idempotencyScope": "OWNER",
+    "idempotencyKeyFormat": "BOUNDED_OPAQUE_TOKEN_8_TO_128",
+    "sameKeySameLogicalPayload": "RETURN_EXISTING_EVENT_WITHOUT_SECOND_WRITE",
+    "sameKeyDifferentLogicalPayload": "FAIL_409_CONFLICT",
+    "crossOwnerReuse": "INDEPENDENT",
+    "phonePassiveSourceIdentity": "TO_CONFIRM_BEFORE_DURABLE_ACTIVATION",
+    "manualOverrideAuthority": "AUTHENTICATED_OWNER_ACTION"
+  },
+  "timeSemantics": {
+    "observedAt": "CALLER_EVENT_TIME_FROM_TIMESTAMP",
+    "receivedAt": "SERVER_COMMIT_TIME",
+    "ordering": "OBSERVED_AT_THEN_RECEIVED_AT_THEN_EVENT_ID",
+    "futureTimestampMaximum": "TO_CONFIRM_DO_NOT_INVENT",
+    "restartSemantics": "DURABLE_READ_MAY_RETURN_EMPTY_ONLY_AFTER_SUCCESSFUL_DATABASE_QUERY",
+    "sourceUnavailable": "FAIL_503_NEVER_TRANSLATE_TO_EMPTY_EVIDENCE"
+  },
+  "privacyAndProductGates": {
+    "temporaryProximityAuthorityIssue": 131,
+    "temporaryProximityPolicy": "HUMAN_DECISION_OPEN",
+    "backgroundTrackingAuthorized": false,
+    "retentionCategory": "TO_CONFIRM",
+    "mustNotInheritRetentionFrom": [
+      "exact_location",
+      "sensor_preprocessed_detailed"
+    ],
+    "subjectDiscoveryRequired": true,
+    "dogAndAccountErasureTopologyRequired": true,
+    "ownerExportTreatmentRequired": true,
+    "rssiPurposeReviewRequired": true,
+    "absenceComparisonIssue": 133,
+    "absenceComparisonPublicationAuthorized": false
+  },
+  "activationRequirements": [
+    "extend the public request contract with a bounded idempotency key",
+    "decide whether phone_passive needs a canonical client/device source identity and define its privacy treatment",
+    "approve a Presence-specific retention/lifecycle classification without inheriting another category by analogy",
+    "integrate Owner and dog subject discovery plus account/dog erasure topology",
+    "define Owner export/access treatment",
+    "resolve the temporary proximity/location runtime authority required by issue #131 for phone_passive use",
+    "prove historical and generated PostgreSQL paths with concurrency/idempotency tests",
+    "keep absence-comparison publication gated separately under issue #133"
+  ],
+  "claims": {
+    "durablePersistenceImplemented": false,
+    "runtimeRouteActivated": false,
+    "retentionApproved": false,
+    "backgroundTrackingApproved": false,
+    "rssiDurablePersistenceApproved": false,
+    "absenceComparisonPublicationApproved": false,
+    "productionAuthority": false
+  }
+}
