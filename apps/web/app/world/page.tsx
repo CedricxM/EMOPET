@@ -5,7 +5,7 @@ import styles from '../../styles/living-pages.module.css';
 
 export const metadata: Metadata = {
   title: 'My Dog World | EMOPET',
-  description: 'A calm EMOPET world-building space powered by care routines and observation quality.',
+  description: 'A controlled preview of EMOPET World built around deliberate Owner actions, local discovery and community participation.',
 };
 
 export default function WorldPage() {
