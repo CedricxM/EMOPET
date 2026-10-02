@@ -82,6 +82,7 @@ export {
 
 export type {
   BretagneLanguageReviewResponseKind,
+  BretagneLanguageReviewAuthorityContext,
   BretagneLanguageReviewResponse,
   BretagneLanguageReviewResponseErrorCode,
   BretagneLanguageReviewResponseError,
