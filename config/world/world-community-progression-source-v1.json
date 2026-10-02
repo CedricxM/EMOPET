@@ -1,0 +1,37 @@
+{
+  "version": "1",
+  "status": "CONTROLLED_DRAFT_NOT_RUNTIME_AUTHORITY",
+  "productionAuthority": false,
+  "eventKind": "community.contribution_created",
+  "canonicalStore": "PostgreSQL Community",
+  "allowedSourceShapes": {
+    "community:post:<uuid>": {
+      "table": "posts",
+      "ownerColumn": "author_id",
+      "requiredOwnerMatch": true
+    },
+    "community:event:<uuid>": {
+      "table": "community_events",
+      "ownerColumn": "created_by",
+      "requiredOwnerMatch": true
+    }
+  },
+  "excludedEvidence": [
+    "comments",
+    "likes",
+    "membership alone",
+    "moderation state",
+    "sensorOverlay",
+    "event latitude/longitude",
+    "event location text",
+    "popularity/rank"
+  ],
+  "rules": [
+    "Only an existing canonical Community row created by the exact Owner may authorize progression.",
+    "Detached/null author or creator rows do not authorize progression.",
+    "The verifier is read-only and selects only row identity needed to prove ownership.",
+    "No Community content body, media, sensor overlay or location is copied into World progression.",
+    "Repository/database failures propagate so the World ledger can fail closed as source-authority unavailable.",
+    "This verifier is not automatically wired into a public route by this slice."
+  ]
+}
