@@ -86,18 +86,18 @@ test('account erasure preflight reflects approved detaches, auth lifecycle and W
   assert.equal(result.destructiveActionAuthorized, false);
   assert.equal(result.status, 'BLOCKED');
 
-  assert.equal(result.relational.total, 24);
-  assert.equal(result.relational.unresolvedDisposition, 19);
-  assert.equal(result.relational.notImplemented, 19);
+  assert.equal(result.relational.total, 27);
+  assert.equal(result.relational.unresolvedDisposition, 22);
+  assert.equal(result.relational.notImplemented, 22);
   assert.deepEqual(result.relational.databaseMechanics, {
-    NO_ACTION: 17,
+    NO_ACTION: 20,
     RESTRICT: 0,
     CASCADE: 1,
     SET_NULL: 6,
     SET_DEFAULT: 0,
     NO_FK_LIFECYCLE_NOT_ENFORCED: 0,
   });
-  assert.equal(result.relational.rootDeleteBlockers.length, 17);
+  assert.equal(result.relational.rootDeleteBlockers.length, 20);
   assert.deepEqual(result.relational.automaticCascadeRelations, [
     {
       table: 'auth_email_verification_tokens',
@@ -235,5 +235,5 @@ test('resolved and implemented ordered handling can clear NO ACTION as a control
   assert.equal(result.destructiveActionAuthorized, false);
   assert.deepEqual(result.reasons, []);
   assert.deepEqual(result.relational.rootDeleteBlockers, []);
-  assert.equal(result.relational.databaseMechanics.NO_ACTION, 17);
+  assert.equal(result.relational.databaseMechanics.NO_ACTION, 20);
 });
