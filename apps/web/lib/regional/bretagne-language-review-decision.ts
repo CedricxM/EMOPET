@@ -309,7 +309,7 @@ function identityCandidate(
       exactAssistantNameOrigin: proposal.exactAssistantNameOrigin,
       exactNamingRule: proposal.exactNamingRule,
       reviewerRole: proposal.reviewerRole,
-      reviewerRef: proposal.evidenceReference,
+      reviewerRef: proposal.reviewerRef,
       reviewedAt: proposal.reviewedAt,
       reviewReceipt: proposal.evidenceReference,
       note: [
