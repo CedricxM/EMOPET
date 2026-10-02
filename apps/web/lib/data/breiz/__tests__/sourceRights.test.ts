@@ -51,6 +51,7 @@ function source(overrides: Partial<BreizSourceDescriptor> = {}): BreizSourceDesc
       receiptPath: 'docs/control/fixtures/fixture-rights.md',
       attributionText: 'Fixture publisher',
       permittedUseSummary: 'Bounded fixture ingestion for tests.',
+      allowedProductUses: ['INGESTION', 'PUBLIC_ANSWER_WITH_SOURCE'],
       reviewedAt: '2026-09-20T00:00:00.000Z',
       reviewerRole: 'rights-reviewer',
       recheckAt: '2027-09-20T00:00:00.000Z',
@@ -130,6 +131,16 @@ test('preuve future, expirée ou recheck illisible → ingestion bloquée', () =
     assert.ok(verdict.blockers.includes('RIGHTS_EVIDENCE_OUT_OF_WINDOW'));
     assert.equal(verdict.ingestionPermitted, false);
   }
+});
+
+test('GO evidence without INGESTION scope remains blocked', () => {
+  const rightsEvidence = {
+    ...source().rightsEvidence!,
+    allowedProductUses: ['PUBLIC_ANSWER_WITH_SOURCE'] as const,
+  };
+  const verdict = evaluateBreizSourceRights(source({ rightsEvidence }));
+  assert.ok(verdict.blockers.includes('INGESTION_SCOPE_NOT_GRANTED'));
+  assert.equal(verdict.ingestionPermitted, false);
 });
 
 test('preuve dans sa fenêtre reste ingérable', () => {
