@@ -1,0 +1,34 @@
+{
+  "version": "1",
+  "status": "BLOCKED_NOT_PRODUCTION_AUTHORITY",
+  "sourceIssue": 898,
+  "productionActivationAuthorized": false,
+  "productionWriteAuthority": false,
+  "runtimeCutoverAuthorized": false,
+  "inputs": {
+    "privacyDecisionPacket": "config/world/world-g2-privacy-decision-packet-v1.json",
+    "sourceReadiness": "config/world/world-progression-source-readiness-v1.json",
+    "webContinuity": "config/world/world-gate5b-web-read-continuity-v1.json",
+    "unityContinuity": "config/world/world-gate5b-unity-read-continuity-v1.json"
+  },
+  "blockers": [
+    "PRIVACY_HUMAN_DECISIONS_NOT_APPROVED",
+    "CANONICAL_SOURCE_VERIFIERS_INCOMPLETE",
+    "WEB_RUNTIME_CUTOVER_NOT_APPROVED",
+    "UNITY_EDITOR_EVIDENCE_NOT_RECORDED",
+    "UNITY_RUNTIME_CUTOVER_NOT_APPROVED"
+  ],
+  "currentFacts": {
+    "durablePersistenceFoundationMerged": true,
+    "readOnlyBackendSnapshotMerged": true,
+    "webReadClientFoundationMerged": true,
+    "unityReadClientFoundationMerged": true,
+    "communityCanonicalVerifierReady": true,
+    "allCanonicalVerifiersReady": false,
+    "privacyApproved": false,
+    "webActivated": false,
+    "unityActivated": false,
+    "unityEditorEvidenceRecorded": false
+  },
+  "promotionRule": "Any production/runtime activation requires a separate reviewed transition after every required blocker is closed with machine-readable evidence. Code presence alone is never activation authority."
+}
