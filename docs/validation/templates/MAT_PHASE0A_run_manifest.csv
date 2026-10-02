@@ -1,0 +1,2 @@
+run_id,test_article_id,mat_pcb_or_assembly_revision,source_revision_or_package_hash,bom_revision,acquisition_configuration,fixture_revision,power_supply_configuration,sensor_channel_mapping,operator,started_at,timezone,deviation_note
+TBD,TBD,TBD,TBD,TBD,TBD,TBD,TBD,TBD,TBD,TBD,TBD,
