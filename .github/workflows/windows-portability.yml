@@ -96,9 +96,8 @@ jobs:
           scripts/security/summarize-pnpm-licenses.test.mjs
 
       - name: Build backend for C-BARQ G9 guard
-        run: |
-          pnpm --filter '@emopet/api^...' build
-          pnpm --filter @emopet/api build
+        # Turbo preserves the same package/dependency closure and can replay deterministic dist outputs.
+        run: pnpm turbo run build --filter=@emopet/api...
 
       - name: Run C-BARQ G9 sensor embargo guard on Windows
         working-directory: backend
