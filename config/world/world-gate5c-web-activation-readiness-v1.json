@@ -14,7 +14,7 @@
   "prerequisites": {
     "gate5bReadContinuityMerged": true,
     "explicitBearerTokenProvider": false,
-    "explicitCoarseRegionProvider": false,
+    "explicitCoarseRegionProvider": true,
     "uiCutoverDecisionRecorded": false
   },
   "forbiddenFallbacks": [
@@ -25,5 +25,13 @@
     "ANONYMOUS_PROGRESSION_READ"
   ],
   "activationRule": "ALL_PREREQUISITES_TRUE",
-  "nextAction": "IMPLEMENT_CANONICAL_WEB_SESSION_PROVIDER_AND_COARSE_REGION_PROVIDER_WITHOUT_ACTIVATING_WORLD_UI"
+  "nextAction": "IMPLEMENT_CANONICAL_WEB_SESSION_PROVIDER_WITHOUT_ACTIVATING_WORLD_UI",
+  "regionProvider": {
+    "explicitCoarseRegionInput": true,
+    "catalogBounded": true,
+    "acceptsCoordinates": false,
+    "readsGeolocationApi": false,
+    "persistsSelection": false,
+    "automaticSwitch": false
+  }
 }
