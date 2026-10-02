@@ -9,6 +9,8 @@ import test from 'node:test';
 const evaluator = fileURLToPath(new URL('./evaluate-pnpm-audit.mjs', import.meta.url));
 const allowedPath = 'apps__mobile>react-native>@react-native/community-cli-plugin>metro>image-size';
 const exceptionIds = ['GHSA-w3rx-r6r6-pgpr', 'GHSA-5p2g-fcmc-qvqq'];
+const expoCliNodeForgePath = 'apps__mobile>expo>@expo/cli>node-forge';
+const expoCliNodeForgeGhsa = 'GHSA-86w9-cpqp-85rv';
 
 function advisory(overrides = {}) {
   return {
@@ -178,4 +180,41 @@ test('exceptions expire at the unchanged policy boundary', () => {
   const atBoundary = evaluate(report(exceptions()), { now: '2026-11-30T23:59:59Z' });
   assert.equal(atBoundary.status, 0, atBoundary.stderr);
   expectRejected(report(exceptions()), { now: '2026-11-30T23:59:59.001Z' });
+});
+
+function expoCliNodeForgeException(overrides = {}) {
+  return advisory({
+    github_advisory_id: expoCliNodeForgeGhsa,
+    module_name: 'node-forge',
+    findings: [{ version: '1.4.0', paths: [expoCliNodeForgePath] }],
+    patched_versions: '<0.0.0',
+    recommendation: 'None',
+    ...overrides,
+  });
+}
+
+test('the Expo CLI node-forge exception is exact-path and time-bounded', () => {
+  const accepted = evaluate(report([expoCliNodeForgeException()]), { now: '2026-10-02T08:00:00Z' });
+  assert.equal(accepted.status, 0, accepted.stderr);
+  assert.match(accepted.stdout, new RegExp(expoCliNodeForgeGhsa));
+  assert.match(accepted.stdout, /2026-10-31T23:59:59\.000Z/);
+
+  expectRejected(report([
+    expoCliNodeForgeException({
+      findings: [{ version: '1.4.0', paths: [expoCliNodeForgePath, 'backend>node-forge'] }],
+    }),
+  ]), { now: '2026-10-02T08:00:00Z' });
+
+  expectRejected(report([
+    expoCliNodeForgeException({ module_name: 'different-package' }),
+  ]), { now: '2026-10-02T08:00:00Z' });
+});
+
+test('the Expo CLI node-forge exception expires on 31 October 2026', () => {
+  const atBoundary = evaluate(report([expoCliNodeForgeException()]), { now: '2026-10-31T23:59:59Z' });
+  assert.equal(atBoundary.status, 0, atBoundary.stderr);
+  expectRejected(
+    report([expoCliNodeForgeException()]),
+    { now: '2026-10-31T23:59:59.001Z' },
+  );
 });

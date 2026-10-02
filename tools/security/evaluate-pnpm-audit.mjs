@@ -83,6 +83,18 @@ const exceptions = new Map([
         'No patched image-size release is currently available; exposure is bounded to Metro build-time parsing of repository-controlled assets.',
     },
   ],
+  [
+    'GHSA-86w9-cpqp-85rv',
+    {
+      module: 'node-forge',
+      expires: new Date('2026-10-31T23:59:59Z'),
+      allowedPaths: new Set([
+        'apps__mobile>expo>@expo/cli>node-forge',
+      ]),
+      reason:
+        'No patched node-forge release is currently available; the accepted occurrence is bounded to Expo CLI development/build tooling and is not an EMOPET backend/server dependency path.',
+    },
+  ],
 ]);
 
 const blocking = [];
