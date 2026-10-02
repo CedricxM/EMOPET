@@ -8,7 +8,7 @@ namespace Emopet.World.Tests
 {
     public sealed class WorldGamificationReadClientTests
     {
-        private const string Token = "0123456789abcdef0123456789abcdef";
+        private static readonly string Token = new string('x', 24);
 
         [Test]
         public async Task ReadUsesBearerGetAndCoarseRegionWithoutOwnerInput()
