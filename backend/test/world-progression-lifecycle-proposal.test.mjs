@@ -129,7 +129,7 @@ test('operational lifecycle fields do not introduce dog/Care/ELI retention seman
 
 test('proposal observes the durable foundation without promoting it', () => {
   assert.deepEqual(proposal.implementationObservation, {
-    migration: 'backend/db/migrations/0046_world_gamification_persistence.sql',
+    migration: 'backend/db/migrations/0047_world_gamification_persistence.sql',
     ledgerStore: 'backend/api/services/world-progression-postgres.ts',
     buildService: 'backend/api/services/world-build-postgres.ts',
     schemaAndStorePresent: true,
