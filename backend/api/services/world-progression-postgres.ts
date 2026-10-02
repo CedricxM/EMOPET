@@ -34,7 +34,7 @@ function emptyBalance(): WorldProgressionBalance {
   };
 }
 
-function rowToEntry(row: typeof worldProgressionEvents.$inferSelect): WorldProgressionLedgerEntry {
+export function worldProgressionRowToEntry(row: typeof worldProgressionEvents.$inferSelect): WorldProgressionLedgerEntry {
   if (!Object.prototype.hasOwnProperty.call(SAFE_WORLD_REWARDS, row.eventKind)) {
     throw new Error('WORLD_PROGRESSION_PERSISTED_EVENT_KIND_INVALID');
   }
@@ -165,7 +165,7 @@ export class PostgresWorldProgressionLedgerStore implements WorldProgressionLedg
         eq(worldProgressionEvents.idempotencyKey, idempotencyKey),
       ))
       .limit(1);
-    return row ? rowToEntry(row) : null;
+    return row ? worldProgressionRowToEntry(row) : null;
   }
 
   async appendIfAbsent(
@@ -185,7 +185,7 @@ export class PostgresWorldProgressionLedgerStore implements WorldProgressionLedg
         ))
         .limit(1);
       if (idempotentReplay) {
-        return { inserted: false, entry: rowToEntry(idempotentReplay) };
+        return { inserted: false, entry: worldProgressionRowToEntry(idempotentReplay) };
       }
 
       const [sourceReplay] = await tx
@@ -198,7 +198,7 @@ export class PostgresWorldProgressionLedgerStore implements WorldProgressionLedg
         ))
         .limit(1);
       if (sourceReplay) {
-        return { inserted: false, entry: rowToEntry(sourceReplay) };
+        return { inserted: false, entry: worldProgressionRowToEntry(sourceReplay) };
       }
 
       const [inserted] = await tx
@@ -215,7 +215,7 @@ export class PostgresWorldProgressionLedgerStore implements WorldProgressionLedg
         .returning();
 
       if (!inserted) throw new Error('WORLD_PROGRESSION_INSERT_FAILED');
-      return { inserted: true, entry: rowToEntry(inserted) };
+      return { inserted: true, entry: worldProgressionRowToEntry(inserted) };
     });
   }
 
