@@ -212,7 +212,7 @@ test('derived catalogue covers all 61 current surfaces including auth verificati
   const counts = { sql: 0, non_sql: 0, provider: 0, web: 0 };
   for (const entry of BREACH_RECIPIENT_SURFACES) counts[entry.surface.split(':', 1)[0]] += 1;
 
-  assert.equal(BREACH_RECIPIENT_SURFACES.length, 58);
+  assert.equal(BREACH_RECIPIENT_SURFACES.length, 61);
   assert.deepEqual(counts, { sql: 41, non_sql: 5, provider: 7, web: 5 });
   assert.ok(BREACH_RECIPIENT_SURFACES.some((entry) => entry.surface === 'sql:auth_email_verification_tokens'));
   assert.ok(BREACH_RECIPIENT_SURFACES.some((entry) => entry.surface === 'sql:user_blocks'));
