@@ -9,7 +9,7 @@
   ],
   "sourceCandidate": "config/world/world-progression-privacy-candidate-v1.json",
   "g2Foundation": {
-    "migration": "backend/db/migrations/0046_world_gamification_persistence.sql",
+    "migration": "backend/db/migrations/0047_world_gamification_persistence.sql",
     "schema": "backend/db/schema/world-gamification.ts",
     "pullRequest": 973,
     "activeWrites": false
@@ -114,9 +114,9 @@
   },
   "nonSqlSurface": {
     "path": "config/privacy/non-sql-erasure-surface-inventory.json",
-    "currentWorldProgressionDecision": "ACTIVE_INVENTORY_DECISION_ABSENT_LEGACY_RUNTIME_PRESENT",
+    "currentWorldProgressionDecision": "CONTROLLED_DECOMMISSION_PLAN_PRESENT_CUTOVER_NOT_EXECUTED",
     "requiredBeforePromotion": true,
-    "note": "Absence of a non-SQL copy is not assumed from silence; promotion requires explicit negative evidence or an explicit governed surface entry.",
+    "note": "Legacy browser gamification remains present, but its decommission classification and bounded replay authority are now explicit. Production promotion still requires lifecycle handling and an executed cutover; no legacy state has been silently migrated or deleted.",
     "observedLegacyRuntimeSurfaces": [
       {
         "path": "apps/web/lib/gamification.ts",
@@ -143,7 +143,9 @@
         "note": "Legacy Community membership/event browser state is consumed by the old gamification counter path and therefore belongs in the non-SQL cutover inventory.",
         "accessMode": "READ_ONLY"
       }
-    ]
+    ],
+    "decommissionPlan": "config/world/world-legacy-gamification-decommission-v1.json",
+    "replayAuthority": "config/world/world-legacy-replay-authority-v1.json"
   },
   "unresolvedDecisions": [
     "privacy inventory classification for each durable World table",
@@ -151,7 +153,7 @@
     "Owner export treatment for progression events, ownership and resource spends",
     "retention/disposition for each durable World table",
     "foreign-key-safe executable erasure ordering",
-    "legacy localStorage gamification retirement/migration/exclusion plus explicit non-SQL copy evidence"
+    "execute the approved legacy localStorage decommission treatment and reconcile lifecycle/erasure handling before promotion"
   ],
   "claims": {
     "privacyReconciled": false,
