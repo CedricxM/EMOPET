@@ -81,8 +81,14 @@ export function validateBretagneRnrLicenceClarification(register, schemaEvidence
   }
 
   const request = register?.clarificationRequest;
-  if (request?.messageSent !== false) {
-    errors.push('messageSent must remain false until exact outreach evidence exists');
+  if (request?.messageSent === true) {
+    if (!nonEmpty(request?.messageEvidenceRef)) {
+      errors.push('messageSent true requires messageEvidenceRef');
+    }
+  } else if (request?.messageSent !== false) {
+    errors.push('messageSent must be a boolean');
+  } else if (request?.messageEvidenceRef != null) {
+    errors.push('unsent clarification must not carry messageEvidenceRef');
   }
   if (!nonEmpty(request?.targetAuthority)) {
     errors.push('targetAuthority is required');
