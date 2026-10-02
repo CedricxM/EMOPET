@@ -83,7 +83,6 @@ test('inventory reconciles v0.3 observation-contract concepts as existing contro
 test('inventory keeps the remaining next-review concepts outside runtime authority', () => {
   for (const id of [
     'share_scope',
-    'explicit_preference',
     'moment',
     'memory',
     'community_visibility',
@@ -109,9 +108,19 @@ test('v0.4 uncertainty and trend are reconciled as bounded controlled concepts',
   }
 });
 
+test('explicit preference is reconciled as controlled Owner-preference authority', () => {
+  const candidate = getMotsPetCandidateInventoryEntry('explicit_preference');
+  assert.ok(candidate);
+  assert.equal(candidate.status, 'EXISTING_CONTROLLED');
+  assert.equal(candidate.existingMotsPetId, 'explicit_preference');
+
+  const runtime = getMotsPetEntry('explicit_preference');
+  assert.ok(runtime);
+  assert.equal(runtime.status, 'CONTROLLED_SEED');
+});
+
 test('relationship/community candidates do not become sensor-derived authority', () => {
   for (const id of [
-    'explicit_preference',
     'moment',
     'memory',
     'community_visibility',
@@ -151,7 +160,6 @@ test('review queue is derived from the canonical candidate inventory', () => {
   assert.deepEqual(projectedIds, canonicalIds);
   assert.deepEqual(projectedIds, [
     'share_scope',
-    'explicit_preference',
     'moment',
     'memory',
     'community_visibility',
