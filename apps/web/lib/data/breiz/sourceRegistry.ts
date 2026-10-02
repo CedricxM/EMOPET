@@ -202,6 +202,7 @@ export function getBreizSource(id: string): BreizSourceDescriptor | undefined {
 export type BreizSourceRightsBlocker =
   | 'SOURCE_DISABLED'
   | 'NO_LICENCE_RECEIPT'
+  | 'NO_RIGHTS_EVIDENCE'
   | 'NO_RECHECK_RULE'
   | 'PARTNER_PERMISSION_REQUIRED';
 
@@ -222,6 +223,23 @@ export function evaluateBreizSourceRights(source: BreizSourceDescriptor): BreizS
 
   if (!source.enabled) blockers.push('SOURCE_DISABLED');
   if (source.license === null || source.license.trim() === '') blockers.push('NO_LICENCE_RECEIPT');
+
+  const evidence = source.rightsEvidence;
+  if (
+    !evidence ||
+    evidence.evidenceState !== 'SOURCE_CONFIRMED' ||
+    evidence.disposition !== 'GO' ||
+    evidence.authorityRevision.trim().length === 0 ||
+    evidence.immutableSourceVersion.trim().length === 0 ||
+    evidence.receiptPath.trim().length === 0 ||
+    evidence.attributionText.trim().length === 0 ||
+    evidence.permittedUseSummary.trim().length === 0 ||
+    evidence.reviewerRole.trim().length === 0 ||
+    parseEvidenceTime(evidence.reviewedAt) == null
+  ) {
+    blockers.push('NO_RIGHTS_EVIDENCE');
+  }
+
   if (source.freshnessHours === null) blockers.push('NO_RECHECK_RULE');
   if (source.usagePolicy.includes('PARTNER_PERMISSION_REQUIRED')) blockers.push('PARTNER_PERMISSION_REQUIRED');
 
