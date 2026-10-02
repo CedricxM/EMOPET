@@ -1,6 +1,10 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  loadLocalStateManifest,
+  stateManifestsEqual,
+} from './propose-company-transitions.mjs';
 
 const root = process.cwd();
 const DEFAULT_PROPOSAL_PATH = 'state/history/pending-transition-proposals.json';
@@ -27,22 +31,31 @@ function assertProposalQueue(queue) {
   if (typeof queue.candidate_ref !== 'string' || queue.candidate_ref.length === 0) {
     throw new Error('proposal queue candidate_ref is required');
   }
+  if (!Array.isArray(queue.candidate_state_manifest)) {
+    throw new Error('proposal queue candidate_state_manifest is required');
+  }
 }
 
 function candidateStatus(
   proposalQueue,
   ledgerEvents,
   reviewedCandidate,
-  currentRef = null,
+  currentStateManifest = null,
 ) {
   const tailEventId = ledgerEvents.at(-1)?.event_id ?? null;
 
-  if (currentRef && proposalQueue.candidate_ref !== currentRef) {
+  if (
+    currentStateManifest &&
+    !stateManifestsEqual(
+      proposalQueue.candidate_state_manifest,
+      currentStateManifest,
+    )
+  ) {
     return {
       mechanical_state: 'PROPOSAL_QUEUE_STALE',
       next_action_code: 'REGENERATE_PROPOSAL_QUEUE',
       next_action:
-        `The proposal queue targets ${proposalQueue.candidate_ref}, but the current controlled-state ref is ${currentRef}. Regenerate the queue before trusting proposal count or review state.`,
+        'The controlled-state files no longer match the proposal queue candidate manifest. Regenerate the queue before trusting proposal count or review state.',
     };
   }
 
@@ -127,16 +140,20 @@ export function inspectTransitionWorkflow(
   if (
     currentRef !== null &&
     (typeof currentRef !== 'string' ||
-      !/^(?:main|head)@[0-9a-f]{40}$/.test(currentRef))
+      !/^(?:main|head|commit)@[0-9a-f]{40}$/.test(currentRef))
   ) {
-    throw new Error('currentRef must be main@<40-hex-sha> or head@<40-hex-sha>');
+    throw new Error(
+      'currentRef must be main@, head@ or commit@ followed by a 40-hex SHA',
+    );
   }
+
+  const currentStateManifest = options.currentStateManifest ?? null;
 
   const status = candidateStatus(
     proposalQueue,
     ledgerEvents,
     reviewedCandidate,
-    currentRef,
+    currentStateManifest,
   );
 
   const proposalPacketCommand =
@@ -159,13 +176,14 @@ export function inspectTransitionWorkflow(
       : null;
 
   return {
-    schema_version: '0.3.0',
+    schema_version: '0.4.0',
     authority_mode: 'MECHANICAL_WORKFLOW_STATUS_NOT_DECISION_AUTHORITY',
     ledger_tail_event_id: ledgerEvents.at(-1)?.event_id ?? null,
     proposal_count: proposalQueue.proposals.length,
     proposal_ids: proposalQueue.proposals.map((entry) => entry.proposal_id),
     proposal_candidate_ref: proposalQueue.candidate_ref,
     current_ref: currentRef,
+    queue_freshness_checked: currentStateManifest !== null,
     reviewed_candidate_present: reviewedCandidate !== null,
     reviewed_candidate_proposal_id: reviewedCandidate?.proposal_id ?? null,
     mechanical_state: status.mechanical_state,
@@ -190,6 +208,7 @@ function main() {
   const reviewedCandidatePath = argValue('--reviewed-candidate');
   const currentRef =
     argValue('--current-ref') ?? process.env.EMOPET_CURRENT_REF ?? null;
+  const currentStateManifest = loadLocalStateManifest();
 
   const proposalQueue = readJson(proposalPath);
   const ledgerEvents = readJsonLines(ledgerPath);
@@ -207,7 +226,7 @@ function main() {
     proposalQueue,
     ledgerEvents,
     reviewedCandidate,
-    { currentRef },
+    { currentRef, currentStateManifest },
   );
 
   process.stdout.write(JSON.stringify(result, null, 2) + '\n');

@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-01  
 **Status:** `PROPOSED COMPANY CONTROL PLANE / DOES NOT REPLACE DOMAIN AUTHORITIES`  
-**Branch base:** `main@09fa5fbb10d98987f35e02714ac7550678b95815`
+**Branch base:** `main@069d258c5a97e52818b0f2f186b95864cb34320d`
 
 ## 1. Purpose
 
@@ -329,7 +329,8 @@ A rendered packet is not itself a review record. If a real reviewer accepts a pr
 
 It reports only mechanical state:
 
-- whether an explicitly supplied current controlled-state ref still matches the proposal queue candidate ref;
+- whether the current controlled-state file manifest still matches the proposal queue candidate manifest;
+- the optional current Git ref as provenance context, without treating unrelated commits as state changes;
 - whether the proposal queue is empty or still requires review;
 - whether an optional reviewed candidate still maps to the current proposal queue;
 - whether its candidate ref still matches;
@@ -340,7 +341,8 @@ It reports only mechanical state:
 The status helper MUST remain weaker than review/finalization:
 
 - it never writes files or appends history;
-- it fails closed with `PROPOSAL_QUEUE_STALE` before proposal count, review handoff or reviewed-candidate readiness is trusted when an explicit current ref differs from the queue candidate ref;
+- it fails closed with `PROPOSAL_QUEUE_STALE` before proposal count, review handoff or reviewed-candidate readiness is trusted when the controlled-state manifest changes;
+- a raw repository SHA change does not stale the queue if all controlled-state blobs are identical;
 - it never marks a proposal accepted, approved, validated or decided;
 - it never allocates an event ID or source snapshot;
 - it never substitutes for the human review reference or append PR;
