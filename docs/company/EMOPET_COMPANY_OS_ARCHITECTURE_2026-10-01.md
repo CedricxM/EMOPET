@@ -179,6 +179,7 @@ Both views fail closed: missing data remains missing, planning remains planning,
 | `.github/PULL_REQUEST_TEMPLATE/company-transition-append.md` | Human append-PR checklist | V2 review aid; not approval authority |
 | `scripts/control/verify-transition-source-snapshot.mjs` | Verify appended source snapshot is already contained in PR-base main | V2 ancestry guard; not domain validation |
 | `scripts/control/transition-workflow-status.mjs` | Read-only mechanical status for proposal → review → append workflow | V2 operator aid; not review, decision or finalization authority |
+| `scripts/control/transition-review-packet.mjs` | Human-readable rendering of review-only transition proposals | V2 review aid; not approval, review record, decision or ledger authority |
 | `state/freshness/freshness-state.json` | Machine-readable freshness overlay | V2 projection with decision-use guardrails |
 | `state/schemas/registry-schema-map.json` | Registry → JSON Schema contract map | V2 structural contract; not domain authority |
 | `EXPERIMENTS.md` | Hypothesis → test → result → decision ledger | V1 projection/index |
@@ -305,6 +306,23 @@ The checklist makes the human review boundary explicit: reviewers confirm the un
 
 This prevents an unmerged branch commit, divergent commit or future PR head from being cited as if it were already merged company history. The check validates Git ancestry only and cannot approve or substantively validate the transition.
 
+### Human-readable transition review packets
+
+`scripts/control/transition-review-packet.mjs` renders a proposal queue into a bounded review surface without changing the queue or ledger.
+
+The packet:
+
+- shows base/candidate refs, proposal IDs, subject/field/source and exact before/after values;
+- exposes public-safe authority, evidence and decision refs already present in the proposal;
+- validates supported reference shapes and fails closed on malformed/unknown refs;
+- includes a human review checklist;
+- supports focusing one proposal by ID;
+- preserves `REVIEW_REQUIRED` and `append_ready=false`;
+- never writes a review decision, prepares a reviewed append candidate, finalizes an event or appends history;
+- explicitly states that source order is not a priority ranking.
+
+A rendered packet is not itself a review record. If a real reviewer accepts a proposal, the separate reviewed-append preparation path must still receive a real dated review reference.
+
 ### Mechanical workflow status
 
 `scripts/control/transition-workflow-status.mjs` reduces operator guesswork across the reviewed-transition workflow without mutating any controlled record.
@@ -357,7 +375,7 @@ Any AI agent doing substantive EMOPET work should:
 
 V1 includes the company front door, machine-readable state, milestone/experiment/finance/metrics/risk/unknowns registries, and an every-PR structural evidence guard.
 
-V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, deterministic human views generated from machine-readable state, a public-safe founder cockpit, redacted investor/supplier views, an append-only Company Time Machine transition ledger, review-only transition proposals generated from controlled state diffs, reviewed-proposal append preparation, a human-approved finalization path, and an append-PR checklist with merged-main source-snapshot verification, and a read-only transition workflow status doctor. Freshness remains conservative, and structural, presentation, historical-record, proposal, preparation, finalization or ancestry validity never substitutes for domain evidence or authority.
+V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, deterministic human views generated from machine-readable state, a public-safe founder cockpit, redacted investor/supplier views, an append-only Company Time Machine transition ledger, review-only transition proposals generated from controlled state diffs, reviewed-proposal append preparation, a human-approved finalization path, and an append-PR checklist with merged-main source-snapshot verification, a read-only transition workflow status doctor, and a read-only transition review packet renderer. Freshness remains conservative, and structural, presentation, historical-record, proposal, preparation, finalization or ancestry validity never substitutes for domain evidence or authority.
 
 Next bounded slices should be chosen from observed operator friction in the reviewed transition workflow rather than added for completeness.
 
