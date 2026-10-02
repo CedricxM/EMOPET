@@ -26,6 +26,7 @@ import {
   eliStates,
   healthEntries,
   posts,
+  phonePresenceEvents,
   professionalShareAccessAudits,
   professionalShareGrants,
   recoveryEvents,
@@ -341,6 +342,7 @@ export async function verifyErasureResidue(
           probe('community_rules_acceptances.user_id', await countWhere(tx, communityRulesAcceptances, eq(communityRulesAcceptances.userId, snapshot.accountId))),
           probe('dogs.owner_id', await countWhere(tx, dogs, eq(dogs.ownerId, snapshot.accountId))),
           probe('posts.author_id', await countWhere(tx, posts, eq(posts.authorId, snapshot.accountId))),
+          probe('phone_presence_events.owner_id', await countWhere(tx, phonePresenceEvents, eq(phonePresenceEvents.ownerId, snapshot.accountId))),
           probe('professional_share_grants.owner_user_id', await countWhere(
             tx,
             professionalShareGrants,
@@ -372,6 +374,7 @@ export async function verifyErasureResidue(
         probe('eli_behavioral_priors.dog_id', await countIn(tx, eliBehavioralPriors, eliBehavioralPriors.dogId, snapshot.dogIds)),
         probe('eli_states.dog_id', await countIn(tx, eliStates, eliStates.dogId, snapshot.dogIds)),
         probe('health_entries.dog_id', await countIn(tx, healthEntries, healthEntries.dogId, snapshot.dogIds)),
+        probe('phone_presence_events.dog_id', await countIn(tx, phonePresenceEvents, phonePresenceEvents.dogId, snapshot.dogIds)),
         probe('professional_share_grants.dog_id', await countIn(
           tx,
           professionalShareGrants,
