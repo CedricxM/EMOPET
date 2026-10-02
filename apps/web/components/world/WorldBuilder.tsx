@@ -12,10 +12,11 @@ import {
   COMMUNITY_WORLD,
   INITIAL_WORLD_ITEM_IDS,
   MOCK_WORLD_EVENTS,
+  PREVIEW_RESOURCE_BALANCE,
+  WORLD_PREVIEW_NOTICE,
   WORLD_BUILD_ITEMS,
   WORLD_QUESTS,
   canAfford,
-  computeResourceBalance,
   getResourceDefinition,
   spendResources,
   type ResourceBalance,
@@ -26,10 +27,10 @@ import styles from './world-builder.module.css';
 
 export function WorldBuilder() {
   const { t } = useI18n();
-  const [resources, setResources] = useState<ResourceBalance>(() => computeResourceBalance());
+  const [resources, setResources] = useState<ResourceBalance>(() => ({ ...PREVIEW_RESOURCE_BALANCE }));
   const [builtIds, setBuiltIds] = useState<string[]>(INITIAL_WORLD_ITEM_IDS);
   const [communityOptIn, setCommunityOptIn] = useState(false);
-  const [feedback, setFeedback] = useState(() => t('world', 'feedbackInitial'));
+  const [feedback, setFeedback] = useState(WORLD_PREVIEW_NOTICE);
   const [placingCell, setPlacingCell] = useState<number | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(() => WORLD_BUILD_ITEMS.find((item) => !INITIAL_WORLD_ITEM_IDS.includes(item.id))?.id ?? null);
   const [hoveredCell, setHoveredCell] = useState<number | null>(null);
@@ -48,9 +49,9 @@ export function WorldBuilder() {
     setSelectedItemId(item.id);
     setHoveredCell(item.cell);
     if (builtIds.includes(item.id)) {
-      setFeedback(`${item.title} est deja visible dans le monde.`);
+      setFeedback(`${item.title} est déjà placé dans cet aperçu local.`);
     } else if (canAfford(resources, item.cost)) {
-      setFeedback(`${item.title} est pret a etre place sur la tuile lumineuse.`);
+      setFeedback(`${item.title} peut être prévisualisé sur la tuile lumineuse.`);
     } else {
       setFeedback(t('world', 'feedbackNeedMore'));
     }
@@ -65,7 +66,7 @@ export function WorldBuilder() {
     setResources((current) => spendResources(current, item.cost));
     setBuiltIds((current) => [...current, item.id]);
     setSelectedItemId(nextUnbuiltItemId(item.id));
-    setFeedback(`${item.title} ${t('world', 'feedbackAddedSuffix')}`);
+    setFeedback(`${item.title} placé dans cet aperçu local uniquement. Aucun état de compte n’a été modifié.`);
     setPlacingCell(item.cell);
     setHoveredCell(null);
     window.setTimeout(() => setPlacingCell((cell) => (cell === item.cell ? null : cell)), 860);
@@ -93,10 +94,10 @@ export function WorldBuilder() {
             <h1 className={styles.heroTitle}>{t('world', 'heroTitle')}</h1>
             <p className={styles.heroLead}>{t('world', 'heroLead')}</p>
             <div className={styles.loopStrip} aria-label="Boucle de progression Mon Monde">
-              <span>Routine accomplie</span>
-              <span>Ressources gagnees</span>
-              <span>Objet place</span>
-              <span>Monde enrichi</span>
+              <span>Action volontaire</span>
+              <span>Source serveur vérifiée</span>
+              <span>Ressource World</span>
+              <span>Objet en aperçu</span>
             </div>
             <div className={styles.heroActions}>
               <Button kind="accent" leading={<Icon name="plus" size={15} />} onClick={() => setFeedback(t('world', 'buildPanelText'))}>
@@ -114,6 +115,7 @@ export function WorldBuilder() {
             <div>
               <h2 className={styles.heroPanelTitle}>{t('world', 'resources')}</h2>
               <p className={styles.heroPanelText}>{feedback}</p>
+              <p className={styles.heroPanelText}>Preview non persistant. Les soldes réels restent côté serveur et ne sont pas encore reliés à cette UI.</p>
             </div>
             <ResourceBar resources={resources} />
           </aside>
@@ -156,9 +158,9 @@ export function WorldBuilder() {
             onSelect={handleSelect}
             onBuild={handleBuild}
             labels={{
-              built: t('world', 'built'),
-              placed: t('world', 'placed'),
-              build: t('world', 'build'),
+              built: 'Aperçu',
+              placed: 'Aperçu placé',
+              build: 'Prévisualiser',
               needMore: t('world', 'needMore'),
               softNote: t('world', 'softNote'),
             }}
@@ -262,8 +264,8 @@ export function WorldBuilder() {
       <section className={styles.panel}>
         <div className={styles.panelHeader}>
           <div>
-            <h2 className={styles.panelTitle}>{t('world', 'whyEarned')}</h2>
-            <p className={styles.panelText}>{t('world', 'whyEarnedText')}</p>
+            <h2 className={styles.panelTitle}>Exemples du catalogue de gains</h2>
+            <p className={styles.panelText}>Exemples de règles G1 uniquement. Aucun de ces événements n’est lu depuis votre compte dans cette page.</p>
           </div>
         </div>
         <div className={styles.eventList}>
