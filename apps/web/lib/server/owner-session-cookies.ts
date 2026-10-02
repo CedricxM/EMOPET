@@ -24,6 +24,18 @@ export function writeOwnerSessionCookies(
   });
 }
 
+export function clearOwnerAccessCookie(
+  response: NextResponse,
+  env: NodeJS.ProcessEnv = process.env,
+): void {
+  const policy = ownerSessionCookiePolicy(env);
+  response.cookies.set(OWNER_ACCESS_COOKIE, '', {
+    ...policy,
+    expires: new Date(0),
+    maxAge: 0,
+  });
+}
+
 export function clearOwnerSessionCookies(
   response: NextResponse,
   env: NodeJS.ProcessEnv = process.env,
@@ -31,11 +43,7 @@ export function clearOwnerSessionCookies(
   const policy = ownerSessionCookiePolicy(env);
   const expired = new Date(0);
 
-  response.cookies.set(OWNER_ACCESS_COOKIE, '', {
-    ...policy,
-    expires: expired,
-    maxAge: 0,
-  });
+  clearOwnerAccessCookie(response, env);
   response.cookies.set(OWNER_REFRESH_COOKIE, '', {
     ...policy,
     expires: expired,
