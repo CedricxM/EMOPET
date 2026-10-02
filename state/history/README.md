@@ -155,3 +155,30 @@ The helper can report:
 - `REVIEWED_CANDIDATE_READY_FOR_MANUAL_FINALIZATION_INPUTS`.
 
 These are mechanical workflow states only. They are not approval, validation, release authority, funding authority or a substitute for the substantive human review.
+
+## Transition review packet
+
+`scripts/control/transition-review-packet.mjs` turns a proposal queue into a human-readable inspection packet without modifying any controlled state.
+
+Render the committed queue:
+
+```bash
+node scripts/control/transition-review-packet.mjs
+```
+
+Render a CI-generated proposal artifact:
+
+```bash
+node scripts/control/transition-review-packet.mjs \
+  --proposal-queue company-transition-proposals.json
+```
+
+Focus one proposal:
+
+```bash
+node scripts/control/transition-review-packet.mjs \
+  --proposal-queue company-transition-proposals.json \
+  --proposal-id EMO-PROPOSAL-YYYYMMDD-NNNN
+```
+
+The packet is inspection only. It is not approval, a review reference, append readiness or substantive decision authority. A real accepted proposal still requires the separate reviewed append preparation flow with a real dated review reference.
