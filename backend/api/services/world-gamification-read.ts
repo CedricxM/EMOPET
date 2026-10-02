@@ -67,23 +67,21 @@ export async function readWorldGamificationSnapshot(input: {
   return database.transaction(async (tx) => {
     await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY`);
 
-    const [eventRows, spendRows, ownedRows] = await Promise.all([
-      tx
-        .select()
-        .from(worldProgressionEvents)
-        .where(eq(worldProgressionEvents.ownerId, input.ownerId)),
-      tx
-        .select({ costJson: worldResourceSpends.costJson })
-        .from(worldResourceSpends)
-        .where(eq(worldResourceSpends.ownerId, input.ownerId)),
-      tx
-        .select({
-          ownerId: worldOwnedItems.ownerId,
-          itemId: worldOwnedItems.itemId,
-        })
-        .from(worldOwnedItems)
-        .where(eq(worldOwnedItems.ownerId, input.ownerId)),
-    ]);
+    const eventRows = await tx
+      .select()
+      .from(worldProgressionEvents)
+      .where(eq(worldProgressionEvents.ownerId, input.ownerId));
+    const spendRows = await tx
+      .select({ costJson: worldResourceSpends.costJson })
+      .from(worldResourceSpends)
+      .where(eq(worldResourceSpends.ownerId, input.ownerId));
+    const ownedRows = await tx
+      .select({
+        ownerId: worldOwnedItems.ownerId,
+        itemId: worldOwnedItems.itemId,
+      })
+      .from(worldOwnedItems)
+      .where(eq(worldOwnedItems.ownerId, input.ownerId));
 
     const entries = eventRows.map(worldProgressionRowToEntry);
     const balance = emptyWorldProgressionBalance();
