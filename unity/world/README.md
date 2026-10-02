@@ -44,6 +44,28 @@ Assemblies:
 
 There is deliberately no production scene yet.
 
+## Gate 5B dormant gamification read client
+
+`WorldGamificationReadClient` is a **non-activated read-only foundation** for the governed
+`GET /api/world-gamification` snapshot.
+
+It:
+- accepts no Owner id;
+- uses the existing bearer-token provider and HTTP transport;
+- supports only `GET`;
+- validates only `GLOBAL` or coarse region codes;
+- strictly rejects unknown/duplicate JSON fields, raw `sourceRef`, XP/rank/streak expansion and malformed bounded values;
+- exposes no write method;
+- is not imported by any current scene, coordinator, prefab or runtime component.
+
+Newtonsoft.Json is pinned explicitly because Unity `JsonUtility` ignores unknown response fields and is therefore too permissive for this authority boundary.
+
+This does **not** activate Gate 5 cutover or production World gamification. Before merge/promotion of this Unity slice, run the EditMode test class:
+
+`Emopet.World.Tests.WorldGamificationReadClientTests`
+
+under the pinned Unity Editor **6000.3.25f1** and record the result explicitly.
+
 ## Validation
 
 Real workstation Editor evidence was captured through #772:

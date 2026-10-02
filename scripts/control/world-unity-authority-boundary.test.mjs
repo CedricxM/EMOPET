@@ -255,3 +255,42 @@ test('Unity live harness stays loopback-only and reuses canonical World boundari
   assert.match(live, /WorldSessionState\.Degraded/);
   assert.doesNotMatch(live, /Nakama(Client|Session|Socket)|HeroicLabs|authenticateCustom/);
 });
+
+test('Unity Gate 5B gamification client stays strict, read-only and dormant', async () => {
+  const client = await read('Assets/World/Transport/WorldGamificationReadClient.cs');
+  const manifest = JSON.parse(await read('Packages/manifest.json'));
+  const lock = JSON.parse(await read('Packages/packages-lock.json'));
+
+  assert.equal(manifest.dependencies['com.unity.nuget.newtonsoft-json'], '3.2.2');
+  assert.equal(lock.dependencies['com.unity.nuget.newtonsoft-json'].version, '3.2.2');
+  assert.equal(lock.dependencies['com.unity.nuget.newtonsoft-json'].depth, 0);
+
+  assert.match(client, /private const string Mount = "\/api\/world-gamification";/);
+  assert.match(client, /http\.SendAsync\(\s*"GET"/);
+  assert.doesNotMatch(client, /http\.SendAsync\(\s*"(POST|PUT|PATCH|DELETE)"/);
+  assert.doesNotMatch(client, /ownerId/);
+  assert.doesNotMatch(client, /sourceRef/);
+  assert.doesNotMatch(client, /\b(xp|rank|streak)\b/i);
+  assert.match(client, /DuplicatePropertyNameHandling\.Error/);
+  assert.match(client, /RequireExactKeys/);
+  assert.match(client, /CONTROLLED_DRAFT_NOT_PRODUCTION_AUTHORITY/);
+  assert.doesNotMatch(client, /JsonUtility/);
+
+  const allowed = new Set([
+    path.join(unityRoot, 'Assets', 'World', 'Transport', 'WorldGamificationReadClient.cs'),
+    path.join(unityRoot, 'Assets', 'World', 'Tests', 'EditMode', 'WorldGamificationReadClientTests.cs'),
+  ]);
+  const integrationCandidates = (await walk(path.join(unityRoot, 'Assets')))
+    .filter((file) => /\.(cs|unity|prefab|asset)$/.test(file))
+    .filter((file) => !allowed.has(file));
+
+  for (const file of integrationCandidates) {
+    const source = await readFile(file, 'utf8');
+    assert.doesNotMatch(
+      source,
+      /WorldGamificationReadClient|WorldGamificationReadSnapshotDto|\/api\/world-gamification/,
+      `Gate 5B read client activated before explicit cutover in ${path.relative(root, file)}`,
+    );
+  }
+});
+
