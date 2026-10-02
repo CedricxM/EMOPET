@@ -4,7 +4,7 @@ import type {
   WorldProgressionGrant,
   WorldProgressionLedgerEntry,
   WorldProgressionResource,
-} from './world-progression-ledger';
+} from './world-progression-ledger.js';
 
 export type WorldProgressionReasonCode =
   | 'knowledge_read'
