@@ -100,3 +100,18 @@ test('trend is controlled only as named longitudinal change, never a global well
   assert.ok(trend.prohibitedPublicTerms.includes('tendance ELI globale'));
   assert.ok(trend.prohibitedPublicTerms.includes('bien-être en hausse'));
 });
+
+
+test('explicit preference stays Owner-declared and never becomes dog-state or relationship inference', () => {
+  const preference = getMotsPetEntry('explicit_preference');
+  assert.ok(preference);
+  assert.equal(preference.status, 'CONTROLLED_SEED');
+  assert.equal(preference.domain, 'relationship');
+  assert.equal(preference.publicFr, 'préférence déclarée');
+  assert.equal(preference.publicEn, 'explicit preference');
+  assert.equal(preference.requiresProvenance, true);
+  assert.ok(preference.definitionFr.includes('déclaré ou confirmé par le propriétaire'));
+  assert.ok(preference.definitionFr.includes('ne constitue pas une inférence'));
+  assert.ok(preference.prohibitedPublicTerms.includes('le chien préfère'));
+  assert.ok(preference.prohibitedPublicTerms.includes('score de relation'));
+});

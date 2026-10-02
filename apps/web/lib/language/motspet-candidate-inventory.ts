@@ -9,7 +9,7 @@
 import { MOTSPET_ENTRIES, getMotsPetEntry } from './motspet';
 
 export const MOTSPET_CANDIDATE_INVENTORY_REVISION =
-  'motspet-candidate-inventory-v3-2026-10-02' as const;
+  'motspet-candidate-inventory-v4-2026-10-02' as const;
 
 export type MotsPetCandidateStatus =
   | 'EXISTING_CONTROLLED'
@@ -245,8 +245,8 @@ export const MOTSPET_CANDIDATE_INVENTORY: readonly MotsPetCandidateInventoryEntr
     sourceSurfaces: ['Together', 'Breiz'],
     reviewQuestionFr: 'Distinguer une préférence déclarée d’une préférence inférée ou d’un jugement sur la relation.',
     authorityPaths: [TOGETHER, EXPERIENCE],
-    status: 'CANDIDATE_REVIEW',
-    existingMotsPetId: null,
+    status: 'EXISTING_CONTROLLED',
+    existingMotsPetId: 'explicit_preference',
   }),
   entry({
     id: 'moment',

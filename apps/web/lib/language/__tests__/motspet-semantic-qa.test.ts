@@ -92,3 +92,19 @@ test('uncertainty and trend preserve explicit semantic classes across FR and EN'
     assert.equal(trend.provenance, 'REQUIRED');
   }
 });
+
+
+test('explicit preference is OWNER_PREFERENCE in every locale and keeps provenance', () => {
+  for (const locale of ['fr', 'en'] as const) {
+    const projection = buildMotsPetLocaleProjection(locale);
+    const preference = projection.find(
+      (entry) => entry.conceptId === 'explicit_preference',
+    );
+
+    assert.ok(preference, locale);
+    assert.equal(preference.truthClass, 'OWNER_PREFERENCE');
+    assert.equal(preference.provenance, 'REQUIRED');
+    assert.equal(preference.causalBoundary, 'NO_CAUSAL_UPGRADE');
+    assert.equal(preference.medicalBoundary, 'NON_DIAGNOSTIC');
+  }
+});
