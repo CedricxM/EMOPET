@@ -10,32 +10,18 @@ export const REGIONAL_LEXICON_REVISION =
   'regional-lexicon-v0.2-seed-2026-10-01' as const;
 
 export type RegionalLexiconStatus = 'PENDING_REVIEW' | 'VERIFIED';
-export type RegionalLexiconUsage =
-  | 'greeting'
-  | 'community'
-  | 'place'
-  | 'culture'
-  | 'style';
 
 export interface RegionalLexiconEntry {
   id: string;
   regionId: string;
   term: string;
   meaningFr: string;
-  usage: RegionalLexiconUsage;
+  usage: 'greeting' | 'community' | 'place' | 'culture' | 'style';
   sourceNote: string;
   revision: typeof REGIONAL_LEXICON_REVISION;
   reviewer: string | null;
   reviewedAt: string | null;
   reviewReceipt: string | null;
-  /** Exact public wording covered by the review receipt. */
-  reviewedTerm: string | null;
-  /** Exact French meaning covered by the review receipt. */
-  reviewedMeaningFr: string | null;
-  /** Exact usage category covered by the review receipt. */
-  reviewedUsage: RegionalLexiconUsage | null;
-  /** Exact lexicon revision covered by the review receipt. */
-  reviewedRevision: typeof REGIONAL_LEXICON_REVISION | null;
   status: RegionalLexiconStatus;
 }
 
@@ -44,10 +30,6 @@ const pendingReview = {
   reviewer: null,
   reviewedAt: null,
   reviewReceipt: null,
-  reviewedTerm: null,
-  reviewedMeaningFr: null,
-  reviewedUsage: null,
-  reviewedRevision: null,
   status: 'PENDING_REVIEW' as const,
 };
 
@@ -78,22 +60,12 @@ export function getRegionalLexicon(regionId: string): readonly RegionalLexiconEn
   return REGIONAL_LEXICON.filter((entry) => entry.regionId === regionId);
 }
 
-export function hasCompleteRegionalReviewReceipt(
-  entry: RegionalLexiconEntry,
-  nowMs: number = Date.now(),
-): boolean {
-  if (entry.status !== 'VERIFIED') return false;
-  if (!entry.reviewer?.trim() || !entry.reviewReceipt?.trim()) return false;
-  if (!entry.reviewedAt?.trim()) return false;
-
-  const reviewedAt = Date.parse(entry.reviewedAt);
-  if (!Number.isFinite(reviewedAt) || reviewedAt > nowMs) return false;
-
+export function hasCompleteRegionalReviewReceipt(entry: RegionalLexiconEntry): boolean {
   return (
-    entry.reviewedTerm === entry.term
-    && entry.reviewedMeaningFr === entry.meaningFr
-    && entry.reviewedUsage === entry.usage
-    && entry.reviewedRevision === entry.revision
+    entry.status === 'VERIFIED'
+    && Boolean(entry.reviewer?.trim())
+    && Boolean(entry.reviewedAt?.trim())
+    && Boolean(entry.reviewReceipt?.trim())
   );
 }
 
