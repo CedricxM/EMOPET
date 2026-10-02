@@ -64,11 +64,14 @@ test('Owner auth adapter forwards only canonical Bearer input to World read clie
     fetchImpl: fetchImpl as typeof fetch,
   });
 
-  assert.ok(request);
-  assert.equal(request.url, 'https://api.example.test/api/world-gamification?region=GLOBAL');
-  const headers = request.init?.headers as Record<string, string>;
+  if (request === null) {
+    assert.fail('World read request was not issued');
+  }
+  const capturedRequest: { url: string; init?: RequestInit } = request;
+  assert.equal(capturedRequest.url, 'https://api.example.test/api/world-gamification?region=GLOBAL');
+  const headers = capturedRequest.init?.headers as Record<string, string>;
   assert.equal(headers.Authorization, 'Bearer canonical-owner-access-token-123456');
-  assert.equal(request.init?.method, 'GET');
+  assert.equal(capturedRequest.init?.method, 'GET');
 });
 
 test('Owner auth adapter has no Owner-id, refresh-token or browser-storage authority', async () => {
