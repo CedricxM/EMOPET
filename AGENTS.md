@@ -34,9 +34,9 @@ Le brief `PROMPT_PROTOTYPE_BRETAGNE.md` décrit une proposition historique. Les 
 - Le web contient aussi des Route Handlers Next.js avec stockage JSON `.data/` et replis localStorage. Ce plan prototype n'est pas l'autorité durable et reste à réconcilier avec le backend/PostgreSQL.
 - Navigation sidebar observée : `/dashboard`, `/journal`, `/quartier`, `/world`, `/breiz`, `/profil`. Des routes hors sidebar existent, notamment `/rapport`, `/contact` et `/admin`.
 - Design system maison : `apps/web/styles/tokens.css` et primitives `apps/web/components/ui/*`. HeroUI 3 et Tailwind 4 sont également installés.
-- Aucun projet Unity et aucune intégration Nakama ne sont présents sur les branches distantes observées. Ces workstreams restent `GATED / NOT PRODUCTION AUTHORITY`.
+- Le World expérimental est présent sur `main` : projet Unity **6000.3.25f1** sous `unity/world`, API Hono `/api/world-spike`, transport Nakama isolé sous `infra/nakama`. Le scénario live Unity → Hono → Nakama du 01/10/2026 est enregistré `PASS` en **2.487 s** ; cela reste `SPIKE EVIDENCE / NOT PRODUCTION AUTHORITY`. Unity demeure un client non autoritatif et ne s'authentifie jamais directement auprès de Nakama.
 - Les commandes documentées dans les manifests sont des surfaces disponibles, pas une preuve de build, de CI ou de production.
-- Le code contient encore des surfaces historiques de gamification et de score global. Ne pas les étendre ni les traiter comme décisions produit sans revue contre les autorités actuelles.
+- Les surfaces historiques de gamification et de score global restent non autoritatives. World est l'unique économie de progression actuellement contrôlée, centrée Owner (jamais chien, capteurs, Care ou ELI), sous `docs/control/EMOPET_WORLD_GAMIFICATION_AUTHORITY_v0.1.md`. Une fondation durable G2 existe désormais sur `main` (migration `0047_world_gamification_persistence.sql`, schéma Drizzle et stores PostgreSQL), mais son statut reste `SCHEMA_AND_STORE_PRESENT_NOT_ACTIVATED` : aucune route HTTP de production, lifecycle privacy non promu et activation UI/runtime toujours gated. Le replay legacy contrôlé reste lui aussi `CONTROLLED_DRAFT_NOT_RUNTIME_AUTHORITY`.
 
 ---
 
