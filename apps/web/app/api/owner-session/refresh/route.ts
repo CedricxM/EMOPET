@@ -1,7 +1,10 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
-import { writeOwnerSessionCookies } from '../../../../lib/server/owner-session-cookies';
+import {
+  clearOwnerSessionCookies,
+  writeOwnerSessionCookies,
+} from '../../../../lib/server/owner-session-cookies';
 import {
   OWNER_REFRESH_COOKIE,
   refreshOwnerSession,
@@ -56,7 +59,9 @@ export async function POST(req: Request) {
     return privateJson({ ok: false, error: 'owner_auth_unavailable' }, 503);
   }
   if (result.status !== 'AUTHENTICATED') {
-    return privateJson({ ok: false, error: 'owner_session_required' }, 401);
+    const response = privateJson({ ok: false, error: 'owner_session_required' }, 401);
+    clearOwnerSessionCookies(response);
+    return response;
   }
 
   const response = privateJson({ ok: true, refreshed: true });
