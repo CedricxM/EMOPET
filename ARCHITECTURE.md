@@ -17,8 +17,8 @@ Hono API ──────────────────────┘
 
 MAT/TAG partial firmware ── BLE protocol package ── client/backend integration
 
-Unity: absent and gated
-Nakama: not canonical on main; experimental work remains gated
+Unity World spike ── Hono `/api/world-spike` ── isolated Nakama runtime
+World status: Unity 6000.3.25f1 present on `main`; recorded live loopback PASS; not production authority
 ```
 
 The controlled target direction supplied for this reconciliation is a Hono/TypeScript backend with PostgreSQL as durable data authority and backend authorization as policy authority. Current code only partially realizes that direction.
@@ -77,6 +77,8 @@ The repository now has a repeatable **disposable PostgreSQL QA** path for compar
 
 This is not full production-migration authority. Classified schema drift remains, including column-level differences that are not yet globally gated, and production/upgrade promotion still requires separately reviewed evidence.
 
+World progression now also has a durable G2 foundation on `main`: migration `backend/db/migrations/0047_world_gamification_persistence.sql`, Drizzle schema `backend/db/schema/world-gamification.ts`, and PostgreSQL ledger/build stores. The controlling persistence gate remains `BLOCKED_PENDING_PRIVACY_TOPOLOGY_RECONCILIATION`; its durable implementation status is `SCHEMA_AND_STORE_PRESENT_NOT_ACTIVATED`, with no active World progression HTTP route and no promoted privacy lifecycle. The controlled legacy replay path is likewise `CONTROLLED_DRAFT_NOT_RUNTIME_AUTHORITY`.
+
 ### Next.js prototype plane
 
 `apps/web/app/api/**` implements a separate set of Route Handlers for contact, journal, community, map, admin, Breiz, breeds, and context features.
@@ -124,11 +126,13 @@ Firmware readiness is `OBSERVED_PARTIAL`, not validated hardware integration.
 
 ## 8. Unity and Nakama
 
-No canonical Unity project is present on `main`; Unity remains gated.
+A canonical **World spike** is present on `main` under `unity/world`, pinned to Unity **6000.3.25f1**. It contains transport-independent World state, a Hono-backed client, session lifecycle handling and deterministic EditMode tests. There is deliberately no production scene or production release authority.
 
-Nakama is also not canonical on `main`. Experimental World/Nakama work may exist on non-main branches, but branch presence is not runtime, product, deployment, or production authority.
+Nakama is present as an isolated World realtime transport boundary under `backend/api/services/world-spike` and `infra/nakama`. Unity talks to the canonical backend under `/api/world-spike`; it does not authenticate directly to Nakama and does not own Nakama credentials, tokens, durable identity, privacy, moderation, scientific or persistence authority.
 
-Both workstreams remain `GATED / NOT PRODUCTION AUTHORITY` until their own activation-gate evidence is promoted deliberately.
+Recorded workstation evidence on **2026-10-01** includes a separate **32/32 EditMode baseline** plus the named live `LiveTwoUserBootstrapPresenceChatRenewalAndDegradedTransport` scenario, which passed in **2.487 s** through the loopback Unity → Hono → Nakama path. The live scenario covered two synthetic session bootstraps, visibility/presence, group join, preset chat, renewal and fail-closed degraded transport.
+
+This is `SPIKE EVIDENCE / NOT PRODUCTION AUTHORITY`. It proves the checked-in first slice and loopback integration path, not deployment readiness, production credentials, product-value validation or permission to release World.
 
 ## 9. CI, deployment, and repository controls
 
@@ -148,7 +152,7 @@ CI is materially stronger than the original baseline. Required-check enforcement
 Confirmed working constraints for implementation:
 
 - protected-resource policy belongs on the backend;
-- clients and future Unity/Nakama components are untrusted inputs;
+- clients, including Unity, and Nakama transport components are untrusted inputs rather than policy authorities;
 - raw audio must not be stored or transmitted;
 - unsupported medical/emotional claims and anthropomorphism are prohibited;
 - code evidence does not promote product, security, scientific, deployment, or release maturity.
@@ -161,6 +165,7 @@ Open or gated decisions include:
 - consent, retention, deletion, location, and telemetry rules;
 - exact ELI/ELS/Claim Guard definitions and Breiz bounds;
 - legacy/stale branch cleanup, repository IP/licensing, CODEOWNERS/reviewer policy, environments, and deployment ownership;
-- Unity project/version/targets/first slice;
-- Nakama use cases and deployment target.
+- production Unity scene/content pipeline, supported release targets, packaging and activation authority;
+- production Nakama deployment, operations and release authority;
+- World progression privacy-lifecycle promotion, runtime/UI activation and any production migration authority.
 
