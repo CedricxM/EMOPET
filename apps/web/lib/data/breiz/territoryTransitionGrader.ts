@@ -53,7 +53,7 @@ export function resolveTerritoryTransition(
       continue;
     }
 
-    if (territory && /semaine|week-?end|quelques jours|vacances|visite|aujourd'hui|pars?/.test(n)) {
+    if (territory && /semaine|week-?end|quelques jours|vacances|visite|aujourd(?:['’])?hui|pars?/.test(n)) {
       currentTerritory = territory;
       transition = 'TEMPORARY_TRAVEL';
     }
