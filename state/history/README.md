@@ -127,3 +127,31 @@ node scripts/control/verify-transition-source-snapshot.mjs \
   --source-snapshot-ref main@<already-merged-sha> \
   --base-sha <pull-request-base-sha>
 ```
+
+## Workflow status doctor
+
+`scripts/control/transition-workflow-status.mjs` is a read-only diagnostic for the proposal → review → append path.
+
+Default diagnostic:
+
+```bash
+node scripts/control/transition-workflow-status.mjs
+```
+
+To inspect a prepared reviewed candidate:
+
+```bash
+node scripts/control/transition-workflow-status.mjs \
+  --reviewed-candidate reviewed-transition-append.json
+```
+
+The helper can report:
+
+- `NO_PENDING_PROPOSALS`;
+- `PROPOSAL_REVIEW_REQUIRED`;
+- `REVIEWED_CANDIDATE_ORPHANED`;
+- `REVIEWED_CANDIDATE_SOURCE_MISMATCH`;
+- `REVIEWED_CANDIDATE_STALE`;
+- `REVIEWED_CANDIDATE_READY_FOR_MANUAL_FINALIZATION_INPUTS`.
+
+These are mechanical workflow states only. They are not approval, validation, release authority, funding authority or a substitute for the substantive human review.
