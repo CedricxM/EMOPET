@@ -43,10 +43,12 @@
     "localStorageUsed": false,
     "sessionStorageUsed": false,
     "ownerIdAcceptedFromBrowser": false,
-    "refreshRotation": "SERVER_SIDE_ON_BACKEND_401",
+    "refreshRotation": "EXPLICIT_SAME_ORIGIN_POST",
     "loginRoute": "POST /api/owner-session/login",
     "logoutRoute": "POST /api/owner-session/logout",
     "worldReadBff": "GET /api/world-gamification/session",
-    "worldUiActivated": false
+    "worldUiActivated": false,
+    "refreshRoute": "POST /api/owner-session/refresh",
+    "automaticRefreshOnWorldGet": false
   }
 }
