@@ -6,6 +6,7 @@ import { renderCompanyOsViews } from './generate-company-os-views.mjs';
 import { CONTROLLED_STATE_PATHS, proposeCompanyTransitions } from './propose-company-transitions.mjs';
 import { prepareReviewedTransitionAppend } from './prepare-reviewed-transition-append.mjs';
 import { finalizeReviewedTransitionAppend } from './finalize-reviewed-transition-append.mjs';
+import { assertSourceSnapshotIncludedInBase, verifySourceSnapshotMergedInBase } from './verify-transition-source-snapshot.mjs';
 
 const root = process.cwd();
 
@@ -839,6 +840,105 @@ test('Company Time Machine ledger is append-only against the pull-request base',
   );
 });
 
+
+
+test('source-snapshot verifier accepts only snapshots already contained in PR base main', async () => {
+  const sourceSha = '1'.repeat(40);
+  const baseSha = '2'.repeat(40);
+
+  assert.deepEqual(
+    assertSourceSnapshotIncludedInBase(
+      `main@${sourceSha}`,
+      baseSha,
+      {
+        status: 'ahead',
+        base_commit: { sha: sourceSha },
+        merge_base_commit: { sha: sourceSha },
+      },
+    ),
+    {
+      source_sha: sourceSha,
+      base_sha: baseSha,
+      status: 'ahead',
+    },
+  );
+
+  assert.throws(
+    () =>
+      assertSourceSnapshotIncludedInBase(
+        `main@${sourceSha}`,
+        baseSha,
+        {
+          status: 'diverged',
+          base_commit: { sha: sourceSha },
+          merge_base_commit: { sha: '3'.repeat(40) },
+        },
+      ),
+    /not an ancestor/,
+  );
+
+  let fetchCalled = false;
+  const same = await verifySourceSnapshotMergedInBase({
+    repository: 'CedricxM/EMOPET',
+    sourceSnapshotRef: `main@${baseSha}`,
+    baseSha,
+    fetchImpl: async () => {
+      fetchCalled = true;
+      throw new Error('must not fetch for identical SHA');
+    },
+  });
+  assert.equal(same.status, 'identical');
+  assert.equal(fetchCalled, false);
+});
+
+async function pullRequestHistoryContext() {
+  const eventPath = process.env.GITHUB_EVENT_PATH;
+  const repository = process.env.GITHUB_REPOSITORY;
+
+  if (!eventPath || !repository || !existsSync(eventPath)) return null;
+
+  const event = JSON.parse(readText(eventPath));
+  const baseSha = event.pull_request?.base?.sha;
+  if (!baseSha) return null;
+
+  return { repository, baseSha };
+}
+
+test('new Company Time Machine events cite source snapshots already merged into PR base main', async () => {
+  const context = await pullRequestHistoryContext();
+  if (!context) return;
+
+  const baseLedger = await fetchBaseTransitionLedger();
+  if (baseLedger === null) return;
+
+  const baseEvents = baseLedger
+    .split(/\r?\n/)
+    .filter((line) => line.trim().length > 0)
+    .map((line) => JSON.parse(line));
+
+  const appendedEvents = transitionEvents.slice(baseEvents.length);
+
+  for (const event of appendedEvents) {
+    await verifySourceSnapshotMergedInBase({
+      repository: context.repository,
+      sourceSnapshotRef: event.source_snapshot_ref,
+      baseSha: context.baseSha,
+      token: process.env.GITHUB_TOKEN,
+    });
+  }
+});
+
+test('transition append PR template preserves human review and source-snapshot checks', () => {
+  const template = readText(
+    '.github/PULL_REQUEST_TEMPLATE/company-transition-append.md',
+  );
+
+  assert.match(template, /human-reviewed append/i);
+  assert.match(template, /already-merged main commit/i);
+  assert.match(template, /ancestor of this PR's base SHA/i);
+  assert.match(template, /existing ledger lines were not edited/i);
+  assert.match(template, /reviewed the underlying state change/i);
+});
 
 test('transition proposal queue is review-only and schema-valid', () => {
   validateAgainstSchema(proposalQueue, proposalSchema, proposalSchema, 'proposalQueue');

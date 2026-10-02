@@ -103,3 +103,27 @@ node scripts/control/finalize-reviewed-transition-append.mjs \
 This command is intended for a separate, explicit append PR after human review. CI may validate the resulting append-only ledger, but CI must never invoke the finalizer.
 
 No final event should be created merely because tooling exists. If there is no real reviewed proposal and real append PR, there is nothing to append.
+
+
+## Append pull-request checklist
+
+Use `.github/PULL_REQUEST_TEMPLATE/company-transition-append.md` for a real human-reviewed ledger append.
+
+The append PR must identify the reviewed proposal/candidate, final event ID, recorded date, source snapshot and current ledger tail. Reviewers must confirm both the underlying state transition and the append mechanics.
+
+## Source-snapshot verification
+
+`scripts/control/verify-transition-source-snapshot.mjs` verifies that an appended event's `source_snapshot_ref` is not merely a syntactically valid `main@<sha>` string.
+
+In pull-request CI, every newly appended event must cite a source snapshot that is **equal to or an ancestor of the PR base SHA on main**. The guard uses GitHub compare evidence and fails closed for divergent, unmerged or otherwise unreachable snapshots.
+
+This check proves repository ancestry only. It does not approve the transition or validate the underlying product, scientific, legal, funding or release claim.
+
+Manual diagnostic example:
+
+```bash
+node scripts/control/verify-transition-source-snapshot.mjs \
+  --repository CedricxM/EMOPET \
+  --source-snapshot-ref main@<already-merged-sha> \
+  --base-sha <pull-request-base-sha>
+```

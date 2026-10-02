@@ -127,6 +127,26 @@ test('every root scripts/ and tools/ test runs in a workflow triggered by every 
   );
 });
 
+test('Windows portability keeps the cached backend build closure', async () => {
+  const workflow = await readFile(
+    new URL('../../.github/workflows/windows-portability.yml', import.meta.url),
+    'utf8',
+  );
+  const commands = runBlocks(workflow).flatMap(shellCommands);
+
+  assert.ok(
+    commands.includes('pnpm turbo run build --filter=@emopet/api...'),
+    'Windows backend build closure must stay on Turbo so deterministic outputs can be replayed',
+  );
+  assert.ok(
+    !commands.some((command) =>
+      /pnpm\s+--filter\s+['"]?@emopet\/api\^\.\.\.['"]?\s+build/.test(command) ||
+      /pnpm\s+--filter\s+['"]?@emopet\/api['"]?\s+build/.test(command)
+    ),
+    'do not restore the sequential direct backend rebuilds in windows-portability.yml',
+  );
+});
+
 test('only an every-PR `node --test` run step, direct or via a root pnpm script, counts', () => {
   const scripts = {
     'guard:a': 'node --test scripts/control/a.test.mjs',

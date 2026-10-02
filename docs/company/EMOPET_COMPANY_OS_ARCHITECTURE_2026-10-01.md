@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-01  
 **Status:** `PROPOSED COMPANY CONTROL PLANE / DOES NOT REPLACE DOMAIN AUTHORITIES`  
-**Branch base:** `main@89db093151a6a1aa9e9c7cb13afb8617304ab2b4`
+**Branch base:** `main@cdec93af57bdf49429598fbe0c20f28ffef9a6c0`
 
 ## 1. Purpose
 
@@ -176,6 +176,8 @@ Both views fail closed: missing data remains missing, planning remains planning,
 | `state/history/company-transitions.jsonl` | Canonical append-only Company OS transition ledger | V2 historical record; corrections append, never rewrite |
 | `state/history/pending-transition-proposals.json` | Committed review-only proposal queue | V2 proposal staging; not ledger or decision authority |
 | `state/history/reviewed-transition-append.schema.json` | Reviewed append-candidate contract | V2 preparation contract; never authorizes ledger mutation |
+| `.github/PULL_REQUEST_TEMPLATE/company-transition-append.md` | Human append-PR checklist | V2 review aid; not approval authority |
+| `scripts/control/verify-transition-source-snapshot.mjs` | Verify appended source snapshot is already contained in PR-base main | V2 ancestry guard; not domain validation |
 | `state/freshness/freshness-state.json` | Machine-readable freshness overlay | V2 projection with decision-use guardrails |
 | `state/schemas/registry-schema-map.json` | Registry → JSON Schema contract map | V2 structural contract; not domain authority |
 | `EXPERIMENTS.md` | Hypothesis → test → result → decision ledger | V1 projection/index |
@@ -292,6 +294,16 @@ Finalization is intentionally outside automation:
 
 The finalizer does not decide whether the underlying state change is correct. It only records an already-reviewed transition against an already-merged source snapshot.
 
+### Append-PR checklist and merged-main snapshot verification
+
+A real ledger append should use `.github/PULL_REQUEST_TEMPLATE/company-transition-append.md`.
+
+The checklist makes the human review boundary explicit: reviewers confirm the underlying state change, the reviewed candidate, event ID/date, current ledger tail, append-only behavior, public-safe content and regenerated Time Machine view.
+
+`scripts/control/verify-transition-source-snapshot.mjs` adds the repository-proof half of that boundary. For every event newly appended by a pull request, CI verifies that `source_snapshot_ref` is equal to or an ancestor of the PR base SHA on `main`.
+
+This prevents an unmerged branch commit, divergent commit or future PR head from being cited as if it were already merged company history. The check validates Git ancestry only and cannot approve or substantively validate the transition.
+
 ## 11. Confidentiality boundary
 
 The repository is public. Therefore the Company OS MUST NOT contain:
@@ -324,10 +336,8 @@ Any AI agent doing substantive EMOPET work should:
 
 V1 includes the company front door, machine-readable state, milestone/experiment/finance/metrics/risk/unknowns registries, and an every-PR structural evidence guard.
 
-V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, deterministic human views generated from machine-readable state, a public-safe founder cockpit, redacted investor/supplier views, an append-only Company Time Machine transition ledger, review-only transition proposals generated from controlled state diffs, reviewed-proposal append preparation, and a human-approved finalization path. Freshness remains conservative, and structural, presentation, historical-record, proposal, preparation or finalization validity never substitutes for domain evidence or authority.
+V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, deterministic human views generated from machine-readable state, a public-safe founder cockpit, redacted investor/supplier views, an append-only Company Time Machine transition ledger, review-only transition proposals generated from controlled state diffs, reviewed-proposal append preparation, a human-approved finalization path, and an append-PR checklist with merged-main source-snapshot verification. Freshness remains conservative, and structural, presentation, historical-record, proposal, preparation, finalization or ancestry validity never substitutes for domain evidence or authority.
 
-Next bounded slices should add, in order:
-
-1. an append-PR checklist/template and source-snapshot verification guard that validates the cited merged-main snapshot without creating or approving the transition.
+Next bounded slices should be chosen from observed operator friction in the reviewed transition workflow rather than added for completeness.
 
 Each slice must remain incremental and must not manufacture certainty to make the cockpit look complete.
