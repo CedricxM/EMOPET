@@ -94,6 +94,25 @@ test('uncertainty and trend preserve explicit semantic classes across FR and EN'
 });
 
 
+test('sharing scope remains metadata and never upgrades into blanket permission', () => {
+  for (const locale of ['fr', 'en'] as const) {
+    const projection = buildMotsPetLocaleProjection(locale);
+    const shareScope = projection.find(
+      (entry) => entry.conceptId === 'share_scope',
+    );
+
+    assert.ok(shareScope, locale);
+    assert.equal(shareScope.truthClass, 'SHARING_SCOPE_METADATA');
+    assert.equal(shareScope.provenance, 'REQUIRED');
+    assert.equal(shareScope.causalBoundary, 'NO_CAUSAL_UPGRADE');
+    assert.equal(shareScope.medicalBoundary, 'NON_DIAGNOSTIC');
+    assert.equal(
+      shareScope.privacyBoundary,
+      'PRESERVE_PURPOSE_AND_CONSENT',
+    );
+  }
+});
+
 test('explicit preference is OWNER_PREFERENCE in every locale and keeps provenance', () => {
   for (const locale of ['fr', 'en'] as const) {
     const projection = buildMotsPetLocaleProjection(locale);
