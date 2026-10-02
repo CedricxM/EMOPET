@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-01  
 **Status:** `PROPOSED COMPANY CONTROL PLANE / DOES NOT REPLACE DOMAIN AUTHORITIES`  
-**Branch base:** `main@cdec93af57bdf49429598fbe0c20f28ffef9a6c0`
+**Branch base:** `main@d937a3a8e67669d8c5e90048f1997b19807c93f0`
 
 ## 1. Purpose
 
@@ -333,7 +333,8 @@ It reports only mechanical state:
 - whether an optional reviewed candidate still maps to the current proposal queue;
 - whether its candidate ref still matches;
 - whether its recorded ledger tail still matches the current append-only ledger;
-- which mechanical step is possible next.
+- which mechanical step is possible next;
+- when review is mechanically required, a deterministic handoff to the existing read-only review packet.
 
 The status helper MUST remain weaker than review/finalization:
 
@@ -341,7 +342,8 @@ The status helper MUST remain weaker than review/finalization:
 - it never marks a proposal accepted, approved, validated or decided;
 - it never allocates an event ID or source snapshot;
 - it never substitutes for the human review reference or append PR;
-- `READY_FOR_MANUAL_FINALIZATION_INPUTS` means only that mechanical references still align.
+- `READY_FOR_MANUAL_FINALIZATION_INPUTS` means only that mechanical references still align;
+- an `operator_handoff` is navigation, not prioritization: if multiple proposals are pending it renders the full queue and MUST NOT select a proposal on the operator's behalf.
 
 ## 11. Confidentiality boundary
 
