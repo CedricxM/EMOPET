@@ -311,6 +311,7 @@ This prevents an unmerged branch commit, divergent commit or future PR head from
 
 It reports only mechanical state:
 
+- whether an explicitly supplied current controlled-state ref still matches the proposal queue candidate ref;
 - whether the proposal queue is empty or still requires review;
 - whether an optional reviewed candidate still maps to the current proposal queue;
 - whether its candidate ref still matches;
@@ -321,6 +322,7 @@ The status helper MUST remain weaker than review/finalization:
 
 - it never writes files or appends history;
 - it never marks a proposal accepted, approved, validated or decided;
+- it fails closed with `PROPOSAL_QUEUE_STALE` when an explicit current ref differs from the queue candidate ref;
 - it never allocates an event ID or source snapshot;
 - it never substitutes for the human review reference or append PR;
 - `READY_FOR_MANUAL_FINALIZATION_INPUTS` means only that mechanical references still align.
