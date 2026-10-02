@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-01  
 **Status:** `PROPOSED COMPANY CONTROL PLANE / DOES NOT REPLACE DOMAIN AUTHORITIES`  
-**Branch base:** `main@8a7395697a243bd734148f394ffc560e0887ef63`
+**Branch base:** `main@89db093151a6a1aa9e9c7cb13afb8617304ab2b4`
 
 ## 1. Purpose
 
@@ -276,6 +276,22 @@ The preparer is intentionally weaker than a ledger append:
 
 This slice does not create any reviewed acceptance record because no human review is fabricated by automation. It only establishes the controlled path that can be used after a real review exists.
 
+### Human-approved transition finalization
+
+`scripts/control/finalize-reviewed-transition-append.mjs` is the controlled finalization path for a real, reviewed proposal.
+
+Finalization is intentionally outside automation:
+
+- CI is forbidden from invoking the finalizer;
+- a human must supply `--finalize`, the final event ID, review date, already-merged `main@<sha>` snapshot and append-PR reference;
+- the reviewed candidate must still match the current ledger tail, otherwise it is stale and must be re-reviewed;
+- final event IDs are explicit and unique, and their date component must match the recorded date;
+- the human review reference and append PR are preserved in `decision_refs`;
+- the canonical ledger is mutated only by appending one new JSON line;
+- normal pull-request CI then validates schema, ordering and strict append-only history.
+
+The finalizer does not decide whether the underlying state change is correct. It only records an already-reviewed transition against an already-merged source snapshot.
+
 ## 11. Confidentiality boundary
 
 The repository is public. Therefore the Company OS MUST NOT contain:
@@ -308,10 +324,10 @@ Any AI agent doing substantive EMOPET work should:
 
 V1 includes the company front door, machine-readable state, milestone/experiment/finance/metrics/risk/unknowns registries, and an every-PR structural evidence guard.
 
-V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, deterministic human views generated from machine-readable state, a public-safe founder cockpit, redacted investor/supplier views, an append-only Company Time Machine transition ledger, review-only transition proposals generated from controlled state diffs, and an explicit reviewed-proposal append-preparation path. Freshness remains conservative, and structural, presentation, historical-record, proposal or preparation validity never substitutes for domain evidence or authority.
+V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, deterministic human views generated from machine-readable state, a public-safe founder cockpit, redacted investor/supplier views, an append-only Company Time Machine transition ledger, review-only transition proposals generated from controlled state diffs, reviewed-proposal append preparation, and a human-approved finalization path. Freshness remains conservative, and structural, presentation, historical-record, proposal, preparation or finalization validity never substitutes for domain evidence or authority.
 
 Next bounded slices should add, in order:
 
-1. a human-approved finalization path that assigns the final event ID and merged-main snapshot reference only inside an explicit append PR, never in CI.
+1. an append-PR checklist/template and source-snapshot verification guard that validates the cited merged-main snapshot without creating or approving the transition.
 
 Each slice must remain incremental and must not manufacture certainty to make the cockpit look complete.

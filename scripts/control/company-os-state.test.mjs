@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { renderCompanyOsViews } from './generate-company-os-views.mjs';
 import { CONTROLLED_STATE_PATHS, proposeCompanyTransitions } from './propose-company-transitions.mjs';
 import { prepareReviewedTransitionAppend } from './prepare-reviewed-transition-append.mjs';
+import { finalizeReviewedTransitionAppend } from './finalize-reviewed-transition-append.mjs';
 
 const root = process.cwd();
 
@@ -1021,6 +1022,168 @@ test('reviewed transition append preparation requires explicit review and never 
     source,
     /outputPath === ledgerAbsolute/,
     'reviewed append preparer must reject the canonical ledger as its output path',
+  );
+});
+
+test('reviewed transition finalization is explicit, manual and ledger-tail bound', () => {
+  const reviewedCandidate = {
+    schema_version: '0.1.0',
+    authority_mode: 'REVIEWED_APPEND_CANDIDATE_REQUIRES_HUMAN_PR_APPROVAL',
+    proposal_id: 'EMO-PROPOSAL-20261002-0001',
+    review_status: 'REVIEW_RECORDED_ACCEPTED_FOR_PREPARATION',
+    reviewed_on: '2026-10-02',
+    review_ref: { kind: 'pr', value: '#1002' },
+    candidate_ref: 'head@cccccccccccccccccccccccccccccccccccccccc',
+    ledger_tail_event_id: transitionEvents.at(-1)?.event_id ?? null,
+    append_candidate: {
+      kind: 'STATE_TRANSITION',
+      subject: 'EMO-TEST-PHASE',
+      from_state: 'OPEN',
+      to_state: 'PASSED',
+      summary: 'Synthetic reviewed transition fixture.',
+      source_candidate_ref: 'head@cccccccccccccccccccccccccccccccccccccccc',
+      authority_refs: [{ kind: 'path', value: 'COMPANY.md' }],
+      evidence_refs: [
+        { kind: 'commit', value: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' },
+      ],
+      decision_refs: [],
+      previous_event_id: transitionEvents.at(-1)?.event_id ?? null,
+      corrects_event_id: null,
+      confidentiality: 'PUBLIC',
+    },
+    finalization: {
+      event_id: null,
+      source_snapshot_ref: null,
+      append_to_ledger: false,
+      requires_human_pr_approval: true,
+    },
+  };
+
+  const event = finalizeReviewedTransitionAppend(
+    reviewedCandidate,
+    transitionEvents,
+    {
+      finalize: true,
+      ci: false,
+      eventId: 'EMO-TRANSITION-20261002-0001',
+      recordedOn: '2026-10-02',
+      sourceSnapshotRef: 'main@dddddddddddddddddddddddddddddddddddddddd',
+      appendPrRef: '#1010',
+    },
+  );
+
+  validateAgainstSchema(event, transitionSchema, transitionSchema, 'finalizedTransition');
+  assert.equal(event.previous_event_id, transitionEvents.at(-1)?.event_id ?? null);
+  assert.equal(
+    event.source_snapshot_ref,
+    'main@dddddddddddddddddddddddddddddddddddddddd',
+  );
+  assert.ok(
+    event.decision_refs.some((ref) => ref.kind === 'pr' && ref.value === '#1002'),
+    'final event must preserve the human review reference',
+  );
+  assert.ok(
+    event.decision_refs.some((ref) => ref.kind === 'pr' && ref.value === '#1010'),
+    'final event must preserve the explicit append PR reference',
+  );
+
+  assert.throws(
+    () =>
+      finalizeReviewedTransitionAppend(reviewedCandidate, transitionEvents, {
+        finalize: false,
+        ci: false,
+        eventId: 'EMO-TRANSITION-20261002-0001',
+        recordedOn: '2026-10-02',
+        sourceSnapshotRef: 'main@dddddddddddddddddddddddddddddddddddddddd',
+        appendPrRef: '#1010',
+      }),
+    /Explicit finalize=true/,
+  );
+
+  assert.throws(
+    () =>
+      finalizeReviewedTransitionAppend(reviewedCandidate, transitionEvents, {
+        finalize: true,
+        ci: true,
+        eventId: 'EMO-TRANSITION-20261002-0001',
+        recordedOn: '2026-10-02',
+        sourceSnapshotRef: 'main@dddddddddddddddddddddddddddddddddddddddd',
+        appendPrRef: '#1010',
+      }),
+    /forbidden in CI/,
+  );
+
+  assert.throws(
+    () =>
+      finalizeReviewedTransitionAppend(reviewedCandidate, transitionEvents, {
+        finalize: true,
+        ci: false,
+        eventId: 'EMO-TRANSITION-20261001-0002',
+        recordedOn: '2026-10-02',
+        sourceSnapshotRef: 'main@dddddddddddddddddddddddddddddddddddddddd',
+        appendPrRef: '#1010',
+      }),
+    /eventId date must match recordedOn/,
+  );
+
+  assert.throws(
+    () =>
+      finalizeReviewedTransitionAppend(reviewedCandidate, transitionEvents, {
+        finalize: true,
+        ci: false,
+        eventId: 'EMO-TRANSITION-20261002-0001',
+        recordedOn: '2026-10-02',
+        sourceSnapshotRef: 'head@dddddddddddddddddddddddddddddddddddddddd',
+        appendPrRef: '#1010',
+      }),
+    /sourceSnapshotRef must use main@/,
+  );
+
+  assert.throws(
+    () =>
+      finalizeReviewedTransitionAppend(
+        {
+          ...reviewedCandidate,
+          ledger_tail_event_id: 'EMO-TRANSITION-20261001-9999',
+        },
+        transitionEvents,
+        {
+          finalize: true,
+          ci: false,
+          eventId: 'EMO-TRANSITION-20261002-0001',
+          recordedOn: '2026-10-02',
+          sourceSnapshotRef: 'main@dddddddddddddddddddddddddddddddddddddddd',
+          appendPrRef: '#1010',
+        },
+      ),
+    /stale against the current ledger tail/,
+  );
+
+  assert.throws(
+    () =>
+      finalizeReviewedTransitionAppend(
+        {
+          ...reviewedCandidate,
+          reviewed_on: transitionEvents[0].recorded_on,
+        },
+        transitionEvents,
+        {
+          finalize: true,
+          ci: false,
+          eventId: transitionEvents[0].event_id,
+          recordedOn: transitionEvents[0].recorded_on,
+          sourceSnapshotRef: 'main@dddddddddddddddddddddddddddddddddddddddd',
+          appendPrRef: '#1010',
+        },
+      ),
+    /Duplicate transition event ID/,
+  );
+
+  const workflow = readText('.github/workflows/security-supply-chain.yml');
+  assert.doesNotMatch(
+    workflow,
+    /finalize-reviewed-transition-append\.mjs/,
+    'CI must validate Company OS history but never invoke the transition finalizer',
   );
 });
 
