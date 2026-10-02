@@ -202,3 +202,20 @@ The packet is inspection only. It is not approval, a review reference, append re
 When the workflow doctor reports `PROPOSAL_REVIEW_REQUIRED`, its `operator_handoff` points to the existing read-only transition review packet command.
 
 The handoff is mechanical navigation only. With multiple pending proposals it renders the full queue and deliberately does not select a proposal ID, rank proposals, or imply review priority. It never accepts, approves, prepares, finalizes or appends a transition.
+
+
+## Explicit stale-queue regeneration
+
+When the workflow doctor reports `PROPOSAL_QUEUE_STALE`, regenerate proposals from explicit merged-main snapshots rather than trusting the local Company OS snapshot pointer:
+
+```bash
+node scripts/control/propose-company-transitions.mjs \
+  --repository CedricxM/EMOPET \
+  --base-ref main@<queue-base-sha> \
+  --candidate-ref main@<current-main-sha> \
+  --output state/history/pending-transition-proposals.json
+```
+
+The three explicit regeneration inputs are all required together. Both refs must be full `main@<40-hex-sha>` references. The generator fetches both controlled-state bundles from GitHub, so the diff is bound to the named repository snapshots rather than an ambiguous local checkout.
+
+Regeneration creates review-only proposals. It does not select or prioritize proposals, record a review, prepare a reviewed candidate, finalize a transition or append the ledger. The workflow doctor remains read-only: its stale-queue handoff only renders this command when the repository and safe merged-main refs are explicit.
