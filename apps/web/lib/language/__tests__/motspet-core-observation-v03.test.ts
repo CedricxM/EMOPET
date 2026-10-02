@@ -24,8 +24,8 @@ const CORE_OBSERVATION_CONCEPTS = [
   'insufficient_evidence',
 ] as const;
 
-test('MotsPet v0.3 covers the Care observation contract as controlled concepts', () => {
-  assert.equal(MOTSPET_REVISION, 'motspet-v0.3-seed-2026-10-01');
+test('MotsPet v0.3 core Care observation contract remains controlled in later revisions', () => {
+  assert.ok(MOTSPET_REVISION.startsWith('motspet-v0.'));
 
   for (const conceptId of CORE_OBSERVATION_CONCEPTS) {
     const entry = getMotsPetEntry(conceptId);
@@ -37,7 +37,7 @@ test('MotsPet v0.3 covers the Care observation contract as controlled concepts',
   }
 });
 
-test('MotsPet v0.3 semantic coverage remains complete after inventory expansion', () => {
+test('MotsPet semantic coverage remains complete after the v0.3 core inventory expansion', () => {
   assert.deepEqual(auditMotsPetSemanticCoverage(), []);
 });
 

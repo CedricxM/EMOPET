@@ -31,6 +31,8 @@ export type MotsPetTruthClass =
   | 'DEVICE_STATE'
   | 'SIGNAL_QUALITY'
   | 'MODEL_METADATA'
+  | 'UNCERTAINTY_METADATA'
+  | 'LONGITUDINAL_CHANGE'
   | 'PURPOSE_BOUND_PERMISSION';
 
 export interface MotsPetSemanticContract {
@@ -93,6 +95,14 @@ export const MOTSPET_SEMANTIC_CONTRACTS: Readonly<
     medicalBoundary: 'NON_DIAGNOSTIC',
     privacyBoundary: 'PRESERVE_PURPOSE_AND_CONSENT',
   },
+  uncertainty: {
+    conceptId: 'uncertainty',
+    truthClass: 'UNCERTAINTY_METADATA',
+    provenance: 'REQUIRED',
+    causalBoundary: 'NO_CAUSAL_UPGRADE',
+    medicalBoundary: 'NON_DIAGNOSTIC',
+    privacyBoundary: 'PRESERVE_PURPOSE_AND_CONSENT',
+  },
   insufficient_evidence: {
     conceptId: 'insufficient_evidence',
     truthClass: 'EPISTEMIC_ABSTENTION',
@@ -128,6 +138,14 @@ export const MOTSPET_SEMANTIC_CONTRACTS: Readonly<
   individual_reference: {
     conceptId: 'individual_reference',
     truthClass: 'INDIVIDUAL_REFERENCE',
+    provenance: 'REQUIRED',
+    causalBoundary: 'NO_CAUSAL_UPGRADE',
+    medicalBoundary: 'NON_DIAGNOSTIC',
+    privacyBoundary: 'PRESERVE_PURPOSE_AND_CONSENT',
+  },
+  trend: {
+    conceptId: 'trend',
+    truthClass: 'LONGITUDINAL_CHANGE',
     provenance: 'REQUIRED',
     causalBoundary: 'NO_CAUSAL_UPGRADE',
     medicalBoundary: 'NON_DIAGNOSTIC',
