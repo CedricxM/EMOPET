@@ -50,6 +50,20 @@ export interface BretagneDatasetSchemaEvidence {
   dataProcessedAt?: string | null;
 }
 
+export interface BretagneDatasetFieldApprovalEvidence {
+  /** Exact fields approved for the bounded product use case. */
+  approvedFields: readonly string[];
+  /** Exact schema/source version reviewed when the field set was approved. */
+  sourceVersion: string;
+  /** Exact schema fingerprint reviewed when the field set was approved. */
+  schemaFingerprint: string;
+  reviewerRole: string;
+  reviewerRef: string;
+  reviewedAt: string;
+  reviewReceipt: string;
+  purposeBoundary: string;
+}
+
 export interface BretagneOpenDataDatasetDescriptor {
   datasetId: string;
   title: string;
@@ -64,6 +78,8 @@ export interface BretagneOpenDataDatasetDescriptor {
   status: BretagneDatasetReviewStatus;
   /** Fresh exact-schema observation required before record retrieval can be released. */
   schemaEvidence?: BretagneDatasetSchemaEvidence;
+  /** Human-reviewed field-minimisation receipt bound to the exact schema version. */
+  fieldApprovalEvidence?: BretagneDatasetFieldApprovalEvidence;
   /** Exact dataset-level reuse/review receipt. Portal-level rights are not enough. */
   rightsEvidence?: BreizRightsEvidence;
   notes: string;
@@ -101,6 +117,10 @@ export type BretagneDatasetRightsBlocker =
   | 'SOURCE_NO_RECHECK_RULE'
   | 'DATASET_NOT_RELEASE_READY'
   | 'NO_APPROVED_FIELDS'
+  | 'NO_FIELD_APPROVAL_EVIDENCE'
+  | 'FIELD_APPROVAL_EVIDENCE_INVALID'
+  | 'FIELD_APPROVAL_FIELDS_MISMATCH'
+  | 'FIELD_APPROVAL_SCHEMA_MISMATCH'
   | 'NO_DATASET_LICENCE'
   | 'NO_SCHEMA_EVIDENCE'
   | 'SCHEMA_EVIDENCE_NOT_PRIMARY'
@@ -173,6 +193,43 @@ export function evaluateBretagneOpenDataDatasetRights(
   if (dataset.allowedRecordFields.length === 0) {
     blockers.push('NO_APPROVED_FIELDS');
   }
+
+  const fieldApproval = dataset.fieldApprovalEvidence;
+  if (!fieldApproval) {
+    blockers.push('NO_FIELD_APPROVAL_EVIDENCE');
+  } else {
+    const reviewedAt = parseEvidenceTime(fieldApproval.reviewedAt);
+    const approvalFieldsValid =
+      fieldApproval.approvedFields.length > 0 &&
+      new Set(fieldApproval.approvedFields).size ===
+        fieldApproval.approvedFields.length &&
+      fieldApproval.approvedFields.every((field) => field.trim().length > 0);
+
+    if (
+      !approvalFieldsValid ||
+      fieldApproval.sourceVersion.trim().length === 0 ||
+      fieldApproval.schemaFingerprint.trim().length === 0 ||
+      fieldApproval.reviewerRole.trim().length === 0 ||
+      fieldApproval.reviewerRef.trim().length === 0 ||
+      fieldApproval.reviewReceipt.trim().length === 0 ||
+      fieldApproval.purposeBoundary.trim().length === 0 ||
+      reviewedAt == null ||
+      reviewedAt > nowMs
+    ) {
+      blockers.push('FIELD_APPROVAL_EVIDENCE_INVALID');
+    }
+
+    if (
+      dataset.allowedRecordFields.length === 0 ||
+      dataset.allowedRecordFields.length !== fieldApproval.approvedFields.length ||
+      !dataset.allowedRecordFields.every(
+        (field, index) => field === fieldApproval.approvedFields[index],
+      )
+    ) {
+      blockers.push('FIELD_APPROVAL_FIELDS_MISMATCH');
+    }
+  }
+
   if (!dataset.licence.trim() || !dataset.licenceUrl.trim()) {
     blockers.push('NO_DATASET_LICENCE');
   }
@@ -224,6 +281,14 @@ export function evaluateBretagneOpenDataDatasetRights(
       !dataset.allowedRecordFields.every((field) => schema.fields.includes(field))
     ) {
       blockers.push('APPROVED_FIELDS_NOT_IN_SCHEMA');
+    }
+
+    if (
+      fieldApproval &&
+      (fieldApproval.sourceVersion !== schema.sourceVersion ||
+        fieldApproval.schemaFingerprint !== schema.schemaFingerprint)
+    ) {
+      blockers.push('FIELD_APPROVAL_SCHEMA_MISMATCH');
     }
   }
 

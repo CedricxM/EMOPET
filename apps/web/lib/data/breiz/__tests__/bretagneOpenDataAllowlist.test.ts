@@ -22,6 +22,7 @@ test('Bretagne open-data allow-list is explicit and dataset-scoped', () => {
   assert.deepEqual(dataset.allowedRecordFields, []);
   assert.equal(dataset.status, 'METADATA_REVIEWED_FIELDS_OPEN');
   assert.equal(dataset.schemaEvidence, undefined);
+  assert.equal(dataset.fieldApprovalEvidence, undefined);
 });
 
 test('metadata lookup works only for allow-listed datasets', () => {
@@ -101,6 +102,16 @@ test('release-ready fixture requires fresh schema and rights bound to the same v
         'https://data.bretagne.bzh/api/explore/v2.1/catalog/datasets/reserves-naturelles-regionales-de-bretagne',
       metadataProcessedAt: '2026-10-01T11:55:00Z',
       dataProcessedAt: '2026-10-01T11:55:00Z',
+    },
+    fieldApprovalEvidence: {
+      approvedFields: ['nom', 'geometry'],
+      sourceVersion: 'dataset-version-2026-10-01T12:00:00Z',
+      schemaFingerprint: 'sha256:fixture-schema',
+      reviewerRole: 'test product/data reviewer',
+      reviewerRef: 'CONTROLLED_FIELD_REVIEWER_REF',
+      reviewedAt: '2026-10-01T12:02:00Z',
+      reviewReceipt: 'CONTROLLED_FIELD_APPROVAL_RECEIPT',
+      purposeBoundary: 'Synthetic territorial-context fixture only.',
     },
     rightsEvidence: {
       authorityRevision: 'bretagne-open-data-dataset-rights-fixture-v2',
@@ -355,6 +366,83 @@ test('current first dataset remains blocked at metadata-review state', () => {
   assert.equal(verdict.ingestionPermitted, false);
   assert.ok(verdict.blockers.includes('DATASET_NOT_RELEASE_READY'));
   assert.ok(verdict.blockers.includes('NO_APPROVED_FIELDS'));
+  assert.ok(verdict.blockers.includes('NO_FIELD_APPROVAL_EVIDENCE'));
   assert.ok(verdict.blockers.includes('NO_SCHEMA_EVIDENCE'));
   assert.ok(verdict.blockers.includes('NO_DATASET_RIGHTS_EVIDENCE'));
+});
+
+
+test('field approval must match the exact approved field list and schema fingerprint', () => {
+  const current = getBretagneOpenDataDataset(
+    'reserves-naturelles-regionales-de-bretagne',
+  );
+  assert.ok(current);
+
+  const mismatch = {
+    ...current,
+    allowedRecordFields: ['nom', 'geo_point_2d'],
+    status: 'RELEASE_READY' as const,
+    schemaEvidence: {
+      evidenceAuthority: 'PRIMARY_API_SCHEMA' as const,
+      evidenceRef: 'docs/control/FIXTURE_ONLY.md',
+      reviewerRole: 'test reviewer',
+      observedAt: '2026-10-01T12:00:00Z',
+      sourceVersion: 'dataset-v1',
+      schemaFingerprint: 'sha256:schema-v1',
+      recordCount: 11,
+      fields: ['id', 'nom', 'geo_point_2d'],
+      sourceUrl:
+        'https://data.bretagne.bzh/api/explore/v2.1/catalog/datasets/reserves-naturelles-regionales-de-bretagne',
+    },
+    fieldApprovalEvidence: {
+      approvedFields: ['nom'],
+      sourceVersion: 'dataset-v1',
+      schemaFingerprint: 'sha256:different-schema',
+      reviewerRole: 'test product/data reviewer',
+      reviewerRef: 'CONTROLLED_REVIEWER',
+      reviewedAt: '2026-10-01T12:01:00Z',
+      reviewReceipt: 'CONTROLLED_FIELD_RECEIPT',
+      purposeBoundary: 'Synthetic territorial-context fixture only.',
+    },
+  };
+
+  const verdict = evaluateBretagneOpenDataDatasetRights(
+    mismatch,
+    Date.parse('2026-10-01T13:00:00Z'),
+  );
+
+  assert.equal(verdict.ingestionPermitted, false);
+  assert.ok(verdict.blockers.includes('FIELD_APPROVAL_FIELDS_MISMATCH'));
+  assert.ok(verdict.blockers.includes('FIELD_APPROVAL_SCHEMA_MISMATCH'));
+});
+
+test('field approval rejects blank evidence and future review dates', () => {
+  const current = getBretagneOpenDataDataset(
+    'reserves-naturelles-regionales-de-bretagne',
+  );
+  assert.ok(current);
+
+  const broken = {
+    ...current,
+    allowedRecordFields: ['nom'],
+    status: 'RELEASE_READY' as const,
+    fieldApprovalEvidence: {
+      approvedFields: ['nom'],
+      sourceVersion: '',
+      schemaFingerprint: '',
+      reviewerRole: '',
+      reviewerRef: '',
+      reviewedAt: '2027-01-01T00:00:00Z',
+      reviewReceipt: '',
+      purposeBoundary: '',
+    },
+  };
+
+  const verdict = evaluateBretagneOpenDataDatasetRights(
+    broken,
+    Date.parse('2026-10-01T13:00:00Z'),
+  );
+
+  assert.equal(verdict.ingestionPermitted, false);
+  assert.ok(verdict.blockers.includes('FIELD_APPROVAL_EVIDENCE_INVALID'));
 });
