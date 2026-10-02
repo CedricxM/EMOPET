@@ -5,7 +5,7 @@
  * language. It never creates scientific/legal authority by itself.
  */
 
-export const MOTSPET_REVISION = 'motspet-v0.7-seed-2026-10-02' as const;
+export const MOTSPET_REVISION = 'motspet-v0.8-seed-2026-10-02' as const;
 
 export type MotsPetDomain =
   | 'care'
@@ -60,6 +60,8 @@ const MEMORIES_AUTHORITY =
   'docs/product/EMOPET_MEMORIES_EXPERIENCE_MASTER_v0.1.md';
 const OWNER_RELATIONSHIP_AUTHORITY =
   'docs/strategy/OWNER_RELATIONSHIP_AND_PRODUCT_SCOPE_DOCTRINE_2026-09-11.md';
+const HUMANE_SOCIAL_AUTHORITY =
+  'docs/product/EMOPET_HUMANE_SOCIAL_ARCHITECTURE_MASTER_v0.2_VERIFIED_2026-09-01.md';
 const OWNER_TERMINOLOGY_AUTHORITY =
   'docs/records/terminology/GUARDIAN_TO_OWNER_SUPERSESSION_2026-09-11.md';
 const DATA_TRUST_AUTHORITY =
@@ -403,6 +405,32 @@ export const MOTSPET_ENTRIES: readonly MotsPetEntry[] = [
     requiresProvenance: true,
     authorityPaths: [
       MEMORIES_AUTHORITY,
+      PRODUCT_AUTHORITY_MAP,
+      SURFACE_NECESSITY_AUTHORITY,
+      OWNER_RELATIONSHIP_AUTHORITY,
+    ],
+    status: 'CONTROLLED_SEED',
+    ...internalReview,
+  },
+  {
+    id: 'community_visibility',
+    domain: 'community',
+    internalTerms: ['visibility', 'audience', 'community_visibility'],
+    publicFr: 'audience choisie',
+    publicEn: 'chosen audience',
+    definitionFr:
+      'Choix explicite de l’audience autorisée à voir un contenu ou une présence communautaire donnée. Ce choix ne publie rien à lui seul, n’étend jamais silencieusement l’audience et n’autorise ni donnée privée ni localisation exacte sans transition séparée et spécifique.',
+    prohibitedPublicTerms: [
+      'visible par tous par défaut',
+      'public automatiquement',
+      'audience étendue automatiquement',
+      'localisation exacte partagée automatiquement',
+      'toutes mes données',
+    ],
+    requiresProvenance: true,
+    authorityPaths: [
+      HUMANE_SOCIAL_AUTHORITY,
+      OWNER_AUTHORITY,
       PRODUCT_AUTHORITY_MAP,
       SURFACE_NECESSITY_AUTHORITY,
       OWNER_RELATIONSHIP_AUTHORITY,

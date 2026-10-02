@@ -78,16 +78,13 @@ test('inventory reconciles v0.3 observation-contract concepts as existing contro
   }
 });
 
-test('inventory keeps the remaining next-review concepts outside runtime authority', () => {
-  for (const id of [
-    'community_visibility',
-  ]) {
-    const candidate = getMotsPetCandidateInventoryEntry(id);
-    assert.ok(candidate, id);
-    assert.equal(candidate.status, 'CANDIDATE_REVIEW', id);
-    assert.equal(candidate.existingMotsPetId, null, id);
-    assert.equal(getMotsPetEntry(id), undefined, id);
-  }
+test('candidate review queue is empty after controlled Community audience promotion', () => {
+  assert.equal(
+    MOTSPET_CANDIDATE_INVENTORY.some(
+      (entry) => entry.status === 'CANDIDATE_REVIEW',
+    ),
+    false,
+  );
 });
 
 test('v0.4 uncertainty and trend are reconciled as bounded controlled concepts', () => {
@@ -140,12 +137,16 @@ test('Moment and Memory are controlled relationship-history concepts, not sensor
   }
 });
 
-test('Community visibility remains outside runtime MotsPet authority', () => {
+test('Community visibility is controlled as explicit audience choice only', () => {
   const candidate = getMotsPetCandidateInventoryEntry('community_visibility');
   assert.ok(candidate);
-  assert.equal(candidate.status, 'CANDIDATE_REVIEW');
-  assert.equal(candidate.existingMotsPetId, null);
-  assert.equal(getMotsPetEntry('community_visibility'), undefined);
+  assert.equal(candidate.status, 'EXISTING_CONTROLLED');
+  assert.equal(candidate.existingMotsPetId, 'community_visibility');
+
+  const runtime = getMotsPetEntry('community_visibility');
+  assert.ok(runtime);
+  assert.equal(runtime.status, 'CONTROLLED_SEED');
+  assert.equal(runtime.domain, 'community');
 });
 
 
@@ -174,9 +175,7 @@ test('review queue is derived from the canonical candidate inventory', () => {
     .map((entry) => entry.id);
 
   assert.deepEqual(projectedIds, canonicalIds);
-  assert.deepEqual(projectedIds, [
-    'community_visibility',
-  ]);
+  assert.deepEqual(projectedIds, []);
 });
 
 test('review queue snapshot derives runtime controlled and HOLD state without duplication', () => {

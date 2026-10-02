@@ -148,6 +148,26 @@ test('Memory stays Owner-chosen relationship history rather than ELI sentiment',
   assert.ok(memory.prohibitedPublicTerms.includes('score de relation'));
 });
 
+test('Community visibility is an explicit audience choice, not automatic publication', () => {
+  const visibility = getMotsPetEntry('community_visibility');
+  assert.ok(visibility);
+  assert.equal(visibility.status, 'CONTROLLED_SEED');
+  assert.equal(visibility.domain, 'community');
+  assert.equal(visibility.publicFr, 'audience choisie');
+  assert.equal(visibility.publicEn, 'chosen audience');
+  assert.equal(visibility.requiresProvenance, true);
+  assert.ok(visibility.definitionFr.includes('Choix explicite'));
+  assert.ok(visibility.definitionFr.includes('ne publie rien à lui seul'));
+  assert.ok(visibility.definitionFr.includes('n’étend jamais silencieusement l’audience'));
+  assert.ok(visibility.definitionFr.includes('localisation exacte'));
+  assert.ok(visibility.prohibitedPublicTerms.includes('public automatiquement'));
+  assert.ok(
+    visibility.prohibitedPublicTerms.includes(
+      'localisation exacte partagée automatiquement',
+    ),
+  );
+});
+
 test('explicit preference stays Owner-declared and never becomes dog-state or relationship inference', () => {
   const preference = getMotsPetEntry('explicit_preference');
   assert.ok(preference);
