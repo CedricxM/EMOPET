@@ -19,6 +19,22 @@ Every proxy must separately track:
 Machine-readable authority:
 `config/science/eli-proxy-evidence.json`.
 
+
+### Machine-readable field separation
+
+The controlled JSON now records the evidence dimensions independently:
+
+- `measurementSources`: bibliography ids relevant only to sensing/measurement context;
+- `interpretationSources`: bibliography ids relevant only to conceptual/interpretation context;
+- `contextSources`: citations retained for traceability when they do **not** establish the proxy-specific claim, or when a separate scientific gate owns the semantics;
+- `emopetHypothesisStatus`: explicit hypothesis-assessment state;
+- `validationEvidence`: exact reviewed EMOPET/canine validation pointer, or `null` when none is established;
+- `separateGate`: dedicated gate pointer when `claimStatus = SEPARATE_GATE`.
+
+`NOT_ASSESSED` for `emopetHypothesisStatus` is intentionally fail-closed. It means the proxy has not yet received a separate Science disposition on whether its transform/relationship is an EMOPET hypothesis. It must not be read as `NOT_APPLICABLE`, literature support, or validation.
+
+The evidence vocabulary is itself enforced: every proxy `claimStatus` must belong to the declared `allowedStatuses`, every source id must resolve to the controlled bibliography, and unresolved citations cannot silently populate measurement or interpretation evidence fields.
+
 ## Owner presentation
 
 The web UI must not display a bare `Référence : paper` label for unresolved proxies. Context citations must be labelled as context and accompanied by the proxy-specific evidence status.
