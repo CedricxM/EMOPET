@@ -1,7 +1,10 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
-import { clearOwnerSessionCookies } from '../../../../lib/server/owner-session-cookies';
+import {
+  clearOwnerAccessCookie,
+  clearOwnerSessionCookies,
+} from '../../../../lib/server/owner-session-cookies';
 import {
   logoutOwnerSession,
   OWNER_REFRESH_COOKIE,
@@ -67,7 +70,9 @@ export async function POST(req: Request) {
 
   const result = await logoutOwnerSession(refreshToken);
   if (result === 'UNAVAILABLE') {
-    return cleared({ ok: false, error: 'logout_unavailable' }, 503);
+    const response = privateJson({ ok: false, error: 'logout_unavailable' }, 503);
+    clearOwnerAccessCookie(response);
+    return response;
   }
 
   return cleared({ ok: true, loggedOut: true }, 200);
