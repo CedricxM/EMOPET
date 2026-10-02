@@ -113,6 +113,24 @@ test('sharing scope remains metadata and never upgrades into blanket permission'
   }
 });
 
+test('Moment and Memory preserve deliberate Owner authorship across locales', () => {
+  for (const locale of ['fr', 'en'] as const) {
+    const projection = buildMotsPetLocaleProjection(locale);
+    const moment = projection.find((entry) => entry.conceptId === 'moment');
+    const memory = projection.find((entry) => entry.conceptId === 'memory');
+
+    assert.ok(moment, locale);
+    assert.equal(moment.truthClass, 'INTENTIONAL_CAPTURE');
+    assert.equal(moment.provenance, 'REQUIRED');
+    assert.equal(moment.privacyBoundary, 'PRESERVE_PURPOSE_AND_CONSENT');
+
+    assert.ok(memory, locale);
+    assert.equal(memory.truthClass, 'OWNER_CHOSEN_MEMORY_CONTENT');
+    assert.equal(memory.provenance, 'REQUIRED');
+    assert.equal(memory.privacyBoundary, 'PRESERVE_PURPOSE_AND_CONSENT');
+  }
+});
+
 test('explicit preference is OWNER_PREFERENCE in every locale and keeps provenance', () => {
   for (const locale of ['fr', 'en'] as const) {
     const projection = buildMotsPetLocaleProjection(locale);

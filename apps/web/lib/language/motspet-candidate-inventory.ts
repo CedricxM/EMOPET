@@ -1,5 +1,5 @@
 /**
- * MotsPet candidate inventory v5.
+ * MotsPet candidate inventory v6.
  *
  * This inventory is deliberately upstream of public wording. It records the
  * next concepts that need language review without promoting them into the
@@ -9,7 +9,7 @@
 import { MOTSPET_ENTRIES, getMotsPetEntry } from './motspet';
 
 export const MOTSPET_CANDIDATE_INVENTORY_REVISION =
-  'motspet-candidate-inventory-v5-2026-10-02' as const;
+  'motspet-candidate-inventory-v6-2026-10-02' as const;
 
 export type MotsPetCandidateStatus =
   | 'EXISTING_CONTROLLED'
@@ -48,6 +48,8 @@ const TOGETHER =
   'docs/product/EMOPET_TOGETHER_RELATIONSHIP_ENGINE_MASTER_v0.1.md';
 const SURFACES =
   'docs/product/EMOPET_SURFACE_NECESSITY_MATRIX_v0.1.md';
+const MEMORIES =
+  'docs/product/EMOPET_MEMORIES_EXPERIENCE_MASTER_v0.1.md';
 const DATA_TRUST =
   'docs/strategy/DATA_TRUST_AND_BUSINESS_MODEL_DOCTRINE_2026-09-07.md';
 
@@ -254,19 +256,19 @@ export const MOTSPET_CANDIDATE_INVENTORY: readonly MotsPetCandidateInventoryEntr
     internalTerms: ['moment', 'intentional_capture'],
     sourceSurfaces: ['Moments', 'Memories'],
     reviewQuestionFr: 'Préserver le caractère volontaire et privé par défaut d’une capture de moment.',
-    authorityPaths: [SURFACES, EXPERIENCE],
-    status: 'CANDIDATE_REVIEW',
-    existingMotsPetId: null,
+    authorityPaths: [MEMORIES, SURFACES, EXPERIENCE, AUTHORITY_MAP],
+    status: 'EXISTING_CONTROLLED',
+    existingMotsPetId: 'moment',
   }),
   entry({
     id: 'memory',
     domain: 'relationship',
     internalTerms: ['memory', 'deliberate_memory'],
     sourceSurfaces: ['Memories'],
-    reviewQuestionFr: 'Décrire une mémoire choisie sans fabriquer de récit sentimental depuis les capteurs.',
-    authorityPaths: [SURFACES, AUTHORITY_MAP],
-    status: 'CANDIDATE_REVIEW',
-    existingMotsPetId: null,
+    reviewQuestionFr: 'Décrire un souvenir choisi sans fabriquer de récit sentimental depuis les capteurs.',
+    authorityPaths: [MEMORIES, SURFACES, AUTHORITY_MAP],
+    status: 'EXISTING_CONTROLLED',
+    existingMotsPetId: 'memory',
   }),
   entry({
     id: 'community_visibility',
