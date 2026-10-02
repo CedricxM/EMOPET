@@ -65,3 +65,18 @@ export type {
   RegionalPackEvidenceReport,
 } from './regional-pack-evidence';
 export { buildRegionalPackEvidenceReport } from './regional-pack-evidence';
+
+
+export type {
+  BretagneLanguageReviewPacketStatus,
+  BretagneReviewRequestedDisposition,
+  BretagneLanguageIdentityReviewItem,
+  BretagneLanguageLexiconReviewItem,
+  BretagneLanguageReviewResponseTemplate,
+  BretagneLanguageReviewPacket,
+} from './bretagne-language-review-packet';
+export {
+  BRETAGNE_LANGUAGE_REVIEW_PACKET_REVISION,
+  buildBretagneLanguageReviewPacket,
+  auditBretagneLanguageReviewPacket,
+} from './bretagne-language-review-packet';
