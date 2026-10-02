@@ -15,9 +15,9 @@
     "Database mechanics never substitute for privacy disposition authority on unresolved rows."
   ],
   "summary": {
-    "relationalTotal": 55,
+    "relationalTotal": 57,
     "policyAlignedDeleteCandidates": 30,
-    "policyConditionalExecutionRequired": 22,
+    "policyConditionalExecutionRequired": 24,
     "legalAuthorityBlocked": 3,
     "matrixRowsPromoted": 5
   },
@@ -1069,6 +1069,50 @@
       ],
       "why": "Durable World state is Owner-linked product progression/inventory evidence, but account-erasure/export/retention lifecycle is still a technical proposal rather than approved privacy authority.",
       "requiredDecision": "Approve the Owner lifecycle for durable World progression, ownership and spend rows before any destructive executor or production write activation is promoted.",
+      "allowedOutcomes": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "phone_presence_events",
+      "column": "owner_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "phone_presence_durable_readiness_v1"
+      ],
+      "why": "Phone Presence is Owner-linked presence/absence timing metadata with an intentionally unapproved retention category; exact-location and sensor policies must not be inherited by analogy.",
+      "requiredDecision": "Define and approve the Presence-specific retention, erasure and export lifecycle before durable route activation.",
+      "allowedOutcomes": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "phone_presence_events",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "phone_presence_durable_readiness_v1"
+      ],
+      "why": "Phone Presence is dog-linked presence/absence timing metadata with an intentionally unapproved retention category; exact-location and sensor policies must not be inherited by analogy.",
+      "requiredDecision": "Define and approve the Presence-specific retention, erasure and export lifecycle before durable route activation.",
       "allowedOutcomes": [
         "DELETE",
         "ANONYMIZE",
