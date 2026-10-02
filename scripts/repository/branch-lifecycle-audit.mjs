@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import { readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 
 const API_ROOT = 'https://api.github.com';
 const PER_PAGE = 100;
@@ -290,7 +292,7 @@ async function main() {
 
 if (
   process.argv[1]
-  && new URL(import.meta.url).pathname === new URL(`file://${process.argv[1]}`).pathname
+  && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 ) {
   main().catch((error) => {
     console.error(error.message);
