@@ -114,6 +114,20 @@
       "projectionAuthority": "TO_CONFIRM_HEALTH_RECORD_ACCESS_PROJECTION"
     },
     {
+      "table": "presence_events",
+      "column": "dog_id",
+      "routeSymbol": "presenceEvents",
+      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT",
+      "projectionAuthority": "TO_CONFIRM_PRESENCE_LOCATION_LIFECYCLE_AND_EXPORT"
+    },
+    {
+      "table": "professional_share_grants",
+      "column": "dog_id",
+      "routeSymbol": "professionalShareGrants",
+      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT",
+      "projectionAuthority": "TO_CONFIRM_PROFESSIONAL_GRANT_ACCESS_PROJECTION"
+    },
+    {
       "table": "recovery_events",
       "column": "dog_id",
       "routeSymbol": "recoveryEvents",
@@ -161,13 +175,6 @@
       "routeSymbol": "walkQuality",
       "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT",
       "projectionAuthority": "TO_CONFIRM_ELI_V5_DISCLOSURE"
-    },
-    {
-      "table": "professional_share_grants",
-      "column": "dog_id",
-      "routeSymbol": "professionalShareGrants",
-      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT",
-      "projectionAuthority": "TO_CONFIRM_PROFESSIONAL_GRANT_ACCESS_PROJECTION"
     }
   ],
   "unconstrainedDogIdentifiers": [
