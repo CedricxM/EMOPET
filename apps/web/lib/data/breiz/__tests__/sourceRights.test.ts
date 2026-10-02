@@ -45,6 +45,18 @@ function source(overrides: Partial<BreizSourceDescriptor> = {}): BreizSourceDesc
     freshnessHours: 24,
     enabled: true,
     notes: '',
+    rightsEvidence: {
+      authorityRevision: 'fixture-rights-v1',
+      immutableSourceVersion: 'fixture-source-v1',
+      receiptPath: 'docs/control/fixtures/fixture-rights.md',
+      attributionText: 'Fixture publisher',
+      permittedUseSummary: 'Bounded fixture ingestion for tests.',
+      reviewedAt: '2026-09-20T00:00:00.000Z',
+      reviewerRole: 'rights-reviewer',
+      recheckAt: '2027-09-20T00:00:00.000Z',
+      evidenceState: 'SOURCE_CONFIRMED',
+      disposition: 'GO',
+    },
     ...overrides,
   };
 }
@@ -80,6 +92,31 @@ test('une source complète est ingérable', () => {
   const verdict = evaluateBreizSourceRights(source());
   assert.deepEqual(verdict.blockers, []);
   assert.equal(verdict.ingestionPermitted, true);
+});
+
+test('licence déclarée sans preuve contrôlée → bloqué', () => {
+  const verdict = evaluateBreizSourceRights(source({ rightsEvidence: undefined }));
+  assert.ok(verdict.blockers.includes('NO_RIGHTS_EVIDENCE'));
+  assert.equal(verdict.ingestionPermitted, false);
+});
+
+test('preuve HOLD ou non confirmée → bloquée', () => {
+  for (const rightsEvidence of [
+    { ...source().rightsEvidence!, disposition: 'HOLD' as const },
+    { ...source().rightsEvidence!, evidenceState: 'UNVERIFIED_CLAIM' as const },
+  ]) {
+    const verdict = evaluateBreizSourceRights(source({ rightsEvidence }));
+    assert.ok(verdict.blockers.includes('NO_RIGHTS_EVIDENCE'));
+    assert.equal(verdict.ingestionPermitted, false);
+  }
+});
+
+test('preuve incomplète → bloquée même avec licence et fraîcheur', () => {
+  const verdict = evaluateBreizSourceRights(
+    source({ rightsEvidence: { ...source().rightsEvidence!, receiptPath: '   ' } }),
+  );
+  assert.ok(verdict.blockers.includes('NO_RIGHTS_EVIDENCE'));
+  assert.equal(verdict.ingestionPermitted, false);
 });
 
 test('licence absente ou vide → bloqué', () => {
