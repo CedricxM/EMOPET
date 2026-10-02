@@ -63,7 +63,14 @@ test('explicit refresh route rotates only through HttpOnly cookie authority', ()
   assert.match(refreshRoute, /OWNER_REFRESH_COOKIE/);
   assert.match(refreshRoute, /refreshOwnerSession/);
   assert.match(refreshRoute, /writeOwnerSessionCookies/);
+  assert.match(refreshRoute, /clearOwnerSessionCookies/);
   assert.doesNotMatch(refreshRoute, /localStorage|sessionStorage|ownerId|owner_id/);
+});
+
+test('logout preserves refresh authority only when backend revocation is unavailable', () => {
+  assert.match(logoutRoute, /result === 'UNAVAILABLE'/);
+  assert.match(logoutRoute, /clearOwnerAccessCookie/);
+  assert.match(logoutRoute, /clearOwnerSessionCookies/);
 });
 
 test('browser-facing login response never serializes access or refresh credentials', () => {
