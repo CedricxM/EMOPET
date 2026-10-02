@@ -7,6 +7,7 @@ import { CONTROLLED_STATE_PATHS, proposeCompanyTransitions } from './propose-com
 import { prepareReviewedTransitionAppend } from './prepare-reviewed-transition-append.mjs';
 import { finalizeReviewedTransitionAppend } from './finalize-reviewed-transition-append.mjs';
 import { assertSourceSnapshotIncludedInBase, verifySourceSnapshotMergedInBase } from './verify-transition-source-snapshot.mjs';
+import { inspectTransitionWorkflow } from './transition-workflow-status.mjs';
 
 const root = process.cwd();
 
@@ -1122,6 +1123,108 @@ test('reviewed transition append preparation requires explicit review and never 
     source,
     /outputPath === ledgerAbsolute/,
     'reviewed append preparer must reject the canonical ledger as its output path',
+  );
+});
+
+test('transition workflow status is read-only and exposes mechanical next state without approval', () => {
+  const queue = {
+    schema_version: '0.1.0',
+    authority_mode: 'DIFF_PROPOSALS_REQUIRE_EXPLICIT_REVIEW',
+    base_ref: 'main@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+    candidate_ref: 'head@cccccccccccccccccccccccccccccccccccccccc',
+    generated_on: '2026-10-02',
+    proposals: [
+      {
+        proposal_id: 'EMO-PROPOSAL-20261002-0001',
+        review_status: 'REVIEW_REQUIRED',
+        append_ready: false,
+      },
+    ],
+  };
+
+  const tail = transitionEvents.at(-1)?.event_id ?? null;
+
+  const reviewRequired = inspectTransitionWorkflow(queue, transitionEvents);
+  assert.equal(reviewRequired.mechanical_state, 'PROPOSAL_REVIEW_REQUIRED');
+  assert.equal(reviewRequired.next_action_code, 'REVIEW_PROPOSAL');
+  assert.equal(reviewRequired.mutates_ledger, false);
+  assert.equal(reviewRequired.human_review_required, true);
+  assert.equal(reviewRequired.substantive_decision_authority, false);
+
+  const reviewedCandidate = {
+    proposal_id: 'EMO-PROPOSAL-20261002-0001',
+    candidate_ref: queue.candidate_ref,
+    ledger_tail_event_id: tail,
+    append_candidate: {
+      source_candidate_ref: queue.candidate_ref,
+      previous_event_id: tail,
+    },
+  };
+
+  const mechanicallyReady = inspectTransitionWorkflow(
+    queue,
+    transitionEvents,
+    reviewedCandidate,
+  );
+  assert.equal(
+    mechanicallyReady.mechanical_state,
+    'REVIEWED_CANDIDATE_READY_FOR_MANUAL_FINALIZATION_INPUTS',
+  );
+  assert.equal(
+    mechanicallyReady.next_action_code,
+    'SUPPLY_MANUAL_FINALIZATION_INPUTS',
+  );
+  assert.match(mechanicallyReady.next_action, /human/i);
+
+  const stale = inspectTransitionWorkflow(
+    queue,
+    [
+      ...transitionEvents,
+      { event_id: 'EMO-TRANSITION-20261002-9999' },
+    ],
+    reviewedCandidate,
+  );
+  assert.equal(stale.mechanical_state, 'REVIEWED_CANDIDATE_STALE');
+
+  const mismatched = inspectTransitionWorkflow(
+    queue,
+    transitionEvents,
+    {
+      ...reviewedCandidate,
+      candidate_ref: 'head@dddddddddddddddddddddddddddddddddddddddd',
+    },
+  );
+  assert.equal(
+    mismatched.mechanical_state,
+    'REVIEWED_CANDIDATE_SOURCE_MISMATCH',
+  );
+
+  const orphaned = inspectTransitionWorkflow(
+    queue,
+    transitionEvents,
+    {
+      ...reviewedCandidate,
+      proposal_id: 'EMO-PROPOSAL-20261002-9999',
+    },
+  );
+  assert.equal(orphaned.mechanical_state, 'REVIEWED_CANDIDATE_ORPHANED');
+
+  const empty = inspectTransitionWorkflow(
+    { ...queue, proposals: [] },
+    transitionEvents,
+  );
+  assert.equal(empty.mechanical_state, 'NO_PENDING_PROPOSALS');
+
+  const source = readText('scripts/control/transition-workflow-status.mjs');
+  assert.doesNotMatch(
+    source,
+    /writeFileSync|appendFileSync|finalizeReviewedTransitionAppend/,
+    'workflow status helper must stay read-only and cannot finalize or append history',
+  );
+  assert.match(
+    source,
+    /MECHANICAL_WORKFLOW_STATUS_NOT_DECISION_AUTHORITY/,
+    'workflow status helper must disclose its non-authority boundary',
   );
 });
 
