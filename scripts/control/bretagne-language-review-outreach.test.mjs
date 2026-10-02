@@ -131,7 +131,7 @@ test('not-contacted state rejects outbound/inbound communication evidence', () =
 
   assert.ok(
     errors.some((error) =>
-      error.includes('CANDIDATE_NOT_CONTACTED cannot coexist with communication evidence'),
+      error.includes('CANDIDATE_NOT_CONTACTED cannot coexist with evidence receipts'),
     ),
   );
 });
