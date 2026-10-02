@@ -17,8 +17,8 @@ Hono API ──────────────────────┘
 
 MAT/TAG partial firmware ── BLE protocol package ── client/backend integration
 
-Unity: absent and gated
-Nakama: not canonical on main; experimental work remains gated
+Unity World spike ── Hono `/api/world-spike` ── isolated Nakama runtime
+World runtime status: present on `main`; live loopback validated; not production authority
 ```
 
 The controlled target direction supplied for this reconciliation is a Hono/TypeScript backend with PostgreSQL as durable data authority and backend authorization as policy authority. Current code only partially realizes that direction.
@@ -124,11 +124,15 @@ Firmware readiness is `OBSERVED_PARTIAL`, not validated hardware integration.
 
 ## 8. Unity and Nakama
 
-No canonical Unity project is present on `main`; Unity remains gated.
+A canonical **World spike** is present on `main` under `unity/world`, pinned to Unity **6.3 LTS / 6000.3.25f1**. It contains transport-independent World state, an authenticated Hono client, session lifecycle handling, deterministic EditMode tests, and the validated live loopback test. There is deliberately no production scene or production release authority.
 
-Nakama is also not canonical on `main`. Experimental World/Nakama work may exist on non-main branches, but branch presence is not runtime, product, deployment, or production authority.
+Nakama is present on `main` as an isolated World realtime transport boundary under `backend/api/services/world-spike` and `infra/nakama`. Unity does not authenticate directly to Nakama and does not own Nakama credentials, tokens, durable identity, privacy, moderation, scientific, or persistence authority.
 
-Both workstreams remain `GATED / NOT PRODUCTION AUTHORITY` until their own activation-gate evidence is promoted deliberately.
+Recorded workstation evidence on **2026-10-01** includes a **32/32 EditMode baseline** and a named live **Unity → Hono → Nakama** loopback scenario that passed in **2.487 s**, covering two synthetic sessions, visibility/presence, group join, preset chat, session renewal, and fail-closed degraded transport behavior.
+
+These are `SPIKE EVIDENCE / NOT PRODUCTION AUTHORITY`. They prove the checked-in first slice and loopback integration path, not deployment readiness, production credentials, product-value validation, or permission to release World.
+
+World progression now also has a controlled durable PostgreSQL foundation (`world_progression_events`, `world_owned_items`, `world_resource_spends`) and bounded legacy replay support. Those stores are not activated behind production HTTP/UI authority; privacy/export/retention disposition and production release remain gated.
 
 ## 9. CI, deployment, and repository controls
 
@@ -148,7 +152,7 @@ CI is materially stronger than the original baseline. Required-check enforcement
 Confirmed working constraints for implementation:
 
 - protected-resource policy belongs on the backend;
-- clients and future Unity/Nakama components are untrusted inputs;
+- clients, including Unity, and Nakama transport components are untrusted inputs rather than policy authorities;
 - raw audio must not be stored or transmitted;
 - unsupported medical/emotional claims and anthropomorphism are prohibited;
 - code evidence does not promote product, security, scientific, deployment, or release maturity.
@@ -161,6 +165,6 @@ Open or gated decisions include:
 - consent, retention, deletion, location, and telemetry rules;
 - exact ELI/ELS/Claim Guard definitions and Breiz bounds;
 - legacy/stale branch cleanup, repository IP/licensing, CODEOWNERS/reviewer policy, environments, and deployment ownership;
-- Unity project/version/targets/first slice;
-- Nakama use cases and deployment target.
+- production Unity scene/content pipeline, supported release targets, packaging and activation authority;
+- production Nakama deployment, operations, and release authority.
 
