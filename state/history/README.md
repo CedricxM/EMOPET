@@ -138,14 +138,11 @@ Default diagnostic:
 node scripts/control/transition-workflow-status.mjs
 ```
 
-For an operator decision about whether the **committed proposal queue is still current**, supply the ref that represents the current controlled-state snapshot:
+The default diagnostic computes a Git-blob manifest for the controlled Company OS state files and compares it with the manifest embedded in the committed proposal queue.
 
-```bash
-node scripts/control/transition-workflow-status.mjs \
-  --current-ref main@<current-main-sha>
-```
+That makes queue freshness **content-aware**: unrelated repository commits do not stale the queue, while any byte change to a controlled state file does.
 
-Without `--current-ref`, the helper can describe proposal/review/ledger mechanics but cannot certify that the queue was generated from the current controlled state.
+`--current-ref main@<sha>` remains optional provenance context for the diagnostic output. It is not the freshness signal.
 
 To inspect a prepared reviewed candidate:
 
@@ -164,7 +161,9 @@ The helper can report:
 - `REVIEWED_CANDIDATE_STALE`;
 - `REVIEWED_CANDIDATE_READY_FOR_MANUAL_FINALIZATION_INPUTS`.
 
-`PROPOSAL_QUEUE_STALE` fails closed before proposal count, review handoff or reviewed-candidate readiness is trusted. The next action is to regenerate the review-only queue from the current controlled state.
+`PROPOSAL_QUEUE_STALE` fails closed when the current controlled-state manifest differs from the queue candidate manifest, before proposal count, review handoff or reviewed-candidate readiness is trusted. The next action is to regenerate the review-only queue from the current controlled state.
+
+A raw main-branch SHA difference alone is not enough to mark the queue stale.
 
 These are mechanical workflow states only. They are not approval, validation, release authority, funding authority or a substitute for the substantive human review.
 
