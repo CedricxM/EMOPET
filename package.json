@@ -30,7 +30,9 @@
     "hardware:tag-source-coherence:test": "node --test scripts/hardware/tag-source-coherence.test.mjs",
     "control:eli-dynamics-authority:test": "node --test scripts/control/eli-dynamics-parameter-authority.test.mjs",
     "control:wqi-rsi-authority:test": "node --test scripts/control/wqi-rsi-authority.test.mjs",
-    "control:eli-runtime-conformance:test": "node --test scripts/control/eli-runtime-conformance.test.mjs"
+    "control:eli-runtime-conformance:test": "node --test scripts/control/eli-runtime-conformance.test.mjs",
+    "validation:mat-phase0a:ingest": "node scripts/validation/mat-phase0a-evidence-ingest.mjs",
+    "validation:mat-phase0a:test": "node --test scripts/control/mat-phase0a-evidence-contract.test.mjs scripts/validation/mat-phase0a-evidence-ingest.test.mjs"
   },
   "devDependencies": {
     "@types/react": "19.2.15",
