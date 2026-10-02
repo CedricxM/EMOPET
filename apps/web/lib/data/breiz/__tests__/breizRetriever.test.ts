@@ -22,6 +22,11 @@ const CONTROLLED_DOCUMENT: BreizDocument = {
     source_url: 'https://example.invalid/source',
     license: 'Licence Ouverte 2.0',
     attribution_text: 'Fixture publisher',
+    permitted_use_summary: 'Fixture public-answer scope',
+    allowed_product_uses: ['INGESTION', 'PUBLIC_ANSWER_WITH_SOURCE'],
+    rights_reviewed_at: '2026-09-22T10:00:00.000Z',
+    rights_recheck_at: '2026-10-22T10:00:00.000Z',
+    reviewer_role: 'TEST_REVIEWER',
   },
   license: 'Licence Ouverte 2.0',
   territory: 'Bretagne',
@@ -103,6 +108,14 @@ test('vector export preserves immutable authority-binding primitives', () => {
   assert.equal(exported[0]!.metadata.source_immutable_version, 'dataset-v1');
   assert.equal(exported[0]!.metadata.source_receipt_path, 'data/registry/receipts/fixture.json');
   assert.equal(exported[0]!.metadata.source_attribution_text, 'Fixture publisher');
+  assert.equal(exported[0]!.metadata.source_permitted_use_summary, 'Fixture public-answer scope');
+  assert.deepEqual(exported[0]!.metadata.source_allowed_product_uses, [
+    'INGESTION',
+    'PUBLIC_ANSWER_WITH_SOURCE',
+  ]);
+  assert.equal(exported[0]!.metadata.source_rights_reviewed_at, '2026-09-22T10:00:00.000Z');
+  assert.equal(exported[0]!.metadata.source_rights_recheck_at, '2026-10-22T10:00:00.000Z');
+  assert.equal(exported[0]!.metadata.source_rights_reviewer_role, 'TEST_REVIEWER');
 });
 
 test('default mock corpus cannot masquerade as reviewed public source authority', () => {
