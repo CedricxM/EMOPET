@@ -1,5 +1,5 @@
 /**
- * MotsPet candidate inventory v2.
+ * MotsPet candidate inventory v5.
  *
  * This inventory is deliberately upstream of public wording. It records the
  * next concepts that need language review without promoting them into the
@@ -9,7 +9,7 @@
 import { MOTSPET_ENTRIES, getMotsPetEntry } from './motspet';
 
 export const MOTSPET_CANDIDATE_INVENTORY_REVISION =
-  'motspet-candidate-inventory-v4-2026-10-02' as const;
+  'motspet-candidate-inventory-v5-2026-10-02' as const;
 
 export type MotsPetCandidateStatus =
   | 'EXISTING_CONTROLLED'
@@ -234,9 +234,9 @@ export const MOTSPET_CANDIDATE_INVENTORY: readonly MotsPetCandidateInventoryEntr
     internalTerms: ['share_scope', 'professional_share_scope', 'audience_scope'],
     sourceSurfaces: ['Professional share', 'Community'],
     reviewQuestionFr: 'Expliquer précisément ce qui est partagé, avec qui et pour quelle durée/finalité.',
-    authorityPaths: [OWNER_AUTHORITY, AUTHORITY_MAP],
-    status: 'CANDIDATE_REVIEW',
-    existingMotsPetId: null,
+    authorityPaths: [OWNER_AUTHORITY, AUTHORITY_MAP, DATA_TRUST],
+    status: 'EXISTING_CONTROLLED',
+    existingMotsPetId: 'share_scope',
   }),
   entry({
     id: 'explicit_preference',
