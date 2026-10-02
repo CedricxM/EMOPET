@@ -106,7 +106,7 @@ test('dry-run proof is explicit, disposable-only and non-authoritative', () => {
 
 test('G2 durable foundation is explicit without production activation', () => {
   assert.deepEqual(gate.migrationGate.currentReservation, {
-    migration: '0045_world_gamification_persistence.sql',
+    migration: '0046_world_gamification_persistence.sql',
     recheckedAgainstMain: true,
     schemaFoundationPresent: true,
   });
