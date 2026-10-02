@@ -1,11 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const readiness = JSON.parse(
-  await readFile(
+  readFileSync(
     new URL('../../../../config/world/world-gate5c-web-activation-readiness-v1.json', import.meta.url),
     'utf8',
   ),
