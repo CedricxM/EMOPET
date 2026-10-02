@@ -5,10 +5,10 @@ import { readFile } from 'node:fs/promises';
 const root = new URL('../../', import.meta.url);
 const source = (path) => readFile(new URL(path, root), 'utf8');
 
-test('approved D1-D5 privacy decisions are five while five lifecycle/evidence authorities stay unresolved', async () => {
+test('approved D1-D5 privacy decisions remain five while G2 lifecycle authority stays unresolved', async () => {
   const semantics = JSON.parse(await source('config/privacy/erasure-conditional-semantics.json'));
   assert.equal(semantics.summary.productPrivacyDecisionsApproved, 5);
-  assert.equal(semantics.summary.authorityDecisionsStillRequired, 5);
+  assert.equal(semantics.summary.authorityDecisionsStillRequired, 8);
   assert.equal(semantics.productPrivacyDecisionsApproved.length, 5);
   assert.deepEqual(
     semantics.authorityDecisionsRemaining.map((row) => row.relation).sort(),
@@ -20,6 +20,9 @@ test('approved D1-D5 privacy decisions are five while five lifecycle/evidence au
       'professional_share_grants.id|UNCONSTRAINED_IDENTIFIER|professional_share_access_audits|grant_id',
       'users.id|DIRECT_FK|community_rules_acceptances|user_id',
       'users.id|DIRECT_FK|professional_share_grants|owner_user_id',
+      'users.id|DIRECT_FK|world_owned_items|owner_id',
+      'users.id|DIRECT_FK|world_progression_events|owner_id',
+      'users.id|DIRECT_FK|world_resource_spends|owner_id',
     ],
   );
   for (const row of semantics.productPrivacyDecisionsApproved) {
