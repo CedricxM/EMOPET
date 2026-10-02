@@ -30,9 +30,9 @@ async function loadSnapshotModule() {
   const questUrl = dataUrl(quest.output);
   const provenanceUrl = dataUrl(provenance.output);
   const rewritten = snapshot.output
-    .replace(/from ['"]\.\/world-quest-projection['"]/, `from '${questUrl}'`)
-    .replace(/from ['"]\.\/world-progression-provenance['"]/, `from '${provenanceUrl}'`)
-    .replace(/from ['"]\.\/world-regional-collections['"]/, `from '${regionalUrl}'`);
+    .replace(/from ['"]\.\/world-quest-projection(?:\.js)?['"]/, `from '${questUrl}'`)
+    .replace(/from ['"]\.\/world-progression-provenance(?:\.js)?['"]/, `from '${provenanceUrl}'`)
+    .replace(/from ['"]\.\/world-regional-collections(?:\.js)?['"]/, `from '${regionalUrl}'`);
 
   return {
     source: snapshot.source,
