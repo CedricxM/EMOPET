@@ -1,3 +1,5 @@
+import type { BreizRightsProductUse } from './sourceRegistry';
+
 export type BreizReliabilityLevel = 'source_verified' | 'curated_mock' | 'community_pending' | 'unknown';
 export type BreizAllowedUsage = 'internal_reference' | 'public_answer_with_source' | 'retrieval_only' | 'do_not_answer';
 
@@ -14,6 +16,11 @@ export interface BreizSourceAuthorityBinding {
   source_url: string;
   license: string;
   attribution_text: string;
+  permitted_use_summary: string;
+  allowed_product_uses: readonly BreizRightsProductUse[];
+  rights_reviewed_at: string;
+  rights_recheck_at: string | null;
+  reviewer_role: string;
 }
 
 export interface BreizDocument {
@@ -74,6 +81,21 @@ export function validateBreizDocument(document: BreizDocument): string[] {
     if (!binding.source_url.trim()) errors.push('source_authority_binding.source_url is required');
     if (!binding.license.trim()) errors.push('source_authority_binding.license is required');
     if (!binding.attribution_text.trim()) errors.push('source_authority_binding.attribution_text is required');
+    if (!binding.permitted_use_summary.trim()) errors.push('source_authority_binding.permitted_use_summary is required');
+    if (!binding.allowed_product_uses.includes('PUBLIC_ANSWER_WITH_SOURCE')) {
+      errors.push('source_authority_binding must grant PUBLIC_ANSWER_WITH_SOURCE');
+    }
+    if (!binding.rights_reviewed_at.trim()) errors.push('source_authority_binding.rights_reviewed_at is required');
+    if (!binding.reviewer_role.trim()) errors.push('source_authority_binding.reviewer_role is required');
+    if (document.source_name.trim() !== binding.source_name.trim()) {
+      errors.push('source_name must match source_authority_binding');
+    }
+    if ((document.source_url ?? '').trim() !== binding.source_url.trim()) {
+      errors.push('source_url must match source_authority_binding');
+    }
+    if (document.license.trim() !== binding.license.trim()) {
+      errors.push('license must match source_authority_binding');
+    }
   }
 
   return errors;
