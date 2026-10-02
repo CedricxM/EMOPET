@@ -364,7 +364,7 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
       consents: 1,
       sessions: 1,
       copresence: 1,
-      phonePresence: 1,
+      phone_presence: 1,
     });
   });
 });
