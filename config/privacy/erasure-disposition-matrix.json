@@ -510,6 +510,15 @@
       "disposition": "TO_CONFIRM",
       "executionStatus": "NOT_IMPLEMENTED",
       "testEvidence": "NONE"
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "presence_events",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE"
     }
   ],
   "nonSqlSurfaces": [
