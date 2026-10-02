@@ -159,6 +159,7 @@ test('PRIV-ERASURE-TOPOLOGY static controls remain fail closed', () => {
   assert.deepEqual(
     sorted(unclassified),
     sorted([
+      'phone_presence_events',
       'research_data_consents',
       'subscriptions',
       'world_owned_items',
