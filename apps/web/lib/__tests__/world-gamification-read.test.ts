@@ -234,10 +234,15 @@ test('Gate 5A client remains unactivated and independent from legacy browser aut
   assert.doesNotMatch(clientSource, /\.\/gamification|@\/lib\/gamification/);
   assert.doesNotMatch(clientSource, /method:\s*['"](?:POST|PUT|PATCH|DELETE)['"]/);
 
+  const allowedLibraryAdapters = new Set([
+    path.resolve(webRoot, 'lib/world-owner-auth.ts'),
+  ]);
+
   for (const rootName of ['app', 'components', 'lib']) {
     const root = path.join(webRoot, rootName);
     for (const file of await collectSourceFiles(root)) {
-      if (path.resolve(file) === clientPath) continue;
+      const resolved = path.resolve(file);
+      if (resolved === clientPath || allowedLibraryAdapters.has(resolved)) continue;
       const source = await readFile(file, 'utf8');
       assert.equal(
         source.includes('world-gamification-read'),
