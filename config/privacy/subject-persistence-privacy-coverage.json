@@ -164,6 +164,12 @@
       ]
     },
     {
+      "table": "phone_presence_events",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "mappingRationale": "Durable phone Presence events are Owner- and dog-linked, but Presence-specific retention, export and erasure lifecycle remain explicitly TO_CONFIRM under #135; no exact-location or sensor retention category is inherited by analogy."
+    },
+    {
       "table": "posts",
       "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
       "inventoryCategories": [
@@ -228,6 +234,14 @@
       ]
     },
     {
+      "table": "social_connections",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "community"
+      ],
+      "mappingRationale": "Canonical World trust-ladder state between two accounts (pending, connected, declined, directional trust flags); no score, message, dog or location data."
+    },
+    {
       "table": "subscriptions",
       "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
       "inventoryCategories": [],
@@ -241,30 +255,6 @@
       "inventoryCategories": [
         "community"
       ]
-    },
-    {
-      "table": "world_pilot_access",
-      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
-      "inventoryCategories": [
-        "account"
-      ],
-      "mappingRationale": "Account-scoped World pilot entitlement (invited adult tester flag and self-declared adulthood timestamp); no social, dog or location data."
-    },
-    {
-      "table": "social_connections",
-      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
-      "inventoryCategories": [
-        "community"
-      ],
-      "mappingRationale": "Canonical World trust-ladder state between two accounts (pending, connected, declined, directional trust flags); no score, message, dog or location data."
-    },
-    {
-      "table": "world_presence_consents",
-      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
-      "inventoryCategories": [
-        "community"
-      ],
-      "mappingRationale": "Per-session opt-in record for World presence visibility (grant, expiry, withdrawal timestamps only)."
     },
     {
       "table": "user_config",
@@ -291,13 +281,29 @@
       "mappingRationale": "Derived walk-quality scores and WQI from dog-linked observations."
     },
     {
-      "table": "world_progression_events",
+      "table": "world_owned_items",
       "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
       "inventoryCategories": [],
       "mappingRationale": "Durable World progression state is Owner-linked, but lifecycle/export/retention classification remains explicitly TO_CONFIRM under issue #898."
     },
     {
-      "table": "world_owned_items",
+      "table": "world_pilot_access",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "account"
+      ],
+      "mappingRationale": "Account-scoped World pilot entitlement (invited adult tester flag and self-declared adulthood timestamp); no social, dog or location data."
+    },
+    {
+      "table": "world_presence_consents",
+      "classificationStatus": "MAPPED_TO_EXISTING_PRIVACY_CATEGORY",
+      "inventoryCategories": [
+        "community"
+      ],
+      "mappingRationale": "Per-session opt-in record for World presence visibility (grant, expiry, withdrawal timestamps only)."
+    },
+    {
+      "table": "world_progression_events",
       "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
       "inventoryCategories": [],
       "mappingRationale": "Durable World progression state is Owner-linked, but lifecycle/export/retention classification remains explicitly TO_CONFIRM under issue #898."
