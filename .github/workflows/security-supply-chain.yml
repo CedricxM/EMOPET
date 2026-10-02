@@ -118,6 +118,8 @@ jobs:
         run: node --test scripts/data/capture-bretagne-open-data-schema.test.mjs
       - name: Enforce Bretagne RNR licence clarification HOLD
         run: node --test scripts/control/bretagne-rnr-licence-clarification.test.mjs
+      - name: Test Bretagne RNR licence clarification response flow
+        run: node --test scripts/control/bretagne-rnr-licence-clarification-response.test.mjs
       - name: Enforce Company OS evidence-gated state invariants
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
