@@ -298,7 +298,7 @@ runtimeTest('WORLD-G2 durable ledger/build persistence is replay-safe, anti-farm
     const sameItemRequests = [
       {
         ownerId: ownerB,
-        idempotencyKey: 'build:g2:memory-lantern:001',
+        idempotencyKey: committedBuildKey,
         collection: globalCollection,
         itemId: 'memory-lantern',
       },
