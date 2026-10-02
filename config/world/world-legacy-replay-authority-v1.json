@@ -1,0 +1,40 @@
+{
+  "version": "1",
+  "status": "CONTROLLED_DRAFT_NOT_RUNTIME_AUTHORITY",
+  "productionAuthority": false,
+  "bulkCounterImport": false,
+  "callerSuppliedRewards": false,
+  "rawLegacyRecordIdPersisted": false,
+  "idempotencyStrategy": "SHA256_OWNER_SURFACE_LEGACY_RECORD_ID",
+  "allowedReplaySurfaces": {
+    "knowledge_cards_read": {
+      "eventKind": "knowledge.card_read",
+      "canonicalSourcePrefix": "knowledge:"
+    },
+    "saved_map_spots": {
+      "eventKind": "local.place_saved",
+      "canonicalSourcePrefix": "place:"
+    },
+    "community_memberships": {
+      "eventKind": "world.group_joined",
+      "canonicalSourcePrefix": "world-group:"
+    }
+  },
+  "explicitlyNotReplayable": [
+    "journal_entries",
+    "community_events",
+    "aggregate_counters",
+    "walk_recorded_counts",
+    "validDataDays",
+    "baselineFrozen"
+  ],
+  "rules": [
+    "Replay is one legacy record at a time.",
+    "The server derives the target event kind from the approved surface.",
+    "The raw legacy record id is hashed and is not stored as progression evidence.",
+    "The canonical source must pass the normal World source authority.",
+    "Reward amounts come only from the normal server-owned World reward catalogue.",
+    "Different legacy ids pointing at the same canonical reward source must still mint at most once.",
+    "Unsupported or aggregate legacy surfaces fail closed."
+  ]
+}
