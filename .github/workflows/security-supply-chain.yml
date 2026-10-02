@@ -114,6 +114,8 @@ jobs:
       # #118 and #86.
       - name: Enforce CI coverage of every root scripts/ and tools/ test (#671)
         run: node --test scripts/control/control-test-ci-coverage.test.mjs
+      - name: Enforce MAT Phase 0A evidence-ingestion contract (#230)
+        run: pnpm validation:mat-phase0a:test
       - name: Test Bretagne schema evidence capture contract
         run: node --test scripts/data/capture-bretagne-open-data-schema.test.mjs
       - name: Test Bretagne RNR field review packet
