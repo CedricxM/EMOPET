@@ -2,7 +2,6 @@ import { Hono } from 'hono';
 
 import {
   readWorldGamificationSnapshot,
-  WorldGamificationReadError,
   type WorldGamificationPublicSnapshot,
 } from '../services/world-gamification-read.js';
 
@@ -43,13 +42,7 @@ export function createWorldGamificationReadRoutes(
 
     try {
       return c.json(await reader({ ownerId, regionCode }));
-    } catch (error) {
-      if (error instanceof WorldGamificationReadError) {
-        return c.json({
-          error: 'World gamification read rejected.',
-          code: error.code,
-        }, 400);
-      }
+    } catch {
       return c.json({
         error: 'World gamification read is temporarily unavailable.',
         code: 'WORLD_GAMIFICATION_READ_UNAVAILABLE',
