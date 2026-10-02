@@ -272,7 +272,9 @@ jobs:
         shell: bash
         run: |
           set +e
-          pnpm --filter @emopet/web build > web-build.log 2>&1
+          # Execute the same web build graph through Turbo so unchanged inputs can
+          # replay deterministic build outputs from the cache restored above.
+          pnpm turbo run build --filter=@emopet/web... > web-build.log 2>&1
           code=$?
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           set -e
