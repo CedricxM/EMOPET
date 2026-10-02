@@ -85,8 +85,10 @@ test('merged client foundations remain read-only and dormant on current main', a
   assert.doesNotMatch(webClient, /localStorage|sessionStorage/);
   assert.match(webTest, /activates Gate 5A before an explicit cutover decision/);
 
-  assert.match(unityClient, /UnityWebRequest/);
+  assert.match(unityClient, /IWorldHttpTransport/);
+  assert.match(unityClient, /http\.SendAsync\(\s*['"]GET['"]/);
   assert.doesNotMatch(unityClient, /NakamaClient|HeroicLabs|authenticateCustom/);
+  assert.doesNotMatch(unityClient, /\b(post|put|patch|delete)\b/i);
   assert.match(unityTest, /WorldGamificationReadClientTests/);
   assert.match(unityBoundary, /WorldGamificationReadClient/);
 });
