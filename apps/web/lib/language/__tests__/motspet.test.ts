@@ -118,6 +118,36 @@ test('share scope is bounded by recipient, purpose and access window rather than
   assert.ok(shareScope.prohibitedPublicTerms.includes('public par défaut'));
 });
 
+test('Moment stays private-first and cannot be minted from sensor or ELI interpretation', () => {
+  const moment = getMotsPetEntry('moment');
+  assert.ok(moment);
+  assert.equal(moment.status, 'CONTROLLED_SEED');
+  assert.equal(moment.domain, 'relationship');
+  assert.equal(moment.publicFr, 'moment choisi');
+  assert.equal(moment.publicEn, 'chosen moment');
+  assert.equal(moment.requiresProvenance, true);
+  assert.ok(moment.definitionFr.includes('Capture volontaire'));
+  assert.ok(moment.definitionFr.includes('privé par défaut'));
+  assert.ok(moment.definitionFr.includes('ne peut pas être créé automatiquement'));
+  assert.ok(moment.prohibitedPublicTerms.includes('moment heureux détecté'));
+  assert.ok(moment.prohibitedPublicTerms.includes('public automatiquement'));
+});
+
+test('Memory stays Owner-chosen relationship history rather than ELI sentiment', () => {
+  const memory = getMotsPetEntry('memory');
+  assert.ok(memory);
+  assert.equal(memory.status, 'CONTROLLED_SEED');
+  assert.equal(memory.domain, 'relationship');
+  assert.equal(memory.publicFr, 'souvenir choisi');
+  assert.equal(memory.publicEn, 'chosen memory');
+  assert.equal(memory.requiresProvenance, true);
+  assert.ok(memory.definitionFr.includes('propriétaire choisit explicitement'));
+  assert.ok(memory.definitionFr.includes('ni une interprétation ELI'));
+  assert.ok(memory.prohibitedPublicTerms.includes('souvenir généré automatiquement'));
+  assert.ok(memory.prohibitedPublicTerms.includes('preuve de lien'));
+  assert.ok(memory.prohibitedPublicTerms.includes('score de relation'));
+});
+
 test('explicit preference stays Owner-declared and never becomes dog-state or relationship inference', () => {
   const preference = getMotsPetEntry('explicit_preference');
   assert.ok(preference);
