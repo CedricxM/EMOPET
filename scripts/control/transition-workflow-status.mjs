@@ -124,6 +124,7 @@ export function inspectTransitionWorkflow(
   }
 
   const currentRef = options.currentRef ?? null;
+  const repository = options.repository ?? null;
   if (
     currentRef !== null &&
     (typeof currentRef !== 'string' ||
@@ -144,19 +145,32 @@ export function inspectTransitionWorkflow(
       ? null
       : `node scripts/control/transition-review-packet.mjs --proposal-queue ${DEFAULT_PROPOSAL_PATH}`;
 
-  const operatorHandoff =
-    status.next_action_code === 'REVIEW_PROPOSAL'
-      ? {
-          action: 'RENDER_REVIEW_PACKET',
-          command: proposalPacketCommand,
-          scope:
-            proposalQueue.proposals.length === 1
-              ? 'SINGLE_PENDING_PROPOSAL'
-              : 'FULL_PENDING_QUEUE_NO_PRIORITY_RANKING',
-          note:
-            'This handoff opens the read-only review surface only. It does not select, prioritize, accept or approve a proposal.',
-        }
-      : null;
+  let operatorHandoff = null;
+  if (status.next_action_code === 'REVIEW_PROPOSAL') {
+    operatorHandoff = {
+      action: 'RENDER_REVIEW_PACKET',
+      command: proposalPacketCommand,
+      scope:
+        proposalQueue.proposals.length === 1
+          ? 'SINGLE_PENDING_PROPOSAL'
+          : 'FULL_PENDING_QUEUE_NO_PRIORITY_RANKING',
+      note:
+        'This handoff opens the read-only review surface only. It does not select, prioritize, accept or approve a proposal.',
+    };
+  } else if (status.next_action_code === 'REGENERATE_PROPOSAL_QUEUE') {
+    operatorHandoff = {
+      action: 'REGENERATE_PROPOSAL_QUEUE',
+      command:
+        repository && currentRef
+          ? `node scripts/control/propose-company-transitions.mjs --repository ${repository} --base-ref ${proposalQueue.base_ref} --candidate-ref ${currentRef} --output state/history/pending-transition-proposals.json`
+          : null,
+      scope: 'REMOTE_CONTROLLED_STATE_DIFF_NO_DECISION_AUTHORITY',
+      note:
+        repository && currentRef
+          ? 'This handoff regenerates review-only proposals from explicit Git refs. It does not review, prioritize, accept, prepare, finalize or append a transition.'
+          : 'Supply --repository and --current-ref to render an explicit remote regeneration command. No queue mutation is performed by the workflow doctor.',
+    };
+  }
 
   return {
     schema_version: '0.3.0',
@@ -190,6 +204,8 @@ function main() {
   const reviewedCandidatePath = argValue('--reviewed-candidate');
   const currentRef =
     argValue('--current-ref') ?? process.env.EMOPET_CURRENT_REF ?? null;
+  const repository =
+    argValue('--repository') ?? process.env.GITHUB_REPOSITORY ?? null;
 
   const proposalQueue = readJson(proposalPath);
   const ledgerEvents = readJsonLines(ledgerPath);
@@ -207,7 +223,7 @@ function main() {
     proposalQueue,
     ledgerEvents,
     reviewedCandidate,
-    { currentRef },
+    { currentRef, repository },
   );
 
   process.stdout.write(JSON.stringify(result, null, 2) + '\n');
