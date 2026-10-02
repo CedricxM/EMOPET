@@ -153,7 +153,8 @@ test('promotion requirements preserve every active G1B.2 gate', () => {
     'subject discovery',
     'residue verification',
     'non-sql',
-    'postgresql migration',
+    'durable postgresql',
+    'production write activation',
   ]) {
     assert.match(requirements, new RegExp(required));
   }
