@@ -1,6 +1,6 @@
 # EMOPET — Vue système observée
 
-Ce document complète `ARCHITECTURE.md` avec un flux de lecture court. Il décrit le dépôt au 2026-08-29 sans revendiquer de maturité produit, scientifique, clinique ou de production.
+Ce document complète `ARCHITECTURE.md` avec un flux de lecture court. Il a été réconcilié avec le dépôt courant le 2026-10-02 sans revendiquer de maturité produit, scientifique, clinique ou de production.
 
 Le diagramme `docs/architecture/data_flow_diagram.png` décrit l'ancienne architecture Python/FastAPI et doit être traité comme historique, pas comme le diagramme du runtime actuel.
 
@@ -18,8 +18,8 @@ Application Expo ───────── packages ELI / BLE / types ──�
 Backend Hono ───────────── Drizzle / Postgres.js ─────────────── PostgreSQL
           └─────────────── stores mémoire pour certains prototypes
 
-Unity : ABSENT / GATED
-Nakama : ABSENT / GATED
+Unity World spike ── Hono `/api/world-spike` ── Nakama isolé sous `infra/nakama`
+Statut World : loopback live validé / `GATED / NOT PRODUCTION AUTHORITY`
 ```
 
 Ces lignes représentent plusieurs plans d'exécution et de persistance. Elles ne forment pas encore un contrat unifié.
@@ -30,8 +30,8 @@ Ces lignes représentent plusieurs plans d'exécution et de persistance. Elles n
 |---|---|---|
 | Web | `apps/web/app`, `apps/web/components`, `apps/web/lib` | Interface Next.js, Route Handlers et prototypes de données |
 | Mobile | `apps/mobile` | Client Expo/React Native, services HTTP et BLE |
-| Backend | `backend/api` | API Hono, validation, middleware JWT et contrôle propriétaire partiel |
-| Données | `backend/db` | Schémas Drizzle, migrations incomplètes et seeds PostgreSQL |
+| Backend | `backend/api` | API Hono, cycle d'identité, validation, middleware JWT et contrôles owner-scoped |
+| Données | `backend/db` | Schémas Drizzle, migrations/seeds PostgreSQL ; baseline validée sur bases jetables, sans autorité de migration production |
 | Types | `packages/shared` | Types, constantes et validateurs Zod partagés |
 | Inférence | `packages/eli-engine` | Baselines, confiance, dynamique et vetoes |
 | Transport | `packages/ble-protocol` | Trames et commandes MAT/TAG |
@@ -43,8 +43,8 @@ Ces lignes représentent plusieurs plans d'exécution et de persistance. Elles n
 1. Les composants MAT/TAG produisent des signaux ; le package BLE définit des trames de transport.
 2. Le mobile transforme les données en contrats TypeScript, notamment des résumés et caractéristiques dérivées.
 3. `POST /api/sensors/summaries` valide un résumé et vérifie l'accès au chien.
-4. La persistance de ce résumé est encore TODO dans la route active.
-5. Les routes de lecture ELI/baseline/historique renvoient encore des placeholders.
+4. Le résumé est persisté dans PostgreSQL avec provenance `ingestionId` + `deviceId`, liaison dog/source et retry idempotent.
+5. Les lectures ELI génériques et baseline restent explicitement fail-closed tant qu'aucun producteur/projection autoritatif n'est câblé.
 
 Le moteur ELI et ses tests sont du code observé, pas une preuve de validation scientifique ou de produit fini.
 
@@ -52,7 +52,7 @@ Le moteur ELI et ses tests sont du code observé, pas une preuve de validation s
 
 ### PostgreSQL / Drizzle
 
-Direction durable prévue pour les utilisateurs, chiens, appareils, résumés capteurs, états ELI, communauté, datasets et contenus. La chaîne de migrations ne constitue pas encore une baseline applicable sur base vide.
+PostgreSQL/Drizzle est déjà le plan durable de plusieurs parcours utilisateurs, chiens, appareils, résumés capteurs, communauté et journal. La baseline est validée sur des bases jetables ; cela ne constitue ni une migration d'une base de production existante ni une autorité de release.
 
 ### Route Handlers Next.js
 
@@ -78,13 +78,13 @@ Plusieurs clients web ont des replis localStorage/sessionStorage et des identifi
 
 ## 6. Limites et décisions ouvertes
 
-- cycle d'identité et d'authentification ;
-- baseline/upgrade/rollback PostgreSQL ;
+- livraison e-mail production, rollout des comptes legacy et récupération de compte ;
+- upgrade/rollback et backup/restore PostgreSQL avec preuves d'exploitation ;
 - migration ou quarantaine du plan JSON/localStorage ;
 - contrat API versionné ;
 - consentements privés par défaut ;
 - preuve de non-rétention/transmission audio ;
 - CI, protection de branche et propriété du déploiement ;
-- activation éventuelle de Unity et Nakama.
+- éventuelle promotion du spike Unity/Nakama vers une autorité World de production.
 
 Ces sujets restent `OPEN`, `BLOCKED` ou `GATED` selon `ARCHITECTURE.md` ; cette vue ne change aucun statut.
