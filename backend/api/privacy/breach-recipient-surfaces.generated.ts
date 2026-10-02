@@ -309,6 +309,12 @@ export const BREACH_RECIPIENT_SURFACES = [
     "source": "config/privacy account+dog erasure topology"
   },
   {
+    "surface": "sql:world_owned_items",
+    "authority": "CANONICAL_SQL",
+    "requiredGap": null,
+    "source": "config/privacy account+dog erasure topology"
+  },
+  {
     "surface": "sql:world_pilot_access",
     "authority": "CANONICAL_SQL",
     "requiredGap": null,
@@ -316,6 +322,18 @@ export const BREACH_RECIPIENT_SURFACES = [
   },
   {
     "surface": "sql:world_presence_consents",
+    "authority": "CANONICAL_SQL",
+    "requiredGap": null,
+    "source": "config/privacy account+dog erasure topology"
+  },
+  {
+    "surface": "sql:world_progression_events",
+    "authority": "CANONICAL_SQL",
+    "requiredGap": null,
+    "source": "config/privacy account+dog erasure topology"
+  },
+  {
+    "surface": "sql:world_resource_spends",
     "authority": "CANONICAL_SQL",
     "requiredGap": null,
     "source": "config/privacy account+dog erasure topology"
