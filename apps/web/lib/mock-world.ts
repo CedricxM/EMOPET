@@ -1,24 +1,39 @@
+/**
+ * World visual preview data.
+ *
+ * This module is deliberately NON-AUTHORITATIVE and NON-PERSISTENT.
+ * It mirrors the controlled G1 resource / reward / Bretagne collection catalogues
+ * closely enough to render the current web prototype without inventing a second
+ * progression economy.
+ *
+ * Real balances, quests, provenance and ownership come only from the governed
+ * backend World gamification read model once a canonical authenticated web
+ * session exists. This file never turns Care, MAT, TAG, ELI, dog activity,
+ * health, rest, distance or relationship signals into World rewards.
+ */
+
+export const WORLD_PREVIEW_AUTHORITY =
+  'LOCAL_VISUAL_PREVIEW_NOT_ACCOUNT_PROGRESSION' as const;
+
+export const WORLD_PREVIEW_NOTICE =
+  'Aperçu local uniquement : ces valeurs ne sont ni votre solde de compte ni une progression enregistrée.';
+
 export type WorldResourceKey =
-  | 'routinePoints'
-  | 'observationQuality'
-  | 'trustFragments'
+  | 'knowledgeFragments'
+  | 'localDiscoveries'
   | 'walkTraces'
-  | 'calmStones'
-  | 'bondMoments'
   | 'communitySeeds'
-  | 'signalClarity'
-  | 'localDiscoveries';
+  | 'memoryThreads';
 
 export type ResourceBalance = Record<WorldResourceKey, number>;
 
 export type WorldEventType =
-  | 'reliable_rest_window_completed'
-  | 'walk_added'
-  | 'calm_place_discovered'
-  | 'community_place_contributed'
-  | 'signal_quality_high'
-  | 'educational_tip_read'
-  | 'mat_setup_completed';
+  | 'knowledge.card_read'
+  | 'local.place_saved'
+  | 'local.route_saved'
+  | 'community.contribution_created'
+  | 'world.group_joined'
+  | 'memory.created';
 
 export type TileMotif =
   | 'pathMotif'
@@ -40,15 +55,9 @@ export interface WorldResourceDefinition {
   label: string;
   shortLabel: string;
   description: string;
-  /** Accent décoratif — pastille, bordure. Utilisé sur fond sombre. */
+  /** Accent décoratif utilisé sur fond sombre. */
   color: string;
-  /**
-   * Encre du même accent, pour les surfaces CLAIRES où cette couleur porte du
-   * texte. `color` seul y échoue : lichen `#6B8E6F` = 3,20:1 et terre cuite
-   * `#C97B5A` = 2,84:1 sur le sable, là où WCAG AA exige 4,5:1 pour du texte
-   * normal — les deux ratios sont écrits dans `tokens.css`, qui prescrit le
-   * palier 700 comme couleur de texte sur ce fond.
-   */
+  /** Encre suffisamment contrastée sur surfaces claires. */
   textColor: string;
 }
 
@@ -58,6 +67,7 @@ export interface WorldEvent {
   title: string;
   detail: string;
   grants: Partial<ResourceBalance>;
+  previewOnly: true;
 }
 
 export interface WorldBuildItem {
@@ -77,6 +87,7 @@ export interface WorldQuest {
   progress: number;
   target: number;
   resourceHint: WorldResourceKey;
+  previewOnly: true;
 }
 
 export interface CommunityWorldState {
@@ -89,66 +100,10 @@ export interface CommunityWorldState {
 
 export const WORLD_RESOURCES: WorldResourceDefinition[] = [
   {
-    key: 'routinePoints',
-    label: 'Routine Points',
-    shortLabel: 'Routine',
-    description: 'Care routines completed with gentle continuity.',
-    color: 'var(--emopet-navy)',
-    textColor: 'var(--granit-800)',
-  },
-  {
-    key: 'observationQuality',
-    label: 'Observation Quality',
-    shortLabel: 'Quality',
-    description: 'Reliable observation windows and clear setup context.',
-    color: 'var(--emopet-teal)',
-    textColor: 'var(--lichen-700)',
-  },
-  {
-    key: 'trustFragments',
-    label: 'Trust Fragments',
-    shortLabel: 'Trust',
-    description: 'Owner engagement with setup, notes and learning.',
-    color: 'var(--emopet-orange)',
-    textColor: 'var(--terracotta-700)',
-  },
-  {
-    key: 'walkTraces',
-    label: 'Walk Traces',
-    shortLabel: 'Walks',
-    description: 'Walk notes and route additions.',
-    color: 'var(--emopet-teal)',
-    textColor: 'var(--lichen-700)',
-  },
-  {
-    key: 'calmStones',
-    label: 'Calm Stones',
-    shortLabel: 'Stones',
-    description: 'Quiet places and rest-zone setup work.',
-    color: 'var(--granit-500)',
-    textColor: 'var(--granit-700)',
-  },
-  {
-    key: 'bondMoments',
-    label: 'Bond Moments',
-    shortLabel: 'Bond',
-    description: 'Shared owner actions such as notes, learning and care tasks.',
-    color: 'var(--emopet-orange)',
-    textColor: 'var(--terracotta-700)',
-  },
-  {
-    key: 'communitySeeds',
-    label: 'Community Seeds',
-    shortLabel: 'Seeds',
-    description: 'Opt-in local contributions.',
-    color: 'var(--emopet-teal)',
-    textColor: 'var(--lichen-700)',
-  },
-  {
-    key: 'signalClarity',
-    label: 'Signal Clarity',
-    shortLabel: 'Signal',
-    description: 'High-confidence MAT or TAG capture windows.',
+    key: 'knowledgeFragments',
+    label: 'Knowledge Fragments',
+    shortLabel: 'Knowledge',
+    description: 'Owner-led learning actions after canonical source verification.',
     color: 'var(--emopet-navy)',
     textColor: 'var(--granit-800)',
   },
@@ -156,168 +111,157 @@ export const WORLD_RESOURCES: WorldResourceDefinition[] = [
     key: 'localDiscoveries',
     label: 'Local Discoveries',
     shortLabel: 'Local',
-    description: 'Dog-friendly places and walking route discoveries.',
+    description: 'Explicitly saved useful places or routes, never passive location.',
+    color: 'var(--emopet-orange)',
+    textColor: 'var(--terracotta-700)',
+  },
+  {
+    key: 'walkTraces',
+    label: 'Walk Traces',
+    shortLabel: 'Routes',
+    description: 'Explicit Owner-authored saved routes, never measured movement or distance.',
+    color: 'var(--emopet-teal)',
+    textColor: 'var(--lichen-700)',
+  },
+  {
+    key: 'communitySeeds',
+    label: 'Community Seeds',
+    shortLabel: 'Community',
+    description: 'Deliberate social actions only after canonical server verification.',
+    color: 'var(--emopet-teal)',
+    textColor: 'var(--lichen-700)',
+  },
+  {
+    key: 'memoryThreads',
+    label: 'Memory Threads',
+    shortLabel: 'Memories',
+    description: 'Deliberately created Memories once the canonical Memory authority is available.',
     color: 'var(--emopet-orange)',
     textColor: 'var(--terracotta-700)',
   },
 ];
 
 export const EMPTY_RESOURCE_BALANCE: ResourceBalance = {
-  routinePoints: 0,
-  observationQuality: 0,
-  trustFragments: 0,
-  walkTraces: 0,
-  calmStones: 0,
-  bondMoments: 0,
-  communitySeeds: 0,
-  signalClarity: 0,
+  knowledgeFragments: 0,
   localDiscoveries: 0,
+  walkTraces: 0,
+  communitySeeds: 0,
+  memoryThreads: 0,
 };
 
+/**
+ * A visual-only balance used to exercise affordability states in the prototype.
+ * It is not derived from user behaviour and must never be exported as account state.
+ */
+export const PREVIEW_RESOURCE_BALANCE: ResourceBalance = {
+  knowledgeFragments: 5,
+  localDiscoveries: 8,
+  walkTraces: 4,
+  communitySeeds: 6,
+  memoryThreads: 0,
+};
+
+/**
+ * Canonical reward examples, not observed user events.
+ *
+ * Event kinds and grant amounts mirror
+ * config/world/world-progression-authority-v1.json exactly. Runtime source
+ * verification may still be blocked for some event kinds; these records exist
+ * only to explain the governed catalogue in the visual preview.
+ */
 export const MOCK_WORLD_EVENTS: WorldEvent[] = [
   {
-    id: 'event-rest-window',
-    type: 'reliable_rest_window_completed',
-    title: 'Reliable rest window completed',
-    detail: 'MAT captured a complete reference window with 91% signal confidence.',
-    grants: { routinePoints: 40, observationQuality: 30, signalClarity: 18, calmStones: 10 },
+    id: 'preview-knowledge-card',
+    type: 'knowledge.card_read',
+    title: 'Knowledge card read',
+    detail: 'Catalogue example only. Account progression is not wired to this web preview.',
+    grants: { knowledgeFragments: 1 },
+    previewOnly: true,
   },
   {
-    id: 'event-walk-note',
-    type: 'walk_added',
-    title: 'Walk note added',
-    detail: 'A coastal route was added with time, distance and surface notes.',
-    grants: { walkTraces: 34, bondMoments: 12, localDiscoveries: 8 },
+    id: 'preview-local-place',
+    type: 'local.place_saved',
+    title: 'Useful local place saved',
+    detail: 'Catalogue example only. A browser-only saved place is not reward evidence.',
+    grants: { localDiscoveries: 2 },
+    previewOnly: true,
   },
   {
-    id: 'event-place',
-    type: 'calm_place_discovered',
-    title: 'Quiet place discovered',
-    detail: 'A low-traffic walking spot was saved for later review.',
-    grants: { calmStones: 14, localDiscoveries: 18, communitySeeds: 6 },
+    id: 'preview-local-route',
+    type: 'local.route_saved',
+    title: 'Route deliberately saved',
+    detail: 'Catalogue example only. This means an explicit saved route, never measured distance.',
+    grants: { walkTraces: 2, localDiscoveries: 1 },
+    previewOnly: true,
   },
   {
-    id: 'event-community',
-    type: 'community_place_contributed',
-    title: 'Local map contribution',
-    detail: 'A dog-friendly place was shared with the Lorient map after opt-in.',
-    grants: { communitySeeds: 26, localDiscoveries: 12, trustFragments: 10 },
+    id: 'preview-community-contribution',
+    type: 'community.contribution_created',
+    title: 'Community contribution created',
+    detail: 'Catalogue example only. Canonical server authorship is required before any reward.',
+    grants: { communitySeeds: 2 },
+    previewOnly: true,
   },
   {
-    id: 'event-signal',
-    type: 'signal_quality_high',
-    title: 'High signal confidence',
-    detail: 'TAG and MAT were aligned long enough to support careful interpretation.',
-    grants: { signalClarity: 28, observationQuality: 16 },
+    id: 'preview-world-group',
+    type: 'world.group_joined',
+    title: 'World group joined',
+    detail: 'Catalogue example only. Durable World-group authority is still gated.',
+    grants: { communitySeeds: 1 },
+    previewOnly: true,
   },
   {
-    id: 'event-learning',
-    type: 'educational_tip_read',
-    title: 'Care tip read',
-    detail: 'An educational card about steady setup routines was completed.',
-    grants: { routinePoints: 12, trustFragments: 10, bondMoments: 8 },
-  },
-  {
-    id: 'event-setup',
-    type: 'mat_setup_completed',
-    title: 'MAT setup checked',
-    detail: 'The placement check confirmed a stable reference surface.',
-    grants: { routinePoints: 18, signalClarity: 20, calmStones: 8 },
+    id: 'preview-memory',
+    type: 'memory.created',
+    title: 'Memory deliberately created',
+    detail: 'Catalogue example only. Product V1 Memory persistence is still gated.',
+    grants: { memoryThreads: 2 },
+    previewOnly: true,
   },
 ];
 
-export const INITIAL_WORLD_ITEM_IDS = ['coast-path', 'garden-planting'];
+export const INITIAL_WORLD_ITEM_IDS: string[] = [];
 
+/**
+ * Bretagne collection preview.
+ * IDs, titles and costs mirror config/world/world-regional-collections-v1.json.
+ */
 export const WORLD_BUILD_ITEMS: WorldBuildItem[] = [
   {
-    id: 'coast-path',
-    title: 'Coastal path tiles',
-    category: 'Path',
-    description: 'A soft route through the personal world.',
-    motif: 'pathMotif',
-    cell: 24,
-    cost: { routinePoints: 16, walkTraces: 8 },
-  },
-  {
-    id: 'garden-planting',
-    title: 'Garden planting',
-    category: 'Garden',
-    description: 'Low plants and stones for a quiet corner.',
-    motif: 'plantMotif',
-    cell: 11,
-    cost: { routinePoints: 12, calmStones: 8 },
-  },
-  {
-    id: 'rest-blanket',
-    title: 'Rest-zone blanket',
-    category: 'Rest zone',
-    description: 'A premium textile marker for the home area.',
-    motif: 'blanketMotif',
-    cell: 19,
-    cost: { observationQuality: 16, calmStones: 10 },
-  },
-  {
-    id: 'paw-marker',
-    title: 'Paw marker',
-    category: 'Marker',
-    description: 'A small EMOPET signpost for a completed care step.',
-    motif: 'pawMotif',
-    cell: 25,
-    cost: { trustFragments: 8, bondMoments: 8 },
-  },
-  {
-    id: 'lantern-pair',
-    title: 'Lantern pair',
-    category: 'Light',
-    description: 'Warm markers for evening route notes.',
-    motif: 'lanternMotif',
-    cell: 17,
-    cost: { signalClarity: 14, routinePoints: 12 },
-  },
-  {
-    id: 'local-sign',
-    title: 'Local map sign',
-    category: 'Local',
-    description: 'A sign for a saved dog-friendly place.',
-    motif: 'signMotif',
-    cell: 30,
-    cost: { localDiscoveries: 12, communitySeeds: 8 },
-  },
-  {
-    id: 'wave-panel',
-    title: 'Breton wave panel',
-    category: 'Coast',
-    description: 'A subtle wave line unlocked by clear signals.',
-    motif: 'waveMotif',
-    cell: 4,
-    cost: { signalClarity: 18, observationQuality: 12 },
-  },
-  {
-    id: 'mini-lighthouse',
+    id: 'breiz-mini-lighthouse',
     title: 'Mini lighthouse',
     category: 'Landmark',
-    description: 'A Lorient-inspired landmark for shared local progress.',
+    description: 'Bretagne collection preview item.',
     motif: 'lighthouseMotif',
     cell: 6,
-    cost: { communitySeeds: 14, localDiscoveries: 12, signalClarity: 10 },
+    cost: { localDiscoveries: 5, communitySeeds: 3 },
   },
   {
-    id: 'bench-corner',
-    title: 'Bench corner',
+    id: 'breiz-granite-marker',
+    title: 'Granite path marker',
+    category: 'Path',
+    description: 'Bretagne collection preview item.',
+    motif: 'stoneMotif',
+    cell: 24,
+    cost: { walkTraces: 4, localDiscoveries: 3 },
+  },
+  {
+    id: 'breiz-coastal-bench',
+    title: 'Coastal bench',
     category: 'Cozy object',
-    description: 'A quiet sitting point built from care notes.',
+    description: 'Bretagne collection preview item.',
     motif: 'benchMotif',
     cell: 28,
-    cost: { bondMoments: 10, calmStones: 14 },
+    cost: { memoryThreads: 3, communitySeeds: 3 },
   },
   {
-    id: 'shell-line',
-    title: 'Shell line',
-    category: 'Seasonal',
-    description: 'A coastal detail unlocked through route discoveries.',
-    motif: 'shellMotif',
-    cell: 33,
-    cost: { walkTraces: 12, localDiscoveries: 8 },
+    id: 'breiz-learning-sail',
+    title: 'Learning sail',
+    category: 'Learning',
+    description: 'Bretagne collection preview item.',
+    motif: 'waveMotif',
+    cell: 4,
+    cost: { knowledgeFragments: 5, localDiscoveries: 2 },
   },
 ];
 
@@ -328,56 +272,74 @@ export const BASE_WORLD_TILES: Array<{ id: string; title: string; motif: TileMot
   { id: 'wave', title: 'Coast line', motif: 'waveMotif', cell: 32 },
 ];
 
+/**
+ * Quest catalogue preview. Progress is intentionally zero because this surface
+ * is not connected to an authenticated durable World snapshot yet.
+ */
 export const WORLD_QUESTS: WorldQuest[] = [
   {
-    id: 'quest-rest',
-    title: 'Complete 3 reliable rest observations this week',
-    detail: 'Progress comes from capture quality and setup continuity.',
-    progress: 2,
-    target: 3,
-    resourceHint: 'observationQuality',
-  },
-  {
-    id: 'quest-route',
-    title: 'Add one favorite walking route',
-    detail: 'Route notes become Walk Traces and Local Discoveries.',
+    id: 'learn-three',
+    title: 'Read 3 knowledge cards',
+    detail: 'Preview only. Runtime progress requires a canonical Knowledge source verifier.',
     progress: 0,
-    target: 1,
+    target: 3,
+    resourceHint: 'knowledgeFragments',
+    previewOnly: true,
+  },
+  {
+    id: 'local-scout-three',
+    title: 'Save 3 useful local places',
+    detail: 'Preview only. Browser localStorage is not canonical progression evidence.',
+    progress: 0,
+    target: 3,
+    resourceHint: 'localDiscoveries',
+    previewOnly: true,
+  },
+  {
+    id: 'route-cartographer-two',
+    title: 'Save 2 routes',
+    detail: 'Preview only. Runtime progress requires durable Owner-authored route authority.',
+    progress: 0,
+    target: 2,
     resourceHint: 'walkTraces',
+    previewOnly: true,
   },
   {
-    id: 'quest-tip',
-    title: 'Read one educational care tip',
-    detail: 'Learning actions support owner progression.',
-    progress: 1,
-    target: 1,
-    resourceHint: 'trustFragments',
+    id: 'community-seed-two',
+    title: 'Create 2 community contributions',
+    detail: 'Preview only. Canonical Community authorship is verified server-side.',
+    progress: 0,
+    target: 2,
+    resourceHint: 'communitySeeds',
+    previewOnly: true,
   },
   {
-    id: 'quest-setup',
-    title: 'Check signal quality after setting up the MAT',
-    detail: 'High-confidence windows increase Signal Clarity.',
-    progress: 1,
-    target: 1,
-    resourceHint: 'signalClarity',
-  },
-  {
-    id: 'quest-local',
-    title: 'Add a quiet place to the local map',
-    detail: 'Community participation stays opt-in and cooperative.',
+    id: 'join-one-world-group',
+    title: 'Join a World group',
+    detail: 'Preview only. Durable World-group membership authority is still gated.',
     progress: 0,
     target: 1,
     resourceHint: 'communitySeeds',
+    previewOnly: true,
+  },
+  {
+    id: 'memory-keeper-three',
+    title: 'Create 3 memories',
+    detail: 'Preview only. Product V1 Memory persistence is still gated.',
+    progress: 0,
+    target: 3,
+    resourceHint: 'memoryThreads',
+    previewOnly: true,
   },
 ];
 
 export const COMMUNITY_WORLD: CommunityWorldState = {
   city: 'Lorient',
-  headline: 'Lorient community unlocked a new shared path.',
+  headline: 'Lorient community preview',
   updates: [
-    '3 quiet zones were added this week.',
-    'Your contribution helped improve the local dog map.',
-    'A new coastal walk has been discovered nearby.',
+    'Local social content is shown as a visual preview.',
+    'World progression is not derived from passive dog or sensor signals.',
+    'Exact location never grants World resources.',
   ],
   stats: [
     { label: 'Shared paths', value: '7' },
