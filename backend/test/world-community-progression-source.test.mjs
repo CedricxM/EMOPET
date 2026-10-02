@@ -18,6 +18,20 @@ const progression = JSON.parse(
     'utf8',
   ),
 );
+const sourceAuthority = JSON.parse(
+  await readFile(
+    new URL('../../config/world/world-progression-source-authority-v1.json', import.meta.url),
+    'utf8',
+  ),
+);
+const integration = await readFile(
+  new URL('./world-community-progression-source.integration.test.mjs', import.meta.url),
+  'utf8',
+);
+const p0Workflow = await readFile(
+  new URL('../../.github/workflows/p0-db-baseline.yml', import.meta.url),
+  'utf8',
+);
 
 test('Community source slice is bounded to an already-authorised G1 event kind', () => {
   assert.equal(cfg.status, 'CONTROLLED_DRAFT_NOT_RUNTIME_AUTHORITY');
@@ -88,4 +102,37 @@ test('configuration explicitly prevents Community content/location leakage into 
   assert.match(rules, /No Community content body, media, sensor overlay or location is copied/i);
   assert.match(rules, /fail closed/i);
   assert.match(rules, /not automatically wired into a public route/i);
+});
+
+test('Community source proof traverses routed authority and durable G2 storage', () => {
+  assert.deepEqual(sourceAuthority.routes['community.contribution_created'], {
+    authorityDomain: 'community',
+    sourceRefPrefix: 'community:',
+    ownerScopeRequired: true,
+    canonicalExistenceRequired: true,
+  });
+
+  assert.match(integration, /RoutedWorldProgressionSourceAuthority/);
+  assert.match(integration, /PostgresWorldProgressionLedgerStore/);
+  assert.doesNotMatch(integration, /InMemoryWorldProgressionLedgerStore/);
+  assert.match(integration, /WORLD_PROGRESSION_SOURCE_NOT_AUTHORIZED/);
+});
+
+test('Community source integration remains explicit on both PostgreSQL authority paths', () => {
+  assert.equal(
+    (p0Workflow.match(/WORLD-G3 canonical Community progression source on historical migrations/g) ?? []).length,
+    1,
+  );
+  assert.equal(
+    (p0Workflow.match(/WORLD-G3 canonical Community progression source on generated baseline/g) ?? []).length,
+    1,
+  );
+  assert.equal(
+    (p0Workflow.match(/WORLD_COMMUNITY_SOURCE_DB_INTEGRATION: '1'/g) ?? []).length,
+    2,
+  );
+  assert.equal(
+    (p0Workflow.match(/test\/world-community-progression-source\.integration\.test\.mjs/g) ?? []).length,
+    2,
+  );
 });
