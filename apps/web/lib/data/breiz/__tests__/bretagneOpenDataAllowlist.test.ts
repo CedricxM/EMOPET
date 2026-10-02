@@ -120,6 +120,7 @@ test('release-ready fixture requires fresh schema and rights bound to the same v
       attributionText: 'Région Bretagne — Licence Ouverte 2.0',
       permittedUseSummary:
         'Synthetic test fixture: selected territorial metadata under dataset-level open licence.',
+      allowedProductUses: ['INGESTION'],
       reviewedAt: '2026-10-01T12:05:00Z',
       reviewerRole: 'test reviewer',
       recheckAt: '2026-10-02T12:00:00Z',
@@ -153,6 +154,7 @@ test('release-ready fixture stays blocked without exact live schema evidence', (
       receiptPath: 'data/registry/receipts/FIXTURE_ONLY.json',
       attributionText: 'Région Bretagne',
       permittedUseSummary: 'Synthetic test fixture only.',
+      allowedProductUses: ['INGESTION'],
       reviewedAt: '2026-10-01T12:00:00Z',
       reviewerRole: 'test reviewer',
       recheckAt: '2026-10-02T12:00:00Z',
@@ -198,6 +200,7 @@ test('schema evidence must be fresh and contain every approved field', () => {
       receiptPath: 'data/registry/receipts/FIXTURE_ONLY.json',
       attributionText: 'Région Bretagne',
       permittedUseSummary: 'Synthetic test fixture only.',
+      allowedProductUses: ['INGESTION'],
       reviewedAt: '2026-10-01T10:00:00Z',
       reviewerRole: 'test reviewer',
       recheckAt: '2026-10-02T12:00:00Z',
@@ -214,6 +217,62 @@ test('schema evidence must be fresh and contain every approved field', () => {
   assert.equal(verdict.ingestionPermitted, false);
   assert.ok(verdict.blockers.includes('SCHEMA_EVIDENCE_INVALID_OR_STALE'));
   assert.ok(verdict.blockers.includes('APPROVED_FIELDS_NOT_IN_SCHEMA'));
+});
+
+test('dataset GO evidence without INGESTION scope remains blocked', () => {
+  const current = getBretagneOpenDataDataset(
+    'reserves-naturelles-regionales-de-bretagne',
+  );
+  assert.ok(current);
+
+  const scoped = {
+    ...current,
+    allowedRecordFields: ['nom'],
+    status: 'RELEASE_READY' as const,
+    schemaEvidence: {
+      evidenceAuthority: 'PRIMARY_API_SCHEMA' as const,
+      evidenceRef: 'docs/control/FIXTURE_ONLY.md',
+      reviewerRole: 'test reviewer',
+      observedAt: '2026-10-01T12:00:00Z',
+      sourceVersion: 'dataset-v1',
+      schemaFingerprint: 'sha256:fixture-schema',
+      recordCount: 11,
+      fields: ['nom'],
+      sourceUrl:
+        'https://data.bretagne.bzh/api/explore/v2.1/catalog/datasets/reserves-naturelles-regionales-de-bretagne',
+    },
+    fieldApprovalEvidence: {
+      approvedFields: ['nom'],
+      sourceVersion: 'dataset-v1',
+      schemaFingerprint: 'sha256:fixture-schema',
+      reviewerRole: 'test product/data reviewer',
+      reviewerRef: 'CONTROLLED_REVIEWER',
+      reviewedAt: '2026-10-01T12:01:00Z',
+      reviewReceipt: 'CONTROLLED_FIELD_RECEIPT',
+      purposeBoundary: 'Synthetic territorial-context fixture only.',
+    },
+    rightsEvidence: {
+      authorityRevision: 'fixture-v2',
+      immutableSourceVersion: 'dataset-v1',
+      receiptPath: 'data/registry/receipts/FIXTURE_ONLY.json',
+      attributionText: 'Région Bretagne',
+      permittedUseSummary: 'Synthetic public-only fixture.',
+      allowedProductUses: ['PUBLIC_ANSWER_WITH_SOURCE'] as const,
+      reviewedAt: '2026-10-01T12:05:00Z',
+      reviewerRole: 'test reviewer',
+      recheckAt: '2026-10-02T12:00:00Z',
+      evidenceState: 'SOURCE_CONFIRMED' as const,
+      disposition: 'GO' as const,
+    },
+  };
+
+  const verdict = evaluateBretagneOpenDataDatasetRights(
+    scoped,
+    Date.parse('2026-10-01T13:00:00Z'),
+  );
+
+  assert.equal(verdict.ingestionPermitted, false);
+  assert.ok(verdict.blockers.includes('DATASET_RIGHTS_SCOPE_NOT_INGESTION'));
 });
 
 test('rights receipt cannot authorize a different schema/source version', () => {
@@ -244,6 +303,7 @@ test('rights receipt cannot authorize a different schema/source version', () => 
       receiptPath: 'data/registry/receipts/FIXTURE_ONLY.json',
       attributionText: 'Région Bretagne',
       permittedUseSummary: 'Synthetic test fixture only.',
+      allowedProductUses: ['INGESTION'],
       reviewedAt: '2026-10-01T12:05:00Z',
       reviewerRole: 'test reviewer',
       recheckAt: '2026-10-02T12:00:00Z',
@@ -289,6 +349,7 @@ test('secondary or off-origin schema observations cannot authorize release', () 
       receiptPath: 'data/registry/receipts/FIXTURE_ONLY.json',
       attributionText: 'Région Bretagne',
       permittedUseSummary: 'Synthetic test fixture only.',
+      allowedProductUses: ['INGESTION'],
       reviewedAt: '2026-10-01T12:05:00Z',
       reviewerRole: 'test reviewer',
       recheckAt: '2026-10-02T12:00:00Z',
@@ -335,6 +396,7 @@ test('schema evidence requires a controlled pointer and reviewer role', () => {
       receiptPath: 'data/registry/receipts/FIXTURE_ONLY.json',
       attributionText: 'Région Bretagne',
       permittedUseSummary: 'Synthetic test fixture only.',
+      allowedProductUses: ['INGESTION'],
       reviewedAt: '2026-10-01T12:05:00Z',
       reviewerRole: 'test reviewer',
       recheckAt: '2026-10-02T12:00:00Z',
