@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { renderCompanyOsViews } from './generate-company-os-views.mjs';
 import { CONTROLLED_STATE_PATHS, proposeCompanyTransitions } from './propose-company-transitions.mjs';
+import { prepareReviewedTransitionAppend } from './prepare-reviewed-transition-append.mjs';
 
 const root = process.cwd();
 
@@ -34,6 +35,7 @@ const paths = {
   transitionSchema: 'state/history/company-transition.schema.json',
   proposalQueue: 'state/history/pending-transition-proposals.json',
   proposalSchema: 'state/history/company-transition-proposals.schema.json',
+  reviewedAppendSchema: 'state/history/reviewed-transition-append.schema.json',
 };
 
 const company = readJson(paths.company);
@@ -53,6 +55,7 @@ const schemaMap = readJson(paths.schemaMap);
 const transitionSchema = readJson(paths.transitionSchema);
 const proposalQueue = readJson(paths.proposalQueue);
 const proposalSchema = readJson(paths.proposalSchema);
+const reviewedAppendSchema = readJson(paths.reviewedAppendSchema);
 const transitionEvents = readText(paths.transitions)
   .split(/\r?\n/)
   .filter((line) => line.trim().length > 0)
@@ -910,6 +913,114 @@ test('transition proposals are deterministic diffs and never self-approve', () =
     readText('scripts/control/propose-company-transitions.mjs'),
     /company-transitions\.jsonl/,
     'proposal generator must not contain an automatic append path to the canonical ledger',
+  );
+});
+
+test('reviewed transition append preparation requires explicit review and never writes the ledger', () => {
+  const proposalQueue = {
+    schema_version: '0.1.0',
+    authority_mode: 'DIFF_PROPOSALS_REQUIRE_EXPLICIT_REVIEW',
+    base_ref: 'main@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+    candidate_ref: 'head@cccccccccccccccccccccccccccccccccccccccc',
+    generated_on: '2026-10-02',
+    proposals: [
+      {
+        proposal_id: 'EMO-PROPOSAL-20261002-0001',
+        review_status: 'REVIEW_REQUIRED',
+        kind: 'STATE_TRANSITION',
+        subject_id: 'EMO-TEST-PHASE',
+        field: 'status',
+        before_value: 'OPEN',
+        after_value: 'PASSED',
+        source_path: 'state/company-state.json',
+        authority_refs: [{ kind: 'path', value: 'COMPANY.md' }],
+        evidence_refs: [{ kind: 'commit', value: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' }],
+        decision_refs: [],
+        append_ready: false,
+        note: 'Synthetic review fixture.',
+      },
+    ],
+  };
+
+  const prepared = prepareReviewedTransitionAppend(
+    proposalQueue,
+    transitionEvents,
+    'EMO-PROPOSAL-20261002-0001',
+    {
+      accept: true,
+      reviewedOn: '2026-10-02',
+      reviewRef: { kind: 'pr', value: '#990' },
+    },
+  );
+
+  validateAgainstSchema(
+    prepared,
+    reviewedAppendSchema,
+    reviewedAppendSchema,
+    'reviewedAppendCandidate',
+  );
+
+  assert.equal(
+    prepared.authority_mode,
+    'REVIEWED_APPEND_CANDIDATE_REQUIRES_HUMAN_PR_APPROVAL',
+  );
+  assert.equal(
+    prepared.review_status,
+    'REVIEW_RECORDED_ACCEPTED_FOR_PREPARATION',
+  );
+  assert.equal(prepared.finalization.append_to_ledger, false);
+  assert.equal(prepared.finalization.requires_human_pr_approval, true);
+  assert.equal(prepared.finalization.event_id, null);
+  assert.equal(prepared.finalization.source_snapshot_ref, null);
+  assert.equal(
+    prepared.append_candidate.previous_event_id,
+    transitionEvents.at(-1)?.event_id ?? null,
+  );
+  assert.equal(prepared.append_candidate.source_candidate_ref, proposalQueue.candidate_ref);
+
+  assert.throws(
+    () =>
+      prepareReviewedTransitionAppend(
+        proposalQueue,
+        transitionEvents,
+        'EMO-PROPOSAL-20261002-0001',
+        {
+          accept: false,
+          reviewedOn: '2026-10-02',
+          reviewRef: { kind: 'pr', value: '#990' },
+        },
+      ),
+    /Explicit accept=true/,
+  );
+
+  assert.throws(
+    () =>
+      prepareReviewedTransitionAppend(
+        proposalQueue,
+        transitionEvents,
+        'EMO-PROPOSAL-20261002-0001',
+        {
+          accept: true,
+          reviewedOn: '2026-10-02',
+          reviewRef: {
+            kind: 'commit',
+            value: 'dddddddddddddddddddddddddddddddddddddddd',
+          },
+        },
+      ),
+    /review_ref must be a path, issue or pull request reference/,
+  );
+
+  const source = readText('scripts/control/prepare-reviewed-transition-append.mjs');
+  assert.doesNotMatch(
+    source,
+    /appendFileSync/,
+    'reviewed append preparer must not append directly to the canonical ledger',
+  );
+  assert.match(
+    source,
+    /outputPath === ledgerAbsolute/,
+    'reviewed append preparer must reject the canonical ledger as its output path',
   );
 });
 
