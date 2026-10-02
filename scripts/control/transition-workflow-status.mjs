@@ -114,8 +114,27 @@ export function inspectTransitionWorkflow(
     reviewedCandidate,
   );
 
+  const proposalPacketCommand =
+    proposalQueue.proposals.length === 0
+      ? null
+      : `node scripts/control/transition-review-packet.mjs --proposal-queue ${DEFAULT_PROPOSAL_PATH}`;
+
+  const operatorHandoff =
+    status.next_action_code === 'REVIEW_PROPOSAL'
+      ? {
+          action: 'RENDER_REVIEW_PACKET',
+          command: proposalPacketCommand,
+          scope:
+            proposalQueue.proposals.length === 1
+              ? 'SINGLE_PENDING_PROPOSAL'
+              : 'FULL_PENDING_QUEUE_NO_PRIORITY_RANKING',
+          note:
+            'This handoff opens the read-only review surface only. It does not select, prioritize, accept or approve a proposal.',
+        }
+      : null;
+
   return {
-    schema_version: '0.1.0',
+    schema_version: '0.2.0',
     authority_mode: 'MECHANICAL_WORKFLOW_STATUS_NOT_DECISION_AUTHORITY',
     ledger_tail_event_id: ledgerEvents.at(-1)?.event_id ?? null,
     proposal_count: proposalQueue.proposals.length,
@@ -126,6 +145,7 @@ export function inspectTransitionWorkflow(
     mechanical_state: status.mechanical_state,
     next_action_code: status.next_action_code,
     next_action: status.next_action,
+    operator_handoff: operatorHandoff,
     mutates_ledger: false,
     human_review_required: true,
     substantive_decision_authority: false,
