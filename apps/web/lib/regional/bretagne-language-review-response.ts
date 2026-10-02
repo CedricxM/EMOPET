@@ -56,6 +56,7 @@ export interface BretagneLanguageReviewResponseError {
 export interface BretagneIdentityReviewProposal {
   kind: 'IDENTITY';
   itemId: 'bretagne_companion_identity';
+  packetRevision: typeof BRETAGNE_LANGUAGE_REVIEW_PACKET_REVISION;
   proposalStatus: 'HUMAN_REVIEW_REQUIRED';
   canApplyAutomatically: false;
   disposition: BretagneReviewRequestedDisposition;
@@ -74,6 +75,7 @@ export interface BretagneIdentityReviewProposal {
 export interface BretagneLexiconReviewProposal {
   kind: 'LEXICON';
   itemId: string;
+  packetRevision: typeof BRETAGNE_LANGUAGE_REVIEW_PACKET_REVISION;
   proposalStatus: 'HUMAN_REVIEW_REQUIRED';
   canApplyAutomatically: false;
   disposition: BretagneReviewRequestedDisposition;
@@ -239,6 +241,7 @@ function buildProposal(
     return {
       kind: 'IDENTITY',
       itemId: 'bretagne_companion_identity',
+      packetRevision: packet.packetRevision,
       proposalStatus: 'HUMAN_REVIEW_REQUIRED',
       canApplyAutomatically: false,
       disposition: response.disposition,
@@ -262,6 +265,7 @@ function buildProposal(
   return {
     kind: 'LEXICON',
     itemId: item.itemId,
+    packetRevision: packet.packetRevision,
     proposalStatus: 'HUMAN_REVIEW_REQUIRED',
     canApplyAutomatically: false,
     disposition: response.disposition,
