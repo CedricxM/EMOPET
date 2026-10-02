@@ -27,6 +27,7 @@ Each response must carry:
   - `APPROVED_WITH_CONDITIONS`;
   - `REJECTED`;
 - reviewer role;
+- controlled reviewer reference;
 - valid non-future review timestamp;
 - controlled evidence reference;
 - approved meaning/claim;
@@ -48,7 +49,7 @@ For the companion identity:
   - assistant-name origin;
   - naming rule.
 
-A changed packet revision, changed meaning, changed usage or changed identity claim invalidates the response proposal.
+A changed packet revision, changed meaning, changed usage or changed identity claim invalidates the response proposal. Reviewer identity is also kept separate from the evidence receipt: `reviewerRef` identifies the reviewer record while `evidenceReference` identifies the reviewed evidence.
 
 ## Conditional approval
 
