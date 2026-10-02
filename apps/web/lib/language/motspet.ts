@@ -5,12 +5,13 @@
  * language. It never creates scientific/legal authority by itself.
  */
 
-export const MOTSPET_REVISION = 'motspet-v0.4-seed-2026-10-02' as const;
+export const MOTSPET_REVISION = 'motspet-v0.5-seed-2026-10-02' as const;
 
 export type MotsPetDomain =
   | 'care'
   | 'science'
   | 'privacy'
+  | 'relationship'
   | 'community'
   | 'regional'
   | 'product';
@@ -49,6 +50,10 @@ const CARE_MIGRATION_AUTHORITY =
   'docs/product/CARE_UI_MIGRATION_MAP_2026-09-07.md';
 const PRODUCT_AUTHORITY_MAP =
   'docs/control/EMOPET_PRODUCT_AUTHORITY_MAP_v0.1.md';
+const TOGETHER_AUTHORITY =
+  'docs/product/EMOPET_TOGETHER_RELATIONSHIP_ENGINE_MASTER_v0.1.md';
+const SURFACE_NECESSITY_AUTHORITY =
+  'docs/product/EMOPET_SURFACE_NECESSITY_MATRIX_v0.1.md';
 const OWNER_TERMINOLOGY_AUTHORITY =
   'docs/records/terminology/GUARDIAN_TO_OWNER_SUPERSESSION_2026-09-11.md';
 const DATA_TRUST_AUTHORITY =
@@ -290,6 +295,35 @@ export const MOTSPET_ENTRIES: readonly MotsPetEntry[] = [
     prohibitedPublicTerms: [],
     requiresProvenance: true,
     authorityPaths: [CARE_AUTHORITY],
+    status: 'CONTROLLED_SEED',
+    ...internalReview,
+  },
+  {
+    id: 'explicit_preference',
+    domain: 'relationship',
+    internalTerms: [
+      'explicit_preference',
+      'confirmed_preference',
+      'confirmed_refusal',
+    ],
+    publicFr: 'préférence déclarée',
+    publicEn: 'explicit preference',
+    definitionFr:
+      'Préférence, contrainte ou refus explicitement déclaré ou confirmé par le propriétaire pour personnaliser une suggestion. Ce concept décrit un choix utilisateur et ne constitue pas une inférence sur l’état, les émotions ou la relation du chien.',
+    prohibitedPublicTerms: [
+      'le chien préfère',
+      'le chien aime',
+      'preuve de lien',
+      'score de relation',
+      'bon propriétaire',
+    ],
+    requiresProvenance: true,
+    authorityPaths: [
+      TOGETHER_AUTHORITY,
+      EXPERIENCE_AUTHORITY,
+      PRODUCT_AUTHORITY_MAP,
+      SURFACE_NECESSITY_AUTHORITY,
+    ],
     status: 'CONTROLLED_SEED',
     ...internalReview,
   },

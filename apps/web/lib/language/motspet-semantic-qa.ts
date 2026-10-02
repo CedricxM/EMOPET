@@ -33,6 +33,7 @@ export type MotsPetTruthClass =
   | 'MODEL_METADATA'
   | 'UNCERTAINTY_METADATA'
   | 'LONGITUDINAL_CHANGE'
+  | 'OWNER_PREFERENCE'
   | 'PURPOSE_BOUND_PERMISSION';
 
 export interface MotsPetSemanticContract {
@@ -186,6 +187,14 @@ export const MOTSPET_SEMANTIC_CONTRACTS: Readonly<
   model_version: {
     conceptId: 'model_version',
     truthClass: 'MODEL_METADATA',
+    provenance: 'REQUIRED',
+    causalBoundary: 'NO_CAUSAL_UPGRADE',
+    medicalBoundary: 'NON_DIAGNOSTIC',
+    privacyBoundary: 'PRESERVE_PURPOSE_AND_CONSENT',
+  },
+  explicit_preference: {
+    conceptId: 'explicit_preference',
+    truthClass: 'OWNER_PREFERENCE',
     provenance: 'REQUIRED',
     causalBoundary: 'NO_CAUSAL_UPGRADE',
     medicalBoundary: 'NON_DIAGNOSTIC',
