@@ -10,25 +10,67 @@ const contract = JSON.parse(
 
 export function parseCsv(text) {
   const rows = [];
-  let row = [], field = '', quoted = false;
+  let row = [];
+  let field = '';
+  let quoted = false;
+
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
     if (quoted) {
-      if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
-      else if (c === '"') quoted = false;
-      else field += c;
-    } else if (c === '"') quoted = true;
-    else if (c === ',') { row.push(field); field = ''; }
-    else if (c === '\n') { row.push(field.replace(/\r$/, '')); rows.push(row); row = []; field = ''; }
-    else field += c;
+      if (c === '"' && text[i + 1] === '"') {
+        field += '"';
+        i++;
+      } else if (c === '"') {
+        quoted = false;
+      } else {
+        field += c;
+      }
+    } else if (c === '"') {
+      quoted = true;
+    } else if (c === ',') {
+      row.push(field);
+      field = '';
+    } else if (c === '\n') {
+      row.push(field.replace(/\r$/, ''));
+      rows.push(row);
+      row = [];
+      field = '';
+    } else {
+      field += c;
+    }
   }
-  if (field.length || row.length) { row.push(field.replace(/\r$/, '')); rows.push(row); }
-  const nonEmpty = rows.filter((r) => r.some((v) => v.trim() !== ''));
+
+  if (quoted) throw new Error('CSV contains an unterminated quoted field');
+  if (field.length || row.length) {
+    row.push(field.replace(/\r$/, ''));
+    rows.push(row);
+  }
+
+  const nonEmpty = rows.filter((candidate) => candidate.some((value) => value.trim() !== ''));
   if (nonEmpty.length < 2) throw new Error('CSV requires a header and at least one data row');
-  const headers = nonEmpty[0].map((h) => h.trim());
+
+  const headers = nonEmpty[0].map((header, index) =>
+    (index === 0 ? header.replace(/^\uFEFF/, '') : header).trim(),
+  );
+
+  if (headers.some((header) => header === '')) {
+    throw new Error('CSV header contains an empty column name');
+  }
+  if (new Set(headers).size !== headers.length) {
+    throw new Error('CSV header contains duplicate column names');
+  }
+
   return nonEmpty.slice(1).map((values, index) => {
+    if (values.length !== headers.length) {
+      throw new Error(
+        `CSV row ${index + 2} has ${values.length} columns; expected ${headers.length}`,
+      );
+    }
+
     const out = { __row: index + 2 };
-    headers.forEach((h, i) => { out[h] = (values[i] ?? '').trim(); });
+    headers.forEach((header, columnIndex) => {
+      out[header] = values[columnIndex].trim();
+    });
     return out;
   });
 }

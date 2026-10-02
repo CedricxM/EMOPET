@@ -35,7 +35,8 @@
     "representation",
     "sample_rate_hz",
     "acquisition_configuration",
-    "supply_condition"
+    "supply_condition",
+    "data_state"
   ],
   "missingDataPolicy": {
     "replaceMissingWithZero": false,
