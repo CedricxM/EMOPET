@@ -43,10 +43,12 @@ test('Gate 5C remains fail-closed after Owner auth readiness until cutover exist
     localStorageUsed: false,
     sessionStorageUsed: false,
     ownerIdAcceptedFromBrowser: false,
-    refreshRotation: 'SERVER_SIDE_ON_BACKEND_401',
+    refreshRotation: 'EXPLICIT_SAME_ORIGIN_POST',
     loginRoute: 'POST /api/owner-session/login',
+    refreshRoute: 'POST /api/owner-session/refresh',
     logoutRoute: 'POST /api/owner-session/logout',
     worldReadBff: 'GET /api/world-gamification/session',
+    automaticRefreshOnWorldGet: false,
     worldUiActivated: false,
   });
   assert.deepEqual(readiness.regionProvider, {
