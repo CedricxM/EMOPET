@@ -34,9 +34,9 @@ test('conditional semantics preserve fail-closed erasure with four approved matr
   assert.equal(semantics.claimsExecutableErasure, false);
   assert.equal(semantics.claimsCompleteErasure, false);
   assert.deepEqual(semantics.summary, {
-    conditionalRowsTotal: 20,
+    conditionalRowsTotal: 21,
     semanticsAlreadyDeterminedByExistingPolicy: 7,
-    authorityDecisionsStillRequired: 8,
+    authorityDecisionsStillRequired: 9,
     matrixRowsPromoted: 5,
     productPrivacyDecisionsApproved: 5,
   });
@@ -61,7 +61,7 @@ test('conditional semantics preserve fail-closed erasure with four approved matr
   }
 });
 
-test('the 22 conditional packet rows are partitioned exactly into 7 determined semantics plus 15 human decisions', () => {
+test('the 24 conditional packet rows are partitioned exactly across determined, unresolved and approved semantics', () => {
   const packetConditional = packet.relations
     .filter((row) => row.decisionSupportStatus === 'POLICY_CONDITIONAL_EXECUTION_REQUIRED')
     .map(key)
@@ -73,9 +73,9 @@ test('the 22 conditional packet rows are partitioned exactly into 7 determined s
     ...semantics.productPrivacyDecisionsApproved.map((row) => row.relation),
   ].sort();
 
-  assert.equal(packetConditional.length, 22);
-  assert.equal(semanticsKeys.length, 22);
-  assert.equal(new Set(semanticsKeys).size, 22);
+  assert.equal(packetConditional.length, 24);
+  assert.equal(semanticsKeys.length, 24);
+  assert.equal(new Set(semanticsKeys).size, 24);
   assert.deepEqual(semanticsKeys, packetConditional);
 });
 
@@ -256,7 +256,7 @@ test('device metadata has detachable schema and future unbind-clock support whil
   assert.match(clockMigration, /BEFORE UPDATE OF "dog_id" ON "devices"/);
   assert.match(row.implementationConsequence, /legacy detached rows without unbound_at as unresolved/i);
 });
-test('ten conditional rows remain explicit human authority decisions', () => {
+test('twelve conditional relation rows remain explicit human authority decisions', () => {
   const remaining = Object.fromEntries(
     semantics.authorityDecisionsRemaining.map((row) => [row.relation, row]),
   );
@@ -264,12 +264,14 @@ test('ten conditional rows remain explicit human authority decisions', () => {
   assert.deepEqual(
     Object.keys(remaining).sort(),
     [
+      'dogs.id|DIRECT_FK|phone_presence_events|dog_id',
       'dogs.id|DIRECT_FK|professional_share_grants|dog_id',
       'dogs.id|TRANSITIVE_FK|administration_sessions|assessment_id',
       'dogs.id|TRANSITIVE_FK|instrument_administration_events|assessment_id',
       'dogs.id|UNCONSTRAINED_IDENTIFIER|professional_share_access_audits|dog_id',
       'professional_share_grants.id|UNCONSTRAINED_IDENTIFIER|professional_share_access_audits|grant_id',
       'users.id|DIRECT_FK|community_rules_acceptances|user_id',
+      'users.id|DIRECT_FK|phone_presence_events|owner_id',
       'users.id|DIRECT_FK|professional_share_grants|owner_user_id',
       'users.id|DIRECT_FK|world_owned_items|owner_id',
       'users.id|DIRECT_FK|world_progression_events|owner_id',
@@ -280,6 +282,8 @@ test('ten conditional rows remain explicit human authority decisions', () => {
   for (const relation of [
     'users.id|DIRECT_FK|professional_share_grants|owner_user_id',
     'dogs.id|DIRECT_FK|professional_share_grants|dog_id',
+    'users.id|DIRECT_FK|phone_presence_events|owner_id',
+    'dogs.id|DIRECT_FK|phone_presence_events|dog_id',
     'users.id|DIRECT_FK|world_owned_items|owner_id',
     'users.id|DIRECT_FK|world_progression_events|owner_id',
     'users.id|DIRECT_FK|world_resource_spends|owner_id',
