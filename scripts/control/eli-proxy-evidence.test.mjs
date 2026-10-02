@@ -20,6 +20,92 @@ test('all 23 Owner-facing proxies have explicit machine-readable evidence status
   }
 });
 
+test('every proxy claim status and hypothesis status belongs to the declared vocabulary', async () => {
+  const url = new URL('../../config/science/eli-proxy-evidence.json', import.meta.url);
+  const map = JSON.parse(await readFile(url, 'utf8'));
+  const allowedClaims = new Set(map.allowedStatuses);
+  const allowedHypotheses = new Set(map.allowedHypothesisStatuses);
+
+  assert.ok(
+    allowedClaims.has('NOT_ESTABLISHED_BY_CITED_SOURCE'),
+    'the vocabulary must include the unresolved citation status already used by the proxy map',
+  );
+
+  for (const [id, proxy] of Object.entries(map.proxies)) {
+    assert.equal(
+      allowedClaims.has(proxy.claimStatus),
+      true,
+      `${id}: unknown claimStatus ${proxy.claimStatus}`,
+    );
+    assert.equal(
+      allowedHypotheses.has(proxy.emopetHypothesisStatus),
+      true,
+      `${id}: unknown emopetHypothesisStatus ${proxy.emopetHypothesisStatus}`,
+    );
+  }
+});
+
+test('proxy evidence dimensions are explicit, bibliography-backed and fail closed', async () => {
+  const url = new URL('../../config/science/eli-proxy-evidence.json', import.meta.url);
+  const map = JSON.parse(await readFile(url, 'utf8'));
+  const bibliographyIds = new Set(Object.keys(map.bibliography));
+
+  for (const [id, proxy] of Object.entries(map.proxies)) {
+    for (const field of ['measurementSources', 'interpretationSources', 'contextSources']) {
+      assert.ok(Array.isArray(proxy[field]), `${id}: ${field} must be an array`);
+      for (const sourceId of proxy[field]) {
+        assert.equal(
+          bibliographyIds.has(sourceId),
+          true,
+          `${id}: ${field} points to unknown bibliography id ${sourceId}`,
+        );
+      }
+    }
+
+    assert.equal(
+      proxy.validationEvidence,
+      null,
+      `${id}: this controlled map must not invent validation evidence`,
+    );
+
+    if (proxy.claimStatus === 'MEASUREMENT_CONTEXT') {
+      assert.ok(proxy.measurementSources.length > 0, `${id}: measurement context needs a source`);
+      assert.deepEqual(proxy.interpretationSources, [], `${id}: measurement context must not silently become interpretation evidence`);
+    }
+
+    if (proxy.claimStatus === 'CONCEPTUAL_CONTEXT') {
+      assert.ok(proxy.interpretationSources.length > 0, `${id}: conceptual context needs a source`);
+      assert.deepEqual(proxy.measurementSources, [], `${id}: conceptual context must not silently become measurement validation`);
+    }
+
+    if (proxy.claimStatus === 'NOT_ESTABLISHED_BY_CITED_SOURCE') {
+      assert.ok(proxy.contextSources.length > 0, `${id}: unresolved cited source must remain traceable as context`);
+      assert.deepEqual(proxy.measurementSources, [], `${id}: unresolved citation cannot become measurement support`);
+      assert.deepEqual(proxy.interpretationSources, [], `${id}: unresolved citation cannot become interpretation support`);
+    }
+
+    assert.equal(
+      proxy.emopetHypothesisStatus,
+      'NOT_ASSESSED',
+      `${id}: hypothesis classification requires separate Science review`,
+    );
+  }
+});
+
+test('separate-gate proxies carry an explicit gate pointer', async () => {
+  const url = new URL('../../config/science/eli-proxy-evidence.json', import.meta.url);
+  const map = JSON.parse(await readFile(url, 'utf8'));
+
+  for (const [id, proxy] of Object.entries(map.proxies)) {
+    if (proxy.claimStatus === 'SEPARATE_GATE') {
+      assert.match(proxy.separateGate ?? '', /^#\d+$/, `${id}: missing dedicated gate pointer`);
+      assert.ok(proxy.contextSources.length > 0, `${id}: separate gate must retain contextual source provenance`);
+    } else {
+      assert.equal('separateGate' in proxy, false, `${id}: separateGate is reserved for SEPARATE_GATE proxies`);
+    }
+  }
+});
+
 test('Owner-facing proxy modal does not render a bare validation-looking reference label', async () => {
   const url = new URL('../../apps/web/components/eli/ProxyChartModal.tsx', import.meta.url);
   const source = await readFile(url, 'utf8');
