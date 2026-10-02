@@ -1,6 +1,6 @@
 # EMOPET — Guide de développement local observé
 
-Ce guide décrit les commandes déclarées par les manifests du monorepo au 2026-08-29. Il ne prouve pas que chaque workspace compile ou que l'environnement est prêt pour la production.
+Ce guide décrit les commandes et frontières de développement du monorepo, réconciliées avec le runtime courant le 2026-10-02. Il ne prouve pas que chaque workspace compile ou que l'environnement est prêt pour la production.
 
 Les anciennes instructions Python, FastAPI, Flutter et Streamlit de ce fichier ne correspondent plus aux points d'entrée actifs. Elles restent accessibles dans l'historique Git.
 
@@ -11,7 +11,7 @@ Les anciennes instructions Python, FastAPI, Flutter et Streamlit de ce fichier n
 - PostgreSQL pour les parcours qui utilisent `backend/db` ;
 - les SDK Expo/Android/iOS nécessaires uniquement pour les cibles mobiles choisies.
 
-Docker Compose n'est pas un chemin de démarrage valide actuellement : `docker-compose.yml` référence encore Python/Uvicorn, un `Dockerfile` racine absent et une chaîne d'initialisation Alembic historique.
+Le chemin applicatif canonique reste le monorepo Node/pnpm. Le runtime World/Nakama dispose d'une infrastructure Compose isolée sous `infra/nakama` ; elle ne constitue pas le déploiement production de l'API Hono.
 
 ## 2. Installer les dépendances
 
@@ -55,7 +55,7 @@ Vérification technique minimale :
 Invoke-RestMethod "http://127.0.0.1:3000/health"
 ```
 
-Les routes `register`, `login` et `refresh` sont encore des stubs et n'émettent pas de jeton. Le démarrage du serveur ne constitue donc pas une preuve d'authentification fonctionnelle.
+Les routes d'inscription/vérification e-mail/login/refresh/logout sont implémentées et les parcours PostgreSQL sont testés. Le démarrage du serveur seul ne constitue toutefois ni une preuve de livraison e-mail réelle ni une autorité d'exploitation production.
 
 ## 5. Application mobile
 
