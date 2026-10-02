@@ -140,8 +140,8 @@ test('Windows portability keeps the cached backend build closure', async () => {
   );
   assert.ok(
     !commands.some((command) =>
-      command.includes("@emopet/api^...' build") ||
-      command === 'pnpm --filter @emopet/api build'
+      /pnpm\s+--filter\s+['"]?@emopet\/api\^\.\.\.['"]?\s+build/.test(command) ||
+      /pnpm\s+--filter\s+['"]?@emopet\/api['"]?\s+build/.test(command)
     ),
     'do not restore the sequential direct backend rebuilds in windows-portability.yml',
   );
