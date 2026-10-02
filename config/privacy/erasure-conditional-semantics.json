@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-erasure-conditional-semantics-v1",
-  "status": "FIVE_PRODUCT_PRIVACY_DECISIONS_PROMOTED_EIGHT_AUTHORITY_DECISIONS_REMAIN",
+  "status": "FIVE_PRODUCT_PRIVACY_DECISIONS_PROMOTED_TWELVE_AUTHORITY_DECISIONS_REMAIN",
   "claimsExecutableErasure": false,
   "claimsCompleteErasure": false,
   "sourcePacket": "config/privacy/erasure-disposition-decision-packet.json",
