@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { LoginSchema } from '@emopet/shared';
 
 import { writeOwnerSessionCookies } from '../../../../lib/server/owner-session-cookies';
 import { loginOwnerSession } from '../../../../lib/server/owner-session-provider';
@@ -23,32 +24,6 @@ function privateJson(body: Record<string, unknown>, status = 200): NextResponse 
       'X-Content-Type-Options': 'nosniff',
     },
   });
-}
-
-function parseCredentials(value: unknown): { email: string; password: string } | null {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
-  const record = value as Record<string, unknown>;
-  if (Object.keys(record).some((key) => key !== 'email' && key !== 'password')) {
-    return null;
-  }
-  if (typeof record.email !== 'string' || typeof record.password !== 'string') {
-    return null;
-  }
-
-  const email = record.email.trim();
-  const password = record.password;
-  if (
-    email.length < 3
-    || email.length > 320
-    || /[\r\n\u0000]/.test(email)
-    || password.length < 1
-    || password.length > 1_024
-    || /[\u0000]/.test(password)
-  ) {
-    return null;
-  }
-
-  return { email, password };
 }
 
 export async function POST(req: Request) {
@@ -77,12 +52,12 @@ export async function POST(req: Request) {
     return privateJson({ ok: false, error: body.error }, body.status);
   }
 
-  const credentials = parseCredentials(body.data);
-  if (!credentials) {
+  const parsed = LoginSchema.safeParse(body.data);
+  if (!parsed.success) {
     return privateJson({ ok: false, error: 'invalid_credentials_payload' }, 400);
   }
 
-  const result = await loginOwnerSession(credentials);
+  const result = await loginOwnerSession(parsed.data);
   if (result.status === 'UNAVAILABLE') {
     return privateJson({ ok: false, error: 'owner_auth_unavailable' }, 503);
   }
