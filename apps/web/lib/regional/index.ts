@@ -66,7 +66,6 @@ export type {
 } from './regional-pack-evidence';
 export { buildRegionalPackEvidenceReport } from './regional-pack-evidence';
 
-
 export type {
   BretagneLanguageReviewPacketStatus,
   BretagneReviewRequestedDisposition,
@@ -80,3 +79,36 @@ export {
   buildBretagneLanguageReviewPacket,
   auditBretagneLanguageReviewPacket,
 } from './bretagne-language-review-packet';
+
+export type {
+  BretagneLanguageReviewResponseKind,
+  BretagneLanguageReviewResponse,
+  BretagneLanguageReviewResponseErrorCode,
+  BretagneLanguageReviewResponseError,
+  BretagneIdentityReviewProposal,
+  BretagneLexiconReviewProposal,
+  BretagneLanguageReviewProposal,
+  BretagneLanguageReviewResponseResult,
+  BretagneLanguageReviewBatchResult,
+} from './bretagne-language-review-response';
+export {
+  evaluateBretagneLanguageReviewResponse,
+  evaluateBretagneLanguageReviewResponses,
+} from './bretagne-language-review-response';
+
+export type {
+  BretagneLanguageReviewDecisionDisposition,
+  BretagneLanguageReviewDecision,
+  BretagneLanguageReviewDecisionErrorCode,
+  BretagneLanguageReviewDecisionError,
+  BretagneIdentityRuntimeEvidenceCandidate,
+  BretagneLexiconRuntimeEvidenceCandidate,
+  BretagneLanguageRuntimeEvidenceCandidate,
+  BretagneLanguageReviewDecisionResult,
+} from './bretagne-language-review-decision';
+export {
+  BRETAGNE_LANGUAGE_REVIEW_DECISION_REVISION,
+  validateBretagneLanguageReviewDecision,
+  buildBretagneLanguageRuntimeEvidenceCandidate,
+  evaluateBretagneLanguageReviewDecision,
+} from './bretagne-language-review-decision';
