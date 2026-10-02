@@ -291,3 +291,58 @@ test('audit implementation contains no branch deletion request', async () => {
   assert.doesNotMatch(source, /git\/refs\/heads\/.*DELETE/i);
   assert.match(source, /READ_ONLY_AUDIT_NOT_DELETION_AUTHORITY/);
 });
+
+
+test('hard exclusion overrides exact merged-main cleanup evidence', () => {
+  const result = classifyBranch({
+    repository,
+    defaultBranch: 'main',
+    branch: branch('spike/world-nakama-565', 'sha-1'),
+    pulls: [
+      pull({
+        number: 566,
+        merged: true,
+        headRef: 'spike/world-nakama-565',
+        headSha: 'sha-1',
+        baseRef: 'main',
+      }),
+    ],
+    hardExclusions: [
+      {
+        branch: 'spike/world-nakama-565',
+        sourcePr: 566,
+        reason: 'Nakama provenance exclusion',
+      },
+    ],
+  });
+
+  assert.equal(result.status, BRANCH_LIFECYCLE_STATUS.KEEP_HARD_EXCLUSION);
+  assert.match(result.reason, /Nakama provenance exclusion/);
+});
+
+test('checked-in issue 679 hard exclusions remain explicit', async () => {
+  const policy = JSON.parse(
+    await readFile(
+      new URL(
+        '../../config/repository/branch-lifecycle-hard-exclusions-v1.json',
+        import.meta.url,
+      ),
+      'utf8',
+    ),
+  );
+
+  assert.equal(policy.status, 'CONTROLLED_HARD_EXCLUSIONS');
+  assert.equal(policy.issue, 679);
+  assert.equal(policy.authority, 'READ_ONLY_AUDIT_POLICY_NOT_DELETION_AUTHORITY');
+
+  const byPr = new Map(
+    policy.exactBranches.map((entry) => [entry.sourcePr, entry.branch]),
+  );
+
+  assert.equal(byPr.get(224), 'experience-hardening-2026-09-06');
+  assert.equal(byPr.get(430), 'qa/brand-switch-rendered-qa-2026-09-21');
+  assert.equal(byPr.get(435), 'fix/mobile-overflow-390-2026-09-21');
+  assert.equal(byPr.get(645), 'eval/breiz-kill-test-226');
+  assert.equal(byPr.get(636), 'feat/world-social-01-blocks-594');
+  assert.equal(byPr.get(566), 'spike/world-nakama-565');
+});
