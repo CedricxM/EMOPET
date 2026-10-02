@@ -69,6 +69,16 @@
       "source": "backend/db/schema/dogs.ts"
     },
     {
+      "table": "phone_presence_events",
+      "column": "dog_id",
+      "source": "backend/db/schema/presence.ts"
+    },
+    {
+      "table": "professional_share_grants",
+      "column": "dog_id",
+      "source": "backend/db/schema/professional-sharing.ts"
+    },
+    {
       "table": "recovery_events",
       "column": "dog_id",
       "source": "backend/db/schema/eli-v5.ts"
@@ -102,11 +112,6 @@
       "table": "walk_quality",
       "column": "dog_id",
       "source": "backend/db/schema/eli-v5.ts"
-    },
-    {
-      "table": "professional_share_grants",
-      "column": "dog_id",
-      "source": "backend/db/schema/professional-sharing.ts"
     }
   ],
   "unconstrainedDogIdentifiers": [
