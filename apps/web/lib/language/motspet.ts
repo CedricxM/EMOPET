@@ -5,7 +5,7 @@
  * language. It never creates scientific/legal authority by itself.
  */
 
-export const MOTSPET_REVISION = 'motspet-v0.5-seed-2026-10-02' as const;
+export const MOTSPET_REVISION = 'motspet-v0.6-seed-2026-10-02' as const;
 
 export type MotsPetDomain =
   | 'care'
@@ -50,6 +50,8 @@ const CARE_MIGRATION_AUTHORITY =
   'docs/product/CARE_UI_MIGRATION_MAP_2026-09-07.md';
 const PRODUCT_AUTHORITY_MAP =
   'docs/control/EMOPET_PRODUCT_AUTHORITY_MAP_v0.1.md';
+const OWNER_AUTHORITY =
+  'docs/product/EMOPET_OWNER_AUTHORITY_MASTER_v0.1.md';
 const TOGETHER_AUTHORITY =
   'docs/product/EMOPET_TOGETHER_RELATIONSHIP_ENGINE_MASTER_v0.1.md';
 const SURFACE_NECESSITY_AUTHORITY =
@@ -295,6 +297,33 @@ export const MOTSPET_ENTRIES: readonly MotsPetEntry[] = [
     prohibitedPublicTerms: [],
     requiresProvenance: true,
     authorityPaths: [CARE_AUTHORITY],
+    status: 'CONTROLLED_SEED',
+    ...internalReview,
+  },
+  {
+    id: 'share_scope',
+    domain: 'privacy',
+    internalTerms: [
+      'share_scope',
+      'professional_share_scope',
+      'audience_scope',
+    ],
+    publicFr: 'périmètre de partage',
+    publicEn: 'sharing scope',
+    definitionFr:
+      'Description explicite et bornée de ce qui peut être partagé, avec quel destinataire ou audience, pour quelle finalité et pendant quelle fenêtre d’accès. Ce périmètre ne constitue ni une publication générale ni un consentement pour un autre usage.',
+    prohibitedPublicTerms: [
+      'partage total',
+      'accès illimité',
+      'public par défaut',
+      'autorisation générale',
+    ],
+    requiresProvenance: true,
+    authorityPaths: [
+      OWNER_AUTHORITY,
+      PRODUCT_AUTHORITY_MAP,
+      DATA_TRUST_AUTHORITY,
+    ],
     status: 'CONTROLLED_SEED',
     ...internalReview,
   },

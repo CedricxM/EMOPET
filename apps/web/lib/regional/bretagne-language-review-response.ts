@@ -20,6 +20,16 @@ type RegionalLexiconUsage = RegionalLexiconEntry['usage'];
 
 export type BretagneLanguageReviewResponseKind = 'IDENTITY' | 'LEXICON';
 
+export interface BretagneLanguageReviewAuthorityContext {
+  candidateId: string;
+  organisationName: string;
+  relationshipStatus: 'REVIEW_SCOPE_AGREED';
+  packetRevision: typeof BRETAGNE_LANGUAGE_REVIEW_PACKET_REVISION;
+  reviewItemIds: readonly string[];
+  scopeAgreementEvidenceRef: string;
+  scopeAgreedAt: string;
+}
+
 export interface BretagneLanguageReviewResponse {
   packetRevision: typeof BRETAGNE_LANGUAGE_REVIEW_PACKET_REVISION;
   itemId: string;
@@ -37,6 +47,13 @@ export interface BretagneLanguageReviewResponse {
 
 export type BretagneLanguageReviewResponseErrorCode =
   | 'PACKET_REVISION_MISMATCH'
+  | 'NO_AGREED_REVIEW_AUTHORITY'
+  | 'AMBIGUOUS_REVIEW_AUTHORITY'
+  | 'REVIEW_SCOPE_PACKET_MISMATCH'
+  | 'REVIEW_SCOPE_EVIDENCE_MISSING'
+  | 'INVALID_SCOPE_AGREEMENT_DATE'
+  | 'FUTURE_SCOPE_AGREEMENT_DATE'
+  | 'REVIEW_PRECEDES_SCOPE_AGREEMENT'
   | 'UNKNOWN_ITEM'
   | 'KIND_MISMATCH'
   | 'INVALID_REVIEW_DATE'
@@ -68,6 +85,10 @@ export interface BretagneIdentityReviewProposal {
   reviewerRef: string;
   reviewedAt: string;
   evidenceReference: string;
+  authorityCandidateId: string;
+  authorityOrganisationName: string;
+  scopeAgreementEvidenceRef: string;
+  scopeAgreedAt: string;
   exactAssistantName: string;
   exactAssistantNameOrigin: string;
   exactNamingRule: string;
@@ -88,6 +109,10 @@ export interface BretagneLexiconReviewProposal {
   reviewerRef: string;
   reviewedAt: string;
   evidenceReference: string;
+  authorityCandidateId: string;
+  authorityOrganisationName: string;
+  scopeAgreementEvidenceRef: string;
+  scopeAgreedAt: string;
   reviewedTerm: string;
   reviewedMeaningFr: string;
   reviewedUsage: RegionalLexiconUsage;
@@ -131,6 +156,98 @@ function expectedKind(
   if (itemId === packet.identity.itemId) return 'IDENTITY';
   if (packet.lexicon.some((item) => item.itemId === itemId)) return 'LEXICON';
   return null;
+}
+
+function resolveReviewAuthority(
+  response: BretagneLanguageReviewResponse,
+  authorities: readonly BretagneLanguageReviewAuthorityContext[],
+  packet: BretagneLanguageReviewPacket,
+  nowMs: number,
+): {
+  authority: BretagneLanguageReviewAuthorityContext | null;
+  errors: BretagneLanguageReviewResponseError[];
+} {
+  const errors: BretagneLanguageReviewResponseError[] = [];
+  const candidates = authorities.filter((authority) =>
+    authority.reviewItemIds.includes(response.itemId),
+  );
+
+  if (candidates.length === 0) {
+    errors.push({
+      itemId: response.itemId,
+      code: 'NO_AGREED_REVIEW_AUTHORITY',
+      message:
+        'No REVIEW_SCOPE_AGREED authority covers this exact review item.',
+    });
+    return { authority: null, errors };
+  }
+
+  if (candidates.length > 1) {
+    errors.push({
+      itemId: response.itemId,
+      code: 'AMBIGUOUS_REVIEW_AUTHORITY',
+      message:
+        'More than one agreed review authority covers this item; explicit authority selection is required.',
+    });
+    return { authority: null, errors };
+  }
+
+  const authority = candidates[0]!;
+
+  if (
+    authority.relationshipStatus !== 'REVIEW_SCOPE_AGREED' ||
+    authority.packetRevision !== packet.packetRevision ||
+    authority.packetRevision !== response.packetRevision
+  ) {
+    errors.push({
+      itemId: response.itemId,
+      code: 'REVIEW_SCOPE_PACKET_MISMATCH',
+      message:
+        'Review authority must bind the same current review packet revision as the response.',
+    });
+  }
+
+  if (!nonEmpty(authority.scopeAgreementEvidenceRef)) {
+    errors.push({
+      itemId: response.itemId,
+      code: 'REVIEW_SCOPE_EVIDENCE_MISSING',
+      message: 'Review-scope agreement evidence reference is required.',
+    });
+  }
+
+  const scopeAgreedAt = Date.parse(authority.scopeAgreedAt);
+  if (!Number.isFinite(scopeAgreedAt)) {
+    errors.push({
+      itemId: response.itemId,
+      code: 'INVALID_SCOPE_AGREEMENT_DATE',
+      message: 'Review-scope agreement timestamp must be valid.',
+    });
+  } else if (scopeAgreedAt > nowMs) {
+    errors.push({
+      itemId: response.itemId,
+      code: 'FUTURE_SCOPE_AGREEMENT_DATE',
+      message: 'Review-scope agreement timestamp cannot be in the future.',
+    });
+  }
+
+  const reviewedAt = Date.parse(response.reviewedAt);
+  if (
+    Number.isFinite(scopeAgreedAt) &&
+    Number.isFinite(reviewedAt) &&
+    reviewedAt < scopeAgreedAt
+  ) {
+    errors.push({
+      itemId: response.itemId,
+      code: 'REVIEW_PRECEDES_SCOPE_AGREEMENT',
+      message:
+        'Review evidence cannot predate the agreed review scope for this item.',
+    });
+  }
+
+  return {
+    authority,
+    errors,
+  };
 }
 
 function validateResponse(
@@ -237,6 +354,7 @@ function validateResponse(
 
 function buildProposal(
   response: BretagneLanguageReviewResponse,
+  authority: BretagneLanguageReviewAuthorityContext,
   packet: BretagneLanguageReviewPacket,
 ): BretagneLanguageReviewProposal | null {
   if (
@@ -258,6 +376,10 @@ function buildProposal(
       reviewerRef: response.reviewerRef.trim(),
       reviewedAt: response.reviewedAt,
       evidenceReference: response.evidenceReference.trim(),
+      authorityCandidateId: authority.candidateId,
+      authorityOrganisationName: authority.organisationName,
+      scopeAgreementEvidenceRef: authority.scopeAgreementEvidenceRef,
+      scopeAgreedAt: authority.scopeAgreedAt,
       exactAssistantName: packet.identity.assistantName,
       exactAssistantNameOrigin: packet.identity.assistantNameOrigin,
       exactNamingRule: packet.identity.namingRule,
@@ -283,6 +405,10 @@ function buildProposal(
     reviewerRef: response.reviewerRef.trim(),
     reviewedAt: response.reviewedAt,
     evidenceReference: response.evidenceReference.trim(),
+    authorityCandidateId: authority.candidateId,
+    authorityOrganisationName: authority.organisationName,
+    scopeAgreementEvidenceRef: authority.scopeAgreementEvidenceRef,
+    scopeAgreedAt: authority.scopeAgreedAt,
     reviewedTerm: item.term,
     reviewedMeaningFr: item.meaningFr,
     reviewedUsage: item.usage as RegionalLexiconUsage,
@@ -297,21 +423,45 @@ function buildProposal(
 
 export function evaluateBretagneLanguageReviewResponse(
   response: BretagneLanguageReviewResponse,
+  authorities: readonly BretagneLanguageReviewAuthorityContext[],
   packet: BretagneLanguageReviewPacket = buildBretagneLanguageReviewPacket(),
   nowMs: number = Date.now(),
 ): BretagneLanguageReviewResponseResult {
-  const errors = validateResponse(response, packet, nowMs);
+  const authorityResolution = resolveReviewAuthority(
+    response,
+    authorities,
+    packet,
+    nowMs,
+  );
+
+  if (!authorityResolution.authority) {
+    return {
+      itemId: response.itemId,
+      valid: false,
+      errors: authorityResolution.errors,
+      proposal: null,
+    };
+  }
+
+  const errors = [
+    ...authorityResolution.errors,
+    ...validateResponse(response, packet, nowMs),
+  ];
 
   return {
     itemId: response.itemId,
     valid: errors.length === 0,
     errors,
-    proposal: errors.length === 0 ? buildProposal(response, packet) : null,
+    proposal:
+      errors.length === 0
+        ? buildProposal(response, authorityResolution.authority, packet)
+        : null,
   };
 }
 
 export function evaluateBretagneLanguageReviewResponses(
   responses: readonly BretagneLanguageReviewResponse[],
+  authorities: readonly BretagneLanguageReviewAuthorityContext[],
   packet: BretagneLanguageReviewPacket = buildBretagneLanguageReviewPacket(),
   nowMs: number = Date.now(),
 ): BretagneLanguageReviewBatchResult {
@@ -333,7 +483,12 @@ export function evaluateBretagneLanguageReviewResponses(
   const missingItemIds = expectedItemIds.filter((itemId) => !receivedSet.has(itemId));
 
   const results = responses.map((response) =>
-    evaluateBretagneLanguageReviewResponse(response, packet, nowMs),
+    evaluateBretagneLanguageReviewResponse(
+      response,
+      authorities,
+      packet,
+      nowMs,
+    ),
   );
 
   return {

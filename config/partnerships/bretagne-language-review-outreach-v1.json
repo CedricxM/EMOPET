@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "emopet-bretagne-language-review-outreach-v1",
+  "controlledAt": "2026-10-02",
+  "purpose": "Controlled candidate/outreach state for Bretagne language and cultural review. This register is not a partnership, endorsement, reviewer-appointment or language-validation authority.",
+  "allowedRelationshipStatuses": [
+    "CANDIDATE_NOT_CONTACTED",
+    "OUTREACH_SENT",
+    "RESPONSE_RECEIVED",
+    "REVIEW_SCOPE_DISCUSSION",
+    "REVIEW_SCOPE_AGREED",
+    "DECLINED",
+    "DEFERRED"
+  ],
+  "allowedPreparationStatuses": [
+    "NOT_PREPARED",
+    "DRAFT_PREPARED"
+  ],
+  "candidates": [
+    {
+      "candidateId": "oplb-termbret",
+      "organisationName": "Office public de la langue bretonne / TermBret",
+      "reviewDomain": "breton_language_terminology",
+      "relationshipStatus": "CANDIDATE_NOT_CONTACTED",
+      "preparationStatus": "DRAFT_PREPARED",
+      "proposedReviewItems": [
+        "bretagne_companion_identity",
+        "bretagne_demat",
+        "bretagne_ar_veute"
+      ],
+      "publicSources": [
+        "https://www.fr.brezhoneg.bzh/",
+        "https://www.fr.brezhoneg.bzh/36-termofis.htm"
+      ],
+      "partnershipClaimAllowed": false,
+      "reviewerClaimAllowed": false,
+      "contactDataStored": false,
+      "notes": "Draft outreach exists outside the repository, but no outbound evidence has been recorded. Candidate remains not contacted."
+    },
+    {
+      "candidateId": "institut-du-galo",
+      "organisationName": "Institut du Galo",
+      "reviewDomain": "gallo_language_cultural_scope",
+      "relationshipStatus": "CANDIDATE_NOT_CONTACTED",
+      "preparationStatus": "DRAFT_PREPARED",
+      "proposedReviewItems": [
+        "future_gallo_scope",
+        "future_gallo_terms"
+      ],
+      "publicSources": [
+        "https://institutdugalo.bzh/fr/accueil/"
+      ],
+      "partnershipClaimAllowed": false,
+      "reviewerClaimAllowed": false,
+      "contactDataStored": false,
+      "notes": "Draft outreach exists outside the repository, but no outbound evidence has been recorded. Candidate remains not contacted."
+    }
+  ],
+  "currentPacketRevision": "bretagne-language-review-packet-v1-2026-10-01"
+}

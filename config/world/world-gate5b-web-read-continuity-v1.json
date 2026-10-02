@@ -1,0 +1,23 @@
+{
+  "version": "1",
+  "status": "CONTROLLED_DRAFT_NOT_PRODUCTION_AUTHORITY",
+  "gate": "5B_WEB_READ_CONTINUITY",
+  "sourceIssue": 898,
+  "backendAuthority": "GET /api/world-gamification",
+  "client": "apps/web/lib/world-gamification-read.ts",
+  "activated": false,
+  "requirements": {
+    "serverSnapshotIsSourceOfTruth": true,
+    "browserProgressionPersistence": false,
+    "refreshMustRefetchServerSnapshot": true,
+    "regionSelectionIsCoarseAndExplicit": true,
+    "regionSwitchReward": false,
+    "ownershipPersistsAcrossRegionSwitch": true,
+    "parallelLegacyEconomy": false,
+    "writeTrafficAllowed": false
+  },
+  "dependsOn": [
+    "config/world/world-region-transition-v1.json"
+  ],
+  "activationRequiresExplicitCutoverDecision": true
+}
