@@ -106,7 +106,7 @@ The repository currently has multiple stores and policy boundaries. PostgreSQL/b
 - API client sends Bearer tokens to the configured backend URL.
 - Auth state is in-memory Zustand state; no controlled secure persistence/recovery flow is implemented.
 - Platform manifests request Bluetooth and fine-location permissions; location purpose and consent remain gated.
-- Mobile preferences default location opt-in to false, but community and vet-export opt-ins to true. Those defaults conflict with private-by-default/explicit-opt-in constraints and require a controlled decision.
+- Mobile sensitive-consent mirrors default `location_opt_in`, `community_opt_in` and `vet_export_opt_in` to `false`. Generic local enabling of location/community consent is fail-closed; authoritative activation must come from the applicable backend/durable authority path. This local mirror is not durable account-bound authorization, so lifecycle/retention/export and temporary-location authority remain open under #131.
 
 ## 6. Sensor and inference boundaries
 
