@@ -15,9 +15,9 @@
     "Database mechanics never substitute for privacy disposition authority on unresolved rows."
   ],
   "summary": {
-    "relationalTotal": 55,
+    "relationalTotal": 57,
     "policyAlignedDeleteCandidates": 30,
-    "policyConditionalExecutionRequired": 22,
+    "policyConditionalExecutionRequired": 24,
     "legalAuthorityBlocked": 3,
     "matrixRowsPromoted": 5
   },
@@ -232,6 +232,28 @@
         "veterinary_user_entered_records"
       ],
       "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "dogs.id",
+      "relationType": "DIRECT_FK",
+      "table": "phone_presence_events",
+      "column": "dog_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "phone_presence_durable_readiness_v1"
+      ],
+      "why": "Phone Presence history is dog-linked product data, but its retention, export, erasure and temporary-proximity lifecycle remain explicitly unresolved under issue #135.",
+      "requiredDecision": "Approve a Presence-specific dog lifecycle before any destructive executor or durable Product V1 write activation is promoted.",
+      "allowedOutcomes": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
       "promotionAuthorized": false
     },
     {
@@ -818,6 +840,28 @@
         "dog_profile"
       ],
       "rationale": "Existing approved product retention/erasure policy already terminates this product data on account/dog erasure or forbids durable persistence. Candidate remains non-executable until privacy/legal promotion and executor evidence.",
+      "promotionAuthorized": false
+    },
+    {
+      "subjectRoot": "users.id",
+      "relationType": "DIRECT_FK",
+      "table": "phone_presence_events",
+      "column": "owner_id",
+      "disposition": "TO_CONFIRM",
+      "executionStatus": "NOT_IMPLEMENTED",
+      "testEvidence": "NONE",
+      "decisionSupportStatus": "POLICY_CONDITIONAL_EXECUTION_REQUIRED",
+      "candidateDisposition": null,
+      "policyRefs": [
+        "phone_presence_durable_readiness_v1"
+      ],
+      "why": "Phone Presence history is Owner-linked product data, but its retention, export, erasure and temporary-proximity lifecycle remain explicitly unresolved under issue #135.",
+      "requiredDecision": "Approve a Presence-specific Owner lifecycle before any destructive executor or durable Product V1 write activation is promoted.",
+      "allowedOutcomes": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
       "promotionAuthorized": false
     },
     {
