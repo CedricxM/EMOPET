@@ -5,7 +5,7 @@
  * language. It never creates scientific/legal authority by itself.
  */
 
-export const MOTSPET_REVISION = 'motspet-v0.3-seed-2026-10-01' as const;
+export const MOTSPET_REVISION = 'motspet-v0.4-seed-2026-10-02' as const;
 
 export type MotsPetDomain =
   | 'care'
@@ -45,6 +45,10 @@ export interface MotsPetEntry {
 const CARE_AUTHORITY = 'docs/product/EMOPET_CARE_PRODUCT_MASTER_v0.1.md';
 const LANGUAGE_AUTHORITY = 'docs/language/EMOPET_LANGUAGE_FOUNDER_DECISION_RECORD_2026-09-01.md';
 const EXPERIENCE_AUTHORITY = 'docs/product/EMOPET_EXPERIENCE_DOCTRINE_v0.1.md';
+const CARE_MIGRATION_AUTHORITY =
+  'docs/product/CARE_UI_MIGRATION_MAP_2026-09-07.md';
+const PRODUCT_AUTHORITY_MAP =
+  'docs/control/EMOPET_PRODUCT_AUTHORITY_MAP_v0.1.md';
 const OWNER_TERMINOLOGY_AUTHORITY =
   'docs/records/terminology/GUARDIAN_TO_OWNER_SUPERSESSION_2026-09-11.md';
 const DATA_TRUST_AUTHORITY =
@@ -98,6 +102,29 @@ export const MOTSPET_ENTRIES: readonly MotsPetEntry[] = [
     prohibitedPublicTerms: ['certitude', 'garantie'],
     requiresProvenance: true,
     authorityPaths: [CARE_AUTHORITY, EXPERIENCE_AUTHORITY],
+    status: 'CONTROLLED_SEED',
+    ...internalReview,
+  },
+  {
+    id: 'uncertainty',
+    domain: 'science',
+    internalTerms: ['uncertainty', 'uncertain', 'interpretation_uncertainty'],
+    publicFr: 'incertitude',
+    publicEn: 'uncertainty',
+    definitionFr:
+      'Indication explicite que les éléments disponibles bornent la précision ou la stabilité de l’interprétation. Elle ne doit ni augmenter la certitude ni être transformée en rassurance.',
+    prohibitedPublicTerms: [
+      'certain malgré tout',
+      'probablement sans réserve',
+      'aucun risque',
+      'tout va bien',
+    ],
+    requiresProvenance: true,
+    authorityPaths: [
+      CARE_AUTHORITY,
+      EXPERIENCE_AUTHORITY,
+      PRODUCT_AUTHORITY_MAP,
+    ],
     status: 'CONTROLLED_SEED',
     ...internalReview,
   },
@@ -168,6 +195,31 @@ export const MOTSPET_ENTRIES: readonly MotsPetEntry[] = [
     prohibitedPublicTerms: ['norme universelle', 'chien normal', 'classement', 'percentile de race'],
     requiresProvenance: true,
     authorityPaths: [CARE_AUTHORITY, EXPERIENCE_AUTHORITY],
+    status: 'CONTROLLED_SEED',
+    ...internalReview,
+  },
+  {
+    id: 'trend',
+    domain: 'science',
+    internalTerms: ['trend', 'longitudinal_change', 'observation_trend'],
+    publicFr: 'évolution longitudinale',
+    publicEn: 'longitudinal change',
+    definitionFr:
+      'Évolution dans le temps d’une observation nommée, comparée à une référence individuelle ou contextuelle explicite et située dans une fenêtre de temps. Ce concept ne constitue jamais un score global de bien-être.',
+    prohibitedPublicTerms: [
+      'tendance ELI globale',
+      'score global en hausse',
+      'bien-être en hausse',
+      'bien-être en baisse',
+      'amélioration générale',
+      'dégradation générale',
+    ],
+    requiresProvenance: true,
+    authorityPaths: [
+      CARE_AUTHORITY,
+      CARE_MIGRATION_AUTHORITY,
+      PRODUCT_AUTHORITY_MAP,
+    ],
     status: 'CONTROLLED_SEED',
     ...internalReview,
   },
