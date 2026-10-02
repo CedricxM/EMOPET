@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-erasure-conditional-semantics-v1",
-  "status": "FIVE_PRODUCT_PRIVACY_DECISIONS_PROMOTED_FIVE_AUTHORITY_DECISIONS_REMAIN",
+  "status": "FIVE_PRODUCT_PRIVACY_DECISIONS_PROMOTED_EIGHT_AUTHORITY_DECISIONS_REMAIN",
   "claimsExecutableErasure": false,
   "claimsCompleteErasure": false,
   "sourcePacket": "config/privacy/erasure-disposition-decision-packet.json",
@@ -13,9 +13,9 @@
     "community_rules_acceptances remains reserved to PRIVACY_LEGAL; research_data_consents and subscriptions remain outside these five product decisions."
   ],
   "summary": {
-    "conditionalRowsTotal": 17,
+    "conditionalRowsTotal": 20,
     "semanticsAlreadyDeterminedByExistingPolicy": 7,
-    "authorityDecisionsStillRequired": 5,
+    "authorityDecisionsStillRequired": 8,
     "matrixRowsPromoted": 5,
     "productPrivacyDecisionsApproved": 5
   },
@@ -204,6 +204,32 @@
       "promotionAuthorized": false
     },
     {
+      "relation": "dogs.id|TRANSITIVE_FK|administration_sessions|assessment_id",
+      "decisionClass": "RESEARCH_GOVERNANCE_BRANCH_DECISION_REQUIRED",
+      "why": "Session pacing inherits its parent assessment's product/research split. A session under a research administration_mode must defer to research governance exactly as its responses and factor scores do, so the product branch cannot be executed without first settling which branch a session belongs to.",
+      "privacyFirstRecommendation": "Delete product-branch sessions with their parent assessment, and defer research-branch sessions to research governance rather than deleting or retaining both under one rule.",
+      "options": [
+        "DELETE",
+        "DELETE_PRODUCT_BRANCH_DEFER_RESEARCH_BRANCH",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "requiredAuthority": "RESEARCH_LEGAL_GOVERNANCE",
+      "promotionAuthorized": false
+    },
+    {
+      "relation": "dogs.id|TRANSITIVE_FK|instrument_administration_events|assessment_id",
+      "decisionClass": "INSTRUMENT_LICENCE_EVIDENCE_DECISION_REQUIRED",
+      "why": "The fidelity audit journal holds digests, timings and template identifiers only, never item wording and never generated conversational text. A licensed instrument may nonetheless require administration-conformity evidence to outlive the responses it records, so the right to erasure and a contractual duty to evidence conformity can point in opposite directions. Product behaviour alone cannot settle this.",
+      "privacyFirstRecommendation": "Delete with the parent assessment unless the instrument licence establishes a concrete conformity-evidence need; if it does, retain only the digest chain, depersonalised, for a bounded duration.",
+      "options": [
+        "DELETE",
+        "RETAIN_DEPERSONALISED_DIGEST_CHAIN",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "requiredAuthority": "INSTRUMENT_LICENCE_PRIVACY_LEGAL",
+      "promotionAuthorized": false
+    },
+    {
       "relation": "dogs.id|UNCONSTRAINED_IDENTIFIER|professional_share_access_audits|dog_id",
       "decisionClass": "LEGAL_PRIVACY_EVIDENCE_DECISION_REQUIRED",
       "why": "Professional-share access audits intentionally keep unconstrained identifiers so denied or unknown lookups remain auditable; post-erasure evidence handling requires bounded privacy/legal authority.",
@@ -256,29 +282,42 @@
       "promotionAuthorized": false
     },
     {
-      "relation": "dogs.id|TRANSITIVE_FK|administration_sessions|assessment_id",
-      "decisionClass": "RESEARCH_GOVERNANCE_BRANCH_DECISION_REQUIRED",
-      "why": "Session pacing inherits its parent assessment's product/research split. A session under a research administration_mode must defer to research governance exactly as its responses and factor scores do, so the product branch cannot be executed without first settling which branch a session belongs to.",
-      "privacyFirstRecommendation": "Delete product-branch sessions with their parent assessment, and defer research-branch sessions to research governance rather than deleting or retaining both under one rule.",
+      "relation": "users.id|DIRECT_FK|world_owned_items|owner_id",
+      "decisionClass": "PRODUCT_PRIVACY_LIFECYCLE_DECISION_REQUIRED",
+      "why": "Durable World inventory is Owner product state; its account-erasure lifecycle must be explicitly approved before destructive execution.",
+      "privacyFirstRecommendation": "Prefer deletion with validated account erasure unless a separately approved bounded retention purpose requires irreversible minimisation or justified retention.",
       "options": [
         "DELETE",
-        "DELETE_PRODUCT_BRANCH_DEFER_RESEARCH_BRANCH",
+        "ANONYMIZE",
         "RETAIN_WITH_JUSTIFICATION"
       ],
-      "requiredAuthority": "RESEARCH_LEGAL_GOVERNANCE",
+      "requiredAuthority": "FOUNDER_PRODUCT_PRIVACY",
       "promotionAuthorized": false
     },
     {
-      "relation": "dogs.id|TRANSITIVE_FK|instrument_administration_events|assessment_id",
-      "decisionClass": "INSTRUMENT_LICENCE_EVIDENCE_DECISION_REQUIRED",
-      "why": "The fidelity audit journal holds digests, timings and template identifiers only, never item wording and never generated conversational text. A licensed instrument may nonetheless require administration-conformity evidence to outlive the responses it records, so the right to erasure and a contractual duty to evidence conformity can point in opposite directions. Product behaviour alone cannot settle this.",
-      "privacyFirstRecommendation": "Delete with the parent assessment unless the instrument licence establishes a concrete conformity-evidence need; if it does, retain only the digest chain, depersonalised, for a bounded duration.",
+      "relation": "users.id|DIRECT_FK|world_progression_events|owner_id",
+      "decisionClass": "PRODUCT_PRIVACY_LIFECYCLE_DECISION_REQUIRED",
+      "why": "Durable progression event history is Owner-linked and provenance-bearing; delete is the technical preference at account erasure, but privacy lifecycle authority is not yet approved.",
+      "privacyFirstRecommendation": "Prefer deletion with validated account erasure unless a separately approved bounded retention purpose requires irreversible minimisation or justified retention.",
       "options": [
         "DELETE",
-        "RETAIN_DEPERSONALISED_DIGEST_CHAIN",
+        "ANONYMIZE",
         "RETAIN_WITH_JUSTIFICATION"
       ],
-      "requiredAuthority": "INSTRUMENT_LICENCE_PRIVACY_LEGAL",
+      "requiredAuthority": "FOUNDER_PRODUCT_PRIVACY",
+      "promotionAuthorized": false
+    },
+    {
+      "relation": "users.id|DIRECT_FK|world_resource_spends|owner_id",
+      "decisionClass": "PRODUCT_PRIVACY_LIFECYCLE_DECISION_REQUIRED",
+      "why": "Durable resource-spend history is Owner-linked economic/progression evidence; retention versus deletion requires an explicit product-privacy lifecycle decision.",
+      "privacyFirstRecommendation": "Prefer deletion with validated account erasure unless a separately approved bounded retention purpose requires irreversible minimisation or justified retention.",
+      "options": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "requiredAuthority": "FOUNDER_PRODUCT_PRIVACY",
       "promotionAuthorized": false
     }
   ],
