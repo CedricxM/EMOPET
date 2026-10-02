@@ -41,3 +41,33 @@ A proposal is **not** a ledger event. Every proposal carries `review_status = RE
 CI generates a fresh proposal artifact for each pull request by comparing the PR base state with the candidate state. That artifact is evidence for review only; it never edits `company-transitions.jsonl`.
 
 A reviewed transition still requires an explicit human decision and a separate append-only ledger change.
+
+## Reviewed append preparation
+
+`scripts/control/prepare-reviewed-transition-append.mjs` is the explicit bridge between a review-only proposal and a possible future ledger append.
+
+It requires:
+
+- a concrete proposal ID;
+- an explicit `--accept` flag;
+- a review date;
+- a public-safe review reference of kind `path`, `issue` or `pr`;
+- a separate output path.
+
+The output is validated by `reviewed-transition-append.schema.json` and remains deliberately incomplete: `event_id` and `source_snapshot_ref` stay null, `append_to_ledger` stays false, and human PR approval remains required.
+
+The command refuses to use `company-transitions.jsonl` as its output path. It prepares a candidate only; it never appends history.
+
+Example:
+
+```bash
+node scripts/control/prepare-reviewed-transition-append.mjs \
+  --proposal-id EMO-PROPOSAL-YYYYMMDD-NNNN \
+  --accept \
+  --reviewed-on YYYY-MM-DD \
+  --review-ref-kind pr \
+  --review-ref-value '#123' \
+  --output reviewed-transition-append.json
+```
+
+Do not create a reviewed candidate unless a real human review reference exists. The tooling must not fabricate approval to make the ledger look complete.

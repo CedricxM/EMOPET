@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-01  
 **Status:** `PROPOSED COMPANY CONTROL PLANE / DOES NOT REPLACE DOMAIN AUTHORITIES`  
-**Branch base:** `main@efc86354dc2179d45bae7152ebb203c93f225da0`
+**Branch base:** `main@8a7395697a243bd734148f394ffc560e0887ef63`
 
 ## 1. Purpose
 
@@ -175,6 +175,7 @@ Both views fail closed: missing data remains missing, planning remains planning,
 | `TIME_MACHINE.md` | Generated append-only transition chronology | V2 history view; not decision or domain authority |
 | `state/history/company-transitions.jsonl` | Canonical append-only Company OS transition ledger | V2 historical record; corrections append, never rewrite |
 | `state/history/pending-transition-proposals.json` | Committed review-only proposal queue | V2 proposal staging; not ledger or decision authority |
+| `state/history/reviewed-transition-append.schema.json` | Reviewed append-candidate contract | V2 preparation contract; never authorizes ledger mutation |
 | `state/freshness/freshness-state.json` | Machine-readable freshness overlay | V2 projection with decision-use guardrails |
 | `state/schemas/registry-schema-map.json` | Registry → JSON Schema contract map | V2 structural contract; not domain authority |
 | `EXPERIMENTS.md` | Hypothesis → test → result → decision ledger | V1 projection/index |
@@ -259,6 +260,22 @@ The proposal layer MUST remain weaker than the append-only ledger:
 
 Tracked diffs cover stable Company OS object IDs and material state fields such as status, decision, freshness, stage, classification, measured value and controlling refs. Duplicate controlled IDs fail closed instead of being silently overwritten. Missing or untracked meaning is not inferred.
 
+### Reviewed proposal acceptance / append preparation
+
+`scripts/control/prepare-reviewed-transition-append.mjs` provides an explicit, review-gated preparation path after a transition proposal has been examined by a human reviewer.
+
+The preparer is intentionally weaker than a ledger append:
+
+- it requires an explicit `--accept` action;
+- it requires a dated public-safe review reference of kind `path`, `issue` or `pr`;
+- it carries the current ledger tail ID forward but does not allocate a final event ID;
+- it preserves the proposal candidate ref but leaves the final `source_snapshot_ref` null;
+- its `append_to_ledger` flag is structurally fixed to `false`;
+- it requires a separate human-approved PR before any append-only history mutation;
+- it refuses to use the canonical ledger path as its output destination.
+
+This slice does not create any reviewed acceptance record because no human review is fabricated by automation. It only establishes the controlled path that can be used after a real review exists.
+
 ## 11. Confidentiality boundary
 
 The repository is public. Therefore the Company OS MUST NOT contain:
@@ -291,10 +308,10 @@ Any AI agent doing substantive EMOPET work should:
 
 V1 includes the company front door, machine-readable state, milestone/experiment/finance/metrics/risk/unknowns registries, and an every-PR structural evidence guard.
 
-V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, deterministic human views generated from machine-readable state, a public-safe founder cockpit, redacted investor/supplier views, an append-only Company Time Machine transition ledger, and review-only transition proposals generated from controlled state diffs. Freshness remains conservative, and structural, presentation, historical-record or proposal validity never substitutes for domain evidence or authority.
+V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, deterministic human views generated from machine-readable state, a public-safe founder cockpit, redacted investor/supplier views, an append-only Company Time Machine transition ledger, review-only transition proposals generated from controlled state diffs, and an explicit reviewed-proposal append-preparation path. Freshness remains conservative, and structural, presentation, historical-record, proposal or preparation validity never substitutes for domain evidence or authority.
 
 Next bounded slices should add, in order:
 
-1. an explicit reviewed-proposal acceptance path that prepares, but never auto-merges, a ledger append for human approval.
+1. a human-approved finalization path that assigns the final event ID and merged-main snapshot reference only inside an explicit append PR, never in CI.
 
 Each slice must remain incremental and must not manufacture certainty to make the cockpit look complete.
