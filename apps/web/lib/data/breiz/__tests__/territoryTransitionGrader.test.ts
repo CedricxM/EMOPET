@@ -38,3 +38,16 @@ test('multi-turn correction preserves home while updating current territory', ()
 test('regionalization can never raise semantic authority', () => {
   assert.equal(regionalizationMayRaiseSemanticAuthority(), false);
 });
+
+test('ambiguous presence never becomes a permanent move by inference', () => {
+  const r = resolveTerritoryTransition(['On est à Lyon.']);
+  assert.equal(r.homeRegion, 'Bretagne');
+  assert.notEqual(r.transition, 'PERMANENT_MOVE');
+});
+
+test('a destination change cannot silently change the home region', () => {
+  const r = resolveTerritoryTransition(["Aujourd'hui je suis à Strasbourg."]);
+  assert.equal(r.homeRegion, 'Bretagne');
+  assert.equal(r.currentTerritory, 'Grand-Est');
+  assert.equal(r.transition, 'TEMPORARY_TRAVEL');
+});
