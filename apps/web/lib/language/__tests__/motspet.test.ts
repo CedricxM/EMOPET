@@ -71,3 +71,32 @@ test('sensitive activation/arousal wording remains authority HOLD', () => {
   assert.equal(held.reviewState, 'AUTHORITY_HOLD');
   assert.equal(held.reviewer, null);
 });
+
+
+test('uncertainty is controlled as a bounded evidence qualifier, not reassurance', () => {
+  const uncertainty = getMotsPetEntry('uncertainty');
+  assert.ok(uncertainty);
+  assert.equal(uncertainty.status, 'CONTROLLED_SEED');
+  assert.equal(uncertainty.publicFr, 'incertitude');
+  assert.equal(uncertainty.publicEn, 'uncertainty');
+  assert.equal(uncertainty.requiresProvenance, true);
+  assert.ok(uncertainty.prohibitedPublicTerms.includes('tout va bien'));
+  assert.ok(
+    uncertainty.authorityPaths.includes(
+      'docs/control/EMOPET_PRODUCT_AUTHORITY_MAP_v0.1.md',
+    ),
+  );
+});
+
+test('trend is controlled only as named longitudinal change, never a global wellbeing trend', () => {
+  const trend = getMotsPetEntry('trend');
+  assert.ok(trend);
+  assert.equal(trend.status, 'CONTROLLED_SEED');
+  assert.equal(trend.publicFr, 'évolution longitudinale');
+  assert.equal(trend.publicEn, 'longitudinal change');
+  assert.equal(trend.requiresProvenance, true);
+  assert.ok(trend.definitionFr.includes('observation nommée'));
+  assert.ok(trend.definitionFr.includes('référence individuelle ou contextuelle'));
+  assert.ok(trend.prohibitedPublicTerms.includes('tendance ELI globale'));
+  assert.ok(trend.prohibitedPublicTerms.includes('bien-être en hausse'));
+});
