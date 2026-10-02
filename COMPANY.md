@@ -68,6 +68,7 @@ Authority: `docs/strategy/PROJECT_TIMELINE_2026_2027.md`.
 | Review-only transition proposal engine | Added in V2 |
 | Reviewed proposal append preparation | Added in V2 |
 | Human-approved transition finalization | Added in V2 |
+| Transition append PR checklist + source-snapshot guard | Added in V2 |
 
 ## Public-safe external views
 
