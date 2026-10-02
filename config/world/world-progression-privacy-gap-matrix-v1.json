@@ -9,7 +9,7 @@
   ],
   "sourceCandidate": "config/world/world-progression-privacy-candidate-v1.json",
   "g2Foundation": {
-    "migration": "backend/db/migrations/0045_world_gamification_persistence.sql",
+    "migration": "backend/db/migrations/0046_world_gamification_persistence.sql",
     "schema": "backend/db/schema/world-gamification.ts",
     "pullRequest": 973,
     "activeWrites": false
