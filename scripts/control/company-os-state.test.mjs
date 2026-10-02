@@ -8,6 +8,7 @@ import { prepareReviewedTransitionAppend } from './prepare-reviewed-transition-a
 import { finalizeReviewedTransitionAppend } from './finalize-reviewed-transition-append.mjs';
 import { assertSourceSnapshotIncludedInBase, verifySourceSnapshotMergedInBase } from './verify-transition-source-snapshot.mjs';
 import { inspectTransitionWorkflow } from './transition-workflow-status.mjs';
+import { renderTransitionReviewPacket } from './transition-review-packet.mjs';
 
 const root = process.cwd();
 
@@ -1123,6 +1124,106 @@ test('reviewed transition append preparation requires explicit review and never 
     source,
     /outputPath === ledgerAbsolute/,
     'reviewed append preparer must reject the canonical ledger as its output path',
+  );
+});
+
+test('transition review packet renders exact proposal evidence without approving or mutating it', () => {
+  const queue = {
+    schema_version: '0.1.0',
+    authority_mode: 'DIFF_PROPOSALS_REQUIRE_EXPLICIT_REVIEW',
+    base_ref: 'main@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+    candidate_ref: 'head@cccccccccccccccccccccccccccccccccccccccc',
+    generated_on: '2026-10-02',
+    proposals: [
+      {
+        proposal_id: 'EMO-PROPOSAL-20261002-0001',
+        review_status: 'REVIEW_REQUIRED',
+        kind: 'STATE_TRANSITION',
+        subject_id: 'EMO-TEST-PHASE',
+        field: 'status',
+        before_value: 'OPEN',
+        after_value: 'PASSED',
+        source_path: 'state/company-state.json',
+        authority_refs: [{ kind: 'path', value: 'COMPANY.md' }],
+        evidence_refs: [{ kind: 'commit', value: 'a'.repeat(40) }],
+        decision_refs: [],
+        append_ready: false,
+        note: 'Synthetic review fixture.',
+      },
+      {
+        proposal_id: 'EMO-PROPOSAL-20261002-0002',
+        review_status: 'REVIEW_REQUIRED',
+        kind: 'EVIDENCE_TRANSITION',
+        subject_id: 'EMO-TEST-EVIDENCE',
+        field: 'evidence_refs',
+        before_value: [],
+        after_value: [{ kind: 'commit', value: 'a'.repeat(40) }],
+        source_path: 'state/company-state.json',
+        authority_refs: [],
+        evidence_refs: [{ kind: 'commit', value: 'a'.repeat(40) }],
+        decision_refs: [],
+        append_ready: false,
+        note: 'Synthetic evidence fixture.',
+      },
+    ],
+  };
+
+  const before = JSON.stringify(queue);
+  const rendered = renderTransitionReviewPacket(queue);
+
+  assert.equal(JSON.stringify(queue), before, 'renderer must not mutate the proposal queue');
+  assert.match(rendered, /REVIEW REQUIRED/);
+  assert.match(rendered, /NOT APPROVAL/);
+  assert.match(rendered, /EMO-PROPOSAL-20261002-0001/);
+  assert.match(rendered, /"OPEN"/);
+  assert.match(rendered, /"PASSED"/);
+  assert.match(rendered, /commit \`aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\`/);
+  assert.match(rendered, /Source order is not a priority ranking/);
+  assert.match(rendered, /Do not treat this packet as that review reference/);
+
+  const focused = renderTransitionReviewPacket(queue, {
+    proposalId: 'EMO-PROPOSAL-20261002-0002',
+  });
+  assert.doesNotMatch(focused, /EMO-PROPOSAL-20261002-0001/);
+  assert.match(focused, /EMO-PROPOSAL-20261002-0002/);
+
+  assert.throws(
+    () => renderTransitionReviewPacket(queue, { proposalId: 'UNKNOWN' }),
+    /Unknown proposal ID/,
+  );
+
+  assert.throws(
+    () =>
+      renderTransitionReviewPacket({
+        ...queue,
+        proposals: [{ ...queue.proposals[0], append_ready: true }],
+      }),
+    /cannot be append-ready/,
+  );
+
+  assert.throws(
+    () =>
+      renderTransitionReviewPacket({
+        ...queue,
+        proposals: [
+          {
+            ...queue.proposals[0],
+            authority_refs: [{ kind: 'mystery', value: 'x' }],
+          },
+        ],
+      }),
+    /unsupported reference kind/,
+  );
+
+  const empty = renderTransitionReviewPacket({ ...queue, proposals: [] });
+  assert.match(empty, /No pending proposals/);
+  assert.match(empty, /does \*\*not\*\* certify/);
+
+  const source = readText('scripts/control/transition-review-packet.mjs');
+  assert.doesNotMatch(
+    source,
+    /writeFileSync|appendFileSync|prepareReviewedTransitionAppend|finalizeReviewedTransitionAppend/,
+    'review packet renderer must stay read-only and cannot accept, prepare, finalize or append',
   );
 });
 
