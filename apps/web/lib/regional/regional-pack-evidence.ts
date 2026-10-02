@@ -7,11 +7,14 @@
  */
 
 import {
-  evaluateBreizSourceRights,
   getBreizSource,
-  isBreizSourceReleaseReady,
   type BreizSourceRightsBlocker,
 } from '../data/breiz/sourceRegistry';
+import {
+  evaluateRegionalSourceReadiness,
+  type RegionalSourceEffectiveBlocker,
+  type RegionalSourceReadinessScope,
+} from './regional-source-readiness';
 import {
   evaluateRegionalPackReleaseReadiness,
   isRegionalIdentityEvidenceReleaseReady,
@@ -31,6 +34,10 @@ export interface RegionalPackSourceEvidence {
   ingestionPermitted: boolean;
   releaseReady: boolean;
   rightsBlockers: readonly BreizSourceRightsBlocker[];
+  readinessKind: RegionalSourceReadinessScope['kind'];
+  scopedResourceIds: readonly string[];
+  readyScopedResourceIds: readonly string[];
+  effectiveBlockers: readonly RegionalSourceEffectiveBlocker[];
   evidenceState: string | null;
   disposition: string | null;
   recheckAt: string | null;
@@ -75,35 +82,22 @@ export function buildRegionalPackEvidenceReport(
   const sources: RegionalPackSourceEvidence[] = [];
 
   for (const binding of pack.sourceBindings) {
+    const readiness = evaluateRegionalSourceReadiness(binding, nowMs);
     const source = getBreizSource(binding.sourceId);
-
-    if (!source) {
-      sources.push({
-        sourceId: binding.sourceId,
-        sourceKnown: false,
-        domains: binding.domains,
-        purpose: binding.purpose,
-        ingestionPermitted: false,
-        releaseReady: false,
-        rightsBlockers: [],
-        evidenceState: null,
-        disposition: null,
-        recheckAt: null,
-      });
-      continue;
-    }
-
-    const rights = evaluateBreizSourceRights(source);
-    const evidence = source.rightsEvidence;
+    const evidence = source?.rightsEvidence;
 
     sources.push({
-      sourceId: source.id,
-      sourceKnown: true,
+      sourceId: binding.sourceId,
+      sourceKnown: readiness.sourceKnown,
       domains: binding.domains,
       purpose: binding.purpose,
-      ingestionPermitted: rights.ingestionPermitted,
-      releaseReady: isBreizSourceReleaseReady(source, nowMs),
-      rightsBlockers: rights.blockers,
+      ingestionPermitted: readiness.effectiveIngestionPermitted,
+      releaseReady: readiness.releaseReady,
+      rightsBlockers: readiness.sourceRightsBlockers,
+      readinessKind: readiness.readinessKind,
+      scopedResourceIds: readiness.scopedResourceIds,
+      readyScopedResourceIds: readiness.readyScopedResourceIds,
+      effectiveBlockers: readiness.effectiveBlockers,
       evidenceState: evidence?.evidenceState ?? null,
       disposition: evidence?.disposition ?? null,
       recheckAt: evidence?.recheckAt ?? null,
