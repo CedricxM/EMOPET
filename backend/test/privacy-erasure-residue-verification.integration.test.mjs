@@ -21,6 +21,7 @@ const CONSENT_A = randomUUID();
 const SESSION_A = randomUUID();
 const MESSAGE_A = randomUUID();
 const COPRESENCE_A = randomUUID();
+const PRESENCE_A = randomUUID();
 const PROFESSIONAL_SHARE_GRANT_A = randomUUID();
 const PROFESSIONAL_SHARE_AUDIT_A = randomUUID();
 
@@ -53,8 +54,10 @@ async function cleanup() {
   await sql`DELETE FROM ai_messages WHERE id = ${MESSAGE_A}`;
   await validateAiMessageWriteGuard(sql);
   await sql`DELETE FROM professional_share_access_audits WHERE id = ${PROFESSIONAL_SHARE_AUDIT_A}`;
+  await sql`DELETE FROM presence_events WHERE id = ${PRESENCE_A}`;
   await sql`DELETE FROM professional_share_grants WHERE id = ${PROFESSIONAL_SHARE_GRANT_A}`;
   await sql`DELETE FROM copresence_events WHERE id = ${COPRESENCE_A}`;
+  await sql`DELETE FROM presence_events WHERE id = ${PRESENCE_A}`;
   await sql`DELETE FROM user_config WHERE user_id IN (${USER_A}, ${USER_B})`;
   await sql`DELETE FROM achievements WHERE user_id IN (${USER_A}, ${USER_B})`;
   await sql`DELETE FROM subscriptions WHERE user_id IN (${USER_A}, ${USER_B})`;
@@ -204,6 +207,10 @@ test('snapshot capture and residue verification survive parent deletion without 
     VALUES (${COPRESENCE_A}, ${DOG_A}, ${DOG_B}, now())
   `;
   await sql`
+    INSERT INTO presence_events (id, dog_id, ingestion_id, source, state, event_at)
+    VALUES (${PRESENCE_A}, ${DOG_A}, ${randomUUID()}, 'manual_override', 'present', now() - interval '5 minutes')
+  `;
+  await sql`
     INSERT INTO professional_share_grants (
       id, owner_user_id, dog_id,
       recipient_display_name, recipient_type, recipient_email,
@@ -265,6 +272,7 @@ test('snapshot capture and residue verification survive parent deletion without 
   assert.equal(probesBefore['behavioral_factor_scores.assessment_id'], 1);
   assert.equal(probesBefore['eli_behavioral_priors.factor_score_id'], 1);
   assert.equal(probesBefore['copresence_events.dog_a_id'], 1);
+  assert.equal(probesBefore['presence_events.dog_id'], 1);
   assert.equal(probesBefore['professional_share_grants.owner_user_id'], 1);
   assert.equal(probesBefore['professional_share_grants.dog_id'], 1);
   assert.equal(probesBefore['professional_share_access_audits.dog_id'], 1);
