@@ -197,9 +197,9 @@ export function validateBretagneLanguageReviewOutreach(
     const candidateReceipts = receiptsByCandidate.get(id) ?? [];
 
     if (status === 'CANDIDATE_NOT_CONTACTED') {
-      if (candidateReceipts.some((receipt) => receipt.evidenceType !== 'INTERNAL_DEFER_DECISION')) {
+      if (candidateReceipts.length > 0) {
         errors.push(
-          `${id}: CANDIDATE_NOT_CONTACTED cannot coexist with communication evidence`,
+          `${id}: CANDIDATE_NOT_CONTACTED cannot coexist with evidence receipts`,
         );
       }
       continue;
