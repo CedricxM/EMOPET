@@ -94,6 +94,20 @@
       "erasureDisposition": "TO_CONFIRM"
     },
     {
+      "table": "phone_presence_events",
+      "column": "dog_id",
+      "source": "backend/db/schema/presence.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "professional_share_grants",
+      "column": "dog_id",
+      "source": "backend/db/schema/professional-sharing.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
+    },
+    {
       "table": "recovery_events",
       "column": "dog_id",
       "source": "backend/db/schema/eli-v5.ts",
@@ -139,13 +153,6 @@
       "table": "walk_quality",
       "column": "dog_id",
       "source": "backend/db/schema/eli-v5.ts",
-      "databaseDeleteAction": "NO_ACTION",
-      "erasureDisposition": "TO_CONFIRM"
-    },
-    {
-      "table": "professional_share_grants",
-      "column": "dog_id",
-      "source": "backend/db/schema/professional-sharing.ts",
       "databaseDeleteAction": "NO_ACTION",
       "erasureDisposition": "TO_CONFIRM"
     }
