@@ -153,7 +153,7 @@
     "Owner export treatment for progression events, ownership and resource spends",
     "retention/disposition for each durable World table",
     "foreign-key-safe executable erasure ordering",
-    "execute the approved legacy localStorage decommission treatment and reconcile lifecycle/erasure handling before promotion"
+    "execute the approved legacy non-SQL localStorage decommission treatment and reconcile lifecycle/erasure handling before promotion"
   ],
   "claims": {
     "privacyReconciled": false,
