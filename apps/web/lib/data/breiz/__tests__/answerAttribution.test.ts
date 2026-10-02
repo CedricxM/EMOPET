@@ -104,7 +104,19 @@ test('silent product-use mutation under the same revision fails closed', () => {
   const mutated = source({
     rightsEvidence: {
       ...source().rightsEvidence!,
-      allowedProductUses: ['INGESTION', 'PUBLIC_ANSWER_WITH_SOURCE',],
+      allowedProductUses: ['PUBLIC_ANSWER_WITH_SOURCE', 'INGESTION'],
+    },
+  });
+
+  const verdict = evaluateBreizChunkReleaseAuthority(firstChunk(), mutated, NOW);
+  assert.equal(verdict.authorized, false);
+  assert.ok(verdict.blockers.includes('PRODUCT_USE_SCOPE_MISMATCH'));
+});
+
+test('silent permitted-use summary mutation under the same revision fails closed', () => {
+  const mutated = source({
+    rightsEvidence: {
+      ...source().rightsEvidence!,
       permittedUseSummary: 'Different scope text under same revision',
     },
   });
