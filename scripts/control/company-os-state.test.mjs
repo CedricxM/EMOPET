@@ -1251,6 +1251,43 @@ test('transition workflow status is read-only and exposes mechanical next state 
   assert.equal(reviewRequired.mutates_ledger, false);
   assert.equal(reviewRequired.human_review_required, true);
   assert.equal(reviewRequired.substantive_decision_authority, false);
+  assert.equal(reviewRequired.operator_handoff.action, 'RENDER_REVIEW_PACKET');
+  assert.equal(
+    reviewRequired.operator_handoff.scope,
+    'SINGLE_PENDING_PROPOSAL',
+  );
+  assert.match(
+    reviewRequired.operator_handoff.command,
+    /transition-review-packet\.mjs --proposal-queue state\/history\/pending-transition-proposals\.json/,
+  );
+  assert.match(
+    reviewRequired.operator_handoff.note,
+    /does not select, prioritize, accept or approve/i,
+  );
+
+  const multiProposal = inspectTransitionWorkflow(
+    {
+      ...queue,
+      proposals: [
+        ...queue.proposals,
+        {
+          proposal_id: 'EMO-PROPOSAL-20261002-0002',
+          review_status: 'REVIEW_REQUIRED',
+          append_ready: false,
+        },
+      ],
+    },
+    transitionEvents,
+  );
+  assert.equal(
+    multiProposal.operator_handoff.scope,
+    'FULL_PENDING_QUEUE_NO_PRIORITY_RANKING',
+  );
+  assert.doesNotMatch(
+    multiProposal.operator_handoff.command,
+    /--proposal-id/,
+    'multi-proposal handoff must not synthesize a review priority',
+  );
 
   const reviewedCandidate = {
     proposal_id: 'EMO-PROPOSAL-20261002-0001',
@@ -1315,6 +1352,66 @@ test('transition workflow status is read-only and exposes mechanical next state 
     transitionEvents,
   );
   assert.equal(empty.mechanical_state, 'NO_PENDING_PROPOSALS');
+  assert.equal(empty.operator_handoff, null);
+
+  const staleQueue = inspectTransitionWorkflow(
+    { ...queue, proposals: [] },
+    transitionEvents,
+    null,
+    {
+      currentRef: 'main@dddddddddddddddddddddddddddddddddddddddd',
+    },
+  );
+  assert.equal(staleQueue.mechanical_state, 'PROPOSAL_QUEUE_STALE');
+  assert.equal(staleQueue.next_action_code, 'REGENERATE_PROPOSAL_QUEUE');
+  assert.equal(
+    staleQueue.current_ref,
+    'main@dddddddddddddddddddddddddddddddddddddddd',
+  );
+  assert.equal(
+    staleQueue.operator_handoff,
+    null,
+    'stale queues must not hand off into proposal review',
+  );
+  assert.match(staleQueue.next_action, /Regenerate the queue/i);
+
+  const currentQueue = inspectTransitionWorkflow(
+    {
+      ...queue,
+      candidate_ref: 'main@dddddddddddddddddddddddddddddddddddddddd',
+      proposals: [],
+    },
+    transitionEvents,
+    null,
+    {
+      currentRef: 'main@dddddddddddddddddddddddddddddddddddddddd',
+    },
+  );
+  assert.equal(currentQueue.mechanical_state, 'NO_PENDING_PROPOSALS');
+  assert.equal(currentQueue.operator_handoff, null);
+
+  const staleReviewedCandidate = inspectTransitionWorkflow(
+    queue,
+    transitionEvents,
+    reviewedCandidate,
+    {
+      currentRef: 'main@dddddddddddddddddddddddddddddddddddddddd',
+    },
+  );
+  assert.equal(
+    staleReviewedCandidate.mechanical_state,
+    'PROPOSAL_QUEUE_STALE',
+    'queue freshness must fail closed before reviewed-candidate readiness',
+  );
+  assert.equal(staleReviewedCandidate.operator_handoff, null);
+
+  assert.throws(
+    () =>
+      inspectTransitionWorkflow(queue, transitionEvents, null, {
+        currentRef: 'main@not-a-sha',
+      }),
+    /currentRef must be/,
+  );
 
   const source = readText('scripts/control/transition-workflow-status.mjs');
   assert.doesNotMatch(
