@@ -152,3 +152,61 @@ export const securityAlertAcknowledgements = pgTable(
     ),
   ],
 );
+
+
+export const securityAlertEscalationAttempts = pgTable(
+  'security_alert_escalation_attempts',
+  {
+    attemptId: uuid('attempt_id').primaryKey(),
+    alertId: uuid('alert_id')
+      .notNull()
+      .references(() => securityAlertOutbox.alertId, { onDelete: 'cascade' }),
+    escalationOwner: varchar('escalation_owner', { length: 32 }).notNull(),
+    attemptedAt: timestamp('attempted_at', { withTimezone: true }).notNull(),
+    state: varchar('state', { length: 32 }).notNull(),
+    resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+    providerReceiptRef: varchar('provider_receipt_ref', { length: 128 }),
+    failureCode: varchar('failure_code', { length: 32 }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('uq_security_alert_escalation_attempts_alert')
+      .on(table.alertId),
+    index('idx_security_alert_escalation_attempts_state_time')
+      .on(table.state, table.attemptedAt),
+    check(
+      'chk_security_alert_escalation_owner',
+      sql`${table.escalationOwner} IN ('security_duty', 'incident_commander')`,
+    ),
+    check(
+      'chk_security_alert_escalation_attempt_state',
+      sql`${table.state} IN ('PENDING', 'DELIVERED', 'ATTEMPT_FAILED')`,
+    ),
+    check(
+      'chk_security_alert_escalation_attempt_shape',
+      sql`(
+        ${table.state} = 'PENDING'
+        AND ${table.resolvedAt} IS NULL
+        AND ${table.providerReceiptRef} IS NULL
+        AND ${table.failureCode} IS NULL
+      ) OR (
+        ${table.state} = 'DELIVERED'
+        AND ${table.resolvedAt} IS NOT NULL
+        AND ${table.resolvedAt} >= ${table.attemptedAt}
+        AND ${table.providerReceiptRef} ~ '^[A-Za-z0-9][A-Za-z0-9:._-]{0,127}$'
+        AND ${table.failureCode} IS NULL
+      ) OR (
+        ${table.state} = 'ATTEMPT_FAILED'
+        AND ${table.resolvedAt} IS NOT NULL
+        AND ${table.resolvedAt} >= ${table.attemptedAt}
+        AND ${table.providerReceiptRef} IS NULL
+        AND ${table.failureCode} IN (
+          'PROVIDER_UNAVAILABLE',
+          'PROVIDER_REJECTED',
+          'DELIVERY_TIMEOUT',
+          'ADAPTER_FAILURE'
+        )
+      )`,
+    ),
+  ],
+);
