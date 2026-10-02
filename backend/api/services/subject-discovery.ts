@@ -29,6 +29,7 @@ import {
   healthEntries,
   professionalShareGrants,
   professionalShareAccessAudits,
+  phonePresenceEvents,
   posts,
   recoveryEvents,
   researchDataConsents,
@@ -209,6 +210,10 @@ export async function discoverSubjectData(
         userBlocksReceived: counted(await countWhere(tx, userBlocks, eq(userBlocks.blockedUserId, userId)), {
           note: 'Count only. Blocks are silent to the blocked person; disclosing received blocks to the subject is an open privacy decision.',
         }),
+        phonePresenceEvents: counted(
+          await countWhere(tx, phonePresenceEvents, eq(phonePresenceEvents.ownerId, userId)),
+          { note: 'Count only. Durable phone Presence lifecycle remains TO_CONFIRM under #135.' },
+        ),
         worldPilotAccess: counted(await countWhere(tx, worldPilotAccess, eq(worldPilotAccess.userId, userId))),
         socialConnections: counted(await countWhere(tx, socialConnections, or(eq(socialConnections.userLowId, userId), eq(socialConnections.userHighId, userId))!), {
           note: 'Count includes declined requests, which stay silent to the declined person.',
@@ -222,6 +227,7 @@ export async function discoverSubjectData(
       let dogCounts = {
         professionalShareGrants: 0,
         professionalShareAccessAudits: 0,
+        phonePresenceEvents: 0,
         devices: 0,
         healthEntries: 0,
         sensorFeatureObservations: 0,
@@ -276,6 +282,9 @@ export async function discoverSubjectData(
           ),
           professionalShareAccessAudits: await countWhere(
             tx, professionalShareAccessAudits, inArray(professionalShareAccessAudits.dogId, selectedDogIds),
+          ),
+          phonePresenceEvents: await countWhere(
+            tx, phonePresenceEvents, inArray(phonePresenceEvents.dogId, selectedDogIds),
           ),
           devices: await countWhere(tx, devices, inArray(devices.dogId, selectedDogIds)),
           healthEntries: await countWhere(tx, healthEntries, inArray(healthEntries.dogId, selectedDogIds)),
@@ -344,6 +353,9 @@ export async function discoverSubjectData(
           professionalShareGrants: counted(dogCounts.professionalShareGrants),
           professionalShareAccessAudits: counted(dogCounts.professionalShareAccessAudits, {
             note: 'Counts by requested dog ID only; audit identifiers have no FK and do not prove grant attribution or lifecycle completeness.',
+          }),
+          phonePresenceEvents: counted(dogCounts.phonePresenceEvents, {
+            note: 'Durable phone Presence lifecycle remains TO_CONFIRM under #135.',
           }),
           devices: counted(dogCounts.devices),
           healthEntries: counted(dogCounts.healthEntries),
