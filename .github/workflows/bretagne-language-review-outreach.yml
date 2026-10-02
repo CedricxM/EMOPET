@@ -1,0 +1,34 @@
+name: Bretagne language review outreach gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bretagne-language-review-outreach.yml'
+      - 'apps/web/lib/regional/bretagne-language-review-*.ts'
+      - 'apps/web/lib/regional/__tests__/bretagne-language-review-*.test.ts'
+      - 'apps/web/lib/regional/index.ts'
+      - 'config/partnerships/bretagne-language-review-outreach-*.json'
+      - 'docs/partnerships/BRETAGNE_LANGUAGE_REVIEW_*.md'
+      - 'scripts/control/bretagne-language-review-outreach*.mjs'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  outreach-control:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '20'
+
+      - name: Validate Bretagne language-review outreach evidence gate
+        run: node --test scripts/control/bretagne-language-review-outreach.test.mjs
