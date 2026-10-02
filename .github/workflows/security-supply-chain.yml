@@ -122,6 +122,8 @@ jobs:
         run: node --test scripts/data/bretagne-rnr-field-review-response.test.mjs
       - name: Enforce Bretagne RNR licence clarification HOLD
         run: node --test scripts/control/bretagne-rnr-licence-clarification.test.mjs
+      - name: Enforce Bretagne language-review outreach evidence
+        run: node --test scripts/control/bretagne-language-review-outreach.test.mjs
       - name: Enforce Company OS evidence-gated state invariants
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
