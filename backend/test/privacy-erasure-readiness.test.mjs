@@ -90,7 +90,7 @@ test('account erasure preflight reflects approved detaches, auth lifecycle and W
   assert.equal(result.relational.unresolvedDisposition, 23);
   assert.equal(result.relational.notImplemented, 23);
   assert.deepEqual(result.relational.databaseMechanics, {
-    NO_ACTION: 22,
+    NO_ACTION: 21,
     RESTRICT: 0,
     CASCADE: 1,
     SET_NULL: 6,
@@ -137,7 +137,7 @@ test('dog erasure preflight reflects detachable device binding plus remaining bl
   assert.equal(result.relational.unresolvedDisposition, 28);
   assert.equal(result.relational.notImplemented, 28);
   assert.deepEqual(result.relational.databaseMechanics, {
-    NO_ACTION: 21,
+    NO_ACTION: 22,
     RESTRICT: 0,
     CASCADE: 4,
     SET_NULL: 1,
