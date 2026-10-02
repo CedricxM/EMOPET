@@ -22,6 +22,7 @@
     "noValidationImplicationStatuses": [
       "HYPOTHESIS",
       "UNVERIFIED",
+      "NOT_ESTABLISHED_BY_CITED_SOURCE",
       "SEPARATE_GATE",
       "REJECTED"
     ]
