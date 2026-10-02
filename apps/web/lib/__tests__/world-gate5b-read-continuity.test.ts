@@ -1,15 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 
 const contract = JSON.parse(
-  await readFile(
+  readFileSync(
     new URL('../../../../config/world/world-gate5b-web-read-continuity-v1.json', import.meta.url),
     'utf8',
   ),
 );
 const transition = JSON.parse(
-  await readFile(
+  readFileSync(
     new URL('../../../../config/world/world-region-transition-v1.json', import.meta.url),
     'utf8',
   ),
@@ -36,8 +36,8 @@ test('Gate 5B inherits the canonical regional continuity invariants', () => {
   assert.equal(transition.ownedItemExpiry, false);
 });
 
-test('Gate 5B points only to the governed server read client', async () => {
-  const client = await readFile(
+test('Gate 5B points only to the governed server read client', () => {
+  const client = readFileSync(
     new URL('../world-gamification-read.ts', import.meta.url),
     'utf8',
   );
