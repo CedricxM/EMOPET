@@ -126,6 +126,8 @@ jobs:
         run: node --test scripts/data/bretagne-rnr-field-review-decision.test.mjs
       - name: Enforce Bretagne RNR licence clarification HOLD
         run: node --test scripts/control/bretagne-rnr-licence-clarification.test.mjs
+      - name: Enforce Bretagne language-review outreach evidence
+        run: node --test scripts/control/bretagne-language-review-outreach.test.mjs
       - name: Test Bretagne RNR licence clarification response flow
         run: node --test scripts/control/bretagne-rnr-licence-clarification-response.test.mjs
       - name: Enforce Company OS evidence-gated state invariants

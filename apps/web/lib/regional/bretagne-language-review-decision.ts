@@ -75,6 +75,12 @@ export interface BretagneIdentityRuntimeEvidenceCandidate {
   canApplyAutomatically: false;
   semanticAuthorityChangeAllowed: false;
   profileMutationAllowedAutomatically: false;
+  reviewAuthority: {
+    candidateId: string;
+    organisationName: string;
+    scopeAgreementEvidenceRef: string;
+    scopeAgreedAt: string;
+  };
   identityEvidence: {
     status: 'VERIFIED';
     exactAssistantName: string;
@@ -101,6 +107,12 @@ export interface BretagneLexiconRuntimeEvidenceCandidate {
   canApplyAutomatically: false;
   semanticAuthorityChangeAllowed: false;
   lexiconMutationAllowedAutomatically: false;
+  reviewAuthority: {
+    candidateId: string;
+    organisationName: string;
+    scopeAgreementEvidenceRef: string;
+    scopeAgreedAt: string;
+  };
   lexiconEvidence: {
     status: 'VERIFIED';
     reviewer: string;
@@ -303,6 +315,12 @@ function identityCandidate(
     canApplyAutomatically: false,
     semanticAuthorityChangeAllowed: false,
     profileMutationAllowedAutomatically: false,
+    reviewAuthority: {
+      candidateId: proposal.authorityCandidateId,
+      organisationName: proposal.authorityOrganisationName,
+      scopeAgreementEvidenceRef: proposal.scopeAgreementEvidenceRef,
+      scopeAgreedAt: proposal.scopeAgreedAt,
+    },
     identityEvidence: {
       status: 'VERIFIED',
       exactAssistantName: proposal.exactAssistantName,
@@ -339,6 +357,12 @@ function lexiconCandidate(
     canApplyAutomatically: false,
     semanticAuthorityChangeAllowed: false,
     lexiconMutationAllowedAutomatically: false,
+    reviewAuthority: {
+      candidateId: proposal.authorityCandidateId,
+      organisationName: proposal.authorityOrganisationName,
+      scopeAgreementEvidenceRef: proposal.scopeAgreementEvidenceRef,
+      scopeAgreedAt: proposal.scopeAgreedAt,
+    },
     lexiconEvidence: {
       status: 'VERIFIED',
       reviewer: proposal.reviewerRole,
