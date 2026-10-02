@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://emopet.example/schemas/bretagne-rnr-outbound-message-receipt-v1.schema.json",
+  "title": "EMOPET Bretagne RNR outbound-message evidence receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "evidenceType",
+    "datasetId",
+    "sourceVersion",
+    "outreachPacketPath",
+    "outreachPacketGitBlobSha",
+    "recipientAuthorityRole",
+    "recipientAddress",
+    "transportClass",
+    "providerReferenceDigest",
+    "subject",
+    "sentAt",
+    "capturedAt",
+    "senderRole",
+    "reviewerRole",
+    "reviewedAt",
+    "receiptPath",
+    "messageBodyStoredInRepository",
+    "privateContactDataStoredInRepository",
+    "responseReceivedClaimed",
+    "partnershipClaimed",
+    "rightsPromoted"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "emopet-bretagne-rnr-outbound-message-receipt-v1"
+    },
+    "evidenceType": {
+      "const": "OUTBOUND_MESSAGE"
+    },
+    "datasetId": {
+      "const": "reserves-naturelles-regionales-de-bretagne"
+    },
+    "sourceVersion": {
+      "const": "sha256:65ff0d253fd1a1bddd6ce05389fe4b35c8946cfbcd8787c9d5afaee092506cd0"
+    },
+    "outreachPacketPath": {
+      "const": "docs/partnerships/BRETAGNE_RNR_LICENCE_CLARIFICATION_OUTREACH_2026-10-02.md"
+    },
+    "outreachPacketGitBlobSha": {
+      "const": "9df9ab6d15b49c8c3d42bce016fcb4d325a9bfc7"
+    },
+    "recipientAuthorityRole": {
+      "const": "Région Bretagne PRADA"
+    },
+    "recipientAddress": {
+      "const": "prada@bretagne.bzh"
+    },
+    "transportClass": {
+      "const": "EMAIL"
+    },
+    "providerReferenceDigest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "subject": {
+      "const": "Clarification de licence — jeu de données « Réserves naturelles régionales de Bretagne »"
+    },
+    "sentAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "capturedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "senderRole": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "pattern": "^[^@]+$"
+    },
+    "reviewerRole": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "pattern": "^[^@]+$"
+    },
+    "reviewedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "receiptPath": {
+      "type": "string",
+      "pattern": "^data/registry/receipts/bretagne-rnr-outbound-message-[a-f0-9]{12,64}\\\\.json$"
+    },
+    "messageBodyStoredInRepository": {
+      "const": false
+    },
+    "privateContactDataStoredInRepository": {
+      "const": false
+    },
+    "responseReceivedClaimed": {
+      "const": false
+    },
+    "partnershipClaimed": {
+      "const": false
+    },
+    "rightsPromoted": {
+      "const": false
+    }
+  }
+}
