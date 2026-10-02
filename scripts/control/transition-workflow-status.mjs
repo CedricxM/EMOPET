@@ -29,8 +29,22 @@ function assertProposalQueue(queue) {
   }
 }
 
-function candidateStatus(proposalQueue, ledgerEvents, reviewedCandidate) {
+function candidateStatus(
+  proposalQueue,
+  ledgerEvents,
+  reviewedCandidate,
+  currentRef = null,
+) {
   const tailEventId = ledgerEvents.at(-1)?.event_id ?? null;
+
+  if (currentRef && proposalQueue.candidate_ref !== currentRef) {
+    return {
+      mechanical_state: 'PROPOSAL_QUEUE_STALE',
+      next_action_code: 'REGENERATE_PROPOSAL_QUEUE',
+      next_action:
+        `The proposal queue targets ${proposalQueue.candidate_ref}, but the current controlled-state ref is ${currentRef}. Regenerate the queue before trusting proposal count or review state.`,
+    };
+  }
 
   if (!reviewedCandidate) {
     if (proposalQueue.proposals.length === 0) {
@@ -102,16 +116,27 @@ export function inspectTransitionWorkflow(
   proposalQueue,
   ledgerEvents,
   reviewedCandidate = null,
+  options = {},
 ) {
   assertProposalQueue(proposalQueue);
   if (!Array.isArray(ledgerEvents)) {
     throw new Error('ledgerEvents must be an array');
   }
 
+  const currentRef = options.currentRef ?? null;
+  if (
+    currentRef !== null &&
+    (typeof currentRef !== 'string' ||
+      !/^(?:main|head)@[0-9a-f]{40}$/.test(currentRef))
+  ) {
+    throw new Error('currentRef must be main@<40-hex-sha> or head@<40-hex-sha>');
+  }
+
   const status = candidateStatus(
     proposalQueue,
     ledgerEvents,
     reviewedCandidate,
+    currentRef,
   );
 
   const proposalPacketCommand =
@@ -134,12 +159,13 @@ export function inspectTransitionWorkflow(
       : null;
 
   return {
-    schema_version: '0.2.0',
+    schema_version: '0.3.0',
     authority_mode: 'MECHANICAL_WORKFLOW_STATUS_NOT_DECISION_AUTHORITY',
     ledger_tail_event_id: ledgerEvents.at(-1)?.event_id ?? null,
     proposal_count: proposalQueue.proposals.length,
     proposal_ids: proposalQueue.proposals.map((entry) => entry.proposal_id),
     proposal_candidate_ref: proposalQueue.candidate_ref,
+    current_ref: currentRef,
     reviewed_candidate_present: reviewedCandidate !== null,
     reviewed_candidate_proposal_id: reviewedCandidate?.proposal_id ?? null,
     mechanical_state: status.mechanical_state,
@@ -162,6 +188,8 @@ function main() {
     argValue('--proposal-queue') ?? DEFAULT_PROPOSAL_PATH;
   const ledgerPath = argValue('--ledger') ?? DEFAULT_LEDGER_PATH;
   const reviewedCandidatePath = argValue('--reviewed-candidate');
+  const currentRef =
+    argValue('--current-ref') ?? process.env.EMOPET_CURRENT_REF ?? null;
 
   const proposalQueue = readJson(proposalPath);
   const ledgerEvents = readJsonLines(ledgerPath);
@@ -179,6 +207,7 @@ function main() {
     proposalQueue,
     ledgerEvents,
     reviewedCandidate,
+    { currentRef },
   );
 
   process.stdout.write(JSON.stringify(result, null, 2) + '\n');
