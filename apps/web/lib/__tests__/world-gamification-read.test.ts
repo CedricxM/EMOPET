@@ -236,6 +236,9 @@ test('Gate 5A client remains unactivated and independent from legacy browser aut
 
   const allowedLibraryAdapters = new Set([
     path.resolve(webRoot, 'lib/world-owner-auth.ts'),
+    // Gate 5C server-only BFF bridge. This file never ships the bearer token to
+    // browser JS and Gate 5C remains activated:false until explicit cutover.
+    path.resolve(webRoot, 'lib/server/world-gamification-owner-session.ts'),
   ]);
 
   for (const rootName of ['app', 'components', 'lib']) {

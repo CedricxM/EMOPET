@@ -26,14 +26,32 @@ async function collect(dir: string): Promise<string[]> {
   return out;
 }
 
-test('Gate 5C remains fail-closed after coarse-region readiness until auth and cutover exist', () => {
+test('Gate 5C remains fail-closed after Owner auth readiness until cutover exists', () => {
   assert.equal(readiness.status, 'CONTROLLED_DRAFT_NOT_PRODUCTION_AUTHORITY');
   assert.equal(readiness.activated, false);
   assert.equal(readiness.prerequisites.gate5bReadContinuityMerged, true);
-  assert.equal(readiness.prerequisites.explicitBearerTokenProvider, false);
+  assert.equal(readiness.prerequisites.explicitBearerTokenProvider, true);
   assert.equal(readiness.prerequisites.explicitCoarseRegionProvider, true);
   assert.equal(readiness.prerequisites.uiCutoverDecisionRecorded, false);
   assert.equal(readiness.activationRule, 'ALL_PREREQUISITES_TRUE');
+  assert.deepEqual(readiness.ownerSessionProvider, {
+    authority: 'CANONICAL_BACKEND_OWNER_AUTH',
+    backendOriginEnv: 'EMOPET_INTERNAL_BACKEND_URL',
+    browserCredentialTransport: 'HTTP_ONLY_STRICT_SAME_SITE_COOKIES',
+    accessTokenExposedToBrowserJs: false,
+    refreshTokenExposedToBrowserJs: false,
+    localStorageUsed: false,
+    sessionStorageUsed: false,
+    ownerIdAcceptedFromBrowser: false,
+    refreshRotation: 'EXPLICIT_SAME_ORIGIN_POST',
+    loginRoute: 'POST /api/owner-session/login',
+    refreshRoute: 'POST /api/owner-session/refresh',
+    logoutRoute: 'POST /api/owner-session/logout',
+    worldReadBff: 'GET /api/world-gamification/session',
+    automaticRefreshOnWorldGet: false,
+    concurrentRefreshSingleFlightRequiredBeforeUiCutover: true,
+    worldUiActivated: false,
+  });
   assert.deepEqual(readiness.regionProvider, {
     explicitCoarseRegionInput: true,
     catalogBounded: true,

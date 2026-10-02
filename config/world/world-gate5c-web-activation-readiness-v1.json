@@ -13,7 +13,7 @@
   },
   "prerequisites": {
     "gate5bReadContinuityMerged": true,
-    "explicitBearerTokenProvider": false,
+    "explicitBearerTokenProvider": true,
     "explicitCoarseRegionProvider": true,
     "uiCutoverDecisionRecorded": false
   },
@@ -25,7 +25,7 @@
     "ANONYMOUS_PROGRESSION_READ"
   ],
   "activationRule": "ALL_PREREQUISITES_TRUE",
-  "nextAction": "IMPLEMENT_CANONICAL_WEB_SESSION_PROVIDER_WITHOUT_ACTIVATING_WORLD_UI",
+  "nextAction": "KEEP_WORLD_UI_INACTIVE_UNTIL_REMAINING_GATES_CLOSE_AND_UI_CUTOVER_IS_EXPLICITLY_RECORDED",
   "regionProvider": {
     "explicitCoarseRegionInput": true,
     "catalogBounded": true,
@@ -33,5 +33,23 @@
     "readsGeolocationApi": false,
     "persistsSelection": false,
     "automaticSwitch": false
+  },
+  "ownerSessionProvider": {
+    "authority": "CANONICAL_BACKEND_OWNER_AUTH",
+    "backendOriginEnv": "EMOPET_INTERNAL_BACKEND_URL",
+    "browserCredentialTransport": "HTTP_ONLY_STRICT_SAME_SITE_COOKIES",
+    "accessTokenExposedToBrowserJs": false,
+    "refreshTokenExposedToBrowserJs": false,
+    "localStorageUsed": false,
+    "sessionStorageUsed": false,
+    "ownerIdAcceptedFromBrowser": false,
+    "refreshRotation": "EXPLICIT_SAME_ORIGIN_POST",
+    "loginRoute": "POST /api/owner-session/login",
+    "logoutRoute": "POST /api/owner-session/logout",
+    "worldReadBff": "GET /api/world-gamification/session",
+    "worldUiActivated": false,
+    "refreshRoute": "POST /api/owner-session/refresh",
+    "automaticRefreshOnWorldGet": false,
+    "concurrentRefreshSingleFlightRequiredBeforeUiCutover": true
   }
 }
