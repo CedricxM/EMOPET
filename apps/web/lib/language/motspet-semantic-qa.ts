@@ -37,6 +37,7 @@ export type MotsPetTruthClass =
   | 'SHARING_SCOPE_METADATA'
   | 'INTENTIONAL_CAPTURE'
   | 'OWNER_CHOSEN_MEMORY_CONTENT'
+  | 'EXPLICIT_AUDIENCE_CHOICE'
   | 'PURPOSE_BOUND_PERMISSION';
 
 export interface MotsPetSemanticContract {
@@ -222,6 +223,14 @@ export const MOTSPET_SEMANTIC_CONTRACTS: Readonly<
   memory: {
     conceptId: 'memory',
     truthClass: 'OWNER_CHOSEN_MEMORY_CONTENT',
+    provenance: 'REQUIRED',
+    causalBoundary: 'NO_CAUSAL_UPGRADE',
+    medicalBoundary: 'NON_DIAGNOSTIC',
+    privacyBoundary: 'PRESERVE_PURPOSE_AND_CONSENT',
+  },
+  community_visibility: {
+    conceptId: 'community_visibility',
+    truthClass: 'EXPLICIT_AUDIENCE_CHOICE',
     provenance: 'REQUIRED',
     causalBoundary: 'NO_CAUSAL_UPGRADE',
     medicalBoundary: 'NON_DIAGNOSTIC',

@@ -1,5 +1,5 @@
 /**
- * MotsPet candidate inventory v6.
+ * MotsPet candidate inventory v7.
  *
  * This inventory is deliberately upstream of public wording. It records the
  * next concepts that need language review without promoting them into the
@@ -9,7 +9,7 @@
 import { MOTSPET_ENTRIES, getMotsPetEntry } from './motspet';
 
 export const MOTSPET_CANDIDATE_INVENTORY_REVISION =
-  'motspet-candidate-inventory-v6-2026-10-02' as const;
+  'motspet-candidate-inventory-v7-2026-10-02' as const;
 
 export type MotsPetCandidateStatus =
   | 'EXISTING_CONTROLLED'
@@ -52,6 +52,8 @@ const MEMORIES =
   'docs/product/EMOPET_MEMORIES_EXPERIENCE_MASTER_v0.1.md';
 const DATA_TRUST =
   'docs/strategy/DATA_TRUST_AND_BUSINESS_MODEL_DOCTRINE_2026-09-07.md';
+const HUMANE_SOCIAL =
+  'docs/product/EMOPET_HUMANE_SOCIAL_ARCHITECTURE_MASTER_v0.2_VERIFIED_2026-09-01.md';
 
 function entry(
   value: Omit<MotsPetCandidateInventoryEntry, 'revision'>,
@@ -276,9 +278,9 @@ export const MOTSPET_CANDIDATE_INVENTORY: readonly MotsPetCandidateInventoryEntr
     internalTerms: ['visibility', 'audience', 'community_visibility'],
     sourceSurfaces: ['Community', 'Circles', 'World'],
     reviewQuestionFr: 'Rendre l’audience et la visibilité explicites sans exposition automatique de données privées.',
-    authorityPaths: [SURFACES, OWNER_AUTHORITY],
-    status: 'CANDIDATE_REVIEW',
-    existingMotsPetId: null,
+    authorityPaths: [HUMANE_SOCIAL, SURFACES, OWNER_AUTHORITY, AUTHORITY_MAP],
+    status: 'EXISTING_CONTROLLED',
+    existingMotsPetId: 'community_visibility',
   }),
 ] as const;
 
