@@ -5,17 +5,14 @@ import {
 } from '../world-gamification-read';
 import { resolveExplicitWorldCoarseRegion } from '../world-coarse-region';
 import {
-  refreshOwnerSession,
   resolveOwnerBackendOrigin,
   type OwnerSessionBackendOptions,
-  type OwnerSessionTokens,
 } from './owner-session-provider';
 
 export type OwnerWorldGamificationReadResult =
   | {
       status: 'OK';
       snapshot: WorldGamificationReadSnapshot;
-      rotatedTokens: OwnerSessionTokens | null;
     }
   | { status: 'DENIED' }
   | { status: 'UNAVAILABLE' };
@@ -27,24 +24,16 @@ function accessTokenValue(value: unknown): string | null {
   return token;
 }
 
-async function readSnapshot(
-  accessToken: string,
-  regionCode: string,
-  backendOrigin: string,
-  fetchImpl: typeof fetch,
-): Promise<WorldGamificationReadSnapshot> {
-  return fetchWorldGamificationReadSnapshot({
-    accessToken,
-    regionCode,
-    apiBaseUrl: backendOrigin,
-    fetchImpl,
-  });
-}
-
+/**
+ * Read-only World bridge for an already-issued Owner access token.
+ *
+ * This path NEVER rotates a refresh credential. Refresh is a separate
+ * same-origin POST mutation so concurrent GETs cannot accidentally consume the
+ * same one-time refresh token and trigger backend reuse detection.
+ */
 export async function readWorldGamificationForOwnerSession(
   input: {
     accessToken?: unknown;
-    refreshToken?: unknown;
     regionCode?: unknown;
   },
   options: OwnerSessionBackendOptions = {},
@@ -53,41 +42,19 @@ export async function readWorldGamificationForOwnerSession(
   const backendOrigin = resolveOwnerBackendOrigin(env);
   if (!backendOrigin) return { status: 'UNAVAILABLE' };
 
-  const fetchImpl = options.fetchImpl ?? fetch;
-  const regionCode = resolveExplicitWorldCoarseRegion(input.regionCode);
   const accessToken = accessTokenValue(input.accessToken);
+  if (!accessToken) return { status: 'DENIED' };
 
-  if (accessToken) {
-    try {
-      return {
-        status: 'OK',
-        snapshot: await readSnapshot(accessToken, regionCode, backendOrigin, fetchImpl),
-        rotatedTokens: null,
-      };
-    } catch (error) {
-      if (
-        !(error instanceof WorldGamificationClientError)
-        || error.code !== 'WORLD_GAMIFICATION_CLIENT_AUTH_REQUIRED'
-      ) {
-        return { status: 'UNAVAILABLE' };
-      }
-    }
-  }
-
-  const refreshed = await refreshOwnerSession(input.refreshToken, options);
-  if (refreshed.status === 'DENIED') return { status: 'DENIED' };
-  if (refreshed.status !== 'AUTHENTICATED') return { status: 'UNAVAILABLE' };
-
+  const regionCode = resolveExplicitWorldCoarseRegion(input.regionCode);
   try {
     return {
       status: 'OK',
-      snapshot: await readSnapshot(
-        refreshed.tokens.accessToken,
+      snapshot: await fetchWorldGamificationReadSnapshot({
+        accessToken,
         regionCode,
-        backendOrigin,
-        fetchImpl,
-      ),
-      rotatedTokens: refreshed.tokens,
+        apiBaseUrl: backendOrigin,
+        fetchImpl: options.fetchImpl ?? fetch,
+      }),
     };
   } catch (error) {
     if (
