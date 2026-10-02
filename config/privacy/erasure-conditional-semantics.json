@@ -13,9 +13,9 @@
     "community_rules_acceptances remains reserved to PRIVACY_LEGAL; research_data_consents and subscriptions remain outside these five product decisions."
   ],
   "summary": {
-    "conditionalRowsTotal": 20,
+    "conditionalRowsTotal": 24,
     "semanticsAlreadyDeterminedByExistingPolicy": 7,
-    "authorityDecisionsStillRequired": 8,
+    "authorityDecisionsStillRequired": 12,
     "matrixRowsPromoted": 5,
     "productPrivacyDecisionsApproved": 5
   },
@@ -191,6 +191,19 @@
   ],
   "authorityDecisionsRemaining": [
     {
+      "relation": "dogs.id|DIRECT_FK|phone_presence_events|dog_id",
+      "decisionClass": "PRODUCT_PRIVACY_LIFECYCLE_DECISION_REQUIRED",
+      "why": "Phone Presence events are directly dog-linked, while Presence-specific retention, export, erasure and temporary-proximity semantics remain open under #135.",
+      "privacyFirstRecommendation": "Prefer deletion with validated dog erasure unless a separately approved bounded Presence purpose requires irreversible minimisation or justified retention.",
+      "options": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "requiredAuthority": "FOUNDER_PRODUCT_PRIVACY",
+      "promotionAuthorized": false
+    },
+    {
       "relation": "dogs.id|DIRECT_FK|professional_share_grants|dog_id",
       "decisionClass": "PRODUCT_PRIVACY_LIFECYCLE_DECISION_REQUIRED",
       "why": "Professional-share grants are recipient-bound and time-bounded, but dog erasure semantics for pending, active, expired and revoked grants have not been approved.",
@@ -266,6 +279,19 @@
         "RETAIN_WITH_JUSTIFICATION"
       ],
       "requiredAuthority": "PRIVACY_LEGAL",
+      "promotionAuthorized": false
+    },
+    {
+      "relation": "users.id|DIRECT_FK|phone_presence_events|owner_id",
+      "decisionClass": "PRODUCT_PRIVACY_LIFECYCLE_DECISION_REQUIRED",
+      "why": "Phone Presence events are directly Owner-linked, while Presence-specific retention, export, erasure and temporary-proximity semantics remain open under #135.",
+      "privacyFirstRecommendation": "Prefer deletion with validated account erasure unless a separately approved bounded Presence purpose requires irreversible minimisation or justified retention.",
+      "options": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "requiredAuthority": "FOUNDER_PRODUCT_PRIVACY",
       "promotionAuthorized": false
     },
     {
