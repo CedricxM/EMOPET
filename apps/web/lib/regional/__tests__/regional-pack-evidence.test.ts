@@ -80,3 +80,32 @@ test('report does not inflate candidates into partnership or approval state', ()
   assert.doesNotMatch(serialized, /"partnership":/);
   assert.doesNotMatch(serialized, /"approved":true/);
 });
+
+
+test('territorial evidence explains dataset scope instead of treating the portal as one blanket licence', () => {
+  const report = buildRegionalPackEvidenceReport(BRETAGNE_REGIONAL_PACK, NOW);
+  const regionOpenData = report.sources.find(
+    (source) => source.sourceId === 'region-bretagne-open-data',
+  );
+
+  assert.ok(regionOpenData);
+  assert.equal(regionOpenData.readinessKind, 'BRETAGNE_OPEN_DATA_DATASETS');
+  assert.deepEqual(regionOpenData.scopedResourceIds, [
+    'reserves-naturelles-regionales-de-bretagne',
+  ]);
+  assert.deepEqual(regionOpenData.readyScopedResourceIds, []);
+  assert.equal(regionOpenData.releaseReady, false);
+
+  assert.ok(regionOpenData.rightsBlockers.includes('NO_LICENCE_RECEIPT'));
+  assert.ok(
+    regionOpenData.effectiveBlockers.includes(
+      'DATASET_BLOCKER:reserves-naturelles-regionales-de-bretagne:DATASET_NOT_RELEASE_READY',
+    ),
+  );
+  assert.equal(
+    regionOpenData.effectiveBlockers.includes(
+      'SOURCE_BLOCKER:NO_LICENCE_RECEIPT',
+    ),
+    false,
+  );
+});
