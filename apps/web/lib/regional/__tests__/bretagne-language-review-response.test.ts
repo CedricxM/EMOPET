@@ -131,6 +131,21 @@ test('response fails closed on packet revision, kind, date and evidence drift', 
   assert.ok(codes.includes('MISSING_EVIDENCE_REFERENCE'));
 });
 
+test('review response requires a bounded reviewer reference distinct from the evidence receipt', () => {
+  const result = evaluateBretagneLanguageReviewResponse(
+    identityResponse({ reviewerRef: '   ' }),
+    undefined,
+    NOW,
+  );
+
+  assert.equal(result.valid, false);
+  assert.ok(
+    result.errors.some(
+      (error) => error.code === 'MISSING_REVIEWER_REF',
+    ),
+  );
+});
+
 test('approved response cannot silently approve edited meaning or usage', () => {
   const result = evaluateBretagneLanguageReviewResponse(
     lexiconResponse('bretagne_demat', {
