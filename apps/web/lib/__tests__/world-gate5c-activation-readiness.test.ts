@@ -26,14 +26,22 @@ async function collect(dir: string): Promise<string[]> {
   return out;
 }
 
-test('Gate 5C fails closed until explicit auth, region and cutover providers exist', () => {
+test('Gate 5C remains fail-closed after coarse-region readiness until auth and cutover exist', () => {
   assert.equal(readiness.status, 'CONTROLLED_DRAFT_NOT_PRODUCTION_AUTHORITY');
   assert.equal(readiness.activated, false);
   assert.equal(readiness.prerequisites.gate5bReadContinuityMerged, true);
   assert.equal(readiness.prerequisites.explicitBearerTokenProvider, false);
-  assert.equal(readiness.prerequisites.explicitCoarseRegionProvider, false);
+  assert.equal(readiness.prerequisites.explicitCoarseRegionProvider, true);
   assert.equal(readiness.prerequisites.uiCutoverDecisionRecorded, false);
   assert.equal(readiness.activationRule, 'ALL_PREREQUISITES_TRUE');
+  assert.deepEqual(readiness.regionProvider, {
+    explicitCoarseRegionInput: true,
+    catalogBounded: true,
+    acceptsCoordinates: false,
+    readsGeolocationApi: false,
+    persistsSelection: false,
+    automaticSwitch: false,
+  });
 });
 
 test('Gate 5C forbids unsafe activation fallbacks', () => {

@@ -4,10 +4,17 @@
   "gate": "5C_WEB_ACTIVATION_READINESS",
   "sourceIssue": 898,
   "activated": false,
+  "readAdapter": {
+    "explicitBearerTokenAdapter": true,
+    "mintsTokens": false,
+    "refreshesTokens": false,
+    "persistsTokens": false,
+    "acceptsOwnerId": false
+  },
   "prerequisites": {
     "gate5bReadContinuityMerged": true,
     "explicitBearerTokenProvider": false,
-    "explicitCoarseRegionProvider": false,
+    "explicitCoarseRegionProvider": true,
     "uiCutoverDecisionRecorded": false
   },
   "forbiddenFallbacks": [
@@ -18,5 +25,13 @@
     "ANONYMOUS_PROGRESSION_READ"
   ],
   "activationRule": "ALL_PREREQUISITES_TRUE",
-  "nextAction": "IMPLEMENT_AUTH_AND_COARSE_REGION_PROVIDERS_WITHOUT_ACTIVATING_WORLD_UI"
+  "nextAction": "IMPLEMENT_CANONICAL_WEB_SESSION_PROVIDER_WITHOUT_ACTIVATING_WORLD_UI",
+  "regionProvider": {
+    "explicitCoarseRegionInput": true,
+    "catalogBounded": true,
+    "acceptsCoordinates": false,
+    "readsGeolocationApi": false,
+    "persistsSelection": false,
+    "automaticSwitch": false
+  }
 }

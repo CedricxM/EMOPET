@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { test } from 'node:test';
@@ -108,14 +108,15 @@ test('current controlled register is still unsent and rights remain HOLD', async
   assert.equal(register.authoritativeConfirmation, null);
 });
 
-test('receipt is bound to the exact reviewed outreach packet git blob', async () => {
-  const payload = await readFile(
-    resolve(REPO_ROOT, BRETAGNE_RNR_OUTREACH_PACKET_PATH),
-  );
-  const header = Buffer.from(`blob ${payload.byteLength}\0`, 'utf8');
-  const gitBlobSha = createHash('sha1')
-    .update(Buffer.concat([header, payload]))
-    .digest('hex');
+test('receipt is bound to the exact reviewed outreach packet git blob', () => {
+  const gitBlobSha = execFileSync(
+    'git',
+    ['rev-parse', `HEAD:${BRETAGNE_RNR_OUTREACH_PACKET_PATH}`],
+    {
+      cwd: REPO_ROOT,
+      encoding: 'utf8',
+    },
+  ).trim();
 
   assert.equal(gitBlobSha, BRETAGNE_RNR_OUTREACH_PACKET_GIT_BLOB_SHA);
 });
