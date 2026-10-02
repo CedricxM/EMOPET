@@ -231,8 +231,7 @@ jobs:
         run: node --test apps/mobile/test/activity-feature-network-contract.test.mjs
       - name: Enforce ELI feature transport-to-envelope conformance (#122)
         run: |
-          pnpm --filter @emopet/ble-protocol build
-          pnpm --filter @emopet/api build
+          pnpm turbo run build --filter=@emopet/ble-protocol --filter=@emopet/api
           node --test scripts/control/eli-io-feature-transport-conformance.test.mjs
       - name: Enforce Device Trust C/backend PoP preimage parity (#648)
         run: |
@@ -264,7 +263,7 @@ jobs:
           node --test scripts/control/tag-feature-summary-firmware-conformance.test.mjs
       - name: Enforce TAG clock-anchor C/TypeScript parity (#122)
         run: |
-          pnpm --filter @emopet/ble-protocol build
+          pnpm turbo run build --filter=@emopet/ble-protocol
           cc --version
           node --test scripts/control/tag-clock-anchor-conformance.test.mjs
       - name: Build web application
