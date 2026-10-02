@@ -5,7 +5,7 @@
  * language. It never creates scientific/legal authority by itself.
  */
 
-export const MOTSPET_REVISION = 'motspet-v0.6-seed-2026-10-02' as const;
+export const MOTSPET_REVISION = 'motspet-v0.7-seed-2026-10-02' as const;
 
 export type MotsPetDomain =
   | 'care'
@@ -56,6 +56,10 @@ const TOGETHER_AUTHORITY =
   'docs/product/EMOPET_TOGETHER_RELATIONSHIP_ENGINE_MASTER_v0.1.md';
 const SURFACE_NECESSITY_AUTHORITY =
   'docs/product/EMOPET_SURFACE_NECESSITY_MATRIX_v0.1.md';
+const MEMORIES_AUTHORITY =
+  'docs/product/EMOPET_MEMORIES_EXPERIENCE_MASTER_v0.1.md';
+const OWNER_RELATIONSHIP_AUTHORITY =
+  'docs/strategy/OWNER_RELATIONSHIP_AND_PRODUCT_SCOPE_DOCTRINE_2026-09-11.md';
 const OWNER_TERMINOLOGY_AUTHORITY =
   'docs/records/terminology/GUARDIAN_TO_OWNER_SUPERSESSION_2026-09-11.md';
 const DATA_TRUST_AUTHORITY =
@@ -352,6 +356,56 @@ export const MOTSPET_ENTRIES: readonly MotsPetEntry[] = [
       EXPERIENCE_AUTHORITY,
       PRODUCT_AUTHORITY_MAP,
       SURFACE_NECESSITY_AUTHORITY,
+    ],
+    status: 'CONTROLLED_SEED',
+    ...internalReview,
+  },
+  {
+    id: 'moment',
+    domain: 'relationship',
+    internalTerms: ['moment', 'intentional_capture'],
+    publicFr: 'moment choisi',
+    publicEn: 'chosen moment',
+    definitionFr:
+      'Capture volontaire créée ou enregistrée par le propriétaire à partir d’un vécu qu’il choisit de garder. Un moment reste privé par défaut et ne peut pas être créé automatiquement depuis un signal, une observation ELI ou une interprétation émotionnelle.',
+    prohibitedPublicTerms: [
+      'moment détecté automatiquement',
+      'moment heureux détecté',
+      'moment triste détecté',
+      'souvenir généré par les capteurs',
+      'public automatiquement',
+    ],
+    requiresProvenance: true,
+    authorityPaths: [
+      MEMORIES_AUTHORITY,
+      SURFACE_NECESSITY_AUTHORITY,
+      PRODUCT_AUTHORITY_MAP,
+      OWNER_RELATIONSHIP_AUTHORITY,
+    ],
+    status: 'CONTROLLED_SEED',
+    ...internalReview,
+  },
+  {
+    id: 'memory',
+    domain: 'relationship',
+    internalTerms: ['memory', 'deliberate_memory'],
+    publicFr: 'souvenir choisi',
+    publicEn: 'chosen memory',
+    definitionFr:
+      'Contenu de relation durable que le propriétaire choisit explicitement de conserver, par exemple un moment, un jalon, un lieu ou une note. Un souvenir ne constitue ni une interprétation ELI ni une mesure de la qualité de la relation.',
+    prohibitedPublicTerms: [
+      'souvenir généré automatiquement',
+      'souvenir émotionnel détecté',
+      'preuve de lien',
+      'score de relation',
+      'meilleur souvenir selon ELI',
+    ],
+    requiresProvenance: true,
+    authorityPaths: [
+      MEMORIES_AUTHORITY,
+      PRODUCT_AUTHORITY_MAP,
+      SURFACE_NECESSITY_AUTHORITY,
+      OWNER_RELATIONSHIP_AUTHORITY,
     ],
     status: 'CONTROLLED_SEED',
     ...internalReview,
