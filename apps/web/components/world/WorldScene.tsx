@@ -123,8 +123,8 @@ export function WorldScene({
         <DogPresence />
       </div>
       <div className={styles.sceneCaption}>
-        <strong>{selectedItem && !selectedBuilt ? `A placer : ${selectedItem.title}` : 'Routine - ressources - construction'}</strong>
-        <span>{selectedItem && !selectedBuilt ? 'Survolez la tuile lumineuse puis cliquez pour poser l objet.' : 'Les elements debloques prennent place dans ce petit monde personnel.'}</span>
+        <strong>{selectedItem && !selectedBuilt ? `A placer : ${selectedItem.title}` : 'Aperçu local - aucune progression enregistrée'}</strong>
+        <span>{selectedItem && !selectedBuilt ? 'Survolez la tuile lumineuse puis cliquez pour poser l objet.' : 'Les placements sont simulés localement. Le solde de compte reste une autorité serveur distincte.'}</span>
       </div>
     </div>
   );
