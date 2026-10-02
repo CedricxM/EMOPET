@@ -8,17 +8,19 @@ const source = (path) => readFile(new URL(path, root), 'utf8');
 test('approved D1-D5 privacy decisions remain five while G2 lifecycle authority stays unresolved', async () => {
   const semantics = JSON.parse(await source('config/privacy/erasure-conditional-semantics.json'));
   assert.equal(semantics.summary.productPrivacyDecisionsApproved, 5);
-  assert.equal(semantics.summary.authorityDecisionsStillRequired, 8);
+  assert.equal(semantics.summary.authorityDecisionsStillRequired, 12);
   assert.equal(semantics.productPrivacyDecisionsApproved.length, 5);
   assert.deepEqual(
     semantics.authorityDecisionsRemaining.map((row) => row.relation).sort(),
     [
+      'dogs.id|DIRECT_FK|phone_presence_events|dog_id',
       'dogs.id|DIRECT_FK|professional_share_grants|dog_id',
       'dogs.id|TRANSITIVE_FK|administration_sessions|assessment_id',
       'dogs.id|TRANSITIVE_FK|instrument_administration_events|assessment_id',
       'dogs.id|UNCONSTRAINED_IDENTIFIER|professional_share_access_audits|dog_id',
       'professional_share_grants.id|UNCONSTRAINED_IDENTIFIER|professional_share_access_audits|grant_id',
       'users.id|DIRECT_FK|community_rules_acceptances|user_id',
+      'users.id|DIRECT_FK|phone_presence_events|owner_id',
       'users.id|DIRECT_FK|professional_share_grants|owner_user_id',
       'users.id|DIRECT_FK|world_owned_items|owner_id',
       'users.id|DIRECT_FK|world_progression_events|owner_id',
