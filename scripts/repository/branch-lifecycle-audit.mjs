@@ -9,6 +9,7 @@ const PER_PAGE = 100;
 
 export const BRANCH_LIFECYCLE_STATUS = Object.freeze({
   KEEP_DEFAULT_BRANCH: 'KEEP_DEFAULT_BRANCH',
+  KEEP_HARD_EXCLUSION: 'KEEP_HARD_EXCLUSION',
   KEEP_OPEN_PR_HEAD: 'KEEP_OPEN_PR_HEAD',
   KEEP_PROTECTED: 'KEEP_PROTECTED',
   SAFE_MERGED_MAIN_HEAD_CANDIDATE: 'SAFE_MERGED_MAIN_HEAD_CANDIDATE',
@@ -39,6 +40,7 @@ export function classifyBranch({
   defaultBranch,
   branch,
   pulls,
+  hardExclusions = [],
 }) {
   if (!branch?.name || !branch?.sha) {
     throw new Error('branch requires name and sha');
@@ -62,6 +64,18 @@ export function classifyBranch({
   if (branch.name === defaultBranch) {
     return result(branch, BRANCH_LIFECYCLE_STATUS.KEEP_DEFAULT_BRANCH, evidence,
       'canonical default branch is never a cleanup candidate');
+  }
+
+  const hardExclusion = hardExclusions.find(
+    (entry) => entry?.branch === branch.name,
+  );
+  if (hardExclusion) {
+    return result(
+      branch,
+      BRANCH_LIFECYCLE_STATUS.KEEP_HARD_EXCLUSION,
+      evidence,
+      hardExclusion.reason || 'branch is explicitly hard-excluded by repository lifecycle policy',
+    );
   }
 
   if (sameRepositoryPulls.some((pull) => pull.state === 'open')) {
@@ -119,6 +133,7 @@ export function auditInventory({
   defaultBranch = 'main',
   branches,
   pulls,
+  hardExclusions = [],
   generatedAt = new Date().toISOString(),
 }) {
   if (!repository) throw new Error('repository is required');
@@ -132,6 +147,7 @@ export function auditInventory({
         defaultBranch,
         branch,
         pulls,
+        hardExclusions,
       }),
     )
     .sort((a, b) => a.branch.localeCompare(b.branch));
@@ -149,6 +165,7 @@ export function auditInventory({
     generatedAt,
     branchCount: branches.length,
     pullEvidenceCount: pulls.length,
+    hardExclusionCount: hardExclusions.length,
     counts,
     safeMergedHeadCandidates: results.filter(
       (item) =>
@@ -272,6 +289,15 @@ export function parseArgs(argv) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
+  const policy = JSON.parse(
+    await readFile(
+      new URL(
+        '../../config/repository/branch-lifecycle-hard-exclusions-v1.json',
+        import.meta.url,
+      ),
+      'utf8',
+    ),
+  );
   let inventory;
 
   if (args.fixture) {
@@ -281,6 +307,10 @@ async function main() {
       repository: args.repository,
       token: process.env.GITHUB_TOKEN,
     });
+  }
+
+  if (!Array.isArray(inventory.hardExclusions)) {
+    inventory.hardExclusions = policy.exactBranches ?? [];
   }
 
   const report = auditInventory(inventory);
