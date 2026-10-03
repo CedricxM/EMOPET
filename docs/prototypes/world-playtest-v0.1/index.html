@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>EMOPET World — prototype playtest v0.1</title>
+  <style>
+    :root {
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #171717;
+      background: #f4f1ea;
+      line-height: 1.45;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; }
+    button, input { font: inherit; }
+    button {
+      border: 1px solid #222;
+      background: #fff;
+      color: #111;
+      border-radius: 12px;
+      padding: .72rem 1rem;
+      cursor: pointer;
+    }
+    button:hover, button:focus-visible { outline: 3px solid #111; outline-offset: 2px; }
+    button.primary { background: #111; color: #fff; }
+    button.soft { background: #ebe6da; }
+    button.danger { border-color: #8e1e1e; color: #8e1e1e; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    input {
+      width: 100%;
+      border: 1px solid #777;
+      border-radius: 10px;
+      padding: .72rem;
+      background: #fff;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: rgba(244,241,234,.96);
+      border-bottom: 1px solid #d7d1c5;
+      padding: .85rem 1rem;
+      display: flex;
+      gap: .8rem;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .brand { font-weight: 800; letter-spacing: .03em; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      border: 1px solid #aaa;
+      border-radius: 999px;
+      padding: .35rem .65rem;
+      background: #fff;
+      font-size: .85rem;
+    }
+    .research-controls {
+      max-width: 1100px;
+      margin: 1rem auto 0;
+      padding: .8rem 1rem;
+      background: #fff9dc;
+      border: 1px solid #c9b96b;
+      border-radius: 14px;
+    }
+    .research-controls strong { display: block; margin-bottom: .5rem; }
+    .control-row { display: flex; gap: .5rem; flex-wrap: wrap; }
+    main { max-width: 1100px; margin: 0 auto; padding: 1rem 1rem 5rem; }
+    .screen { display: none; }
+    .screen.active { display: block; }
+    .card {
+      background: #fff;
+      border: 1px solid #d4cec2;
+      border-radius: 20px;
+      padding: 1.2rem;
+      box-shadow: 0 10px 28px rgba(0,0,0,.04);
+      margin: 1rem 0;
+    }
+    .grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); }
+    h1 { font-size: clamp(2rem, 5vw, 4rem); margin: .3rem 0 1rem; line-height: 1; }
+    h2 { margin-top: 0; }
+    .muted { color: #65605a; }
+    .actions { display: flex; gap: .65rem; flex-wrap: wrap; margin-top: 1rem; }
+    .dog-token {
+      width: 96px;
+      height: 96px;
+      border: 2px solid #222;
+      border-radius: 28px;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      letter-spacing: .08em;
+      background: #ece8df;
+      position: relative;
+    }
+    .dog-token::before, .dog-token::after {
+      content: "";
+      width: 25px;
+      height: 32px;
+      border: 2px solid #222;
+      background: #ece8df;
+      position: absolute;
+      top: -12px;
+      border-radius: 50% 50% 30% 30%;
+    }
+    .dog-token::before { left: 9px; transform: rotate(-18deg); }
+    .dog-token::after { right: 9px; transform: rotate(18deg); }
+    .notice {
+      border-left: 4px solid #222;
+      padding: .8rem 1rem;
+      background: #f6f6f3;
+      margin: 1rem 0;
+    }
+    .quiet-panel { display: flex; flex-wrap: wrap; gap: .55rem; }
+    .preset { border-radius: 999px; }
+    .message-stream {
+      min-height: 120px;
+      border: 1px dashed #aaa;
+      border-radius: 12px;
+      padding: .8rem;
+      background: #fbfaf7;
+      margin: .8rem 0;
+    }
+    .message { padding: .35rem 0; border-bottom: 1px solid #eee; }
+    .message:last-child { border-bottom: 0; }
+    .checkpoint {
+      border: 1px solid #bbb;
+      border-radius: 14px;
+      padding: 1rem;
+      background: #faf9f6;
+    }
+    .checkpoint.done { border-color: #222; background: #eef4ea; }
+    .progress-text { font-weight: 700; }
+    .keepsake {
+      width: 100%;
+      min-height: 120px;
+      border: 1px solid #bbb;
+      border-radius: 16px;
+      padding: 1rem;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      background: #faf9f6;
+    }
+    .safety-drawer {
+      display: none;
+      border: 2px solid #8e1e1e;
+      padding: 1rem;
+      border-radius: 16px;
+      background: #fff7f7;
+      margin-top: 1rem;
+    }
+    .safety-drawer.open { display: block; }
+    .scenario-pressure {
+      border: 1px solid #c6a85f;
+      background: #fff8e7;
+      padding: 1rem;
+      border-radius: 14px;
+    }
+    .screen-nav {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid #d4cec2;
+      display: flex;
+      gap: .6rem;
+      flex-wrap: wrap;
+    }
+    .prototype-boundary {
+      font-size: .9rem;
+      color: #514c45;
+      margin-top: 1rem;
+    }
+    [hidden] { display: none !important; }
+    @media (prefers-reduced-motion: reduce) {
+      * { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="brand">EMOPET WORLD · PLAYTEST v0.1</div>
+    <div class="muted">Prototype local, données synthétiques uniquement</div>
+  </div>
+  <div class="actions">
+    <span class="badge" id="conditionBadge">Condition A · presets</span>
+    <button type="button" id="neutralityButton">À propos du chien</button>
+    <button type="button" id="safetyButton">Sécurité</button>
+    <button type="button" id="leaveButton">Quitter World</button>
+  </div>
+</header>
+
+<div class="research-controls" aria-label="Contrôles du modérateur">
+  <strong>Contrôles modérateur · ne pas présenter comme fonctionnalités produit</strong>
+  <div class="control-row">
+    <button type="button" data-condition="A" class="soft">Condition A · presets seulement</button>
+    <button type="button" data-condition="B" class="soft">Condition B · presets + texte</button>
+    <button type="button" id="resetButton" class="soft">Réinitialiser la séance</button>
+  </div>
+</div>
+
+<main>
+  <section id="neutralityPanel" class="card" hidden aria-live="polite">
+    <h2>Représentation canine neutre</h2>
+    <p>Le chien visible dans ce prototype est une représentation graphique. Il n'exprime pas une humeur, un score de relation, un diagnostic, ni une interprétation MAT, TAG ou ELI.</p>
+    <p class="muted">Aucune animation de ce prototype ne doit être comprise comme une lecture émotionnelle du chien réel.</p>
+  </section>
+
+  <section id="safetyDrawer" class="safety-drawer" aria-live="polite">
+    <h2>Contrôles de sécurité</h2>
+    <p>Ces actions concernent uniquement l'expérience synthétique de ce prototype.</p>
+    <div class="actions">
+      <button type="button" class="danger" data-safety="block">Bloquer cette personne</button>
+      <button type="button" class="danger" data-safety="report">Signaler</button>
+      <button type="button" data-safety="leave">Quitter la session</button>
+    </div>
+    <p id="safetyFeedback" class="muted"></p>
+  </section>
+
+  <section class="screen active" data-screen="community">
+    <p class="badge">Community · contenu synthétique modéré pour le test</p>
+    <h1>Une piste locale attire votre attention.</h1>
+    <div class="card">
+      <h2>Découverte Community</h2>
+      <p><strong>Balade des pins · Bretagne test</strong></p>
+      <p>Une contribution communautaire propose une courte exploration partagée. Ce texte vient d'une personne fictive du prototype. Il ne constitue pas une observation scientifique EMOPET.</p>
+      <div class="actions">
+        <button type="button" class="primary" data-go="hub">Entrer dans World</button>
+        <button type="button" data-go="exit">Rester dans Community</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" data-screen="hub">
+    <p class="badge">Hub régional · Bretagne test</p>
+    <h1>Le Hub</h1>
+    <p>Vous pouvez explorer, rejoindre une activité partagée ou retourner dans votre espace. Rien ici n'augmente un score de chien ou un classement.</p>
+    <div class="grid">
+      <div class="card">
+        <h2>Rencontre</h2>
+        <p>Une autre personne adulte est présente dans le Hub.</p>
+        <button type="button" class="primary" data-go="encounter">Voir la rencontre</button>
+      </div>
+      <div class="card">
+        <h2>Mon espace</h2>
+        <p>Vos souvenirs de World restent séparés du fil Community.</p>
+        <button type="button" data-go="space">Ouvrir Mon espace</button>
+      </div>
+      <div class="card">
+        <h2>Découverte</h2>
+        <p>La piste commune est disponible sans récompense, streak ou classement.</p>
+        <button type="button" data-go="activity">Voir l'activité</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" data-screen="encounter">
+    <h1>Une rencontre</h1>
+    <div class="grid">
+      <div class="card">
+        <div class="dog-token" aria-label="Représentation canine neutre">DOG</div>
+        <h2>Camille · profil synthétique</h2>
+        <p>Présence dans le même Hub. Aucune compatibilité, humeur ou proximité exacte n'est affichée.</p>
+      </div>
+      <div class="card">
+        <h2>Vous choisissez</h2>
+        <p>La proximité ne crée aucune relation automatiquement.</p>
+        <div class="actions">
+          <button type="button" class="primary" id="inviteButton">Inviter à faire la piste</button>
+          <button type="button" id="declineButton">Pas maintenant</button>
+        </div>
+        <p id="inviteFeedback" class="muted"></p>
+      </div>
+    </div>
+    <div id="quietLayer" class="card" hidden>
+      <h2>Quiet Social Layer</h2>
+      <p>Coordonnez-vous avec des messages courts. Le prototype n'infère rien du chien réel.</p>
+      <div class="quiet-panel" id="presetPanel"></div>
+      <div id="freeTextBlock" hidden>
+        <label for="freeText"><strong>Texte libre, Condition B uniquement</strong></label>
+        <input id="freeText" maxlength="140" placeholder="Écrire un message synthétique">
+        <button type="button" id="sendTextButton">Envoyer</button>
+      </div>
+      <div class="message-stream" id="messageStream" aria-live="polite"></div>
+      <button type="button" class="primary" data-go="activity">Continuer vers La piste commune</button>
+    </div>
+  </section>
+
+  <section class="screen" data-screen="activity">
+    <p class="badge">Activité coopérative · aucun score</p>
+    <h1>La piste commune</h1>
+    <p>Trois checkpoints à résoudre ensemble. Le but est de coordonner une exploration, pas de gagner contre quelqu'un.</p>
+    <div class="grid">
+      <div class="checkpoint" data-checkpoint="1">
+        <h2>1 · Repérer</h2>
+        <p>Signalez que vous avez trouvé l'indice.</p>
+        <button type="button" data-complete="1">J'ai trouvé quelque chose</button>
+      </div>
+      <div class="checkpoint" data-checkpoint="2">
+        <h2>2 · Se rejoindre</h2>
+        <p>Montrez la direction à l'autre personne.</p>
+        <button type="button" data-complete="2" disabled>Par ici</button>
+      </div>
+      <div class="checkpoint" data-checkpoint="3">
+        <h2>3 · Continuer ensemble</h2>
+        <p>Confirmez que vous êtes prêt·e.</p>
+        <button type="button" data-complete="3" disabled>Prêt·e</button>
+      </div>
+    </div>
+    <p id="activityFeedback" class="progress-text">0/3 checkpoints</p>
+    <div class="actions">
+      <button type="button" id="activityLeave">Je quitte</button>
+      <button type="button" class="primary" id="activityNext" data-go="keepsake" disabled>Créer un souvenir partagé</button>
+    </div>
+  </section>
+
+  <section class="screen" data-screen="keepsake">
+    <h1>Un souvenir partagé</h1>
+    <p>Ce souvenir est un objet narratif neutre du prototype. Aucun signal MAT, TAG ou ELI n'y est attaché.</p>
+    <div class="grid">
+      <div class="keepsake">
+        <div>
+          <strong>Repère de la piste</strong>
+          <p class="muted">Souvenir synthétique de l'activité, sans score ni émotion attribuée.</p>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Où le garder ?</h2>
+        <p>Placez-le dans votre espace personnel.</p>
+        <button type="button" class="primary" id="placeKeepsake">Placer dans Mon espace</button>
+        <p id="keepsakeFeedback" class="muted"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" data-screen="space">
+    <p class="badge">Espace personnel · prototype</p>
+    <h1>Mon espace</h1>
+    <div class="card">
+      <h2>Souvenirs World</h2>
+      <div id="emptySpace">
+        <p>Votre espace est vide pour le moment.</p>
+      </div>
+      <div id="savedKeepsake" hidden class="keepsake">
+        <div>
+          <strong>Repère de la piste</strong>
+          <p class="muted">Visible ici comme souvenir personnel dans ce prototype.</p>
+        </div>
+      </div>
+    </div>
+    <div class="notice">
+      Rien n'est publié automatiquement dans Community. Aucun contenu privé, Care ou ELI n'est ajouté à ce souvenir.
+    </div>
+    <div class="actions">
+      <button type="button" data-go="safety">Continuer le scénario</button>
+      <button type="button" data-go="hub">Retourner au Hub</button>
+    </div>
+  </section>
+
+  <section class="screen" data-screen="safety">
+    <h1>Quand vous ne voulez plus de contact</h1>
+    <div class="scenario-pressure">
+      <strong>Scénario synthétique</strong>
+      <p>Camille vous renvoie plusieurs invitations alors que vous avez cessé de répondre.</p>
+      <p>Que faites-vous naturellement ?</p>
+    </div>
+    <div class="card">
+      <p>Les contrôles disponibles ne changent pas votre score, votre accès ou votre espace personnel.</p>
+      <p class="muted">Le modérateur ne doit pas indiquer où se trouvent les contrôles avant la première tentative.</p>
+    </div>
+  </section>
+
+  <section class="screen" data-screen="exit">
+    <p class="badge">Fin de session prototype</p>
+    <h1>Vous avez quitté World.</h1>
+    <p>Aucune donnée de cette session n'a été envoyée ou conservée par le prototype.</p>
+    <div class="card">
+      <h2>Débrief modérateur</h2>
+      <p>Utilisez maintenant les questions du protocole #49. Ne présentez pas l'intention de retour comme une mesure de rétention.</p>
+      <button type="button" id="restartButton">Recommencer le prototype</button>
+    </div>
+  </section>
+
+  <p class="prototype-boundary">
+    CANDIDATE / NOT YET PLAYTESTED · Ce prototype ne prouve ni sécurité, ni préférence, ni rétention, ni valeur produit.
+  </p>
+</main>
+
+<script>
+(() => {
+  const presets = [
+    "Salut", "Par ici", "J'ai trouvé quelque chose", "Prêt·e", "Attends",
+    "Bien joué", "Merci", "Je quitte", "Pas maintenant"
+  ];
+  const state = {
+    condition: "A",
+    invitationAccepted: false,
+    keepsakePlaced: false,
+    checkpoints: 0,
+    messages: []
+  };
+
+  const all = (selector) => Array.from(document.querySelectorAll(selector));
+  const byId = (id) => document.getElementById(id);
+
+  function show(screen) {
+    all(".screen").forEach((node) => node.classList.toggle("active", node.dataset.screen === screen));
+    window.scrollTo(0, 0);
+  }
+
+  function setCondition(condition) {
+    state.condition = condition === "B" ? "B" : "A";
+    byId("conditionBadge").textContent =
+      state.condition === "A" ? "Condition A · presets" : "Condition B · presets + texte";
+    byId("freeTextBlock").hidden = state.condition !== "B";
+  }
+
+  function renderPresets() {
+    const panel = byId("presetPanel");
+    panel.innerHTML = "";
+    presets.forEach((label) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "preset";
+      button.textContent = label;
+      button.addEventListener("click", () => addMessage("Vous", label));
+      panel.appendChild(button);
+    });
+  }
+
+  function addMessage(author, text) {
+    state.messages.push({ author, text });
+    const stream = byId("messageStream");
+    const line = document.createElement("div");
+    line.className = "message";
+    const strong = document.createElement("strong");
+    strong.textContent = author + " : ";
+    line.appendChild(strong);
+    line.appendChild(document.createTextNode(text));
+    stream.appendChild(line);
+  }
+
+  function resetSession() {
+    state.invitationAccepted = false;
+    state.keepsakePlaced = false;
+    state.checkpoints = 0;
+    state.messages = [];
+    byId("inviteFeedback").textContent = "";
+    byId("quietLayer").hidden = true;
+    byId("messageStream").innerHTML = "";
+    byId("keepsakeFeedback").textContent = "";
+    byId("emptySpace").hidden = false;
+    byId("savedKeepsake").hidden = true;
+    byId("safetyFeedback").textContent = "";
+    byId("safetyDrawer").classList.remove("open");
+    byId("neutralityPanel").hidden = true;
+    byId("activityFeedback").textContent = "0/3 checkpoints";
+    all("[data-checkpoint]").forEach((node) => node.classList.remove("done"));
+    all("[data-complete]").forEach((button, index) => { button.disabled = index !== 0; });
+    byId("activityNext").disabled = true;
+    show("community");
+  }
+
+  all("[data-condition]").forEach((button) => {
+    button.addEventListener("click", () => setCondition(button.dataset.condition));
+  });
+
+  all("[data-go]").forEach((button) => {
+    button.addEventListener("click", () => show(button.dataset.go));
+  });
+
+  byId("neutralityButton").addEventListener("click", () => {
+    byId("neutralityPanel").hidden = !byId("neutralityPanel").hidden;
+  });
+
+  byId("safetyButton").addEventListener("click", () => {
+    byId("safetyDrawer").classList.toggle("open");
+  });
+
+  byId("leaveButton").addEventListener("click", () => show("exit"));
+
+  byId("inviteButton").addEventListener("click", () => {
+    state.invitationAccepted = true;
+    byId("inviteFeedback").textContent = "Invitation acceptée dans le scénario synthétique.";
+    byId("quietLayer").hidden = false;
+    addMessage("Camille", "Salut");
+  });
+
+  byId("declineButton").addEventListener("click", () => {
+    state.invitationAccepted = false;
+    byId("inviteFeedback").textContent = "Vous avez décliné. Aucun malus, relance ou compte à rebours.";
+    byId("quietLayer").hidden = true;
+  });
+
+  byId("sendTextButton").addEventListener("click", () => {
+    if (state.condition !== "B") return;
+    const input = byId("freeText");
+    const value = input.value.trim();
+    if (!value) return;
+    addMessage("Vous", value);
+    input.value = "";
+  });
+
+  all("[data-complete]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const target = Number(button.dataset.complete);
+      if (target !== state.checkpoints + 1) return;
+      state.checkpoints = target;
+      document.querySelector('[data-checkpoint="' + target + '"]').classList.add("done");
+      button.disabled = true;
+      const next = document.querySelector('[data-complete="' + (target + 1) + '"]');
+      if (next) next.disabled = false;
+      byId("activityFeedback").textContent = state.checkpoints + "/3 checkpoints";
+      if (state.checkpoints === 3) {
+        byId("activityFeedback").textContent = "3/3 checkpoints · activité terminée sans score.";
+        byId("activityNext").disabled = false;
+      }
+    });
+  });
+
+  byId("activityLeave").addEventListener("click", () => {
+    addMessage("Vous", "Je quitte");
+    show("exit");
+  });
+
+  byId("placeKeepsake").addEventListener("click", () => {
+    state.keepsakePlaced = true;
+    byId("keepsakeFeedback").textContent = "Souvenir placé dans Mon espace.";
+    byId("emptySpace").hidden = true;
+    byId("savedKeepsake").hidden = false;
+    setTimeout(() => show("space"), 250);
+  });
+
+  all("[data-safety]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const action = button.dataset.safety;
+      if (action === "leave") {
+        show("exit");
+        byId("safetyDrawer").classList.remove("open");
+        return;
+      }
+      byId("safetyFeedback").textContent =
+        action === "block"
+          ? "Personne bloquée dans le scénario. Aucun détail de localisation supplémentaire n'est révélé."
+          : "Signalement synthétique enregistré uniquement dans l'état visuel de cette page.";
+    });
+  });
+
+  byId("resetButton").addEventListener("click", resetSession);
+  byId("restartButton").addEventListener("click", resetSession);
+
+  renderPresets();
+  setCondition("A");
+  resetSession();
+})();
+</script>
+</body>
+</html>
