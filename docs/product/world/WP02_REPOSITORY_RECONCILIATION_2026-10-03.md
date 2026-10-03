@@ -26,7 +26,7 @@ The recovered WP-02 source set is:
 
 Each file retains its original 2026-09-01 framing.
 
-The historical use of `Guardian` inside these source artifacts is also preserved. Current repository terminology may use `Owner` under later terminology authority; source preservation is not a terminology rollback.
+The historical pre-Owner role term inside these source artifacts is also preserved. Current repository terminology uses `Owner` under later terminology authority; source preservation is not a terminology rollback.
 
 ## 3. Reconciliation rule
 
