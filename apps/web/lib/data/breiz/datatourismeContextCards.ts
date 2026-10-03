@@ -1,5 +1,10 @@
 import type { DatatourismeBretagneLoadedEvent } from './datatourismeLoader';
 import {
+  getBreizSource,
+  isBreizSourceReleaseReady,
+  type BreizSourceDescriptor,
+} from './sourceRegistry';
+import {
   isFresh,
   type BreizContextCard,
   type BreizSourceProvenance,
@@ -16,9 +21,41 @@ export interface DatatourismeEventCardData {
   datatourismeUpdatedAt: string | null;
 }
 
+type SourceLookup = (id: string) => BreizSourceDescriptor | undefined;
+
 export interface DatatourismeEventCardOptions {
   relevanceReason: string;
   nowMs?: number;
+  sourceLookup?: SourceLookup;
+}
+
+function provenanceMatchesCurrentRights(
+  provenance: BreizSourceProvenance,
+  source: BreizSourceDescriptor | undefined,
+  nowMs: number,
+): boolean {
+  if (!source || !isBreizSourceReleaseReady(source, nowMs)) return false;
+  const evidence = source.rightsEvidence;
+  if (!evidence) return false;
+
+  return (
+    provenance.sourceId === source.id &&
+    provenance.sourceName === source.name &&
+    provenance.license === source.license &&
+    provenance.rightsAuthorityRevision === evidence.authorityRevision &&
+    provenance.rightsImmutableSourceVersion === evidence.immutableSourceVersion &&
+    provenance.rightsReceiptPath === evidence.receiptPath &&
+    provenance.rightsAttributionText === evidence.attributionText &&
+    provenance.rightsPermittedUseSummary === evidence.permittedUseSummary &&
+    provenance.rightsAllowedProductUses.length ===
+      evidence.allowedProductUses.length &&
+    provenance.rightsAllowedProductUses.every(
+      (use, index) => use === evidence.allowedProductUses[index],
+    ) &&
+    provenance.rightsReviewedAt === evidence.reviewedAt &&
+    provenance.rightsRecheckAt === (evidence.recheckAt ?? null) &&
+    provenance.rightsReviewerRole === evidence.reviewerRole
+  );
 }
 
 function provenanceMatchesEvent(
@@ -50,9 +87,19 @@ export function buildDatatourismeEventContextCard(
 ): BreizContextCard<DatatourismeEventCardData> | null {
   const relevanceReason = options.relevanceReason.trim();
   const nowMs = options.nowMs ?? Date.now();
+  const sourceLookup = options.sourceLookup ?? getBreizSource;
 
   if (!relevanceReason) return null;
   if (!provenanceMatchesEvent(loaded.event, loaded.provenance)) return null;
+  if (
+    !provenanceMatchesCurrentRights(
+      loaded.provenance,
+      sourceLookup('datatourisme'),
+      nowMs,
+    )
+  ) {
+    return null;
+  }
   if (!isFresh(loaded.provenance, nowMs)) return null;
 
   const { event, provenance } = loaded;
