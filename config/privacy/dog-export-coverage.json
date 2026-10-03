@@ -168,6 +168,13 @@
       "routeSymbol": "professionalShareGrants",
       "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT",
       "projectionAuthority": "TO_CONFIRM_PROFESSIONAL_GRANT_ACCESS_PROJECTION"
+    },
+    {
+      "table": "phone_presence_events",
+      "column": "dog_id",
+      "routeSymbol": "phonePresenceEvents",
+      "implementationStatus": "NOT_IN_CURRENT_DOG_EXPORT",
+      "projectionAuthority": "TO_CONFIRM_PHONE_PRESENCE_EXPORT_ACCESS"
     }
   ],
   "unconstrainedDogIdentifiers": [
