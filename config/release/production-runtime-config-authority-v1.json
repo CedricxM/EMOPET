@@ -71,6 +71,10 @@
     "internalAlertAcknowledgementService": {
       "variable": "EMOPET_INTERNAL_ALERT_ACK_SERVICE_SECRET",
       "classification": "SERVER_SECRET / DISTINCT_FROM_ORDINARY_PRIVILEGED_AND_INTERNAL_AUDIT_KEYS"
+    },
+    "internalOwnerSessionService": {
+      "variable": "EMOPET_INTERNAL_OWNER_SESSION_SERVICE_SECRET",
+      "classification": "SERVER_SECRET / DISTINCT_FROM_ORDINARY_PRIVILEGED_AUDIT_AND_ALERT_ACK_KEYS"
     }
   },
   "requiredEnvironmentReceiptFields": [
@@ -141,6 +145,7 @@
     "DATABASE_URL and MIGRATION_DATABASE_URL are separate authorities in production; disposable/local fallback behavior is not production evidence.",
     "EMOPET_INTERNAL_AUDIT_SERVICE_SECRET must remain distinct from JWT_SECRET and PRIVILEGED_JWT_SECRET.",
     "EMOPET_INTERNAL_ALERT_ACK_SERVICE_SECRET must remain distinct from JWT_SECRET, PRIVILEGED_JWT_SECRET and EMOPET_INTERNAL_AUDIT_SERVICE_SECRET.",
+    "EMOPET_INTERNAL_OWNER_SESSION_SERVICE_SECRET must remain distinct from JWT_SECRET, PRIVILEGED_JWT_SECRET, EMOPET_INTERNAL_AUDIT_SERVICE_SECRET and EMOPET_INTERNAL_ALERT_ACK_SERVICE_SECRET.",
     "Production backend URLs carrying privileged/server-to-server traffic require HTTPS evidence.",
     "A configured provider credential does not override rights, privacy, release or service-authority HOLD gates.",
     "Missing custody, rotation, role-separation, public-config review or HTTPS evidence keeps the environment receipt DRAFT_UNVERIFIED or HOLD.",
