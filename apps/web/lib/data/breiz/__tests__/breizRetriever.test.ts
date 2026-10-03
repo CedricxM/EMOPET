@@ -80,8 +80,8 @@ async function controlledDocument(): Promise<BreizDocument> {
     NOW,
     () => reviewed,
   );
+  if (!result.ready) throw new Error('controlled public promotion failed');
   assert.equal(result.ready, true);
-  if (!result.ready) throw new Error(result.reason);
   return result.document;
 }
 
