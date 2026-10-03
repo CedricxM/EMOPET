@@ -1,0 +1,2 @@
+protocol_version,session_id,participant_code,condition_order,condition,scenario_id,completion_state,unassisted,hints_count,time_to_first_action_sec,time_to_completion_sec,wrong_path_count,safety_control_found,authority_confusion,privacy_prediction,comfort_1_5,pressure_1_5,return_intent_1_5,verbatim_note,observer_note
+WORLD_PLAYTEST_v0.1,,,,,,,,,,,,,,,,,,,
