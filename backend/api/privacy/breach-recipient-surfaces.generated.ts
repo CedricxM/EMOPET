@@ -225,6 +225,12 @@ export const BREACH_RECIPIENT_SURFACES = [
     "source": "config/privacy account+dog erasure topology"
   },
   {
+    "surface": "sql:phone_presence_events",
+    "authority": "CANONICAL_SQL",
+    "requiredGap": null,
+    "source": "config/privacy account+dog erasure topology"
+  },
+  {
     "surface": "sql:posts",
     "authority": "CANONICAL_SQL",
     "requiredGap": null,
