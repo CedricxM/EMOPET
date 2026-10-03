@@ -7,8 +7,8 @@ import {
 } from '../../../../lib/server/owner-session-cookies';
 import {
   OWNER_REFRESH_COOKIE,
-  refreshOwnerSession,
 } from '../../../../lib/server/owner-session-provider';
+import { refreshOwnerSessionSingleFlight } from '../../../../lib/server/owner-session-singleflight';
 import { evaluatePrivilegedMutationOrigin as evaluateOwnerSessionMutationOrigin } from '../../../../lib/server/privileged-mutation-origin';
 import { resolvePrivilegedWebOrigin as resolveOwnerWebOrigin } from '../../../../lib/server/privileged-web-origin-config';
 import { createFixedWindowRateLimiter } from '../../../../lib/server/rate-limit';
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
   }
 
   const refreshToken = (await cookies()).get(OWNER_REFRESH_COOKIE)?.value;
-  const result = await refreshOwnerSession(refreshToken);
+  const result = await refreshOwnerSessionSingleFlight(refreshToken);
 
   if (result.status === 'UNAVAILABLE') {
     return privateJson({ ok: false, error: 'owner_auth_unavailable' }, 503);
