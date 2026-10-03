@@ -80,9 +80,9 @@ test('packet covers every canonical matrix relation exactly once and mirrors pro
 
 test('decision grouping counts remain explicit and exhaustive', () => {
   assert.deepEqual(packet.summary, {
-    relationalTotal: 55,
+    relationalTotal: 57,
     policyAlignedDeleteCandidates: 30,
-    policyConditionalExecutionRequired: 22,
+    policyConditionalExecutionRequired: 24,
     legalAuthorityBlocked: 3,
     matrixRowsPromoted: 5,
   });
@@ -100,7 +100,7 @@ test('decision grouping counts remain explicit and exhaustive', () => {
 
   assert.deepEqual(counts, {
     POLICY_ALIGNED_DELETE_CANDIDATE: 30,
-    POLICY_CONDITIONAL_EXECUTION_REQUIRED: 22,
+    POLICY_CONDITIONAL_EXECUTION_REQUIRED: 24,
     LEGAL_AUTHORITY_BLOCKED: 3,
   });
 });
@@ -194,6 +194,8 @@ test('conditional rows distinguish approved D1-D4 detach from still-unresolved e
   for (const key of [
     'users.id|DIRECT_FK|professional_share_grants|owner_user_id',
     'dogs.id|DIRECT_FK|professional_share_grants|dog_id',
+    'users.id|DIRECT_FK|phone_presence_events|owner_id',
+    'dogs.id|DIRECT_FK|phone_presence_events|dog_id',
     'dogs.id|UNCONSTRAINED_IDENTIFIER|professional_share_access_audits|dog_id',
     'professional_share_grants.id|UNCONSTRAINED_IDENTIFIER|professional_share_access_audits|grant_id',
   ]) {
