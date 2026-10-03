@@ -64,7 +64,7 @@ test('internal Owner session token rejects body tampering and expiry', async () 
   await assert.rejects(
     verifyInternalOwnerSessionServiceToken({
       token,
-      body: BODY.replace('"x', '"y'),
+      body: BODY.replace('emopet_rt_', 'emopet_rx_'),
       key: ownerKey(),
       now: new Date('2026-10-03T09:15:10.000Z'),
     }),
