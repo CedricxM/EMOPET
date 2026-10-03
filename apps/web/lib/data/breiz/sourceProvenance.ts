@@ -1,4 +1,10 @@
-import type { BreizRightsProductUse, BreizSourceUsagePolicy } from './sourceRegistry';
+import {
+  isBreizSourcePublicAnswerReady,
+  isBreizSourceReleaseReady,
+  type BreizRightsProductUse,
+  type BreizSourceDescriptor,
+  type BreizSourceUsagePolicy,
+} from './sourceRegistry';
 
 export interface BreizSourceProvenance {
   sourceId: string;
@@ -69,4 +75,48 @@ export function evaluateFreshness(
  */
 export function isFresh(provenance: BreizSourceProvenance, now = Date.now()): boolean {
   return evaluateFreshness(provenance, now) === 'fresh';
+}
+
+
+/**
+ * Revalidates the exact rights authority that was snapshotted when data was
+ * collected. Historical provenance remains inspectable, but only an exact
+ * match with the current controlled authority may cross a live product-use
+ * boundary.
+ */
+export function matchesBreizProvenanceRightsAuthority(
+  provenance: BreizSourceProvenance,
+  source: BreizSourceDescriptor | undefined,
+  requiredUse: BreizRightsProductUse,
+  nowMs: number = Date.now(),
+): boolean {
+  if (!source) return false;
+
+  const sourceReady =
+    requiredUse === 'PUBLIC_ANSWER_WITH_SOURCE'
+      ? isBreizSourcePublicAnswerReady(source, nowMs)
+      : isBreizSourceReleaseReady(source, nowMs);
+  if (!sourceReady) return false;
+
+  const evidence = source.rightsEvidence;
+  if (!evidence || !evidence.allowedProductUses.includes(requiredUse)) return false;
+
+  return (
+    provenance.sourceId === source.id &&
+    provenance.sourceName === source.name &&
+    provenance.license === source.license &&
+    provenance.rightsAuthorityRevision === evidence.authorityRevision &&
+    provenance.rightsImmutableSourceVersion === evidence.immutableSourceVersion &&
+    provenance.rightsReceiptPath === evidence.receiptPath &&
+    provenance.rightsAttributionText === evidence.attributionText &&
+    provenance.rightsPermittedUseSummary === evidence.permittedUseSummary &&
+    provenance.rightsAllowedProductUses.length ===
+      evidence.allowedProductUses.length &&
+    provenance.rightsAllowedProductUses.every(
+      (use, index) => use === evidence.allowedProductUses[index],
+    ) &&
+    provenance.rightsReviewedAt === evidence.reviewedAt &&
+    provenance.rightsRecheckAt === (evidence.recheckAt ?? null) &&
+    provenance.rightsReviewerRole === evidence.reviewerRole
+  );
 }
