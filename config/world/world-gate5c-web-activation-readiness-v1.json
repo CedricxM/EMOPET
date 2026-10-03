@@ -50,6 +50,10 @@
     "worldUiActivated": false,
     "refreshRoute": "POST /api/owner-session/refresh",
     "automaticRefreshOnWorldGet": false,
-    "concurrentRefreshSingleFlightRequiredBeforeUiCutover": true
+    "concurrentRefreshSingleFlightRequiredBeforeUiCutover": true,
+    "concurrentRefreshSingleFlight": "INSTANCE_LOCAL_SHA256_KEYED",
+    "concurrentRefreshSingleFlightInstanceLocal": true,
+    "concurrentRefreshSingleFlightMultiInstance": false,
+    "concurrentRefreshSingleFlightNextAction": "ADD_SHARED_COORDINATION_OR_EQUIVALENT_MULTI_INSTANCE_PROOF"
   }
 }
