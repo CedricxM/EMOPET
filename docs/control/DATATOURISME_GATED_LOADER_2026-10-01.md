@@ -26,6 +26,8 @@ This order is deliberate.
 
 A secret being present does not grant source rights.
 
+As of 2026-10-03, every retained DATAtourisme event provenance also snapshots the exact reviewed rights authority that permitted collection. A later Context Card must match that historical snapshot against the current controlled authority and requires explicit `PUBLIC_ANSWER_WITH_SOURCE`; ingestion authority alone cannot become public-answer authority.
+
 As of the 2026-10-02 hardening, a registry licence string does not grant ingestion rights either. `evaluateBreizSourceRights()` requires a controlled `rightsEvidence` record with a confirmed source state, GO disposition, immutable source/version pointers, receipt path, attribution, permitted-use summary, reviewer role and a parseable review timestamp. Missing, HOLD, unverified or structurally incomplete evidence fails closed as `NO_RIGHTS_EVIDENCE`.
 
 This is a technical evidence-presence gate, not a legal opinion. #116 remains open until the underlying rights review is actually completed.
