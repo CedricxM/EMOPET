@@ -11,6 +11,8 @@ const allowedPath = 'apps__mobile>react-native>@react-native/community-cli-plugi
 const exceptionIds = ['GHSA-w3rx-r6r6-pgpr', 'GHSA-5p2g-fcmc-qvqq'];
 const expoCliNodeForgePath = 'apps__mobile>expo>@expo/cli>node-forge';
 const expoCliNodeForgeGhsa = 'GHSA-86w9-cpqp-85rv';
+const expoCliBracesPath = 'apps__mobile>expo>@expo/cli>fast-glob>micromatch>braces';
+const expoCliBracesGhsa = 'GHSA-vfj7-8cjw-p6xm';
 
 function advisory(overrides = {}) {
   return {
@@ -216,5 +218,55 @@ test('the Expo CLI node-forge exception expires on 31 October 2026', () => {
   expectRejected(
     report([expoCliNodeForgeException()]),
     { now: '2026-10-31T23:59:59.001Z' },
+  );
+});
+
+function expoCliBracesException(overrides = {}) {
+  return advisory({
+    github_advisory_id: expoCliBracesGhsa,
+    module_name: 'braces',
+    findings: [{ version: '3.0.3', paths: [expoCliBracesPath] }],
+    patched_versions: '<0.0.0',
+    recommendation: 'None',
+    ...overrides,
+  });
+}
+
+test('the Expo CLI braces exception is exact-path and time-bounded', () => {
+  const accepted = evaluate(
+    report([expoCliBracesException()]),
+    { now: '2026-10-03T08:00:00Z' },
+  );
+  assert.equal(accepted.status, 0, accepted.stderr);
+  assert.match(accepted.stdout, new RegExp(expoCliBracesGhsa));
+  assert.match(accepted.stdout, /2026-10-17T23:59:59\.000Z/);
+
+  expectRejected(
+    report([
+      expoCliBracesException({
+        findings: [{
+          version: '3.0.3',
+          paths: [expoCliBracesPath, 'backend>fast-glob>micromatch>braces'],
+        }],
+      }),
+    ]),
+    { now: '2026-10-03T08:00:00Z' },
+  );
+
+  expectRejected(
+    report([expoCliBracesException({ module_name: 'different-package' })]),
+    { now: '2026-10-03T08:00:00Z' },
+  );
+});
+
+test('the Expo CLI braces exception expires on 17 October 2026', () => {
+  const atBoundary = evaluate(
+    report([expoCliBracesException()]),
+    { now: '2026-10-17T23:59:59Z' },
+  );
+  assert.equal(atBoundary.status, 0, atBoundary.stderr);
+  expectRejected(
+    report([expoCliBracesException()]),
+    { now: '2026-10-17T23:59:59.001Z' },
   );
 });
