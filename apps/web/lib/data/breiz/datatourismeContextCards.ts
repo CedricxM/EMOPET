@@ -1,11 +1,11 @@
 import type { DatatourismeBretagneLoadedEvent } from './datatourismeLoader';
 import {
   getBreizSource,
-  isBreizSourcePublicAnswerReady,
   type BreizSourceDescriptor,
 } from './sourceRegistry';
 import {
   isFresh,
+  matchesBreizProvenanceRightsAuthority,
   type BreizContextCard,
   type BreizSourceProvenance,
 } from './sourceProvenance';
@@ -27,35 +27,6 @@ export interface DatatourismeEventCardOptions {
   relevanceReason: string;
   nowMs?: number;
   sourceLookup?: SourceLookup;
-}
-
-function provenanceMatchesCurrentRights(
-  provenance: BreizSourceProvenance,
-  source: BreizSourceDescriptor | undefined,
-  nowMs: number,
-): boolean {
-  if (!source || !isBreizSourcePublicAnswerReady(source, nowMs)) return false;
-  const evidence = source.rightsEvidence;
-  if (!evidence) return false;
-
-  return (
-    provenance.sourceId === source.id &&
-    provenance.sourceName === source.name &&
-    provenance.license === source.license &&
-    provenance.rightsAuthorityRevision === evidence.authorityRevision &&
-    provenance.rightsImmutableSourceVersion === evidence.immutableSourceVersion &&
-    provenance.rightsReceiptPath === evidence.receiptPath &&
-    provenance.rightsAttributionText === evidence.attributionText &&
-    provenance.rightsPermittedUseSummary === evidence.permittedUseSummary &&
-    provenance.rightsAllowedProductUses.length ===
-      evidence.allowedProductUses.length &&
-    provenance.rightsAllowedProductUses.every(
-      (use, index) => use === evidence.allowedProductUses[index],
-    ) &&
-    provenance.rightsReviewedAt === evidence.reviewedAt &&
-    provenance.rightsRecheckAt === (evidence.recheckAt ?? null) &&
-    provenance.rightsReviewerRole === evidence.reviewerRole
-  );
 }
 
 function provenanceMatchesEvent(
@@ -92,9 +63,10 @@ export function buildDatatourismeEventContextCard(
   if (!relevanceReason) return null;
   if (!provenanceMatchesEvent(loaded.event, loaded.provenance)) return null;
   if (
-    !provenanceMatchesCurrentRights(
+    !matchesBreizProvenanceRightsAuthority(
       loaded.provenance,
       sourceLookup('datatourisme'),
+      'PUBLIC_ANSWER_WITH_SOURCE',
       nowMs,
     )
   ) {
