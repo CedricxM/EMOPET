@@ -74,6 +74,23 @@ test('aucune source du registre n’est ingérable en l’état', () => {
   assert.deepEqual(permitted, [], `sources devenues ingérables : ${permitted.join(', ')}`);
 });
 
+test('DATAtourisme records the official licence fact but remains runtime HOLD', () => {
+  const datatourisme = BREIZ_SOURCE_REGISTRY.find(
+    (entry) => entry.id === 'datatourisme',
+  );
+  assert.ok(datatourisme);
+
+  assert.equal(datatourisme.license, 'Licence Ouverte 2.0');
+  assert.equal(datatourisme.enabled, false);
+  assert.equal(datatourisme.rightsEvidence, undefined);
+
+  const verdict = evaluateBreizSourceRights(datatourisme);
+  assert.equal(verdict.ingestionPermitted, false);
+  assert.ok(verdict.blockers.includes('SOURCE_DISABLED'));
+  assert.ok(verdict.blockers.includes('NO_RIGHTS_EVIDENCE'));
+  assert.equal(verdict.blockers.includes('NO_LICENCE_RECEIPT'), false);
+});
+
 test('les deux sources activées sont bloquées faute de reçu de licence', () => {
   const enabled = BREIZ_SOURCE_REGISTRY.filter((entry) => entry.enabled);
   assert.equal(enabled.length, 2, 'le registre devrait compter deux sources activées');
