@@ -21,6 +21,8 @@ export interface BreizSourceAuthorityBinding {
   rights_reviewed_at: string;
   rights_recheck_at: string | null;
   reviewer_role: string;
+  /** SHA-256 of the canonical fact-bearing document payload at promotion time. */
+  document_payload_sha256: string;
 }
 
 export interface BreizDocument {
@@ -56,6 +58,8 @@ export interface BreizDocumentChunk {
   title: string;
   content: string;
   token_estimate: number;
+  /** SHA-256 of the exact chunk text emitted by verified public chunking. */
+  content_sha256: string | null;
   metadata: Omit<BreizDocument, 'content'>;
 }
 
@@ -73,6 +77,20 @@ export function validateBreizDocument(document: BreizDocument): string[] {
   }
 
   const binding = document.source_authority_binding;
+  if (
+    document.reliability_level === 'source_verified' &&
+    document.allowed_usage === 'public_answer_with_source' &&
+    !binding
+  ) {
+    errors.push('public source_verified documents require source_authority_binding');
+  }
+  if (
+    binding &&
+    (document.reliability_level !== 'source_verified' ||
+      document.allowed_usage !== 'public_answer_with_source')
+  ) {
+    errors.push('source_authority_binding requires source_verified public usage');
+  }
   if (binding) {
     if (!document.source_registry_id?.trim()) errors.push('source_registry_id is required when source_authority_binding is present');
     if (document.source_registry_id?.trim() !== binding.source_registry_id.trim()) {
@@ -91,6 +109,9 @@ export function validateBreizDocument(document: BreizDocument): string[] {
     }
     if (!binding.rights_reviewed_at.trim()) errors.push('source_authority_binding.rights_reviewed_at is required');
     if (!binding.reviewer_role.trim()) errors.push('source_authority_binding.reviewer_role is required');
+    if (!/^[a-f0-9]{64}$/.test(binding.document_payload_sha256)) {
+      errors.push('source_authority_binding.document_payload_sha256 must be sha256 hex');
+    }
     if (document.source_name.trim() !== binding.source_name.trim()) {
       errors.push('source_name must match source_authority_binding');
     }
