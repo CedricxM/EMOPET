@@ -285,7 +285,7 @@ async function fetchJsonAtRef(repository, path, ref, token) {
   };
 }
 
-async function loadGithubControlledState(repository, ref, token) {
+export async function loadGithubControlledState(repository, ref, token) {
   const entries = await Promise.all(
     CONTROLLED_STATE_PATHS.map(async (path) => [
       path,
@@ -311,18 +311,75 @@ function argValue(name) {
   return index >= 0 ? process.argv[index + 1] : null;
 }
 
+export function parseMainRef(value, label = 'ref') {
+  if (typeof value !== 'string' || !/^main@[0-9a-f]{40}$/.test(value)) {
+    throw new Error(`${label} must be main@<40-hex-sha>`);
+  }
+  return value.slice('main@'.length);
+}
+
 async function main() {
   const output = argValue('--output');
   const githubPr = process.argv.includes('--github-pr');
-  const local = loadLocalBundle();
-  const candidateStateManifest = loadLocalStateManifest();
+  const explicitBaseRef = argValue('--base-ref');
+  const explicitCandidateRef = argValue('--candidate-ref');
+  const explicitRepository =
+    argValue('--repository') ?? process.env.GITHUB_REPOSITORY ?? null;
+  const explicitRegeneration =
+    explicitBaseRef !== null ||
+    explicitCandidateRef !== null ||
+    argValue('--repository') !== null;
 
-  let before = local;
-  let baseStateManifest = candidateStateManifest;
+  let local = null;
+  let candidateStateManifest = null;
+  let before = null;
+  let after = null;
+  let baseStateManifest = null;
   let baseRef = null;
   let candidateRef = null;
 
-  const company = local['state/company-state.json'];
+  if (explicitRegeneration) {
+    if (!explicitBaseRef || !explicitCandidateRef || !explicitRepository) {
+      throw new Error(
+        'Explicit regeneration requires --repository, --base-ref and --candidate-ref together',
+      );
+    }
+    if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(explicitRepository)) {
+      throw new Error('--repository must use owner/name');
+    }
+    if (githubPr) {
+      throw new Error('--github-pr cannot be combined with explicit regeneration refs');
+    }
+
+    const baseSha = parseMainRef(explicitBaseRef, '--base-ref');
+    const candidateSha = parseMainRef(explicitCandidateRef, '--candidate-ref');
+    const [baseState, candidateState] = await Promise.all([
+      loadGithubControlledState(
+        explicitRepository,
+        baseSha,
+        process.env.GITHUB_TOKEN,
+      ),
+      loadGithubControlledState(
+        explicitRepository,
+        candidateSha,
+        process.env.GITHUB_TOKEN,
+      ),
+    ]);
+    before = baseState.bundle;
+    after = candidateState.bundle;
+    baseStateManifest = baseState.manifest;
+    candidateStateManifest = candidateState.manifest;
+    baseRef = explicitBaseRef;
+    candidateRef = explicitCandidateRef;
+  } else {
+    local = loadLocalBundle();
+    candidateStateManifest = loadLocalStateManifest();
+    before = local;
+    after = local;
+    baseStateManifest = candidateStateManifest;
+  }
+
+  const company = after['state/company-state.json'];
   const generatedOn = company?.snapshot?.date ?? '1970-01-01';
 
   if (githubPr) {
@@ -341,6 +398,7 @@ async function main() {
           process.env.GITHUB_TOKEN,
         );
         before = baseState.bundle;
+        after = local;
         baseStateManifest = baseState.manifest;
         baseRef = `main@${baseSha}`;
         candidateRef = `head@${headSha}`;
@@ -355,7 +413,7 @@ async function main() {
     candidateRef = `main@${snapshotSha}`;
   }
 
-  const queue = proposeCompanyTransitions(before, local, {
+  const queue = proposeCompanyTransitions(before, after, {
     baseRef,
     candidateRef,
     baseStateManifest,
