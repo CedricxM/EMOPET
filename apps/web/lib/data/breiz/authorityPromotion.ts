@@ -9,6 +9,7 @@ import {
   type BreizSourceAuthorityBinding,
 } from './breizDocument.schema';
 import { evaluateBreizDocumentFreshness } from './contentFreshness';
+import { computeBreizDocumentPayloadSha256 } from './documentIntegrity';
 
 type SourceLookup = (id: string) => BreizSourceDescriptor | undefined;
 
@@ -18,6 +19,7 @@ export type BreizPublicPromotionFailureReason =
   | 'document_not_neutral'
   | 'document_already_bound'
   | 'document_freshness_invalid'
+  | 'integrity_digest_unavailable'
   | 'promoted_document_invalid';
 
 export type BreizPublicPromotionResult =
@@ -38,6 +40,7 @@ export type BreizPublicPromotionResult =
  */
 export function deriveBreizSourceAuthorityBinding(
   source: BreizSourceDescriptor,
+  documentPayloadSha256: string,
   nowMs: number = Date.now(),
 ): BreizSourceAuthorityBinding | null {
   if (!isBreizSourcePublicAnswerReady(source, nowMs)) return null;
@@ -60,6 +63,7 @@ export function deriveBreizSourceAuthorityBinding(
     rights_reviewed_at: evidence.reviewedAt,
     rights_recheck_at: evidence.recheckAt ?? null,
     reviewer_role: evidence.reviewerRole,
+    document_payload_sha256: documentPayloadSha256,
   };
 }
 
@@ -71,12 +75,12 @@ export function deriveBreizSourceAuthorityBinding(
  * for deterministic tests and controlled composition only; serving still
  * revalidates the exact binding against the live registry.
  */
-export function promoteBreizDocumentForPublicAnswer(
+export async function promoteBreizDocumentForPublicAnswer(
   document: BreizDocument,
   sourceRegistryId: string,
   nowMs: number = Date.now(),
   lookup: SourceLookup = getBreizSource,
-): BreizPublicPromotionResult {
+): Promise<BreizPublicPromotionResult> {
   const source = lookup(sourceRegistryId);
   if (!source) {
     return {
@@ -108,15 +112,6 @@ export function promoteBreizDocumentForPublicAnswer(
     };
   }
 
-  const binding = deriveBreizSourceAuthorityBinding(source, nowMs);
-  if (!binding) {
-    return {
-      ready: false,
-      reason: 'source_not_public_answer_ready',
-      validationErrors: [],
-    };
-  }
-
   const freshness = evaluateBreizDocumentFreshness(document, source, nowMs);
   if (freshness !== 'fresh') {
     return {
@@ -126,15 +121,43 @@ export function promoteBreizDocumentForPublicAnswer(
     };
   }
 
-  const promoted: BreizDocument = {
+  const promotedBase: BreizDocument = {
     ...document,
-    source_name: binding.source_name,
-    source_url: binding.source_url,
-    source_registry_id: binding.source_registry_id,
-    source_authority_binding: binding,
-    license: binding.license,
+    source_name: source.name,
+    source_url: source.canonicalUrl,
+    source_registry_id: source.id,
+    source_authority_binding: undefined,
+    license: source.license ?? document.license,
     reliability_level: 'source_verified',
     allowed_usage: 'public_answer_with_source',
+  };
+
+  const documentPayloadSha256 =
+    await computeBreizDocumentPayloadSha256(promotedBase);
+  if (!documentPayloadSha256) {
+    return {
+      ready: false,
+      reason: 'integrity_digest_unavailable',
+      validationErrors: [],
+    };
+  }
+
+  const binding = deriveBreizSourceAuthorityBinding(
+    source,
+    documentPayloadSha256,
+    nowMs,
+  );
+  if (!binding) {
+    return {
+      ready: false,
+      reason: 'source_not_public_answer_ready',
+      validationErrors: [],
+    };
+  }
+
+  const promoted: BreizDocument = {
+    ...promotedBase,
+    source_authority_binding: binding,
   };
 
   const validationErrors = validateBreizDocument(promoted);
