@@ -145,6 +145,22 @@ test('DATAtourisme card fails closed when current rights lose public-answer scop
   assert.equal(card, null);
 });
 
+test('DATAtourisme card fails closed when rights receipt drifts under the same revision', () => {
+  const card = buildDatatourismeEventContextCard(loadedEvent(), {
+    ...CARD_OPTIONS,
+    relevanceReason: 'Test',
+    sourceLookup: () =>
+      source({
+        rightsEvidence: {
+          ...source().rightsEvidence!,
+          receiptPath: 'data/registry/receipts/different-receipt.json',
+        },
+      }),
+  });
+
+  assert.equal(card, null);
+});
+
 test('DATAtourisme card fails closed when source provenance is stale', () => {
   const loaded = loadedEvent();
   loaded.provenance.retrievedAt = '2026-09-28T00:00:00Z';
