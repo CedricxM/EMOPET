@@ -1,6 +1,6 @@
 # EMOPET — Référence de l'API Hono observée
 
-Cette référence décrit les routes montées par `backend/api/index.ts` au 2026-08-29. Elle n'est ni un contrat OpenAPI versionné ni une preuve de disponibilité en production.
+Cette référence décrit les routes montées par `backend/api/index.ts` et a été réconciliée avec le runtime courant le 2026-10-03. Elle n'est ni un contrat OpenAPI versionné ni une preuve de disponibilité en production.
 
 L'ancienne référence FastAPI (`/predict`, `/insights`, rapports CSV et extensions Python) ne correspond pas au serveur actif. Elle reste consultable dans l'historique Git.
 
@@ -12,7 +12,7 @@ L'ancienne référence FastAPI (`/predict`, `/insights`, rapports CSV et extensi
 
 ## 2. Authentification et autorisation
 
-`GET /health` et le groupe `/api/auth` sont publics. Toutes les autres routes `/api/*` passent par le middleware JWT.
+`GET /health` et les routes publiques `/api/auth` sont montés avant le middleware JWT général ; `/api/auth/logout-all` impose son propre middleware utilisateur. Les autres groupes `/api/*` sont protégés, avec l'exception historique du lien PDF vétérinaire vérifié séparément. Les routes internes de sécurité utilisent leur authentification service, pas le JWT utilisateur.
 
 Pour une route protégée :
 
@@ -23,20 +23,26 @@ Authorization: Bearer <token>
 Limites importantes :
 
 - `JWT_SECRET` est obligatoire hors `NODE_ENV=test` ;
-- le helper `signToken` émet des jetons HS256 à sept jours ; le middleware vérifie leur signature et toute expiration présente ;
-- `register`, `login` et `refresh` sont des stubs et ne fournissent pas encore de cycle d'identité utilisable ;
+- le runtime émet des access tokens JWT HS256 bornés et des refresh credentials persistants, rotatifs et révocables ; le middleware vérifie les access tokens ;
+- `register`, `verify-email`, `verify-email/resend`, `login`, `refresh`, `logout` et `logout-all` forment désormais un cycle d'identité backend implémenté ; la livraison e-mail de production, le rollout legacy et les gates d'exploitation restent séparément ouverts ;
 - plusieurs routes chien/capteur appliquent `requireDogOwnership`, mais la couverture négative de toutes les routes n'est pas démontrée ;
 - un `share_token` signé peut donner un accès temporaire au PDF vétérinaire sans Bearer token ;
-- l'identité, la récupération, la révocation, la rotation et la suppression restent `OPEN / GATED`.
+- la rotation et la révocation de session sont implémentées ; récupération de compte, rollout legacy et suppression/effacement complet restent soumis à leurs gates dédiés.
 
 ## 3. Routes publiques
 
 | Méthode | Chemin | État observé |
 |---|---|---|
 | GET | `/health` | Probe `{ status, version }` |
-| POST | `/api/auth/register` | Validation d'entrée, inscription non implémentée |
-| POST | `/api/auth/login` | Validation d'entrée, vérification/émission JWT non implémentée |
-| POST | `/api/auth/refresh` | Renouvellement non implémenté |
+| POST | `/api/auth/register` | Création idempotente du compte en attente de vérification ; réponse générique, aucune session avant preuve |
+| POST | `/api/auth/verify-email` | Consommation d'un jeton de vérification à usage unique ; aucune session implicite |
+| POST | `/api/auth/verify-email/resend` | Demande générique de renvoi via l'outbox de livraison |
+| POST | `/api/auth/login` | Vérification du mot de passe et de l'état e-mail ; création d'une session refresh persistante + access token |
+| POST | `/api/auth/refresh` | Rotation transactionnelle du refresh credential et émission d'un nouvel access token |
+| POST | `/api/auth/logout` | Révocation de la famille de session concernée |
+| POST | `/api/auth/logout-all` | Bearer access token requis ; révocation des sessions actives du compte |
+
+Le provider Next Owner expose login/refresh/logout à cookies HttpOnly/SameSite strict et délègue à Hono. Les tokens ne sont pas publiés au JavaScript navigateur. Le refresh single-flight est instance-local ; Gate 5C reste fermé. La route future `/internal/owner-session/refresh` n'est pas montée sur main ; #1103 Slice A est différée, aucune Slice B/C n'est autorisée.
 
 ## 4. Routes protégées
 
@@ -65,6 +71,7 @@ Le mode démo sans token de l'application mobile peut construire une comparaison
 |---|---|---|
 | POST | `/api/sensors/summaries` | Persistance PostgreSQL owner-scoped avec provenance `ingestionId` + `deviceId`, liaison dog/source, snapshot firmware serveur et retry idempotent |
 | GET | `/api/sensors/summaries/:dogId` | Lecture PostgreSQL owner-scoped ; fenêtres bornées `1h/6h/12h/24h/48h/72h/7d/14d/30d`, ordre décroissant ; source indisponible => `503 PRODUCT_DATABASE_OPERATION_UNAVAILABLE` |
+| GET | `/api/sensors/eli/:dogId/physical-movement` | Projection Owner-scoped du gate physique canonique ; AVAILABLE/NONE_FOUND/UNAVAILABLE, sans latent ou interprétation affective |
 | GET | `/api/sensors/eli/:dogId` | Contrôle propriétaire ; `501 eli_runtime_not_implemented` tant qu’aucun producteur ELI autoritatif n’est câblé |
 | GET | `/api/sensors/eli/:dogId/history` | Contrôle propriétaire ; `501 eli_runtime_not_implemented` tant qu’aucun runtime/lecteur ELI autoritatif n’est câblé |
 | GET | `/api/sensors/baseline/:dogId` | Contrôle propriétaire ; `501 baseline_read_not_implemented` tant qu’aucune projection autoritative n’est câblée |

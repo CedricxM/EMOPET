@@ -19,11 +19,24 @@ This README describes the code observed on `main`. It does not establish product
 | Database | Drizzle ORM schemas + SQL path-A migrations for PostgreSQL | `DISPOSABLE-QA VALIDATED`; production migration/release authority remains `OPEN` under #831 |
 | Shared packages | ELI engine, BLE protocol, AI personality, shared types | `OBSERVED` |
 | Firmware | Partial MAT/TAG C sources | `OBSERVED_PARTIAL` |
-| Authentication | JWT middleware and ownership helper; register/login/refresh are stubs | `OPEN / GATED` |
-| CI and branch protection | Security, P0 DB, Owner and path-scoped Windows workflows; active `main` ruleset; all 33 `scripts/control` tests have a CI path | `ACTIVE`; seven selected security/supply-chain checks are required; automatic merged-head deletion is enabled; historical branch cleanup and CODEOWNERS remain `OPEN` |
+| Authentication | PostgreSQL registration/email verification, login, hashed refresh rotation/reuse controls, logout/logout-all; canonical HttpOnly Owner web session | `IMPLEMENTED / SOFTWARE TEST EVIDENCE`; production lifecycle/release gates remain open |
+| CI and branch protection | Security, P0 DB, Owner and path-scoped Windows workflows; active `main` ruleset; dynamic root-test CI coverage is enforced | `ACTIVE`; seven selected security/supply-chain checks are required; automatic merged-head deletion is enabled; historical branch cleanup and CODEOWNERS remain `OPEN` |
 | Unity World | Unity 6.3 LTS project under `unity/world`; backend transport/session client and EditMode tests | `SPIKE OBSERVED / LIVE LOOPBACK VALIDATED / NOT PRODUCTION AUTHORITY` |
 | World realtime / Nakama | Hono-owned Nakama transport plus isolated local runtime/Compose under `infra/nakama`; exercised through the Unity live loopback path | `SPIKE OBSERVED / LIVE LOOPBACK VALIDATED / NOT PRODUCTION AUTHORITY` |
 | World progression | Owner-only governed progression, durable PostgreSQL schema/store foundation, quests/build/regions/provenance and controlled legacy replay; no active production HTTP/UI authority | `CONTROLLED DRAFT / DURABLE FOUNDATION PRESENT / RUNTIME + RELEASE GATED` |
+
+## Execution allocation and evidence boundaries
+
+Phase 2A preserves **MS-S1-PHYSICS** as the active company priority: #230 MAT incremental value and #480 TAG combined physical feasibility. See [the execution reconciliation record](docs/control/EXECUTION_CONTROL_PLANE_RECONCILIATION_2026-10-03.md) before continuing a PR chain; re-query current main and open PRs first.
+
+| Evidence level | What this repository supports |
+|---|---|
+| Implemented | Executable routes/services at the cited snapshot; implementation is not activation permission |
+| Tested | Scoped unit/integration/disposable-PostgreSQL CI evidence at exact commits |
+| Production-authorized | Requires the separate reviewed #831 release/environment/migration/secret/TLS/restore evidence; not established by green CI |
+| Externally evidenced | Hardware, participant, legal/rights, finance and workstation results require their own controlled receipts |
+
+The Owner web session delegates to Hono and keeps access/refresh credentials in HttpOnly, strict SameSite cookies. Identical overlapping refreshes share a process-local flight; other instances do not. Strict public refresh reuse detection can revoke the active family after a concurrent rotation. #1100 selects an internal-channel architecture but it is not implemented on main. #1103 Slice A is a technical candidate **deferred by resource allocation**; no subsequent slice or World UI cutover is authorized here.
 
 ## Monorepo layout
 

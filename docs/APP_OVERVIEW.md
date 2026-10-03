@@ -1,6 +1,6 @@
 # EMOPET — Aperçu observé de l'application web
 
-Ce document oriente les personnes qui découvrent `apps/web` au 2026-08-29. Il décrit les routes et dépendances committées ; il ne constitue ni une spécification produit figée, ni une preuve de déploiement ou de maturité.
+Ce document oriente les personnes qui découvrent `apps/web` réconciliées le 2026-10-03. Il décrit les routes et dépendances committées ; il ne constitue ni une spécification produit figée, ni une preuve de déploiement ou de maturité.
 
 ## 1. Stack et limites
 
@@ -23,7 +23,7 @@ Les stores JSON et navigateur ne sont pas une autorité de production. Le code p
 - données vocales limitées aux caractéristiques dérivées, sans audio brut ;
 - accessibilité et réduction de mouvement prévues dans les composants.
 
-Le code contient une gamification centrée propriétaire et une page `world`, tandis que `AGENTS.md` interdit toute gamification. Ce conflit d'autorité reste ouvert : ne pas étendre, supprimer ou déclarer conforme ce comportement sans décision contrôlée.
+La progression World contrôlée est centrée Owner, jamais chien/capteurs/ELI. La présence des anciens écrans ou de données locales ne leur confère aucune autorité : G2/Gate 5C restent fail-closed. La carte globale ELI du dashboard a été retirée ; des surfaces demo subsistent. Aucune validation produit, scientifique ou de rétention n'est déduite du code.
 
 ## 3. Routes de pages observées
 
@@ -34,7 +34,7 @@ Le code contient une gamification centrée propriétaire et une page `world`, ta
 | `/breiz` | Interface assistant Breiz |
 | `/journal` | Journal et observations |
 | `/quartier` | Carte, annuaire et communauté regroupés |
-| `/world` | Espace de world-building centré routines/qualité d'observation ; conflit gamification ouvert |
+| `/world` | Surface historique/candidate ; progression Owner gouvernée et activation UI gated, sans score chien/capteurs/ELI |
 | `/profil` | Profil, données et progression propriétaire |
 | `/contact` | Parcours de contact humain |
 | `/mobile-preview` | Prévisualisation web hors navigation principale |
@@ -68,7 +68,7 @@ Les anciennes routes ne doivent plus être documentées comme des pages principa
 | Carte | `/api/map/spots`, commentaires | store JSON + données cartographiques |
 | Communauté | posts, réponses, signalements, événements | store JSON et modération prototype |
 | Contact | `/api/contact` | store JSON, notification externe si configurée |
-| Administration | modération, contact et posts | token/admin prototype |
+| Administration | modération, contact et posts | frontières session/verifier/origin privilégiées ; ni token prototype ni possession du navigateur ne donnent autorité |
 
 Chemins exacts : `apps/web/app/api/**/route.ts`.
 
@@ -90,14 +90,17 @@ Ne jamais committer de valeur secrète. Les noms et attentes doivent rester dans
 
 ## 6. Backend et mobile séparés
 
-- `backend` expose une API Hono protégée par JWT après le groupe public `/api/auth` ; l'inscription, la connexion et le refresh restent des stubs ;
-- `backend/db` contient les schémas Drizzle/PostgreSQL, mais la baseline de migration est bloquée ;
+- `backend` expose une API Hono protégée par JWT après le groupe public `/api/auth` ; l'inscription, la vérification d'adresse e-mail, la connexion, la rotation de refresh token et la déconnexion sont implémentées sur PostgreSQL ; la livraison e-mail en production et le rollout des comptes legacy restent gated ;
+- `backend/db` contient les schémas Drizzle/PostgreSQL ; la baseline est validée sur des bases jetables, sans constituer une autorité de migration/release production ;
 - `apps/mobile` est une application Expo 52 / React 18 distincte ;
-- Unity et Nakama sont absents du dépôt et restent `GATED`.
+- Unity et Nakama sont présents sous `unity/world` et `infra/nakama` pour le spike World ; le loopback live a été validé, sans constituer une autorité de production.
 
 Voir `docs/user_manual/api_reference.md` pour la surface Hono observée et `ARCHITECTURE.md` pour les frontières de données.
 
 ## 7. Validation déclarée par le manifest web
+
+Le provider Owner web canonique délègue au backend ; cookies HttpOnly/SameSite strict, refresh explicite, single-flight limité au processus. Le GET World ne refresh pas automatiquement. #1100 est une architecture sélectionnée non implémentée ; #1103 reste différée. Lire `docs/control/EXECUTION_CONTROL_PLANE_RECONCILIATION_2026-10-03.md` : MS-S1-PHYSICS reste la priorité ; code, CI, autorisation production et preuves externes sont quatre états distincts.
+
 
 Depuis la racine :
 

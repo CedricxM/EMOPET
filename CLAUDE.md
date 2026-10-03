@@ -24,17 +24,31 @@ Une implémentation existante, un ancien deck ou un ancien BOM ne devient pas un
 
 ---
 
+## Allocation de travail — Phase 2A, 2026-10-03
+
+La décision fondateur maintient **MS-S1-PHYSICS** comme priorité active : #230 (valeur incrémentale MAT) et #480 (faisabilité physique combinée TAG). Optimiser l'incertitude à fort impact retirée par unité de temps et de capital.
+
+Avant de continuer une conversation ou une chaîne de PR, re-interroger main et les PR ouvertes, puis lire `docs/control/EXECUTION_CONTROL_PLANE_RECONCILIATION_2026-10-03.md`.
+
+- #1103 : `VALID_TECHNICAL_CANDIDATE / CURRENTLY_DEFERRED_BY_RESOURCE_ALLOCATION` ; aucune Slice B/C, route refresh interne, nouveau client BFF ou preuve multi-instance.
+- #1093 : candidat draft gelé ; #481 interdit d'avancer la persistance Presence avant résolution des sémantiques source/couverture sous #133.
+- #1090/#1092 : candidats gelés ; aucune promotion dans le harness approuvé ni successeur de capacité Breiz.
+- #1095 : différé ; aucun stale queue courant vérifié.
+- #224 : source/provenance gelée ; aucun merge direct, cherry-pick large, replay de migrations ou nouvelle branche d'implémentation issue de ce candidat.
+
+La Phase 2A réconcilie la documentation, #246/#116, le chemin CI du test HOLD de #1102 et l'audit read-only #1066. Elle n'autorise ni activation produit, ni merge/fermeture de PR, ni suppression de branche. Une prochaine slice exige une nouvelle allocation explicite.
+
 ## Stack observée
 
 Le brief `PROMPT_PROTOTYPE_BRETAGNE.md` décrit une proposition historique. Les manifests et points d'entrée actuels font foi pour l'état d'implémentation, sans transformer cet état en décision produit :
 
 - Monorepo pnpm 10 + Turbo. App web : **`apps/web`** (Next.js 15 + React 19, port 3100).
 - App mobile : **`apps/mobile`** (Expo 52 + React 18 + React Native 0.76).
-- Backend : **`backend`** (Hono 4 + TypeScript + Drizzle/PostgreSQL). Ce n'est pas NestJS. L'inscription, la connexion et le renouvellement de jeton restent des stubs `TODO`.
+- Backend : **`backend`** (Hono 4 + TypeScript + Drizzle/PostgreSQL). Ce n'est pas NestJS. L'inscription, la vérification e-mail, la connexion, la rotation de refresh credential et logout/logout-all sont implémentés avec PostgreSQL. Le web dispose du provider Owner canonique à cookies HttpOnly ; le single-flight refresh est limité à une instance. Livraison e-mail production, rollout legacy, récupération/effacement de compte et release restent des gates distincts.
 - Le web contient aussi des Route Handlers Next.js avec stockage JSON `.data/` et replis localStorage. Ce plan prototype n'est pas l'autorité durable et reste à réconcilier avec le backend/PostgreSQL.
 - Navigation sidebar observée : `/dashboard`, `/journal`, `/quartier`, `/world`, `/breiz`, `/profil`. Des routes hors sidebar existent, notamment `/rapport`, `/contact` et `/admin`.
 - Design system maison : `apps/web/styles/tokens.css` et primitives `apps/web/components/ui/*`. HeroUI 3 et Tailwind 4 sont également installés.
-- Le moteur canonique `packages/eli-engine` (EKF, vetoes, confidence, RSM) n'est importé par **aucun module runtime**. `apps/web/lib/eli/catalog.ts` duplique ses valeurs localement « pour éviter tout import cross-package » et le dashboard consomme `lib/eli/mock`. Ce qui est affiché à l'utilisateur ne vient donc pas du moteur scientifique. Gate ouverte : #118. Constat daté : `docs/records/memory/CURRENT_REPO_AUTHORITY_CONFLICT_AUDIT_2026-09-17.md`.
+- Le backend importe désormais le gate physique de `packages/eli-engine` dans `backend/api/services/eli-runtime/physical-movement-observation.ts` (#479/#621). Cette slice publie seulement une variabilité de mouvement physique Owner-scoped ou une indisponibilité explicite : aucun latent EKF, arousal, valence, stress ou bien-être. Les routes ELI génériques restent non implémentées ; #118 reste la gate du runtime latent. Le dashboard web contient toujours des données demo. Le constat du 17 septembre est historique, pas l'état runtime courant.
 - Le World expérimental est présent sur `main` : projet Unity 6.3 LTS sous `unity/world`, transport Hono/Nakama et runtime local isolé sous `infra/nakama`. Le scénario live Unity → Hono → Nakama du 01/10/2026 est `PASS`, mais l'ensemble reste `SPIKE / NOT PRODUCTION AUTHORITY` ; Unity demeure un client non autoritatif et ne s'authentifie jamais directement auprès de Nakama.
 - Les commandes documentées dans les manifests sont des surfaces disponibles, pas une preuve de build, de CI ou de production.
 - Les surfaces historiques de gamification et de score global restent non autoritatives. La seule économie de progression gouvernée est World, centrée Owner (jamais chien, capteurs ou ELI), sous `docs/control/EMOPET_WORLD_GAMIFICATION_AUTHORITY_v0.1.md`. Une fondation PostgreSQL durable et un replay legacy borné existent désormais, mais aucun HTTP/UI de production ni release authority n'est activé ; le statut reste `CONTROLLED DRAFT / NOT PRODUCTION AUTHORITY`.
@@ -97,7 +111,7 @@ Ne pas convertir `variation`, `proxy`, `pattern` ou `absence de signal` en malad
 
 La stratégie est **relationship-first**, pas metric-first.
 
-Le dashboard historique contient encore des surfaces `ELI 72`, jauges globales, WQI/RSI et autres composites. Leur présence dans le code ne prouve pas leur autorisation produit.
+La carte principale du dashboard ne publie plus l'ancien index global `ELI 72` ni sa courbe sur 14 jours. Des observations demo et des composites historiques, notamment WQI/RSI dans la section dépliable, restent à distinguer de toute observation validée. Voir `docs/records/memory/DASHBOARD_GLOBAL_INDEX_RETIREMENT_2026-09-20.md` ; cette retraite n'autorise aucun claim scientifique.
 
 Care impose : observation + contexte + fenêtre temporelle + référence + provenance + qualité/confiance + limites + modèle/version + état de publication.
 

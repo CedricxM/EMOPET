@@ -22,6 +22,14 @@ Start here when the question is: **what is true now, what controls that truth, w
 11. `docs/company/EMOPET_COMPANY_OS_ARCHITECTURE_2026-10-01.md` — operating model and source-of-truth hierarchy.
 12. Relevant controlled domain authority before making a substantive decision.
 
+## Current execution allocation
+
+Founder Phase 2A decision, 2026-10-03: **MS-S1-PHYSICS** remains active, with #230 MAT incremental value and #480 TAG combined physical feasibility. Optimize **high-impact uncertainty retired per unit of time and capital**.
+
+Read [the execution control reconciliation](docs/control/EXECUTION_CONTROL_PLANE_RECONCILIATION_2026-10-03.md) before continuing old conversations or PR chains. It records frozen/deferred candidates; re-query main and open PRs before implementation.
+
+The generated views still cite the 2026-10-01 snapshot. Their repository coverage is older than current main; all 18 controlled objects remain UNREVIEWED and zero CURRENT. The empty proposal queue's controlled blob manifest still matches the observed main. Neither a new Git SHA nor a documentation reconciliation resets domain review freshness or authorizes synthetic history.
+
 ## Truth model
 
 **STATE** says what the current projection is.
