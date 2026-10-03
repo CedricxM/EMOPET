@@ -299,3 +299,4 @@ export async function authorizePrivilegedAccessToken(input: {
 
 export * from './internal-audit-service.js';
 export * from './internal-alert-ack-service.js';
+export * from './internal-owner-session-service.js';

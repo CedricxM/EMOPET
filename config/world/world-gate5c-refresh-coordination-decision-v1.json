@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "status": "SELECTED_NOT_IMPLEMENTED",
+  "status": "SLICE_A_IMPLEMENTED_ROUTE_NOT_WIRED",
   "decisionId": "WORLD-G5C-REFRESH-COORD-01",
   "sourceIssue": 898,
   "problem": "Cross-instance concurrent Owner refresh requests can reach separate web runtimes with the same HttpOnly refresh credential. The backend serializes family rotation, but strict rotated-token replay handling can then revoke the newly-active family as reuse_detected.",
@@ -70,5 +70,20 @@
     "DIRECT_WEB_DATABASE_LOCKING",
     "PUBLIC_REFRESH_GRACE_WINDOW_WITHOUT_SERVICE_AUTH",
     "ADD_REDIS_WITHOUT_PROVIDER_AND_OPERATIONS_AUTHORITY"
+  ],
+  "implementationState": {
+    "sliceAServiceTokenPrimitive": true,
+    "sliceASecretAuthorityRegistered": true,
+    "sliceBInternalBackendRoute": false,
+    "sliceCWebBffInternalClient": false,
+    "sliceDMultiInstanceProof": false,
+    "sliceEGate5CReadinessReview": false
+  },
+  "sliceAEvidence": [
+    "packages/privileged-auth/src/internal-owner-session-service.ts",
+    "packages/privileged-auth/test/internal-owner-session-service.test.mjs",
+    "config/release/production-runtime-config-authority-v1.json",
+    ".env.example",
+    "apps/web/.env.example"
   ]
 }

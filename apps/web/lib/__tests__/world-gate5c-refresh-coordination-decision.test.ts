@@ -28,9 +28,25 @@ const alertAckService = readFileSync(
   new URL('../../../../packages/privileged-auth/src/internal-alert-ack-service.ts', import.meta.url),
   'utf8',
 );
+const ownerSessionService = readFileSync(
+  new URL('../../../../packages/privileged-auth/src/internal-owner-session-service.ts', import.meta.url),
+  'utf8',
+);
+const privilegedAuthIndex = readFileSync(
+  new URL('../../../../packages/privileged-auth/src/index.ts', import.meta.url),
+  'utf8',
+);
+const rootEnvTemplate = readFileSync(
+  new URL('../../../../.env.example', import.meta.url),
+  'utf8',
+);
+const webEnvTemplate = readFileSync(
+  new URL('../../../../apps/web/.env.example', import.meta.url),
+  'utf8',
+);
 
-test('Gate 5C selects a dedicated internal Owner refresh service channel without activation', () => {
-  assert.equal(decision.status, 'SELECTED_NOT_IMPLEMENTED');
+test('Gate 5C Slice A implements only the dedicated service-token primitive without activation', () => {
+  assert.equal(decision.status, 'SLICE_A_IMPLEMENTED_ROUTE_NOT_WIRED');
   assert.equal(decision.selectedPattern, 'DEDICATED_INTERNAL_OWNER_REFRESH_SERVICE_CHANNEL');
   assert.equal(decision.preservePublicRefreshStrictReuseDetection, true);
   assert.equal(decision.publicRefresh.policy, 'STRICT_REUSE_DETECTION_UNCHANGED');
@@ -45,14 +61,25 @@ test('Gate 5C selects a dedicated internal Owner refresh service channel without
   assert.equal(decision.internalRefresh.ttlSeconds, 30);
   assert.equal(decision.internalRefresh.bodySha256Bound, true);
 
+  assert.deepEqual(decision.implementationState, {
+    sliceAServiceTokenPrimitive: true,
+    sliceASecretAuthorityRegistered: true,
+    sliceBInternalBackendRoute: false,
+    sliceCWebBffInternalClient: false,
+    sliceDMultiInstanceProof: false,
+    sliceEGate5CReadinessReview: false,
+  });
+
   assert.equal(decision.activation.implementationReady, false);
   assert.equal(decision.activation.multiInstanceProofReady, false);
   assert.equal(decision.activation.uiCutoverAllowed, false);
+  assert.equal(decision.activation.productionSecretCustodyVerified, false);
+  assert.equal(decision.activation.productionBackendHttpsVerified, false);
   assert.equal(readiness.activated, false);
   assert.equal(readiness.prerequisites.uiCutoverDecisionRecorded, false);
 });
 
-test('dedicated Owner refresh service secret cannot reuse existing authority secrets', () => {
+test('dedicated Owner refresh service secret is registered but remains production-unverified', () => {
   const secretEnv = decision.internalRefresh.serviceSecretEnv;
   assert.equal(secretEnv, 'EMOPET_INTERNAL_OWNER_SESSION_SERVICE_SECRET');
   assert.equal(secretEnv.startsWith('NEXT_PUBLIC_'), false);
@@ -63,22 +90,42 @@ test('dedicated Owner refresh service secret cannot reuse existing authority sec
     'EMOPET_INTERNAL_ALERT_ACK_SERVICE_SECRET',
   ]);
 
-  const existingVariables = Object.values(runtimeConfig.knownAuthorityExamples)
-    .map((entry: unknown) => (
-      typeof entry === 'object' && entry !== null && 'variable' in entry
-        ? (entry as { variable?: unknown }).variable
-        : null
-    ))
-    .filter((value: unknown): value is string => typeof value === 'string');
+  const entries = Object.values(runtimeConfig.knownAuthorityExamples)
+    .filter((entry: unknown): entry is { variable: string; classification?: string } =>
+      typeof entry === 'object'
+      && entry !== null
+      && 'variable' in entry
+      && typeof (entry as { variable?: unknown }).variable === 'string'
+    );
+  const registered = entries.find((entry) => entry.variable === secretEnv);
+  assert.ok(registered, 'Owner session service secret must be registered in runtime authority');
+  assert.match(registered.classification ?? '', /SERVER_SECRET/);
+  assert.match(registered.classification ?? '', /DISTINCT/);
 
-  assert.equal(
-    existingVariables.includes(secretEnv),
-    false,
-    'selected-not-implemented secret must not be presented as registered runtime authority yet',
-  );
+  assert.equal(runtimeConfig.claimsProductionRuntimeConfigured, false);
+  assert.equal(runtimeConfig.claimsSecretManagerConfigured, false);
+  assert.equal(runtimeConfig.claimsSecretRotationComplete, false);
+  assert.match(runtimeConfig.status, /PRODUCTION_SECRET_CUSTODY_UNVERIFIED/);
+
+  assert.match(rootEnvTemplate, /EMOPET_INTERNAL_OWNER_SESSION_SERVICE_SECRET=/);
+  assert.match(webEnvTemplate, /EMOPET_INTERNAL_OWNER_SESSION_SERVICE_SECRET=/);
+  assert.doesNotMatch(rootEnvTemplate, /NEXT_PUBLIC_EMOPET_INTERNAL_OWNER_SESSION/);
+  assert.doesNotMatch(webEnvTemplate, /NEXT_PUBLIC_EMOPET_INTERNAL_OWNER_SESSION/);
 });
 
-test('selected design reuses the repository body-bound service JWT pattern, not static shared headers', () => {
+test('Slice A primitive matches the selected body-bound service JWT authority', () => {
+  assert.match(ownerSessionService, /INTERNAL_OWNER_SESSION_TOKEN_ISSUER = 'emopet-web'/);
+  assert.match(ownerSessionService, /emopet-internal-owner-session-refresh/);
+  assert.match(ownerSessionService, /INTERNAL_OWNER_SESSION_TOKEN_SUBJECT = 'service:web'/);
+  assert.match(ownerSessionService, /token_use: 'internal_owner_session_refresh'/);
+  assert.match(ownerSessionService, /body_sha256/);
+  assert.match(ownerSessionService, /setIssuer\(/);
+  assert.match(ownerSessionService, /setAudience\(/);
+  assert.match(ownerSessionService, /setSubject\(/);
+  assert.match(ownerSessionService, /HS256/);
+  assert.match(ownerSessionService, /TTL_SECONDS = 30/);
+  assert.match(privilegedAuthIndex, /internal-owner-session-service\.js/);
+
   for (const source of [auditService, alertAckService]) {
     assert.match(source, /body_sha256/);
     assert.match(source, /setIssuer\(/);
@@ -94,7 +141,7 @@ test('selected design reuses the repository body-bound service JWT pattern, not 
   assert.equal(decision.infrastructureDecision.reuseExistingInternalServiceAuthPattern, true);
 });
 
-test('trusted concurrent handling is restricted to the future internal service route', () => {
+test('trusted concurrent handling remains future-route-only after Slice A', () => {
   assert.deepEqual(decision.trustedConcurrentRotationRule, {
     allowedOnlyOnInternalServiceRoute: true,
     preLockObservedCredentialMustBeActive: true,
