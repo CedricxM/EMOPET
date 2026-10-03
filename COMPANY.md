@@ -71,6 +71,7 @@ Authority: `docs/strategy/PROJECT_TIMELINE_2026_2027.md`.
 | Transition append PR checklist + source-snapshot guard | Added in V2 |
 | Transition workflow status doctor | Added in V2 |
 | Transition proposal controlled-state staleness guard | Added in V2 |
+| Explicit stale-queue regeneration handoff | Added in V2 |
 | Transition review packet renderer | Added in V2 |
 
 ## Public-safe external views

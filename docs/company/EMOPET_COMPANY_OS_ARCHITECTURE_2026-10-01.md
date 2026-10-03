@@ -348,6 +348,8 @@ The status helper MUST remain weaker than review/finalization:
 - it never substitutes for the human review reference or append PR;
 - `READY_FOR_MANUAL_FINALIZATION_INPUTS` means only that mechanical references still align;
 - an `operator_handoff` is navigation, not prioritization: if multiple proposals are pending it renders the full queue and MUST NOT select a proposal on the operator's behalf.
+- after a controlled-state manifest mismatch, the handoff may render explicit remote regeneration only when repository, previous queue candidate and current candidate are safe merged-main refs;
+- remote regeneration fetches both controlled-state bundles and manifests from the named Git snapshots and remains review-only: it cannot accept, prepare, finalize or append a transition.
 
 ## 11. Confidentiality boundary
 

@@ -1433,12 +1433,41 @@ test('transition workflow status is read-only and exposes mechanical next state 
     staleQueue.current_ref,
     'main@dddddddddddddddddddddddddddddddddddddddd',
   );
+  assert.equal(staleQueue.operator_handoff.action, 'REGENERATE_PROPOSAL_QUEUE');
   assert.equal(
-    staleQueue.operator_handoff,
+    staleQueue.operator_handoff.command,
     null,
-    'stale queues must not hand off into proposal review',
+    'doctor must not invent a repository or merged-main candidate ref',
   );
   assert.match(staleQueue.next_action, /controlled-state files/i);
+
+  const mergedMainQueue = {
+    ...queue,
+    candidate_ref: 'main@cccccccccccccccccccccccccccccccccccccccc',
+    proposals: [],
+  };
+  const staleQueueWithRepository = inspectTransitionWorkflow(
+    mergedMainQueue,
+    transitionEvents,
+    null,
+    {
+      currentRef: 'main@dddddddddddddddddddddddddddddddddddddddd',
+      currentStateManifest: changedManifest,
+      repository: 'CedricxM/EMOPET',
+    },
+  );
+  assert.equal(
+    staleQueueWithRepository.operator_handoff.action,
+    'REGENERATE_PROPOSAL_QUEUE',
+  );
+  assert.match(
+    staleQueueWithRepository.operator_handoff.command,
+    /--repository CedricxM\/EMOPET --base-ref main@cccccccccccccccccccccccccccccccccccccccc --candidate-ref main@dddddddddddddddddddddddddddddddddddddddd/,
+  );
+  assert.match(
+    staleQueueWithRepository.operator_handoff.note,
+    /controlled-state manifests.*does not review, prioritize, accept, prepare, finalize or append/i,
+  );
 
   const staleReviewedCandidate = inspectTransitionWorkflow(
     queue,
@@ -1453,7 +1482,11 @@ test('transition workflow status is read-only and exposes mechanical next state 
     'PROPOSAL_QUEUE_STALE',
     'controlled-state freshness must fail closed before reviewed-candidate readiness',
   );
-  assert.equal(staleReviewedCandidate.operator_handoff, null);
+  assert.equal(
+    staleReviewedCandidate.operator_handoff.action,
+    'REGENERATE_PROPOSAL_QUEUE',
+  );
+  assert.equal(staleReviewedCandidate.operator_handoff.command, null);
 
   assert.throws(
     () =>
@@ -1474,6 +1507,31 @@ test('transition workflow status is read-only and exposes mechanical next state 
     source,
     /MECHANICAL_WORKFLOW_STATUS_NOT_DECISION_AUTHORITY/,
     'workflow status helper must disclose its non-authority boundary',
+  );
+});
+
+test('explicit proposal regeneration refs are strict merged-main snapshots', () => {
+  assert.equal(
+    parseMainRef('main@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '--base-ref'),
+    'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  );
+  assert.throws(
+    () => parseMainRef('head@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '--base-ref'),
+    /--base-ref must be main@<40-hex-sha>/,
+  );
+  assert.throws(
+    () => parseMainRef('main@not-a-sha', '--candidate-ref'),
+    /--candidate-ref must be main@<40-hex-sha>/,
+  );
+
+  const source = readText('scripts/control/propose-company-transitions.mjs');
+  assert.match(source, /Explicit regeneration requires --repository, --base-ref and --candidate-ref together/);
+  assert.match(source, /candidateState\.manifest/);
+  assert.match(source, /baseState\.manifest/);
+  assert.doesNotMatch(
+    source,
+    /appendFileSync|finalizeReviewedTransitionAppend/,
+    'proposal regeneration must not append or finalize transition history',
   );
 });
 
