@@ -1,4 +1,4 @@
-import type { BreizSourceUsagePolicy } from './sourceRegistry';
+import type { BreizRightsProductUse, BreizSourceUsagePolicy } from './sourceRegistry';
 
 export interface BreizSourceProvenance {
   sourceId: string;
@@ -14,6 +14,16 @@ export interface BreizSourceProvenance {
   attribution: string | null;
   language: string;
   checksumSha256: string | null;
+  /** Exact reviewed rights authority that permitted this collection. */
+  rightsAuthorityRevision: string;
+  rightsImmutableSourceVersion: string;
+  rightsReceiptPath: string;
+  rightsAttributionText: string;
+  rightsPermittedUseSummary: string;
+  rightsAllowedProductUses: readonly BreizRightsProductUse[];
+  rightsReviewedAt: string;
+  rightsRecheckAt: string | null;
+  rightsReviewerRole: string;
   freshnessPolicyHours: number | null;
   authority: 'official' | 'institutional' | 'partner' | 'community';
 }
