@@ -26,6 +26,7 @@ const CONSENT_A = randomUUID();
 const SESSION_A = randomUUID();
 const MESSAGE_A = randomUUID();
 const COPRESENCE_A = randomUUID();
+const PHONE_PRESENCE_A = randomUUID();
 const PROFESSIONAL_SHARE_GRANT_A = randomUUID();
 const PROFESSIONAL_SHARE_AUDIT_A = randomUUID();
 
@@ -59,6 +60,7 @@ after(async () => {
     await sql`DELETE FROM professional_share_access_audits WHERE id = ${PROFESSIONAL_SHARE_AUDIT_A}`;
     await sql`DELETE FROM professional_share_grants WHERE id = ${PROFESSIONAL_SHARE_GRANT_A}`;
     await sql`DELETE FROM copresence_events WHERE id = ${COPRESENCE_A}`;
+    await sql`DELETE FROM phone_presence_events WHERE event_id = ${PHONE_PRESENCE_A}`;
     await sql`DELETE FROM user_config WHERE user_id IN (${USER_A}, ${USER_B})`;
     await sql`DELETE FROM dogs WHERE id IN (${DOG_A}, ${DOG_B})`;
     await sql`DELETE FROM achievements WHERE user_id IN (${USER_A}, ${USER_B})`;
@@ -96,7 +98,8 @@ async function snapshot() {
       (SELECT count(*)::int FROM eli_behavioral_priors WHERE id = ${PRIOR_A}) AS priors,
       (SELECT count(*)::int FROM research_data_consents WHERE id = ${CONSENT_A}) AS consents,
       (SELECT count(*)::int FROM auth_refresh_sessions WHERE id = ${SESSION_A}) AS sessions,
-      (SELECT count(*)::int FROM copresence_events WHERE id = ${COPRESENCE_A}) AS copresence
+      (SELECT count(*)::int FROM copresence_events WHERE id = ${COPRESENCE_A}) AS copresence,
+      (SELECT count(*)::int FROM phone_presence_events WHERE event_id = ${PHONE_PRESENCE_A}) AS phone_presence
   `;
   return row;
 }
@@ -122,6 +125,14 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
   await sql`
     INSERT INTO copresence_events (id, dog_a_id, dog_b_id, occurred_at)
     VALUES (${COPRESENCE_A}, ${DOG_B}, ${DOG_A}, now())
+  `;
+  await sql`
+    INSERT INTO phone_presence_events (
+      event_id, owner_id, dog_id, idempotency_key, phone_seen, observed_at, source
+    ) VALUES (
+      ${PHONE_PRESENCE_A}, ${USER_A}, ${DOG_A}, 'subject-discovery-0001', true,
+      now() - interval '1 minute', 'manual_override'
+    )
   `;
 
   await sql`
@@ -232,6 +243,8 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
     assert.deepEqual(first.subject.selectedDogIds, [DOG_A]);
     assert.equal(first.owner.ownedDogs.count, 1);
     assert.equal(first.owner.professionalShareGrantsOwned.count, 1);
+    assert.equal(first.owner.phonePresenceEvents.count, 1);
+    assert.match(first.owner.phonePresenceEvents.note, /Count only/);
     assert.equal(first.owner.subscriptions.count, 1);
     assert.equal(first.owner.achievements.count, 1);
     assert.equal(first.owner.aiMessagesTargetingUser.count, 1);
@@ -242,6 +255,8 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
 
     assert.equal(first.dog.professionalShareGrants.count, 1);
     assert.equal(first.dog.professionalShareAccessAudits.count, 1);
+    assert.equal(first.dog.phonePresenceEvents.count, 1);
+    assert.match(first.dog.phonePresenceEvents.note, /retention, export and runtime access remain open/);
     assert.match(first.dog.professionalShareAccessAudits.note, /no FK/);
     assert.equal(first.dog.aiMessagesTargetingDog.count, 1);
     assert.equal(first.dog.eliUserConfig.count, 1);
@@ -349,6 +364,7 @@ test('PRIV-DISC-01 transactionally discovers current subject-linked persistence 
       consents: 1,
       sessions: 1,
       copresence: 1,
+      phone_presence: 1,
     });
   });
 });
