@@ -1,6 +1,11 @@
 import type { DatatourismeBretagneLoadedEvent } from './datatourismeLoader';
 import {
+  getBreizSource,
+  type BreizSourceDescriptor,
+} from './sourceRegistry';
+import {
   isFresh,
+  matchesBreizProvenanceRightsAuthority,
   type BreizContextCard,
   type BreizSourceProvenance,
 } from './sourceProvenance';
@@ -16,9 +21,12 @@ export interface DatatourismeEventCardData {
   datatourismeUpdatedAt: string | null;
 }
 
+type SourceLookup = (id: string) => BreizSourceDescriptor | undefined;
+
 export interface DatatourismeEventCardOptions {
   relevanceReason: string;
   nowMs?: number;
+  sourceLookup?: SourceLookup;
 }
 
 function provenanceMatchesEvent(
@@ -50,9 +58,20 @@ export function buildDatatourismeEventContextCard(
 ): BreizContextCard<DatatourismeEventCardData> | null {
   const relevanceReason = options.relevanceReason.trim();
   const nowMs = options.nowMs ?? Date.now();
+  const sourceLookup = options.sourceLookup ?? getBreizSource;
 
   if (!relevanceReason) return null;
   if (!provenanceMatchesEvent(loaded.event, loaded.provenance)) return null;
+  if (
+    !matchesBreizProvenanceRightsAuthority(
+      loaded.provenance,
+      sourceLookup('datatourisme'),
+      'PUBLIC_ANSWER_WITH_SOURCE',
+      nowMs,
+    )
+  ) {
+    return null;
+  }
   if (!isFresh(loaded.provenance, nowMs)) return null;
 
   const { event, provenance } = loaded;

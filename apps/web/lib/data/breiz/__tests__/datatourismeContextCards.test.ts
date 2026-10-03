@@ -6,8 +6,46 @@ import {
   buildDatatourismeEventContextCards,
 } from '../datatourismeContextCards';
 import type { DatatourismeBretagneLoadedEvent } from '../datatourismeLoader';
+import type { BreizSourceDescriptor } from '../sourceRegistry';
 
 const NOW = Date.parse('2026-10-01T12:00:00Z');
+
+function source(overrides: Partial<BreizSourceDescriptor> = {}): BreizSourceDescriptor {
+  return {
+    id: 'datatourisme',
+    name: 'DATAtourisme',
+    publisher: 'French tourism open-data network',
+    canonicalUrl: 'https://www.datatourisme.fr/',
+    territory: 'France',
+    accessMode: 'api',
+    authority: 'institutional',
+    usagePolicy: ['ATTRIBUTION_REQUIRED'],
+    license: 'Licence Ouverte 2.0',
+    freshnessHours: 24,
+    enabled: true,
+    notes: 'fixture',
+    rightsEvidence: {
+      authorityRevision: 'datatourisme-rights-v1',
+      immutableSourceVersion: 'datatourisme-source-v1',
+      receiptPath: 'data/registry/receipts/datatourisme-fixture.json',
+      attributionText: 'DATAtourisme network',
+      permittedUseSummary: 'Fixture ingestion with attribution.',
+      allowedProductUses: ['INGESTION', 'PUBLIC_ANSWER_WITH_SOURCE'],
+      reviewedAt: '2026-09-30T12:00:00Z',
+      reviewerRole: 'TEST_RIGHTS_REVIEWER',
+      recheckAt: '2026-10-02T12:00:00Z',
+      evidenceState: 'SOURCE_CONFIRMED',
+      disposition: 'GO',
+    },
+    ...overrides,
+  };
+}
+
+const CARD_OPTIONS = {
+  relevanceReason: 'Événement local dans le territoire actuellement consulté.',
+  nowMs: NOW,
+  sourceLookup: (id: string) => (id === 'datatourisme' ? source() : undefined),
+};
 
 function loadedEvent(): DatatourismeBretagneLoadedEvent {
   return {
@@ -35,6 +73,15 @@ function loadedEvent(): DatatourismeBretagneLoadedEvent {
       attribution: 'Office de tourisme test',
       language: 'fr',
       checksumSha256: null,
+      rightsAuthorityRevision: 'datatourisme-rights-v1',
+      rightsImmutableSourceVersion: 'datatourisme-source-v1',
+      rightsReceiptPath: 'data/registry/receipts/datatourisme-fixture.json',
+      rightsAttributionText: 'DATAtourisme network',
+      rightsPermittedUseSummary: 'Fixture ingestion with attribution.',
+      rightsAllowedProductUses: ['INGESTION', 'PUBLIC_ANSWER_WITH_SOURCE'],
+      rightsReviewedAt: '2026-09-30T12:00:00Z',
+      rightsRecheckAt: '2026-10-02T12:00:00Z',
+      rightsReviewerRole: 'TEST_RIGHTS_REVIEWER',
       freshnessPolicyHours: 24,
       authority: 'institutional',
     },
@@ -42,10 +89,7 @@ function loadedEvent(): DatatourismeBretagneLoadedEvent {
 }
 
 test('DATAtourisme card keeps bounded event metadata and complete provenance', () => {
-  const card = buildDatatourismeEventContextCard(loadedEvent(), {
-    relevanceReason: 'Événement local dans le territoire actuellement consulté.',
-    nowMs: NOW,
-  });
+  const card = buildDatatourismeEventContextCard(loadedEvent(), CARD_OPTIONS);
 
   assert.ok(card);
   assert.equal(card.id, 'datatourisme-event-event-56-001');
@@ -66,8 +110,52 @@ test('DATAtourisme card fails closed when provenance no longer matches event att
   loaded.provenance.attribution = 'Different producer';
 
   const card = buildDatatourismeEventContextCard(loaded, {
+    ...CARD_OPTIONS,
     relevanceReason: 'Test',
-    nowMs: NOW,
+  });
+
+  assert.equal(card, null);
+});
+
+test('DATAtourisme card fails closed when collected rights revision no longer matches current authority', () => {
+  const loaded = loadedEvent();
+  loaded.provenance.rightsAuthorityRevision = 'older-review';
+
+  const card = buildDatatourismeEventContextCard(loaded, {
+    ...CARD_OPTIONS,
+    relevanceReason: 'Test',
+  });
+
+  assert.equal(card, null);
+});
+
+test('DATAtourisme card fails closed when current rights lose public-answer scope', () => {
+  const card = buildDatatourismeEventContextCard(loadedEvent(), {
+    ...CARD_OPTIONS,
+    relevanceReason: 'Test',
+    sourceLookup: () =>
+      source({
+        rightsEvidence: {
+          ...source().rightsEvidence!,
+          allowedProductUses: ['INGESTION'],
+        },
+      }),
+  });
+
+  assert.equal(card, null);
+});
+
+test('DATAtourisme card fails closed when rights receipt drifts under the same revision', () => {
+  const card = buildDatatourismeEventContextCard(loadedEvent(), {
+    ...CARD_OPTIONS,
+    relevanceReason: 'Test',
+    sourceLookup: () =>
+      source({
+        rightsEvidence: {
+          ...source().rightsEvidence!,
+          receiptPath: 'data/registry/receipts/different-receipt.json',
+        },
+      }),
   });
 
   assert.equal(card, null);
@@ -87,8 +175,8 @@ test('DATAtourisme card fails closed when source provenance is stale', () => {
 
 test('DATAtourisme card requires an explicit relevance reason', () => {
   const card = buildDatatourismeEventContextCard(loadedEvent(), {
+    ...CARD_OPTIONS,
     relevanceReason: '   ',
-    nowMs: NOW,
   });
 
   assert.equal(card, null);
@@ -101,8 +189,8 @@ test('bulk card builder drops invalid records rather than weakening provenance r
   invalid.provenance.publisher = 'Mismatch';
 
   const cards = buildDatatourismeEventContextCards([valid, invalid], {
+    ...CARD_OPTIONS,
     relevanceReason: 'Événements locaux pertinents pour la zone consultée.',
-    nowMs: NOW,
   });
 
   assert.deepEqual(cards.map((card) => card.id), [
