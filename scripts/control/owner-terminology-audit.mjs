@@ -21,6 +21,16 @@ const HISTORICAL_EXACT = new Set([
   'docs/product/world/EMOPET_WORLD_SOCIAL_TRUST_PERMISSION_MATRIX_v0.1.md',
   'docs/product/world/EMOPET_WORLD_SOCIAL_TRUST_STATE_MACHINE_v0.1.md',
   'docs/product/world/EMOPET_WORLD_ZERO_CHAT_COOP_TEST_PROTOCOL_v0.1.md',
+  // Recovered 2026-09-01 World vertical-slice source snapshots. Preserve verbatim;
+  // current Owner terminology and runtime maturity live in reconciliation records.
+  'docs/product/world/EMOPET_WORLD_VERTICAL_SLICE_DEFINITION_v0.1.md',
+  'docs/product/world/EMOPET_WORLD_FIRST_30_MINUTES_FLOW_v0.1.md',
+  'docs/product/world/EMOPET_WORLD_VERTICAL_SLICE_QA_MATRIX_v0.1.md',
+  'docs/product/world/EMOPET_WORLD_NEUTRAL_DOG_ANIMATION_SET_v0.1.md',
+  'docs/product/world/EMOPET_WORLD_HUB_BRETAGNE_SPATIAL_DESIGN_v0.1.md',
+  'docs/product/world/EMOPET_WORLD_TRAIL_01_GAMEPLAY_SCRIPT_v0.1.md',
+  'docs/product/world/EMOPET_WORLD_VERTICAL_SLICE_STATE_AUTHORITY_MODEL_v0.1.md',
+  'docs/product/world/EMOPET_WORLD_SECOND_ACTIVITY_FRESQUE_COLLECTIVE_v0.1.md',
   'docs/strategy/INT08_AUTHORITY_REPLAY_MANIFEST_2026-09-17.md',
   'backend/db/migrations/0006_professional_share_authority.sql',
   'backend/db/migrations/0009_professional_share_owner_terminology.sql',
