@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
-import { pgTable, uuid, varchar, timestamp, real, integer, bigint, jsonb, index, uniqueIndex, check } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, timestamp, real, integer, bigint, jsonb, boolean, index, uniqueIndex, check } from 'drizzle-orm/pg-core';
 import { devices, dogs } from './dogs.js';
+import { users } from './users.js';
 
 export const sensorSummaries = pgTable('sensor_summaries', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -30,6 +31,31 @@ export const sensorSummaries = pgTable('sensor_summaries', {
   deviceTimestampIdx: index('idx_sensor_summaries_device_timestamp').on(table.deviceId, table.timestamp),
 }));
 
+
+
+export const phonePresenceEvents = pgTable('phone_presence_events', {
+  eventId: uuid('event_id').primaryKey().defaultRandom(),
+  ownerId: uuid('owner_id').notNull().references(() => users.id),
+  dogId: uuid('dog_id').notNull().references(() => dogs.id),
+  idempotencyKey: varchar('idempotency_key', { length: 128 }).notNull(),
+  phoneSeen: boolean('phone_seen').notNull(),
+  observedAt: timestamp('observed_at', { withTimezone: true }).notNull(),
+  receivedAt: timestamp('received_at', { withTimezone: true }).defaultNow().notNull(),
+  source: varchar('source', { length: 24 }).notNull(),
+}, (table) => [
+  uniqueIndex('uq_phone_presence_events_owner_idempotency')
+    .on(table.ownerId, table.idempotencyKey),
+  index('idx_phone_presence_events_dog_observed')
+    .on(table.dogId, table.observedAt, table.receivedAt, table.eventId),
+  check(
+    'chk_phone_presence_events_idempotency_length',
+    sql`char_length(${table.idempotencyKey}) BETWEEN 8 AND 128`,
+  ),
+  check(
+    'chk_phone_presence_events_source',
+    sql`${table.source} IN ('phone_passive', 'manual_override')`,
+  ),
+]);
 
 export const sensorFeatureObservations = pgTable('sensor_feature_observations', {
   id: uuid('id').primaryKey().defaultRandom(),
