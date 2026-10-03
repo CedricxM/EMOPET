@@ -31,6 +31,8 @@ export interface RegionalSourceReadinessRequest {
   readinessScope?: RegionalSourceReadinessScope;
 }
 
+type SourceLookup = (id: string) => ReturnType<typeof getBreizSource>;
+
 export type RegionalSourceEffectiveBlocker =
   | 'UNKNOWN_SOURCE'
   | 'NO_SCOPED_RESOURCE'
@@ -54,8 +56,9 @@ export interface RegionalSourceReadinessVerdict {
 function sourceScopedVerdict(
   sourceId: string,
   nowMs: number,
+  lookup: SourceLookup,
 ): RegionalSourceReadinessVerdict {
-  const source = getBreizSource(sourceId);
+  const source = lookup(sourceId);
 
   if (!source) {
     return {
@@ -71,7 +74,7 @@ function sourceScopedVerdict(
     };
   }
 
-  const rights = evaluateBreizSourceRights(source);
+  const rights = evaluateBreizSourceRights(source, nowMs);
 
   return {
     sourceId,
@@ -92,9 +95,10 @@ function bretagneDatasetScopedVerdict(
   sourceId: string,
   datasetIds: readonly string[],
   nowMs: number,
+  lookup: SourceLookup,
 ): RegionalSourceReadinessVerdict {
-  const source = getBreizSource(sourceId);
-  const sourceRights = source ? evaluateBreizSourceRights(source) : null;
+  const source = lookup(sourceId);
+  const sourceRights = source ? evaluateBreizSourceRights(source, nowMs) : null;
   const effectiveBlockers: RegionalSourceEffectiveBlocker[] = [];
 
   if (!source) {
@@ -162,6 +166,7 @@ function bretagneDatasetScopedVerdict(
 export function evaluateRegionalSourceReadiness(
   request: RegionalSourceReadinessRequest,
   nowMs: number = Date.now(),
+  lookup: SourceLookup = getBreizSource,
 ): RegionalSourceReadinessVerdict {
   const scope = request.readinessScope ?? { kind: 'SOURCE' as const };
 
@@ -170,10 +175,11 @@ export function evaluateRegionalSourceReadiness(
       request.sourceId,
       scope.datasetIds,
       nowMs,
+      lookup,
     );
   }
 
-  return sourceScopedVerdict(request.sourceId, nowMs);
+  return sourceScopedVerdict(request.sourceId, nowMs, lookup);
 }
 
 /**

@@ -1,8 +1,100 @@
 {
-  "schema_version": "0.1.0",
+  "schema_version": "0.2.0",
   "authority_mode": "DIFF_PROPOSALS_REQUIRE_EXPLICIT_REVIEW",
   "base_ref": "main@efc86354dc2179d45bae7152ebb203c93f225da0",
   "candidate_ref": "main@efc86354dc2179d45bae7152ebb203c93f225da0",
   "generated_on": "2026-10-01",
-  "proposals": []
+  "proposals": [],
+  "base_state_manifest": [
+    {
+      "path": "state/company-state.json",
+      "git_blob_sha": "06162be81f050c32886e1bbb6671af77facf9ba0"
+    },
+    {
+      "path": "state/corporate/corporate-state.json",
+      "git_blob_sha": "72699a9ed9c3031f353dc8c2e20f035f85eaff56"
+    },
+    {
+      "path": "state/experiments/EXP-MAT-INCREMENTAL-001.json",
+      "git_blob_sha": "54c8d4635779095d25bc5d7caecb6b7a00da6d25"
+    },
+    {
+      "path": "state/experiments/EXP-TAG-PHYSICAL-001.json",
+      "git_blob_sha": "a4cd9b1aa505c4da51955c57efacd57544097390"
+    },
+    {
+      "path": "state/finance/finance-state.json",
+      "git_blob_sha": "2c8e187c7016f243246decda498349589921ec0d"
+    },
+    {
+      "path": "state/finance/fundraising/PRESEED-CONDITIONAL-2027.json",
+      "git_blob_sha": "d0a26a46c69bc822f2f29e0e39f0d2d92979cb45"
+    },
+    {
+      "path": "state/freshness/freshness-state.json",
+      "git_blob_sha": "5b4a89ab57fd34a9a3b511e8e1448edded4cf268"
+    },
+    {
+      "path": "state/metrics/metrics.json",
+      "git_blob_sha": "8dc5ac4d374b7600b93b6cf383a20f1700dc7a14"
+    },
+    {
+      "path": "state/milestones/MS-S1-PHYSICS.json",
+      "git_blob_sha": "bea43db65afe50006d806cb5936530257f6baa3a"
+    },
+    {
+      "path": "state/risks/risk-register.json",
+      "git_blob_sha": "23d6dd40eebb5cc87b6bfbfc01339e28a314b453"
+    },
+    {
+      "path": "state/unknowns/critical-unknowns.json",
+      "git_blob_sha": "fdbe0223c3a0c5c9d060a9bc66f5b46a5c94187b"
+    }
+  ],
+  "candidate_state_manifest": [
+    {
+      "path": "state/company-state.json",
+      "git_blob_sha": "06162be81f050c32886e1bbb6671af77facf9ba0"
+    },
+    {
+      "path": "state/corporate/corporate-state.json",
+      "git_blob_sha": "72699a9ed9c3031f353dc8c2e20f035f85eaff56"
+    },
+    {
+      "path": "state/experiments/EXP-MAT-INCREMENTAL-001.json",
+      "git_blob_sha": "54c8d4635779095d25bc5d7caecb6b7a00da6d25"
+    },
+    {
+      "path": "state/experiments/EXP-TAG-PHYSICAL-001.json",
+      "git_blob_sha": "a4cd9b1aa505c4da51955c57efacd57544097390"
+    },
+    {
+      "path": "state/finance/finance-state.json",
+      "git_blob_sha": "2c8e187c7016f243246decda498349589921ec0d"
+    },
+    {
+      "path": "state/finance/fundraising/PRESEED-CONDITIONAL-2027.json",
+      "git_blob_sha": "d0a26a46c69bc822f2f29e0e39f0d2d92979cb45"
+    },
+    {
+      "path": "state/freshness/freshness-state.json",
+      "git_blob_sha": "5b4a89ab57fd34a9a3b511e8e1448edded4cf268"
+    },
+    {
+      "path": "state/metrics/metrics.json",
+      "git_blob_sha": "8dc5ac4d374b7600b93b6cf383a20f1700dc7a14"
+    },
+    {
+      "path": "state/milestones/MS-S1-PHYSICS.json",
+      "git_blob_sha": "bea43db65afe50006d806cb5936530257f6baa3a"
+    },
+    {
+      "path": "state/risks/risk-register.json",
+      "git_blob_sha": "23d6dd40eebb5cc87b6bfbfc01339e28a314b453"
+    },
+    {
+      "path": "state/unknowns/critical-unknowns.json",
+      "git_blob_sha": "fdbe0223c3a0c5c9d060a9bc66f5b46a5c94187b"
+    }
+  ]
 }

@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-01  
 **Status:** `PROPOSED COMPANY CONTROL PLANE / DOES NOT REPLACE DOMAIN AUTHORITIES`  
-**Branch base:** `main@cdec93af57bdf49429598fbe0c20f28ffef9a6c0`
+**Branch base:** `main@069d258c5a97e52818b0f2f186b95864cb34320d`
 
 ## 1. Purpose
 
@@ -329,19 +329,25 @@ A rendered packet is not itself a review record. If a real reviewer accepts a pr
 
 It reports only mechanical state:
 
+- whether the current controlled-state file manifest still matches the proposal queue candidate manifest;
+- the optional current Git ref as provenance context, without treating unrelated commits as state changes;
 - whether the proposal queue is empty or still requires review;
 - whether an optional reviewed candidate still maps to the current proposal queue;
 - whether its candidate ref still matches;
 - whether its recorded ledger tail still matches the current append-only ledger;
-- which mechanical step is possible next.
+- which mechanical step is possible next;
+- when review is mechanically required, a deterministic handoff to the existing read-only review packet.
 
 The status helper MUST remain weaker than review/finalization:
 
 - it never writes files or appends history;
+- it fails closed with `PROPOSAL_QUEUE_STALE` before proposal count, review handoff or reviewed-candidate readiness is trusted when the controlled-state manifest changes;
+- a raw repository SHA change does not stale the queue if all controlled-state blobs are identical;
 - it never marks a proposal accepted, approved, validated or decided;
 - it never allocates an event ID or source snapshot;
 - it never substitutes for the human review reference or append PR;
-- `READY_FOR_MANUAL_FINALIZATION_INPUTS` means only that mechanical references still align.
+- `READY_FOR_MANUAL_FINALIZATION_INPUTS` means only that mechanical references still align;
+- an `operator_handoff` is navigation, not prioritization: if multiple proposals are pending it renders the full queue and MUST NOT select a proposal on the operator's behalf.
 
 ## 11. Confidentiality boundary
 
@@ -375,7 +381,7 @@ Any AI agent doing substantive EMOPET work should:
 
 V1 includes the company front door, machine-readable state, milestone/experiment/finance/metrics/risk/unknowns registries, and an every-PR structural evidence guard.
 
-V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, deterministic human views generated from machine-readable state, a public-safe founder cockpit, redacted investor/supplier views, an append-only Company Time Machine transition ledger, review-only transition proposals generated from controlled state diffs, reviewed-proposal append preparation, a human-approved finalization path, and an append-PR checklist with merged-main source-snapshot verification, a read-only transition workflow status doctor, and a read-only transition review packet renderer. Freshness remains conservative, and structural, presentation, historical-record, proposal, preparation, finalization or ancestry validity never substitutes for domain evidence or authority.
+V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, deterministic human views generated from machine-readable state, a public-safe founder cockpit, redacted investor/supplier views, an append-only Company Time Machine transition ledger, review-only transition proposals generated from controlled state diffs, reviewed-proposal append preparation, a human-approved finalization path, and an append-PR checklist with merged-main source-snapshot verification, a read-only transition workflow status doctor with an explicit stale-queue guard and review-packet handoff, and a read-only transition review packet renderer. Freshness remains conservative, and structural, presentation, historical-record, proposal, preparation, finalization or ancestry validity never substitutes for domain evidence or authority.
 
 Next bounded slices should be chosen from observed operator friction in the reviewed transition workflow rather than added for completeness.
 

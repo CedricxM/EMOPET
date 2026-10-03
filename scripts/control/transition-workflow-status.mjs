@@ -1,6 +1,10 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  loadLocalStateManifest,
+  stateManifestsEqual,
+} from './propose-company-transitions.mjs';
 
 const root = process.cwd();
 const DEFAULT_PROPOSAL_PATH = 'state/history/pending-transition-proposals.json';
@@ -27,10 +31,33 @@ function assertProposalQueue(queue) {
   if (typeof queue.candidate_ref !== 'string' || queue.candidate_ref.length === 0) {
     throw new Error('proposal queue candidate_ref is required');
   }
+  if (!Array.isArray(queue.candidate_state_manifest)) {
+    throw new Error('proposal queue candidate_state_manifest is required');
+  }
 }
 
-function candidateStatus(proposalQueue, ledgerEvents, reviewedCandidate) {
+function candidateStatus(
+  proposalQueue,
+  ledgerEvents,
+  reviewedCandidate,
+  currentStateManifest = null,
+) {
   const tailEventId = ledgerEvents.at(-1)?.event_id ?? null;
+
+  if (
+    currentStateManifest &&
+    !stateManifestsEqual(
+      proposalQueue.candidate_state_manifest,
+      currentStateManifest,
+    )
+  ) {
+    return {
+      mechanical_state: 'PROPOSAL_QUEUE_STALE',
+      next_action_code: 'REGENERATE_PROPOSAL_QUEUE',
+      next_action:
+        'The controlled-state files no longer match the proposal queue candidate manifest. Regenerate the queue before trusting proposal count or review state.',
+    };
+  }
 
   if (!reviewedCandidate) {
     if (proposalQueue.proposals.length === 0) {
@@ -102,30 +129,67 @@ export function inspectTransitionWorkflow(
   proposalQueue,
   ledgerEvents,
   reviewedCandidate = null,
+  options = {},
 ) {
   assertProposalQueue(proposalQueue);
   if (!Array.isArray(ledgerEvents)) {
     throw new Error('ledgerEvents must be an array');
   }
 
+  const currentRef = options.currentRef ?? null;
+  if (
+    currentRef !== null &&
+    (typeof currentRef !== 'string' ||
+      !/^(?:main|head|commit)@[0-9a-f]{40}$/.test(currentRef))
+  ) {
+    throw new Error(
+      'currentRef must be main@, head@ or commit@ followed by a 40-hex SHA',
+    );
+  }
+
+  const currentStateManifest = options.currentStateManifest ?? null;
+
   const status = candidateStatus(
     proposalQueue,
     ledgerEvents,
     reviewedCandidate,
+    currentStateManifest,
   );
 
+  const proposalPacketCommand =
+    proposalQueue.proposals.length === 0
+      ? null
+      : `node scripts/control/transition-review-packet.mjs --proposal-queue ${DEFAULT_PROPOSAL_PATH}`;
+
+  const operatorHandoff =
+    status.next_action_code === 'REVIEW_PROPOSAL'
+      ? {
+          action: 'RENDER_REVIEW_PACKET',
+          command: proposalPacketCommand,
+          scope:
+            proposalQueue.proposals.length === 1
+              ? 'SINGLE_PENDING_PROPOSAL'
+              : 'FULL_PENDING_QUEUE_NO_PRIORITY_RANKING',
+          note:
+            'This handoff opens the read-only review surface only. It does not select, prioritize, accept or approve a proposal.',
+        }
+      : null;
+
   return {
-    schema_version: '0.1.0',
+    schema_version: '0.4.0',
     authority_mode: 'MECHANICAL_WORKFLOW_STATUS_NOT_DECISION_AUTHORITY',
     ledger_tail_event_id: ledgerEvents.at(-1)?.event_id ?? null,
     proposal_count: proposalQueue.proposals.length,
     proposal_ids: proposalQueue.proposals.map((entry) => entry.proposal_id),
     proposal_candidate_ref: proposalQueue.candidate_ref,
+    current_ref: currentRef,
+    queue_freshness_checked: currentStateManifest !== null,
     reviewed_candidate_present: reviewedCandidate !== null,
     reviewed_candidate_proposal_id: reviewedCandidate?.proposal_id ?? null,
     mechanical_state: status.mechanical_state,
     next_action_code: status.next_action_code,
     next_action: status.next_action,
+    operator_handoff: operatorHandoff,
     mutates_ledger: false,
     human_review_required: true,
     substantive_decision_authority: false,
@@ -142,6 +206,9 @@ function main() {
     argValue('--proposal-queue') ?? DEFAULT_PROPOSAL_PATH;
   const ledgerPath = argValue('--ledger') ?? DEFAULT_LEDGER_PATH;
   const reviewedCandidatePath = argValue('--reviewed-candidate');
+  const currentRef =
+    argValue('--current-ref') ?? process.env.EMOPET_CURRENT_REF ?? null;
+  const currentStateManifest = loadLocalStateManifest();
 
   const proposalQueue = readJson(proposalPath);
   const ledgerEvents = readJsonLines(ledgerPath);
@@ -159,6 +226,7 @@ function main() {
     proposalQueue,
     ledgerEvents,
     reviewedCandidate,
+    { currentRef, currentStateManifest },
   );
 
   process.stdout.write(JSON.stringify(result, null, 2) + '\n');

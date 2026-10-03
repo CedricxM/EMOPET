@@ -117,3 +117,26 @@ READ_ONLY_AUDIT_NOT_DELETION_AUTHORITY
 A downstream operator must treat all `HOLD_*` states as non-deletable without
 separate evidence. `SAFE_MERGED_MAIN_HEAD_CANDIDATE` means "eligible for a
 fresh destructive preflight", not "delete now".
+
+
+## Phase 2A exact-ref evidence — 2026-10-03
+
+Reconstructed on current main `3971492350d4b0bac515bc240ebf42dabb21f5e7` from existing #1066. The classifier, tests and hard-exclusion policy are retained; no deletion capability is added.
+
+Captured evidence: [REPOSITORY_BRANCH_LIFECYCLE_EVIDENCE_2026-10-03.json](REPOSITORY_BRANCH_LIFECYCLE_EVIDENCE_2026-10-03.json), captured 2026-10-03 09:51:40 UTC.
+
+The unmodified pure classification functions were executed over GitHub GET inventory: 655 exact branch refs and 883 PR records. The Node CLI was not executed locally; its normal test workflow provides separate evidence.
+
+| Classification | Count |
+|---|---:|
+| `HOLD_CLOSED_UNMERGED` | 374 |
+| `HOLD_UNPROVEN` | 77 |
+| `SAFE_MERGED_MAIN_HEAD_CANDIDATE` | 177 |
+| `HOLD_REF_MOVED` | 12 |
+| `KEEP_OPEN_PR_HEAD` | 8 |
+| `KEEP_HARD_EXCLUSION` | 6 |
+| `KEEP_DEFAULT_BRANCH` | 1 |
+
+Pagination is not an atomic snapshot. The evidence file preserves capture-time refs, including the then-current #1043/#1066 heads; later reconciliation commits legitimately change them. Re-query before any future action. Candidate counts are not approvals.
+
+Founder allocation remains MS-S1-PHYSICS (#230/#480). #1103 is deferred; #1093/#1090/#1092/#224 are frozen; #1095 is deferred. See #1043's execution control-plane record. Phase 2A creates no merge, closure or deletion authority.

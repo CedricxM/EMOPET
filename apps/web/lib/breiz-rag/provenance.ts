@@ -12,7 +12,7 @@
 
 import {
   getBreizSource,
-  isBreizSourceReleaseReady,
+  isBreizSourcePublicAnswerReady,
   type BreizSourceDescriptor,
 } from '../data/breiz/sourceRegistry';
 
@@ -27,7 +27,7 @@ type SourceLookup = (id: string) => BreizSourceDescriptor | undefined;
 
 function releasedSource(id: string, nowMs: number, lookup: SourceLookup): BreizSourceDescriptor | null {
   const source = lookup(id);
-  return source && isBreizSourceReleaseReady(source, nowMs) ? source : null;
+  return source && isBreizSourcePublicAnswerReady(source, nowMs) ? source : null;
 }
 
 /** Une fiche de tiers sans autorité de publication revue n'est jamais servie. */

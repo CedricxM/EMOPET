@@ -70,7 +70,16 @@ function buildProvenance(
   language: string,
 ): BreizSourceProvenance | null {
   const source = getBreizSource(DATATOURISME_SOURCE_ID);
-  if (!source || !source.license || source.freshnessHours === null) return null;
+  const evidence = source?.rightsEvidence;
+  if (
+    !source ||
+    !source.license ||
+    source.freshnessHours === null ||
+    !evidence ||
+    !evidence.allowedProductUses.includes('INGESTION')
+  ) {
+    return null;
+  }
 
   return {
     sourceId: source.id,
@@ -86,6 +95,15 @@ function buildProvenance(
     attribution: event.producerAttribution,
     language,
     checksumSha256: null,
+    rightsAuthorityRevision: evidence.authorityRevision,
+    rightsImmutableSourceVersion: evidence.immutableSourceVersion,
+    rightsReceiptPath: evidence.receiptPath,
+    rightsAttributionText: evidence.attributionText,
+    rightsPermittedUseSummary: evidence.permittedUseSummary,
+    rightsAllowedProductUses: [...evidence.allowedProductUses],
+    rightsReviewedAt: evidence.reviewedAt,
+    rightsRecheckAt: evidence.recheckAt ?? null,
+    rightsReviewerRole: evidence.reviewerRole,
     freshnessPolicyHours: source.freshnessHours,
     authority: source.authority,
   };

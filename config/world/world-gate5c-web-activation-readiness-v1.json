@@ -4,10 +4,17 @@
   "gate": "5C_WEB_ACTIVATION_READINESS",
   "sourceIssue": 898,
   "activated": false,
+  "readAdapter": {
+    "explicitBearerTokenAdapter": true,
+    "mintsTokens": false,
+    "refreshesTokens": false,
+    "persistsTokens": false,
+    "acceptsOwnerId": false
+  },
   "prerequisites": {
     "gate5bReadContinuityMerged": true,
-    "explicitBearerTokenProvider": false,
-    "explicitCoarseRegionProvider": false,
+    "explicitBearerTokenProvider": true,
+    "explicitCoarseRegionProvider": true,
     "uiCutoverDecisionRecorded": false
   },
   "forbiddenFallbacks": [
@@ -18,5 +25,51 @@
     "ANONYMOUS_PROGRESSION_READ"
   ],
   "activationRule": "ALL_PREREQUISITES_TRUE",
-  "nextAction": "IMPLEMENT_AUTH_AND_COARSE_REGION_PROVIDERS_WITHOUT_ACTIVATING_WORLD_UI"
+  "nextAction": "IMPLEMENT_SELECTED_INTERNAL_REFRESH_COORDINATION_SLICES_WITHOUT_ACTIVATING_WORLD_UI",
+  "regionProvider": {
+    "explicitCoarseRegionInput": true,
+    "catalogBounded": true,
+    "acceptsCoordinates": false,
+    "readsGeolocationApi": false,
+    "persistsSelection": false,
+    "automaticSwitch": false
+  },
+  "ownerSessionProvider": {
+    "authority": "CANONICAL_BACKEND_OWNER_AUTH",
+    "backendOriginEnv": "EMOPET_INTERNAL_BACKEND_URL",
+    "browserCredentialTransport": "HTTP_ONLY_STRICT_SAME_SITE_COOKIES",
+    "accessTokenExposedToBrowserJs": false,
+    "refreshTokenExposedToBrowserJs": false,
+    "localStorageUsed": false,
+    "sessionStorageUsed": false,
+    "ownerIdAcceptedFromBrowser": false,
+    "refreshRotation": "EXPLICIT_SAME_ORIGIN_POST",
+    "loginRoute": "POST /api/owner-session/login",
+    "logoutRoute": "POST /api/owner-session/logout",
+    "worldReadBff": "GET /api/world-gamification/session",
+    "worldUiActivated": false,
+    "refreshRoute": "POST /api/owner-session/refresh",
+    "automaticRefreshOnWorldGet": false,
+    "concurrentRefreshSingleFlightRequiredBeforeUiCutover": true,
+    "concurrentRefreshSingleFlight": "INSTANCE_LOCAL_SHA256_KEYED",
+    "concurrentRefreshSingleFlightInstanceLocal": true,
+    "concurrentRefreshSingleFlightMultiInstance": false,
+    "concurrentRefreshSingleFlightNextAction": "ADD_SHARED_COORDINATION_OR_EQUIVALENT_MULTI_INSTANCE_PROOF",
+    "multiInstanceRefreshRace": {
+      "status": "BLOCKED_STRICT_REUSE_REVOKES_ACTIVE_FAMILY",
+      "backendRoute": "POST /api/auth/refresh",
+      "backendService": "backend/api/services/auth-sessions.ts#rotateRefreshCredential",
+      "serialization": "POSTGRES_USER_LOCK_THEN_FAMILY_ADVISORY_LOCK",
+      "rotatedTokenReplayPolicy": "REUSE_DETECTED_REVOKE_ACTIVE_FAMILY",
+      "integrationEvidence": "backend/test/auth-routes-postgres.test.mjs",
+      "observedRaceActiveCount": 0,
+      "observedRaceReuseCountMinimum": 1,
+      "sharedCoordinatorSelected": false,
+      "uiCutoverBlocked": true,
+      "resolutionDecisionRef": "config/world/world-gate5c-refresh-coordination-decision-v1.json",
+      "resolutionSelected": "DEDICATED_INTERNAL_OWNER_REFRESH_SERVICE_CHANNEL",
+      "resolutionImplementationReady": false,
+      "multiInstanceProofReady": false
+    }
+  }
 }

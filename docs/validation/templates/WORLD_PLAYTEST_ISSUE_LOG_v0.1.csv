@@ -1,0 +1,2 @@
+issue_id,session_id,participant_code,scenario_id,severity,category,observation,evidence_ref,frequency_count,safety_related,blocks_go,proposed_change,status,owner,decision_note
+WPT-001,,,,,,,,1,false,false,,OPEN,,

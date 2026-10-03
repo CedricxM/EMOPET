@@ -1,4 +1,5 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -37,6 +38,61 @@ const REF_FIELDS = [
 
 function readJson(path) {
   return JSON.parse(readFileSync(resolve(root, path), 'utf8'));
+}
+
+function gitBlobSha(bytes) {
+  const prefix = Buffer.from(`blob ${bytes.length}\0`);
+  return createHash('sha1').update(prefix).update(bytes).digest('hex');
+}
+
+function normalizeStateManifest(manifest) {
+  if (!Array.isArray(manifest)) {
+    throw new Error('controlled state manifest must be an array');
+  }
+
+  const normalized = manifest
+    .map((entry) => {
+      if (
+        !entry ||
+        typeof entry.path !== 'string' ||
+        !CONTROLLED_STATE_PATHS.includes(entry.path) ||
+        typeof entry.git_blob_sha !== 'string' ||
+        !/^[0-9a-f]{40}$/.test(entry.git_blob_sha)
+      ) {
+        throw new Error('controlled state manifest contains an invalid entry');
+      }
+      return { path: entry.path, git_blob_sha: entry.git_blob_sha };
+    })
+    .sort((a, b) => a.path.localeCompare(b.path));
+
+  const expected = [...CONTROLLED_STATE_PATHS].sort();
+  const actual = normalized.map((entry) => entry.path);
+  if (
+    actual.length !== expected.length ||
+    actual.some((path, index) => path !== expected[index])
+  ) {
+    throw new Error(
+      'controlled state manifest must cover each controlled path exactly once',
+    );
+  }
+
+  return normalized;
+}
+
+export function stateManifestsEqual(left, right) {
+  return (
+    JSON.stringify(normalizeStateManifest(left)) ===
+    JSON.stringify(normalizeStateManifest(right))
+  );
+}
+
+export function loadLocalStateManifest() {
+  return normalizeStateManifest(
+    CONTROLLED_STATE_PATHS.map((path) => {
+      const bytes = readFileSync(resolve(root, path));
+      return { path, git_blob_sha: gitBlobSha(bytes) };
+    }),
+  );
 }
 
 function stable(value) {
@@ -173,10 +229,14 @@ export function proposeCompanyTransitions(beforeBundle, afterBundle, options) {
   );
 
   return {
-    schema_version: '0.1.0',
+    schema_version: '0.2.0',
     authority_mode: 'DIFF_PROPOSALS_REQUIRE_EXPLICIT_REVIEW',
     base_ref: options.baseRef,
     candidate_ref: options.candidateRef,
+    base_state_manifest: normalizeStateManifest(options.baseStateManifest),
+    candidate_state_manifest: normalizeStateManifest(
+      options.candidateStateManifest,
+    ),
     generated_on: options.generatedOn,
     proposals: raw.map((item, index) =>
       makeProposal(
@@ -215,18 +275,35 @@ async function fetchJsonAtRef(repository, path, ref, token) {
   }
 
   const payload = await response.json();
-  const content = Buffer.from(payload.content.replaceAll('\n', ''), 'base64').toString('utf8');
-  return JSON.parse(content);
+  const content = Buffer.from(
+    payload.content.replaceAll('\n', ''),
+    'base64',
+  ).toString('utf8');
+  return {
+    data: JSON.parse(content),
+    git_blob_sha: payload.sha,
+  };
 }
 
-async function loadGithubBundle(repository, ref, token) {
+async function loadGithubControlledState(repository, ref, token) {
   const entries = await Promise.all(
     CONTROLLED_STATE_PATHS.map(async (path) => [
       path,
       await fetchJsonAtRef(repository, path, ref, token),
     ]),
   );
-  return Object.fromEntries(entries.filter(([, value]) => value !== null));
+  const present = entries.filter(([, value]) => value !== null);
+  return {
+    bundle: Object.fromEntries(
+      present.map(([path, value]) => [path, value.data]),
+    ),
+    manifest: normalizeStateManifest(
+      present.map(([path, value]) => ({
+        path,
+        git_blob_sha: value.git_blob_sha,
+      })),
+    ),
+  };
 }
 
 function argValue(name) {
@@ -238,8 +315,10 @@ async function main() {
   const output = argValue('--output');
   const githubPr = process.argv.includes('--github-pr');
   const local = loadLocalBundle();
+  const candidateStateManifest = loadLocalStateManifest();
 
   let before = local;
+  let baseStateManifest = candidateStateManifest;
   let baseRef = null;
   let candidateRef = null;
 
@@ -256,11 +335,13 @@ async function main() {
       const headSha = event.pull_request?.head?.sha;
 
       if (baseSha && headSha) {
-        before = await loadGithubBundle(
+        const baseState = await loadGithubControlledState(
           repository,
           baseSha,
           process.env.GITHUB_TOKEN,
         );
+        before = baseState.bundle;
+        baseStateManifest = baseState.manifest;
         baseRef = `main@${baseSha}`;
         candidateRef = `head@${headSha}`;
       }
@@ -277,6 +358,8 @@ async function main() {
   const queue = proposeCompanyTransitions(before, local, {
     baseRef,
     candidateRef,
+    baseStateManifest,
+    candidateStateManifest,
     generatedOn,
   });
 

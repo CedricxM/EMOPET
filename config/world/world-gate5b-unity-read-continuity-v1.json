@@ -1,0 +1,30 @@
+{
+  "version": "1",
+  "status": "CONTROLLED_DRAFT_NOT_PRODUCTION_AUTHORITY",
+  "gate": "5B_UNITY_READ_CONTINUITY",
+  "sourceIssue": 898,
+  "sourcePullRequest": 1056,
+  "backendAuthority": "GET /api/world-gamification",
+  "client": "unity/world/Assets/World/Transport/WorldGamificationReadClient.cs",
+  "test": "unity/world/Assets/World/Tests/EditMode/WorldGamificationReadClientTests.cs",
+  "activated": false,
+  "editorEvidence": {
+    "requiredEditor": "6000.3.25f1",
+    "requiredTest": "Emopet.World.Tests.WorldGamificationReadClientTests",
+    "recorded": false,
+    "result": null,
+    "evidencePath": null
+  },
+  "requirements": {
+    "serverSnapshotIsSourceOfTruth": true,
+    "writeTrafficAllowed": false,
+    "ownerIdAcceptedFromClient": false,
+    "rawSourceRefExposed": false,
+    "xpLevelRankStreakExposed": false,
+    "exactLocationAccepted": false,
+    "directUnityToNakamaProgressionAuthority": false,
+    "sceneOrPrefabIntegrationAllowedBeforeCutover": false
+  },
+  "activationRequiresExplicitCutoverDecision": true,
+  "evidenceDebt": "Client foundation merged before the required workstation Editor proof was recorded. Merge does not promote runtime or production authority."
+}

@@ -45,6 +45,19 @@ function source(overrides: Partial<BreizSourceDescriptor> = {}): BreizSourceDesc
     freshnessHours: 24,
     enabled: true,
     notes: '',
+    rightsEvidence: {
+      authorityRevision: 'fixture-rights-v1',
+      immutableSourceVersion: 'fixture-source-v1',
+      receiptPath: 'docs/control/fixtures/fixture-rights.md',
+      attributionText: 'Fixture publisher',
+      permittedUseSummary: 'Bounded fixture ingestion for tests.',
+      allowedProductUses: ['INGESTION', 'PUBLIC_ANSWER_WITH_SOURCE'],
+      reviewedAt: '2026-09-20T00:00:00.000Z',
+      reviewerRole: 'rights-reviewer',
+      recheckAt: '2027-09-20T00:00:00.000Z',
+      evidenceState: 'SOURCE_CONFIRMED',
+      disposition: 'GO',
+    },
     ...overrides,
   };
 }
@@ -79,6 +92,61 @@ test('les deux sources activées sont bloquées faute de reçu de licence', () =
 test('une source complète est ingérable', () => {
   const verdict = evaluateBreizSourceRights(source());
   assert.deepEqual(verdict.blockers, []);
+  assert.equal(verdict.ingestionPermitted, true);
+});
+
+test('licence déclarée sans preuve contrôlée → bloqué', () => {
+  const verdict = evaluateBreizSourceRights(source({ rightsEvidence: undefined }));
+  assert.ok(verdict.blockers.includes('NO_RIGHTS_EVIDENCE'));
+  assert.equal(verdict.ingestionPermitted, false);
+});
+
+test('preuve HOLD ou non confirmée → bloquée', () => {
+  for (const rightsEvidence of [
+    { ...source().rightsEvidence!, disposition: 'HOLD' as const },
+    { ...source().rightsEvidence!, evidenceState: 'UNVERIFIED_CLAIM' as const },
+  ]) {
+    const verdict = evaluateBreizSourceRights(source({ rightsEvidence }));
+    assert.ok(verdict.blockers.includes('NO_RIGHTS_EVIDENCE'));
+    assert.equal(verdict.ingestionPermitted, false);
+  }
+});
+
+test('preuve incomplète → bloquée même avec licence et fraîcheur', () => {
+  const verdict = evaluateBreizSourceRights(
+    source({ rightsEvidence: { ...source().rightsEvidence!, receiptPath: '   ' } }),
+  );
+  assert.ok(verdict.blockers.includes('NO_RIGHTS_EVIDENCE'));
+  assert.equal(verdict.ingestionPermitted, false);
+});
+
+test('preuve future, expirée ou recheck illisible → ingestion bloquée', () => {
+  const now = Date.parse('2026-10-02T12:00:00.000Z');
+  for (const rightsEvidence of [
+    { ...source().rightsEvidence!, reviewedAt: '2026-10-03T00:00:00.000Z' },
+    { ...source().rightsEvidence!, recheckAt: '2026-10-01T00:00:00.000Z' },
+    { ...source().rightsEvidence!, recheckAt: 'pas une date' },
+  ]) {
+    const verdict = evaluateBreizSourceRights(source({ rightsEvidence }), now);
+    assert.ok(verdict.blockers.includes('RIGHTS_EVIDENCE_OUT_OF_WINDOW'));
+    assert.equal(verdict.ingestionPermitted, false);
+  }
+});
+
+test('GO evidence without INGESTION scope remains blocked', () => {
+  const rightsEvidence = {
+    ...source().rightsEvidence!,
+    allowedProductUses: ['PUBLIC_ANSWER_WITH_SOURCE'] as const,
+  };
+  const verdict = evaluateBreizSourceRights(source({ rightsEvidence }));
+  assert.ok(verdict.blockers.includes('INGESTION_SCOPE_NOT_GRANTED'));
+  assert.equal(verdict.ingestionPermitted, false);
+});
+
+test('preuve dans sa fenêtre reste ingérable', () => {
+  const now = Date.parse('2026-10-02T12:00:00.000Z');
+  const verdict = evaluateBreizSourceRights(source(), now);
+  assert.equal(verdict.blockers.includes('RIGHTS_EVIDENCE_OUT_OF_WINDOW'), false);
   assert.equal(verdict.ingestionPermitted, true);
 });
 
@@ -144,6 +212,15 @@ function provenance(overrides: Partial<BreizSourceProvenance> = {}): BreizSource
     attribution: 'Fixture',
     language: 'fr',
     checksumSha256: null,
+    rightsAuthorityRevision: 'fixture-rights-v1',
+    rightsImmutableSourceVersion: 'fixture-source-v1',
+    rightsReceiptPath: 'docs/control/fixtures/fixture-rights.md',
+    rightsAttributionText: 'Fixture publisher',
+    rightsPermittedUseSummary: 'Bounded fixture ingestion for tests.',
+    rightsAllowedProductUses: ['INGESTION', 'PUBLIC_ANSWER_WITH_SOURCE'],
+    rightsReviewedAt: '2026-09-20T00:00:00.000Z',
+    rightsRecheckAt: '2027-09-20T00:00:00.000Z',
+    rightsReviewerRole: 'rights-reviewer',
     freshnessPolicyHours: 24,
     authority: 'official',
     ...overrides,
@@ -157,6 +234,12 @@ test('absence de règle de fraîcheur ≠ à jour', () => {
   assert.equal(evaluateFreshness(noPolicy, AT), 'no_recheck_rule');
   // L'ancienne implémentation rendait `true` ici.
   assert.equal(isFresh(noPolicy, AT), false);
+});
+
+test('date de récupération future → jamais fraîche', () => {
+  const future = provenance({ retrievedAt: '2026-09-20T07:00:00.000Z' });
+  assert.equal(evaluateFreshness(future, AT), 'future_retrieval_date');
+  assert.equal(isFresh(future, AT), false);
 });
 
 test('date de récupération illisible → distinguée de « périmé »', () => {
