@@ -95,6 +95,18 @@ const exceptions = new Map([
         'No patched node-forge release is currently available; the accepted occurrence is bounded to Expo CLI development/build tooling and is not an EMOPET backend/server dependency path.',
     },
   ],
+  [
+    'GHSA-vfj7-8cjw-p6xm',
+    {
+      module: 'braces',
+      expires: new Date('2026-10-17T23:59:59Z'),
+      allowedPaths: new Set([
+        'apps__mobile>expo>@expo/cli>fast-glob>micromatch>braces',
+      ]),
+      reason:
+        'No patched braces release is currently available; the accepted occurrence is bounded to Expo CLI development/build globbing over repository-controlled project inputs and is not an EMOPET backend/server dependency path.',
+    },
+  ],
 ]);
 
 const blocking = [];
