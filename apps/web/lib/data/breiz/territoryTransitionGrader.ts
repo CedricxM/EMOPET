@@ -40,6 +40,12 @@ export function resolveTerritoryTransition(
     const n = normalise(raw);
     const territory = mentionedTerritory(raw);
 
+    if (/juste en visite|habite toujours|vit toujours/.test(n)) {
+      homeRegion = territory ?? initialHome;
+      transition = 'TEMPORARY_TRAVEL';
+      continue;
+    }
+
     if (/rentr(e|er|ons)|retour/.test(n) && /lorient|bretagne/.test(n)) {
       currentTerritory = initialHome;
       transition = 'RETURN_HOME';
@@ -55,11 +61,6 @@ export function resolveTerritoryTransition(
 
     if (territory && /semaine|week-?end|quelques jours|vacances|visite|aujourd(?:['’])?hui|pars?/.test(n)) {
       currentTerritory = territory;
-      transition = 'TEMPORARY_TRAVEL';
-    }
-
-    if (/juste en visite|habite toujours|vit toujours/.test(n)) {
-      homeRegion = initialHome;
       transition = 'TEMPORARY_TRAVEL';
     }
   }
