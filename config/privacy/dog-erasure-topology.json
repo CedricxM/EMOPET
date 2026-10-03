@@ -148,6 +148,13 @@
       "source": "backend/db/schema/professional-sharing.ts",
       "databaseDeleteAction": "NO_ACTION",
       "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "phone_presence_events",
+      "column": "dog_id",
+      "source": "backend/db/schema/sensors.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
     }
   ],
   "unconstrainedDogIdentifiers": [
