@@ -1,6 +1,6 @@
 {
   "schemaVersion": "emopet-erasure-conditional-semantics-v1",
-  "status": "FIVE_PRODUCT_PRIVACY_DECISIONS_PROMOTED_EIGHT_AUTHORITY_DECISIONS_REMAIN",
+  "status": "FIVE_PRODUCT_PRIVACY_DECISIONS_PROMOTED_NINE_AUTHORITY_DECISIONS_REMAIN",
   "claimsExecutableErasure": false,
   "claimsCompleteErasure": false,
   "sourcePacket": "config/privacy/erasure-disposition-decision-packet.json",
@@ -13,9 +13,9 @@
     "community_rules_acceptances remains reserved to PRIVACY_LEGAL; research_data_consents and subscriptions remain outside these five product decisions."
   ],
   "summary": {
-    "conditionalRowsTotal": 20,
+    "conditionalRowsTotal": 21,
     "semanticsAlreadyDeterminedByExistingPolicy": 7,
-    "authorityDecisionsStillRequired": 8,
+    "authorityDecisionsStillRequired": 9,
     "matrixRowsPromoted": 5,
     "productPrivacyDecisionsApproved": 5
   },
@@ -312,6 +312,32 @@
       "decisionClass": "PRODUCT_PRIVACY_LIFECYCLE_DECISION_REQUIRED",
       "why": "Durable resource-spend history is Owner-linked economic/progression evidence; retention versus deletion requires an explicit product-privacy lifecycle decision.",
       "privacyFirstRecommendation": "Prefer deletion with validated account erasure unless a separately approved bounded retention purpose requires irreversible minimisation or justified retention.",
+      "options": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "requiredAuthority": "FOUNDER_PRODUCT_PRIVACY",
+      "promotionAuthorized": false
+    },
+    {
+      "relation": "users.id|DIRECT_FK|phone_presence_events|owner_id",
+      "decisionClass": "PRODUCT_PRIVACY_LIFECYCLE_DECISION_REQUIRED",
+      "why": "The durable schema exists, but Presence-specific retention, erasure and export authority is unresolved and runtime persistence remains inactive.",
+      "privacyFirstRecommendation": "Keep durable phone Presence fail-closed until a bounded Presence lifecycle is approved; do not inherit exact-location or sensor retention by analogy.",
+      "options": [
+        "DELETE",
+        "ANONYMIZE",
+        "RETAIN_WITH_JUSTIFICATION"
+      ],
+      "requiredAuthority": "FOUNDER_PRODUCT_PRIVACY",
+      "promotionAuthorized": false
+    },
+    {
+      "relation": "dogs.id|DIRECT_FK|phone_presence_events|dog_id",
+      "decisionClass": "PRODUCT_PRIVACY_LIFECYCLE_DECISION_REQUIRED",
+      "why": "The durable schema exists, but Presence-specific retention, erasure and export authority is unresolved and runtime persistence remains inactive.",
+      "privacyFirstRecommendation": "Keep durable phone Presence fail-closed until a bounded Presence lifecycle is approved; do not inherit exact-location or sensor retention by analogy.",
       "options": [
         "DELETE",
         "ANONYMIZE",
