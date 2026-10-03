@@ -131,6 +131,7 @@ export type BretagneDatasetRightsBlocker =
   | 'NO_DATASET_RIGHTS_EVIDENCE'
   | 'DATASET_RIGHTS_EVIDENCE_NOT_GO'
   | 'DATASET_RIGHTS_EVIDENCE_INVALID_OR_EXPIRED'
+  | 'DATASET_RIGHTS_SCOPE_NOT_INGESTION'
   | 'RIGHTS_VERSION_SCHEMA_MISMATCH';
 
 export interface BretagneDatasetRightsVerdict {
@@ -315,6 +316,10 @@ export function evaluateBretagneOpenDataDatasetRights(
       evidence.permittedUseSummary,
       evidence.reviewerRole,
     ];
+
+    if (!evidence.allowedProductUses.includes('INGESTION')) {
+      blockers.push('DATASET_RIGHTS_SCOPE_NOT_INGESTION');
+    }
 
     if (
       requiredText.some((value) => value.trim().length === 0) ||

@@ -24,6 +24,7 @@ export type BreizRightsEvidenceState =
   | 'HOLD'
   | 'OPEN';
 export type BreizReleaseDisposition = 'GO' | 'HOLD' | 'REMEDIATE';
+export type BreizRightsProductUse = 'INGESTION' | 'PUBLIC_ANSWER_WITH_SOURCE';
 
 export interface BreizRightsEvidence {
   /** Immutable identifier for the exact human-reviewed rights record. */
@@ -34,6 +35,8 @@ export interface BreizRightsEvidence {
   receiptPath: string;
   attributionText: string;
   permittedUseSummary: string;
+  /** Machine-readable product uses granted by this exact reviewed receipt. */
+  allowedProductUses: readonly BreizRightsProductUse[];
   reviewedAt: string;
   reviewerRole: string;
   recheckAt?: string | null;
@@ -204,6 +207,7 @@ export type BreizSourceRightsBlocker =
   | 'NO_LICENCE_RECEIPT'
   | 'NO_RIGHTS_EVIDENCE'
   | 'RIGHTS_EVIDENCE_OUT_OF_WINDOW'
+  | 'INGESTION_SCOPE_NOT_GRANTED'
   | 'NO_RECHECK_RULE'
   | 'PARTNER_PERMISSION_REQUIRED';
 
@@ -242,6 +246,10 @@ export function evaluateBreizSourceRights(
     parseEvidenceTime(evidence.reviewedAt) == null
   ) {
     blockers.push('NO_RIGHTS_EVIDENCE');
+  }
+
+  if (evidence && !evidence.allowedProductUses.includes('INGESTION')) {
+    blockers.push('INGESTION_SCOPE_NOT_GRANTED');
   }
 
   if (evidence && evidence.evidenceState === 'SOURCE_CONFIRMED' && evidence.disposition === 'GO') {
@@ -318,4 +326,12 @@ export function isBreizSourceReleaseReady(
   }
 
   return true;
+}
+
+export function isBreizSourcePublicAnswerReady(
+  source: BreizSourceDescriptor,
+  nowMs: number = Date.now(),
+): boolean {
+  if (!isBreizSourceReleaseReady(source, nowMs)) return false;
+  return source.rightsEvidence?.allowedProductUses.includes('PUBLIC_ANSWER_WITH_SOURCE') === true;
 }

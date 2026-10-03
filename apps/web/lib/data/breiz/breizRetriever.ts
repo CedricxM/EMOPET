@@ -1,7 +1,7 @@
 import { chunkBreizDocuments } from './chunkDocuments';
 import { MOCK_BREIZ_DOCUMENTS } from './mockDocuments';
 import { MockBreizVectorStore } from './mockVectorStore';
-import { getBreizSource, isBreizSourceReleaseReady } from './sourceRegistry';
+import { getBreizSource, isBreizSourcePublicAnswerReady } from './sourceRegistry';
 import type { BreizSourceDescriptor } from './sourceRegistry';
 import type { BreizDocument, BreizDocumentChunk } from './breizDocument.schema';
 
@@ -51,7 +51,7 @@ export function evaluateBreizChunkReleaseAuthority(
   if (!binding) blockers.push('AUTHORITY_BINDING_MISSING');
   if (!source) blockers.push('REGISTRY_SOURCE_MISSING');
 
-  if (!source || !isBreizSourceReleaseReady(source, nowMs)) {
+  if (!source || !isBreizSourcePublicAnswerReady(source, nowMs)) {
     blockers.push('REGISTRY_RELEASE_NOT_READY');
     return { authorized: false, blockers: [...new Set(blockers)] };
   }
@@ -75,6 +75,24 @@ export function evaluateBreizChunkReleaseAuthority(
   }
   if (binding.attribution_text !== evidence.attributionText) {
     blockers.push('ATTRIBUTION_MISMATCH');
+  }
+  if (binding.permitted_use_summary !== evidence.permittedUseSummary) {
+    blockers.push('PERMITTED_USE_SUMMARY_MISMATCH');
+  }
+  if (
+    binding.allowed_product_uses.length !== evidence.allowedProductUses.length ||
+    !binding.allowed_product_uses.every((use, index) => use === evidence.allowedProductUses[index])
+  ) {
+    blockers.push('PRODUCT_USE_SCOPE_MISMATCH');
+  }
+  if (binding.rights_reviewed_at !== evidence.reviewedAt) {
+    blockers.push('RIGHTS_REVIEWED_AT_MISMATCH');
+  }
+  if ((binding.rights_recheck_at ?? null) !== (evidence.recheckAt ?? null)) {
+    blockers.push('RIGHTS_RECHECK_AT_MISMATCH');
+  }
+  if (binding.reviewer_role !== evidence.reviewerRole) {
+    blockers.push('RIGHTS_REVIEWER_ROLE_MISMATCH');
   }
 
   // H-07C-02: source identity carried by the chunk must agree with the reviewed
