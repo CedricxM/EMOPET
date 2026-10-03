@@ -22,14 +22,14 @@ const [matrix, packet, semantics] = await Promise.all([
 const key = (row) =>
   [row.subjectRoot, row.relationType, row.table, row.column].join('|');
 
-test('conditional semantics preserve fail-closed erasure with four approved matrix promotions', () => {
+test('conditional semantics preserve fail-closed erasure with five approved matrix promotions', () => {
   assert.equal(
     semantics.schemaVersion,
     'emopet-erasure-conditional-semantics-v1',
   );
   assert.equal(
     semantics.status,
-    'FIVE_PRODUCT_PRIVACY_DECISIONS_PROMOTED_EIGHT_AUTHORITY_DECISIONS_REMAIN',
+    'FIVE_PRODUCT_PRIVACY_DECISIONS_PROMOTED_NINE_AUTHORITY_DECISIONS_REMAIN',
   );
   assert.equal(semantics.claimsExecutableErasure, false);
   assert.equal(semantics.claimsCompleteErasure, false);
