@@ -8,6 +8,7 @@ import {
   type BreizDocument,
   type BreizSourceAuthorityBinding,
 } from './breizDocument.schema';
+import { evaluateBreizDocumentFreshness } from './contentFreshness';
 
 type SourceLookup = (id: string) => BreizSourceDescriptor | undefined;
 
@@ -16,6 +17,7 @@ export type BreizPublicPromotionFailureReason =
   | 'source_not_public_answer_ready'
   | 'document_not_neutral'
   | 'document_already_bound'
+  | 'document_freshness_invalid'
   | 'promoted_document_invalid';
 
 export type BreizPublicPromotionResult =
@@ -112,6 +114,15 @@ export function promoteBreizDocumentForPublicAnswer(
       ready: false,
       reason: 'source_not_public_answer_ready',
       validationErrors: [],
+    };
+  }
+
+  const freshness = evaluateBreizDocumentFreshness(document, source, nowMs);
+  if (freshness !== 'fresh') {
+    return {
+      ready: false,
+      reason: 'document_freshness_invalid',
+      validationErrors: [`content freshness: ${freshness}`],
     };
   }
 
