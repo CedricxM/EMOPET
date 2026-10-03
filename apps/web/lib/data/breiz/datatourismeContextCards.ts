@@ -1,7 +1,7 @@
 import type { DatatourismeBretagneLoadedEvent } from './datatourismeLoader';
 import {
   getBreizSource,
-  isBreizSourceReleaseReady,
+  isBreizSourcePublicAnswerReady,
   type BreizSourceDescriptor,
 } from './sourceRegistry';
 import {
@@ -34,7 +34,7 @@ function provenanceMatchesCurrentRights(
   source: BreizSourceDescriptor | undefined,
   nowMs: number,
 ): boolean {
-  if (!source || !isBreizSourceReleaseReady(source, nowMs)) return false;
+  if (!source || !isBreizSourcePublicAnswerReady(source, nowMs)) return false;
   const evidence = source.rightsEvidence;
   if (!evidence) return false;
 
