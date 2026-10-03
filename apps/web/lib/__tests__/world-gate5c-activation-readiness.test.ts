@@ -65,6 +65,10 @@ test('Gate 5C remains fail-closed after Owner auth readiness until cutover exist
       observedRaceReuseCountMinimum: 1,
       sharedCoordinatorSelected: false,
       uiCutoverBlocked: true,
+      resolutionDecisionRef: 'config/world/world-gate5c-refresh-coordination-decision-v1.json',
+      resolutionSelected: 'DEDICATED_INTERNAL_OWNER_REFRESH_SERVICE_CHANNEL',
+      resolutionImplementationReady: false,
+      multiInstanceProofReady: false,
     },
     worldUiActivated: false,
   });
