@@ -25,7 +25,7 @@
     "ANONYMOUS_PROGRESSION_READ"
   ],
   "activationRule": "ALL_PREREQUISITES_TRUE",
-  "nextAction": "RESOLVE_MULTI_INSTANCE_REFRESH_RACE_AND_KEEP_WORLD_UI_INACTIVE_UNTIL_ALL_REMAINING_GATES_CLOSE",
+  "nextAction": "IMPLEMENT_SELECTED_INTERNAL_REFRESH_COORDINATION_SLICES_WITHOUT_ACTIVATING_WORLD_UI",
   "regionProvider": {
     "explicitCoarseRegionInput": true,
     "catalogBounded": true,
@@ -65,7 +65,11 @@
       "observedRaceActiveCount": 0,
       "observedRaceReuseCountMinimum": 1,
       "sharedCoordinatorSelected": false,
-      "uiCutoverBlocked": true
+      "uiCutoverBlocked": true,
+      "resolutionDecisionRef": "config/world/world-gate5c-refresh-coordination-decision-v1.json",
+      "resolutionSelected": "DEDICATED_INTERNAL_OWNER_REFRESH_SERVICE_CHANNEL",
+      "resolutionImplementationReady": false,
+      "multiInstanceProofReady": false
     }
   }
 }
