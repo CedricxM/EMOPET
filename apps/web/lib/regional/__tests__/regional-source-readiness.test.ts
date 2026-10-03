@@ -195,7 +195,7 @@ test('ordinary source-scoped bindings keep the generic source-rights gate', () =
   assert.equal(verdict.readinessKind, 'SOURCE');
   assert.equal(verdict.releaseReady, false);
   assert.ok(verdict.sourceRightsBlockers.includes('SOURCE_DISABLED'));
-  assert.ok(verdict.sourceRightsBlockers.includes('NO_LICENCE_RECEIPT'));
+  assert.ok(verdict.sourceRightsBlockers.includes('NO_RIGHTS_EVIDENCE'));
   assert.ok(
     verdict.effectiveBlockers.includes('SOURCE_BLOCKER:SOURCE_DISABLED'),
   );

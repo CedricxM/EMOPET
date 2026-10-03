@@ -39,8 +39,15 @@ test('SIRENE and DATAtourisme technical catalogue entries remain disabled', () =
   assert.match(sirene, /data minimisation/i);
 
   assert.match(datatourisme, /enabled: false/);
+  assert.match(datatourisme, /license: 'Licence Ouverte 2\.0'/);
   assert.match(datatourisme, /X-API-Key/);
-  assert.match(datatourisme, /provider- and record-level licence\/attribution/i);
+  assert.match(datatourisme, /HasBeenCreatedBy/);
+  assert.match(datatourisme, /API-v1 CGU scope\/recheck authority must be clarified/i);
+  assert.match(
+    datatourisme,
+    /datatourisme-api-rights-observation-2026-10-03\.json/,
+  );
+  assert.doesNotMatch(datatourisme, /rightsEvidence\s*:/);
 });
 
 test('controlled rights register records the 2026-09-29 non-promotion boundary', () => {

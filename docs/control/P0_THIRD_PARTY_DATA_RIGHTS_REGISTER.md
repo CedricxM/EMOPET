@@ -149,6 +149,30 @@ Controlled consequences:
 
 `G-THIRD-PARTY-DATA-RIGHTS-01 = OPEN`
 
+### 0.5 DATAtourisme API rights observation — 2026-10-03
+
+Current official-source recheck records a narrower state without promoting the source:
+
+- current DATAtourisme reuse/FAQ material states `Licence Ouverte 2.0`;
+- reuse material requires producer attribution through `HasBeenCreatedBy` and retention/display of the reused data's last-update date;
+- API documentation identifies API version `1.0.0`, recommends `X-API-Key` and publishes request limits;
+- the current API-key form links a CGU PDF titled `Interface diffuseurs DATAtourisme`, version `2.0`, dated `23/08/2022`;
+- EMOPET does not infer API-v1 CGU scope from that link alone.
+
+Controlled receipt:
+
+`data/registry/receipts/datatourisme-api-rights-observation-2026-10-03.json`
+
+Runtime boundary remains:
+
+- `enabled: false`;
+- no runtime `rightsEvidence`;
+- no `INGESTION` or `PUBLIC_ANSWER_WITH_SOURCE` scope;
+- no live-fetch authority;
+- clarification required before any GO transition.
+
+`DATATOURISME_API_RIGHTS = HOLD_CGU_SCOPE_CLARIFICATION`
+
 ## 1. Purpose and authority boundary
 
 This register records repository-observable facts, official-source checks and missing
@@ -515,10 +539,9 @@ No account or token value may be added to this register.
 | `pop-culture` | No | `null` | metadata | `OPEN` | Field/text/media rights split and attribution |
 | `data-gouv-fr` | **Yes** | `null` | API | `OPEN` | Dataset/resource-specific licence and immutable receipt |
 | `sirene` | No | `Licence Ouverte / Open Licence where applicable` | API | `OPEN` | Exact current source, field scope, legal text and privacy/publication disposition |
-| `datatourisme` | No | `null` | API | `OPEN` | Provider- and record-level licence/attribution |
+| `datatourisme` | No | `Licence Ouverte 2.0` (source statement only) | API | `HOLD` | Confirm API-v1 CGU scope, attribution completeness and recheck/versioning rule |
 
-The single non-null licence value is conditional on its face (`where applicable`) and belongs
-to a disabled source. Both enabled sources carry no licence receipt.
+Two disabled catalogue entries now carry licence labels. SIRENE remains conditional on its face (`where applicable`); DATAtourisme records `Licence Ouverte 2.0` only as an official source statement while its API-CGU scope remains HOLD. Neither label is runtime rights evidence. Both enabled catalogue sources still carry no licence receipt.
 
 ### The permissive default is now closed
 

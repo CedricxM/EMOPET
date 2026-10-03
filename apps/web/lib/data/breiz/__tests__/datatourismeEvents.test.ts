@@ -203,5 +203,5 @@ test('DATAtourisme remains source-rights blocked while technical contract is bui
   const rights = evaluateBreizSourceRights(source);
   assert.equal(rights.ingestionPermitted, false);
   assert.ok(rights.blockers.includes('SOURCE_DISABLED'));
-  assert.ok(rights.blockers.includes('NO_LICENCE_RECEIPT'));
+  assert.ok(rights.blockers.includes('NO_RIGHTS_EVIDENCE'));
 });

@@ -67,7 +67,7 @@ test('source evidence report preserves rights blockers and evidence state', () =
   assert.equal(datatourisme.ingestionPermitted, false);
   assert.equal(datatourisme.releaseReady, false);
   assert.ok(datatourisme.rightsBlockers.includes('SOURCE_DISABLED'));
-  assert.ok(datatourisme.rightsBlockers.includes('NO_LICENCE_RECEIPT'));
+  assert.ok(datatourisme.rightsBlockers.includes('NO_RIGHTS_EVIDENCE'));
   assert.equal(datatourisme.evidenceState, null);
   assert.equal(datatourisme.disposition, null);
 });
