@@ -197,6 +197,13 @@
       "source": "backend/db/schema/world-gamification.ts",
       "databaseDeleteAction": "NO_ACTION",
       "erasureDisposition": "TO_CONFIRM"
+    },
+    {
+      "table": "phone_presence_events",
+      "column": "owner_id",
+      "source": "backend/db/schema/sensors.ts",
+      "databaseDeleteAction": "NO_ACTION",
+      "erasureDisposition": "TO_CONFIRM"
     }
   ],
   "unconstrainedUserIdentifiers": [],

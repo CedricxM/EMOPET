@@ -141,6 +141,11 @@
       "table": "world_resource_spends",
       "column": "owner_id",
       "source": "backend/db/schema/world-gamification.ts"
+    },
+    {
+      "table": "phone_presence_events",
+      "column": "owner_id",
+      "source": "backend/db/schema/sensors.ts"
     }
   ],
   "unconstrainedUserIdentifiers": [],

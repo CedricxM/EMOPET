@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdir, readFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 
 const readRepo = (path) => readFile(new URL(`../../${path}`, import.meta.url), 'utf8');
 const contract = JSON.parse(
@@ -113,18 +113,34 @@ test('privacy and publication dependencies remain explicit human/control-plane g
   }
 });
 
-test('no migration has been reserved or created for the candidate relation', async () => {
-  assert.equal(contract.durableCandidate.migrationReserved, false);
+test('durable schema foundation exists without activating Product V1 Presence', async () => {
+  assert.equal(contract.durableCandidate.migrationReserved, true);
+  assert.equal(contract.durableCandidate.schemaFoundationPresent, true);
+  assert.equal(
+    contract.durableCandidate.migration,
+    'backend/db/migrations/0048_phone_presence_events.sql',
+  );
   assert.equal(contract.claims.durablePersistenceImplemented, false);
+  assert.equal(contract.claims.runtimeRouteActivated, false);
 
-  const migrationsUrl = new URL('../../backend/db/migrations/', import.meta.url);
-  const files = (await readdir(migrationsUrl)).filter((name) => name.endsWith('.sql'));
-  for (const file of files) {
-    const sql = await readRepo(`backend/db/migrations/${file}`);
-    assert.doesNotMatch(
-      sql,
-      /phone_presence_events/i,
-      `${file} unexpectedly activates phone Presence persistence`,
-    );
+  const sql = await readRepo(contract.durableCandidate.migration);
+  for (const required of [
+    'phone_presence_events',
+    'owner_id',
+    'dog_id',
+    'idempotency_key',
+    'phone_seen',
+    'observed_at',
+    'received_at',
+    'source',
+  ]) {
+    assert.match(sql, new RegExp(required));
   }
+  for (const forbidden of ['rssi', 'latitude', 'longitude', 'free_text']) {
+    assert.doesNotMatch(sql, new RegExp(forbidden, 'i'));
+  }
+
+  const route = await readRepo('backend/api/routes/sensors.ts');
+  assert.match(route, /PRESENCE_PERSISTENCE_NOT_READY/);
+  assert.doesNotMatch(route, /phonePresenceEvents/);
 });

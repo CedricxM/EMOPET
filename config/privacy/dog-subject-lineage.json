@@ -107,6 +107,11 @@
       "table": "professional_share_grants",
       "column": "dog_id",
       "source": "backend/db/schema/professional-sharing.ts"
+    },
+    {
+      "table": "phone_presence_events",
+      "column": "dog_id",
+      "source": "backend/db/schema/sensors.ts"
     }
   ],
   "unconstrainedDogIdentifiers": [
