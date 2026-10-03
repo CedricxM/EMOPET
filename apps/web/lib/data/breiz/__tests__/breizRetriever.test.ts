@@ -148,6 +148,20 @@ test('sync chunking refuses authority-bound public documents', async () => {
   assert.deepEqual(chunkBreizDocuments([document]), []);
 });
 
+test('verified chunking refuses a document mutated after promotion', async () => {
+  const document = await controlledDocument();
+  const mutated = {
+    ...document,
+    content: document.content + ' tampered before chunking',
+  };
+
+  const chunks = await chunkVerifiedBreizPublicDocument(mutated, {
+    maxWords: 40,
+    overlapWords: 5,
+  });
+  assert.deepEqual(chunks, []);
+});
+
 test('verified vector export preserves authority and content digests', async () => {
   const chunks = await chunkVerifiedBreizPublicDocument(
     await controlledDocument(),
