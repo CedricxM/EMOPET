@@ -1,0 +1,74 @@
+{
+  "version": "1",
+  "status": "SELECTED_NOT_IMPLEMENTED",
+  "decisionId": "WORLD-G5C-REFRESH-COORD-01",
+  "sourceIssue": 898,
+  "problem": "Cross-instance concurrent Owner refresh requests can reach separate web runtimes with the same HttpOnly refresh credential. The backend serializes family rotation, but strict rotated-token replay handling can then revoke the newly-active family as reuse_detected.",
+  "selectedPattern": "DEDICATED_INTERNAL_OWNER_REFRESH_SERVICE_CHANNEL",
+  "preservePublicRefreshStrictReuseDetection": true,
+  "publicRefresh": {
+    "route": "POST /api/auth/refresh",
+    "policy": "STRICT_REUSE_DETECTION_UNCHANGED",
+    "trustedConcurrentDuplicateRelaxationAllowed": false
+  },
+  "internalRefresh": {
+    "route": "POST /internal/owner-session/refresh",
+    "serviceAuthPackage": "@emopet/privileged-auth",
+    "issuer": "emopet-web",
+    "audience": "emopet-internal-owner-session-refresh",
+    "subject": "service:web",
+    "algorithm": "HS256",
+    "ttlSeconds": 30,
+    "bodySha256Bound": true,
+    "serviceSecretEnv": "EMOPET_INTERNAL_OWNER_SESSION_SERVICE_SECRET",
+    "secretMustDifferFrom": [
+      "JWT_SECRET",
+      "PRIVILEGED_JWT_SECRET",
+      "EMOPET_INTERNAL_AUDIT_SERVICE_SECRET",
+      "EMOPET_INTERNAL_ALERT_ACK_SERVICE_SECRET"
+    ]
+  },
+  "trustedConcurrentRotationRule": {
+    "allowedOnlyOnInternalServiceRoute": true,
+    "preLockObservedCredentialMustBeActive": true,
+    "postLockCredentialMustBeRevokedAs": "rotated",
+    "result": "CONCURRENT_ROTATION_SUPERSEDED",
+    "revokeActiveFamily": false,
+    "returnSuccessorRefreshToken": false,
+    "publicReplayBehaviorUnchanged": true
+  },
+  "webBffBehavior": {
+    "browserRefreshRoute": "POST /api/owner-session/refresh",
+    "onConcurrentRotationSuperseded": "DO_NOT_CLEAR_COOKIES_AND_RETURN_RETRYABLE_NON_SUCCESS",
+    "automaticWorldGetRefresh": false,
+    "accessTokenExposedToBrowserJs": false,
+    "refreshTokenExposedToBrowserJs": false
+  },
+  "infrastructureDecision": {
+    "redisProviderSelected": false,
+    "newDistributedCacheRequired": false,
+    "directWebPostgresAuthority": false,
+    "reuseExistingInternalServiceAuthPattern": true
+  },
+  "implementationSlices": [
+    "A_DEDICATED_SERVICE_TOKEN_PRIMITIVE_AND_SECRET_SEPARATION",
+    "B_INTERNAL_BACKEND_REFRESH_ROUTE_AND_CONCURRENT_RESULT",
+    "C_WEB_BFF_INTERNAL_REFRESH_CLIENT_AND_COOKIE_SAFE_HANDLING",
+    "D_MULTI_INSTANCE_INTEGRATION_PROOF",
+    "E_GATE5C_READINESS_REVIEW"
+  ],
+  "activation": {
+    "implementationReady": false,
+    "multiInstanceProofReady": false,
+    "uiCutoverAllowed": false,
+    "productionSecretCustodyVerified": false,
+    "productionBackendHttpsVerified": false
+  },
+  "rejectedShortcuts": [
+    "REUSE_INTERNAL_AUDIT_OR_ALERT_ACK_SECRET",
+    "EXPOSE_REFRESH_TOKEN_TO_BROWSER_JS",
+    "DIRECT_WEB_DATABASE_LOCKING",
+    "PUBLIC_REFRESH_GRACE_WINDOW_WITHOUT_SERVICE_AUTH",
+    "ADD_REDIS_WITHOUT_PROVIDER_AND_OPERATIONS_AUTHORITY"
+  ]
+}
