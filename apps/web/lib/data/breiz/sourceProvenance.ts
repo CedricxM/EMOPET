@@ -45,7 +45,7 @@ export interface BreizContextCard<T = unknown> {
  * une observation différente de `stale` : l'une constate une preuve périmée,
  * l'autre constate l'absence de la règle qui permettrait d'en juger.
  */
-export type BreizFreshnessVerdict = 'fresh' | 'stale' | 'no_recheck_rule' | 'unreadable_retrieval_date';
+export type BreizFreshnessVerdict = 'fresh' | 'stale' | 'no_recheck_rule' | 'unreadable_retrieval_date' | 'future_retrieval_date';
 
 export function evaluateFreshness(
   provenance: BreizSourceProvenance,
@@ -54,6 +54,7 @@ export function evaluateFreshness(
   if (provenance.freshnessPolicyHours === null) return 'no_recheck_rule';
   const retrieved = Date.parse(provenance.retrievedAt);
   if (!Number.isFinite(retrieved)) return 'unreadable_retrieval_date';
+  if (retrieved > now) return 'future_retrieval_date';
   return now - retrieved <= provenance.freshnessPolicyHours * 60 * 60 * 1000 ? 'fresh' : 'stale';
 }
 
