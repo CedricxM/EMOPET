@@ -14,6 +14,13 @@ const HISTORICAL_EXACT = new Set([
   'docs/strategy/GUARDIAN_RELATIONSHIP_AND_PRODUCT_SCOPE_DOCTRINE_2026-09-07.md',
   'docs/product/EMOPET_GUARDIAN_AUTHORITY_MASTER_v0.1.md',
   'docs/product/EMOPET_GUARDIAN_CONTINUITY_MASTER_v0.1.md',
+  // Recovered 2026-09-01 WP-02 source snapshots. These five files are preserved verbatim;
+  // current terminology and implementation truth live in the separate reconciliation record.
+  'docs/product/world/EMOPET_WORLD_QUIET_SOCIAL_LAYER_SPEC_v0.1.md',
+  'docs/product/world/EMOPET_WORLD_SOCIAL_ADVERSARIAL_CASES_v0.1.md',
+  'docs/product/world/EMOPET_WORLD_SOCIAL_TRUST_PERMISSION_MATRIX_v0.1.md',
+  'docs/product/world/EMOPET_WORLD_SOCIAL_TRUST_STATE_MACHINE_v0.1.md',
+  'docs/product/world/EMOPET_WORLD_ZERO_CHAT_COOP_TEST_PROTOCOL_v0.1.md',
   'docs/strategy/INT08_AUTHORITY_REPLAY_MANIFEST_2026-09-17.md',
   'backend/db/migrations/0006_professional_share_authority.sql',
   'backend/db/migrations/0009_professional_share_owner_terminology.sql',
