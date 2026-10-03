@@ -100,3 +100,84 @@ test('trend is controlled only as named longitudinal change, never a global well
   assert.ok(trend.prohibitedPublicTerms.includes('tendance ELI globale'));
   assert.ok(trend.prohibitedPublicTerms.includes('bien-être en hausse'));
 });
+
+
+test('share scope is bounded by recipient, purpose and access window rather than blanket consent', () => {
+  const shareScope = getMotsPetEntry('share_scope');
+  assert.ok(shareScope);
+  assert.equal(shareScope.status, 'CONTROLLED_SEED');
+  assert.equal(shareScope.domain, 'privacy');
+  assert.equal(shareScope.publicFr, 'périmètre de partage');
+  assert.equal(shareScope.publicEn, 'sharing scope');
+  assert.equal(shareScope.requiresProvenance, true);
+  assert.ok(shareScope.definitionFr.includes('destinataire ou audience'));
+  assert.ok(shareScope.definitionFr.includes('finalité'));
+  assert.ok(shareScope.definitionFr.includes('fenêtre d’accès'));
+  assert.ok(shareScope.definitionFr.includes('ni un consentement pour un autre usage'));
+  assert.ok(shareScope.prohibitedPublicTerms.includes('accès illimité'));
+  assert.ok(shareScope.prohibitedPublicTerms.includes('public par défaut'));
+});
+
+test('Moment stays private-first and cannot be minted from sensor or ELI interpretation', () => {
+  const moment = getMotsPetEntry('moment');
+  assert.ok(moment);
+  assert.equal(moment.status, 'CONTROLLED_SEED');
+  assert.equal(moment.domain, 'relationship');
+  assert.equal(moment.publicFr, 'moment choisi');
+  assert.equal(moment.publicEn, 'chosen moment');
+  assert.equal(moment.requiresProvenance, true);
+  assert.ok(moment.definitionFr.includes('Capture volontaire'));
+  assert.ok(moment.definitionFr.includes('privé par défaut'));
+  assert.ok(moment.definitionFr.includes('ne peut pas être créé automatiquement'));
+  assert.ok(moment.prohibitedPublicTerms.includes('moment heureux détecté'));
+  assert.ok(moment.prohibitedPublicTerms.includes('public automatiquement'));
+});
+
+test('Memory stays Owner-chosen relationship history rather than ELI sentiment', () => {
+  const memory = getMotsPetEntry('memory');
+  assert.ok(memory);
+  assert.equal(memory.status, 'CONTROLLED_SEED');
+  assert.equal(memory.domain, 'relationship');
+  assert.equal(memory.publicFr, 'souvenir choisi');
+  assert.equal(memory.publicEn, 'chosen memory');
+  assert.equal(memory.requiresProvenance, true);
+  assert.ok(memory.definitionFr.includes('propriétaire choisit explicitement'));
+  assert.ok(memory.definitionFr.includes('ni une interprétation ELI'));
+  assert.ok(memory.prohibitedPublicTerms.includes('souvenir généré automatiquement'));
+  assert.ok(memory.prohibitedPublicTerms.includes('preuve de lien'));
+  assert.ok(memory.prohibitedPublicTerms.includes('score de relation'));
+});
+
+test('Community visibility is an explicit audience choice, not automatic publication', () => {
+  const visibility = getMotsPetEntry('community_visibility');
+  assert.ok(visibility);
+  assert.equal(visibility.status, 'CONTROLLED_SEED');
+  assert.equal(visibility.domain, 'community');
+  assert.equal(visibility.publicFr, 'audience choisie');
+  assert.equal(visibility.publicEn, 'chosen audience');
+  assert.equal(visibility.requiresProvenance, true);
+  assert.ok(visibility.definitionFr.includes('Choix explicite'));
+  assert.ok(visibility.definitionFr.includes('ne publie rien à lui seul'));
+  assert.ok(visibility.definitionFr.includes('n’étend jamais silencieusement l’audience'));
+  assert.ok(visibility.definitionFr.includes('localisation exacte'));
+  assert.ok(visibility.prohibitedPublicTerms.includes('public automatiquement'));
+  assert.ok(
+    visibility.prohibitedPublicTerms.includes(
+      'localisation exacte partagée automatiquement',
+    ),
+  );
+});
+
+test('explicit preference stays Owner-declared and never becomes dog-state or relationship inference', () => {
+  const preference = getMotsPetEntry('explicit_preference');
+  assert.ok(preference);
+  assert.equal(preference.status, 'CONTROLLED_SEED');
+  assert.equal(preference.domain, 'relationship');
+  assert.equal(preference.publicFr, 'préférence déclarée');
+  assert.equal(preference.publicEn, 'explicit preference');
+  assert.equal(preference.requiresProvenance, true);
+  assert.ok(preference.definitionFr.includes('déclaré ou confirmé par le propriétaire'));
+  assert.ok(preference.definitionFr.includes('ne constitue pas une inférence'));
+  assert.ok(preference.prohibitedPublicTerms.includes('le chien préfère'));
+  assert.ok(preference.prohibitedPublicTerms.includes('score de relation'));
+});

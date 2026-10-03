@@ -12,7 +12,7 @@ Next.js web + Route Handlers ──┼── currently split API/data paths
 Hono API ──────────────────────┘
    │
    ├── Drizzle schemas / PostgreSQL driver
-   ├── ELI engine
+   ├── ELI physical-movement publication gate (no latent EKF runtime)
    └── shared validation and domain types
 
 MAT/TAG partial firmware ── BLE protocol package ── client/backend integration
@@ -46,21 +46,21 @@ The shared packages do not import application code. Applications and backend con
 
 - Framework: Hono 4 on `@hono/node-server`.
 - Input validation: `@hono/zod-validator` and validators from `@emopet/shared`.
-- Global middleware: logging, CORS, and fixed-window in-memory rate limits.
+- Middleware: logging/CORS, a shared database-backed auth rate-limit boundary for `/api/auth/*`, and process-local limits for other API traffic.
 - Public route group: `/api/auth`.
-- Authenticated route groups: dogs, sensors, community, feature progress, health, and directory.
+- Authenticated route groups: dogs, sensors, community, feature progress, health, directory, data export, blocks and connections; World read/spike groups are configuration-gated. `/api/auth/logout-all` also requires user authentication. Internal security service routes use separate service authentication.
 - Authentication: HS256 JWT verification through `jose`.
 - Authorization: dog ownership lookup through Drizzle; cross-owner lookup returns 404.
 
 Material limitations:
 
-- auth register/login/refresh handlers are TODO stubs;
-- several dog/sensor/health handlers return placeholders rather than durable records;
-- rate limits are process-local;
+- registration/email verification, login, refresh rotation/reuse handling and logout/logout-all are implemented against PostgreSQL;
+- ordinary Dog create/read/patch, sensor summaries and health-journal create/read are durable; destructive Dog erasure, Presence and reminder policy remain explicitly fail-closed;
+- ordinary API limits and web refresh single-flight are process-local; auth rate limiting uses its shared store;
 - the API contract is represented by TypeScript/Zod code, not a versioned OpenAPI artifact;
 - route-level negative authorization coverage is incomplete.
 
-Authentication and production authorization therefore remain `OPEN / GATED`.
+Authentication implementation and its scoped software tests must be distinguished from production authorization. Production email delivery evidence, legacy-account rollout, recovery/erasure and #831 release gates remain open. The canonical Owner web provider delegates to Hono using HttpOnly strict SameSite cookies; a World GET does not automatically refresh. #1100 selected an internal-channel coordination design, but main still has only instance-local single-flight and the cross-instance strict-reuse race. #1103 Slice A is deferred by the founder allocation; no internal refresh route, new BFF client or multi-instance proof is delivered here.
 
 ## 4. Persistence model
 
@@ -81,11 +81,11 @@ This is not full production-migration authority. Classified schema drift remains
 
 `apps/web/app/api/**` implements a separate set of Route Handlers for contact, journal, community, map, admin, Breiz, breeds, and context features.
 
-`apps/web/lib/server/store.ts` writes JSON collections under `.data/`. Web clients also use localStorage/sessionStorage fallbacks and prototype owner/admin tokens. These paths are outside the Hono JWT and dog-ownership middleware.
+`apps/web/lib/server/store.ts` writes JSON collections under `.data/`. Some clients retain browser prototype fallbacks. Current privileged web operations use their dedicated canonical verifier/session/origin boundaries; a legacy caller token is not privileged authority. The Owner session BFF uses HttpOnly cookies rather than browser token storage. These paths are outside the Hono JWT and dog-ownership middleware.
 
 ### Backend in-memory plane
 
-Backend services currently keep presence, consent, waitlist, community-rule, report, and block state in process memory for some prototype flows.
+Some prototype consent/waitlist services retain process-local state. Canonical Community membership/rules/posts/comments/events/report intake are PostgreSQL-backed. Presence Product V1 routes return `503 PRESENCE_PERSISTENCE_NOT_READY`; a legacy memory store is not a durable authority.
 
 ### Authority consequence
 
@@ -106,7 +106,7 @@ The repository currently has multiple stores and policy boundaries. PostgreSQL/b
 - API client sends Bearer tokens to the configured backend URL.
 - Auth state is in-memory Zustand state; no controlled secure persistence/recovery flow is implemented.
 - Platform manifests request Bluetooth and fine-location permissions; location purpose and consent remain gated.
-- Mobile preferences default location opt-in to false, but community and vet-export opt-ins to true. Those defaults conflict with private-by-default/explicit-opt-in constraints and require a controlled decision.
+- Mobile sensitive-consent mirrors default `location_opt_in`, `community_opt_in` and `vet_export_opt_in` to `false`. Generic local enabling of location/community consent is fail-closed; authoritative activation must come from the applicable backend/durable authority path. This local mirror is not durable account-bound authorization, so lifecycle/retention/export and temporary-location authority remain open under #131.
 
 ## 6. Sensor and inference boundaries
 
@@ -114,11 +114,11 @@ Shared sensor contracts use hourly summaries and derived features. Microphone-re
 
 This is positive implementation evidence for data minimization, but it is not end-to-end proof that raw audio cannot enter API payloads, logging, analytics, or future integrations. Negative contract and persistence tests remain required.
 
-`packages/eli-engine` contains inference, confidence, baseline, recovery/anticipation, and veto logic with unit tests. Scientific or product maturity must not be inferred from the presence of those algorithms or tests.
+`packages/eli-engine` contains inference, confidence, baseline, recovery/anticipation, and veto logic with unit tests. The backend now imports its physical-movement gate for `/api/sensors/eli/:dogId/physical-movement` (#479/#621): physical variability only, with provenance/quality and abstention, no affective interpretation or latent publication. Generic ELI/history remain `501`. Software conformance does not establish real TAG delivery, physical-device trust or scientific validity.
 
 ## 7. Firmware and transport
 
-`packages/ble-protocol` implements binary MAT/TAG frame parsing and commands. The firmware tree contains partial sensor algorithms for MAT and collar components, but no complete firmware application/build system was identified during the baseline inspection.
+`packages/ble-protocol` implements binary MAT/TAG frame parsing and commands. The firmware tree contains partial MAT/TAG algorithms and a later NCS peripheral scaffold. The original baseline's absence claim is historical; scaffold presence does not establish a target build, flash, real BLE capture, physical-device trust or integrated hardware feasibility.
 
 Firmware readiness is `OBSERVED_PARTIAL`, not validated hardware integration.
 
@@ -149,6 +149,9 @@ CI is materially stronger than the original baseline. Required-check enforcement
 
 ## 10. Confirmed constraints and open decisions
 
+Current work allocation is **MS-S1-PHYSICS** (#230/#480). The [Phase 2A control record](docs/control/EXECUTION_CONTROL_PLANE_RECONCILIATION_2026-10-03.md) records frozen/deferred candidates and separates implementation, exact-commit software testing, production authorization and external evidence. This architecture summary does not authorize another implementation slice.
+
+
 Confirmed working constraints for implementation:
 
 - protected-resource policy belongs on the backend;
@@ -159,7 +162,7 @@ Confirmed working constraints for implementation:
 
 Open or gated decisions include:
 
-- production identity provider/protocol and lifecycle;
+- production email delivery, legacy rollout, account recovery/erasure, privileged provider and identity lifecycle evidence;
 - remaining database drift and production migration/upgrade promotion authority under #831;
 - disposition of the Next.js prototype API/data plane;
 - consent, retention, deletion, location, and telemetry rules;

@@ -92,3 +92,75 @@ test('uncertainty and trend preserve explicit semantic classes across FR and EN'
     assert.equal(trend.provenance, 'REQUIRED');
   }
 });
+
+
+test('sharing scope remains metadata and never upgrades into blanket permission', () => {
+  for (const locale of ['fr', 'en'] as const) {
+    const projection = buildMotsPetLocaleProjection(locale);
+    const shareScope = projection.find(
+      (entry) => entry.conceptId === 'share_scope',
+    );
+
+    assert.ok(shareScope, locale);
+    assert.equal(shareScope.truthClass, 'SHARING_SCOPE_METADATA');
+    assert.equal(shareScope.provenance, 'REQUIRED');
+    assert.equal(shareScope.causalBoundary, 'NO_CAUSAL_UPGRADE');
+    assert.equal(shareScope.medicalBoundary, 'NON_DIAGNOSTIC');
+    assert.equal(
+      shareScope.privacyBoundary,
+      'PRESERVE_PURPOSE_AND_CONSENT',
+    );
+  }
+});
+
+test('Moment and Memory preserve deliberate Owner authorship across locales', () => {
+  for (const locale of ['fr', 'en'] as const) {
+    const projection = buildMotsPetLocaleProjection(locale);
+    const moment = projection.find((entry) => entry.conceptId === 'moment');
+    const memory = projection.find((entry) => entry.conceptId === 'memory');
+
+    assert.ok(moment, locale);
+    assert.equal(moment.truthClass, 'INTENTIONAL_CAPTURE');
+    assert.equal(moment.provenance, 'REQUIRED');
+    assert.equal(moment.privacyBoundary, 'PRESERVE_PURPOSE_AND_CONSENT');
+
+    assert.ok(memory, locale);
+    assert.equal(memory.truthClass, 'OWNER_CHOSEN_MEMORY_CONTENT');
+    assert.equal(memory.provenance, 'REQUIRED');
+    assert.equal(memory.privacyBoundary, 'PRESERVE_PURPOSE_AND_CONSENT');
+  }
+});
+
+test('Community visibility stays an explicit audience choice across locales', () => {
+  for (const locale of ['fr', 'en'] as const) {
+    const projection = buildMotsPetLocaleProjection(locale);
+    const visibility = projection.find(
+      (entry) => entry.conceptId === 'community_visibility',
+    );
+
+    assert.ok(visibility, locale);
+    assert.equal(visibility.truthClass, 'EXPLICIT_AUDIENCE_CHOICE');
+    assert.equal(visibility.provenance, 'REQUIRED');
+    assert.equal(visibility.causalBoundary, 'NO_CAUSAL_UPGRADE');
+    assert.equal(visibility.medicalBoundary, 'NON_DIAGNOSTIC');
+    assert.equal(
+      visibility.privacyBoundary,
+      'PRESERVE_PURPOSE_AND_CONSENT',
+    );
+  }
+});
+
+test('explicit preference is OWNER_PREFERENCE in every locale and keeps provenance', () => {
+  for (const locale of ['fr', 'en'] as const) {
+    const projection = buildMotsPetLocaleProjection(locale);
+    const preference = projection.find(
+      (entry) => entry.conceptId === 'explicit_preference',
+    );
+
+    assert.ok(preference, locale);
+    assert.equal(preference.truthClass, 'OWNER_PREFERENCE');
+    assert.equal(preference.provenance, 'REQUIRED');
+    assert.equal(preference.causalBoundary, 'NO_CAUSAL_UPGRADE');
+    assert.equal(preference.medicalBoundary, 'NON_DIAGNOSTIC');
+  }
+});

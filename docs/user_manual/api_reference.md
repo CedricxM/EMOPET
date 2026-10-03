@@ -1,6 +1,6 @@
 # EMOPET — Référence de l'API Hono observée
 
-Cette référence décrit les routes montées par `backend/api/index.ts` et a été réconciliée avec le runtime courant le 2026-10-02. Elle n'est ni un contrat OpenAPI versionné ni une preuve de disponibilité en production.
+Cette référence décrit les routes montées par `backend/api/index.ts` et a été réconciliée avec le runtime courant le 2026-10-03. Elle n'est ni un contrat OpenAPI versionné ni une preuve de disponibilité en production.
 
 L'ancienne référence FastAPI (`/predict`, `/insights`, rapports CSV et extensions Python) ne correspond pas au serveur actif. Elle reste consultable dans l'historique Git.
 
@@ -12,7 +12,7 @@ L'ancienne référence FastAPI (`/predict`, `/insights`, rapports CSV et extensi
 
 ## 2. Authentification et autorisation
 
-`GET /health` et le groupe `/api/auth` sont publics. Toutes les autres routes `/api/*` passent par le middleware JWT.
+`GET /health` et les routes publiques `/api/auth` sont montés avant le middleware JWT général ; `/api/auth/logout-all` impose son propre middleware utilisateur. Les autres groupes `/api/*` sont protégés, avec l'exception historique du lien PDF vétérinaire vérifié séparément. Les routes internes de sécurité utilisent leur authentification service, pas le JWT utilisateur.
 
 Pour une route protégée :
 
@@ -40,7 +40,9 @@ Limites importantes :
 | POST | `/api/auth/login` | Vérification du mot de passe et de l'état e-mail ; création d'une session refresh persistante + access token |
 | POST | `/api/auth/refresh` | Rotation transactionnelle du refresh credential et émission d'un nouvel access token |
 | POST | `/api/auth/logout` | Révocation de la famille de session concernée |
-| POST | `/api/auth/logout-all` | Révocation authentifiée de toutes les sessions actives du compte |
+| POST | `/api/auth/logout-all` | Bearer access token requis ; révocation des sessions actives du compte |
+
+Le provider Next Owner expose login/refresh/logout à cookies HttpOnly/SameSite strict et délègue à Hono. Les tokens ne sont pas publiés au JavaScript navigateur. Le refresh single-flight est instance-local ; Gate 5C reste fermé. La route future `/internal/owner-session/refresh` n'est pas montée sur main ; #1103 Slice A est différée, aucune Slice B/C n'est autorisée.
 
 ## 4. Routes protégées
 
@@ -69,6 +71,7 @@ Le mode démo sans token de l'application mobile peut construire une comparaison
 |---|---|---|
 | POST | `/api/sensors/summaries` | Persistance PostgreSQL owner-scoped avec provenance `ingestionId` + `deviceId`, liaison dog/source, snapshot firmware serveur et retry idempotent |
 | GET | `/api/sensors/summaries/:dogId` | Lecture PostgreSQL owner-scoped ; fenêtres bornées `1h/6h/12h/24h/48h/72h/7d/14d/30d`, ordre décroissant ; source indisponible => `503 PRODUCT_DATABASE_OPERATION_UNAVAILABLE` |
+| GET | `/api/sensors/eli/:dogId/physical-movement` | Projection Owner-scoped du gate physique canonique ; AVAILABLE/NONE_FOUND/UNAVAILABLE, sans latent ou interprétation affective |
 | GET | `/api/sensors/eli/:dogId` | Contrôle propriétaire ; `501 eli_runtime_not_implemented` tant qu’aucun producteur ELI autoritatif n’est câblé |
 | GET | `/api/sensors/eli/:dogId/history` | Contrôle propriétaire ; `501 eli_runtime_not_implemented` tant qu’aucun runtime/lecteur ELI autoritatif n’est câblé |
 | GET | `/api/sensors/baseline/:dogId` | Contrôle propriétaire ; `501 baseline_read_not_implemented` tant qu’aucune projection autoritative n’est câblée |

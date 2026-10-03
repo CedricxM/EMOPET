@@ -39,8 +39,6 @@ test('candidate-review concepts remain outside runtime MotsPet authority', () =>
     (entry) => entry.status === 'CANDIDATE_REVIEW',
   );
 
-  assert.ok(candidates.length >= 5);
-
   for (const candidate of candidates) {
     assert.equal(candidate.existingMotsPetId, null);
     assert.equal(getMotsPetEntry(candidate.id), undefined);
@@ -80,20 +78,13 @@ test('inventory reconciles v0.3 observation-contract concepts as existing contro
   }
 });
 
-test('inventory keeps the remaining next-review concepts outside runtime authority', () => {
-  for (const id of [
-    'share_scope',
-    'explicit_preference',
-    'moment',
-    'memory',
-    'community_visibility',
-  ]) {
-    const candidate = getMotsPetCandidateInventoryEntry(id);
-    assert.ok(candidate, id);
-    assert.equal(candidate.status, 'CANDIDATE_REVIEW', id);
-    assert.equal(candidate.existingMotsPetId, null, id);
-    assert.equal(getMotsPetEntry(id), undefined, id);
-  }
+test('candidate review queue is empty after controlled Community audience promotion', () => {
+  assert.equal(
+    MOTSPET_CANDIDATE_INVENTORY.some(
+      (entry) => entry.status === 'CANDIDATE_REVIEW',
+    ),
+    false,
+  );
 });
 
 test('v0.4 uncertainty and trend are reconciled as bounded controlled concepts', () => {
@@ -109,18 +100,53 @@ test('v0.4 uncertainty and trend are reconciled as bounded controlled concepts',
   }
 });
 
-test('relationship/community candidates do not become sensor-derived authority', () => {
-  for (const id of [
-    'explicit_preference',
-    'moment',
-    'memory',
-    'community_visibility',
-  ]) {
+test('explicit preference is reconciled as controlled Owner-preference authority', () => {
+  const candidate = getMotsPetCandidateInventoryEntry('explicit_preference');
+  assert.ok(candidate);
+  assert.equal(candidate.status, 'EXISTING_CONTROLLED');
+  assert.equal(candidate.existingMotsPetId, 'explicit_preference');
+
+  const runtime = getMotsPetEntry('explicit_preference');
+  assert.ok(runtime);
+  assert.equal(runtime.status, 'CONTROLLED_SEED');
+});
+
+test('share scope is reconciled as controlled privacy metadata', () => {
+  const candidate = getMotsPetCandidateInventoryEntry('share_scope');
+  assert.ok(candidate);
+  assert.equal(candidate.status, 'EXISTING_CONTROLLED');
+  assert.equal(candidate.existingMotsPetId, 'share_scope');
+
+  const runtime = getMotsPetEntry('share_scope');
+  assert.ok(runtime);
+  assert.equal(runtime.status, 'CONTROLLED_SEED');
+  assert.equal(runtime.domain, 'privacy');
+});
+
+test('Moment and Memory are controlled relationship-history concepts, not sensor-derived authority', () => {
+  for (const id of ['moment', 'memory']) {
     const candidate = getMotsPetCandidateInventoryEntry(id);
     assert.ok(candidate, id);
-    assert.equal(candidate.status, 'CANDIDATE_REVIEW');
-    assert.equal(candidate.existingMotsPetId, null);
+    assert.equal(candidate.status, 'EXISTING_CONTROLLED', id);
+    assert.equal(candidate.existingMotsPetId, id, id);
+
+    const runtime = getMotsPetEntry(id);
+    assert.ok(runtime, id);
+    assert.equal(runtime.status, 'CONTROLLED_SEED', id);
+    assert.equal(runtime.domain, 'relationship', id);
   }
+});
+
+test('Community visibility is controlled as explicit audience choice only', () => {
+  const candidate = getMotsPetCandidateInventoryEntry('community_visibility');
+  assert.ok(candidate);
+  assert.equal(candidate.status, 'EXISTING_CONTROLLED');
+  assert.equal(candidate.existingMotsPetId, 'community_visibility');
+
+  const runtime = getMotsPetEntry('community_visibility');
+  assert.ok(runtime);
+  assert.equal(runtime.status, 'CONTROLLED_SEED');
+  assert.equal(runtime.domain, 'community');
 });
 
 
@@ -149,13 +175,7 @@ test('review queue is derived from the canonical candidate inventory', () => {
     .map((entry) => entry.id);
 
   assert.deepEqual(projectedIds, canonicalIds);
-  assert.deepEqual(projectedIds, [
-    'share_scope',
-    'explicit_preference',
-    'moment',
-    'memory',
-    'community_visibility',
-  ]);
+  assert.deepEqual(projectedIds, []);
 });
 
 test('review queue snapshot derives runtime controlled and HOLD state without duplication', () => {

@@ -31,7 +31,7 @@ The repository intentionally preserves the current conflict instead of guessing:
 
 The exact controlling version for the bound source snapshot therefore requires primary-publisher clarification.
 
-## 3. Official target
+## 3. Official target and verified delivery channel
 
 Target authority:
 
@@ -45,7 +45,18 @@ Région Bretagne open-data portal:
 
 `https://data.bretagne.bzh/`
 
-The delivery channel must be confirmed from an official Région Bretagne contact mechanism at send time. Do not store private personal contact details in this repository.
+Verified public institutional delivery channel as of 2026-10-02:
+
+- role: `PRADA — personne responsable de l’accès aux documents administratifs et des questions relatives à la réutilisation des informations publiques`;
+- email: `prada@bretagne.bzh`;
+- official Région Bretagne reference: `https://www.bretagne.bzh/region/vos-droits/`;
+- CADA directory reference: `https://www.cada.fr/conseil-regional-de-bretagne`.
+
+The Région Bretagne public rights page states that its PRADA receives requests concerning access to administrative documents and licences for reuse of public information. The CADA directory identifies the same institutional mailbox.
+
+This confirms a role-based public delivery route only. It does not prove that a message was sent, received or answered, and it does not create any rights or partnership state.
+
+Do not store private personal contact details in this repository.
 
 ## 4. Exact questions to send
 

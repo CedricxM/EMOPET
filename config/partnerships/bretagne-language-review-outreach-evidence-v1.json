@@ -1,0 +1,6 @@
+{
+  "schemaVersion": "emopet-bretagne-language-review-outreach-evidence-v1",
+  "controlledAt": "2026-10-02",
+  "purpose": "Evidence receipts for relationship-state changes in Bretagne language-review outreach. Empty until actual outbound/inbound or internal-defer evidence exists.",
+  "receipts": []
+}

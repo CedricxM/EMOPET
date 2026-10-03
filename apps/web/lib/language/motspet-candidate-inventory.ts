@@ -1,5 +1,5 @@
 /**
- * MotsPet candidate inventory v2.
+ * MotsPet candidate inventory v7.
  *
  * This inventory is deliberately upstream of public wording. It records the
  * next concepts that need language review without promoting them into the
@@ -9,7 +9,7 @@
 import { MOTSPET_ENTRIES, getMotsPetEntry } from './motspet';
 
 export const MOTSPET_CANDIDATE_INVENTORY_REVISION =
-  'motspet-candidate-inventory-v3-2026-10-02' as const;
+  'motspet-candidate-inventory-v7-2026-10-02' as const;
 
 export type MotsPetCandidateStatus =
   | 'EXISTING_CONTROLLED'
@@ -48,8 +48,12 @@ const TOGETHER =
   'docs/product/EMOPET_TOGETHER_RELATIONSHIP_ENGINE_MASTER_v0.1.md';
 const SURFACES =
   'docs/product/EMOPET_SURFACE_NECESSITY_MATRIX_v0.1.md';
+const MEMORIES =
+  'docs/product/EMOPET_MEMORIES_EXPERIENCE_MASTER_v0.1.md';
 const DATA_TRUST =
   'docs/strategy/DATA_TRUST_AND_BUSINESS_MODEL_DOCTRINE_2026-09-07.md';
+const HUMANE_SOCIAL =
+  'docs/product/EMOPET_HUMANE_SOCIAL_ARCHITECTURE_MASTER_v0.2_VERIFIED_2026-09-01.md';
 
 function entry(
   value: Omit<MotsPetCandidateInventoryEntry, 'revision'>,
@@ -234,9 +238,9 @@ export const MOTSPET_CANDIDATE_INVENTORY: readonly MotsPetCandidateInventoryEntr
     internalTerms: ['share_scope', 'professional_share_scope', 'audience_scope'],
     sourceSurfaces: ['Professional share', 'Community'],
     reviewQuestionFr: 'Expliquer précisément ce qui est partagé, avec qui et pour quelle durée/finalité.',
-    authorityPaths: [OWNER_AUTHORITY, AUTHORITY_MAP],
-    status: 'CANDIDATE_REVIEW',
-    existingMotsPetId: null,
+    authorityPaths: [OWNER_AUTHORITY, AUTHORITY_MAP, DATA_TRUST],
+    status: 'EXISTING_CONTROLLED',
+    existingMotsPetId: 'share_scope',
   }),
   entry({
     id: 'explicit_preference',
@@ -245,8 +249,8 @@ export const MOTSPET_CANDIDATE_INVENTORY: readonly MotsPetCandidateInventoryEntr
     sourceSurfaces: ['Together', 'Breiz'],
     reviewQuestionFr: 'Distinguer une préférence déclarée d’une préférence inférée ou d’un jugement sur la relation.',
     authorityPaths: [TOGETHER, EXPERIENCE],
-    status: 'CANDIDATE_REVIEW',
-    existingMotsPetId: null,
+    status: 'EXISTING_CONTROLLED',
+    existingMotsPetId: 'explicit_preference',
   }),
   entry({
     id: 'moment',
@@ -254,19 +258,19 @@ export const MOTSPET_CANDIDATE_INVENTORY: readonly MotsPetCandidateInventoryEntr
     internalTerms: ['moment', 'intentional_capture'],
     sourceSurfaces: ['Moments', 'Memories'],
     reviewQuestionFr: 'Préserver le caractère volontaire et privé par défaut d’une capture de moment.',
-    authorityPaths: [SURFACES, EXPERIENCE],
-    status: 'CANDIDATE_REVIEW',
-    existingMotsPetId: null,
+    authorityPaths: [MEMORIES, SURFACES, EXPERIENCE, AUTHORITY_MAP],
+    status: 'EXISTING_CONTROLLED',
+    existingMotsPetId: 'moment',
   }),
   entry({
     id: 'memory',
     domain: 'relationship',
     internalTerms: ['memory', 'deliberate_memory'],
     sourceSurfaces: ['Memories'],
-    reviewQuestionFr: 'Décrire une mémoire choisie sans fabriquer de récit sentimental depuis les capteurs.',
-    authorityPaths: [SURFACES, AUTHORITY_MAP],
-    status: 'CANDIDATE_REVIEW',
-    existingMotsPetId: null,
+    reviewQuestionFr: 'Décrire un souvenir choisi sans fabriquer de récit sentimental depuis les capteurs.',
+    authorityPaths: [MEMORIES, SURFACES, AUTHORITY_MAP],
+    status: 'EXISTING_CONTROLLED',
+    existingMotsPetId: 'memory',
   }),
   entry({
     id: 'community_visibility',
@@ -274,9 +278,9 @@ export const MOTSPET_CANDIDATE_INVENTORY: readonly MotsPetCandidateInventoryEntr
     internalTerms: ['visibility', 'audience', 'community_visibility'],
     sourceSurfaces: ['Community', 'Circles', 'World'],
     reviewQuestionFr: 'Rendre l’audience et la visibilité explicites sans exposition automatique de données privées.',
-    authorityPaths: [SURFACES, OWNER_AUTHORITY],
-    status: 'CANDIDATE_REVIEW',
-    existingMotsPetId: null,
+    authorityPaths: [HUMANE_SOCIAL, SURFACES, OWNER_AUTHORITY, AUTHORITY_MAP],
+    status: 'EXISTING_CONTROLLED',
+    existingMotsPetId: 'community_visibility',
   }),
 ] as const;
 

@@ -8,6 +8,7 @@ import {
 } from '../bretagne-language-review-decision';
 import {
   evaluateBretagneLanguageReviewResponse,
+  type BretagneLanguageReviewAuthorityContext,
   type BretagneLanguageReviewResponse,
 } from '../bretagne-language-review-response';
 import {
@@ -16,6 +17,26 @@ import {
 } from '../bretagne-language-review-packet';
 
 const NOW = Date.parse('2026-10-02T09:00:00Z');
+
+function authority(
+  reviewItemIds: readonly string[] = [
+    'bretagne_companion_identity',
+    'bretagne_demat',
+    'bretagne_ar_veute',
+  ],
+  overrides: Partial<BretagneLanguageReviewAuthorityContext> = {},
+): BretagneLanguageReviewAuthorityContext {
+  return {
+    candidateId: 'oplb-termbret',
+    organisationName: 'Office public de la langue bretonne / TermBret',
+    relationshipStatus: 'REVIEW_SCOPE_AGREED',
+    packetRevision: BRETAGNE_LANGUAGE_REVIEW_PACKET_REVISION,
+    reviewItemIds,
+    scopeAgreementEvidenceRef: 'CONTROLLED_SCOPE_AGREEMENT_REF',
+    scopeAgreedAt: '2026-10-02T07:00:00Z',
+    ...overrides,
+  };
+}
 
 function identityProposal() {
   const packet = buildBretagneLanguageReviewPacket();
@@ -42,6 +63,7 @@ function identityProposal() {
 
   const result = evaluateBretagneLanguageReviewResponse(
     response,
+    [authority()],
     packet,
     NOW,
   );
@@ -76,6 +98,7 @@ function lexiconProposal(
 
   const result = evaluateBretagneLanguageReviewResponse(
     response,
+    [authority()],
     packet,
     NOW,
   );
@@ -125,6 +148,14 @@ test('accepted identity proposal yields only a manual runtime evidence candidate
   );
   assert.equal(result.runtimeCandidate.canApplyAutomatically, false);
   assert.equal(result.runtimeCandidate.semanticAuthorityChangeAllowed, false);
+  assert.equal(
+    result.runtimeCandidate.reviewAuthority.candidateId,
+    'oplb-termbret',
+  );
+  assert.equal(
+    result.runtimeCandidate.reviewAuthority.scopeAgreementEvidenceRef,
+    'CONTROLLED_SCOPE_AGREEMENT_REF',
+  );
 
   if (result.runtimeCandidate.kind === 'IDENTITY') {
     assert.equal(
@@ -154,6 +185,10 @@ test('accepted lexicon proposal yields an exact manual lexicon evidence candidat
   assert.equal(result.valid, true);
   assert.ok(result.runtimeCandidate);
   assert.equal(result.runtimeCandidate.kind, 'LEXICON');
+  assert.equal(
+    result.runtimeCandidate.reviewAuthority.organisationName,
+    'Office public de la langue bretonne / TermBret',
+  );
 
   if (result.runtimeCandidate.kind === 'LEXICON') {
     assert.equal(

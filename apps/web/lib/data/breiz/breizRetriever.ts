@@ -1,8 +1,20 @@
-import { chunkBreizDocuments } from './chunkDocuments';
+import {
+  chunkBreizDocuments,
+  chunkVerifiedBreizPublicDocuments,
+  type ChunkOptions,
+} from './chunkDocuments';
 import { MOCK_BREIZ_DOCUMENTS } from './mockDocuments';
 import { MockBreizVectorStore } from './mockVectorStore';
-import { getBreizSource, isBreizSourceReleaseReady } from './sourceRegistry';
-import type { BreizSourceDescriptor } from './sourceRegistry';
+import {
+  getBreizSource,
+  isBreizSourcePublicAnswerReady,
+  type BreizSourceDescriptor,
+} from './sourceRegistry';
+import { evaluateBreizDocumentFreshness } from './contentFreshness';
+import {
+  isSha256Hex,
+  verifyBreizChunkContentIntegrity,
+} from './documentIntegrity';
 import type { BreizDocument, BreizDocumentChunk } from './breizDocument.schema';
 
 export interface BreizSourceRef {
@@ -26,12 +38,14 @@ export interface BreizChunkAuthorityVerdict {
   blockers: string[];
 }
 
+type SourceLookup = (id: string) => BreizSourceDescriptor | undefined;
+
 /**
  * Pure authority comparison used by the runtime and deterministic tests.
  *
- * A matching registry id is not enough. The chunk must carry the exact reviewed
- * authority revision, immutable source version, receipt pointer and source
- * identity that are still current in the registry review record.
+ * Cryptographic content verification is deliberately separate and async.
+ * Public retrieval must satisfy both this authority verdict and the chunk
+ * digest check.
  */
 export function evaluateBreizChunkReleaseAuthority(
   chunk: BreizDocumentChunk,
@@ -40,9 +54,15 @@ export function evaluateBreizChunkReleaseAuthority(
 ): BreizChunkAuthorityVerdict {
   const blockers: string[] = [];
 
-  if (chunk.metadata.allowed_usage !== 'public_answer_with_source') blockers.push('USAGE_NOT_PUBLIC');
-  if (chunk.metadata.reliability_level !== 'source_verified') blockers.push('SOURCE_NOT_VERIFIED');
-  if (chunk.metadata.license.trim() === '') blockers.push('CHUNK_LICENCE_MISSING');
+  if (chunk.metadata.allowed_usage !== 'public_answer_with_source') {
+    blockers.push('USAGE_NOT_PUBLIC');
+  }
+  if (chunk.metadata.reliability_level !== 'source_verified') {
+    blockers.push('SOURCE_NOT_VERIFIED');
+  }
+  if (chunk.metadata.license.trim() === '') {
+    blockers.push('CHUNK_LICENCE_MISSING');
+  }
 
   const sourceRegistryId = chunk.metadata.source_registry_id?.trim();
   const binding = chunk.metadata.source_authority_binding;
@@ -50,8 +70,14 @@ export function evaluateBreizChunkReleaseAuthority(
   if (!sourceRegistryId) blockers.push('SOURCE_REGISTRY_ID_MISSING');
   if (!binding) blockers.push('AUTHORITY_BINDING_MISSING');
   if (!source) blockers.push('REGISTRY_SOURCE_MISSING');
+  if (!isSha256Hex(binding?.document_payload_sha256)) {
+    blockers.push('DOCUMENT_PAYLOAD_DIGEST_MISSING');
+  }
+  if (!isSha256Hex(chunk.content_sha256)) {
+    blockers.push('CHUNK_CONTENT_DIGEST_MISSING');
+  }
 
-  if (!source || !isBreizSourceReleaseReady(source, nowMs)) {
+  if (!source || !isBreizSourcePublicAnswerReady(source, nowMs)) {
     blockers.push('REGISTRY_RELEASE_NOT_READY');
     return { authorized: false, blockers: [...new Set(blockers)] };
   }
@@ -61,7 +87,32 @@ export function evaluateBreizChunkReleaseAuthority(
     return { authorized: false, blockers: [...new Set(blockers)] };
   }
 
-  if (sourceRegistryId !== source.id || binding.source_registry_id !== source.id) {
+  const freshness = evaluateBreizDocumentFreshness(
+    chunk.metadata,
+    source,
+    nowMs,
+  );
+  switch (freshness) {
+    case 'fresh':
+      break;
+    case 'stale':
+      blockers.push('CONTENT_STALE');
+      break;
+    case 'future_last_checked_at':
+      blockers.push('CONTENT_LAST_CHECK_FUTURE');
+      break;
+    case 'unreadable_last_checked_at':
+      blockers.push('CONTENT_LAST_CHECK_UNREADABLE');
+      break;
+    case 'no_recheck_rule':
+      blockers.push('CONTENT_NO_RECHECK_RULE');
+      break;
+  }
+
+  if (
+    sourceRegistryId !== source.id ||
+    binding.source_registry_id !== source.id
+  ) {
     blockers.push('REGISTRY_ID_MISMATCH');
   }
   if (binding.authority_revision !== evidence.authorityRevision) {
@@ -76,48 +127,98 @@ export function evaluateBreizChunkReleaseAuthority(
   if (binding.attribution_text !== evidence.attributionText) {
     blockers.push('ATTRIBUTION_MISMATCH');
   }
+  if (binding.permitted_use_summary !== evidence.permittedUseSummary) {
+    blockers.push('PERMITTED_USE_SUMMARY_MISMATCH');
+  }
+  if (
+    binding.allowed_product_uses.length !== evidence.allowedProductUses.length ||
+    !binding.allowed_product_uses.every(
+      (use, index) => use === evidence.allowedProductUses[index],
+    )
+  ) {
+    blockers.push('PRODUCT_USE_SCOPE_MISMATCH');
+  }
+  if (binding.rights_reviewed_at !== evidence.reviewedAt) {
+    blockers.push('RIGHTS_REVIEWED_AT_MISMATCH');
+  }
+  if ((binding.rights_recheck_at ?? null) !== (evidence.recheckAt ?? null)) {
+    blockers.push('RIGHTS_RECHECK_AT_MISMATCH');
+  }
+  if (binding.reviewer_role !== evidence.reviewerRole) {
+    blockers.push('RIGHTS_REVIEWER_ROLE_MISMATCH');
+  }
 
-  // H-07C-02: source identity carried by the chunk must agree with the reviewed
-  // registry identity. A matching string id cannot lend authority to unrelated
-  // source name/url/licence metadata.
-  if (binding.source_name !== source.name || chunk.metadata.source_name !== binding.source_name) {
+  if (
+    binding.source_name !== source.name ||
+    chunk.metadata.source_name !== binding.source_name
+  ) {
     blockers.push('SOURCE_NAME_MISMATCH');
   }
-  if (binding.source_url !== source.canonicalUrl || chunk.metadata.source_url !== binding.source_url) {
+  if (
+    binding.source_url !== source.canonicalUrl ||
+    chunk.metadata.source_url !== binding.source_url
+  ) {
     blockers.push('SOURCE_URL_MISMATCH');
   }
-  if (source.license == null || binding.license !== source.license || chunk.metadata.license !== binding.license) {
+  if (
+    source.license == null ||
+    binding.license !== source.license ||
+    chunk.metadata.license !== binding.license
+  ) {
     blockers.push('SOURCE_LICENCE_MISMATCH');
   }
 
-  return { authorized: blockers.length === 0, blockers: [...new Set(blockers)] };
+  return {
+    authorized: blockers.length === 0,
+    blockers: [...new Set(blockers)],
+  };
 }
 
-function canAnswerFromChunk(chunk: BreizDocumentChunk): boolean {
+function sourceForChunk(
+  chunk: BreizDocumentChunk,
+  lookup: SourceLookup,
+): BreizSourceDescriptor | undefined {
   const sourceRegistryId = chunk.metadata.source_registry_id?.trim();
-  const source = sourceRegistryId ? getBreizSource(sourceRegistryId) : undefined;
-  return evaluateBreizChunkReleaseAuthority(chunk, source).authorized;
+  return sourceRegistryId ? lookup(sourceRegistryId) : undefined;
 }
 
-export function createBreizMockStore(documents: BreizDocument[] = MOCK_BREIZ_DOCUMENTS): MockBreizVectorStore {
-  return new MockBreizVectorStore(chunkBreizDocuments(documents));
+/**
+ * Sync retrieval is mock/local-only. Authority-bound public content is never
+ * served here because Web Crypto integrity checks are async.
+ */
+function canAnswerFromChunk(
+  chunk: BreizDocumentChunk,
+  nowMs: number,
+): boolean {
+  if (chunk.metadata.source_authority_binding != null) return false;
+  const source = sourceForChunk(chunk, getBreizSource);
+  return evaluateBreizChunkReleaseAuthority(chunk, source, nowMs).authorized;
 }
 
-export function retrieveBreizLocalKnowledge(
+async function canAnswerFromVerifiedChunk(
+  chunk: BreizDocumentChunk,
+  nowMs: number,
+  lookup: SourceLookup,
+): Promise<boolean> {
+  const source = sourceForChunk(chunk, lookup);
+  if (!evaluateBreizChunkReleaseAuthority(chunk, source, nowMs).authorized) {
+    return false;
+  }
+  return verifyBreizChunkContentIntegrity(chunk);
+}
+
+function answerFromChunks(
   query: string,
-  store: MockBreizVectorStore = createBreizMockStore(),
-  k = 4,
+  chunks: BreizDocumentChunk[],
 ): BreizRetrievalAnswer {
-  const safeK = Math.max(1, Math.min(k, 8));
-  const hits = store.search(query, safeK * 3);
-  const chunks = hits.map((hit) => hit.chunk).filter(canAnswerFromChunk).slice(0, safeK);
   if (chunks.length === 0) {
     return {
       status: 'not_enough_information',
       query,
       chunks: [],
       source_refs: [],
-      note: 'The local corpus does not contain enough reviewed and provenance-bound information for this question.',
+      note:
+        'The local corpus does not contain enough reviewed, current and integrity-verified information for this question.',
     };
   }
 
@@ -138,6 +239,63 @@ export function retrieveBreizLocalKnowledge(
     query,
     chunks,
     source_refs: sourceRefs,
-    note: 'Use these chunks as grounded context. Do not add local facts that are absent from the reviewed sources.',
+    note:
+      'Use these integrity-verified chunks as grounded context. Do not add local facts that are absent from the reviewed sources.',
   };
+}
+
+export function createBreizMockStore(
+  documents: BreizDocument[] = MOCK_BREIZ_DOCUMENTS,
+): MockBreizVectorStore {
+  return new MockBreizVectorStore(chunkBreizDocuments(documents));
+}
+
+export async function createBreizVerifiedPublicStore(
+  documents: BreizDocument[],
+  options: ChunkOptions = {},
+): Promise<MockBreizVectorStore> {
+  return new MockBreizVectorStore(
+    await chunkVerifiedBreizPublicDocuments(documents, options),
+  );
+}
+
+export function retrieveBreizLocalKnowledge(
+  query: string,
+  store: MockBreizVectorStore = createBreizMockStore(),
+  k = 4,
+  nowMs: number = Date.now(),
+): BreizRetrievalAnswer {
+  const safeK = Math.max(1, Math.min(k, 8));
+  const hits = store.search(query, safeK * 3);
+  const chunks = hits
+    .map((hit) => hit.chunk)
+    .filter((chunk) => canAnswerFromChunk(chunk, nowMs))
+    .slice(0, safeK);
+  return answerFromChunks(query, chunks);
+}
+
+export async function retrieveBreizVerifiedLocalKnowledge(
+  query: string,
+  store: MockBreizVectorStore,
+  k = 4,
+  nowMs: number = Date.now(),
+  lookup: SourceLookup = getBreizSource,
+): Promise<BreizRetrievalAnswer> {
+  const safeK = Math.max(1, Math.min(k, 8));
+  const hits = store.search(query, safeK * 3);
+  const checks = await Promise.all(
+    hits.map(async (hit) => ({
+      chunk: hit.chunk,
+      authorized: await canAnswerFromVerifiedChunk(
+        hit.chunk,
+        nowMs,
+        lookup,
+      ),
+    })),
+  );
+  const chunks = checks
+    .filter((entry) => entry.authorized)
+    .map((entry) => entry.chunk)
+    .slice(0, safeK);
+  return answerFromChunks(query, chunks);
 }

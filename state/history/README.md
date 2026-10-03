@@ -127,3 +127,77 @@ node scripts/control/verify-transition-source-snapshot.mjs \
   --source-snapshot-ref main@<already-merged-sha> \
   --base-sha <pull-request-base-sha>
 ```
+
+## Workflow status doctor
+
+`scripts/control/transition-workflow-status.mjs` is a read-only diagnostic for the proposal → review → append path.
+
+Default diagnostic:
+
+```bash
+node scripts/control/transition-workflow-status.mjs
+```
+
+The default diagnostic computes a Git-blob manifest for the controlled Company OS state files and compares it with the manifest embedded in the committed proposal queue.
+
+That makes queue freshness **content-aware**: unrelated repository commits do not stale the queue, while any byte change to a controlled state file does.
+
+`--current-ref main@<sha>` remains optional provenance context for the diagnostic output. It is not the freshness signal.
+
+To inspect a prepared reviewed candidate:
+
+```bash
+node scripts/control/transition-workflow-status.mjs \
+  --reviewed-candidate reviewed-transition-append.json
+```
+
+The helper can report:
+
+- `PROPOSAL_QUEUE_STALE` when an explicit current ref no longer matches the queue candidate ref;
+- `NO_PENDING_PROPOSALS`;
+- `PROPOSAL_REVIEW_REQUIRED`;
+- `REVIEWED_CANDIDATE_ORPHANED`;
+- `REVIEWED_CANDIDATE_SOURCE_MISMATCH`;
+- `REVIEWED_CANDIDATE_STALE`;
+- `REVIEWED_CANDIDATE_READY_FOR_MANUAL_FINALIZATION_INPUTS`.
+
+`PROPOSAL_QUEUE_STALE` fails closed when the current controlled-state manifest differs from the queue candidate manifest, before proposal count, review handoff or reviewed-candidate readiness is trusted. The next action is to regenerate the review-only queue from the current controlled state.
+
+A raw main-branch SHA difference alone is not enough to mark the queue stale.
+
+These are mechanical workflow states only. They are not approval, validation, release authority, funding authority or a substitute for the substantive human review.
+
+
+## Transition review packet
+
+`scripts/control/transition-review-packet.mjs` turns a proposal queue into a human-readable inspection packet without modifying any controlled state.
+
+Render the committed queue:
+
+```bash
+node scripts/control/transition-review-packet.mjs
+```
+
+Render a CI-generated proposal artifact:
+
+```bash
+node scripts/control/transition-review-packet.mjs \
+  --proposal-queue company-transition-proposals.json
+```
+
+Focus one proposal:
+
+```bash
+node scripts/control/transition-review-packet.mjs \
+  --proposal-queue company-transition-proposals.json \
+  --proposal-id EMO-PROPOSAL-YYYYMMDD-NNNN
+```
+
+The packet is inspection only. It is not approval, a review reference, append readiness or substantive decision authority. A real accepted proposal still requires the separate reviewed append preparation flow with a real dated review reference.
+
+
+## Operator handoff
+
+When the workflow doctor reports `PROPOSAL_REVIEW_REQUIRED`, its `operator_handoff` points to the existing read-only transition review packet command.
+
+The handoff is mechanical navigation only. With multiple pending proposals it renders the full queue and deliberately does not select a proposal ID, rank proposals, or imply review priority. It never accepts, approves, prepares, finalizes or appends a transition.

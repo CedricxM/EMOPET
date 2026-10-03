@@ -9,13 +9,15 @@
     "authority_mode",
     "base_ref",
     "candidate_ref",
+    "base_state_manifest",
+    "candidate_state_manifest",
     "generated_on",
     "proposals"
   ],
   "properties": {
     "schema_version": {
       "type": "string",
-      "const": "0.1.0"
+      "const": "0.2.0"
     },
     "authority_mode": {
       "type": "string",
@@ -38,6 +40,12 @@
       "items": {
         "$ref": "#/$defs/proposal"
       }
+    },
+    "base_state_manifest": {
+      "$ref": "#/$defs/stateManifest"
+    },
+    "candidate_state_manifest": {
+      "$ref": "#/$defs/stateManifest"
     }
   },
   "$defs": {
@@ -161,6 +169,44 @@
           "type": "string",
           "minLength": 1
         }
+      }
+    },
+    "stateManifestEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "git_blob_sha"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "enum": [
+            "state/company-state.json",
+            "state/corporate/corporate-state.json",
+            "state/freshness/freshness-state.json",
+            "state/milestones/MS-S1-PHYSICS.json",
+            "state/experiments/EXP-MAT-INCREMENTAL-001.json",
+            "state/experiments/EXP-TAG-PHYSICAL-001.json",
+            "state/finance/finance-state.json",
+            "state/finance/fundraising/PRESEED-CONDITIONAL-2027.json",
+            "state/metrics/metrics.json",
+            "state/risks/risk-register.json",
+            "state/unknowns/critical-unknowns.json"
+          ]
+        },
+        "git_blob_sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      }
+    },
+    "stateManifest": {
+      "type": "array",
+      "minItems": 11,
+      "maxItems": 11,
+      "items": {
+        "$ref": "#/$defs/stateManifestEntry"
       }
     }
   }

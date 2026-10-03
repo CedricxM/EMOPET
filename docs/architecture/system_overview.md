@@ -1,6 +1,6 @@
 # EMOPET — Vue système observée
 
-Ce document complète `ARCHITECTURE.md` avec un flux de lecture court. Il a été réconcilié avec le dépôt courant le 2026-10-02 sans revendiquer de maturité produit, scientifique, clinique ou de production.
+Ce document complète `ARCHITECTURE.md` avec un flux de lecture court. Il a été réconcilié avec le dépôt courant le 2026-10-03 sans revendiquer de maturité produit, scientifique, clinique ou de production.
 
 Le diagramme `docs/architecture/data_flow_diagram.png` décrit l'ancienne architecture Python/FastAPI et doit être traité comme historique, pas comme le diagramme du runtime actuel.
 
@@ -13,7 +13,7 @@ Application web Next.js ── Route Handlers Next ── JSON .data / replis na
 
 Application Expo ───────── packages ELI / BLE / types ───────── MAT/TAG partiels
           │
-          └─────────────── client HTTP prévu pour le backend
+          └─────────────── client HTTP vers le backend
 
 Backend Hono ───────────── Drizzle / Postgres.js ─────────────── PostgreSQL
           └─────────────── stores mémoire pour certains prototypes
@@ -44,7 +44,7 @@ Ces lignes représentent plusieurs plans d'exécution et de persistance. Elles n
 2. Le mobile transforme les données en contrats TypeScript, notamment des résumés et caractéristiques dérivées.
 3. `POST /api/sensors/summaries` valide un résumé et vérifie l'accès au chien.
 4. Le résumé est persisté dans PostgreSQL avec provenance `ingestionId` + `deviceId`, liaison dog/source et retry idempotent.
-5. Les lectures ELI génériques et baseline restent explicitement fail-closed tant qu'aucun producteur/projection autoritatif n'est câblé.
+5. La slice physique `/api/sensors/eli/:dogId/physical-movement` utilise le gate canonique et une source PostgreSQL Owner-scoped. Aucun latent ni claim affectif n'est publié. ELI générique/history et baseline restent fail-closed.
 
 Le moteur ELI et ses tests sont du code observé, pas une preuve de validation scientifique ou de produit fini.
 
@@ -60,7 +60,7 @@ Les handlers `apps/web/app/api/**` couvrent notamment le journal, la carte, la c
 
 ### Mémoire du backend
 
-Certains services conservent présence, consentements, waitlist, règles communautaires, rapports ou blocages dans la mémoire du processus.
+Certains consentements/waitlists prototype sont process-local. Le core Community membership/règles/posts/commentaires/événements/report intake est durable. Presence reste `503 PRESENCE_PERSISTENCE_NOT_READY` ; #1093 est gelée en attente des sémantiques #133/#481 et d'une allocation.
 
 ### Navigateur
 
@@ -84,7 +84,7 @@ Plusieurs clients web ont des replis localStorage/sessionStorage et des identifi
 - contrat API versionné ;
 - consentements privés par défaut ;
 - preuve de non-rétention/transmission audio ;
-- CI, protection de branche et propriété du déploiement ;
+- autorité de release/environnement, secrets, TLS et backup/restore sous #831 ; la protection main et les checks sélectionnés sont déjà actifs ;
 - éventuelle promotion du spike Unity/Nakama vers une autorité World de production.
 
-Ces sujets restent `OPEN`, `BLOCKED` ou `GATED` selon `ARCHITECTURE.md` ; cette vue ne change aucun statut.
+Le cycle auth PostgreSQL et le provider web Owner existent ; les tests logiciels n'autorisent pas leur exploitation production. Le single-flight refresh reste instance-local et la course multi-instance n'est pas résolue. Voir `docs/control/EXECUTION_CONTROL_PLANE_RECONCILIATION_2026-10-03.md` pour la priorité MS-S1-PHYSICS et les gels. Ces sujets restent OPEN/BLOCKED/GATED selon leurs autorités ; cette vue ne les promeut pas.

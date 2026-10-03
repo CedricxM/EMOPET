@@ -24,6 +24,7 @@ export type BreizRightsEvidenceState =
   | 'HOLD'
   | 'OPEN';
 export type BreizReleaseDisposition = 'GO' | 'HOLD' | 'REMEDIATE';
+export type BreizRightsProductUse = 'INGESTION' | 'PUBLIC_ANSWER_WITH_SOURCE';
 
 export interface BreizRightsEvidence {
   /** Immutable identifier for the exact human-reviewed rights record. */
@@ -34,6 +35,8 @@ export interface BreizRightsEvidence {
   receiptPath: string;
   attributionText: string;
   permittedUseSummary: string;
+  /** Machine-readable product uses granted by this exact reviewed receipt. */
+  allowedProductUses: readonly BreizRightsProductUse[];
   reviewedAt: string;
   reviewerRole: string;
   recheckAt?: string | null;
@@ -202,6 +205,9 @@ export function getBreizSource(id: string): BreizSourceDescriptor | undefined {
 export type BreizSourceRightsBlocker =
   | 'SOURCE_DISABLED'
   | 'NO_LICENCE_RECEIPT'
+  | 'NO_RIGHTS_EVIDENCE'
+  | 'RIGHTS_EVIDENCE_OUT_OF_WINDOW'
+  | 'INGESTION_SCOPE_NOT_GRANTED'
   | 'NO_RECHECK_RULE'
   | 'PARTNER_PERMISSION_REQUIRED';
 
@@ -217,11 +223,47 @@ export interface BreizSourceRightsVerdict {
  * Ce verdict constate la présence d'éléments techniques ; il ne vaut jamais
  * avis juridique ni autorisation produit.
  */
-export function evaluateBreizSourceRights(source: BreizSourceDescriptor): BreizSourceRightsVerdict {
+export function evaluateBreizSourceRights(
+  source: BreizSourceDescriptor,
+  nowMs: number = Date.now(),
+): BreizSourceRightsVerdict {
   const blockers: BreizSourceRightsBlocker[] = [];
 
   if (!source.enabled) blockers.push('SOURCE_DISABLED');
   if (source.license === null || source.license.trim() === '') blockers.push('NO_LICENCE_RECEIPT');
+
+  const evidence = source.rightsEvidence;
+  if (
+    !evidence ||
+    evidence.evidenceState !== 'SOURCE_CONFIRMED' ||
+    evidence.disposition !== 'GO' ||
+    evidence.authorityRevision.trim().length === 0 ||
+    evidence.immutableSourceVersion.trim().length === 0 ||
+    evidence.receiptPath.trim().length === 0 ||
+    evidence.attributionText.trim().length === 0 ||
+    evidence.permittedUseSummary.trim().length === 0 ||
+    evidence.reviewerRole.trim().length === 0 ||
+    parseEvidenceTime(evidence.reviewedAt) == null
+  ) {
+    blockers.push('NO_RIGHTS_EVIDENCE');
+  }
+
+  if (evidence && !evidence.allowedProductUses.includes('INGESTION')) {
+    blockers.push('INGESTION_SCOPE_NOT_GRANTED');
+  }
+
+  if (evidence && evidence.evidenceState === 'SOURCE_CONFIRMED' && evidence.disposition === 'GO') {
+    const reviewedAt = parseEvidenceTime(evidence.reviewedAt);
+    const recheckAt = evidence.recheckAt == null ? null : parseEvidenceTime(evidence.recheckAt);
+    if (
+      reviewedAt == null ||
+      reviewedAt > nowMs ||
+      (evidence.recheckAt != null && (recheckAt == null || recheckAt <= nowMs))
+    ) {
+      blockers.push('RIGHTS_EVIDENCE_OUT_OF_WINDOW');
+    }
+  }
+
   if (source.freshnessHours === null) blockers.push('NO_RECHECK_RULE');
   if (source.usagePolicy.includes('PARTNER_PERMISSION_REQUIRED')) blockers.push('PARTNER_PERMISSION_REQUIRED');
 
@@ -258,7 +300,7 @@ export function isBreizSourceReleaseReady(
   source: BreizSourceDescriptor,
   nowMs: number = Date.now(),
 ): boolean {
-  if (!evaluateBreizSourceRights(source).ingestionPermitted) return false;
+  if (!evaluateBreizSourceRights(source, nowMs).ingestionPermitted) return false;
 
   const evidence = source.rightsEvidence;
   if (!evidence) return false;
@@ -284,4 +326,12 @@ export function isBreizSourceReleaseReady(
   }
 
   return true;
+}
+
+export function isBreizSourcePublicAnswerReady(
+  source: BreizSourceDescriptor,
+  nowMs: number = Date.now(),
+): boolean {
+  if (!isBreizSourceReleaseReady(source, nowMs)) return false;
+  return source.rightsEvidence?.allowedProductUses.includes('PUBLIC_ANSWER_WITH_SOURCE') === true;
 }

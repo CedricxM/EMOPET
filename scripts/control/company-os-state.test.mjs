@@ -3,10 +3,17 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { renderCompanyOsViews } from './generate-company-os-views.mjs';
-import { CONTROLLED_STATE_PATHS, proposeCompanyTransitions } from './propose-company-transitions.mjs';
+import {
+  CONTROLLED_STATE_PATHS,
+  loadLocalStateManifest,
+  proposeCompanyTransitions,
+  stateManifestsEqual,
+} from './propose-company-transitions.mjs';
 import { prepareReviewedTransitionAppend } from './prepare-reviewed-transition-append.mjs';
 import { finalizeReviewedTransitionAppend } from './finalize-reviewed-transition-append.mjs';
 import { assertSourceSnapshotIncludedInBase, verifySourceSnapshotMergedInBase } from './verify-transition-source-snapshot.mjs';
+import { inspectTransitionWorkflow } from './transition-workflow-status.mjs';
+import { renderTransitionReviewPacket } from './transition-review-packet.mjs';
 
 const root = process.cwd();
 
@@ -946,6 +953,17 @@ test('transition proposal queue is review-only and schema-valid', () => {
     proposalQueue.authority_mode,
     'DIFF_PROPOSALS_REQUIRE_EXPLICIT_REVIEW',
   );
+  assert.equal(proposalQueue.schema_version, '0.2.0');
+  assert.deepEqual(
+    proposalQueue.candidate_state_manifest,
+    loadLocalStateManifest(),
+    'committed proposal queue must describe the current controlled-state bytes',
+  );
+  assert.deepEqual(
+    proposalQueue.candidate_state_manifest.map((entry) => entry.path).sort(),
+    [...CONTROLLED_STATE_PATHS].sort(),
+    'proposal queue manifest must cover every controlled state path exactly once',
+  );
 
   for (const proposal of proposalQueue.proposals) {
     assert.equal(proposal.review_status, 'REVIEW_REQUIRED');
@@ -986,9 +1004,20 @@ test('transition proposals are deterministic diffs and never self-approve', () =
     },
   };
 
+  const baseManifest = CONTROLLED_STATE_PATHS.map((path) => ({
+    path,
+    git_blob_sha: 'b'.repeat(40),
+  }));
+  const candidateManifest = CONTROLLED_STATE_PATHS.map((path) => ({
+    path,
+    git_blob_sha: 'c'.repeat(40),
+  }));
+
   const queue = proposeCompanyTransitions(before, after, {
     baseRef: 'main@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
     candidateRef: 'head@cccccccccccccccccccccccccccccccccccccccc',
+    baseStateManifest: baseManifest,
+    candidateStateManifest: candidateManifest,
     generatedOn: '2026-10-01',
   });
 
@@ -1006,9 +1035,17 @@ test('transition proposals are deterministic diffs and never self-approve', () =
   const unchanged = proposeCompanyTransitions(after, after, {
     baseRef: 'main@cccccccccccccccccccccccccccccccccccccccc',
     candidateRef: 'head@cccccccccccccccccccccccccccccccccccccccc',
+    baseStateManifest: candidateManifest,
+    candidateStateManifest: candidateManifest,
     generatedOn: '2026-10-01',
   });
   assert.equal(unchanged.proposals.length, 0);
+  assert.ok(
+    stateManifestsEqual(
+      unchanged.base_state_manifest,
+      unchanged.candidate_state_manifest,
+    ),
+  );
 
   assert.doesNotMatch(
     readText('scripts/control/propose-company-transitions.mjs'),
@@ -1122,6 +1159,321 @@ test('reviewed transition append preparation requires explicit review and never 
     source,
     /outputPath === ledgerAbsolute/,
     'reviewed append preparer must reject the canonical ledger as its output path',
+  );
+});
+
+test('transition review packet renders exact proposal evidence without approving or mutating it', () => {
+  const queue = {
+    schema_version: '0.1.0',
+    authority_mode: 'DIFF_PROPOSALS_REQUIRE_EXPLICIT_REVIEW',
+    base_ref: 'main@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+    candidate_ref: 'head@cccccccccccccccccccccccccccccccccccccccc',
+    generated_on: '2026-10-02',
+    proposals: [
+      {
+        proposal_id: 'EMO-PROPOSAL-20261002-0001',
+        review_status: 'REVIEW_REQUIRED',
+        kind: 'STATE_TRANSITION',
+        subject_id: 'EMO-TEST-PHASE',
+        field: 'status',
+        before_value: 'OPEN',
+        after_value: 'PASSED',
+        source_path: 'state/company-state.json',
+        authority_refs: [{ kind: 'path', value: 'COMPANY.md' }],
+        evidence_refs: [{ kind: 'commit', value: 'a'.repeat(40) }],
+        decision_refs: [],
+        append_ready: false,
+        note: 'Synthetic review fixture.',
+      },
+      {
+        proposal_id: 'EMO-PROPOSAL-20261002-0002',
+        review_status: 'REVIEW_REQUIRED',
+        kind: 'EVIDENCE_TRANSITION',
+        subject_id: 'EMO-TEST-EVIDENCE',
+        field: 'evidence_refs',
+        before_value: [],
+        after_value: [{ kind: 'commit', value: 'a'.repeat(40) }],
+        source_path: 'state/company-state.json',
+        authority_refs: [],
+        evidence_refs: [{ kind: 'commit', value: 'a'.repeat(40) }],
+        decision_refs: [],
+        append_ready: false,
+        note: 'Synthetic evidence fixture.',
+      },
+    ],
+  };
+
+  const before = JSON.stringify(queue);
+  const rendered = renderTransitionReviewPacket(queue);
+
+  assert.equal(JSON.stringify(queue), before, 'renderer must not mutate the proposal queue');
+  assert.match(rendered, /REVIEW REQUIRED/);
+  assert.match(rendered, /NOT APPROVAL/);
+  assert.match(rendered, /EMO-PROPOSAL-20261002-0001/);
+  assert.match(rendered, /"OPEN"/);
+  assert.match(rendered, /"PASSED"/);
+  assert.match(rendered, /commit \`aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\`/);
+  assert.match(rendered, /Source order is not a priority ranking/);
+  assert.match(rendered, /Do not treat this packet as that review reference/);
+
+  const focused = renderTransitionReviewPacket(queue, {
+    proposalId: 'EMO-PROPOSAL-20261002-0002',
+  });
+  assert.doesNotMatch(focused, /EMO-PROPOSAL-20261002-0001/);
+  assert.match(focused, /EMO-PROPOSAL-20261002-0002/);
+
+  assert.throws(
+    () => renderTransitionReviewPacket(queue, { proposalId: 'UNKNOWN' }),
+    /Unknown proposal ID/,
+  );
+
+  assert.throws(
+    () =>
+      renderTransitionReviewPacket({
+        ...queue,
+        proposals: [{ ...queue.proposals[0], append_ready: true }],
+      }),
+    /cannot be append-ready/,
+  );
+
+  assert.throws(
+    () =>
+      renderTransitionReviewPacket({
+        ...queue,
+        proposals: [
+          {
+            ...queue.proposals[0],
+            authority_refs: [{ kind: 'mystery', value: 'x' }],
+          },
+        ],
+      }),
+    /unsupported reference kind/,
+  );
+
+  const empty = renderTransitionReviewPacket({ ...queue, proposals: [] });
+  assert.match(empty, /No pending proposals/);
+  assert.match(empty, /does \*\*not\*\* certify/);
+
+  const source = readText('scripts/control/transition-review-packet.mjs');
+  assert.doesNotMatch(
+    source,
+    /writeFileSync|appendFileSync|prepareReviewedTransitionAppend|finalizeReviewedTransitionAppend/,
+    'review packet renderer must stay read-only and cannot accept, prepare, finalize or append',
+  );
+});
+
+test('transition workflow status is read-only and exposes mechanical next state without approval', () => {
+  const queueManifest = CONTROLLED_STATE_PATHS.map((path) => ({
+    path,
+    git_blob_sha: 'c'.repeat(40),
+  }));
+  const queue = {
+    schema_version: '0.2.0',
+    authority_mode: 'DIFF_PROPOSALS_REQUIRE_EXPLICIT_REVIEW',
+    base_ref: 'main@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+    candidate_ref: 'head@cccccccccccccccccccccccccccccccccccccccc',
+    base_state_manifest: CONTROLLED_STATE_PATHS.map((path) => ({
+      path,
+      git_blob_sha: 'b'.repeat(40),
+    })),
+    candidate_state_manifest: queueManifest,
+    generated_on: '2026-10-02',
+    proposals: [
+      {
+        proposal_id: 'EMO-PROPOSAL-20261002-0001',
+        review_status: 'REVIEW_REQUIRED',
+        append_ready: false,
+      },
+    ],
+  };
+
+  const tail = transitionEvents.at(-1)?.event_id ?? null;
+
+  const reviewRequired = inspectTransitionWorkflow(queue, transitionEvents);
+  assert.equal(reviewRequired.mechanical_state, 'PROPOSAL_REVIEW_REQUIRED');
+  assert.equal(reviewRequired.next_action_code, 'REVIEW_PROPOSAL');
+  assert.equal(reviewRequired.mutates_ledger, false);
+  assert.equal(reviewRequired.human_review_required, true);
+  assert.equal(reviewRequired.substantive_decision_authority, false);
+  assert.equal(reviewRequired.operator_handoff.action, 'RENDER_REVIEW_PACKET');
+  assert.equal(
+    reviewRequired.operator_handoff.scope,
+    'SINGLE_PENDING_PROPOSAL',
+  );
+  assert.match(
+    reviewRequired.operator_handoff.command,
+    /transition-review-packet\.mjs --proposal-queue state\/history\/pending-transition-proposals\.json/,
+  );
+  assert.match(
+    reviewRequired.operator_handoff.note,
+    /does not select, prioritize, accept or approve/i,
+  );
+
+  const multiProposal = inspectTransitionWorkflow(
+    {
+      ...queue,
+      proposals: [
+        ...queue.proposals,
+        {
+          proposal_id: 'EMO-PROPOSAL-20261002-0002',
+          review_status: 'REVIEW_REQUIRED',
+          append_ready: false,
+        },
+      ],
+    },
+    transitionEvents,
+  );
+  assert.equal(
+    multiProposal.operator_handoff.scope,
+    'FULL_PENDING_QUEUE_NO_PRIORITY_RANKING',
+  );
+  assert.doesNotMatch(
+    multiProposal.operator_handoff.command,
+    /--proposal-id/,
+    'multi-proposal handoff must not synthesize a review priority',
+  );
+
+  const reviewedCandidate = {
+    proposal_id: 'EMO-PROPOSAL-20261002-0001',
+    candidate_ref: queue.candidate_ref,
+    ledger_tail_event_id: tail,
+    append_candidate: {
+      source_candidate_ref: queue.candidate_ref,
+      previous_event_id: tail,
+    },
+  };
+
+  const mechanicallyReady = inspectTransitionWorkflow(
+    queue,
+    transitionEvents,
+    reviewedCandidate,
+  );
+  assert.equal(
+    mechanicallyReady.mechanical_state,
+    'REVIEWED_CANDIDATE_READY_FOR_MANUAL_FINALIZATION_INPUTS',
+  );
+  assert.equal(
+    mechanicallyReady.next_action_code,
+    'SUPPLY_MANUAL_FINALIZATION_INPUTS',
+  );
+  assert.match(mechanicallyReady.next_action, /human/i);
+
+  const stale = inspectTransitionWorkflow(
+    queue,
+    [
+      ...transitionEvents,
+      { event_id: 'EMO-TRANSITION-20261002-9999' },
+    ],
+    reviewedCandidate,
+  );
+  assert.equal(stale.mechanical_state, 'REVIEWED_CANDIDATE_STALE');
+
+  const mismatched = inspectTransitionWorkflow(
+    queue,
+    transitionEvents,
+    {
+      ...reviewedCandidate,
+      candidate_ref: 'head@dddddddddddddddddddddddddddddddddddddddd',
+    },
+  );
+  assert.equal(
+    mismatched.mechanical_state,
+    'REVIEWED_CANDIDATE_SOURCE_MISMATCH',
+  );
+
+  const orphaned = inspectTransitionWorkflow(
+    queue,
+    transitionEvents,
+    {
+      ...reviewedCandidate,
+      proposal_id: 'EMO-PROPOSAL-20261002-9999',
+    },
+  );
+  assert.equal(orphaned.mechanical_state, 'REVIEWED_CANDIDATE_ORPHANED');
+
+  const empty = inspectTransitionWorkflow(
+    { ...queue, proposals: [] },
+    transitionEvents,
+  );
+  assert.equal(empty.mechanical_state, 'NO_PENDING_PROPOSALS');
+  assert.equal(empty.operator_handoff, null);
+
+  const sameStateDifferentRef = inspectTransitionWorkflow(
+    { ...queue, proposals: [] },
+    transitionEvents,
+    null,
+    {
+      currentRef: 'main@dddddddddddddddddddddddddddddddddddddddd',
+      currentStateManifest: queueManifest,
+    },
+  );
+  assert.equal(
+    sameStateDifferentRef.mechanical_state,
+    'NO_PENDING_PROPOSALS',
+    'unrelated commits must not stale a proposal queue when controlled-state bytes are unchanged',
+  );
+  assert.equal(sameStateDifferentRef.queue_freshness_checked, true);
+
+  const changedManifest = queueManifest.map((entry, index) => ({
+    ...entry,
+    git_blob_sha: index === 0 ? 'd'.repeat(40) : entry.git_blob_sha,
+  }));
+  const staleQueue = inspectTransitionWorkflow(
+    { ...queue, proposals: [] },
+    transitionEvents,
+    null,
+    {
+      currentRef: 'main@dddddddddddddddddddddddddddddddddddddddd',
+      currentStateManifest: changedManifest,
+    },
+  );
+  assert.equal(staleQueue.mechanical_state, 'PROPOSAL_QUEUE_STALE');
+  assert.equal(staleQueue.next_action_code, 'REGENERATE_PROPOSAL_QUEUE');
+  assert.equal(
+    staleQueue.current_ref,
+    'main@dddddddddddddddddddddddddddddddddddddddd',
+  );
+  assert.equal(
+    staleQueue.operator_handoff,
+    null,
+    'stale queues must not hand off into proposal review',
+  );
+  assert.match(staleQueue.next_action, /controlled-state files/i);
+
+  const staleReviewedCandidate = inspectTransitionWorkflow(
+    queue,
+    transitionEvents,
+    reviewedCandidate,
+    {
+      currentStateManifest: changedManifest,
+    },
+  );
+  assert.equal(
+    staleReviewedCandidate.mechanical_state,
+    'PROPOSAL_QUEUE_STALE',
+    'controlled-state freshness must fail closed before reviewed-candidate readiness',
+  );
+  assert.equal(staleReviewedCandidate.operator_handoff, null);
+
+  assert.throws(
+    () =>
+      inspectTransitionWorkflow(queue, transitionEvents, null, {
+        currentRef: 'main@not-a-sha',
+        currentStateManifest: queueManifest,
+      }),
+    /currentRef must be/,
+  );
+
+  const source = readText('scripts/control/transition-workflow-status.mjs');
+  assert.doesNotMatch(
+    source,
+    /writeFileSync|appendFileSync|finalizeReviewedTransitionAppend/,
+    'workflow status helper must stay read-only and cannot finalize or append history',
+  );
+  assert.match(
+    source,
+    /MECHANICAL_WORKFLOW_STATUS_NOT_DECISION_AUTHORITY/,
+    'workflow status helper must disclose its non-authority boundary',
   );
 });
 

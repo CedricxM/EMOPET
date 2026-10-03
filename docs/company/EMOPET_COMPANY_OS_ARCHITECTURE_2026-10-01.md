@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-01  
 **Status:** `PROPOSED COMPANY CONTROL PLANE / DOES NOT REPLACE DOMAIN AUTHORITIES`  
-**Branch base:** `main@cdec93af57bdf49429598fbe0c20f28ffef9a6c0`
+**Branch base:** `main@069d258c5a97e52818b0f2f186b95864cb34320d`
 
 ## 1. Purpose
 
@@ -178,6 +178,8 @@ Both views fail closed: missing data remains missing, planning remains planning,
 | `state/history/reviewed-transition-append.schema.json` | Reviewed append-candidate contract | V2 preparation contract; never authorizes ledger mutation |
 | `.github/PULL_REQUEST_TEMPLATE/company-transition-append.md` | Human append-PR checklist | V2 review aid; not approval authority |
 | `scripts/control/verify-transition-source-snapshot.mjs` | Verify appended source snapshot is already contained in PR-base main | V2 ancestry guard; not domain validation |
+| `scripts/control/transition-workflow-status.mjs` | Read-only mechanical status for proposal → review → append workflow | V2 operator aid; not review, decision or finalization authority |
+| `scripts/control/transition-review-packet.mjs` | Human-readable rendering of review-only transition proposals | V2 review aid; not approval, review record, decision or ledger authority |
 | `state/freshness/freshness-state.json` | Machine-readable freshness overlay | V2 projection with decision-use guardrails |
 | `state/schemas/registry-schema-map.json` | Registry → JSON Schema contract map | V2 structural contract; not domain authority |
 | `EXPERIMENTS.md` | Hypothesis → test → result → decision ledger | V1 projection/index |
@@ -304,6 +306,49 @@ The checklist makes the human review boundary explicit: reviewers confirm the un
 
 This prevents an unmerged branch commit, divergent commit or future PR head from being cited as if it were already merged company history. The check validates Git ancestry only and cannot approve or substantively validate the transition.
 
+### Human-readable transition review packets
+
+`scripts/control/transition-review-packet.mjs` renders a proposal queue into a bounded review surface without changing the queue or ledger.
+
+The packet:
+
+- shows base/candidate refs, proposal IDs, subject/field/source and exact before/after values;
+- exposes public-safe authority, evidence and decision refs already present in the proposal;
+- validates supported reference shapes and fails closed on malformed/unknown refs;
+- includes a human review checklist;
+- supports focusing one proposal by ID;
+- preserves `REVIEW_REQUIRED` and `append_ready=false`;
+- never writes a review decision, prepares a reviewed append candidate, finalizes an event or appends history;
+- explicitly states that source order is not a priority ranking.
+
+A rendered packet is not itself a review record. If a real reviewer accepts a proposal, the separate reviewed-append preparation path must still receive a real dated review reference.
+
+### Mechanical workflow status
+
+`scripts/control/transition-workflow-status.mjs` reduces operator guesswork across the reviewed-transition workflow without mutating any controlled record.
+
+It reports only mechanical state:
+
+- whether the current controlled-state file manifest still matches the proposal queue candidate manifest;
+- the optional current Git ref as provenance context, without treating unrelated commits as state changes;
+- whether the proposal queue is empty or still requires review;
+- whether an optional reviewed candidate still maps to the current proposal queue;
+- whether its candidate ref still matches;
+- whether its recorded ledger tail still matches the current append-only ledger;
+- which mechanical step is possible next;
+- when review is mechanically required, a deterministic handoff to the existing read-only review packet.
+
+The status helper MUST remain weaker than review/finalization:
+
+- it never writes files or appends history;
+- it fails closed with `PROPOSAL_QUEUE_STALE` before proposal count, review handoff or reviewed-candidate readiness is trusted when the controlled-state manifest changes;
+- a raw repository SHA change does not stale the queue if all controlled-state blobs are identical;
+- it never marks a proposal accepted, approved, validated or decided;
+- it never allocates an event ID or source snapshot;
+- it never substitutes for the human review reference or append PR;
+- `READY_FOR_MANUAL_FINALIZATION_INPUTS` means only that mechanical references still align;
+- an `operator_handoff` is navigation, not prioritization: if multiple proposals are pending it renders the full queue and MUST NOT select a proposal on the operator's behalf.
+
 ## 11. Confidentiality boundary
 
 The repository is public. Therefore the Company OS MUST NOT contain:
@@ -336,7 +381,7 @@ Any AI agent doing substantive EMOPET work should:
 
 V1 includes the company front door, machine-readable state, milestone/experiment/finance/metrics/risk/unknowns registries, and an every-PR structural evidence guard.
 
-V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, deterministic human views generated from machine-readable state, a public-safe founder cockpit, redacted investor/supplier views, an append-only Company Time Machine transition ledger, review-only transition proposals generated from controlled state diffs, reviewed-proposal append preparation, a human-approved finalization path, and an append-PR checklist with merged-main source-snapshot verification. Freshness remains conservative, and structural, presentation, historical-record, proposal, preparation, finalization or ancestry validity never substitutes for domain evidence or authority.
+V2 adds the public-safe Corporate/IP projection, the freshness overlay, per-registry schema contracts with cross-object dependency validation, deterministic human views generated from machine-readable state, a public-safe founder cockpit, redacted investor/supplier views, an append-only Company Time Machine transition ledger, review-only transition proposals generated from controlled state diffs, reviewed-proposal append preparation, a human-approved finalization path, and an append-PR checklist with merged-main source-snapshot verification, a read-only transition workflow status doctor with an explicit stale-queue guard and review-packet handoff, and a read-only transition review packet renderer. Freshness remains conservative, and structural, presentation, historical-record, proposal, preparation, finalization or ancestry validity never substitutes for domain evidence or authority.
 
 Next bounded slices should be chosen from observed operator friction in the reviewed transition workflow rather than added for completeness.
 

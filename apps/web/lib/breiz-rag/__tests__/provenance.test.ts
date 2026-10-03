@@ -33,6 +33,7 @@ const released: BreizSourceDescriptor = {
     receiptPath: 'data/registry/receipts/test.json',
     attributionText: 'Test publisher — Licence Ouverte 2.0',
     permittedUseSummary: 'public answer with attribution',
+    allowedProductUses: ['INGESTION', 'PUBLIC_ANSWER_WITH_SOURCE'],
     reviewedAt: '2026-09-26T00:00:00Z',
     reviewerRole: 'rights reviewer',
     recheckAt: '2026-10-26T00:00:00Z',
@@ -49,6 +50,15 @@ test('D1: a third-party territorial sheet is served only when the rights registr
 
   const pending = { ...released, rightsEvidence: { ...released.rightsEvidence!, disposition: 'HOLD' as const } };
   assert.equal(isServable(registry, NOW, () => pending), false);
+
+  const ingestionOnly = {
+    ...released,
+    rightsEvidence: {
+      ...released.rightsEvidence!,
+      allowedProductUses: ['INGESTION'] as const,
+    },
+  };
+  assert.equal(isServable(registry, NOW, () => ingestionOnly), false);
 
   assert.equal(isServable(registry, NOW, () => released), true);
   assert.equal(sourceLabel(registry, NOW, () => released), 'Test publisher — Licence Ouverte 2.0');
