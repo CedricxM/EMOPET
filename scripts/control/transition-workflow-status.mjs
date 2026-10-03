@@ -137,6 +137,14 @@ export function inspectTransitionWorkflow(
   }
 
   const currentRef = options.currentRef ?? null;
+  const repository = options.repository ?? null;
+  if (
+    repository !== null &&
+    (typeof repository !== 'string' ||
+      !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository))
+  ) {
+    throw new Error('repository must use owner/name');
+  }
   if (
     currentRef !== null &&
     (typeof currentRef !== 'string' ||
@@ -161,19 +169,37 @@ export function inspectTransitionWorkflow(
       ? null
       : `node scripts/control/transition-review-packet.mjs --proposal-queue ${DEFAULT_PROPOSAL_PATH}`;
 
-  const operatorHandoff =
-    status.next_action_code === 'REVIEW_PROPOSAL'
-      ? {
-          action: 'RENDER_REVIEW_PACKET',
-          command: proposalPacketCommand,
-          scope:
-            proposalQueue.proposals.length === 1
-              ? 'SINGLE_PENDING_PROPOSAL'
-              : 'FULL_PENDING_QUEUE_NO_PRIORITY_RANKING',
-          note:
-            'This handoff opens the read-only review surface only. It does not select, prioritize, accept or approve a proposal.',
-        }
-      : null;
+  let operatorHandoff = null;
+  if (status.next_action_code === 'REVIEW_PROPOSAL') {
+    operatorHandoff = {
+      action: 'RENDER_REVIEW_PACKET',
+      command: proposalPacketCommand,
+      scope:
+        proposalQueue.proposals.length === 1
+          ? 'SINGLE_PENDING_PROPOSAL'
+          : 'FULL_PENDING_QUEUE_NO_PRIORITY_RANKING',
+      note:
+        'This handoff opens the read-only review surface only. It does not select, prioritize, accept or approve a proposal.',
+    };
+  } else if (status.next_action_code === 'REGENERATE_PROPOSAL_QUEUE') {
+    const safeRemoteRefs =
+      repository &&
+      typeof proposalQueue.candidate_ref === 'string' &&
+      proposalQueue.candidate_ref.startsWith('main@') &&
+      currentRef &&
+      currentRef.startsWith('main@');
+
+    operatorHandoff = {
+      action: 'REGENERATE_PROPOSAL_QUEUE',
+      command: safeRemoteRefs
+        ? `node scripts/control/propose-company-transitions.mjs --repository ${repository} --base-ref ${proposalQueue.candidate_ref} --candidate-ref ${currentRef} --output state/history/pending-transition-proposals.json`
+        : null,
+      scope: 'REMOTE_CONTROLLED_STATE_MANIFEST_DIFF_NO_DECISION_AUTHORITY',
+      note: safeRemoteRefs
+        ? 'This handoff regenerates review-only proposals between explicit merged-main controlled-state manifests. It does not review, prioritize, accept, prepare, finalize or append a transition.'
+        : 'Supply --repository and a main@<sha> --current-ref, with a main@<sha> queue candidate, to render an explicit remote regeneration command. No queue mutation is performed by the workflow doctor.',
+    };
+  }
 
   return {
     schema_version: '0.4.0',
@@ -208,6 +234,8 @@ function main() {
   const reviewedCandidatePath = argValue('--reviewed-candidate');
   const currentRef =
     argValue('--current-ref') ?? process.env.EMOPET_CURRENT_REF ?? null;
+  const repository =
+    argValue('--repository') ?? process.env.GITHUB_REPOSITORY ?? null;
   const currentStateManifest = loadLocalStateManifest();
 
   const proposalQueue = readJson(proposalPath);
@@ -226,7 +254,7 @@ function main() {
     proposalQueue,
     ledgerEvents,
     reviewedCandidate,
-    { currentRef, currentStateManifest },
+    { currentRef, currentStateManifest, repository },
   );
 
   process.stdout.write(JSON.stringify(result, null, 2) + '\n');
