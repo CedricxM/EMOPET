@@ -878,6 +878,13 @@ jobs:
           EMOPET_DB_INTEGRATION_TEST: '1'
         run: node --test test/health-entries.integration.test.mjs
 
+      - name: PRESENCE-01 durable phone Presence foundation
+        working-directory: backend
+        env:
+          DATABASE_URL: postgres://emopet_qa:emopet_qa_only@127.0.0.1:5432/emopet_qa_generated
+          EMOPET_DB_INTEGRATION_TEST: '1'
+        run: node --test test/phone-presence-events-schema.integration.test.mjs
+
       - name: PRIV-DISC-01 transactional subject discovery
         working-directory: backend
         env:
