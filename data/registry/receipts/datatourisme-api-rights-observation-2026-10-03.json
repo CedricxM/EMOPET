@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "emopet-datatourisme-api-rights-observation-v1",
+  "sourceId": "datatourisme",
+  "reviewedOn": "2026-10-03",
+  "evidenceState": "REPOSITORY_FACT",
+  "runtimeRightsDisposition": "HOLD",
+  "releaseAllowed": false,
+  "licenceObservation": {
+    "observedValue": "Licence Ouverte 2.0",
+    "status": "SOURCE_STATEMENT_CONFIRMED",
+    "sources": [
+      "https://www.datatourisme.fr/utiliser-les-donnees/",
+      "https://www.datatourisme.fr/faq/",
+      "https://www.datatourisme.fr/ressources-juridiques/"
+    ],
+    "requiredAttribution": [
+      "HasBeenCreatedBy / producer attribution",
+      "last update date of reused data"
+    ]
+  },
+  "apiObservation": {
+    "docsUrl": "https://api.datatourisme.fr/v1/docs",
+    "apiVersion": "1.0.0",
+    "productionOrigin": "https://api.datatourisme.fr",
+    "preferredAuthentication": "X-API-Key",
+    "endpointUnderReview": "/v1/entertainmentAndEvent",
+    "publishedLimits": {
+      "concurrentRequests": "20-30",
+      "sustainedRequestsPerSecond": "~10",
+      "requestsPerHour": 1000
+    }
+  },
+  "cguObservation": {
+    "linkedFromCurrentApiKeyForm": true,
+    "linkedDocument": "https://www.datatourisme.fr/wp-content/uploads/2025/12/datatourisme-cgu-diffuseur-v2.0.pdf",
+    "documentTitle": "INTERFACE DIFFUSEURS DATATOURISME - Conditions Générales d’Utilisation",
+    "documentVersion": "2.0",
+    "documentDate": "2022-08-23",
+    "scopeState": "API_V1_SCOPE_NOT_EXPLICITLY_CONFIRMED_IN_REPOSITORY",
+    "holdReason": "The current API-key request page links this CGU, but the linked document is titled for the Interface diffuseurs and predates the 2026 public API launch. EMOPET does not infer API-specific legal scope from that link alone."
+  },
+  "immutableSourceVersion": null,
+  "clarificationRequest": {
+    "target": "DATAtourisme / ADN Tourisme",
+    "contactRoute": "https://www.datatourisme.fr/nous-contacter/",
+    "sent": false,
+    "requiredAnswers": [
+      "Confirm whether the linked CGU v2.0 dated 2022-08-23 is the currently applicable CGU for API v1 use.",
+      "Confirm that data returned by api.datatourisme.fr/v1 are reusable under Licence Ouverte 2.0.",
+      "Confirm the required attribution for API-derived records, including HasBeenCreatedBy and last-update date.",
+      "Confirm whether the bounded metadata-only EMOPET event fields require any additional reuse condition.",
+      "Identify how API CGU/licence changes are versioned or notified so EMOPET can define a recheck rule."
+    ]
+  },
+  "runtimeBoundary": {
+    "sourceMustRemainEnabled": false,
+    "rightsEvidenceMayBeGo": false,
+    "allowedProductUses": [],
+    "liveFetchAuthorityCreated": false
+  },
+  "notes": [
+    "This receipt records observed official source statements only.",
+    "It is not legal sign-off, partnership evidence, endorsement or production approval.",
+    "The generic Breiz rights gate remains authoritative."
+  ]
+}
