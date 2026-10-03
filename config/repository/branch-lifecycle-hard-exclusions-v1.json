@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "status": "CONTROLLED_HARD_EXCLUSIONS",
+  "issue": 679,
+  "authority": "READ_ONLY_AUDIT_POLICY_NOT_DELETION_AUTHORITY",
+  "exactBranches": [
+    {
+      "branch": "experience-hardening-2026-09-06",
+      "sourcePr": 224,
+      "reason": "#224 provenance/source material remains explicitly excluded by issue #679."
+    },
+    {
+      "branch": "qa/brand-switch-rendered-qa-2026-09-21",
+      "sourcePr": 430,
+      "reason": "Closed-unmerged #430 head remains excluded until explicit reconstruction/provenance disposition."
+    },
+    {
+      "branch": "fix/mobile-overflow-390-2026-09-21",
+      "sourcePr": 435,
+      "reason": "Closed-unmerged #435 head remains excluded until explicit reconstruction/provenance disposition."
+    },
+    {
+      "branch": "eval/breiz-kill-test-226",
+      "sourcePr": 645,
+      "reason": "Closed-unmerged #645 head remains excluded until explicit reconstruction/provenance disposition."
+    },
+    {
+      "branch": "feat/world-social-01-blocks-594",
+      "sourcePr": 636,
+      "reason": "World #636-related provenance is a hard exclusion under issue #679."
+    },
+    {
+      "branch": "spike/world-nakama-565",
+      "sourcePr": 566,
+      "reason": "Nakama #566-related provenance is a hard exclusion under issue #679."
+    }
+  ],
+  "rules": [
+    "Hard exclusions are evaluated before merged-head cleanup candidacy.",
+    "An exact hard-exclusion branch can never be emitted as SAFE_MERGED_MAIN_HEAD_CANDIDATE.",
+    "Open PR heads remain independently protected even when not listed here.",
+    "This registry creates no deletion authority and does not imply that unlisted branches are safe."
+  ]
+}
