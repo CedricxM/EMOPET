@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import type { BreizDocument } from '../breizDocument.schema';
-import { chunkBreizDocuments } from '../chunkDocuments';
+import type { BreizDocument, BreizDocumentChunk } from '../breizDocument.schema';
+import { chunkVerifiedBreizPublicDocument } from '../chunkDocuments';
+import { promoteBreizDocumentForPublicAnswer } from '../authorityPromotion';
 import { evaluateBreizChunkReleaseAuthority } from '../breizRetriever';
 import type { BreizSourceDescriptor } from '../sourceRegistry';
 
@@ -39,29 +40,13 @@ function source(overrides: Partial<BreizSourceDescriptor> = {}): BreizSourceDesc
   };
 }
 
-function document(overrides: Partial<BreizDocument> = {}): BreizDocument {
+function neutralDocument(): BreizDocument {
   return {
     id: 'fixture-lorient',
     title: 'Boucle du port de Lorient',
-    source_name: 'Fixture source',
-    source_url: 'https://example.invalid/source',
-    source_registry_id: 'fixture-source',
-    source_authority_binding: {
-      source_registry_id: 'fixture-source',
-      authority_revision: 'review-001',
-      immutable_source_version: 'dataset-v1',
-      receipt_path: 'data/registry/receipts/fixture.json',
-      source_name: 'Fixture source',
-      source_url: 'https://example.invalid/source',
-      license: 'Licence Ouverte 2.0',
-      attribution_text: 'Fixture publisher',
-      permitted_use_summary: 'Test fixture use only',
-      allowed_product_uses: ['INGESTION', 'PUBLIC_ANSWER_WITH_SOURCE'],
-      rights_reviewed_at: '2026-09-22T10:00:00.000Z',
-      rights_recheck_at: '2026-10-22T10:00:00.000Z',
-      reviewer_role: 'TEST_REVIEWER',
-    },
-    license: 'Licence Ouverte 2.0',
+    source_name: 'Local review candidate',
+    source_url: null,
+    license: 'Pending controlled review',
     territory: 'Bretagne',
     region: 'Bretagne',
     department: 'Morbihan',
@@ -70,31 +55,59 @@ function document(overrides: Partial<BreizDocument> = {}): BreizDocument {
     tags: ['lorient', 'balade'],
     summary: 'Boucle plate le long du port de Lorient.',
     content: 'Boucle plate le long du port de Lorient.',
-    reliability_level: 'source_verified',
-    last_checked_at: '2026-09-23',
-    allowed_usage: 'public_answer_with_source',
-    ...overrides,
+    reliability_level: 'unknown',
+    last_checked_at: '2026-09-23T09:00:00.000Z',
+    allowed_usage: 'retrieval_only',
   };
 }
 
-function firstChunk(doc: BreizDocument = document()) {
-  return chunkBreizDocuments([doc], { maxWords: 40, overlapWords: 5 })[0]!;
+async function controlledDocument(): Promise<BreizDocument> {
+  const reviewed = source();
+  const result = await promoteBreizDocumentForPublicAnswer(
+    neutralDocument(),
+    reviewed.id,
+    NOW,
+    () => reviewed,
+  );
+  assert.equal(result.ready, true);
+  if (!result.ready) throw new Error(result.reason);
+  return result.document;
 }
 
-test('exact reviewed authority binding is eligible', () => {
-  const verdict = evaluateBreizChunkReleaseAuthority(firstChunk(), source(), NOW);
+async function firstChunk(): Promise<BreizDocumentChunk> {
+  const chunks = await chunkVerifiedBreizPublicDocument(
+    await controlledDocument(),
+    { maxWords: 40, overlapWords: 5 },
+  );
+  assert.equal(chunks.length > 0, true);
+  return chunks[0]!;
+}
+
+function withMetadata(
+  chunk: BreizDocumentChunk,
+  overrides: Partial<BreizDocumentChunk['metadata']>,
+): BreizDocumentChunk {
+  return {
+    ...chunk,
+    metadata: {
+      ...chunk.metadata,
+      ...overrides,
+    },
+  };
+}
+
+test('exact reviewed authority binding is eligible', async () => {
+  const chunk = await firstChunk();
+  const verdict = evaluateBreizChunkReleaseAuthority(chunk, source(), NOW);
   assert.equal(verdict.authorized, true);
   assert.deepEqual(verdict.blockers, []);
 });
 
-test('content freshness is required independently from valid rights', () => {
-  const boundary = document({ last_checked_at: '2026-09-22T10:00:00.000Z' });
-  const stale = document({ last_checked_at: '2026-09-22T09:59:59.999Z' });
-  const future = document({ last_checked_at: '2026-09-23T10:00:00.001Z' });
-  const unreadable = document({ last_checked_at: 'not-a-date' });
+test('content freshness is required independently from valid rights', async () => {
+  const chunk = await firstChunk();
 
   const boundaryVerdict = evaluateBreizChunkReleaseAuthority(
-    firstChunk(boundary),
+    withMetadata(chunk, { last_checked_at: '2026-09-22T10:00:00.000Z' }),
     source(),
     NOW,
   );
@@ -102,7 +115,7 @@ test('content freshness is required independently from valid rights', () => {
   assert.equal(boundaryVerdict.blockers.includes('CONTENT_STALE'), false);
 
   const staleVerdict = evaluateBreizChunkReleaseAuthority(
-    firstChunk(stale),
+    withMetadata(chunk, { last_checked_at: '2026-09-22T09:59:59.999Z' }),
     source(),
     NOW,
   );
@@ -110,7 +123,7 @@ test('content freshness is required independently from valid rights', () => {
   assert.ok(staleVerdict.blockers.includes('CONTENT_STALE'));
 
   const futureVerdict = evaluateBreizChunkReleaseAuthority(
-    firstChunk(future),
+    withMetadata(chunk, { last_checked_at: '2026-09-23T10:00:00.001Z' }),
     source(),
     NOW,
   );
@@ -118,7 +131,7 @@ test('content freshness is required independently from valid rights', () => {
   assert.ok(futureVerdict.blockers.includes('CONTENT_LAST_CHECK_FUTURE'));
 
   const unreadableVerdict = evaluateBreizChunkReleaseAuthority(
-    firstChunk(unreadable),
+    withMetadata(chunk, { last_checked_at: 'not-a-date' }),
     source(),
     NOW,
   );
@@ -126,7 +139,8 @@ test('content freshness is required independently from valid rights', () => {
   assert.ok(unreadableVerdict.blockers.includes('CONTENT_LAST_CHECK_UNREADABLE'));
 });
 
-test('ingestion-only rights cannot authorize a public answer', () => {
+test('ingestion-only rights cannot authorize a public answer', async () => {
+  const chunk = await firstChunk();
   const ingestionOnly = source({
     rightsEvidence: {
       ...source().rightsEvidence!,
@@ -134,12 +148,13 @@ test('ingestion-only rights cannot authorize a public answer', () => {
     },
   });
 
-  const verdict = evaluateBreizChunkReleaseAuthority(firstChunk(), ingestionOnly, NOW);
+  const verdict = evaluateBreizChunkReleaseAuthority(chunk, ingestionOnly, NOW);
   assert.equal(verdict.authorized, false);
   assert.ok(verdict.blockers.includes('REGISTRY_RELEASE_NOT_READY'));
 });
 
-test('silent product-use mutation under the same revision fails closed', () => {
+test('silent product-use mutation under the same revision fails closed', async () => {
+  const chunk = await firstChunk();
   const mutated = source({
     rightsEvidence: {
       ...source().rightsEvidence!,
@@ -147,12 +162,13 @@ test('silent product-use mutation under the same revision fails closed', () => {
     },
   });
 
-  const verdict = evaluateBreizChunkReleaseAuthority(firstChunk(), mutated, NOW);
+  const verdict = evaluateBreizChunkReleaseAuthority(chunk, mutated, NOW);
   assert.equal(verdict.authorized, false);
   assert.ok(verdict.blockers.includes('PRODUCT_USE_SCOPE_MISMATCH'));
 });
 
-test('silent permitted-use summary mutation under the same revision fails closed', () => {
+test('silent permitted-use summary mutation under the same revision fails closed', async () => {
+  const chunk = await firstChunk();
   const mutated = source({
     rightsEvidence: {
       ...source().rightsEvidence!,
@@ -160,12 +176,13 @@ test('silent permitted-use summary mutation under the same revision fails closed
     },
   });
 
-  const verdict = evaluateBreizChunkReleaseAuthority(firstChunk(), mutated, NOW);
+  const verdict = evaluateBreizChunkReleaseAuthority(chunk, mutated, NOW);
   assert.equal(verdict.authorized, false);
   assert.ok(verdict.blockers.includes('PERMITTED_USE_SUMMARY_MISMATCH'));
 });
 
-test('old chunk cannot inherit a later GO authority revision', () => {
+test('old chunk cannot inherit a later GO authority revision', async () => {
+  const chunk = await firstChunk();
   const laterSource = source({
     rightsEvidence: {
       ...source().rightsEvidence!,
@@ -173,12 +190,13 @@ test('old chunk cannot inherit a later GO authority revision', () => {
     },
   });
 
-  const verdict = evaluateBreizChunkReleaseAuthority(firstChunk(), laterSource, NOW);
+  const verdict = evaluateBreizChunkReleaseAuthority(chunk, laterSource, NOW);
   assert.equal(verdict.authorized, false);
   assert.ok(verdict.blockers.includes('AUTHORITY_REVISION_MISMATCH'));
 });
 
-test('immutable source-version mismatch fails closed', () => {
+test('immutable source-version mismatch fails closed', async () => {
+  const chunk = await firstChunk();
   const laterSource = source({
     rightsEvidence: {
       ...source().rightsEvidence!,
@@ -186,25 +204,36 @@ test('immutable source-version mismatch fails closed', () => {
     },
   });
 
-  const verdict = evaluateBreizChunkReleaseAuthority(firstChunk(), laterSource, NOW);
+  const verdict = evaluateBreizChunkReleaseAuthority(chunk, laterSource, NOW);
   assert.equal(verdict.authorized, false);
   assert.ok(verdict.blockers.includes('IMMUTABLE_VERSION_MISMATCH'));
 });
 
-test('matching registry id cannot authorize mismatched source identity', () => {
-  const mismatched = document({ source_name: 'Unrelated fixture' });
-  const verdict = evaluateBreizChunkReleaseAuthority(firstChunk(mismatched), source(), NOW);
+test('matching registry id cannot authorize mismatched source identity', async () => {
+  const chunk = await firstChunk();
+  const verdict = evaluateBreizChunkReleaseAuthority(
+    withMetadata(chunk, { source_name: 'Unrelated fixture' }),
+    source(),
+    NOW,
+  );
 
   assert.equal(verdict.authorized, false);
   assert.ok(verdict.blockers.includes('SOURCE_NAME_MISMATCH'));
 });
 
-test('mismatched source URL or licence fails closed', () => {
-  const badUrl = document({ source_url: 'https://example.invalid/other' });
-  const badLicence = document({ license: 'Different licence' });
+test('mismatched source URL or licence fails closed', async () => {
+  const chunk = await firstChunk();
 
-  const urlVerdict = evaluateBreizChunkReleaseAuthority(firstChunk(badUrl), source(), NOW);
-  const licenceVerdict = evaluateBreizChunkReleaseAuthority(firstChunk(badLicence), source(), NOW);
+  const urlVerdict = evaluateBreizChunkReleaseAuthority(
+    withMetadata(chunk, { source_url: 'https://example.invalid/other' }),
+    source(),
+    NOW,
+  );
+  const licenceVerdict = evaluateBreizChunkReleaseAuthority(
+    withMetadata(chunk, { license: 'Different licence' }),
+    source(),
+    NOW,
+  );
 
   assert.equal(urlVerdict.authorized, false);
   assert.ok(urlVerdict.blockers.includes('SOURCE_URL_MISMATCH'));
@@ -212,22 +241,39 @@ test('mismatched source URL or licence fails closed', () => {
   assert.ok(licenceVerdict.blockers.includes('SOURCE_LICENCE_MISMATCH'));
 });
 
-test('missing immutable binding fails closed even with public flags', () => {
-  const unbound = document({ source_authority_binding: null });
-  const verdict = evaluateBreizChunkReleaseAuthority(firstChunk(unbound), source(), NOW);
+test('missing immutable binding fails closed even with public flags', async () => {
+  const chunk = await firstChunk();
+  const verdict = evaluateBreizChunkReleaseAuthority(
+    withMetadata(chunk, { source_authority_binding: null }),
+    source(),
+    NOW,
+  );
 
   assert.equal(verdict.authorized, false);
   assert.ok(verdict.blockers.includes('AUTHORITY_BINDING_MISSING'));
 });
 
-test('expired reviewed authority cannot authorize a still-bound chunk', () => {
+test('missing chunk digest fails closed before cryptographic retrieval', async () => {
+  const chunk = await firstChunk();
+  const verdict = evaluateBreizChunkReleaseAuthority(
+    { ...chunk, content_sha256: null },
+    source(),
+    NOW,
+  );
+
+  assert.equal(verdict.authorized, false);
+  assert.ok(verdict.blockers.includes('CHUNK_CONTENT_DIGEST_MISSING'));
+});
+
+test('expired reviewed authority cannot authorize a still-bound chunk', async () => {
+  const chunk = await firstChunk();
   const expired = source({
     rightsEvidence: {
       ...source().rightsEvidence!,
       recheckAt: '2026-09-23T09:59:59.000Z',
     },
   });
-  const verdict = evaluateBreizChunkReleaseAuthority(firstChunk(), expired, NOW);
+  const verdict = evaluateBreizChunkReleaseAuthority(chunk, expired, NOW);
 
   assert.equal(verdict.authorized, false);
   assert.ok(verdict.blockers.includes('REGISTRY_RELEASE_NOT_READY'));
