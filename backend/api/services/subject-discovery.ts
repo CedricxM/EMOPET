@@ -30,6 +30,7 @@ import {
   professionalShareGrants,
   professionalShareAccessAudits,
   posts,
+  phonePresenceEvents,
   recoveryEvents,
   researchDataConsents,
   routineStability,
@@ -179,6 +180,10 @@ export async function discoverSubjectData(
         professionalShareGrantsOwned: counted(
           await countWhere(tx, professionalShareGrants, eq(professionalShareGrants.ownerUserId, userId)),
         ),
+        phonePresenceEvents: counted(
+          await countWhere(tx, phonePresenceEvents, eq(phonePresenceEvents.ownerId, userId)),
+          { note: 'Count only. Presence event payload disclosure/export remains separately gated.' },
+        ),
         subscriptions: counted(await countWhere(tx, subscriptions, eq(subscriptions.userId, userId))),
         achievements: counted(await countWhere(tx, achievements, eq(achievements.userId, userId))),
         aiMessagesTargetingUser: counted(await countWhere(tx, aiMessages, eq(aiMessages.targetUserId, userId))),
@@ -222,6 +227,7 @@ export async function discoverSubjectData(
       let dogCounts = {
         professionalShareGrants: 0,
         professionalShareAccessAudits: 0,
+        phonePresenceEvents: 0,
         devices: 0,
         healthEntries: 0,
         sensorFeatureObservations: 0,
@@ -276,6 +282,9 @@ export async function discoverSubjectData(
           ),
           professionalShareAccessAudits: await countWhere(
             tx, professionalShareAccessAudits, inArray(professionalShareAccessAudits.dogId, selectedDogIds),
+          ),
+          phonePresenceEvents: await countWhere(
+            tx, phonePresenceEvents, inArray(phonePresenceEvents.dogId, selectedDogIds),
           ),
           devices: await countWhere(tx, devices, inArray(devices.dogId, selectedDogIds)),
           healthEntries: await countWhere(tx, healthEntries, inArray(healthEntries.dogId, selectedDogIds)),
@@ -344,6 +353,9 @@ export async function discoverSubjectData(
           professionalShareGrants: counted(dogCounts.professionalShareGrants),
           professionalShareAccessAudits: counted(dogCounts.professionalShareAccessAudits, {
             note: 'Counts by requested dog ID only; audit identifiers have no FK and do not prove grant attribution or lifecycle completeness.',
+          }),
+          phonePresenceEvents: counted(dogCounts.phonePresenceEvents, {
+            note: 'Count only. Presence-specific retention, export and runtime access remain open.',
           }),
           devices: counted(dogCounts.devices),
           healthEntries: counted(dogCounts.healthEntries),
