@@ -67,3 +67,45 @@ Related:
 - #116 third-party data rights
 - #835 DATAtourisme source-unlock workstream
 - #827 Bretagne Regional Pack v0
+
+
+## Recheck — 2026-10-03
+
+The official DATAtourisme material was rechecked against the current public API and reuse pages.
+
+Observed repository facts:
+
+- the API documentation still identifies API version `1.0.0`;
+- `X-API-Key` remains the recommended authentication transport;
+- the published limits are 20–30 concurrent requests, about 10 sustained requests/second and 1000 requests/hour;
+- the current reuse page and FAQ explicitly describe DATAtourisme data reuse under `Licence Ouverte 2.0`;
+- the reuse page still requires producer attribution through `HasBeenCreatedBy` and the last-update date;
+- the current API-key request form requires acceptance of DATAtourisme CGU.
+
+### CGU scope ambiguity retained as HOLD
+
+The CGU linked by the current API-key request form resolves to:
+
+`https://www.datatourisme.fr/wp-content/uploads/2025/12/datatourisme-cgu-diffuseur-v2.0.pdf`
+
+That document identifies itself as:
+
+- `INTERFACE DIFFUSEURS DATATOURISME`;
+- version `2.0`;
+- dated `23/08/2022`.
+
+The current website links this document from the API-key request flow, but the repository does not treat that link alone as proof that every clause is the exact API-v1 CGU authority for the public API launched in 2026.
+
+Therefore:
+
+- the licence observation may now be recorded as a source fact;
+- no `SOURCE_CONFIRMED / GO` runtime rights evidence is created;
+- no product-use scope is granted;
+- DATAtourisme remains disabled;
+- live fetch remains unauthorized.
+
+Machine-readable observation receipt:
+
+`data/registry/receipts/datatourisme-api-rights-observation-2026-10-03.json`
+
+The next authority transition requires an explicit clarification response or other controlled evidence resolving the API-CGU scope and recheck/versioning rules.
