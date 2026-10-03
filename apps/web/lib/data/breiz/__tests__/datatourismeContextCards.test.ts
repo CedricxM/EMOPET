@@ -30,7 +30,7 @@ function source(overrides: Partial<BreizSourceDescriptor> = {}): BreizSourceDesc
       receiptPath: 'data/registry/receipts/datatourisme-fixture.json',
       attributionText: 'DATAtourisme network',
       permittedUseSummary: 'Fixture ingestion with attribution.',
-      allowedProductUses: ['INGESTION'],
+      allowedProductUses: ['INGESTION', 'PUBLIC_ANSWER_WITH_SOURCE'],
       reviewedAt: '2026-09-30T12:00:00Z',
       reviewerRole: 'TEST_RIGHTS_REVIEWER',
       recheckAt: '2026-10-02T12:00:00Z',
@@ -78,7 +78,7 @@ function loadedEvent(): DatatourismeBretagneLoadedEvent {
       rightsReceiptPath: 'data/registry/receipts/datatourisme-fixture.json',
       rightsAttributionText: 'DATAtourisme network',
       rightsPermittedUseSummary: 'Fixture ingestion with attribution.',
-      rightsAllowedProductUses: ['INGESTION'],
+      rightsAllowedProductUses: ['INGESTION', 'PUBLIC_ANSWER_WITH_SOURCE'],
       rightsReviewedAt: '2026-09-30T12:00:00Z',
       rightsRecheckAt: '2026-10-02T12:00:00Z',
       rightsReviewerRole: 'TEST_RIGHTS_REVIEWER',
@@ -129,7 +129,7 @@ test('DATAtourisme card fails closed when collected rights revision no longer ma
   assert.equal(card, null);
 });
 
-test('DATAtourisme card fails closed when current rights scope changes under the same revision', () => {
+test('DATAtourisme card fails closed when current rights lose public-answer scope', () => {
   const card = buildDatatourismeEventContextCard(loadedEvent(), {
     ...CARD_OPTIONS,
     relevanceReason: 'Test',
@@ -137,7 +137,7 @@ test('DATAtourisme card fails closed when current rights scope changes under the
       source({
         rightsEvidence: {
           ...source().rightsEvidence!,
-          allowedProductUses: ['INGESTION', 'PUBLIC_ANSWER_WITH_SOURCE'],
+          allowedProductUses: ['INGESTION'],
         },
       }),
   });
