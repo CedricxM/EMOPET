@@ -236,6 +236,12 @@ test('absence de règle de fraîcheur ≠ à jour', () => {
   assert.equal(isFresh(noPolicy, AT), false);
 });
 
+test('date de récupération future → jamais fraîche', () => {
+  const future = provenance({ retrievedAt: '2026-09-20T07:00:00.000Z' });
+  assert.equal(evaluateFreshness(future, AT), 'future_retrieval_date');
+  assert.equal(isFresh(future, AT), false);
+});
+
 test('date de récupération illisible → distinguée de « périmé »', () => {
   const broken = provenance({ retrievedAt: 'pas une date' });
   assert.equal(evaluateFreshness(broken, AT), 'unreadable_retrieval_date');
