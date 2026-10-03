@@ -149,6 +149,32 @@ Controlled consequences:
 
 `G-THIRD-PARTY-DATA-RIGHTS-01 = OPEN`
 
+### 0.5 DATAtourisme API rights observation — 2026-10-03
+
+Current official-source recheck records a narrower, more precise state without promoting the source:
+
+- DATAtourisme's current reuse/FAQ material states `Licence Ouverte 2.0`;
+- the reuse material requires producer attribution through `HasBeenCreatedBy` and retention/display of the reused data's last-update date;
+- API documentation identifies API version `1.0.0`, recommends `X-API-Key` and publishes request limits;
+- the current API-key form links a CGU PDF titled `Interface diffuseurs DATAtourisme`, version `2.0`, dated `23/08/2022`;
+- the repository does not infer API-v1 CGU scope from that link alone because the linked document predates the 2026 public API launch and is framed for the historical diffuseurs interface.
+
+Controlled receipt:
+
+`data/registry/receipts/datatourisme-api-rights-observation-2026-10-03.json`
+
+Runtime boundary remains:
+
+- `enabled: false`;
+- no runtime `rightsEvidence`;
+- no `INGESTION` or `PUBLIC_ANSWER_WITH_SOURCE` scope;
+- no live-fetch authority;
+- clarification required before any GO transition.
+
+`DATATOURISME_API_RIGHTS = HOLD_CGU_SCOPE_CLARIFICATION`
+
+`G-THIRD-PARTY-DATA-RIGHTS-01 = OPEN`
+
 ## 1. Purpose and authority boundary
 
 This register records repository-observable facts, official-source checks and missing
@@ -229,8 +255,8 @@ output of `git rev-parse HEAD:<path>` and is machine-re-checked.
 | DATA-SRC-009 | `apps/web/lib/map/mapSurface.ts` | `3d2eebaba8b138ad5681d9a7770627ca55a4c4a4` | A blank or whitespace Mapbox token resolves to `unconfigured`; `unavailable` and `unconfigured` are distinct user-visible states | `REPOSITORY_FACT` |
 | DATA-SRC-010 | `apps/web/package.json` | `8d49c8df5564ba54c1cd06cfbfc157f14dd5e12d` | The web app declares `mapbox-gl@^3.24.0` and `@types/mapbox-gl@^3.5.0` | `REPOSITORY_FACT` |
 | DATA-SRC-011 | `docs/STACK_GAPS.md` | `8cace0c76f4982da3cba7038ec8e15215cf44bff` | The stack table says `Mapbox GL (token Cédric)`; this does not establish current legal account authority | `UNVERIFIED_CLAIM` |
-| DATA-SRC-012 | `apps/web/lib/data/breiz/sourceRegistry.ts` | `53cd0e4878929bf5624c30814e1db7ad1a23d041` | Nine sources are catalogued; eight carry `license: null`; the two enabled sources (`region-bretagne-open-data`, `data-gouv-fr`) are both null-licence | `REPOSITORY_FACT` |
-| DATA-SRC-013 | `apps/web/lib/data/breiz/sourceRegistry.ts` | `53cd0e4878929bf5624c30814e1db7ad1a23d041` | `evaluateBreizSourceRights` blocks ingestion on `SOURCE_DISABLED`, `NO_LICENCE_RECEIPT`, `NO_RECHECK_RULE` or `PARTNER_PERMISSION_REQUIRED`; `canStoreFullText` now derives from it | `ENFORCEMENT_LANDED_EVIDENCE_OPEN` |
+| DATA-SRC-012 | `apps/web/lib/data/breiz/sourceRegistry.ts` | `fdc51f6600d3a8874dc1aada95382b1c2ad0deee` | Nine sources are catalogued; seven carry `license: null`. DATAtourisme now records the official-source `Licence Ouverte 2.0` statement while remaining disabled and without runtime rights evidence; the two enabled catalogue sources (`region-bretagne-open-data`, `data-gouv-fr`) remain null-licence | `REPOSITORY_FACT` |
+| DATA-SRC-013 | `apps/web/lib/data/breiz/sourceRegistry.ts` | `fdc51f6600d3a8874dc1aada95382b1c2ad0deee` | `evaluateBreizSourceRights` now additionally requires controlled rights evidence, an in-window review and explicit `INGESTION` product-use scope; source disablement, missing licence/recheck rule and partner-permission blockers remain fail-closed | `ENFORCEMENT_LANDED_EVIDENCE_OPEN` |
 | DATA-SRC-014 | `apps/web/lib/data/breiz/sourceProvenance.ts` | `b4dd3109d7a02c15aba6910d56548b0705d3007f` | `evaluateFreshness` returns `no_recheck_rule` where a recheck rule is absent, and `isFresh` is true only for `fresh` | `REPOSITORY_FACT` |
 | DATA-SRC-015 | `.github/workflows/security-supply-chain.yml` | `e21e3e1ec510f9716c6ce424b4d40baf33ef261e` | CI generates CycloneDX and SPDX SBOM artifacts with Syft; no step records a dependency-licence disposition | `REPOSITORY_FACT` |
 | DATA-SRC-016 | `.github/workflows/p0-db-baseline.yml` | `2c8e7e1b9af8f46888544aff0a4d59751058665b` | CI runs `scripts/data/vbo-committed-snapshot-audit.mjs`, so the VBO traceability record is guarded against silent drift | `REPOSITORY_FACT` |
