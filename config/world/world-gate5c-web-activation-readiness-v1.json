@@ -25,7 +25,7 @@
     "ANONYMOUS_PROGRESSION_READ"
   ],
   "activationRule": "ALL_PREREQUISITES_TRUE",
-  "nextAction": "KEEP_WORLD_UI_INACTIVE_UNTIL_REMAINING_GATES_CLOSE_AND_UI_CUTOVER_IS_EXPLICITLY_RECORDED",
+  "nextAction": "RESOLVE_MULTI_INSTANCE_REFRESH_RACE_AND_KEEP_WORLD_UI_INACTIVE_UNTIL_ALL_REMAINING_GATES_CLOSE",
   "regionProvider": {
     "explicitCoarseRegionInput": true,
     "catalogBounded": true,
@@ -54,6 +54,18 @@
     "concurrentRefreshSingleFlight": "INSTANCE_LOCAL_SHA256_KEYED",
     "concurrentRefreshSingleFlightInstanceLocal": true,
     "concurrentRefreshSingleFlightMultiInstance": false,
-    "concurrentRefreshSingleFlightNextAction": "ADD_SHARED_COORDINATION_OR_EQUIVALENT_MULTI_INSTANCE_PROOF"
+    "concurrentRefreshSingleFlightNextAction": "ADD_SHARED_COORDINATION_OR_EQUIVALENT_MULTI_INSTANCE_PROOF",
+    "multiInstanceRefreshRace": {
+      "status": "BLOCKED_STRICT_REUSE_REVOKES_ACTIVE_FAMILY",
+      "backendRoute": "POST /api/auth/refresh",
+      "backendService": "backend/api/services/auth-sessions.ts#rotateRefreshCredential",
+      "serialization": "POSTGRES_USER_LOCK_THEN_FAMILY_ADVISORY_LOCK",
+      "rotatedTokenReplayPolicy": "REUSE_DETECTED_REVOKE_ACTIVE_FAMILY",
+      "integrationEvidence": "backend/test/auth-routes-postgres.test.mjs",
+      "observedRaceActiveCount": 0,
+      "observedRaceReuseCountMinimum": 1,
+      "sharedCoordinatorSelected": false,
+      "uiCutoverBlocked": true
+    }
   }
 }

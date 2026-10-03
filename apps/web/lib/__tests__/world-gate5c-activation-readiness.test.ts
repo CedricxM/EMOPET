@@ -54,6 +54,18 @@ test('Gate 5C remains fail-closed after Owner auth readiness until cutover exist
     concurrentRefreshSingleFlightInstanceLocal: true,
     concurrentRefreshSingleFlightMultiInstance: false,
     concurrentRefreshSingleFlightNextAction: 'ADD_SHARED_COORDINATION_OR_EQUIVALENT_MULTI_INSTANCE_PROOF',
+    multiInstanceRefreshRace: {
+      status: 'BLOCKED_STRICT_REUSE_REVOKES_ACTIVE_FAMILY',
+      backendRoute: 'POST /api/auth/refresh',
+      backendService: 'backend/api/services/auth-sessions.ts#rotateRefreshCredential',
+      serialization: 'POSTGRES_USER_LOCK_THEN_FAMILY_ADVISORY_LOCK',
+      rotatedTokenReplayPolicy: 'REUSE_DETECTED_REVOKE_ACTIVE_FAMILY',
+      integrationEvidence: 'backend/test/auth-routes-postgres.test.mjs',
+      observedRaceActiveCount: 0,
+      observedRaceReuseCountMinimum: 1,
+      sharedCoordinatorSelected: false,
+      uiCutoverBlocked: true,
+    },
     worldUiActivated: false,
   });
   assert.deepEqual(readiness.regionProvider, {
@@ -89,4 +101,42 @@ test('World UI still does not activate the Gate 5A client', async () => {
       );
     }
   }
+});
+
+
+test('Gate 5C multi-instance refresh blocker matches backend race evidence', () => {
+  const authRoute = readFileSync(
+    new URL('../../../../backend/api/routes/auth.ts', import.meta.url),
+    'utf8',
+  );
+  const authSessions = readFileSync(
+    new URL('../../../../backend/api/services/auth-sessions.ts', import.meta.url),
+    'utf8',
+  );
+  const authRouteTest = readFileSync(
+    new URL('../../../../backend/test/auth-routes-postgres.test.mjs', import.meta.url),
+    'utf8',
+  );
+
+  const race = readiness.ownerSessionProvider.multiInstanceRefreshRace;
+  assert.equal(race.status, 'BLOCKED_STRICT_REUSE_REVOKES_ACTIVE_FAMILY');
+  assert.equal(race.uiCutoverBlocked, true);
+  assert.equal(race.sharedCoordinatorSelected, false);
+  assert.equal(readiness.activated, false);
+  assert.equal(readiness.prerequisites.uiCutoverDecisionRecorded, false);
+
+  assert.match(authRoute, /pg_advisory_xact_lock\(hashtextextended/);
+  assert.match(authSessions, /current\.revokeReason === 'rotated'/);
+  assert.match(
+    authSessions,
+    /revokeActiveFamily\(current\.familyId,\s*'reuse_detected'/s,
+  );
+  assert.match(
+    authRouteTest,
+    /assert\.equal\(raceFamilyState\.active_count,\s*0\)/,
+  );
+  assert.match(
+    authRouteTest,
+    /assert\.ok\(raceFamilyState\.reuse_count >= 1\)/,
+  );
 });
