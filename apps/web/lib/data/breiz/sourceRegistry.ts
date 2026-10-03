@@ -193,7 +193,7 @@ export const BREIZ_SOURCE_REGISTRY: readonly BreizSourceDescriptor[] = [
     license: 'Licence Ouverte 2.0',
     freshnessHours: 24,
     enabled: false,
-    notes: 'Official current reuse pages state Licence Ouverte 2.0 and require HasBeenCreatedBy attribution plus last-update information. Runtime remains HOLD: the API-key form links a 2022 Interface diffuseurs CGU, so API-v1 CGU scope/recheck authority must be clarified before any rightsEvidence GO or live-fetch activation. See data/registry/receipts/datatourisme-api-rights-observation-2026-10-03.json.',
+    notes: 'API v1 recommends X-API-Key. Official current reuse pages state Licence Ouverte 2.0 and require HasBeenCreatedBy attribution plus last-update information. Runtime remains HOLD: the API-key form links a 2022 Interface diffuseurs CGU, so API-v1 CGU scope/recheck authority must be clarified before any rightsEvidence GO or live-fetch activation. See data/registry/receipts/datatourisme-api-rights-observation-2026-10-03.json.',
   },
 ];
 
