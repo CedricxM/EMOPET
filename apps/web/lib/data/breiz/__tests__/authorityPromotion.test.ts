@@ -7,6 +7,10 @@ import {
   deriveBreizSourceAuthorityBinding,
   promoteBreizDocumentForPublicAnswer,
 } from '../authorityPromotion';
+import {
+  isSha256Hex,
+  verifyBreizDocumentPayloadIntegrity,
+} from '../documentIntegrity';
 import type { BreizSourceDescriptor } from '../sourceRegistry';
 
 const NOW = Date.parse('2026-10-02T12:00:00.000Z');
@@ -64,9 +68,9 @@ function neutralDocument(overrides: Partial<BreizDocument> = {}): BreizDocument 
   };
 }
 
-test('controlled promotion mints authority only from reviewed registry evidence', () => {
+test('controlled promotion mints reviewed authority plus cryptographic payload snapshot', async () => {
   const reviewed = source();
-  const result = promoteBreizDocumentForPublicAnswer(
+  const result = await promoteBreizDocumentForPublicAnswer(
     neutralDocument(),
     reviewed.id,
     NOW,
@@ -96,10 +100,33 @@ test('controlled promotion mints authority only from reviewed registry evidence'
   assert.equal(binding.rights_reviewed_at, '2026-10-01T09:00:00.000Z');
   assert.equal(binding.rights_recheck_at, '2026-11-01T09:00:00.000Z');
   assert.equal(binding.reviewer_role, 'TEST_RIGHTS_REVIEWER');
+  assert.equal(isSha256Hex(binding.document_payload_sha256), true);
+  assert.equal(await verifyBreizDocumentPayloadIntegrity(result.document), true);
   assert.deepEqual(validateBreizDocument(result.document), []);
 });
 
-test('public promotion rejects stale, future and unreadable content checks', () => {
+test('post-promotion factual mutation breaks document payload integrity', async () => {
+  const result = await promoteBreizDocumentForPublicAnswer(
+    neutralDocument(),
+    'fixture-source',
+    NOW,
+    () => source(),
+  );
+  assert.equal(result.ready, true);
+  if (!result.ready) return;
+
+  for (const mutated of [
+    { ...result.document, content: result.document.content + ' tampered' },
+    { ...result.document, title: 'Mutated title' },
+    { ...result.document, summary: 'Mutated summary' },
+    { ...result.document, tags: [...result.document.tags, 'mutated'] },
+    { ...result.document, last_checked_at: '2026-10-02T01:00:00.000Z' },
+  ]) {
+    assert.equal(await verifyBreizDocumentPayloadIntegrity(mutated), false);
+  }
+});
+
+test('public promotion rejects stale, future and unreadable content checks', async () => {
   const cases = [
     ['2026-10-01T11:59:59.999Z', 'stale'],
     ['2026-10-02T12:00:00.001Z', 'future_last_checked_at'],
@@ -107,7 +134,7 @@ test('public promotion rejects stale, future and unreadable content checks', () 
   ] as const;
 
   for (const [lastCheckedAt, freshness] of cases) {
-    const result = promoteBreizDocumentForPublicAnswer(
+    const result = await promoteBreizDocumentForPublicAnswer(
       neutralDocument({ last_checked_at: lastCheckedAt }),
       'fixture-source',
       NOW,
@@ -122,8 +149,8 @@ test('public promotion rejects stale, future and unreadable content checks', () 
   }
 });
 
-test('public promotion accepts content exactly on the freshness boundary', () => {
-  const result = promoteBreizDocumentForPublicAnswer(
+test('public promotion accepts content exactly on the freshness boundary', async () => {
+  const result = await promoteBreizDocumentForPublicAnswer(
     neutralDocument({ last_checked_at: '2026-10-01T12:00:00.000Z' }),
     'fixture-source',
     NOW,
@@ -133,7 +160,7 @@ test('public promotion accepts content exactly on the freshness boundary', () =>
   assert.equal(result.ready, true);
 });
 
-test('public promotion fails when rights grant ingestion but not public answers', () => {
+test('public promotion fails when rights grant ingestion but not public answers', async () => {
   const reviewed = source({
     rightsEvidence: {
       ...source().rightsEvidence!,
@@ -141,7 +168,7 @@ test('public promotion fails when rights grant ingestion but not public answers'
     },
   });
 
-  const result = promoteBreizDocumentForPublicAnswer(
+  const result = await promoteBreizDocumentForPublicAnswer(
     neutralDocument(),
     reviewed.id,
     NOW,
@@ -155,14 +182,14 @@ test('public promotion fails when rights grant ingestion but not public answers'
   });
 });
 
-test('mocks, community or restricted documents cannot be authority-laundered', () => {
+test('mocks, community or restricted documents cannot be authority-laundered', async () => {
   for (const candidate of [
     neutralDocument({ reliability_level: 'curated_mock' }),
     neutralDocument({ reliability_level: 'community_pending' }),
     neutralDocument({ allowed_usage: 'do_not_answer' }),
     neutralDocument({ allowed_usage: 'internal_reference' }),
   ]) {
-    const result = promoteBreizDocumentForPublicAnswer(
+    const result = await promoteBreizDocumentForPublicAnswer(
       candidate,
       'fixture-source',
       NOW,
@@ -173,8 +200,8 @@ test('mocks, community or restricted documents cannot be authority-laundered', (
   }
 });
 
-test('an already bound document cannot be rebound to a later authority', () => {
-  const first = promoteBreizDocumentForPublicAnswer(
+test('an already bound document cannot be rebound to a later authority', async () => {
+  const first = await promoteBreizDocumentForPublicAnswer(
     neutralDocument(),
     'fixture-source',
     NOW,
@@ -183,7 +210,7 @@ test('an already bound document cannot be rebound to a later authority', () => {
   assert.equal(first.ready, true);
   if (!first.ready) return;
 
-  const second = promoteBreizDocumentForPublicAnswer(
+  const second = await promoteBreizDocumentForPublicAnswer(
     first.document,
     'fixture-source',
     NOW,
@@ -210,11 +237,18 @@ test('binding derivation refuses current source without explicit public-answer s
       allowedProductUses: ['INGESTION'],
     },
   });
-  assert.equal(deriveBreizSourceAuthorityBinding(ingestionOnly, NOW), null);
+  assert.equal(
+    deriveBreizSourceAuthorityBinding(
+      ingestionOnly,
+      'a'.repeat(64),
+      NOW,
+    ),
+    null,
+  );
 });
 
-test('schema rejects authority-bound identity or licence drift', () => {
-  const result = promoteBreizDocumentForPublicAnswer(
+test('schema rejects authority-bound identity, licence or digest-shape drift', async () => {
+  const result = await promoteBreizDocumentForPublicAnswer(
     neutralDocument(),
     'fixture-source',
     NOW,
@@ -226,8 +260,20 @@ test('schema rejects authority-bound identity or licence drift', () => {
   const badName = { ...result.document, source_name: 'Other source' };
   const badUrl = { ...result.document, source_url: 'https://example.invalid/other' };
   const badLicense = { ...result.document, license: 'Different licence' };
+  const badDigest = {
+    ...result.document,
+    source_authority_binding: {
+      ...result.document.source_authority_binding!,
+      document_payload_sha256: 'not-a-digest',
+    },
+  };
 
   assert.ok(validateBreizDocument(badName).includes('source_name must match source_authority_binding'));
   assert.ok(validateBreizDocument(badUrl).includes('source_url must match source_authority_binding'));
   assert.ok(validateBreizDocument(badLicense).includes('license must match source_authority_binding'));
+  assert.ok(
+    validateBreizDocument(badDigest).includes(
+      'source_authority_binding.document_payload_sha256 must be sha256 hex',
+    ),
+  );
 });
