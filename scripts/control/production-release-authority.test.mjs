@@ -574,6 +574,7 @@ test('production runtime configuration contract remains fail-closed and release-
       'AUTH_RATE_LIMIT_HMAC_SECRET',
       'EMOPET_INTERNAL_AUDIT_SERVICE_SECRET',
       'EMOPET_INTERNAL_ALERT_ACK_SERVICE_SECRET',
+      'EMOPET_INTERNAL_OWNER_SESSION_SERVICE_SECRET',
       'NEXT_PUBLIC_MAPBOX_TOKEN',
     ],
     'runtimeConfig known authority variables',
@@ -585,6 +586,7 @@ test('production runtime configuration contract remains fail-closed and release-
   assert.match(rules, /Production secret custody remains OPEN/i);
   assert.match(rules, /DATABASE_URL and MIGRATION_DATABASE_URL are separate authorities/i);
   assert.match(rules, /EMOPET_INTERNAL_ALERT_ACK_SERVICE_SECRET.*distinct/i);
+  assert.match(rules, /EMOPET_INTERNAL_OWNER_SESSION_SERVICE_SECRET.*distinct/i);
   assert.match(rules, /Production backend URLs.*require HTTPS evidence/i);
   assert.match(rules, /keeps the environment receipt DRAFT_UNVERIFIED or HOLD/i);
 });
