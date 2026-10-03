@@ -307,6 +307,16 @@
       "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
       "inventoryCategories": [],
       "mappingRationale": "Durable World progression state is Owner-linked, but lifecycle/export/retention classification remains explicitly TO_CONFIRM under issue #898."
+    },
+    {
+      "table": "phone_presence_events",
+      "classificationStatus": "UNCLASSIFIED_REQUIRES_PRIVACY_CLASSIFICATION",
+      "inventoryCategories": [],
+      "candidateAreas": [
+        "phone presence/proximity events",
+        "household-presence sensitivity"
+      ],
+      "mappingRationale": "Durable schema foundation contains Owner/dog linkage, presence/absence state, event time and source but no exact coordinates, RSSI or free text. Presence-specific retention/lifecycle classification remains explicitly TO_CONFIRM under #135/#131 and must not inherit another category by analogy."
     }
   ],
   "scopeLimitations": [
