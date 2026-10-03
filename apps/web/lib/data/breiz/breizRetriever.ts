@@ -2,6 +2,7 @@ import { chunkBreizDocuments } from './chunkDocuments';
 import { MOCK_BREIZ_DOCUMENTS } from './mockDocuments';
 import { MockBreizVectorStore } from './mockVectorStore';
 import { getBreizSource, isBreizSourcePublicAnswerReady } from './sourceRegistry';
+import { evaluateBreizDocumentFreshness } from './contentFreshness';
 import type { BreizSourceDescriptor } from './sourceRegistry';
 import type { BreizDocument, BreizDocumentChunk } from './breizDocument.schema';
 
@@ -61,6 +62,24 @@ export function evaluateBreizChunkReleaseAuthority(
     return { authorized: false, blockers: [...new Set(blockers)] };
   }
 
+  const freshness = evaluateBreizDocumentFreshness(chunk.metadata, source, nowMs);
+  switch (freshness) {
+    case 'fresh':
+      break;
+    case 'stale':
+      blockers.push('CONTENT_STALE');
+      break;
+    case 'future_last_checked_at':
+      blockers.push('CONTENT_LAST_CHECK_FUTURE');
+      break;
+    case 'unreadable_last_checked_at':
+      blockers.push('CONTENT_LAST_CHECK_UNREADABLE');
+      break;
+    case 'no_recheck_rule':
+      blockers.push('CONTENT_NO_RECHECK_RULE');
+      break;
+  }
+
   if (sourceRegistryId !== source.id || binding.source_registry_id !== source.id) {
     blockers.push('REGISTRY_ID_MISMATCH');
   }
@@ -111,10 +130,13 @@ export function evaluateBreizChunkReleaseAuthority(
   return { authorized: blockers.length === 0, blockers: [...new Set(blockers)] };
 }
 
-function canAnswerFromChunk(chunk: BreizDocumentChunk): boolean {
+function canAnswerFromChunk(
+  chunk: BreizDocumentChunk,
+  nowMs: number,
+): boolean {
   const sourceRegistryId = chunk.metadata.source_registry_id?.trim();
   const source = sourceRegistryId ? getBreizSource(sourceRegistryId) : undefined;
-  return evaluateBreizChunkReleaseAuthority(chunk, source).authorized;
+  return evaluateBreizChunkReleaseAuthority(chunk, source, nowMs).authorized;
 }
 
 export function createBreizMockStore(documents: BreizDocument[] = MOCK_BREIZ_DOCUMENTS): MockBreizVectorStore {
@@ -125,10 +147,11 @@ export function retrieveBreizLocalKnowledge(
   query: string,
   store: MockBreizVectorStore = createBreizMockStore(),
   k = 4,
+  nowMs: number = Date.now(),
 ): BreizRetrievalAnswer {
   const safeK = Math.max(1, Math.min(k, 8));
   const hits = store.search(query, safeK * 3);
-  const chunks = hits.map((hit) => hit.chunk).filter(canAnswerFromChunk).slice(0, safeK);
+  const chunks = hits.map((hit) => hit.chunk).filter((chunk) => canAnswerFromChunk(chunk, nowMs)).slice(0, safeK);
   if (chunks.length === 0) {
     return {
       status: 'not_enough_information',

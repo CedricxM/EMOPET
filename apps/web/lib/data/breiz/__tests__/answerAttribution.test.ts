@@ -87,6 +87,45 @@ test('exact reviewed authority binding is eligible', () => {
   assert.deepEqual(verdict.blockers, []);
 });
 
+test('content freshness is required independently from valid rights', () => {
+  const boundary = document({ last_checked_at: '2026-09-22T10:00:00.000Z' });
+  const stale = document({ last_checked_at: '2026-09-22T09:59:59.999Z' });
+  const future = document({ last_checked_at: '2026-09-23T10:00:00.001Z' });
+  const unreadable = document({ last_checked_at: 'not-a-date' });
+
+  const boundaryVerdict = evaluateBreizChunkReleaseAuthority(
+    firstChunk(boundary),
+    source(),
+    NOW,
+  );
+  assert.equal(boundaryVerdict.authorized, true);
+  assert.equal(boundaryVerdict.blockers.includes('CONTENT_STALE'), false);
+
+  const staleVerdict = evaluateBreizChunkReleaseAuthority(
+    firstChunk(stale),
+    source(),
+    NOW,
+  );
+  assert.equal(staleVerdict.authorized, false);
+  assert.ok(staleVerdict.blockers.includes('CONTENT_STALE'));
+
+  const futureVerdict = evaluateBreizChunkReleaseAuthority(
+    firstChunk(future),
+    source(),
+    NOW,
+  );
+  assert.equal(futureVerdict.authorized, false);
+  assert.ok(futureVerdict.blockers.includes('CONTENT_LAST_CHECK_FUTURE'));
+
+  const unreadableVerdict = evaluateBreizChunkReleaseAuthority(
+    firstChunk(unreadable),
+    source(),
+    NOW,
+  );
+  assert.equal(unreadableVerdict.authorized, false);
+  assert.ok(unreadableVerdict.blockers.includes('CONTENT_LAST_CHECK_UNREADABLE'));
+});
+
 test('ingestion-only rights cannot authorize a public answer', () => {
   const ingestionOnly = source({
     rightsEvidence: {

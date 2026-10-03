@@ -66,7 +66,11 @@ export function validateBreizDocument(document: BreizDocument): string[] {
   if (!document.source_name.trim()) errors.push('source_name is required');
   if (!document.license.trim()) errors.push('license is required');
   if (!document.content.trim()) errors.push('content is required');
-  if (!document.last_checked_at.trim()) errors.push('last_checked_at is required');
+  if (!document.last_checked_at.trim()) {
+    errors.push('last_checked_at is required');
+  } else if (!Number.isFinite(Date.parse(document.last_checked_at))) {
+    errors.push('last_checked_at must be a parseable date');
+  }
 
   const binding = document.source_authority_binding;
   if (binding) {

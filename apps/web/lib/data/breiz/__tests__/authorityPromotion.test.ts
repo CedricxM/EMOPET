@@ -99,6 +99,40 @@ test('controlled promotion mints authority only from reviewed registry evidence'
   assert.deepEqual(validateBreizDocument(result.document), []);
 });
 
+test('public promotion rejects stale, future and unreadable content checks', () => {
+  const cases = [
+    ['2026-10-01T11:59:59.999Z', 'stale'],
+    ['2026-10-02T12:00:00.001Z', 'future_last_checked_at'],
+    ['not-a-date', 'unreadable_last_checked_at'],
+  ] as const;
+
+  for (const [lastCheckedAt, freshness] of cases) {
+    const result = promoteBreizDocumentForPublicAnswer(
+      neutralDocument({ last_checked_at: lastCheckedAt }),
+      'fixture-source',
+      NOW,
+      () => source(),
+    );
+
+    assert.deepEqual(result, {
+      ready: false,
+      reason: 'document_freshness_invalid',
+      validationErrors: [`content freshness: ${freshness}`],
+    });
+  }
+});
+
+test('public promotion accepts content exactly on the freshness boundary', () => {
+  const result = promoteBreizDocumentForPublicAnswer(
+    neutralDocument({ last_checked_at: '2026-10-01T12:00:00.000Z' }),
+    'fixture-source',
+    NOW,
+    () => source(),
+  );
+
+  assert.equal(result.ready, true);
+});
+
 test('public promotion fails when rights grant ingestion but not public answers', () => {
   const reviewed = source({
     rightsEvidence: {
